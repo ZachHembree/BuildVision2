@@ -18,7 +18,12 @@ namespace DarkHelmet.BuildVision2
             clampHudPos = true,
             apiMaxVisible = 11,
             fallbkMaxVisible = 8,
-            apiHudScale = 1.25f
+            apiHudScale = 1.25f,
+
+            blockIncTextColor = "180,0,0",
+            defaultTextColor = "200,190,160",
+            highlightTextColor = "200,170,0",
+            selectedTextColor = "30,200,30",
         };
 
         [XmlElement (ElementName ="ClampHudToScreenEdges")]
@@ -36,6 +41,18 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "ApiHudSize")]
         public float apiHudScale;
 
+        [XmlElement(ElementName = "BlockIncompleteTextColorRGB")]
+        public string blockIncTextColor;
+
+        [XmlElement(ElementName = "DefaultTextColorRGB")]
+        public string defaultTextColor;
+
+        [XmlElement(ElementName = "HighlightTextColorRGB")]
+        public string highlightTextColor;
+
+        [XmlElement(ElementName = "SelectedTextColorRGB")]
+        public string selectedTextColor;
+
         /// <summary>
         /// Checks any fields have invalid values and resets them to the default if necessary.
         /// </summary>
@@ -49,6 +66,18 @@ namespace DarkHelmet.BuildVision2
 
             if (apiHudScale == default(float))
                 apiHudScale = defaults.apiHudScale;
+
+            if (blockIncTextColor == default(string))
+                blockIncTextColor = defaults.blockIncTextColor;
+
+            if (defaultTextColor == default(string))
+                defaultTextColor = defaults.defaultTextColor;
+
+            if (highlightTextColor == default(string))
+                highlightTextColor = defaults.highlightTextColor;
+
+            if (selectedTextColor == default(string))
+                selectedTextColor = defaults.selectedTextColor;
         }
     }
 
@@ -66,13 +95,14 @@ namespace DarkHelmet.BuildVision2
         private IMyHudNotification fallbkHeader;
         private IMyHudNotification[] fallbkList;
         private HudAPIv2 hudApi;
-        private HudAPIv2.HUDMessage hudApiMessage;
+        private HudAPIv2.HUDMessage hudApiMessageBg, hudApiMessageFore;
         private PropertyBlock target;
 
         private bool clampHudPos, forceToCenter;
         private int index, visStart, visEnd, selection;
         private bool apiHudOpen, fallbackHudOpen;
-        private string headerText;
+        private string headerText, blockIncTextColor, defaultTextColor, 
+            highlightTextColor, selectedTextColor;
 
         private PropertiesMenu(PropMenuConfig cfg, Binds binds)
         {
@@ -121,6 +151,12 @@ namespace DarkHelmet.BuildVision2
             apiMaxVisible = cfg.apiMaxVisible;
             fallbkMaxVisible = cfg.fallbkMaxVisible;
             apiHudScale = cfg.apiHudScale;
+
+            blockIncTextColor = cfg.blockIncTextColor;
+            defaultTextColor = cfg.defaultTextColor;
+            highlightTextColor = cfg.highlightTextColor;
+            selectedTextColor = cfg.selectedTextColor;
+
             fallbkList = new IMyHudNotification[fallbkMaxVisible];
         }
 
@@ -132,7 +168,12 @@ namespace DarkHelmet.BuildVision2
                 clampHudPos = clampHudPos,
                 apiMaxVisible = apiMaxVisible,
                 fallbkMaxVisible = fallbkMaxVisible,
-                apiHudScale = apiHudScale
+                apiHudScale = apiHudScale,
+
+                blockIncTextColor = blockIncTextColor,
+                defaultTextColor = defaultTextColor,
+                highlightTextColor = highlightTextColor,
+                selectedTextColor = selectedTextColor
             };
         }
 
@@ -246,18 +287,26 @@ namespace DarkHelmet.BuildVision2
 
         private void UpdateApiMenu()
         {
-            if (hudApiMessage == null)
+            if (hudApiMessageBg == null)
             {
-                hudApiMessage = new HudAPIv2.HUDMessage();
-                hudApiMessage.Blend = BlendTypeEnum.LDR;
-                //hudApiMessage.Options |= HudAPIv2.Options.Shadowing;
-                //hudApiMessage.ShadowColor = new Color(0,0,0,80);
-                hudApiMessage.Scale = apiHudScale;
+                hudApiMessageBg = new HudAPIv2.HUDMessage();
+                hudApiMessageBg.Blend = BlendTypeEnum.LDR;
+                hudApiMessageBg.Options |= HudAPIv2.Options.Shadowing;
+                hudApiMessageBg.ShadowColor = new Color(0,0,0);
+                hudApiMessageBg.Scale = apiHudScale;
+
+                hudApiMessageFore = new HudAPIv2.HUDMessage();
+                hudApiMessageFore.Blend = BlendTypeEnum.LDR;
+                hudApiMessageFore.Scale = apiHudScale;
             }
 
             UpdateApiMenuPos();
-            hudApiMessage.Visible = true;
-            hudApiMessage.Message = GetApiText();
+            hudApiMessageBg.Visible = true;
+            hudApiMessageBg.Message = GetApiTextBg();
+
+            hudApiMessageFore.Visible = hudApiMessageBg.Visible;
+            hudApiMessageFore.Message = GetApiTextFore();
+            hudApiMessageFore.Origin = hudApiMessageBg.Origin;
         }
 
         /// <summary>
@@ -266,7 +315,7 @@ namespace DarkHelmet.BuildVision2
         private void UpdateApiMenuPos()
         {
             Vector3D targetPos, worldPos;
-            Vector2D screenPos, offset = hudApiMessage.GetTextLength() * .5f;
+            Vector2D screenPos, offset = hudApiMessageBg.GetTextLength() * .5f;
 
             if (!forceToCenter && LocalPlayer.IsLookingInBlockDir(target.TBlock))
             {
@@ -281,10 +330,10 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 screenPos -= offset;
-                hudApiMessage.Origin = screenPos;
+                hudApiMessageBg.Origin = screenPos;
             }
             else
-                hudApiMessage.Origin = new Vector2D(-offset.X, -offset.Y);
+                hudApiMessageBg.Origin = new Vector2D(-offset.X, -offset.Y);
         }
 
         /// <summary>
@@ -334,16 +383,16 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Gets finished string for the Text HUD API to display.
         /// </summary>
-        private StringBuilder GetApiText()
+        private StringBuilder GetApiTextFore()
         {
             StringBuilder sb = new StringBuilder();
             int elements = Clamp(visEnd - visStart, 0, apiMaxVisible), i, action;
             string colorCode;
 
             if (target.IsFunctional)
-                sb.AppendLine($"<color=200,200,200,255>[{headerText}]");
+                sb.AppendLine($"<color={defaultTextColor}>[{headerText}]");
             else
-                sb.AppendLine($"<color=200,0,0,255>[{headerText} (Incomplete)]");
+                sb.AppendLine($"<color={blockIncTextColor}>[{headerText} (incomplete)]");
 
             for (int n = 0; n < elements; n++)
             {
@@ -351,11 +400,11 @@ namespace DarkHelmet.BuildVision2
                 action = i - target.Properties.Count;
 
                 if (i == selection)
-                    colorCode = "<color=30,200,30,255>";
+                    colorCode = $"<color={selectedTextColor}>";
                 else if (i == index)
-                    colorCode = "<color=200,170,0,255>";
+                    colorCode = $"<color={highlightTextColor}>";
                 else
-                    colorCode = "<color=200,200,200,255>";
+                    colorCode = $"<color={defaultTextColor}>";
 
                 if (i >= target.Properties.Count)
                     sb.AppendLine(colorCode + target.Actions[action].GetName());
@@ -363,7 +412,36 @@ namespace DarkHelmet.BuildVision2
                     sb.AppendLine(colorCode + target.Properties[i].GetName());
             }
 
-            sb.AppendLine($"<color=200,200,200,255>[{visStart + 1} - {visEnd} of {target.ScrollableCount}]");
+            sb.AppendLine($"<color={defaultTextColor}>[{visStart + 1} - {visEnd} of {target.ScrollableCount}]");
+            return sb;
+        }
+
+        /// <summary>
+        /// Gets finished string for the Text HUD API to render the text shadows.
+        /// </summary>
+        private StringBuilder GetApiTextBg()
+        {
+            StringBuilder sb = new StringBuilder();
+            int elements = Clamp(visEnd - visStart, 0, apiMaxVisible), i, action;
+            string backgroundColor = "<color=0,0,0>";
+
+            if (target.IsFunctional)
+                sb.AppendLine($"{backgroundColor}[{headerText}]");
+            else
+                sb.AppendLine($"{backgroundColor}[{headerText} (incomplete)]");
+
+            for (int n = 0; n < elements; n++)
+            {
+                i = n + visStart;
+                action = i - target.Properties.Count;
+
+                if (i >= target.Properties.Count)
+                    sb.AppendLine(backgroundColor + target.Actions[action].GetName());
+                else
+                    sb.AppendLine(backgroundColor + target.Properties[i].GetName());
+            }
+
+            sb.AppendLine($"{backgroundColor}[{visStart + 1} - {visEnd} of {target.ScrollableCount}]");
             return sb;
         }
 
@@ -386,8 +464,11 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void HideApiHud()
         {
-            if (hudApiMessage != null)
-                hudApiMessage.Visible = false;
+            if (hudApiMessageBg != null)
+            {
+                hudApiMessageBg.Visible = false;
+                hudApiMessageFore.Visible = false;
+            }
 
             apiHudOpen = false;
         }
@@ -435,3 +516,4 @@ namespace DarkHelmet.BuildVision2
         }
     }
 }
+ 
