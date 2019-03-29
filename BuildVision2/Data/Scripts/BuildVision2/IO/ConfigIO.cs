@@ -130,7 +130,7 @@ namespace DarkHelmet.BuildVision2
             if (!SaveInProgress)
             {
                 SaveInProgress = true;
-                if (silent) main.SendChatMessage("Loading configuration...");
+                if (!silent) main.SendChatMessage("Loading configuration...");
 
                 taskPool.EnqueueTask(() =>
                 {

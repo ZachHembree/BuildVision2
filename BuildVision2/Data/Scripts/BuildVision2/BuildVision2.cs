@@ -190,7 +190,7 @@ namespace DarkHelmet.BuildVision2
         public void LoadConfig()
         {
             if (init)
-                config.LoadConfigStart(UpdateConfig, false, true);
+                config.LoadConfigStart(UpdateConfig, false);
         }
 
         /// <summary>
