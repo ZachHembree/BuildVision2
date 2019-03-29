@@ -10,21 +10,14 @@ Build Vision 2 uses seven key binds for its controls, all of which are user conf
 
 
 #### Default Binds:
->Open: Control + MiddleButton
-
->Close: Shift + MiddleButton
-
->Select: Middlebutton
-
->Scroll Up: MouseWheelUp
-
->Scroll Down: MouseWheelDown
-
->MultX: Control (x10 for float values, x8 for colors)
-
->MultY: Shift (x25 for float values, x16 for colors)
-
->MultZ: Control + Shift (x100 for float values, x64 for colors)
+* Open: Control + MiddleButton
+* Close: Shift + MiddleButton
+* Select: Middlebutton
+* Scroll Up: MouseWheelUp
+* Scroll Down: MouseWheelDown
+* MultX: Control (x10 for float values, x8 for colors)
+* MultY: Shift (x25 for float values, x16 for colors)
+* MultZ: Control + Shift (x100 for float values, x64 for colors)
 
 
 The “Mult” binds or multiplier binds are used to increase the speed a selected property will change with each tick of the scroll wheel, ten times normal, 25 times normal, 100 times, etc. The base rate is proportional to the maximum value of the selected property. If you have a thruster override selected (probably with a max value in the millions) that’s going to change in much larger increments than the targeting range of a turret (with a max around 800 meters, usually).
