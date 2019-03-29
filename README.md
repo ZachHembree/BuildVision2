@@ -31,7 +31,7 @@ All chat commands must begin with “/bv2” and are not case-sensitive. The arg
 * /help – It’s a help menu
 * /bindHelp – Help menu for changing key binds
 * /printBinds – Prints your current key binds to chat
-* /bind [bindName] [bind1] [bind2] [bind3]
+* /bind [bindName] [control1] [control2] [control3]
 * /save – For manually saving the configuration
 * /load – For manually loading the config file
 * /resetConfig – Resets all of your settings to default
