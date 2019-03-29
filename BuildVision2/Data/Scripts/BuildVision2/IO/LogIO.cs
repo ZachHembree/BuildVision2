@@ -32,7 +32,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Updates internal thread pool. Parallel methods will not work properly if this isn't being
+        /// Updates internal task queue. Parallel methods will not work properly if this isn't being
         /// updated regularly.
         /// </summary>
         public void Update() =>

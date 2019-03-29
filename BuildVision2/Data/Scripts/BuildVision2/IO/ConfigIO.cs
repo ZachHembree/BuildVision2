@@ -85,7 +85,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Updates internal thread pool. Parallel methods will not work properly if this isn't being
+        /// Updates internal task queue. Parallel methods will not work properly if this isn't being
         /// updated regularly.
         /// </summary>
         public void Update() =>
@@ -125,7 +125,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Loads the current configuration in parallel.
         /// </summary>
-        public void LoadConfigStart(ConfigDataCallback UpdateConfig, bool resetOnFail = true, bool silent = false)
+        public void LoadConfigStart(ConfigDataCallback UpdateConfig, bool silent = false)
         {
             if (!SaveInProgress)
             {
@@ -135,17 +135,17 @@ namespace DarkHelmet.BuildVision2
                 taskPool.EnqueueTask(() =>
                 {
                     ConfigData cfg;
-                    BvException exception = TryLoadConfig(out cfg, resetOnFail);
+                    BvException exception = TryLoadConfig(out cfg);
 
                     if (exception != null)
                     {
-                        taskPool.EnqueueAction(() => LoadConfigFinish(false));
+                        taskPool.EnqueueAction(() => LoadConfigFinish(false, silent));
                         taskPool.EnqueueAction(() => UpdateConfig(null));
                         throw exception;
                     }
                     else
                     {
-                        taskPool.EnqueueAction(() => LoadConfigFinish(true));
+                        taskPool.EnqueueAction(() => LoadConfigFinish(true, silent));
                         taskPool.EnqueueAction(() => UpdateConfig(cfg));
                     }
                 });
@@ -154,14 +154,17 @@ namespace DarkHelmet.BuildVision2
                 main.SendChatMessage("Save operation already in progress.");
         }
 
-        private void LoadConfigFinish(bool success)
+        private void LoadConfigFinish(bool success, bool silent = false)
         {
             if (SaveInProgress)
             {
-                if (success)
-                    main.SendChatMessage("Configuration loaded.");
-                else
-                    main.SendChatMessage("Unable to load configuration.");
+                if (!silent)
+                {
+                    if (success)
+                        main.SendChatMessage("Configuration loaded.");
+                    else
+                        main.SendChatMessage("Unable to load configuration.");
+                }
 
                 SaveInProgress = false;
             }
@@ -170,11 +173,11 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Saves a given configuration to the save file in parallel.
         /// </summary>
-        public void SaveConfigStart(ConfigData cfg)
+        public void SaveConfigStart(ConfigData cfg, bool silent = false)
         {
             if (!SaveInProgress)
             {
-                main.SendChatMessage("Saving configuration...");
+                if (!silent) main.SendChatMessage("Saving configuration...");
                 SaveInProgress = true;
 
                 taskPool.EnqueueTask(() =>
@@ -183,25 +186,28 @@ namespace DarkHelmet.BuildVision2
 
                     if (exception != null)
                     {
-                        taskPool.EnqueueAction(() => SaveConfigFinish(false));
+                        taskPool.EnqueueAction(() => SaveConfigFinish(false, silent));
                         throw exception;
                     }
                     else
-                        taskPool.EnqueueAction(() => SaveConfigFinish(true));
+                        taskPool.EnqueueAction(() => SaveConfigFinish(true, silent));
                 });
             }
             else
                 main.SendChatMessage("Save operation already in progress.");
         }
 
-        private void SaveConfigFinish(bool success)
+        private void SaveConfigFinish(bool success, bool silent = false)
         {
             if (SaveInProgress)
             {
-                if (success)
-                    main.SendChatMessage("Configuration saved.");
-                else
-                    main.SendChatMessage("Unable to save configuration.");
+                if (!silent)
+                {
+                    if (success)
+                        main.SendChatMessage("Configuration saved.");
+                    else
+                        main.SendChatMessage("Unable to save configuration.");
+                }
 
                 SaveInProgress = false;
             }
@@ -237,7 +243,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Attempts to load config file and creates a new one if it can't.
         /// </summary>
-        private BvException TryLoadConfig(out ConfigData cfg, bool replaceIfXmlFail = true)
+        private BvException TryLoadConfig(out ConfigData cfg)
         {
             string data;
             BvException exception = cfgFile.TryRead(out data);
@@ -248,7 +254,7 @@ namespace DarkHelmet.BuildVision2
             else
                 exception = TryDeserializeXml(data, out cfg);
 
-            if (exception != null && replaceIfXmlFail)
+            if (exception != null)
             {
                 BackupConfig();
                 TrySaveConfig(ConfigData.defaults);

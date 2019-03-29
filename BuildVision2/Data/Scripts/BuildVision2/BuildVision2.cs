@@ -130,7 +130,7 @@ namespace DarkHelmet.BuildVision2
             if (!init && !initStart)
             {
                 initStart = true;
-                config.LoadConfigStart(InitFinish, true, true);
+                config.LoadConfigStart(InitFinish, true);
             }
         }
 
@@ -149,6 +149,7 @@ namespace DarkHelmet.BuildVision2
                     binds = Binds.GetInstance(cfg.binds);
                     cmd = ChatCommands.GetInstance(binds, cmdPrefix);
                     menu = PropertiesMenu.GetInstance(cfg.menu, binds);
+                    PropertyBlock.UpdateConfig(cfg.propertyBlock);
                     init = true;
                 }
                 else
@@ -160,7 +161,7 @@ namespace DarkHelmet.BuildVision2
 
                     init = true;
                     SendChatMessage("Unable to load config file. Default settings loaded.");
-                    ResetConfig();
+                    ResetConfig(true);
                 }
 
                 MyAPIGateway.Utilities.ShowMessage("Build Vision 2", $"Type {cmdPrefix} help for help");
@@ -190,7 +191,7 @@ namespace DarkHelmet.BuildVision2
         public void LoadConfig()
         {
             if (init)
-                config.LoadConfigStart(UpdateConfig, false);
+                config.LoadConfigStart(UpdateConfig);
         }
 
         /// <summary>
@@ -206,10 +207,10 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Resets the current configuration to the default settings and saves them.
         /// </summary>
-        public void ResetConfig()
+        public void ResetConfig(bool silent = false)
         {
             if (init)
-                config.SaveConfigStart(ConfigData.defaults);
+                config.SaveConfigStart(ConfigData.defaults, silent);
 
             UpdateConfig(ConfigData.defaults);
         }
@@ -225,6 +226,7 @@ namespace DarkHelmet.BuildVision2
                 UpdateGeneralConfig(cfg.general);
                 binds.UpdateConfig(cfg.binds);
                 menu.UpdateConfig(cfg.menu);
+                PropertyBlock.UpdateConfig(cfg.propertyBlock);
             }
         }
 

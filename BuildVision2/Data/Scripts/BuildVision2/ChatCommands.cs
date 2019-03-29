@@ -237,7 +237,7 @@ namespace DarkHelmet.BuildVision2
                 "\n---Build Vision 2 Binds---\n" +
                 $"Open: [{binds.open.BindString}]\n" +
                 $"Close: [{binds.close.BindString}]\n" +
-                $"Select [{binds.select.BindString}]" +
+                $"Select [{binds.select.BindString}]\n" +
                 $"Scroll Up: [{binds.scrollUp.BindString}]\n" +
                 $"Scroll Down: [{binds.scrollDown.BindString}]]\n" +
                 "---Multipliers---\n" +
