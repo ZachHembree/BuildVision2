@@ -41,7 +41,7 @@ All chat commands must begin with “/bv2” and are not case-sensitive. The arg
 
 
 ## Editing the Config File:
-In addition to storing your keybinds, the config file has a handful of other settings for changing your multiplier rates and a few UI settings. For those of you comfortable with tinkering with XML, it's a hell of a lot faster than dicking around with chat commands. Just make your changes, use /bv2 load and they'll be instantly applied.
+In addition to storing your keybinds, the config file has a handful of other settings for changing your multiplier rates and a few UI settings. For those of you comfortable tinkering with XML, it's a hell of a lot faster than dicking around with chat commands. Just make your changes, use /bv2 load and they'll be instantly applied.
 
 The config file can be found in **%AppData%\Roaming\SpaceEngineers\Storage\1697184408.sbm_BuildVision2.** At the risk of stating the obvious, improperly formatted XML will not be interpreted correctly and will result in the default settings being loaded instead. The config file will not be generated until you run the mod at least once.
 
