@@ -3,6 +3,8 @@ Build Vision 2 is a recreation and improvement upon the [original Build Vision b
 
 As of writing this, all vanilla terminal blocks (anything with terminal settings) work with this mod, save the Space Ball (much to my chagrin), and probably a fair number of modded blocks considering they derive from the same interfaces. I’ve also taken the liberty of adding a number of actions to the menu for doing things like detonating warheads, attaching wheels, adding rotor heads and changing battery charge modes. I’d make a full list of all the little differences between this mod and the original, but frankly, I’m not sure I can recall what all is in this thing.
 
+Like the original, this depends on Draygo's Text Hud API to function properly. There is a fallback GUI using the built-in notifications system, but I don't like it all that much.
+
 This mod can be found on the Steam Workshop [here](https://steamcommunity.com/sharedfiles/filedetails/?id=1697184408).
 
 ## Usage:
