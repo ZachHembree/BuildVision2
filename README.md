@@ -28,16 +28,16 @@ The “Mult” binds or multiplier binds are used to increase the speed a select
 ## Chat Commands:
 All chat commands must begin with “/bv2” and are not case-sensitive. The arguments following “/bv2” can be separated either by whitespace, a comma, semicolon or pipe character. Whatever floats your boat, just make sure there’s something between them.
 
-• help – It’s a help menu
-• bindHelp – Help menu for changing key binds
-• printBinds – Prints your current key binds to chat
-• bind [bindName] [control1] [control2] [control3]
-• save – For manually saving the configuration
-• load – For manually loading the config file
-• resetConfig – Resets all of your settings to default
-• resetBinds – Resets all key binds to default
-• toggleApi – Toggles between the Text Hud API and the fallback UI (not pretty)
-• toggleAutoclose – If enabled, the menu will close if it goes off your screen
+* help – It’s a help menu
+* bindHelp – Help menu for changing key binds
+* printBinds – Prints your current key binds to chat
+* bind [bindName] [control1] [control2] [control3]
+* save – For manually saving the configuration
+* load – For manually loading the config file
+* resetConfig – Resets all of your settings to default
+* resetBinds – Resets all key binds to default
+* toggleApi – Toggles between the Text Hud API and the fallback UI (not pretty)
+* toggleAutoclose – If enabled, the menu will close if it goes off your screen
 
 Example: "/bv2 bind open control shift"
 
