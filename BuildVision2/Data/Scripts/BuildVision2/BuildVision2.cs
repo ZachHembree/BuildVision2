@@ -60,7 +60,7 @@ namespace DarkHelmet.BuildVision2
                 catch (Exception e)
                 {
                     crashed = true;
-                    buildVision?.log?.TryWriteToLog("Build Vision has crashed!\n" + e.ToString());
+                    buildVision?.Log?.TryWriteToLog("Build Vision has crashed!\n" + e.ToString());
                     MyAPIGateway.Utilities.ShowMissionScreen("Build Vision 2", "Debug", "", 
                         "Build Vision has crashed! Press the X in the upper right hand corner if you don't want " +
                         "" + "it to reload.\n" + e.ToString(), AllowReload, "Reload");
@@ -93,25 +93,23 @@ namespace DarkHelmet.BuildVision2
     internal sealed class BvMain
     {
         public static BvMain Instance { get; private set; }
-        public readonly LogIO log;
         public bool forceFallbackHud, closeIfNotInView, canOpenIfHandsNotEmpty;
 
         private const string configFileName = "BuildVision2Config.xml", logFileName = "bvLog.txt", 
             senderName = "Build Vision 2", cmdPrefix = "/bv2";
-        
-        private readonly ConfigIO config;
-        private Binds binds;
-        private ChatCommands cmd;
+
+        public LogIO Log { get { return LogIO.Instance; } }
+        private ConfigIO Config { get { return ConfigIO.Instance; } }
+        private Binds Binds { get { return Binds.Instance; } }
+        private ChatCommands Cmd { get { return ChatCommands.Instance; } }
+        private PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
         private PropertyBlock target;
-        private PropertiesMenu menu;
         private bool init, initStart, menuOpen;
 
         private BvMain()
         {
             init = false;
             menuOpen = false;
-            log = LogIO.GetInstance(this, logFileName);
-            config = ConfigIO.GetInstance(this, log, configFileName);
         }
 
         public static BvMain GetInstance()
@@ -130,7 +128,9 @@ namespace DarkHelmet.BuildVision2
             if (!init && !initStart)
             {
                 initStart = true;
-                config.LoadConfigStart(InitFinish, true);
+                LogIO.GetInstance(logFileName);
+                ConfigIO.GetInstance(configFileName);
+                Config.LoadConfigStart(InitFinish, true);
             }
         }
 
@@ -146,18 +146,18 @@ namespace DarkHelmet.BuildVision2
                 {
                     cfg.Validate();
                     UpdateGeneralConfig(cfg.general);
-                    binds = Binds.GetInstance(cfg.binds);
-                    cmd = ChatCommands.GetInstance(binds, cmdPrefix);
-                    menu = PropertiesMenu.GetInstance(cfg.menu, binds);
+                    Binds.GetInstance(cfg.binds);
+                    ChatCommands.GetInstance(cmdPrefix);
+                    PropertiesMenu.GetInstance(cfg.menu);
                     PropertyBlock.UpdateConfig(cfg.propertyBlock);
                     init = true;
                 }
                 else
                 {
                     UpdateGeneralConfig(GeneralConfig.defaults);
-                    binds = Binds.GetInstance(BindsConfig.Defaults);
-                    cmd = ChatCommands.GetInstance(binds, cmdPrefix);
-                    menu = PropertiesMenu.GetInstance(PropMenuConfig.defaults, binds);
+                    Binds.GetInstance(BindsConfig.Defaults);
+                    ChatCommands.GetInstance(cmdPrefix);
+                    PropertiesMenu.GetInstance(PropMenuConfig.defaults);
 
                     init = true;
                     SendChatMessage("Unable to load config file. Default settings loaded.");
@@ -173,15 +173,15 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void Close()
         {
-            if (init) config.SaveConfig(GetConfig());
+            if (init) Config.SaveConfig(GetConfig());
             init = false;
             initStart = false;
 
-            binds?.Close();
-            cmd?.Close();
-            menu?.Close();
-            config?.Close();
-            log?.Close();
+            Binds?.Close();
+            Cmd?.Close();
+            Menu?.Close();
+            Config?.Close();
+            Log?.Close();
             Instance = null;
         }
 
@@ -191,7 +191,7 @@ namespace DarkHelmet.BuildVision2
         public void LoadConfig()
         {
             if (init)
-                config.LoadConfigStart(UpdateConfig);
+                Config.LoadConfigStart(UpdateConfig);
         }
 
         /// <summary>
@@ -201,7 +201,7 @@ namespace DarkHelmet.BuildVision2
         public void SaveConfig()
         {
             if (init)
-                config.SaveConfigStart(GetConfig());
+                Config.SaveConfigStart(GetConfig());
         }
 
         /// <summary>
@@ -210,7 +210,7 @@ namespace DarkHelmet.BuildVision2
         public void ResetConfig(bool silent = false)
         {
             if (init)
-                config.SaveConfigStart(ConfigData.defaults, silent);
+                Config.SaveConfigStart(ConfigData.defaults, silent);
 
             UpdateConfig(ConfigData.defaults);
         }
@@ -224,8 +224,8 @@ namespace DarkHelmet.BuildVision2
             {
                 cfg.Validate();
                 UpdateGeneralConfig(cfg.general);
-                binds.UpdateConfig(cfg.binds);
-                menu.UpdateConfig(cfg.menu);
+                Binds.TryUpdateConfig(cfg.binds);
+                Menu.UpdateConfig(cfg.menu);
                 PropertyBlock.UpdateConfig(cfg.propertyBlock);
             }
         }
@@ -250,8 +250,8 @@ namespace DarkHelmet.BuildVision2
                 return new ConfigData
                 {
                     general = new GeneralConfig(forceFallbackHud, closeIfNotInView, canOpenIfHandsNotEmpty),
-                    binds = binds.GetConfig(),
-                    menu = menu.GetConfig(),
+                    binds = Binds.GetConfig(),
+                    menu = Menu.GetConfig(),
                     propertyBlock = PropertyBlock.GetConfig()
                 };
             }
@@ -275,21 +275,21 @@ namespace DarkHelmet.BuildVision2
         {
             if (initStart)
             {
-                log.Update();
-                config.Update();
+                Log.Update();
+                Config.Update();
             }
 
             if (init)
             {
-                binds.Update();
+                Binds.Update();
 
                 if (menuOpen)
-                    menu.Update(forceFallbackHud);
+                    Menu.Update(forceFallbackHud);
 
-                if (binds.open.IsNewPressed)
+                if (Binds.open.IsNewPressed)
                     TryOpenMenu();
 
-                if (binds.close.IsNewPressed || !CanAccessTargetBlock())
+                if (Binds.close.IsNewPressed || !CanAccessTargetBlock())
                     TryCloseMenu();
             }
         }
@@ -303,7 +303,7 @@ namespace DarkHelmet.BuildVision2
             {
                 if (TryGetTarget())
                 {
-                    menu.SetTarget(target);
+                    Menu.SetTarget(target);
                     menuOpen = true;
                 }
                 else
@@ -318,7 +318,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (init)
             {
-                menu.Hide();
+                Menu.Hide();
                 menuOpen = false;
                 target = null;
             }

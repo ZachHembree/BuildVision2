@@ -11,8 +11,8 @@ namespace DarkHelmet.BuildVision2
     {
         public static ChatCommands Instance { get; private set; }
 
-        private readonly BvMain main;
-        private readonly Binds binds;
+        private static Binds Binds { get { return Binds.Instance; } }
+        private static BvMain Main { get { return BvMain.Instance; } }
         private readonly string prefix, controlList;
         private readonly Regex cmdParser;
         private readonly Command[] commands;
@@ -45,10 +45,8 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Instantiates commands and regex
         /// </summary>
-        private ChatCommands(Binds binds, string prefix)
+        private ChatCommands(string prefix)
         {
-            main = BvMain.GetInstance();
-            this.binds = binds;
             this.prefix = prefix;
             cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)(\w+))+");
 
@@ -61,38 +59,38 @@ namespace DarkHelmet.BuildVision2
                 new Command ("printBinds",
                     () => MyAPIGateway.Utilities.ShowMessage("", GetPrintBindsMessage())),
                 new Command ("bind",
-                    (string[] args) => binds.TryUpdateBind(args[0], GetSubarray(args, 1))),
+                    (string[] args) => Binds.TryUpdateBind(args[0], GetSubarray(args, 1))),
                 new Command("resetBinds",
-                    () => binds.UpdateConfig(BindsConfig.Defaults)),
+                    () => Binds.TryUpdateConfig(BindsConfig.Defaults)),
                 new Command ("save",
-                    () => main.SaveConfig()),
+                    () => Main.SaveConfig()),
                 new Command ("load",
-                    () => main.LoadConfig()),
+                    () => Main.LoadConfig()),
                 new Command("resetConfig",
-                    () => main.ResetConfig()),
+                    () => Main.ResetConfig()),
                 new Command ("toggleApi",
-                    () => main.forceFallbackHud = !main.forceFallbackHud),
+                    () => Main.forceFallbackHud = !Main.forceFallbackHud),
                 new Command ("toggleAutoclose",
-                    () => main.closeIfNotInView = !main.closeIfNotInView),
+                    () => Main.closeIfNotInView = !Main.closeIfNotInView),
 
                 // Debug/Testing
                 new Command ("open",
-                    () => main.TryOpenMenu()),
+                    () => Main.TryOpenMenu()),
                 new Command ("close", 
-                    () => main.TryCloseMenu())
+                    () => Main.TryCloseMenu())
             };
 
-            controlList = binds.GetControlListString();
+            controlList = Binds.GetControlListString();
             MyAPIGateway.Utilities.MessageEntered += MessageHandler;
         }
 
         /// <summary>
         /// Returns the current instance or creates one if necessary.
         /// </summary>
-        public static ChatCommands GetInstance(Binds binds, string prefix)
+        public static ChatCommands GetInstance(string prefix)
         {
-            if (Instance == null && binds != null)
-                Instance = new ChatCommands(binds, prefix);
+            if (Instance == null)
+                Instance = new ChatCommands(prefix);
 
             return Instance;
         }
@@ -186,7 +184,7 @@ namespace DarkHelmet.BuildVision2
         private void PrintBinds()
         {
             string output = "\n";
-            IKeyBind[] keyBinds = binds.KeyBinds;
+            IKeyBind[] keyBinds = Binds.KeyBinds;
 
             for (int n = 0; n < keyBinds.Length; n++)
                 output += keyBinds[n].Name + ": [" + keyBinds[n].BindString + "]\n";
@@ -197,17 +195,17 @@ namespace DarkHelmet.BuildVision2
         private string GetHelpMessage()
         {
             string helpMessage =
-                $"To open Build Vision press [{binds.open.BindString}] while aiming at a block; to close the menu, press [{binds.close.BindString}] " +
-                $"or press the open bind again but without pointing at a valid block (like armor). To select a setting in the menu press " +
-                $"[{binds.select.BindString}]. Once a setting is selected, the [{binds.scrollUp.BindString}] and [{binds.scrollDown.BindString}] binds " +
-                "can be used to scroll up and down in the menu and to change the terminal settings of the selected block.\n" +
-                "Pressing the select bind on an action will trigger it (a setting without a number or On/Off value, like Attach/Detach head or Reverse). " +
-                "Key binds can be changed using the /bv2 binds chat command. Enter /bv2 bindHelp in chat for more information. Chat commands are not case " +
-                "sensitive and , ; | or spaces can be used to separate arguments. For information on chat commands see the Build Vision 2 mod page on " +
-                "the Steam Workshop.\n" +
-                "Note: If you move more than 10 meters(4 large blocks) from your target block, the menu will automatically close.\n" +
-                "The rate at which a selected terminal value changes with each tick of the scroll wheel can be changed using the multiplier binds " +
-                "listed below.\n";
+                $"To open Build Vision press [{Binds.open.BindString}] while aiming at a block; to close the menu, press " +
+                $"[{Binds.close.BindString}] or press the open bind again but without pointing at a valid block (like armor). " +
+                $"The [{Binds.scrollUp.BindString}] and [{Binds.scrollDown.BindString}] binds can be used to scroll up and down " +
+                $"in the menu and to change the terminal settings of the selected block. To select a setting in the menu press " +
+                $"[{Binds.select.BindString}]. Pressing the select bind on an action will trigger it (a setting without a number " +
+                $"or On/Off value). If you move more than 10 meters (4 large blocks) from your target block, the menu will " +
+                $"automatically close. The rate at which a selected terminal value changes with each tick of the scroll wheel can " +
+                $"be changed using the multiplier binds listed below.\n\n" +
+                $"Key binds can be changed using the /bv2 bind chat command. Enter /bv2 bindHelp in chat for more information. Chat " +
+                $"commands are not case sensitive and , ; | or spaces can be used to separate arguments. For information on chat " +
+                $"commands see the Build Vision 2 mod page on the Steam Workshop.\n";
 
             helpMessage += GetPrintBindsMessage();
             return helpMessage;
@@ -215,9 +213,9 @@ namespace DarkHelmet.BuildVision2
 
         private string GetBindHelpMessage()
         {
-            string helpMessage = $"The syntax of the /bv2 bind command is as follows (without brackets): /bv2 bind [bindName] [controlOne] " +
-                $"[controlTwo] [controlThree]. To see your current bind settings use the command /bv2 printBinds. No more than three binds " +
-                $"can be used for any one control; frankly, any more than three would be stupid.\n" +
+            string helpMessage = $"The syntax of the /bv2 bind command is as follows (without brackets): /bv2 bind [bindName] [control1] " +
+                $"[control2] [control3]. To see your current bind settings use the command /bv2 printBinds. No more than three controls " +
+                $"can be used for any one bind.\n\n" +
                 $"Examples:\n" +
                 $"/bv2 bind open control alt\n" +
                 $"/bv2 bind scrollup pageup\n" +
@@ -235,15 +233,15 @@ namespace DarkHelmet.BuildVision2
         {
             string bindHelp = 
                 "\n---Build Vision 2 Binds---\n" +
-                $"Open: [{binds.open.BindString}]\n" +
-                $"Close: [{binds.close.BindString}]\n" +
-                $"Select [{binds.select.BindString}]\n" +
-                $"Scroll Up: [{binds.scrollUp.BindString}]\n" +
-                $"Scroll Down: [{binds.scrollDown.BindString}]]\n" +
+                $"Open: [{Binds.open.BindString}]\n" +
+                $"Close: [{Binds.close.BindString}]\n" +
+                $"Select [{Binds.select.BindString}]\n" +
+                $"Scroll Up: [{Binds.scrollUp.BindString}]\n" +
+                $"Scroll Down: [{Binds.scrollDown.BindString}]]\n" +
                 "---Multipliers---\n" +
-                $"MultX: [{binds.multX.BindString}]\n" +
-                $"MultY: [{binds.multY.BindString}]\n" +
-                $"MultZ: [{binds.multZ.BindString}]";
+                $"MultX: [{Binds.multX.BindString}]\n" +
+                $"MultY: [{Binds.multY.BindString}]\n" +
+                $"MultZ: [{Binds.multZ.BindString}]";
 
             return bindHelp;
         }

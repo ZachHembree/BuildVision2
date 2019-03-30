@@ -127,8 +127,8 @@ namespace DarkHelmet.BuildVision2
         public bool IsMechConnection { get; private set; }
         public bool IsFunctional { get { return TBlock.IsFunctional; } }
         public bool CanLocalPlayerAccess { get { return TBlock.HasLocalPlayerAccess(); } }
-        private Binds binds;
 
+        private static Binds Binds { get { return Binds.Instance; } }
         private static double floatDiv;
         private static int colorDiv;
         private static Vector3 floatMult;
@@ -141,7 +141,6 @@ namespace DarkHelmet.BuildVision2
 
         public PropertyBlock(IMyTerminalBlock tBlock)
         {
-            binds = Binds.Instance;
             TBlock = tBlock;
 
             Actions = GetScrollableActions();
@@ -543,9 +542,9 @@ namespace DarkHelmet.BuildVision2
             private float GetIncrement()
             {
                 bool 
-                    multA = pBlock.binds.multX.IsPressed, 
-                    multB = pBlock.binds.multY.IsPressed,
-                    multC = pBlock.binds.multZ.IsPressed;
+                    multA = Binds.multX.IsPressed, 
+                    multB = Binds.multY.IsPressed,
+                    multC = Binds.multZ.IsPressed;
 
                 if (multC)
                     return incrC; // x64
@@ -640,9 +639,9 @@ namespace DarkHelmet.BuildVision2
             private int GetIncrement()
             {
                 bool 
-                    multA = pBlock.binds.multX.IsPressed, 
-                    multB = pBlock.binds.multY.IsPressed,
-                    multC = pBlock.binds.multZ.IsPressed;
+                    multA = Binds.multX.IsPressed, 
+                    multB = Binds.multY.IsPressed,
+                    multC = Binds.multZ.IsPressed;
 
                 if (multC)
                     return incrC; // x64

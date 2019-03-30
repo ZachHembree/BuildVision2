@@ -11,22 +11,21 @@ namespace DarkHelmet.BuildVision2
         public bool Accessible { get; private set; }
         public static LogIO Instance { get; private set; }
 
-        private readonly BvMain main;
+        private static BvMain Main { get { return BvMain.Instance; } }
         private readonly LocalFileIO logFile;
         private readonly TaskPool taskPool;
 
-        private LogIO(BvMain main, string fileName)
+        private LogIO(string fileName)
         {
             Accessible = true;
-            this.main = main;
             logFile = new LocalFileIO(fileName);
             taskPool = new TaskPool(1, ErrorCallback);
         }
 
-        public static LogIO GetInstance(BvMain main, string fileName)
+        public static LogIO GetInstance(string fileName)
         {
             if (Instance == null)
-                Instance = new LogIO(main, fileName);
+                Instance = new LogIO(fileName);
 
             return Instance;
         }
@@ -46,7 +45,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (known != null && known.Count > 0)
                     foreach (Exception e in known)
-                        main.SendChatMessage(e.Message);
+                        Main.SendChatMessage(e.Message);
 
                 if (unknown != null)
                     throw unknown;
@@ -111,14 +110,14 @@ namespace DarkHelmet.BuildVision2
             if (!success)
             {
                 if (Accessible)
-                    main.SendChatMessage("Unable to update log; please check your file access permissions.");
+                    Main.SendChatMessage("Unable to update log; please check your file access permissions.");
 
                 Accessible = false;
             }
             else
             {
                 if (Accessible)
-                    main.SendChatMessage("Log updated.");
+                    Main.SendChatMessage("Log updated.");
 
                 Accessible = true;
             }

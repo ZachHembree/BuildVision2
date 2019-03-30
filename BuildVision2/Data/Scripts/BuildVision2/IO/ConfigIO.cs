@@ -62,24 +62,22 @@ namespace DarkHelmet.BuildVision2
         public static ConfigIO Instance { get; private set; }
         public bool SaveInProgress { get; private set; }
 
-        private readonly BvMain main;
-        private readonly LogIO log;
+        private BvMain Main { get { return BvMain.Instance; } }
+        private LogIO Log { get { return LogIO.Instance; } }
         private readonly LocalFileIO cfgFile;
         private readonly TaskPool taskPool;
 
-        private ConfigIO(BvMain main, LogIO log, string configFileName)
+        private ConfigIO(string configFileName)
         {
-            this.main = main;
-            this.log = log;
             cfgFile = new LocalFileIO(configFileName);
             taskPool = new TaskPool(1, ErrorCallback);
             SaveInProgress = false;
         }
 
-        public static ConfigIO GetInstance(BvMain main, LogIO log, string configFileName)
+        public static ConfigIO GetInstance(string configFileName)
         {
             if (Instance == null)
-                Instance = new ConfigIO(main, log, configFileName);
+                Instance = new ConfigIO(configFileName);
 
             return Instance;
         }
@@ -100,17 +98,17 @@ namespace DarkHelmet.BuildVision2
 
                 foreach (Exception e in known)
                 {
-                    main.SendChatMessage(e.Message);
+                    Main.SendChatMessage(e.Message);
                     exceptions += e.ToString();
                 }
 
-                log.TryWriteToLogStart(exceptions);
+                Log.TryWriteToLogStart(exceptions);
             }
 
             if (unknown != null)
             {
-                log.TryWriteToLogStart($"\nSave operation failed.\n{unknown.ToString()}");
-                main.SendChatMessage("Save operation failed.");
+                Log.TryWriteToLogStart($"\nSave operation failed.\n{unknown.ToString()}");
+                Main.SendChatMessage("Save operation failed.");
                 SaveInProgress = false;
 
                 throw unknown;
@@ -130,7 +128,7 @@ namespace DarkHelmet.BuildVision2
             if (!SaveInProgress)
             {
                 SaveInProgress = true;
-                if (!silent) main.SendChatMessage("Loading configuration...");
+                if (!silent) Main.SendChatMessage("Loading configuration...");
 
                 taskPool.EnqueueTask(() =>
                 {
@@ -151,7 +149,7 @@ namespace DarkHelmet.BuildVision2
                 });
             }
             else
-                main.SendChatMessage("Save operation already in progress.");
+                Main.SendChatMessage("Save operation already in progress.");
         }
 
         private void LoadConfigFinish(bool success, bool silent = false)
@@ -161,9 +159,9 @@ namespace DarkHelmet.BuildVision2
                 if (!silent)
                 {
                     if (success)
-                        main.SendChatMessage("Configuration loaded.");
+                        Main.SendChatMessage("Configuration loaded.");
                     else
-                        main.SendChatMessage("Unable to load configuration.");
+                        Main.SendChatMessage("Unable to load configuration.");
                 }
 
                 SaveInProgress = false;
@@ -177,7 +175,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (!SaveInProgress)
             {
-                if (!silent) main.SendChatMessage("Saving configuration...");
+                if (!silent) Main.SendChatMessage("Saving configuration...");
                 SaveInProgress = true;
 
                 taskPool.EnqueueTask(() =>
@@ -194,7 +192,7 @@ namespace DarkHelmet.BuildVision2
                 });
             }
             else
-                main.SendChatMessage("Save operation already in progress.");
+                Main.SendChatMessage("Save operation already in progress.");
         }
 
         private void SaveConfigFinish(bool success, bool silent = false)
@@ -204,9 +202,9 @@ namespace DarkHelmet.BuildVision2
                 if (!silent)
                 {
                     if (success)
-                        main.SendChatMessage("Configuration saved.");
+                        Main.SendChatMessage("Configuration saved.");
                     else
-                        main.SendChatMessage("Unable to save configuration.");
+                        Main.SendChatMessage("Unable to save configuration.");
                 }
 
                 SaveInProgress = false;

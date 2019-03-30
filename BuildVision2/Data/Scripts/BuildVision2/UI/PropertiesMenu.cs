@@ -14,6 +14,7 @@ namespace DarkHelmet.BuildVision2
         [XmlIgnore]
         public static readonly PropMenuConfig defaults = new PropMenuConfig
         {
+            hideIfNotVis = false,
             forceToCenter = false,
             clampHudPos = true,
             apiMaxVisible = 11,
@@ -25,6 +26,9 @@ namespace DarkHelmet.BuildVision2
             highlightTextColor = "200,170,0",
             selectedTextColor = "30,200,30",
         };
+
+        [XmlElement(ElementName = "HideHudIfOutOfView")]
+        public bool hideIfNotVis;
 
         [XmlElement (ElementName ="ClampHudToScreenEdges")]
         public bool clampHudPos;
@@ -88,7 +92,7 @@ namespace DarkHelmet.BuildVision2
     {
         public static PropertiesMenu Instance { get; private set; }
 
-        private Binds binds;
+        private static Binds Binds { get { return Binds.Instance; } }
         private int apiMaxVisible, fallbkMaxVisible;
         private float apiHudScale;
 
@@ -98,15 +102,14 @@ namespace DarkHelmet.BuildVision2
         private HudAPIv2.HUDMessage hudApiMessageBg, hudApiMessageFore;
         private PropertyBlock target;
 
-        private bool clampHudPos, forceToCenter;
+        private bool hideIfNotVis, clampHudPos, forceToCenter;
         private int index, visStart, visEnd, selection;
         private bool apiHudOpen, fallbackHudOpen;
         private string headerText, blockIncTextColor, defaultTextColor, 
             highlightTextColor, selectedTextColor;
 
-        private PropertiesMenu(PropMenuConfig cfg, Binds binds)
+        private PropertiesMenu(PropMenuConfig cfg)
         {
-            this.binds = binds;
             fallbkList = new IMyHudNotification[fallbkMaxVisible];
             hudApi = new HudAPIv2();
             fallbkHeader = MyAPIGateway.Utilities.CreateNotification("");
@@ -125,10 +128,10 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Returns the current instance or creates one if necessary.
         /// </summary>
-        public static PropertiesMenu GetInstance(PropMenuConfig cfg, Binds binds)
+        public static PropertiesMenu GetInstance(PropMenuConfig cfg)
         {
-            if (Instance == null && binds != null)
-                Instance = new PropertiesMenu(cfg, binds);
+            if (Instance == null)
+                Instance = new PropertiesMenu(cfg);
 
             return Instance;
         }
@@ -138,6 +141,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void Close()
         {
+            hudApi.Close();
             Instance = null;
         }
 
@@ -146,6 +150,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void UpdateConfig(PropMenuConfig cfg)
         {
+            hideIfNotVis = cfg.hideIfNotVis;
             forceToCenter = cfg.forceToCenter;
             clampHudPos = cfg.clampHudPos;
             apiMaxVisible = cfg.apiMaxVisible;
@@ -164,6 +169,7 @@ namespace DarkHelmet.BuildVision2
         {
             return new PropMenuConfig
             {
+                hideIfNotVis = hideIfNotVis,
                 forceToCenter = forceToCenter,
                 clampHudPos = clampHudPos,
                 apiMaxVisible = apiMaxVisible,
@@ -227,7 +233,7 @@ namespace DarkHelmet.BuildVision2
         {
             int scrolllDir = GetScrollDir(), action = index - target.Properties.Count;
 
-            if (binds.select.IsNewPressed)
+            if (Binds.select.IsNewPressed)
             {
                 if (index >= target.Properties.Count)
                     target.Actions[action].Action();
@@ -253,9 +259,9 @@ namespace DarkHelmet.BuildVision2
 
         private int GetScrollDir()
         {
-            if ((binds.scrollUp.Analog && binds.scrollUp.IsPressed) || binds.scrollUp.IsNewPressed)
+            if ((Binds.scrollUp.Analog && Binds.scrollUp.IsPressed) || Binds.scrollUp.IsNewPressed)
                 return 1;
-            else if ((binds.scrollDown.Analog && binds.scrollDown.IsPressed) || binds.scrollDown.IsNewPressed)
+            else if ((Binds.scrollDown.Analog && Binds.scrollDown.IsPressed) || Binds.scrollDown.IsNewPressed)
                 return -1;
             else
                 return 0;
@@ -317,20 +323,27 @@ namespace DarkHelmet.BuildVision2
             Vector3D targetPos, worldPos;
             Vector2D screenPos, offset = hudApiMessageBg.GetTextLength() * .5f;
 
-            if (!forceToCenter && LocalPlayer.IsLookingInBlockDir(target.TBlock))
+            if (!forceToCenter)
             {
-                targetPos = target.GetPosition();
-                worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
-                screenPos = new Vector2D(worldPos.X, worldPos.Y);
-
-                if (clampHudPos)
+                if (LocalPlayer.IsLookingInBlockDir(target.TBlock))
                 {
-                    screenPos.X = Clamp(screenPos.X, -.95 + offset.X, .95 - offset.X);
-                    screenPos.Y = Clamp(screenPos.Y, -.95 - offset.Y, .95 + offset.Y);
-                }
+                    targetPos = target.GetPosition();
+                    worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
+                    screenPos = new Vector2D(worldPos.X, worldPos.Y);
 
-                screenPos -= offset;
-                hudApiMessageBg.Origin = screenPos;
+                    if (clampHudPos)
+                    {
+                        screenPos.X = Clamp(screenPos.X, -.95 + offset.X, .95 - offset.X);
+                        screenPos.Y = Clamp(screenPos.Y, -.95 - offset.Y, .95 + offset.Y);
+                    }
+
+                    screenPos -= offset;
+                    hudApiMessageBg.Origin = screenPos;
+                }
+                else if (hideIfNotVis)
+                    hudApiMessageBg.Origin = new Vector2D(-double.MinValue, -double.MinValue);
+                else
+                    hudApiMessageBg.Origin = new Vector2D(-offset.X, -offset.Y);              
             }
             else
                 hudApiMessageBg.Origin = new Vector2D(-offset.X, -offset.Y);

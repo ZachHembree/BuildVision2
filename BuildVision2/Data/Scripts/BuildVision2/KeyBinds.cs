@@ -136,10 +136,10 @@ namespace DarkHelmet.BuildVision2
         public int Count { get { return keyBinds.Length; } }
 
         private const int maxBindLength = 3;
-        private readonly BvMain main;
-        private readonly Dictionary<string, Control> controls;
-        private readonly List<Control> controlList;
+        private static Dictionary<string, Control> controls;
+        private static List<Control> controlList;
 
+        private static BvMain Main { get { return BvMain.Instance; } }
         private KeyBind[] keyBinds;
         private List<Control> usedControls;
         private bool[,] controlBindMap; // X = used controls; Y = associated key binds
@@ -148,12 +148,14 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Initializes binds class. Generates control dictionary, list and key binds array.
         /// </summary>
-        private Binds(BindsConfig cfg)
+        private Binds()
         {
-            main = BvMain.GetInstance();
-            controlList = new List<Control>(220);
-            controls = new Dictionary<string, Control>();
-            GetControls();
+            if (controls == null)
+            {
+                controlList = new List<Control>(220);
+                controls = new Dictionary<string, Control>();
+                GetControls();
+            }
 
             keyBinds = new KeyBind[]
             {
@@ -177,9 +179,8 @@ namespace DarkHelmet.BuildVision2
             multZ = keyBinds[7];
 
             bindHits = new int[keyBinds.Length];
-            GetControlsInUse();
-            GetUsedControlMap();
-            UpdateConfig(cfg);
+            usedControls = new List<Control>(11);
+            controlBindMap = new bool[usedControls.Count, keyBinds.Length];
         }
 
         /// <summary>
@@ -188,20 +189,69 @@ namespace DarkHelmet.BuildVision2
         public static Binds GetInstance(BindsConfig cfg)
         {
             if (Instance == null)
-                Instance = new Binds(cfg);
+            {
+                Instance = new Binds();
+                Instance.InitConfig(cfg);
+            }
 
             return Instance;
+        }
+
+        private void InitConfig(BindsConfig cfg)
+        {
+            if (!TryUpdateConfig(cfg))
+                TryUpdateConfig(BindsConfig.Defaults);
+        }
+
+        /// <summary>
+        /// Updates the current key bind configuration.
+        /// </summary>
+        public static bool TryUpdateConfig(BindsConfig cfg)
+        {
+            Binds newBinds = new Binds();
+            KeyBindData[] bindData = cfg.bindData;
+            bool bindError = false;
+
+            if (bindData != null && bindData.Length > 0)
+            {
+                foreach (KeyBindData bind in bindData)
+                {
+                    if (!newBinds.TryUpdateBind(bind.name, bind.controlNames, true))
+                    {
+                        bindError = true;
+                        break;
+                    }
+                }
+
+                if (bindError)
+                {
+                    BvMain.Instance.SendChatMessage("One or more keybinds in the given configuration were invalid.");
+                    return false;
+                }
+                else
+                {
+                    Instance = newBinds;
+                    return true;
+                }
+            }
+            else
+            {
+                BvMain.Instance.SendChatMessage("Bind data cannot be null or empty.");
+                return false;
+            }
         }
 
         public void Close()
         {
             Instance = null;
+            controlList = null;
+            controls = null;
         }
 
         /// <summary>
         /// Returns all controls as a string with each control separated by a line break/
         /// </summary>
-        public string GetControlListString()
+        public static string GetControlListString()
         {
             StringBuilder sb = new StringBuilder();
 
@@ -212,24 +262,17 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Updates the current key bind configuration.
+        /// Returns true if all key binds are instantiated and have at least one control.
         /// </summary>
-        public void UpdateConfig(BindsConfig cfg)
+        public bool AreAllBindsInitialized()
         {
-            bool bindError = false;
-            KeyBindData[] bindData = cfg.bindData;
+            int initCount = 0;
 
-            if (bindData == null)
-                bindData = BindsConfig.DefaultBinds;
+            foreach (KeyBind bind in keyBinds)
+                if (bind != null && bind.Count > 0)
+                    initCount++;
 
-            foreach (KeyBindData bind in bindData)
-            {
-                if (!TryUpdateBind(bind.name, bind.controlNames, true))
-                    bindError = true;
-            }
-
-            if (bindError)
-                main.SendChatMessage("One or more keybinds in the given configuration were invalid.");
+            return initCount == keyBinds.Length;
         }
 
         /// <summary>
@@ -258,9 +301,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Tries to update a key bind using the name of the key bind and the names of the controls to be bound. Case sensitive.
         /// </summary>
-        public bool TryUpdateBind(string name, string[] controlNames, bool silentErrors = false)
+        public bool TryUpdateBind(string name, string[] controlNames, bool silent = false)
         {
-            if (controlNames.Length <= maxBindLength)
+            if (controlNames.Length <= maxBindLength && controlNames.Length > 0)
             {
                 List<string> uniqueControls = GetUniqueList(controlNames);
                 KeyBind bind = GetBindByName(name) as KeyBind;
@@ -279,12 +322,12 @@ namespace DarkHelmet.BuildVision2
                             return true;
                         }
                     }
-                    else if (!silentErrors)
-                        main.SendChatMessage($"Invalid bind for {name}. One or more control names were not recognised.");
+                    else if (!silent)
+                        Main.SendChatMessage($"Invalid bind for {name}. One or more control names were not recognised.");
                 }
             }
-            else if (!silentErrors)
-                main.SendChatMessage($"Invalid key bind. No more than {maxBindLength} keys in a bind are allowed.");
+            else if (!silent)
+                Main.SendChatMessage($"Invalid key bind. No more than {maxBindLength} keys in a bind are allowed.");
 
             return false;
         }
@@ -448,7 +491,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Builds dictionary of controls from the set of MyKeys enums and a couple custom controls for the mouse wheel.
         /// </summary>
-        private void GetControls()
+        private static void GetControls()
         {
             string name;
 
@@ -509,7 +552,7 @@ namespace DarkHelmet.BuildVision2
                 if (bind.Name == name)
                     return bind;
 
-            main.SendChatMessage($"Invalid bind name.");
+            Main.SendChatMessage($"Invalid bind name.");
             return null;
         }
 
