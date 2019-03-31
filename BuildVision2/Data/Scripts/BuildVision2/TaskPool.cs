@@ -26,6 +26,9 @@ namespace DarkHelmet.BuildVision2
             tasksRunning = new Queue<Task>();
         }
 
+        /// <summary>
+        /// Updates internal queues
+        /// </summary>
         public void Update()
         {
             TryStartWaitingTasks();
@@ -33,9 +36,15 @@ namespace DarkHelmet.BuildVision2
             RunTaskActions();
         }
 
+        /// <summary>
+        /// Enqueues an action to run in parallel
+        /// </summary>
         public void EnqueueTask(Action action) =>
             tasksWaiting.Enqueue(action);
 
+        /// <summary>
+        /// Enqueues an action to run on the main thread. Meant to be used by other threads.
+        /// </summary>
         public void EnqueueAction(Action action) =>
             actions.Enqueue(action);
 

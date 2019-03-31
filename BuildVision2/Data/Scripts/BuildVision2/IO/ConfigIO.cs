@@ -12,13 +12,23 @@ namespace DarkHelmet.BuildVision2
     public class ConfigData
     {
         [XmlIgnore]
-        public readonly static ConfigData defaults = new ConfigData
+        public static ConfigData Defaults
         {
-            general = GeneralConfig.defaults,
-            menu = PropMenuConfig.defaults,
-            propertyBlock = PropBlockConfig.defaults,
-            binds = BindsConfig.Defaults
-        };
+            get
+            {
+                return new ConfigData
+                {
+                    versionID = BvMain.versionID,
+                    general = GeneralConfig.Defaults,
+                    menu = PropMenuConfig.Defaults,
+                    propertyBlock = PropBlockConfig.Defaults,
+                    binds = BindsConfig.Defaults
+                };
+            }
+        }
+
+        [XmlAttribute(AttributeName = "ConfigVersionID")]
+        public int versionID;
 
         [XmlElement(ElementName = "GeneralSettings")]
         public GeneralConfig general;
@@ -38,6 +48,7 @@ namespace DarkHelmet.BuildVision2
         {
             return new ConfigData
             {
+                versionID = versionID,
                 general = general,
                 menu = menu,
                 propertyBlock = propertyBlock,
@@ -47,9 +58,23 @@ namespace DarkHelmet.BuildVision2
 
         public void Validate()
         {
-            menu.Validate();
-            binds.Validate();
-            propertyBlock.Validate();
+            if (versionID != BvMain.versionID)
+                versionID = BvMain.versionID;
+
+            if (menu != null)
+                menu.Validate();
+            else
+                menu = PropMenuConfig.Defaults;
+
+            if (binds != null)
+                binds.Validate();
+            else
+                binds = BindsConfig.Defaults;
+
+            if (propertyBlock != null)
+                propertyBlock.Validate();
+            else
+                propertyBlock = PropBlockConfig.Defaults;
         }
     }
 
@@ -62,8 +87,8 @@ namespace DarkHelmet.BuildVision2
         public static ConfigIO Instance { get; private set; }
         public bool SaveInProgress { get; private set; }
 
-        private BvMain Main { get { return BvMain.Instance; } }
-        private LogIO Log { get { return LogIO.Instance; } }
+        private static BvMain Main { get { return BvMain.Instance; } }
+        private static LogIO Log { get { return LogIO.Instance; } }
         private readonly LocalFileIO cfgFile;
         private readonly TaskPool taskPool;
 
@@ -74,12 +99,10 @@ namespace DarkHelmet.BuildVision2
             SaveInProgress = false;
         }
 
-        public static ConfigIO GetInstance(string configFileName)
+        public static void Init(string configFileName)
         {
             if (Instance == null)
                 Instance = new ConfigIO(configFileName);
-
-            return Instance;
         }
 
         /// <summary>
@@ -123,7 +146,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Loads the current configuration in parallel.
         /// </summary>
-        public void LoadConfigStart(ConfigDataCallback UpdateConfig, bool silent = false)
+        public void LoadStart(ConfigDataCallback UpdateConfig, bool silent = false)
         {
             if (!SaveInProgress)
             {
@@ -133,26 +156,62 @@ namespace DarkHelmet.BuildVision2
                 taskPool.EnqueueTask(() =>
                 {
                     ConfigData cfg;
-                    BvException exception = TryLoadConfig(out cfg);
+                    BvException loadException, saveException;
 
-                    if (exception != null)
+                    loadException = TryLoad(out cfg);
+                    cfg = ValidateConfig(cfg);
+                    taskPool.EnqueueAction(() => UpdateConfig(cfg));
+                    saveException = TrySave(cfg);
+
+                    if (loadException != null)
                     {
-                        taskPool.EnqueueAction(() => LoadConfigFinish(false, silent));
-                        taskPool.EnqueueAction(() => UpdateConfig(null));
-                        throw exception;
+                        loadException = TrySave(cfg);
+                        taskPool.EnqueueAction(
+                            () => LoadFinish(false, silent));
+
+                        if (saveException != null)
+                        {
+                            BvMain.Log.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
+                            taskPool.EnqueueAction(() => 
+                                Main.SendChatMessage("Unable to load or create configuration file."));
+                        }
                     }
                     else
-                    {
-                        taskPool.EnqueueAction(() => LoadConfigFinish(true, silent));
-                        taskPool.EnqueueAction(() => UpdateConfig(cfg));
-                    }
+                        taskPool.EnqueueAction(() => LoadFinish(true, silent));
                 });
             }
             else
                 Main.SendChatMessage("Save operation already in progress.");
         }
 
-        private void LoadConfigFinish(bool success, bool silent = false)
+        private ConfigData ValidateConfig(ConfigData cfg)
+        {
+            if (cfg != null)
+            {
+                if (cfg.versionID == BvMain.versionID)
+                    cfg.Validate();
+                else
+                {
+                    Backup();
+                    cfg.Validate();
+
+                    taskPool.EnqueueAction(() => 
+                        Main.SendChatMessage("Config version mismatch. Some settings may have " +
+                        "been reset. A backup of the original config file has been made."));
+                }
+
+                return cfg;
+            }
+            else
+            {
+                taskPool.EnqueueAction(() => 
+                    Main.SendChatMessage("Unable to load configuration. Loading default settings..."));
+
+                return ConfigData.Defaults;
+            }
+        }
+
+        private void LoadFinish(bool success, bool silent = false)
         {
             if (SaveInProgress)
             {
@@ -160,8 +219,6 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (success)
                         Main.SendChatMessage("Configuration loaded.");
-                    else
-                        Main.SendChatMessage("Unable to load configuration.");
                 }
 
                 SaveInProgress = false;
@@ -171,7 +228,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Saves a given configuration to the save file in parallel.
         /// </summary>
-        public void SaveConfigStart(ConfigData cfg, bool silent = false)
+        public void SaveStart(ConfigData cfg, bool silent = false)
         {
             if (!SaveInProgress)
             {
@@ -180,22 +237,22 @@ namespace DarkHelmet.BuildVision2
 
                 taskPool.EnqueueTask(() =>
                 {
-                    BvException exception = TrySaveConfig(cfg);
+                    BvException exception = TrySave(cfg);
 
                     if (exception != null)
                     {
-                        taskPool.EnqueueAction(() => SaveConfigFinish(false, silent));
+                        taskPool.EnqueueAction(() => SaveFinish(false, silent));
                         throw exception;
                     }
                     else
-                        taskPool.EnqueueAction(() => SaveConfigFinish(true, silent));
+                        taskPool.EnqueueAction(() => SaveFinish(true, silent));
                 });
             }
             else
                 Main.SendChatMessage("Save operation already in progress.");
         }
 
-        private void SaveConfigFinish(bool success, bool silent = false)
+        private void SaveFinish(bool success, bool silent = false)
         {
             if (SaveInProgress)
             {
@@ -214,24 +271,26 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Saves the current configuration synchronously.
         /// </summary>
-        public void SaveConfig(ConfigData cfg)
+        public void Save(ConfigData cfg)
         {
-            BvException exception = TrySaveConfig(cfg);
+            if (!SaveInProgress)
+            {
+                BvException exception = TrySave(cfg);
 
-            if (exception != null)
-                throw exception;
+                if (exception != null)
+                    throw exception;
+            }
         }
 
         /// <summary>
         /// Creates a duplicate of the config file starting with a new file name starting with "old_"
-        /// if one exists. Runs in parallel.
+        /// if one exists.
         /// </summary>
-        public void BackupConfig()
+        private void Backup()
         {
             if (MyAPIGateway.Utilities.FileExistsInLocalStorage(cfgFile.file, typeof(ConfigIO)))
             {
-                BvException exception =
-                    cfgFile.TryDuplicate($"old_" + cfgFile.file);
+                BvException exception = cfgFile.TryDuplicate($"old_" + cfgFile.file);
 
                 if (exception != null)
                     throw exception;
@@ -241,7 +300,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Attempts to load config file and creates a new one if it can't.
         /// </summary>
-        private BvException TryLoadConfig(out ConfigData cfg)
+        private BvException TryLoad(out ConfigData cfg)
         {
             string data;
             BvException exception = cfgFile.TryRead(out data);
@@ -254,8 +313,8 @@ namespace DarkHelmet.BuildVision2
 
             if (exception != null)
             {
-                BackupConfig();
-                TrySaveConfig(ConfigData.defaults);
+                Backup();
+                TrySave(ConfigData.Defaults);
             }
 
             return exception;
@@ -264,7 +323,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Attempts to save current configuration to a file.
         /// </summary>
-        private BvException TrySaveConfig(ConfigData cfg)
+        private BvException TrySave(ConfigData cfg)
         {
             string xmlOut = null;
             BvException exception = TrySerializeToXml(cfg, out xmlOut);

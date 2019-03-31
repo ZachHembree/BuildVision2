@@ -22,12 +22,10 @@ namespace DarkHelmet.BuildVision2
             taskPool = new TaskPool(1, ErrorCallback);
         }
 
-        public static LogIO GetInstance(string fileName)
+        public static void Init(string fileName)
         {
             if (Instance == null)
                 Instance = new LogIO(fileName);
-
-            return Instance;
         }
 
         /// <summary>
@@ -65,14 +63,17 @@ namespace DarkHelmet.BuildVision2
             if (Accessible)
             {
                 message = $"[{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss:ms")}] {message}";
+                BvException exception = logFile.TryAppend(message);
 
-                if (logFile.TryAppend(message) != null)
+                if (exception != null)
                 {
+                    Main.SendChatMessage("Unable to update log; please check your file access permissions.");
                     Accessible = false;
-                    return false;
+                    throw exception;
                 }
                 else
                 {
+                    Main.SendChatMessage("Log updated.");
                     Accessible = true;
                     return true;
                 }

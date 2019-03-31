@@ -11,8 +11,8 @@ namespace DarkHelmet.BuildVision2
     {
         public static ChatCommands Instance { get; private set; }
 
-        private static Binds Binds { get { return Binds.Instance; } }
         private static BvMain Main { get { return BvMain.Instance; } }
+        private static Binds Binds { get { return Binds.Instance; } }
         private readonly string prefix, controlList;
         private readonly Regex cmdParser;
         private readonly Command[] commands;
@@ -72,6 +72,8 @@ namespace DarkHelmet.BuildVision2
                     () => Main.forceFallbackHud = !Main.forceFallbackHud),
                 new Command ("toggleAutoclose",
                     () => Main.closeIfNotInView = !Main.closeIfNotInView),
+                new Command ("toggleOpenWhileHolding",
+                    () => Main.canOpenIfHandsNotEmpty = !Main.canOpenIfHandsNotEmpty),
 
                 // Debug/Testing
                 new Command ("open",
@@ -87,12 +89,10 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Returns the current instance or creates one if necessary.
         /// </summary>
-        public static ChatCommands GetInstance(string prefix)
+        public static void Init(string prefix)
         {
             if (Instance == null)
                 Instance = new ChatCommands(prefix);
-
-            return Instance;
         }
 
         public void Close()

@@ -139,23 +139,20 @@ namespace DarkHelmet.BuildVision2
 
             lock (fileLock)
             {
-                if (MyAPIGateway.Utilities.FileExistsInLocalStorage(file, typeof(LocalFileIO)))
+                try
                 {
-                    try
-                    {
-                        reader = MyAPIGateway.Utilities.ReadFileInLocalStorage(file, typeof(LocalFileIO));
-                        data = reader.ReadToEnd();
-                    }
-                    catch (Exception e)
-                    {
-                        data = null;
-                        exception = new BvException($"IO Error. Unable to read from {file}.", e);
-                    }
-                    finally
-                    {
-                        if (reader != null)
-                            reader.Close();
-                    }
+                    reader = MyAPIGateway.Utilities.ReadFileInLocalStorage(file, typeof(LocalFileIO));
+                    data = reader.ReadToEnd();
+                }
+                catch (Exception e)
+                {
+                    data = null;
+                    exception = new BvException($"IO Error. Unable to read from {file}.", e);
+                }
+                finally
+                {
+                    if (reader != null)
+                        reader.Close();
                 }
             }
 

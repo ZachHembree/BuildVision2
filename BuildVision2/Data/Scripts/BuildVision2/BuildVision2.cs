@@ -11,33 +11,10 @@ using System.Text;
 
 namespace DarkHelmet.BuildVision2
 {
-    [XmlType(TypeName = "GeneralSettings")]
-    public struct GeneralConfig
-    {
-        [XmlIgnore]
-        public static readonly GeneralConfig defaults = new GeneralConfig(false, true, true);
-
-        [XmlElement(ElementName = "ForceFallbackHud")]
-        public bool forceFallbackHud;
-
-        [XmlElement(ElementName = "CloseIfTargetNotInView")]
-        public bool closeIfNotInView;
-
-        [XmlElement(ElementName = "CanOpenIfHandsNotEmpty")]
-        public bool canOpenIfHandsNotEmpty;
-
-        public GeneralConfig(bool forceFallbackHud, bool closeIfNotInView, bool canOpenIfHandsNotEmpty)
-        {
-            this.forceFallbackHud = forceFallbackHud;
-            this.closeIfNotInView = closeIfNotInView;
-            this.canOpenIfHandsNotEmpty = canOpenIfHandsNotEmpty;
-        }
-    }
-
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
     public class BuildVision2 : MySessionComponentBase
     {
-        private BvMain buildVision;
+        private BvMain BuildVision { get { return BvMain.Instance; } }
         private bool crashed = false, isDedicated = false, isServer = false;
 
         public override void UpdateAfterSimulation()
@@ -52,15 +29,16 @@ namespace DarkHelmet.BuildVision2
             {
                 try
                 {
-                    if (buildVision == null)
-                        buildVision = BvMain.GetInstance();
+                    if (BuildVision == null)
+                        BvMain.Init();
 
-                    buildVision.Update();
+                    if (BuildVision != null)
+                        BuildVision.Update();
                 }
                 catch (Exception e)
                 {
                     crashed = true;
-                    buildVision?.Log?.TryWriteToLog("Build Vision has crashed!\n" + e.ToString());
+                    BvMain.Log?.TryWriteToLog("Build Vision has crashed!\n" + e.ToString());
                     MyAPIGateway.Utilities.ShowMissionScreen("Build Vision 2", "Debug", "", 
                         "Build Vision has crashed! Press the X in the upper right hand corner if you don't want " +
                         "" + "it to reload.\n" + e.ToString(), AllowReload, "Reload");
@@ -80,8 +58,7 @@ namespace DarkHelmet.BuildVision2
         {
             try
             {
-                buildVision?.Close();
-                buildVision = null;
+                BuildVision?.Close();
             }
             catch
             {
@@ -89,7 +66,34 @@ namespace DarkHelmet.BuildVision2
             }
         }
     }
-    
+
+    [XmlType(TypeName = "GeneralSettings")]
+    public class GeneralConfig
+    {
+        [XmlIgnore]
+        public static GeneralConfig Defaults
+        {
+            get
+            {
+                return new GeneralConfig
+                {
+                    forceFallbackHud = false,
+                    closeIfNotInView = true,
+                    canOpenIfHandsNotEmpty = true
+                };
+            }
+        }
+
+        [XmlElement(ElementName = "ForceFallbackHud")]
+        public bool forceFallbackHud;
+
+        [XmlElement(ElementName = "CloseIfTargetNotInView")]
+        public bool closeIfNotInView;
+
+        [XmlElement(ElementName = "CanOpenIfHandsNotEmpty")]
+        public bool canOpenIfHandsNotEmpty;
+    }
+
     internal sealed class BvMain
     {
         public static BvMain Instance { get; private set; }
@@ -97,30 +101,30 @@ namespace DarkHelmet.BuildVision2
 
         private const string configFileName = "BuildVision2Config.xml", logFileName = "bvLog.txt", 
             senderName = "Build Vision 2", cmdPrefix = "/bv2";
+        public const int versionID = 2;
 
-        public LogIO Log { get { return LogIO.Instance; } }
-        private ConfigIO Config { get { return ConfigIO.Instance; } }
-        private Binds Binds { get { return Binds.Instance; } }
-        private ChatCommands Cmd { get { return ChatCommands.Instance; } }
-        private PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
+        public static LogIO Log { get { return LogIO.Instance; } }
+        private static ConfigIO Config { get { return ConfigIO.Instance; } }
+        private static Binds Binds { get { return Binds.Instance; } }
+        private static ChatCommands Cmd { get { return ChatCommands.Instance; } }
+        private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
         private PropertyBlock target;
         private bool init, initStart, menuOpen;
 
         private BvMain()
         {
             init = false;
+            initStart = false;
             menuOpen = false;
         }
 
-        public static BvMain GetInstance()
+        public static void Init()
         {
             if (Instance == null)
             {
                 Instance = new BvMain();
                 Instance.InitStart();
             }
-
-            return Instance;
         }
 
         private void InitStart()
@@ -128,42 +132,26 @@ namespace DarkHelmet.BuildVision2
             if (!init && !initStart)
             {
                 initStart = true;
-                LogIO.GetInstance(logFileName);
-                ConfigIO.GetInstance(configFileName);
-                Config.LoadConfigStart(InitFinish, true);
+                LogIO.Init(logFileName);
+                ConfigIO.Init(configFileName);
+                Config.LoadStart(InitFinish, true);
             }
         }
 
         /// <summary>
         /// Finishes initialization upon retrieval of configuration information.
         /// </summary>
-        /// <param name="cfg"></param>
         private void InitFinish(ConfigData cfg)
         {
             if (!init && initStart)
             {
-                if (cfg != null)
-                {
-                    cfg.Validate();
-                    UpdateGeneralConfig(cfg.general);
-                    Binds.GetInstance(cfg.binds);
-                    ChatCommands.GetInstance(cmdPrefix);
-                    PropertiesMenu.GetInstance(cfg.menu);
-                    PropertyBlock.UpdateConfig(cfg.propertyBlock);
-                    init = true;
-                }
-                else
-                {
-                    UpdateGeneralConfig(GeneralConfig.defaults);
-                    Binds.GetInstance(BindsConfig.Defaults);
-                    ChatCommands.GetInstance(cmdPrefix);
-                    PropertiesMenu.GetInstance(PropMenuConfig.defaults);
+                UpdateGeneralConfig(cfg.general);
+                Binds.Init(cfg.binds);
+                ChatCommands.Init(cmdPrefix);
+                PropertiesMenu.Init(cfg.menu);
+                PropertyBlock.UpdateConfig(cfg.propertyBlock);
 
-                    init = true;
-                    SendChatMessage("Unable to load config file. Default settings loaded.");
-                    ResetConfig(true);
-                }
-
+                init = true;
                 MyAPIGateway.Utilities.ShowMessage("Build Vision 2", $"Type {cmdPrefix} help for help");
             }
         }
@@ -173,7 +161,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void Close()
         {
-            if (init) Config.SaveConfig(GetConfig());
+            if (init) Config.Save(GetConfig());
             init = false;
             initStart = false;
 
@@ -188,20 +176,20 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Loads config from file and applies it. Runs in parallel.
         /// </summary>
-        public void LoadConfig()
+        public void LoadConfig(bool silent = false)
         {
             if (init)
-                Config.LoadConfigStart(UpdateConfig);
+                Config.LoadStart(UpdateConfig, silent);
         }
 
         /// <summary>
         /// Gets the current configuration and writes it to the config file. 
         /// Runs in parallel.
         /// </summary>
-        public void SaveConfig()
+        public void SaveConfig(bool silent = false)
         {
             if (init)
-                Config.SaveConfigStart(GetConfig());
+                Config.SaveStart(GetConfig(), silent);
         }
 
         /// <summary>
@@ -210,9 +198,9 @@ namespace DarkHelmet.BuildVision2
         public void ResetConfig(bool silent = false)
         {
             if (init)
-                Config.SaveConfigStart(ConfigData.defaults, silent);
+                Config.SaveStart(ConfigData.Defaults, silent);
 
-            UpdateConfig(ConfigData.defaults);
+            UpdateConfig(ConfigData.Defaults);
         }
 
         /// <summary>
@@ -249,7 +237,8 @@ namespace DarkHelmet.BuildVision2
             {
                 return new ConfigData
                 {
-                    general = new GeneralConfig(forceFallbackHud, closeIfNotInView, canOpenIfHandsNotEmpty),
+                    versionID = versionID,
+                    general = GetGeneralConfig(),
                     binds = Binds.GetConfig(),
                     menu = Menu.GetConfig(),
                     propertyBlock = PropertyBlock.GetConfig()
@@ -257,6 +246,16 @@ namespace DarkHelmet.BuildVision2
             }
             else
                 return null;
+        }
+
+        private GeneralConfig GetGeneralConfig()
+        {
+            return new GeneralConfig
+            {
+                forceFallbackHud = forceFallbackHud,
+                closeIfNotInView = closeIfNotInView,
+                canOpenIfHandsNotEmpty = canOpenIfHandsNotEmpty
+            };
         }
 
         /// <summary>

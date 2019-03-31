@@ -25,7 +25,6 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Retrieves the block action name and related info.
         /// </summary>
-        /// <returns></returns>
         Func<string> GetName { get; }
 
         /// <summary>
@@ -39,7 +38,6 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Retrieves the block property name and related info.
         /// </summary>
-        /// <returns></returns>
         string GetName();
 
         /// <summary>
@@ -56,11 +54,22 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Stores configuration of scrollable data for serializatin.
     /// </summary>
-    public struct PropBlockConfig
+    public class PropBlockConfig
     {
         [XmlIgnore]
-        public static readonly PropBlockConfig defaults = 
-            new PropBlockConfig(1000.0, 256, new Vector3(10f, 25f, 100f), new Vector3I(8, 16, 64));
+        public static PropBlockConfig Defaults
+        {
+            get
+            {
+                return new PropBlockConfig
+                {
+                    floatDiv = 1000.0,
+                    colorDiv = 256,
+                    floatMult = new Vector3(10f, 25f, 100f),
+                    colorMult = new Vector3I(8, 16, 64)
+                };
+            }
+        }
 
         [XmlElement(ElementName = "FloatIncrementDivisor")]
         public double floatDiv;
@@ -74,19 +83,13 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "ColorPropertyMultipliers")]
         public Vector3I colorMult;
 
-        public PropBlockConfig(double floatDiv, int colorDiv, Vector3D floatMult, Vector3I colorMult)
-        {
-            this.floatDiv = floatDiv;
-            this.colorDiv = colorDiv;
-            this.floatMult = floatMult;
-            this.colorMult = colorMult;
-        }
-
         /// <summary>
         /// Checks any fields have invalid values and resets them to the default if necessary.
         /// </summary>
         public void Validate()
         {
+            PropBlockConfig defaults = Defaults;
+
             if (floatDiv == default(double))
                 floatDiv = defaults.floatDiv;
 
@@ -129,19 +132,17 @@ namespace DarkHelmet.BuildVision2
         public bool CanLocalPlayerAccess { get { return TBlock.HasLocalPlayerAccess(); } }
 
         private static Binds Binds { get { return Binds.Instance; } }
-        private static double floatDiv;
-        private static int colorDiv;
-        private static Vector3 floatMult;
-        private static Vector3I colorMult;
+        private static PropBlockConfig cfg;
 
         static PropertyBlock()
         {
-            UpdateConfig(PropBlockConfig.defaults);
+            UpdateConfig(PropBlockConfig.Defaults);
         }
 
         public PropertyBlock(IMyTerminalBlock tBlock)
         {
             TBlock = tBlock;
+            IsMechConnection = false;
 
             Actions = GetScrollableActions();
             Properties = GetScrollableProps();
@@ -153,10 +154,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static void UpdateConfig(PropBlockConfig cfg)
         {
-            floatDiv = cfg.floatDiv;
-            colorDiv = cfg.colorDiv;
-            floatMult = cfg.floatMult;
-            colorMult = cfg.colorMult;
+            cfg.Validate();
+            PropertyBlock.cfg = cfg;
         }
 
         /// <summary>
@@ -164,13 +163,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static PropBlockConfig GetConfig()
         {
-            return new PropBlockConfig
-            {
-                floatDiv = floatDiv,
-                colorDiv = colorDiv,
-                floatMult = floatMult,
-                colorMult = colorMult
-            };
+            return cfg;
         }
 
         /// <summary>
@@ -185,28 +178,28 @@ namespace DarkHelmet.BuildVision2
         private List<IScrollableAction> GetScrollableActions()
         {
             List<IScrollableAction> actions = new List<IScrollableAction>();
-            IMyMechanicalConnectionBlock mechBlock = TBlock as IMyMechanicalConnectionBlock;
-            IMyDoor door = TBlock as IMyDoor;
-            IMyWarhead warhead = TBlock as IMyWarhead;
-            IMyLandingGear landingGear = TBlock as IMyLandingGear;
-            IMyParachute parachute = TBlock as IMyParachute;
-            IsMechConnection = mechBlock != null;
-            //RecreateTop
 
-            if (mechBlock != null)
-                BlockAction.GetMechActions(mechBlock, actions);
-
-            if (door != null)
-                BlockAction.GetDoorActions(door, actions);
-
-            if (warhead != null)
-                BlockAction.GetWarheadActions(warhead, actions);
-
-            if (landingGear != null)
-                BlockAction.GetGearActions(landingGear, actions);
-
-            if (parachute != null)
-                BlockAction.GetChuteActions(parachute, actions);
+            if (TBlock is IMyMechanicalConnectionBlock)
+            {
+                BlockAction.GetMechActions(TBlock, actions);
+                IsMechConnection = true;
+            }
+            else if (TBlock is IMyDoor)
+            {
+                BlockAction.GetDoorActions(TBlock, actions);
+            }
+            else if (TBlock is IMyWarhead)
+            {
+                BlockAction.GetWarheadActions(TBlock, actions);
+            }
+            else if (TBlock is IMyLandingGear)
+            {
+                BlockAction.GetGearActions(TBlock, actions);
+            }
+            else if (TBlock is IMyParachute)
+            {
+                BlockAction.GetChuteActions(TBlock, actions);
+            }
 
             return actions;
         }
@@ -274,113 +267,110 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyMechanicalConnectionBlock.
             /// </summary>
-            public static void GetMechActions(IMyMechanicalConnectionBlock mechBlock, List<IScrollableAction> actions)
+            public static void GetMechActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
             {
+                List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
+                IMyMechanicalConnectionBlock mechBlock = (IMyMechanicalConnectionBlock)tBlock;
                 IMyPistonBase piston;
                 IMyMotorStator rotor;
-                
-                if (mechBlock != null)
+
+                mechBlock.GetActions(terminalActions);
+
+                foreach (IMyTerminalAction tAction in terminalActions) // sketchy, but I've done worse already
                 {
-                    List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
-                    mechBlock.GetActions(terminalActions);
+                    string tActionName = tAction.Name.ToString();
 
-                    foreach (IMyTerminalAction tAction in terminalActions) // sketchy, but I've done worse already
-                    {
-                        string tActionName = tAction.Name.ToString();
+                    if (tAction.Name.ToString().StartsWith("Add "))
+                        actions.Add(new BlockAction(
+                            () => tActionName,
+                            () => tAction.Apply(mechBlock)));
+                }
 
-                        if (tAction.Name.ToString().StartsWith("Add "))
-                            actions.Add(new BlockAction(
-                                () => tActionName,
-                                () => tAction.Apply(mechBlock)));
-                    }
+                actions.Add(new BlockAction(
+                    () => "Attach Head",
+                    () => mechBlock.Attach()));
+                actions.Add(new BlockAction(
+                    () => mechBlock.IsAttached ? "Detach Head (Ready)" : "Detach Head",
+                    () => mechBlock.Detach()));
 
+                piston = mechBlock as IMyPistonBase;
+
+                if (piston != null)
+                {
                     actions.Add(new BlockAction(
-                        () => "Attach Head", 
-                        () => mechBlock.Attach()));
-                    actions.Add(new BlockAction(
-                        () => mechBlock.IsAttached ? "Detach Head (Ready)" : "Detach Head",
-                        () => mechBlock.Detach()));
+                        () => "Reverse",
+                        () => piston.Reverse()));
+                }
+                else
+                {
+                    rotor = mechBlock as IMyMotorStator;
 
-                    piston = mechBlock as IMyPistonBase;                    
-
-                    if (piston != null)
-                    {
+                    if (rotor != null)
                         actions.Add(new BlockAction(
                             () => "Reverse",
-                            () => piston.Reverse()));
-                    }
-                    else
-                    {
-                        rotor = mechBlock as IMyMotorStator;
-
-                        if (rotor != null)
-                            actions.Add(new BlockAction(
-                                () => "Reverse",
-                                () => rotor.TargetVelocityRad = -rotor.TargetVelocityRad));
-                    }
+                            () => rotor.TargetVelocityRad = -rotor.TargetVelocityRad));
                 }
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyDoor.
             /// </summary>
-            public static void GetDoorActions(IMyDoor doorBlock, List<IScrollableAction> actions)
+            public static void GetDoorActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
             {
-                if (doorBlock != null)
-                {
-                    actions.Add(new BlockAction(
-                        () => "Open/Close",
-                        () => doorBlock.ToggleDoor()));
-                }
+                IMyDoor doorBlock = (IMyDoor)tBlock;
+
+                actions.Add(new BlockAction(
+                    () => "Open/Close",
+                    () => doorBlock.ToggleDoor()));
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyWarhead.
             /// </summary>
-            public static void GetWarheadActions(IMyWarhead warhead, List<IScrollableAction> actions)
+            public static void GetWarheadActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
             {
-                if (warhead != null)
-                {
-                    actions.Add(new BlockAction(
-                        () => $"Start Countdown",
-                        () => warhead.StartCountdown()));
-                    actions.Add(new BlockAction(
-                        () => "Stop Countdown",
-                        () => warhead.StopCountdown()));
-                    actions.Add(new BlockAction(
-                        () => "Detonate",
-                        () => warhead.Detonate()));
-                }
+                IMyWarhead warhead = (IMyWarhead)tBlock;
+
+                actions.Add(new BlockAction(
+                    () => $"Start Countdown",
+                    () => warhead.StartCountdown()));
+                actions.Add(new BlockAction(
+                    () => "Stop Countdown",
+                    () => warhead.StopCountdown()));
+                actions.Add(new BlockAction(
+                    () => "Detonate",
+                    () => warhead.Detonate()));
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyLandingGear.
             /// </summary>
-            public static void GetGearActions(IMyLandingGear landingGear, List<IScrollableAction> actions)
+            public static void GetGearActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
             {
-                if (landingGear != null)
-                {
-                    actions.Add(new BlockAction(
-                        () => $"Lock/Unlock ({(landingGear.IsLocked ? "Locked" : "Unlocked")})",
-                        () => landingGear.ToggleLock()));
-                }
+                IMyLandingGear landingGear = (IMyLandingGear)tBlock;
+
+                actions.Add(new BlockAction(
+                    () => $"Lock/Unlock ({(landingGear.IsLocked ? "Locked" : "Unlocked")})",
+                    () => landingGear.ToggleLock()));
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyParachute.
             /// </summary>
-            public static void GetChuteActions(IMyParachute parachute, List<IScrollableAction> actions)
+            public static void GetChuteActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
             {
-                if (parachute != null)
-                {
-                    actions.Add(new BlockAction(
-                        () => $"Open/Close " +
-                        $"({((parachute.Status == DoorStatus.Open || parachute.Status == DoorStatus.Opening) ? "Open" : "Closed")})",
-                        () => parachute.ToggleDoor()));
-                }
+                IMyParachute parachute = (IMyParachute)tBlock;
+
+                actions.Add(new BlockAction(
+                    () => $"Open/Close " +
+                    $"({((parachute.Status == DoorStatus.Open || parachute.Status == DoorStatus.Opening) ? "Open" : "Closed")})",
+                    () => parachute.ToggleDoor()));
             }
         }
 
+        /// <summary>
+        /// Scrollable property for battery charge modes
+        /// </summary>
         private class BattProperty : IScrollableProp
         {
             private readonly IMyBatteryBlock battery;
@@ -412,7 +402,7 @@ namespace DarkHelmet.BuildVision2
                 else
                     index++;
 
-                index = Clamp(index, 1, 3);
+                index= Utilities.Clamp(index, 1, 3);
 
                 if (index == 1)
                     battery.ChargeMode = ChargeMode.Auto;
@@ -446,7 +436,6 @@ namespace DarkHelmet.BuildVision2
                     return "null";
             }
         }
-
 
         /// <summary>
         /// Block Terminal Property of a Boolean
@@ -509,10 +498,10 @@ namespace DarkHelmet.BuildVision2
                 if (float.IsInfinity(maxValue))
                     maxValue = 1000;
                 
-                incr0 = Clamp((float)Math.Round(maxValue / floatDiv), .1f, float.PositiveInfinity); 
-                incrC = incr0 * floatMult.Z; // x64
-                incrB = incr0 * floatMult.Y; // x16
-                incrA = incr0 * floatMult.X; // x8
+                incr0 = Utilities.Clamp((float)Math.Round(maxValue / cfg.floatDiv), .1f, float.PositiveInfinity); 
+                incrC = incr0 * cfg.floatMult.Z; // x64
+                incrB = incr0 * cfg.floatMult.Y; // x16
+                incrA = incr0 * cfg.floatMult.X; // x8
             }
 
             public string GetName() =>
@@ -534,7 +523,7 @@ namespace DarkHelmet.BuildVision2
                 if (float.IsInfinity(current))
                     current = 0f;
 
-                prop.SetValue(pBlock.TBlock, (float)Math.Round(Clamp((current + delta), minValue, maxValue), 1));
+                prop.SetValue(pBlock.TBlock, (float)Math.Round(Utilities.Clamp((current + delta), minValue, maxValue), 1));
             }
             /// <summary>
             /// Gets value to add or subtract from the property based on multipliers used.
@@ -582,10 +571,10 @@ namespace DarkHelmet.BuildVision2
                 property = prop;
                 name = GetTooltipName(prop);
 
-                incr0 = Clamp(maxValue / colorDiv, 1, maxValue);
-                incrC = incr0 * colorMult.Z; // x64
-                incrB = incr0 * colorMult.Y; // x16
-                incrA = incr0 * colorMult.X; // x8
+                incr0 = Utilities.Clamp(maxValue / cfg.colorDiv, 1, maxValue);
+                incrC = incr0 * cfg.colorMult.Z; // x64
+                incrB = incr0 * cfg.colorMult.Y; // x16
+                incrA = incr0 * cfg.colorMult.X; // x8
 
                 this.delta = delta;
                 this.colorDisp = colorDisp;
@@ -626,9 +615,9 @@ namespace DarkHelmet.BuildVision2
                 g += (sign * mult * delta.G);
                 b += (sign * mult * delta.B);
 
-                curr.R = (byte)Clamp(r, minValue, maxValue);
-                curr.G = (byte)Clamp(g, minValue, maxValue);
-                curr.B = (byte)Clamp(b, minValue, maxValue);
+                curr.R = (byte)Utilities.Clamp(r, minValue, maxValue);
+                curr.G = (byte)Utilities.Clamp(g, minValue, maxValue);
+                curr.B = (byte)Utilities.Clamp(b, minValue, maxValue);
 
                 property.SetValue(pBlock.TBlock, curr);
             }
@@ -652,32 +641,6 @@ namespace DarkHelmet.BuildVision2
                 else
                     return incr0; // x1
             }
-        }
-
-        /// <summary>
-        /// Clamps a float between two values.
-        /// </summary>
-        private static float Clamp(float value, float min, float max)
-        {
-            if (value < min)
-                return min;
-            else if (value > max)
-                return max;
-            else
-                return value;
-        }
-
-        /// <summary>
-        /// Clamps an int between two values.
-        /// </summary>
-        private static int Clamp(int value, int min, int max)
-        {
-            if (value < min)
-                return min;
-            else if (value > max)
-                return max;
-            else
-                return value;
         }
     }
 }

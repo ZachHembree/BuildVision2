@@ -10,10 +10,10 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Stores data for serializing the configuration of the Binds class.
     /// </summary>
-    public struct BindsConfig
+    public class BindsConfig
     {
         [XmlIgnore]
-        public static BindsConfig Defaults { get { return new BindsConfig { bindData = defaultBinds }; } }
+        public static BindsConfig Defaults { get { return new BindsConfig { bindData = DefaultBinds }; } }
 
         [XmlIgnore]
         public static KeyBindData[] DefaultBinds
@@ -45,7 +45,7 @@ namespace DarkHelmet.BuildVision2
         public KeyBindData[] bindData;
 
         /// <summary>
-        /// Checks any fields have invalid values and resets them to the default if necessary.
+        /// Checks any if fields have invalid values and resets them to the default if necessary.
         /// </summary>
         public void Validate()
         {
@@ -186,21 +186,15 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Returns the current instance or creates one if necessary.
         /// </summary>
-        public static Binds GetInstance(BindsConfig cfg)
+        public static void Init(BindsConfig cfg)
         {
             if (Instance == null)
             {
                 Instance = new Binds();
-                Instance.InitConfig(cfg);
+
+                if (!TryUpdateConfig(cfg))
+                    TryUpdateConfig(BindsConfig.Defaults);
             }
-
-            return Instance;
-        }
-
-        private void InitConfig(BindsConfig cfg)
-        {
-            if (!TryUpdateConfig(cfg))
-                TryUpdateConfig(BindsConfig.Defaults);
         }
 
         /// <summary>
@@ -249,7 +243,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Returns all controls as a string with each control separated by a line break/
+        /// Returns all controls as a string with each control separated by a line break.
         /// </summary>
         public static string GetControlListString()
         {
@@ -571,7 +565,6 @@ namespace DarkHelmet.BuildVision2
 
             return unique;
         }
-
 
         /// <summary>
         /// General purpose button wrapper for MyKeys and anything else associated with a name and an IsPressed method.

@@ -55,13 +55,7 @@ namespace DarkHelmet.BuildVision2
                 fatBlock = slimBlock?.FatBlock;
             }
 
-            return fatBlock != null ;
-        }
-
-        private static bool BlockIsMechConnector(IMyCubeBlock block)
-        {
-            IMyMechanicalConnectionBlock test = block as IMyMechanicalConnectionBlock;
-            return test != null;
+            return fatBlock != null;
         }
 
         /// <summary>
