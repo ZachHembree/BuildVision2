@@ -38,6 +38,7 @@ All chat commands must begin with “/bv2” and are not case-sensitive. The arg
 * resetBinds – Resets all key binds to default
 * toggleApi – Toggles between the Text Hud API and the fallback UI (not pretty)
 * toggleAutoclose – If enabled, the menu will close if it goes off your screen
+* toggleOpenWhileHolding -- If enabled, you'll be able to open the menu while holding a tool or weapon
 
 Example: "/bv2 bind open control shift"
 
