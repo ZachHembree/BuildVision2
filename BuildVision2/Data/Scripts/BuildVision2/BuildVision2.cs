@@ -14,8 +14,36 @@ namespace DarkHelmet.BuildVision2
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
     public class BuildVision2 : MySessionComponentBase
     {
-        private BvMain BuildVision { get { return BvMain.Instance; } }
+        private static BvMain BuildVision { get { return BvMain.Instance; } }
         private bool crashed = false, isDedicated = false, isServer = false;
+
+        public override void Draw()
+        {
+            if (!isDedicated)
+            {
+                isServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
+                isDedicated = (MyAPIGateway.Utilities.IsDedicated && isServer);
+            }
+
+            if (!crashed && !isDedicated)
+            {
+                try
+                {
+                    if (BuildVision != null)
+                        BuildVision.Draw();
+                }
+                catch (Exception e)
+                {
+                    crashed = true;
+                    BvMain.Log?.TryWriteToLog("Build Vision has crashed!\n" + e.ToString());
+                    MyAPIGateway.Utilities.ShowMissionScreen("Build Vision 2", "Debug", "",
+                        "Build Vision has crashed! Press the X in the upper right hand corner if you don't want " +
+                        "" + "it to reload.\n" + e.ToString(), AllowReload, "Reload");
+
+                    TryUnload();
+                }
+            }
+        }
 
         public override void UpdateAfterSimulation()
         {
@@ -39,9 +67,11 @@ namespace DarkHelmet.BuildVision2
                 {
                     crashed = true;
                     BvMain.Log?.TryWriteToLog("Build Vision has crashed!\n" + e.ToString());
-                    MyAPIGateway.Utilities.ShowMissionScreen("Build Vision 2", "Debug", "", 
+                    MyAPIGateway.Utilities.ShowMissionScreen("Build Vision 2", "Debug", "",
                         "Build Vision has crashed! Press the X in the upper right hand corner if you don't want " +
                         "" + "it to reload.\n" + e.ToString(), AllowReload, "Reload");
+
+                    TryUnload();
                 }
             }
         }
@@ -54,7 +84,10 @@ namespace DarkHelmet.BuildVision2
                 crashed = true;
         }
 
-        protected override void UnloadData() 
+        protected override void UnloadData() =>
+            TryUnload();
+
+        private void TryUnload()
         {
             try
             {
@@ -67,7 +100,6 @@ namespace DarkHelmet.BuildVision2
         }
     }
 
-    [XmlType(TypeName = "GeneralSettings")]
     public class GeneralConfig
     {
         [XmlIgnore]
@@ -99,14 +131,15 @@ namespace DarkHelmet.BuildVision2
         public static BvMain Instance { get; private set; }
         public bool forceFallbackHud, closeIfNotInView, canOpenIfHandsNotEmpty;
 
+        public const int versionID = 3;
         private const string configFileName = "BuildVision2Config.xml", logFileName = "bvLog.txt", 
             senderName = "Build Vision 2", cmdPrefix = "/bv2";
-        public const int versionID = 2;
 
         public static LogIO Log { get { return LogIO.Instance; } }
         private static ConfigIO Config { get { return ConfigIO.Instance; } }
         private static Binds Binds { get { return Binds.Instance; } }
         private static ChatCommands Cmd { get { return ChatCommands.Instance; } }
+        private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
         private PropertyBlock target;
         private bool init, initStart, menuOpen;
@@ -148,6 +181,7 @@ namespace DarkHelmet.BuildVision2
                 UpdateGeneralConfig(cfg.general);
                 Binds.Init(cfg.binds);
                 ChatCommands.Init(cmdPrefix);
+                HudUtilities.Init();
                 PropertiesMenu.Init(cfg.menu);
                 PropertyBlock.UpdateConfig(cfg.propertyBlock);
 
@@ -168,6 +202,7 @@ namespace DarkHelmet.BuildVision2
             Binds?.Close();
             Cmd?.Close();
             Menu?.Close();
+            HudElements?.Close();
             Config?.Close();
             Log?.Close();
             Instance = null;
@@ -292,6 +327,12 @@ namespace DarkHelmet.BuildVision2
                     TryCloseMenu();
             }
         }
+
+        /// <summary>
+        /// Draws hud elements.
+        /// </summary>
+        public void Draw() =>
+            HudElements?.Draw();
 
         /// <summary>
         /// Opens the menu and/or updates the current target if that target is valid. If it isn't, it closes the menu.

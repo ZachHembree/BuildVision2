@@ -37,13 +37,13 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Enqueues an action to run in parallel
+        /// Enqueues an action to run in parallel. Not thread safe; must be called from the main thread.
         /// </summary>
         public void EnqueueTask(Action action) =>
             tasksWaiting.Enqueue(action);
 
         /// <summary>
-        /// Enqueues an action to run on the main thread. Meant to be used by other threads.
+        /// Enqueues an action to run on the main thread. Meant to be used by threads other than the main.
         /// </summary>
         public void EnqueueAction(Action action) =>
             actions.Enqueue(action);
@@ -72,7 +72,7 @@ namespace DarkHelmet.BuildVision2
             Task task;
             Queue<Task> currentTasks = new Queue<Task>();
             List<Exception> taskExceptions = new List<Exception>(); //unknown exceptions
-            List<BvException> knownExceptions = new List<BvException>(); //known exceptions
+            List<BvException> knownExceptions = new List<BvException>(); 
             BvException bvException = null;
             BvAggregateException unknownExceptions = null;
 

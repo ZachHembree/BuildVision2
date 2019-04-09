@@ -4,8 +4,9 @@ using System.Text;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
+using VRage.Utils;
 using System.Xml.Serialization;
-using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
+using System;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -21,12 +22,12 @@ namespace DarkHelmet.BuildVision2
             {
                 return new ApiHudConfig
                 {
-                    hudScale = 1.25f,
+                    hudScale = 1f,
                     maxVisible = 11,
                     hideIfNotVis = true,
                     clampHudPos = true,
                     forceToCenter = false,
-                    textColors = TextColors.Defaults
+                    colors = Colors.Defaults
                 };
             }
         }
@@ -46,48 +47,85 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "LockHudToScreenCenter")]
         public bool forceToCenter;
 
-        [XmlElement(ElementName = "TextColorsRGB")]
-        public TextColors textColors;
+        [XmlElement(ElementName = "ColorsRGB")]
+        public Colors colors;
 
-        public struct TextColors
+        public struct Colors
         {
             [XmlIgnore]
-            public static readonly TextColors Defaults = new TextColors
+            public static readonly Colors Defaults = new Colors
             {
-                deflt = "200,190,160",
-                blockInc = "180,0,0",
+                deflt = "210,235,245",
+                headerText = "210,235,245",
+                blockInc = "200,15,15",
                 highlight = "200,170,0",
-                selected = "30,200,30"
+                selected = "30,200,30",
+                backgroundColor = new Color(65, 75, 80, 200),
+                selectionBoxColor = new Color(41, 54, 62, 255),
+                headerColor = new Color(54, 66, 76, 255)
             };
+
+            [XmlIgnore]
+            public Color backgroundColor, selectionBoxColor, headerColor;
 
             [XmlElement(ElementName = "Default")]
             public string deflt;
 
+            [XmlElement(ElementName = "HeaderText")]
+            public string headerText;
+
             [XmlElement(ElementName = "BlockIncomplete")]
             public string blockInc;
 
-            [XmlElement(ElementName = "Highlight")]
+            [XmlElement(ElementName = "TextHighlight")]
             public string highlight;
 
             [XmlElement(ElementName = "Selected")]
             public string selected;
+
+            [XmlElement(ElementName = "ListBg")]
+            public string backgroundColorData;
+
+            [XmlElement(ElementName = "SelectionBg")]
+            public string selectionBoxColorData;
+
+            [XmlElement(ElementName = "HeaderBg")]
+            public string headerColorData;
 
             /// <summary>
             /// Checks any if fields have invalid values and resets them to the default if necessary.
             /// </summary>
             public void Validate()
             {
-                if (deflt == default(string))
+                if (deflt == null)
                     deflt = Defaults.deflt;
 
-                if (blockInc == default(string))
+                if (blockInc == null)
                     blockInc = Defaults.blockInc;
 
-                if (highlight == default(string))
+                if (highlight == null)
                     highlight = Defaults.highlight;
 
-                if (selected == default(string))
+                if (selected == null)
                     selected = Defaults.selected;
+
+                if (backgroundColorData == null || !Utilities.TryParseColor(backgroundColorData, out backgroundColor))
+                {
+                    backgroundColorData = Utilities.GetColorString(Defaults.backgroundColor);
+                    backgroundColor = Defaults.backgroundColor;
+                }
+
+                if (selectionBoxColorData == null || !Utilities.TryParseColor(selectionBoxColorData, out selectionBoxColor))
+                {
+                    selectionBoxColorData = Utilities.GetColorString(Defaults.selectionBoxColor);
+                    selectionBoxColor = Defaults.selectionBoxColor;
+                }
+
+                if (headerColorData == null || !Utilities.TryParseColor(headerColorData, out headerColor))
+                {
+                    headerColorData = Utilities.GetColorString(Defaults.headerColor);
+                    headerColor = Defaults.headerColor;
+                }
             }
         }
 
@@ -106,7 +144,7 @@ namespace DarkHelmet.BuildVision2
             if (hudScale == default(float))
                 hudScale = defaults.hudScale;
 
-            textColors.Validate();
+            colors.Validate();
         }
     }
 
@@ -143,14 +181,14 @@ namespace DarkHelmet.BuildVision2
     internal sealed partial class PropertiesMenu
     {
         /// <summary>
-        /// List GUI using Draygo's Text HUD API
+        /// List GUI using HudUtilities elements
         /// </summary>
         private class ApiHud
         {
             public bool Open { get; private set; }
             public ApiHudConfig cfg;
 
-            private HudAPIv2.HUDMessage messageBg, messageFore;
+            private HudUtilities.ScrollMenu menu;
             private PropertyBlock target;
             private int visStart, visEnd, index, selection;
             private string headerText;
@@ -163,7 +201,7 @@ namespace DarkHelmet.BuildVision2
                 index = 0;
                 visStart = 0;
                 visEnd = 0;
-                selection = -1;
+                selection = -1;                
             }
 
             /// <summary>
@@ -177,7 +215,7 @@ namespace DarkHelmet.BuildVision2
             }
 
             /// <summary>
-            /// Updates current list position and draws the menu
+            /// Updates current list position and ensures the menu is visible
             /// </summary>
             public void Update(int index, int selection)
             {
@@ -187,7 +225,18 @@ namespace DarkHelmet.BuildVision2
                 Open = true;
 
                 GetVisibleProperties();
-                Draw();
+
+                if (menu == null)
+                    menu = new HudUtilities.ScrollMenu(cfg.maxVisible);
+
+                menu.BodyColor = cfg.colors.backgroundColor;
+                menu.HeaderColor = cfg.colors.headerColor;
+                menu.SelectionBoxColor = cfg.colors.selectionBoxColor;
+                menu.Scale = cfg.hudScale;
+
+                UpdateText();
+                UpdatePos();
+                menu.Visible = true;
             }
 
             /// <summary>
@@ -195,11 +244,8 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public void Hide()
             {
-                if (messageBg != null)
-                {
-                    messageBg.Visible = false;
-                    messageFore.Visible = false;
-                }
+                if (menu != null)
+                    menu.Visible = false;
 
                 Open = false;
                 index = 0;
@@ -227,39 +273,15 @@ namespace DarkHelmet.BuildVision2
                     visEnd = Utilities.Clamp((visStart + cfg.maxVisible), 0, target.ScrollableCount);
                 }
             }
-
-            private void Draw()
-            {
-                if (messageBg == null)
-                {
-                    messageBg = new HudAPIv2.HUDMessage();
-                    messageBg.Blend = BlendTypeEnum.LDR;
-                    messageBg.Options |= HudAPIv2.Options.Shadowing;
-                    messageBg.ShadowColor = Color.Black;
-                    messageBg.Scale = cfg.hudScale;
-
-                    messageFore = new HudAPIv2.HUDMessage();
-                    messageFore.Blend = BlendTypeEnum.LDR;
-                    messageFore.Scale = cfg.hudScale;
-                }
-
-                UpdatePos();
-                messageBg.Visible = true;
-                messageBg.Message = GetTextBg();
-
-                messageFore.Visible = messageBg.Visible;
-                messageFore.Message = GetTextFore();
-                messageFore.Origin = messageBg.Origin;
-            }
-
+   
             /// <summary>
             /// Updates position of menu on screen.
             /// </summary>
             private void UpdatePos()
             {
                 Vector3D targetPos, worldPos;
-                Vector2D screenPos, offset = messageBg.GetTextLength() * .5f;
-
+                Vector2D screenPos, screenBounds;
+                
                 if (!cfg.forceToCenter)
                 {
                     if (LocalPlayer.IsLookingInBlockDir(target.TBlock))
@@ -267,38 +289,39 @@ namespace DarkHelmet.BuildVision2
                         targetPos = target.GetPosition();
                         worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
                         screenPos = new Vector2D(worldPos.X, worldPos.Y);
+                        screenBounds = new Vector2D(1d, 1d) - menu.Size / 2;
 
                         if (cfg.clampHudPos)
                         {
-                            screenPos.X = Utilities.Clamp(screenPos.X, -.95 + offset.X, .95 - offset.X);
-                            screenPos.Y = Utilities.Clamp(screenPos.Y, -.95 - offset.Y, .95 + offset.Y);
+                            screenPos.X = Utilities.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
+                            screenPos.Y = Utilities.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
                         }
-
-                        screenPos -= offset;
-                        messageBg.Origin = screenPos;
                     }
                     else if (cfg.hideIfNotVis)
-                        messageBg.Origin = new Vector2D(-double.MinValue, -double.MinValue);
+                    {
+                        menu.Visible = false;
+                        screenPos = Vector2D.Zero;
+                    }
                     else
-                        messageBg.Origin = new Vector2D(-offset.X, -offset.Y);
+                        screenPos = Vector2D.Zero;
                 }
                 else
-                    messageBg.Origin = new Vector2D(-offset.X, -offset.Y);
+                    screenPos = Vector2D.Zero;
+
+                menu.ScaledPos = screenPos;
+                menu.selectionIndex = index - visStart;
             }
 
             /// <summary>
             /// Gets finished string for the Text HUD API to display.
             /// </summary>
-            private StringBuilder GetTextFore()
+            private void UpdateText()
             {
-                StringBuilder sb = new StringBuilder();
                 int elements = Utilities.Clamp(visEnd - visStart, 0, cfg.maxVisible), i, action;
+                StringBuilder[] list = new StringBuilder[elements];
                 string colorCode;
 
-                if (target.IsFunctional)
-                    sb.AppendLine($"<color={cfg.textColors.deflt}>[{headerText}]");
-                else
-                    sb.AppendLine($"<color={cfg.textColors.blockInc}>[{headerText} (incomplete)]");
+                menu.HeaderText = new StringBuilder($"<color={cfg.colors.headerText}>{headerText}");
 
                 for (int n = 0; n < elements; n++)
                 {
@@ -306,49 +329,29 @@ namespace DarkHelmet.BuildVision2
                     action = i - target.Properties.Count;
 
                     if (i == selection)
-                        colorCode = $"<color={cfg.textColors.selected}>";
+                        colorCode = $"<color={cfg.colors.selected}>";
                     else if (i == index)
-                        colorCode = $"<color={cfg.textColors.highlight}>";
+                        colorCode = $"<color={cfg.colors.highlight}>";
                     else
-                        colorCode = $"<color={cfg.textColors.deflt}>";
+                        colorCode = $"<color={cfg.colors.deflt}>";
 
                     if (i >= target.Properties.Count)
-                        sb.AppendLine(colorCode + target.Actions[action].GetName());
+                        list[n] = new StringBuilder(colorCode + target.Actions[action].GetDisplay());
                     else
-                        sb.AppendLine(colorCode + target.Properties[i].GetName());
+                        list[n] = new StringBuilder(
+                            $"<color={cfg.colors.deflt}>{target.Properties[i].GetName()}: {colorCode}{target.Properties[i].GetValue()}");
                 }
 
-                sb.AppendLine($"<color={cfg.textColors.deflt}>[{visStart + 1} - {visEnd} of {target.ScrollableCount}]");
-                return sb;
-            }
-
-            /// <summary>
-            /// Gets finished string for the Text HUD API to render the text shadows.
-            /// </summary>
-            private StringBuilder GetTextBg()
-            {
-                StringBuilder sb = new StringBuilder();
-                int elements = Utilities.Clamp(visEnd - visStart, 0, cfg.maxVisible), i, action;
-                string backgroundColor = "<color=0,0,0>";
+                menu.ListText = list;
+                menu.FooterLeftText = new StringBuilder(
+                        $"<color={cfg.colors.headerText}>[{visStart + 1} - {visEnd} of {target.ScrollableCount}]");
 
                 if (target.IsFunctional)
-                    sb.AppendLine($"{backgroundColor}[{headerText}]");
+                    menu.FooterRightText = new StringBuilder(
+                        $"<color={cfg.colors.headerText}>[Functional]");
                 else
-                    sb.AppendLine($"{backgroundColor}[{headerText} (incomplete)]");
-
-                for (int n = 0; n < elements; n++)
-                {
-                    i = n + visStart;
-                    action = i - target.Properties.Count;
-
-                    if (i >= target.Properties.Count)
-                        sb.AppendLine(backgroundColor + target.Actions[action].GetName());
-                    else
-                        sb.AppendLine(backgroundColor + target.Properties[i].GetName());
-                }
-
-                sb.AppendLine($"{backgroundColor}[{visStart + 1} - {visEnd} of {target.ScrollableCount}]");
-                return sb;
+                    menu.FooterRightText = new StringBuilder(
+                        $"<color={cfg.colors.blockInc}>[Incomplete]");
             }
         }
 
@@ -403,7 +406,7 @@ namespace DarkHelmet.BuildVision2
                     list = new IMyHudNotification[cfg.maxVisible];
 
                 GetVisibleProperties();
-                Draw();                
+                UpdateText();                
             }
 
             /// <summary>
@@ -450,7 +453,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Updates text colors and resets alive time for fallback hud.
             /// </summary>
-            private void Draw()
+            private void UpdateText()
             {
                 int elements = Utilities.Clamp(visEnd - visStart, 0, cfg.maxVisible), i, action;
 
@@ -472,9 +475,9 @@ namespace DarkHelmet.BuildVision2
 
                     // get name
                     if (i >= target.Properties.Count)
-                        list[notif].Text = target.Actions[action].GetName();
+                        list[notif].Text = target.Actions[action].GetDisplay();
                     else
-                        list[notif].Text = target.Properties[i].GetName();
+                        list[notif].Text = target.Properties[i].GetDisplay();
 
                     // get color
                     if (i == selection)

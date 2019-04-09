@@ -52,7 +52,7 @@ namespace DarkHelmet.BuildVision2
         public static PropertiesMenu Instance { get; private set; }
 
         private static Binds Binds { get { return Binds.Instance; } }
-        private HudAPIv2 textHudApi;
+        private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
         private PropertyBlock target;
 
         private ApiHud apiHud;
@@ -64,7 +64,6 @@ namespace DarkHelmet.BuildVision2
         {
             apiHud = new ApiHud(cfg.apiHudConfig);
             fallbackHud = new NotifHud(cfg.fallbackHudConfig);
-            textHudApi = new HudAPIv2();
             target = null;
 
             index = 0;
@@ -87,7 +86,6 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void Close()
         {
-            textHudApi.Close();
             Instance = null;
         }
 
@@ -131,7 +129,7 @@ namespace DarkHelmet.BuildVision2
                 menuOpen = true;
                 UpdateSelection();
 
-                if (textHudApi.Heartbeat && !forceFallbackHud)
+                if (HudElements.Heartbeat && !forceFallbackHud)
                 {
                     if (fallbackHud.Open)
                         fallbackHud.Hide();

@@ -2,10 +2,8 @@ using Sandbox.Game.Localization;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
-using Sandbox.Game.Entities.Interfaces;
 using SpaceEngineers.Game.ModAPI.Ingame;
 using VRage;
-using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 using System;
@@ -13,20 +11,23 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using DoorStatus = Sandbox.ModAPI.Ingame.DoorStatus;
 using ChargeMode = Sandbox.ModAPI.Ingame.ChargeMode;
+using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
 using IMyBatteryBlock = Sandbox.ModAPI.Ingame.IMyBatteryBlock;
 using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
 using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
+using IMyTextSurfaceProvider = Sandbox.ModAPI.Ingame.IMyTextSurfaceProvider;
+using IMyCockpit = Sandbox.ModAPI.IMyCockpit;
 
 namespace DarkHelmet.BuildVision2
 {
     internal interface IScrollableAction
     {
         /// <summary>
-        /// Retrieves the block action name and related info.
+        /// Retrieves the block action name and current value.
         /// </summary>
-        Func<string> GetName { get; }
-
+        Func<string> GetDisplay { get; }
+        
         /// <summary>
         /// Triggers action associated with block;
         /// </summary>
@@ -36,9 +37,19 @@ namespace DarkHelmet.BuildVision2
     internal interface IScrollableProp
     {
         /// <summary>
-        /// Retrieves the block property name and related info.
+        /// Retrieves the block property name and current value.
+        /// </summary>
+        string GetDisplay();
+
+        /// <summary>
+        /// Retrieves the name of the block
         /// </summary>
         string GetName();
+
+        /// <summary>
+        /// Retrieves the current value of the block property as a string
+        /// </summary>
+        string GetValue();
 
         /// <summary>
         /// Decreases block property value each time its called.
@@ -84,12 +95,12 @@ namespace DarkHelmet.BuildVision2
         public Vector3I colorMult;
 
         /// <summary>
-        /// Checks any fields have invalid values and resets them to the default if necessary.
+        /// Checks for any fields that have invalid values and resets them to the default if necessary.
         /// </summary>
         public void Validate()
         {
             PropBlockConfig defaults = Defaults;
-
+            
             if (floatDiv == default(double))
                 floatDiv = defaults.floatDiv;
 
@@ -196,6 +207,10 @@ namespace DarkHelmet.BuildVision2
             {
                 BlockAction.GetGearActions(TBlock, actions);
             }
+            else if (TBlock is IMyShipConnector)
+            {
+                BlockAction.GetConnectorActions(TBlock, actions);
+            }
             else if (TBlock is IMyParachute)
             {
                 BlockAction.GetChuteActions(TBlock, actions);
@@ -224,12 +239,23 @@ namespace DarkHelmet.BuildVision2
                 // if Attributes.IsDefined were whitelisted, this would be a lot less dumb
                 if (name.Length > 0 && !(IsMechConnection && name.StartsWith("Safety")))
                 {
-                    if (prop.TypeName == "Boolean")
+                    if (prop is ITerminalProperty<bool>)
                         scrollables.Add(new BoolProperty(name, prop.AsBool(), this));
-                    else if (prop.TypeName == "Single")
+                    else if (prop is ITerminalProperty<float>)
                         scrollables.Add(new FloatProperty(name, prop.AsFloat(), this));
-                    else if (prop.TypeName == "Color")
-                        scrollables.AddRange(ColorProperty.GetColorProperties(name, this, prop.AsColor()));
+                    else if (prop is ITerminalProperty<Color>)
+                    {
+                        try
+                        {
+                            ITerminalProperty<Color> color = prop.AsColor();
+                            color.GetValue(TBlock);
+                            scrollables.AddRange(ColorProperty.GetColorProperties(name, this, color));
+                        }
+                        catch
+                        {
+                            //arrrggh
+                        }
+                    }
                 }
             }
 
@@ -255,12 +281,12 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BlockAction : IScrollableAction
         {
-            public Func<string> GetName { get; private set; }
+            public Func<string> GetDisplay { get; private set; }
             public Action Action { get; private set; }
 
-            public BlockAction(Func<string> GetName, Action Action)
+            public BlockAction(Func<string> GetDisplay, Action Action)
             {
-                this.GetName = GetName;
+                this.GetDisplay = GetDisplay;
                 this.Action = Action;
             }
 
@@ -330,7 +356,7 @@ namespace DarkHelmet.BuildVision2
             public static void GetWarheadActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
             {
                 IMyWarhead warhead = (IMyWarhead)tBlock;
-
+                
                 actions.Add(new BlockAction(
                     () => $"Start Countdown",
                     () => warhead.StartCountdown()));
@@ -350,8 +376,44 @@ namespace DarkHelmet.BuildVision2
                 IMyLandingGear landingGear = (IMyLandingGear)tBlock;
 
                 actions.Add(new BlockAction(
-                    () => $"Lock/Unlock ({(landingGear.IsLocked ? "Locked" : "Unlocked")})",
+                    () => 
+                    {
+                        string status = "";
+
+                        if (landingGear.LockMode == LandingGearMode.Locked)
+                            status = "Locked";
+                        else if (landingGear.LockMode == LandingGearMode.ReadyToLock)
+                            status = "Ready";
+                        else if (landingGear.LockMode == LandingGearMode.Unlocked)
+                            status = "Unlocked";
+
+                        return $"Lock/Unlock ({status})";
+                    },
                     () => landingGear.ToggleLock()));
+            }
+
+            /// <summary>
+            /// Gets actions for blocks implementing IMyShipConnector.
+            /// </summary>
+            public static void GetConnectorActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
+            {
+                IMyShipConnector connector = (IMyShipConnector)tBlock;
+
+                actions.Add(new BlockAction(
+                    () => 
+                    {
+                        string status = "";
+
+                        if (connector.Status == ConnectorStatus.Connected)
+                            status = "Locked";
+                        else if (connector.Status == ConnectorStatus.Connectable)
+                            status = "Ready";
+                        else if (connector.Status == ConnectorStatus.Unconnected)
+                            status = "Unlocked";
+
+                        return $"Lock/Unlock ({status})";
+                    },
+                    () => connector.ToggleConnect()));
             }
 
             /// <summary>
@@ -362,8 +424,21 @@ namespace DarkHelmet.BuildVision2
                 IMyParachute parachute = (IMyParachute)tBlock;
 
                 actions.Add(new BlockAction(
-                    () => $"Open/Close " +
-                    $"({((parachute.Status == DoorStatus.Open || parachute.Status == DoorStatus.Opening) ? "Open" : "Closed")})",
+                    () =>
+                    {
+                        string status = "";
+
+                        if (parachute.Status == DoorStatus.Open)
+                            status = "Open";
+                        else if (parachute.Status == DoorStatus.Opening)
+                            status = "Opening";
+                        else if (parachute.Status == DoorStatus.Closing)
+                            status = "Closing";
+                        else if (parachute.Status == DoorStatus.Closed)
+                            status = "Closed";
+
+                        return $"Open/Close ({status})";
+                    },
                     () => parachute.ToggleDoor()));
             }
         }
@@ -384,8 +459,14 @@ namespace DarkHelmet.BuildVision2
                 index = GetChargeModeIndex();
             }
 
-            public string GetName() =>
+            public string GetDisplay() =>
                 name + ": " + GetChargeModeName();
+
+            public string GetName() =>
+                name;
+
+            public string GetValue() =>
+                GetChargeModeName();
 
             public void ScrollDown() =>
                 ChangeChargeMode(true);
@@ -453,8 +534,14 @@ namespace DarkHelmet.BuildVision2
                 this.name = name;
             }
 
-            public string GetName() =>
+            public string GetDisplay() =>
                 name + ": " + GetPropStateText();
+
+            public string GetName() =>
+                name;
+
+            public string GetValue() =>
+                GetPropStateText();
 
             public void ScrollDown() =>
                 prop.SetValue(pBlock.TBlock, false);
@@ -497,15 +584,21 @@ namespace DarkHelmet.BuildVision2
 
                 if (float.IsInfinity(maxValue))
                     maxValue = 1000;
-                
-                incr0 = Utilities.Clamp((float)Math.Round(maxValue / cfg.floatDiv), .1f, float.PositiveInfinity); 
+
+                incr0 = Utilities.Clamp((float)Math.Round(maxValue / cfg.floatDiv, 1), .1f, float.PositiveInfinity);
                 incrC = incr0 * cfg.floatMult.Z; // x64
                 incrB = incr0 * cfg.floatMult.Y; // x16
                 incrA = incr0 * cfg.floatMult.X; // x8
             }
 
-            public string GetName() =>
+            public string GetDisplay() =>
                 prop.Id + ": " + prop.GetValue(pBlock.TBlock);
+
+            public string GetName() =>
+                prop.Id;
+
+            public string GetValue() =>
+                prop.GetValue(pBlock.TBlock).ToString();
 
             public void ScrollDown() =>
                 ChangePropValue(-GetIncrement());
@@ -584,7 +677,7 @@ namespace DarkHelmet.BuildVision2
             /// Returns a scrollable property for each color channel in an ITerminalProperty<Color> object
             /// </summary>
             public static IScrollableProp[] GetColorProperties(string name, PropertyBlock pBlock, ITerminalProperty<Color> prop)
-            {            
+            {
                 return new IScrollableProp[]
                 {
                     new ColorProperty(name, pBlock, prop, new Color(1, 0, 0), () => (" R: " + prop.GetValue(pBlock.TBlock).R)), // R
@@ -593,8 +686,14 @@ namespace DarkHelmet.BuildVision2
                 };
             }
 
-            public string GetName() =>
+            public string GetDisplay() =>
                 name + colorDisp();
+
+            public string GetName() =>
+                name;
+
+            public string GetValue() =>
+                colorDisp();
 
             public void ScrollDown() =>
                 ChangePropValue(false);

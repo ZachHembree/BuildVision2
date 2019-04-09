@@ -193,11 +193,15 @@ namespace DarkHelmet.BuildVision2
                 else
                 {
                     Backup();
+
+                    if (cfg.versionID < 3)
+                        cfg.menu.apiHudConfig = ApiHudConfig.Defaults;
+
                     cfg.Validate();
 
                     taskPool.EnqueueAction(() => 
                         Main.SendChatMessage("Config version mismatch. Some settings may have " +
-                        "been reset. A backup of the original config file has been made."));
+                        "been reset. A backup of the original config file will be made."));
                 }
 
                 return cfg;
@@ -237,6 +241,7 @@ namespace DarkHelmet.BuildVision2
 
                 taskPool.EnqueueTask(() =>
                 {
+                    cfg.Validate();
                     BvException exception = TrySave(cfg);
 
                     if (exception != null)
@@ -275,6 +280,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (!SaveInProgress)
             {
+                cfg.Validate();
                 BvException exception = TrySave(cfg);
 
                 if (exception != null)

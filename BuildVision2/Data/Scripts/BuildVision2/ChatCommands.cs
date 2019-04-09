@@ -13,6 +13,7 @@ namespace DarkHelmet.BuildVision2
 
         private static BvMain Main { get { return BvMain.Instance; } }
         private static Binds Binds { get { return Binds.Instance; } }
+        private static HudUtilities Hud { get { return HudUtilities.Instance; } }
         private readonly string prefix, controlList;
         private readonly Regex cmdParser;
         private readonly Command[] commands;
@@ -59,7 +60,7 @@ namespace DarkHelmet.BuildVision2
                 new Command ("printBinds",
                     () => MyAPIGateway.Utilities.ShowMessage("", GetPrintBindsMessage())),
                 new Command ("bind",
-                    (string[] args) => Binds.TryUpdateBind(args[0], GetSubarray(args, 1))),
+                    (string[] args) => Binds.TryUpdateBind(args[0], Utilities.GetSubarray(args, 1))),
                 new Command("resetBinds",
                     () => Binds.TryUpdateConfig(BindsConfig.Defaults)),
                 new Command ("save",
@@ -78,8 +79,10 @@ namespace DarkHelmet.BuildVision2
                 // Debug/Testing
                 new Command ("open",
                     () => Main.TryOpenMenu()),
-                new Command ("close", 
-                    () => Main.TryCloseMenu())
+                new Command ("close",
+                    () => Main.TryCloseMenu()),
+                new Command ("toggleTestPattern",
+                    () => Hud.TestPattern.Toggle())
             };
 
             controlList = Binds.GetControlListString();
@@ -127,7 +130,7 @@ namespace DarkHelmet.BuildVision2
                             if (cmd.takesArgs)
                             {
                                 if (matches.Length > 1)
-                                    cmd.action(GetSubarray(matches, 1));
+                                    cmd.action(Utilities.GetSubarray(matches, 1));
                                 else
                                     MyAPIGateway.Utilities.ShowMessage("Build Vision 2", "Invalid Command. This command requires an argument.");
                             }
@@ -141,16 +144,6 @@ namespace DarkHelmet.BuildVision2
                 if (!cmdFound)
                     MyAPIGateway.Utilities.ShowMessage("Build Vision 2", "Command not recognised.");
             }
-        }
-
-        private static T[] GetSubarray<T>(T[] arr, int i)
-        {
-            T[] trimmed = new T[arr.Length - i];
-
-            for (int n = i; n < arr.Length; n++)
-                trimmed[n - i] = arr[n];
-
-            return trimmed;
         }
 
         /// <summary>
@@ -213,7 +206,8 @@ namespace DarkHelmet.BuildVision2
 
         private string GetBindHelpMessage()
         {
-            string helpMessage = $"The syntax of the /bv2 bind command is as follows (without brackets): /bv2 bind [bindName] [control1] " +
+            string helpMessage = 
+                $"The syntax of the /bv2 bind command is as follows (without brackets): /bv2 bind [bindName] [control1] " +
                 $"[control2] [control3]. To see your current bind settings use the command /bv2 printBinds. No more than three controls " +
                 $"can be used for any one bind.\n\n" +
                 $"Examples:\n" +
