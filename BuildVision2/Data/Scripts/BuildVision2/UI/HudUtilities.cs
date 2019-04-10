@@ -18,7 +18,7 @@ namespace DarkHelmet.BuildVision2
 
         private static BvMain Main { get { return BvMain.Instance; } }
         private HudAPIv2 textHudApi;
-        private double screenWidth, screenHeight, aspectRatio, localScale, fov, fovScale;
+        private double screenWidth, screenHeight, aspectRatio, bbOriginScale, fov, fovScale;
         private List<HudElement> hudElements;
 
         private HudUtilities()
@@ -29,23 +29,10 @@ namespace DarkHelmet.BuildVision2
             screenHeight = (double)MyAPIGateway.Session.Config.ScreenHeight;
             aspectRatio = screenWidth / screenHeight;
             fov = MyAPIGateway.Session.Camera.FovWithZoom;
-            localScale = 0.1 * Math.Tan(fov / 2d);
+            bbOriginScale = 0.1 * Math.Tan(fov / 2d);
             fovScale = GetFovScale(fov);
 
             hudElements = new List<HudElement>();
-        }
-
-        private static double GetFovScale(double fov)
-        {
-            double x = fov * (180d / Math.PI);
-            
-            if (x >= 70d && x <= 90d)
-                return 1d + 0.0219512195121951*(x - 70d) - (0.0000522648083623689*(x - 70d)*(x - 80d)) + (0.00000202042198993418 * (x - 70d)*(x - 80d)*(x - 90d));
-            else if (x > 90d)
-                return 1d + 0.0214285714285714*(x - 70d) + (0.000282738095238095*(x - 70d)*(x - 90d)) + (0.0000018488455988456 * (x - 70d)*(x - 90d)*(x - 110d));
-            else
-                return 0.675675675675676 + 0.0162162162162162*(x - 50d) + (0.00019116677653263*(x - 50d)*(x - 70d)) - (0.000000334938597133714*(x - 50d)*(x - 70d)*(x - 80d));
-
         }
 
         public static void Init()
@@ -68,9 +55,48 @@ namespace DarkHelmet.BuildVision2
         {
             if (Heartbeat)
             {
+                if (screenWidth != MyAPIGateway.Session.Config.ScreenWidth || screenHeight != MyAPIGateway.Session.Config.ScreenHeight)
+                {
+                    screenWidth = (double)MyAPIGateway.Session.Config.ScreenWidth;
+                    screenHeight = (double)MyAPIGateway.Session.Config.ScreenHeight;
+                    aspectRatio = screenWidth / screenHeight;
+                }
+
+                if (fov != MyAPIGateway.Session.Camera.FovWithZoom)
+                {
+                    fov = MyAPIGateway.Session.Camera.FovWithZoom;
+                    bbOriginScale = 0.1 * Math.Tan(fov / 2d);
+                    fovScale = GetFovScale(fov);
+                }
+
                 foreach (HudElement element in hudElements)
                     element.Draw();
             }
+        }
+
+        /// <summary>
+        /// Generates the inverse scale of the billboard at a given fov setting.
+        /// </summary>
+        public static double GetFovScale(double fov) // because reasons
+        {
+            double x = fov * (180d / Math.PI);
+
+            if (x <= 50d)
+                return (0.0000027484 * Math.Pow(x, 3d)) - (0.00032981 * Math.Pow(x, 2d)) + (0.027853 * x) - 0.23603;
+            else if (x > 50d && x <= 60d)
+                return (-0.0000054441 * Math.Pow(x, 3d)) + (0.00089907 * Math.Pow(x, 2d)) - (0.033591 * x) + 0.78804;
+            else if (x > 60d && x <= 70d)
+                return (0.000019739 * Math.Pow(x, 3d)) - (0.003634 * Math.Pow(x, 2d)) + (0.23839 * x) - 4.6516;
+            else if (x > 70d && x <= 80d)
+                return (-0.000029677 * Math.Pow(x, 3d)) + (0.0067435 * Math.Pow(x, 2d)) - (0.48803 * x) + 12.298;
+            else if (x > 80d && x <= 90d)
+                return (0.00003567 * Math.Pow(x, 3d)) - (0.0089399 * Math.Pow(x, 2d)) + (0.76664 * x) - 21.160;
+            else if (x > 90d && x <= 100d)
+                return (-0.000016044 * Math.Pow(x, 3d)) + (0.0050229 * Math.Pow(x, 2d)) - (0.49001 * x) + 16.540;
+            else if (x > 100d && x <= 110d)
+                return (0.0000056264 * Math.Pow(x, 3d)) - (0.0014781 * Math.Pow(x, 2d)) + (.16009 * x) - 5.1302;
+            else
+                return (-0.00001262 * Math.Pow(x, 3d)) + (0.004543 * Math.Pow(x, 2d)) - (0.50224 * x) + 19.155;
         }
 
         /// <summary>
@@ -345,7 +371,7 @@ namespace DarkHelmet.BuildVision2
                     background.Size = listSize + padding;
 
                     headerBg.Size = new Vector2I(background.Width, header.TextSize.Y + (int)(28d * Scale));
-                    headerBg.Offset = new Vector2I(0, (headerBg.Height + background.Height) / 2 - 2);
+                    headerBg.Offset = new Vector2I(0, (headerBg.Height + background.Height) / 2 - 1);
 
                     pos = new Vector2I(-textOffset.X, textOffset.Y - list[0].TextSize.Y / 2);
 
@@ -363,10 +389,10 @@ namespace DarkHelmet.BuildVision2
                     highlightBox.Offset = new Vector2I(0, list[selectionIndex].Offset.Y);
 
                     tab.Size = new Vector2I(4, highlightBox.Height);
-                    tab.Offset = new Vector2I(-highlightBox.Width / 2 + 1, 0);
+                    tab.Offset = new Vector2I(-highlightBox.Width / 2, 0);
 
                     footerBg.Size = new Vector2I(background.Width, footerLeft.TextSize.Y + (int)(12d * Scale));
-                    footerBg.Offset = new Vector2I(0, -(background.Height + footerBg.Height) / 2 + 2);
+                    footerBg.Offset = new Vector2I(0, -(background.Height + footerBg.Height) / 2 + 1);
                     footerLeft.Offset = new Vector2I((-footerBg.Width + padding.X) / 2, 0);
                     footerRight.Offset = new Vector2I((footerBg.Width - padding.X) / 2, 0);
 
@@ -536,8 +562,8 @@ namespace DarkHelmet.BuildVision2
 
                     Vector2D localOrigin = ScaledPos, boardSize = scaledSize * (10d / 9d) * Instance.fovScale;
 
-                    localOrigin.X *= Instance.localScale * Instance.aspectRatio;
-                    localOrigin.Y *= Instance.localScale;
+                    localOrigin.X *= Instance.bbOriginScale * Instance.aspectRatio;
+                    localOrigin.Y *= Instance.bbOriginScale;
 
                     MatrixD cameraMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
                     Vector3D boardPos = Vector3D.Transform(new Vector3D(localOrigin.X, localOrigin.Y, -0.1), cameraMatrix);
