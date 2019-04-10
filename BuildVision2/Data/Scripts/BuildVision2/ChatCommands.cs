@@ -54,11 +54,11 @@ namespace DarkHelmet.BuildVision2
             commands = new Command[]
             {
                 new Command ("help",
-                    () => MyAPIGateway.Utilities.ShowMissionScreen("Build Vision 2", "Help", "", GetHelpMessage())),
+                    () => Main.ShowMissionScreen("Help", GetHelpMessage())),
                 new Command ("bindHelp",
-                    () => MyAPIGateway.Utilities.ShowMissionScreen("Build Vision 2", "Bind Help", "", GetBindHelpMessage())),
+                    () => Main.ShowMissionScreen("Bind Help", GetBindHelpMessage())),
                 new Command ("printBinds",
-                    () => MyAPIGateway.Utilities.ShowMessage("", GetPrintBindsMessage())),
+                    () => Main.SendChatMessage(GetPrintBindsMessage())),
                 new Command ("bind",
                     (string[] args) => Binds.TryUpdateBind(args[0], Utilities.GetSubarray(args, 1))),
                 new Command("resetBinds",
@@ -82,7 +82,9 @@ namespace DarkHelmet.BuildVision2
                 new Command ("close",
                     () => Main.TryCloseMenu()),
                 new Command ("toggleTestPattern",
-                    () => Hud.TestPattern.Toggle())
+                    () => Hud.TestPattern.Toggle()),
+                new Command ("reload",
+                    () => Main.Close())
             };
 
             controlList = Binds.GetControlListString();
@@ -132,7 +134,7 @@ namespace DarkHelmet.BuildVision2
                                 if (matches.Length > 1)
                                     cmd.action(Utilities.GetSubarray(matches, 1));
                                 else
-                                    MyAPIGateway.Utilities.ShowMessage("Build Vision 2", "Invalid Command. This command requires an argument.");
+                                    Main.SendChatMessage("Invalid Command. This command requires an argument.");
                             }
                             else
                                 cmd.action(null);
@@ -142,7 +144,7 @@ namespace DarkHelmet.BuildVision2
                 }
                 
                 if (!cmdFound)
-                    MyAPIGateway.Utilities.ShowMessage("Build Vision 2", "Command not recognised.");
+                    Main.SendChatMessage("Command not recognised.");
             }
         }
 
@@ -176,13 +178,13 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void PrintBinds()
         {
-            string output = "\n";
+            string output = "Keybinds\n";
             IKeyBind[] keyBinds = Binds.KeyBinds;
 
             for (int n = 0; n < keyBinds.Length; n++)
                 output += keyBinds[n].Name + ": [" + keyBinds[n].BindString + "]\n";
 
-            MyAPIGateway.Utilities.ShowMessage("BV2 Keybinds", output);
+            Main.SendChatMessage(output);
         }
 
         private string GetHelpMessage()

@@ -215,7 +215,7 @@ namespace DarkHelmet.BuildVision2
             {
                 BlockAction.GetChuteActions(TBlock, actions);
             }
-
+            
             return actions;
         }
 
@@ -253,6 +253,7 @@ namespace DarkHelmet.BuildVision2
                         }
                         catch
                         {
+                            //BvMain.Instance.ShowMissionScreen("Debug",$"Bullshit color property: {prop.ToString()}");
                             //arrrggh
                         }
                     }

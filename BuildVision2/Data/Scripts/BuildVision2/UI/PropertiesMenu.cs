@@ -94,16 +94,16 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void UpdateConfig(PropMenuConfig cfg)
         {
-            apiHud.cfg = cfg.apiHudConfig;
-            fallbackHud.cfg = cfg.fallbackHudConfig;
+            apiHud.Cfg = cfg.apiHudConfig;
+            fallbackHud.Cfg = cfg.fallbackHudConfig;
         }
 
         public PropMenuConfig GetConfig()
         {
             return new PropMenuConfig
             {
-                apiHudConfig = apiHud.cfg,
-                fallbackHudConfig = fallbackHud.cfg
+                apiHudConfig = apiHud.Cfg,
+                fallbackHudConfig = fallbackHud.Cfg
             };
         }
 

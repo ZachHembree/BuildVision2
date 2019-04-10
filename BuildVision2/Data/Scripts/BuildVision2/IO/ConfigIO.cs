@@ -194,7 +194,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     Backup();
 
-                    if (cfg.versionID < 3)
+                    if (cfg.versionID < 4)
                         cfg.menu.apiHudConfig = ApiHudConfig.Defaults;
 
                     cfg.Validate();

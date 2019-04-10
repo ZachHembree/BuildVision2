@@ -18,8 +18,7 @@ namespace DarkHelmet.BuildVision2
 
         private static BvMain Main { get { return BvMain.Instance; } }
         private HudAPIv2 textHudApi;
-        private Vector2D pixelSize, pixelPos, aspectFrac;
-        private double screenWidth, screenHeight, aspectRatio;
+        private double screenWidth, screenHeight, aspectRatio, localScale, fov, fovScale;
         private List<HudElement> hudElements;
 
         private HudUtilities()
@@ -29,17 +28,24 @@ namespace DarkHelmet.BuildVision2
             screenWidth = (double)MyAPIGateway.Session.Config.ScreenWidth;
             screenHeight = (double)MyAPIGateway.Session.Config.ScreenHeight;
             aspectRatio = screenWidth / screenHeight;
+            fov = MyAPIGateway.Session.Camera.FovWithZoom;
+            localScale = 0.1 * Math.Tan(fov / 2d);
+            fovScale = GetFovScale(fov);
 
-            double aspectNum = GetAspectNumerator(aspectRatio);
-            aspectFrac = new Vector2D
-            (
-                aspectNum,
-                Math.Round(aspectNum / aspectRatio)
-            );
-
-            pixelPos = new Vector2D(1d / screenWidth, 1d / screenHeight) * 2d;
-            pixelSize = (pixelPos / aspectFrac.X);
             hudElements = new List<HudElement>();
+        }
+
+        private static double GetFovScale(double fov)
+        {
+            double x = fov * (180d / Math.PI);
+            
+            if (x >= 70d && x <= 90d)
+                return 1d + 0.0219512195121951*(x - 70d) - (0.0000522648083623689*(x - 70d)*(x - 80d)) + (0.00000202042198993418 * (x - 70d)*(x - 80d)*(x - 90d));
+            else if (x > 90d)
+                return 1d + 0.0214285714285714*(x - 70d) + (0.000282738095238095*(x - 70d)*(x - 90d)) + (0.0000018488455988456 * (x - 70d)*(x - 90d)*(x - 110d));
+            else
+                return 0.675675675675676 + 0.0162162162162162*(x - 50d) + (0.00019116677653263*(x - 50d)*(x - 70d)) - (0.000000334938597133714*(x - 50d)*(x - 70d)*(x - 80d));
+
         }
 
         public static void Init()
@@ -338,7 +344,7 @@ namespace DarkHelmet.BuildVision2
 
                     background.Size = listSize + padding;
 
-                    headerBg.Size = new Vector2I(background.Width, header.TextSize.Y + 28);
+                    headerBg.Size = new Vector2I(background.Width, header.TextSize.Y + (int)(28d * Scale));
                     headerBg.Offset = new Vector2I(0, (headerBg.Height + background.Height) / 2 - 2);
 
                     pos = new Vector2I(-textOffset.X, textOffset.Y - list[0].TextSize.Y / 2);
@@ -357,9 +363,9 @@ namespace DarkHelmet.BuildVision2
                     highlightBox.Offset = new Vector2I(0, list[selectionIndex].Offset.Y);
 
                     tab.Size = new Vector2I(4, highlightBox.Height);
-                    tab.Offset = new Vector2I(-highlightBox.Width / 2 + 3, 0);
+                    tab.Offset = new Vector2I(-highlightBox.Width / 2 + 1, 0);
 
-                    footerBg.Size = new Vector2I(background.Width, footerLeft.TextSize.Y + 12);
+                    footerBg.Size = new Vector2I(background.Width, footerLeft.TextSize.Y + (int)(12d * Scale));
                     footerBg.Offset = new Vector2I(0, -(background.Height + footerBg.Height) / 2 + 2);
                     footerLeft.Offset = new Vector2I((-footerBg.Width + padding.X) / 2, 0);
                     footerRight.Offset = new Vector2I((footerBg.Width - padding.X) / 2, 0);
@@ -429,11 +435,20 @@ namespace DarkHelmet.BuildVision2
                 }
                 set { visible = value; }
             }
-            public override double Scale { get { return hudMessage.Scale; } set { hudMessage.Scale = value; } }
+            public override double Scale
+            {
+                get { return scale; }
+                set
+                {
+                    scale = value;
+                    hudMessage.Scale = scale * (278d / (500d - 138.75 * Instance.aspectRatio));
+                }
+            }
 
             private HUDMessage hudMessage;
             private Vector2I textSize;
             private Vector2I alignmentOffset;
+            private double scale;
 
             public TextHudMessage(HudElement Parent = null, TextAlignment alignment = TextAlignment.Center)
             {
@@ -519,14 +534,10 @@ namespace DarkHelmet.BuildVision2
                     scaledSize = Instance.GetScaledSize(Size, Scale);
                     ScaledPos = Instance.GetScaledPos(Origin + Offset);
 
-                    Vector2D localOrigin = ScaledPos,
-                        boardSize = scaledSize * (10d / 9d);
+                    Vector2D localOrigin = ScaledPos, boardSize = scaledSize * (10d / 9d) * Instance.fovScale;
 
-                    double fov = MyAPIGateway.Session.Camera.FovWithZoom, // move this somewhere else
-                        localScale = 0.1 * Math.Tan(fov / 2d);
-
-                    localOrigin.X *= localScale * Instance.aspectRatio;
-                    localOrigin.Y *= localScale;
+                    localOrigin.X *= Instance.localScale * Instance.aspectRatio;
+                    localOrigin.Y *= Instance.localScale;
 
                     MatrixD cameraMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
                     Vector3D boardPos = Vector3D.Transform(new Vector3D(localOrigin.X, localOrigin.Y, -0.1), cameraMatrix);
@@ -551,32 +562,14 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Returns the numerator of a given aspect ratio
-        /// </summary>
-        private static double GetAspectNumerator(double ratio) //lets not think about this too much
-        {
-            double numerator = 0d;
-
-            for (double n = 1d; n < 22d; n++)
-            {
-                numerator = ratio * n;
-
-                if (Math.Abs(numerator - (int)numerator) < .05)
-                    return Math.Round(numerator);
-            }
-
-            return numerator;
-        }
-
-        /// <summary>
         /// Converts text Hud API sizing scale to pixels
         /// </summary>
         public Vector2I GetPixelSize(Vector2D scaledSize, double scale = 1d)
         {
             return new Vector2I
             (
-                (int)(scaledSize.X * screenWidth * aspectFrac.Y / Math.Sqrt(scale)),
-                (int)(scaledSize.Y * screenHeight * aspectFrac.X / Math.Sqrt(scale))
+                (int)(scaledSize.X * screenHeight * 16d / Math.Sqrt(scale)),
+                (int)(scaledSize.Y * screenHeight * 16d / Math.Sqrt(scale))
             );
         }
 
@@ -587,8 +580,8 @@ namespace DarkHelmet.BuildVision2
         {
             return new Vector2D
             (
-                pixelSize.X / screenWidth / aspectFrac.Y,
-                pixelSize.Y / screenHeight / aspectFrac.X
+                pixelSize.X / screenHeight / 16d,
+                pixelSize.Y / screenHeight / 16d
             ) * Math.Sqrt(scale);
         }
 

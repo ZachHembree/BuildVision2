@@ -327,7 +327,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Tries to get combo using their control names.
+        /// Tries to create a key combo from a list of control names.
         /// </summary>
         private bool TryGetCombo(IList<string> controlNames, out IControl[] newCombo)
         {
@@ -406,7 +406,6 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Finds and counts number of pressed key binds.
         /// </summary>
-        /// <returns></returns>
         private int GetPressedBinds()
         {
             int bindsPressed = 0;
@@ -445,8 +444,9 @@ namespace DarkHelmet.BuildVision2
                 first = -1;
                 controlHits = 0;
 
-                // If more than one bind is pressed on a given control, any bind whose length
-                // is less than the longest will have its hit counter decremented.
+                // If more than one pressed bind shares the same control, the longest
+                // binds take precedence. Shorter binds are decremented each time there
+                // is a conflict.
                 for (int y = 0; y < keyBinds.Length; y++)
                     if (bindHits[y] > 0 && keyBinds[y].Count < longest && controlBindMap[x, y])
                     {
@@ -458,7 +458,7 @@ namespace DarkHelmet.BuildVision2
                         controlHits++;
                     }
 
-                if (controlHits > 0 && first != -1)
+                if (controlHits > 0)
                     bindHits[first]--;
             }
         }
