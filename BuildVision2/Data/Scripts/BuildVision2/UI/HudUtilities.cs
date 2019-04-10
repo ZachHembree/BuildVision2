@@ -55,13 +55,6 @@ namespace DarkHelmet.BuildVision2
         {
             if (Heartbeat)
             {
-                if (screenWidth != MyAPIGateway.Session.Config.ScreenWidth || screenHeight != MyAPIGateway.Session.Config.ScreenHeight)
-                {
-                    screenWidth = (double)MyAPIGateway.Session.Config.ScreenWidth;
-                    screenHeight = (double)MyAPIGateway.Session.Config.ScreenHeight;
-                    aspectRatio = screenWidth / screenHeight;
-                }
-
                 if (fov != MyAPIGateway.Session.Camera.FovWithZoom)
                 {
                     fov = MyAPIGateway.Session.Camera.FovWithZoom;
