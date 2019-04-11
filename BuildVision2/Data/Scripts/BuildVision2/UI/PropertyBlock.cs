@@ -287,42 +287,27 @@ namespace DarkHelmet.BuildVision2
 
         private bool IsPropertyChangeable(ITerminalProperty<bool> prop)
         {
-            bool startValue = prop.GetValue(TBlock), changeable;
+            bool startValue = prop.GetValue(TBlock);
 
-            prop.SetValue(TBlock, !startValue);
-            changeable = prop.GetValue(TBlock) != startValue;
-            prop.SetValue(TBlock, startValue);
-
-            return changeable;
+            return TestSetProperty(prop, !startValue) == !startValue;
         }
 
         private bool IsPropertyChangeable(ITerminalProperty<float> prop)
         {
             float startValue = prop.GetValue(TBlock);
 
-            prop.SetValue(TBlock, startValue + 1f);
-
-            if (prop.GetValue(TBlock) != startValue)
-            {
-                prop.SetValue(TBlock, startValue);
+            if (TestSetProperty(prop, startValue - 1f) != startValue)
                 return true;
-            }
-
-            prop.SetValue(TBlock, startValue + 16f);
-
-            if (prop.GetValue(TBlock) != startValue)
-            {
-                prop.SetValue(TBlock, startValue);
+            else if (TestSetProperty(prop, startValue + 1f) != startValue)
                 return true;
-            }
-
-            prop.SetValue(TBlock, startValue + 90f);
-
-            if (prop.GetValue(TBlock) != startValue)
-            {
-                prop.SetValue(TBlock, startValue);
+            else if (TestSetProperty(prop, startValue - 20f) != startValue)
                 return true;
-            }
+            else if (TestSetProperty(prop, startValue + 20f) != startValue)
+                return true;
+            else if (TestSetProperty(prop, startValue - 90f) != startValue)
+                return true;
+            else if (TestSetProperty(prop, startValue + 90f) != startValue)
+                return true;
 
             return false;
         }
@@ -330,17 +315,24 @@ namespace DarkHelmet.BuildVision2
         private bool IsPropertyChangeable(ITerminalProperty<Color> prop)
         {
             Color startValue = prop.GetValue(TBlock);
-            bool changeable;
 
-            if (startValue.R < 255)
-                prop.SetValue(TBlock, new Color(startValue.R + 1, 0, 0));
-            else
-                prop.SetValue(TBlock, new Color(startValue.R - 1, 0, 0));
+            if (TestSetProperty(prop, new Color(startValue.R + 1, 0, 0)) != startValue)
+                return true;
+            else if (TestSetProperty(prop, new Color(startValue.R - 1, 0, 0)) != startValue)
+                return true;
 
-            changeable = prop.GetValue(TBlock) != startValue;
+            return false;
+        }
+
+        private T TestSetProperty<T>(ITerminalProperty<T> prop, T value)
+        {
+            T startValue = prop.GetValue(TBlock), changedValue;
+
+            prop.SetValue(TBlock, value);
+            changedValue = prop.GetValue(TBlock);
             prop.SetValue(TBlock, startValue);
 
-            return changeable;
+            return changedValue;
         }
 
         /// <summary>
