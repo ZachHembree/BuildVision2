@@ -20,7 +20,7 @@ namespace DarkHelmet.BuildVision2
 
         private static BvMain Main { get { return BvMain.Instance; } }
         private HudAPIv2 textHudApi;
-        private double screenWidth, screenHeight, aspectRatio, fov, fovScale, fovPosScale;
+        private double screenWidth, screenHeight, aspectRatio, fov, fovScale;
         private List<Action> hudElementsDraw;
 
         private HudUtilities()
@@ -31,8 +31,7 @@ namespace DarkHelmet.BuildVision2
             screenHeight = (double)MyAPIGateway.Session.Config.ScreenHeight;
             aspectRatio = screenWidth / screenHeight;
             fov = MyAPIGateway.Session.Camera.FovWithZoom;
-            fovScale = GetFovScale(fov);
-            fovPosScale = 0.1 * Math.Tan(fov / 2d);
+            fovScale = 0.1 * Math.Tan(fov / 2d);
 
             hudElementsDraw = new List<Action>();
         }
@@ -60,167 +59,11 @@ namespace DarkHelmet.BuildVision2
                 if (fov != MyAPIGateway.Session.Camera.FovWithZoom)
                 {
                     fov = MyAPIGateway.Session.Camera.FovWithZoom;
-                    fovScale = GetFovScale(fov);
-                    fovPosScale = 0.1 * Math.Tan(fov / 2d);
+                    fovScale = 0.1 * Math.Tan(fov / 2d);
                 }
 
                 foreach (Action Draw in hudElementsDraw)
                     Draw();
-            }
-        }
-
-        /// <summary>
-        /// Generates the inverse scale of the billboard at a given fov setting.
-        /// </summary>
-        public static double GetFovScale(double fov) // because reasons
-        {
-            double x = fov * (180d / Math.PI);
-
-            if (x <= 50d)
-                return (0.0000027484 * Math.Pow(x, 3d)) - (0.00032981 * Math.Pow(x, 2d)) + (0.027853 * x) - 0.23603;
-            else if (x > 50d && x <= 60d)
-                return (-0.0000054441 * Math.Pow(x, 3d)) + (0.00089907 * Math.Pow(x, 2d)) - (0.033591 * x) + 0.78804;
-            else if (x > 60d && x <= 70d)
-                return (0.000019739 * Math.Pow(x, 3d)) - (0.003634 * Math.Pow(x, 2d)) + (0.23839 * x) - 4.6516;
-            else if (x > 70d && x <= 80d)
-                return (-0.000029677 * Math.Pow(x, 3d)) + (0.0067435 * Math.Pow(x, 2d)) - (0.48803 * x) + 12.298;
-            else if (x > 80d && x <= 90d)
-                return (0.00003567 * Math.Pow(x, 3d)) - (0.0089399 * Math.Pow(x, 2d)) + (0.76664 * x) - 21.160;
-            else if (x > 90d && x <= 100d)
-                return (-0.000016044 * Math.Pow(x, 3d)) + (0.0050229 * Math.Pow(x, 2d)) - (0.49001 * x) + 16.540;
-            else if (x > 100d && x <= 110d)
-                return (0.0000056264 * Math.Pow(x, 3d)) - (0.0014781 * Math.Pow(x, 2d)) + (.16009 * x) - 5.1302;
-            else
-                return (-0.00001262 * Math.Pow(x, 3d)) + (0.004543 * Math.Pow(x, 2d)) - (0.50224 * x) + 19.155;
-        }
-
-        /// <summary>
-        /// Pattern of textured boxes used to test scaling and positioning.
-        /// </summary>
-        public class UiTestPattern
-        {
-            private readonly TexturedBox[] testPattern;
-            private bool visible;
-
-            public UiTestPattern()
-            {
-                visible = false;
-
-                testPattern = new TexturedBox[]
-                {
-                    new TexturedBox() // red
-                    {
-                        color = new Color(255, 0, 0, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(300, 0)
-                    },
-                    new TexturedBox() // green
-                    {
-                        color = new Color(0, 255, 0, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(-300, 0)
-                    },
-                    new TexturedBox() // blue
-                    {
-                        color = new Color(0, 0, 255, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(0, 300)
-                    },
-                    new TexturedBox() // purple
-                    {
-                        color = new Color(170, 0, 210, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(0, -300)
-                    },
-                    new TexturedBox() // yellow
-                    {
-                        color = new Color(210, 190, 0, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(0, 0)
-                    },
-                    // sqrt(50) x sqrt(50)
-                    new TexturedBox() // green
-                    {
-                        color = new Color(0, 255, 0, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(-200, -200),
-                        Scale = .5d
-                    },
-                    new TexturedBox() // blue
-                    {
-                        color = new Color(0, 0, 255, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(-200, 200),
-                        Scale = .5d
-                    },
-                    new TexturedBox() // purple
-                    {
-                        color = new Color(170, 0, 210, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(200, 200),
-                        Scale = .5d
-                    },
-                    new TexturedBox() // yellow
-                    {
-                        color = new Color(210, 190, 0, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(200, -200),
-                        Scale = .5d
-                    },
-                    // 50 x 50
-                    new TexturedBox() // green
-                    {
-                        color = new Color(0, 255, 0, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(-400, -400),
-                        Scale = .25d
-                    },
-                    new TexturedBox() // blue
-                    {
-                        color = new Color(0, 0, 255, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(-400, 400),
-                        Scale = .25d
-                    },
-                    new TexturedBox() // purple
-                    {
-                        color = new Color(170, 0, 210, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(400, 400),
-                        Scale = .25d
-                    },
-                    new TexturedBox() // yellow
-                    {
-                        color = new Color(210, 190, 0, 255),
-                        Size = new Vector2I(100, 100),
-                        Origin = new Vector2I(400, -400),
-                        Scale = .25d
-                    },
-                };
-            }
-
-            public void Toggle()
-            {
-                if (visible)
-                    Hide();
-                else
-                    Show();
-            }
-
-            public void Show()
-            {
-                foreach (TexturedBox box in testPattern)
-                    box.Visible = true;
-
-                visible = true;
-            }
-
-            public void Hide()
-            {
-                foreach (TexturedBox box in testPattern)
-                    box.Visible = false;
-
-                visible = false;
             }
         }
 
@@ -371,7 +214,7 @@ namespace DarkHelmet.BuildVision2
                     background.Size = listSize + padding;
 
                     headerBg.Size = new Vector2I(background.Width, header.TextSize.Y + (int)(28d * Scale));
-                    headerBg.Offset = new Vector2I(0, (headerBg.Height + background.Height) / 2 - 1);
+                    headerBg.Offset = new Vector2I(0, (headerBg.Height + background.Height) / 2);
 
                     pos = new Vector2I(-textOffset.X, textOffset.Y - list[0].TextSize.Y / 2);
 
@@ -389,10 +232,10 @@ namespace DarkHelmet.BuildVision2
                     highlightBox.Offset = new Vector2I(0, list[SelectionIndex].Offset.Y);
 
                     tab.Size = new Vector2I(4, highlightBox.Height);
-                    tab.Offset = new Vector2I(-highlightBox.Width / 2, 0);
+                    tab.Offset = new Vector2I(-highlightBox.Width / 2 + 1, 0);
 
                     footerBg.Size = new Vector2I(background.Width, footerLeft.TextSize.Y + (int)(12d * Scale));
-                    footerBg.Offset = new Vector2I(0, -(background.Height + footerBg.Height) / 2 + 1);
+                    footerBg.Offset = new Vector2I(0, -(background.Height + footerBg.Height) / 2);
                     footerLeft.Offset = new Vector2I((-footerBg.Width + padding.X) / 2, 0);
                     footerRight.Offset = new Vector2I((footerBg.Width - padding.X) / 2, 0);
 
@@ -595,11 +438,11 @@ namespace DarkHelmet.BuildVision2
                     ScaledSize = Instance.GetScaledSize(Size, Scale);
                     ScaledPos = Instance.GetScaledPos(Origin + Offset);
 
-                    boardSize = ScaledSize * (10d / 9d) * Instance.fovScale;
+                    boardSize = ScaledSize * Instance.fovScale * 16d;
 
                     boardOrigin = ScaledPos;
-                    boardOrigin.X *= Instance.fovPosScale * Instance.aspectRatio;
-                    boardOrigin.Y *= Instance.fovPosScale;
+                    boardOrigin.X *= Instance.fovScale * Instance.aspectRatio;
+                    boardOrigin.Y *= Instance.fovScale;
 
                     cameraMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
                     boardPos = Vector3D.Transform(new Vector3D(boardOrigin.X, boardOrigin.Y, -0.1), cameraMatrix);
@@ -675,5 +518,136 @@ namespace DarkHelmet.BuildVision2
                 pixelPos.Y / screenHeight
             );
         }
+
+        /// <summary>
+        /// Pattern of textured boxes used to test scaling and positioning.
+        /// </summary>
+        public class UiTestPattern
+        {
+            private readonly TexturedBox[] testPattern;
+            private bool visible;
+
+            public UiTestPattern()
+            {
+                visible = false;
+
+                testPattern = new TexturedBox[]
+                {
+                    new TexturedBox() // red
+                    {
+                        color = new Color(255, 0, 0, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(300, 0)
+                    },
+                    new TexturedBox() // green
+                    {
+                        color = new Color(0, 255, 0, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(-300, 0)
+                    },
+                    new TexturedBox() // blue
+                    {
+                        color = new Color(0, 0, 255, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(0, 300)
+                    },
+                    new TexturedBox() // purple
+                    {
+                        color = new Color(170, 0, 210, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(0, -300)
+                    },
+                    new TexturedBox() // yellow
+                    {
+                        color = new Color(210, 190, 0, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(0, 0)
+                    },
+                    // sqrt(50) x sqrt(50)
+                    new TexturedBox() // green
+                    {
+                        color = new Color(0, 255, 0, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(-200, -200),
+                        Scale = .5d
+                    },
+                    new TexturedBox() // blue
+                    {
+                        color = new Color(0, 0, 255, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(-200, 200),
+                        Scale = .5d
+                    },
+                    new TexturedBox() // purple
+                    {
+                        color = new Color(170, 0, 210, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(200, 200),
+                        Scale = .5d
+                    },
+                    new TexturedBox() // yellow
+                    {
+                        color = new Color(210, 190, 0, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(200, -200),
+                        Scale = .5d
+                    },
+                    // 50 x 50
+                    new TexturedBox() // green
+                    {
+                        color = new Color(0, 255, 0, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(-400, -400),
+                        Scale = .25d
+                    },
+                    new TexturedBox() // blue
+                    {
+                        color = new Color(0, 0, 255, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(-400, 400),
+                        Scale = .25d
+                    },
+                    new TexturedBox() // purple
+                    {
+                        color = new Color(170, 0, 210, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(400, 400),
+                        Scale = .25d
+                    },
+                    new TexturedBox() // yellow
+                    {
+                        color = new Color(210, 190, 0, 255),
+                        Size = new Vector2I(100, 100),
+                        Origin = new Vector2I(400, -400),
+                        Scale = .25d
+                    },
+                };
+            }
+
+            public void Toggle()
+            {
+                if (visible)
+                    Hide();
+                else
+                    Show();
+            }
+
+            public void Show()
+            {
+                foreach (TexturedBox box in testPattern)
+                    box.Visible = true;
+
+                visible = true;
+            }
+
+            public void Hide()
+            {
+                foreach (TexturedBox box in testPattern)
+                    box.Visible = false;
+
+                visible = false;
+            }
+        }
+
     }
 }

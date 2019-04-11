@@ -62,7 +62,7 @@ namespace DarkHelmet.BuildVision2
                 selectedText = "30,200,30",
                 backgroundColor = new Color(60, 65, 70, 190),
                 selectionBoxColor = new Color(41, 54, 62, 255),
-                headerColor = new Color(54, 66, 76, 255)
+                headerColor = new Color(54, 66, 76, 240)
             };
 
             [XmlIgnore]
