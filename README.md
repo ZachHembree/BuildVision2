@@ -8,8 +8,7 @@ Like the original, this depends on Draygo's Text Hud API to function properly. T
 This mod can be found on the Steam Workshop [here](https://steamcommunity.com/sharedfiles/filedetails/?id=1697184408).
 
 ## Usage:
-Build Vision 2 uses seven key binds for its controls, all of which are user configurable via chat commands or by editing the config file manually (details below). The keys supported can be found in the bind help menu by using the /bv2 bindHelp command. I just grabbed the 200+ enums they had in the ModAPI and I'm not sure what does what or if they all work. Have fun!
-
+Build Vision 2 uses seven key binds for its controls, all of which are user configurable via chat commands or by editing the config file manually (details below). The keys supported can be found in the bind help menu by using the /bv2 bindHelp command or in this [pastebin](https://pastebin.com/mGNq3u1T). I just grabbed the 200+ enums they had in the ModAPI and I'm not sure what does what or if they all work. Have fun!
 
 #### Default Binds:
 * Open: Control + MiddleButton
@@ -21,9 +20,10 @@ Build Vision 2 uses seven key binds for its controls, all of which are user conf
 * MultY: Shift (x25 for float values, x16 for colors)
 * MultZ: Control + Shift (x100 for float values, x64 for colors)
 
-
 The “Mult” binds or multiplier binds are used to increase the speed a selected property will change with each tick of the scroll wheel, ten times normal, 25 times normal, 100 times, etc. The base rate is proportional to the maximum value of the selected property. If you have a thruster override selected (probably with a max value in the millions) that’s going to change in much larger increments than the targeting range of a turret (with a max around 800 meters, usually).
 
+#### Note: 
+Some properties use fairly aggressive rounding/clamping for their values, so some settings may not change at all unless you use the multipliers; projectors, in particular, suffer from this problem. 
 
 ## Chat Commands:
 All chat commands must begin with “/bv2” and are not case-sensitive. The arguments following “/bv2” can be separated either by whitespace, a comma, semicolon or pipe character. Whatever floats your boat, just make sure there’s something between them.
@@ -41,7 +41,6 @@ All chat commands must begin with “/bv2” and are not case-sensitive. The arg
 * toggleOpenWhileHolding -- If enabled, you'll be able to open the menu while holding a tool or weapon
 
 Example: "/bv2 bind open control shift"
-
 
 ## Editing the Config File:
 In addition to storing your keybinds, the config file has a handful of other settings for changing your multiplier rates and a few UI settings. For those of you comfortable tinkering with XML, it's a hell of a lot faster than dicking around with chat commands. Just make your changes, use /bv2 load and they'll be instantly applied.
