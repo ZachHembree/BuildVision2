@@ -140,6 +140,7 @@ namespace DarkHelmet.BuildVision2
         public int ScrollableCount { get; private set; }
         public bool IsMechConnection { get; private set; }
         public bool IsFunctional { get { return TBlock.IsFunctional; } }
+        public bool IsWorking { get { return TBlock.IsWorking; } }
         public bool CanLocalPlayerAccess { get { return TBlock.HasLocalPlayerAccess(); } }
 
         private static Binds Binds { get { return Binds.Instance; } }
@@ -226,6 +227,9 @@ namespace DarkHelmet.BuildVision2
         {
             List<ITerminalProperty> properties = new List<ITerminalProperty>(12);
             List<IScrollableProp> scrollables;
+            ITerminalProperty<bool> boolProp;
+            ITerminalProperty<float> floatProp;
+            ITerminalProperty<Color> colorProp;
             IMyBatteryBlock battery = TBlock as IMyBatteryBlock;
             string name;
 
@@ -240,20 +244,35 @@ namespace DarkHelmet.BuildVision2
                 if (name.Length > 0 && !(IsMechConnection && name.StartsWith("Safety")))
                 {
                     if (prop is ITerminalProperty<bool>)
-                        scrollables.Add(new BoolProperty(name, prop.AsBool(), this));
+                    {
+                        boolProp = (ITerminalProperty<bool>)prop;
+
+                        if (IsPropertyChangeable(boolProp))
+                            scrollables.Add(new BoolProperty(name, boolProp, this));
+                    }
                     else if (prop is ITerminalProperty<float>)
-                        scrollables.Add(new FloatProperty(name, prop.AsFloat(), this));
+                    {
+                        floatProp = (ITerminalProperty<float>)prop;
+
+                        if (IsPropertyChangeable(floatProp))
+                            scrollables.Add(new FloatProperty(name, floatProp, this));
+                    }
                     else if (prop is ITerminalProperty<Color>)
                     {
+                        colorProp = (ITerminalProperty<Color>)prop;
+
                         try
                         {
-                            ITerminalProperty<Color> color = prop.AsColor();
-                            color.GetValue(TBlock);
-                            scrollables.AddRange(ColorProperty.GetColorProperties(name, this, color));
+                            if (IsPropertyChangeable(colorProp))
+                                scrollables.AddRange(ColorProperty.GetColorProperties(name, this, colorProp));
                         }
                         catch
                         {
-                            //BvMain.Instance.ShowMissionScreen("Debug",$"Bullshit color property: {prop.ToString()}");
+                            /*BvMain.Instance.ShowMissionScreen
+                            (
+                                "Debug",$"Bullshit color property: {prop.ToString()}\n " +
+                                $"Block Subtype Name: {TBlock.BlockDefinition.SubtypeName}"
+                            );*/
                             //arrrggh
                         }
                     }
@@ -264,6 +283,64 @@ namespace DarkHelmet.BuildVision2
                 scrollables.Add(new BattProperty(battery));
 
             return scrollables;
+        }
+
+        private bool IsPropertyChangeable(ITerminalProperty<bool> prop)
+        {
+            bool startValue = prop.GetValue(TBlock), changeable;
+
+            prop.SetValue(TBlock, !startValue);
+            changeable = prop.GetValue(TBlock) != startValue;
+            prop.SetValue(TBlock, startValue);
+
+            return changeable;
+        }
+
+        private bool IsPropertyChangeable(ITerminalProperty<float> prop)
+        {
+            float startValue = prop.GetValue(TBlock);
+
+            prop.SetValue(TBlock, startValue + 1f);
+
+            if (prop.GetValue(TBlock) != startValue)
+            {
+                prop.SetValue(TBlock, startValue);
+                return true;
+            }
+
+            prop.SetValue(TBlock, startValue + 16f);
+
+            if (prop.GetValue(TBlock) != startValue)
+            {
+                prop.SetValue(TBlock, startValue);
+                return true;
+            }
+
+            prop.SetValue(TBlock, startValue + 90f);
+
+            if (prop.GetValue(TBlock) != startValue)
+            {
+                prop.SetValue(TBlock, startValue);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsPropertyChangeable(ITerminalProperty<Color> prop)
+        {
+            Color startValue = prop.GetValue(TBlock);
+            bool changeable;
+
+            if (startValue.R < 255)
+                prop.SetValue(TBlock, new Color(startValue.R + 1, 0, 0));
+            else
+                prop.SetValue(TBlock, new Color(startValue.R - 1, 0, 0));
+
+            changeable = prop.GetValue(TBlock) != startValue;
+            prop.SetValue(TBlock, startValue);
+
+            return changeable;
         }
 
         /// <summary>

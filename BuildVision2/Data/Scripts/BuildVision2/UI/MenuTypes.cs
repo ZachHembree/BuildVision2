@@ -251,14 +251,10 @@ namespace DarkHelmet.BuildVision2
                 {
                     cfg = value;
                     maxVisible = cfg.maxVisible;
-
-                    if (menu != null)
-                    {
-                        menu.BodyColor = Cfg.colors.backgroundColor;
-                        menu.HeaderColor = Cfg.colors.headerColor;
-                        menu.SelectionBoxColor = Cfg.colors.selectionBoxColor;
-                        menu.Scale = Cfg.hudScale;
-                    }
+                    menu.BodyColor = cfg.colors.backgroundColor;
+                    menu.HeaderColor = cfg.colors.headerColor;
+                    menu.SelectionBoxColor = cfg.colors.selectionBoxColor;
+                    menu.Scale = cfg.hudScale;
                 }
             }
 
@@ -267,7 +263,8 @@ namespace DarkHelmet.BuildVision2
 
             public ApiHud(ApiHudConfig cfg)
             {
-                Cfg = cfg;              
+                menu = new HudUtilities.ScrollMenu(cfg.maxVisible);
+                Cfg = cfg;
             }
 
             /// <summary>
@@ -281,15 +278,6 @@ namespace DarkHelmet.BuildVision2
                 Open = true;
 
                 GetVisibleProperties();
-
-                if (menu == null)
-                {
-                    menu = new HudUtilities.ScrollMenu(Cfg.maxVisible);
-                    menu.BodyColor = Cfg.colors.backgroundColor;
-                    menu.HeaderColor = Cfg.colors.headerColor;
-                    menu.SelectionBoxColor = Cfg.colors.selectionBoxColor;
-                    menu.Scale = Cfg.hudScale;
-                }
 
                 UpdateText();
                 UpdatePos();
@@ -342,7 +330,7 @@ namespace DarkHelmet.BuildVision2
                     screenPos = Vector2D.Zero;
 
                 menu.ScaledPos = screenPos;
-                menu.selectionIndex = index - visStart;
+                menu.SelectionIndex = index - visStart;
             }
 
             /// <summary>
@@ -379,7 +367,10 @@ namespace DarkHelmet.BuildVision2
                 menu.FooterLeftText = new StringBuilder(
                         $"<color={Cfg.colors.headerText}>[{visStart + 1} - {visEnd} of {target.ScrollableCount}]");
 
-                if (target.IsFunctional)
+                if (target.IsWorking)
+                    menu.FooterRightText = new StringBuilder(
+                        $"<color={Cfg.colors.headerText}>[Working]");
+                else if (target.IsFunctional)
                     menu.FooterRightText = new StringBuilder(
                         $"<color={Cfg.colors.headerText}>[Functional]");
                 else

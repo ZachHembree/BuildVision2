@@ -17,7 +17,7 @@ namespace DarkHelmet.BuildVision2
         public static bool HasEmptyHands { get { return CharEnt?.HandWeapon == null; } }
 
         /// <summary>
-        /// Finds where position of a world coordinate lies on the screen's plane (with the Z-coord being distance from that plane?).
+        /// Finds where position of a world coordinate lies on the screen's plane (with the Z-coord being distance from that plane).
         /// </summary>
         public static Vector3D GetWorldToScreenPos(Vector3D pos) =>
             MyAPIGateway.Session.Camera.WorldToScreen(ref pos);

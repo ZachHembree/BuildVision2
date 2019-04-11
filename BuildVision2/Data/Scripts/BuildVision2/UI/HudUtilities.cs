@@ -7,6 +7,8 @@ using VRage.Game;
 using System;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 using HUDMessage = DarkHelmet.BuildVision2.HudAPIv2.HUDMessage;
+using MessageBase = DarkHelmet.BuildVision2.HudAPIv2.MessageBase;
+
 
 namespace DarkHelmet.BuildVision2
 {
@@ -18,8 +20,8 @@ namespace DarkHelmet.BuildVision2
 
         private static BvMain Main { get { return BvMain.Instance; } }
         private HudAPIv2 textHudApi;
-        private double screenWidth, screenHeight, aspectRatio, bbOriginScale, fov, fovScale;
-        private List<HudElement> hudElements;
+        private double screenWidth, screenHeight, aspectRatio, fov, fovScale, fovPosScale;
+        private List<Action> hudElementsDraw;
 
         private HudUtilities()
         {
@@ -29,10 +31,10 @@ namespace DarkHelmet.BuildVision2
             screenHeight = (double)MyAPIGateway.Session.Config.ScreenHeight;
             aspectRatio = screenWidth / screenHeight;
             fov = MyAPIGateway.Session.Camera.FovWithZoom;
-            bbOriginScale = 0.1 * Math.Tan(fov / 2d);
             fovScale = GetFovScale(fov);
+            fovPosScale = 0.1 * Math.Tan(fov / 2d);
 
-            hudElements = new List<HudElement>();
+            hudElementsDraw = new List<Action>();
         }
 
         public static void Init()
@@ -58,12 +60,12 @@ namespace DarkHelmet.BuildVision2
                 if (fov != MyAPIGateway.Session.Camera.FovWithZoom)
                 {
                     fov = MyAPIGateway.Session.Camera.FovWithZoom;
-                    bbOriginScale = 0.1 * Math.Tan(fov / 2d);
                     fovScale = GetFovScale(fov);
+                    fovPosScale = 0.1 * Math.Tan(fov / 2d);
                 }
 
-                foreach (HudElement element in hudElements)
-                    element.Draw();
+                foreach (Action Draw in hudElementsDraw)
+                    Draw();
             }
         }
 
@@ -236,7 +238,7 @@ namespace DarkHelmet.BuildVision2
         {
             public HudElement()
             {
-                Instance.hudElements.Add(this);
+                Instance.hudElementsDraw.Add(Draw);
             }
 
             /// <summary>
@@ -247,7 +249,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Position using scaled coordinate system
             /// </summary>
-            public virtual Vector2D ScaledPos { get; set; } = Vector2D.Zero;
+            public virtual Vector2D ScaledPos { get; set; } = Vector2D.Zero; // behavior of ScaledPos is not consistent; do something about that
 
             /// <summary>
             /// If set to true, the hud element will be visible. Parented elements will be hidden if the parent is not visible.
@@ -284,7 +286,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Updates settings and draws hud element.
             /// </summary>
-            public abstract void Draw();
+            protected abstract void Draw();
         }
 
         /// <summary>
@@ -307,9 +309,14 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public int selectionIndex;
+            public int SelectionIndex
+            {
+                get { return selectionIndex; }
+                set { selectionIndex = Utilities.Clamp(value, 0, (ListText != null ? list.Length - 1 : 0)); }
+            }
             public Vector2D Size { get; private set; }
             public Color BodyColor { get { return background.color; } set { background.color = value; } }
+            public Color SelectionBoxColor { get { return highlightBox.color; } set { highlightBox.color = value; } }
             public Color HeaderColor
             {
                 get { return headerColor; }
@@ -320,7 +327,6 @@ namespace DarkHelmet.BuildVision2
                     headerColor = value;
                 }
             }
-            public Color SelectionBoxColor { get { return highlightBox.color; } set { highlightBox.color = value; } }
 
             private static readonly Vector2I padding = new Vector2I(72, 32);
             private StringBuilder[] listText;
@@ -328,8 +334,9 @@ namespace DarkHelmet.BuildVision2
 
             private readonly TexturedBox headerBg, footerBg, background, highlightBox, tab;
             private readonly TextHudMessage header, footerLeft, footerRight;
-            private readonly TextHudMessage[] list;
+            private TextHudMessage[] list;
             private double currentScale = 0d;
+            private int selectionIndex = 0;
 
             public ScrollMenu(int maxListLength)
             {
@@ -351,9 +358,9 @@ namespace DarkHelmet.BuildVision2
                     list[n] = new TextHudMessage(background, TextAlignment.Left);
             }
 
-            public override void Draw()
+            protected override void Draw()
             {
-                if (Visible)
+                if (Visible && ListText != null)
                 {
                     Vector2I listSize = GetListSize(), textOffset = listSize / 2, pos;
                     Origin = Instance.GetPixelPos(Utilities.Round(ScaledPos, 3));
@@ -368,18 +375,18 @@ namespace DarkHelmet.BuildVision2
 
                     pos = new Vector2I(-textOffset.X, textOffset.Y - list[0].TextSize.Y / 2);
 
-                    for (int n = 0; n < listText.Length; n++)
+                    for (int n = 0; n < ListText.Length && n < list.Length; n++)
                     {
                         list[n].Offset = pos;
                         list[n].Visible = true;
                         pos.Y -= list[n].TextSize.Y;
                     }
 
-                    for (int n = listText.Length; n < list.Length; n++)
+                    for (int n = ListText.Length; n < list.Length; n++)
                         list[n].Visible = false;
 
                     highlightBox.Size = new Vector2I(listSize.X + 16, (int)(24d * Scale));
-                    highlightBox.Offset = new Vector2I(0, list[selectionIndex].Offset.Y);
+                    highlightBox.Offset = new Vector2I(0, list[SelectionIndex].Offset.Y);
 
                     tab.Size = new Vector2I(4, highlightBox.Height);
                     tab.Offset = new Vector2I(-highlightBox.Width / 2, 0);
@@ -400,7 +407,7 @@ namespace DarkHelmet.BuildVision2
                 int maxLineWidth = 0, footerWidth;
                 listSize = Vector2I.Zero;
 
-                for (int n = 0; n < listText.Length; n++)
+                for (int n = 0; (n < listText.Length && n < list.Length); n++)
                 {
                     lineSize = list[n].TextSize;
                     listSize.Y += lineSize.Y;
@@ -439,84 +446,114 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public class TextHudMessage : HudElement
         {
-            public StringBuilder Message { get { return hudMessage.Message; } set { SetMessage(value); } }
-            public Vector2D ScaledTextSize { get; private set; }
-            public Vector2I TextSize { get { return textSize; } set { textSize = Utilities.Abs(value); } }
-            public TextAlignment alignment;
+            public StringBuilder Message
+            {
+                get { return message; }
+                set
+                {
+                    message = value;
 
-            public override Vector2D ScaledPos { get { return hudMessage.Origin; } set { hudMessage.Origin = value; } }
+                    if (hudMessage != null)
+                        UpdateMessage();
+                }
+            }
+
+            public override Vector2D ScaledPos
+            {
+                get { return hudMessage != null ? hudMessage.Origin : Vector2D.Zero; }
+                set { hudMessage.Origin = value; }
+            }
+
             public override bool Visible
             {
                 get
                 {
-                    hudMessage.Visible = Parent == null ? visible : Parent.Visible && visible;
-                    return hudMessage.Visible;
+                    if (hudMessage != null)
+                    {
+                        hudMessage.Visible = Parent == null ? visible : Parent.Visible && visible;
+                        return hudMessage.Visible;
+                    }
+                    else
+                        return false;
                 }
                 set { visible = value; }
             }
+
             public override double Scale
             {
                 get { return scale; }
                 set
                 {
-                    scale = value;
-                    hudMessage.Scale = scale * (278d / (500d - 138.75 * Instance.aspectRatio));
+                    scale = value * (278d / (500d - 138.75 * Instance.aspectRatio));
+
+                    if (hudMessage != null)
+                        hudMessage.Scale = scale;
                 }
             }
 
+            public Vector2D ScaledTextSize { get; private set; }
+            public Vector2I TextSize { get; private set; }
+            public TextAlignment alignment;
+
             private HUDMessage hudMessage;
-            private Vector2I textSize;
+            private StringBuilder message;
             private Vector2I alignmentOffset;
             private double scale;
 
             public TextHudMessage(HudElement Parent = null, TextAlignment alignment = TextAlignment.Center)
             {
                 this.Parent = Parent;
-                this.alignment = alignment;
-
-                hudMessage = new HUDMessage
-                {
-                    Blend = BlendTypeEnum.LDR,
-                    Scale = Instance.aspectRatio / 2d,
-                    Options = HudAPIv2.Options.Fixed,
-                    Visible = false
-                };
+                this.alignment = alignment;                
             }
 
             /// <summary>
             /// Updates settings of underlying Text HUD API type.
             /// </summary>
-            public override void Draw()
+            protected override void Draw()
             {
-                if (Visible)
+                if (hudMessage == null)
                 {
-                    hudMessage.Origin = Instance.GetScaledPos(Origin + Offset + alignmentOffset);
+                    hudMessage = new HUDMessage
+                    {
+                        Blend = BlendTypeEnum.LDR,
+                        Scale = Scale,
+                        Options = HudAPIv2.Options.Fixed,
+                        Visible = Visible
+                    };
+
+                    UpdateMessage();
                 }
+
+                if (Visible)
+                    hudMessage.Origin = Instance.GetScaledPos(Origin + Offset + alignmentOffset);
             }
 
-            private void SetMessage(StringBuilder message)
+            private void UpdateMessage()
             {
-                Vector2D length;
+                if (Message != null)
+                {
+                    Vector2D length;
 
-                hudMessage.Message = message;
-                length = hudMessage.GetTextLength();
-                ScaledTextSize = length;
-                TextSize = Instance.GetPixelPos(ScaledTextSize);// the scaling on text length is a bit off
-                GetAlignmentOffset();
+                    hudMessage.Message = Message;
+                    length = hudMessage.GetTextLength();
+                    ScaledTextSize = length;
+                    TextSize = Utilities.Abs(Instance.GetPixelPos(ScaledTextSize));
+                    GetAlignmentOffset();
+                }
             }
 
             private void GetAlignmentOffset()
             {
-                alignmentOffset = textSize / 2;
+                alignmentOffset = TextSize / 2;
                 alignmentOffset.X *= -1;
 
                 if (alignment == TextAlignment.Right)
                 {
-                    alignmentOffset.X -= textSize.X / 2;
+                    alignmentOffset.X -= TextSize.X / 2;
                 }
                 else if (alignment == TextAlignment.Left)
                 {
-                    alignmentOffset.X += textSize.X / 2;
+                    alignmentOffset.X += TextSize.X / 2;
                 }
             }
         }
@@ -526,7 +563,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public class TexturedBox : HudElement
         {
-            public Vector2D scaledSize;
+            public Vector2D ScaledSize { get; private set; }
             public Vector2I Size { get { return size; } set { size = Utilities.Abs(value); } }
             public int Height { get { return Size.Y; } set { Size = new Vector2I(value, Size.Y); } }
             public int Width { get { return Size.X; } set { Size = new Vector2I(Size.X, value); ; } }
@@ -546,22 +583,28 @@ namespace DarkHelmet.BuildVision2
                     this.material = material;
             }
 
-            public override void Draw()
+            protected override void Draw()
             {
                 if (Visible)
                 {
-                    scaledSize = Instance.GetScaledSize(Size, Scale);
+                    MatrixD cameraMatrix;
+                    Quaternion rotquad;
+                    Vector3D boardPos;
+                    Vector2D boardOrigin, boardSize;
+
+                    ScaledSize = Instance.GetScaledSize(Size, Scale);
                     ScaledPos = Instance.GetScaledPos(Origin + Offset);
 
-                    Vector2D localOrigin = ScaledPos, boardSize = scaledSize * (10d / 9d) * Instance.fovScale;
+                    boardSize = ScaledSize * (10d / 9d) * Instance.fovScale;
 
-                    localOrigin.X *= Instance.bbOriginScale * Instance.aspectRatio;
-                    localOrigin.Y *= Instance.bbOriginScale;
+                    boardOrigin = ScaledPos;
+                    boardOrigin.X *= Instance.fovPosScale * Instance.aspectRatio;
+                    boardOrigin.Y *= Instance.fovPosScale;
 
-                    MatrixD cameraMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
-                    Vector3D boardPos = Vector3D.Transform(new Vector3D(localOrigin.X, localOrigin.Y, -0.1), cameraMatrix);
+                    cameraMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
+                    boardPos = Vector3D.Transform(new Vector3D(boardOrigin.X, boardOrigin.Y, -0.1), cameraMatrix);
 
-                    Quaternion rotquad = Quaternion.CreateFromAxisAngle(cameraMatrix.Forward, 0f);
+                    rotquad = Quaternion.CreateFromAxisAngle(cameraMatrix.Forward, 0f);
                     cameraMatrix = MatrixD.Transform(cameraMatrix, rotquad);
 
                     MyTransparentGeometry.AddBillboardOriented
@@ -599,13 +642,13 @@ namespace DarkHelmet.BuildVision2
         {
             return new Vector2D
             (
-                pixelSize.X / screenHeight / 16d,
-                pixelSize.Y / screenHeight / 16d
-            ) * Math.Sqrt(scale);
+                pixelSize.X,
+                pixelSize.Y
+            ) * (Math.Sqrt(scale) / screenHeight / 16d);
         }
 
         /// <summary>
-        /// Converts from a coordinate in the API's scaled coordinate system to a concrete coordinate in pixels.
+        /// Converts from a coordinate in the scaled coordinate system to a concrete coordinate in pixels.
         /// Also useful for converting text block sizes to pixels for some reason.
         /// </summary>
         public Vector2I GetPixelPos(Vector2D scaledPos)
