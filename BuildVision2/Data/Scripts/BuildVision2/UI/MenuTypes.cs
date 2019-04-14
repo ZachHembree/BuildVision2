@@ -49,7 +49,7 @@ namespace DarkHelmet.BuildVision2
 
         [XmlElement(ElementName = "ColorsRGB")]
         public Colors colors;
-
+        
         public struct Colors
         {
             [XmlIgnore]
@@ -244,21 +244,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ApiHud : PropertyList
         {
-            public ApiHudConfig Cfg
-            {
-                get { return cfg; }
-                set
-                {
-                    cfg = value;
-                    maxVisible = cfg.maxVisible;
-                    menu.BodyColor = cfg.colors.backgroundColor;
-                    menu.HeaderColor = cfg.colors.headerColor;
-                    menu.SelectionBoxColor = cfg.colors.selectionBoxColor;
-                    menu.Scale = cfg.hudScale;
-                }
-            }
-
-            private ApiHudConfig cfg;
+            public ApiHudConfig Cfg { get; set; }
             private HudUtilities.ScrollMenu menu;
 
             public ApiHud(ApiHudConfig cfg)
@@ -274,7 +260,13 @@ namespace DarkHelmet.BuildVision2
             {
                 this.index = index;
                 this.selection = selection;
-                headerText = $"Build Vision 2: {target.TBlock.CustomName}";
+                headerText = $"Build Vision: {target.TBlock.CustomName}";
+
+                maxVisible = Cfg.maxVisible;
+                menu.BodyColor = Cfg.colors.backgroundColor;
+                menu.HeaderColor = Cfg.colors.headerColor;
+                menu.SelectionBoxColor = Cfg.colors.selectionBoxColor;
+                menu.Scale = Cfg.hudScale;
                 Open = true;
 
                 GetVisibleProperties();
@@ -384,9 +376,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class NotifHud : PropertyList
         {
-            public NotifHudConfig Cfg { get { return cfg; } set { cfg = value; maxVisible = cfg.maxVisible; } }
+            public NotifHudConfig Cfg { get; set; }
 
-            private NotifHudConfig cfg;
             private IMyHudNotification header;
             private IMyHudNotification[] list;
 
@@ -405,10 +396,11 @@ namespace DarkHelmet.BuildVision2
             {
                 this.index = index;
                 this.selection = selection;
-                headerText = $"Build Vision 2: {target.TBlock.CustomName}";
+                headerText = $"Build Vision: {target.TBlock.CustomName}";
+                maxVisible = Cfg.maxVisible;
                 Open = true;
 
-                if (list == null || list.Length != Cfg.maxVisible)
+                if (list == null || list.Length < Cfg.maxVisible)
                     list = new IMyHudNotification[Cfg.maxVisible];
 
                 GetVisibleProperties();

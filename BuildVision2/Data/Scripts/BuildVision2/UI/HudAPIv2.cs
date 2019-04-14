@@ -1417,7 +1417,14 @@ namespace DarkHelmet.BuildVision2
 		}
 		public class MenuSliderInput : MenuItemBase
 		{
-			private enum MenuSliderItemMembers : int
+            private string v1;
+            private MenuCategoryBase root;
+            private float v2;
+            private string queryText;
+            private Action<float> onClick;
+            private object percentToValue;
+
+            private enum MenuSliderItemMembers : int
 			{
 				OnSubmitAction = 100,
 				Parent,
@@ -1531,7 +1538,17 @@ namespace DarkHelmet.BuildVision2
 				this.OnCancel = OnCancel;
 				this.Parent = Parent;
 			}
-		}
+
+            public MenuSliderInput(string v1, MenuCategoryBase root, float v2, string queryText, Action<float> onClick, object percentToValue)
+            {
+                this.v1 = v1;
+                this.root = root;
+                this.v2 = v2;
+                this.queryText = queryText;
+                this.onClick = onClick;
+                this.percentToValue = percentToValue;
+            }
+        }
 		#endregion
 	}
 }

@@ -50,6 +50,24 @@ namespace DarkHelmet.BuildVision2
     internal sealed partial class PropertiesMenu
     {
         public static PropertiesMenu Instance { get; private set; }
+        public PropMenuConfig Cfg
+        {
+            get
+            {
+                return new PropMenuConfig
+                {
+                    apiHudConfig = apiHud.Cfg,
+                    fallbackHudConfig = fallbackHud.Cfg
+                };
+            }
+            set
+            {
+                apiHud.Cfg = value.apiHudConfig;
+                fallbackHud.Cfg = value.fallbackHudConfig;
+            }
+        }
+        public ApiHudConfig ApiHudConfig { get { return apiHud.Cfg; } set { apiHud.Cfg = value; } }
+        public NotifHudConfig NotifHudConfig { get { return fallbackHud.Cfg; } set { fallbackHud.Cfg = value; } }
 
         private static Binds Binds { get { return Binds.Instance; } }
         private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
@@ -69,7 +87,7 @@ namespace DarkHelmet.BuildVision2
             index = 0;
             selection = -1;
             menuOpen = false;
-            UpdateConfig(cfg);
+            Cfg = cfg;
         }
 
         /// <summary>
@@ -87,24 +105,6 @@ namespace DarkHelmet.BuildVision2
         public void Close()
         {
             Instance = null;
-        }
-
-        /// <summary>
-        /// Updates the configuration of the properties menu.
-        /// </summary>
-        public void UpdateConfig(PropMenuConfig cfg)
-        {
-            apiHud.Cfg = cfg.apiHudConfig;
-            fallbackHud.Cfg = cfg.fallbackHudConfig;
-        }
-
-        public PropMenuConfig GetConfig()
-        {
-            return new PropMenuConfig
-            {
-                apiHudConfig = apiHud.Cfg,
-                fallbackHudConfig = fallbackHud.Cfg
-            };
         }
 
         /// <summary>

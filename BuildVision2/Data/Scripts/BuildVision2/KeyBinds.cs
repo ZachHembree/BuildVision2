@@ -321,7 +321,12 @@ namespace DarkHelmet.BuildVision2
                 }
             }
             else if (!silent)
-                Main.SendChatMessage($"Invalid key bind. No more than {maxBindLength} keys in a bind are allowed.");
+            {
+                if (controlNames.Length > 0)
+                    Main.SendChatMessage($"Invalid key bind. No more than {maxBindLength} keys in a bind are allowed.");
+                else
+                    Main.SendChatMessage("Invalid key bind. There must be at least one control in a key bind.");
+            }
 
             return false;
         }
