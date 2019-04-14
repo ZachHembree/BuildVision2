@@ -6,12 +6,13 @@ using VRage.Utils;
 using VRage.Game;
 using System;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
-using HUDMessage = DarkHelmet.BuildVision2.HudAPIv2.HUDMessage;
-using MessageBase = DarkHelmet.BuildVision2.HudAPIv2.MessageBase;
-
+using MenuFlag = DarkHelmet.BuildVision2.HudAPIv2.MenuRootCategory.MenuFlag;
 
 namespace DarkHelmet.BuildVision2
 {
+    /// <summary>
+    /// Collection of tools used to make working with the Text Hud API and general GUI stuff easier.
+    /// </summary>
     internal sealed class HudUtilities
     {
         public static HudUtilities Instance { get; private set; }
@@ -22,6 +23,7 @@ namespace DarkHelmet.BuildVision2
         private HudAPIv2 textHudApi;
         private double screenWidth, screenHeight, aspectRatio, fov, fovScale;
         private List<Action> hudElementsDraw;
+        private Queue<Action> menuElementsInit;
 
         private HudUtilities()
         {
@@ -34,6 +36,7 @@ namespace DarkHelmet.BuildVision2
             fovScale = 0.1 * Math.Tan(fov / 2d);
 
             hudElementsDraw = new List<Action>();
+            menuElementsInit = new Queue<Action>();
         }
 
         public static void Init()
@@ -44,12 +47,6 @@ namespace DarkHelmet.BuildVision2
                 Instance.TestPattern = new UiTestPattern();
                 Instance.TestPattern.Hide();
             }
-        }
-
-        public void Close()
-        {
-            textHudApi?.Close();
-            Instance = null;
         }
 
         public void Draw()
@@ -64,6 +61,348 @@ namespace DarkHelmet.BuildVision2
 
                 foreach (Action Draw in hudElementsDraw)
                     Draw();
+
+                Action InitElement;
+
+                while (menuElementsInit.Count > 0)
+                {
+                    if (menuElementsInit.TryDequeue(out InitElement))
+                        InitElement();
+                }
+            }
+        }
+
+        public void Close()
+        {
+            textHudApi?.Close();
+            Instance = null;
+        }
+
+        public interface IMenuElement
+        {
+            MenuCategoryBase Parent { get; set; }
+        }
+
+        public abstract class MenuElement<T> : IMenuElement where T : HudAPIv2.MenuItemBase
+        {
+            public abstract MenuCategoryBase Parent { get; set; }
+            public T Element { get; protected set; }
+
+            public MenuElement(MenuCategoryBase parent = null)
+            {
+                if (Instance == null)
+                    throw new Exception("Menu Elements cannot be created without initializing HudUtilities.");
+
+                Parent = parent;
+                Instance.menuElementsInit.Enqueue(InitElement);
+            }
+
+            protected abstract void InitElement();
+        }
+        
+        public abstract class MenuCategoryBase : MenuElement<HudAPIv2.MenuCategoryBase>
+        {
+            public override MenuCategoryBase Parent { get; set; }
+            protected MenuCategoryBase parent;
+            protected readonly string name, header;
+            protected readonly List<IMenuElement> children;
+
+            public MenuCategoryBase(string name, string header, IList<IMenuElement> children = null)
+            {
+                this.name = name;
+                this.header = header;
+                this.children = (List<IMenuElement>)children;
+
+                if (children != null)
+                {
+                    foreach (IMenuElement child in children)
+                        child.Parent = this;
+                }
+            }
+
+            public virtual void AddChild(IMenuElement child)
+            {
+                children.Add(child);
+                child.Parent = this;
+            }
+
+            public virtual void AddChildren(IEnumerable<IMenuElement> newChildren)
+            {
+                foreach (IMenuElement child in newChildren)
+                    child.Parent = this;
+
+                children.AddRange(newChildren);
+            }
+        }
+
+        public class MenuRoot : MenuCategoryBase
+        {
+            public MenuRoot(string name, string header, IList<IMenuElement> children = null) : base(name, header, children)
+            { }
+
+            protected override void InitElement() =>
+                Element = new HudAPIv2.MenuRootCategory(name, MenuFlag.PlayerMenu, header);
+        }
+
+        public class MenuCategory : MenuCategoryBase
+        {
+            public override MenuCategoryBase Parent
+            {
+                get { return parent; }
+                set
+                {
+                    parent = value;
+
+                    if (category != null)
+                        category.Parent = parent.Element; //but y tho
+                }
+            }
+
+            private HudAPIv2.MenuSubCategory category;
+
+            public MenuCategory(string name, string header, IList<IMenuElement> children = null, MenuCategoryBase parent = null) : base(name, header, children)
+            {
+                Parent = parent;
+            }
+
+            protected override void InitElement()
+            {
+                category = new HudAPIv2.MenuSubCategory(name, Parent?.Element, header);
+                Element = category;
+            }
+        }
+
+        /// <summary>
+        /// Wrapper base for HudAPIv2.MenuItem controls
+        /// </summary>
+        public abstract class MenuSetting<T> : MenuElement<T> where T : HudAPIv2.MenuItemBase
+        {
+            protected readonly Func<string> GetDisplay;
+            protected MenuCategoryBase parent;
+
+            public MenuSetting(Func<string> GetDisplay, MenuCategoryBase parent = null)
+            {
+                if (typeof(T) == typeof(HudAPIv2.MenuCategoryBase))
+                    throw new Exception("Types of HudAPIv2.MenuCategoryBase cannot be used to create MenuSettings.");
+                
+                this.parent = parent;
+                this.GetDisplay = GetDisplay;
+            }
+        }
+
+        /// <summary>
+        /// Wrapper used to simplify usage of HudAPIv2.MenuItem
+        /// </summary>
+        public class MenuButton : MenuSetting<HudAPIv2.MenuItem>
+        {
+            public override MenuCategoryBase Parent
+            {
+                get { return parent; }
+                set
+                {
+                    parent = value;
+
+                    if (Element != null)
+                        Element.Parent = parent.Element;
+                }
+            }
+
+            private readonly Action OnClickAction;
+
+            public MenuButton(Func<string> GetDisplay, Action OnClick, MenuCategoryBase parent = null) : base(GetDisplay, parent)
+            {
+                OnClickAction = OnClick;
+            }
+
+            private void OnClick()
+            {
+                OnClickAction();
+                Element.Text = GetDisplay();
+            }
+
+            protected override void InitElement() =>
+                Element = new HudAPIv2.MenuItem(GetDisplay(), Parent?.Element, OnClick);
+        }
+
+        /// <summary>
+        /// Wrapper used to simplify usage of HudAPIv2.MenuTextInput
+        /// </summary>
+        public class MenuTextInput : MenuSetting<HudAPIv2.MenuTextInput>
+        {
+            public override MenuCategoryBase Parent
+            {
+                get { return parent; }
+                set
+                {
+                    parent = value;
+
+                    if (Element != null)
+                        Element.Parent = parent.Element;
+                }
+            }
+
+            private readonly string queryText;
+            private readonly Action<string> OnSubmitAction;
+
+            public MenuTextInput(Func<string> GetDisplay, string queryText, Action<string> OnSubmit, MenuCategoryBase parent = null) : base(GetDisplay, parent)
+            {
+                this.queryText = queryText;
+                OnSubmitAction = OnSubmit;
+            }
+
+            private void OnClick(string input)
+            {
+                OnSubmitAction(input);
+                Element.Text = GetDisplay();
+            }
+
+            protected override void InitElement() =>
+                Element = new HudAPIv2.MenuTextInput(GetDisplay(), Parent?.Element, queryText, OnClick);
+        }
+
+        /// <summary>
+        /// Wrapper used to simplify usage of HudAPIv2.MenuSliderInput
+        /// </summary>
+        public class MenuSliderInput : MenuSetting<HudAPIv2.MenuSliderInput>
+        {
+            public override MenuCategoryBase Parent
+            {
+                get { return parent; }
+                set
+                {
+                    parent = value;
+
+                    if (Element != null)
+                        Element.Parent = parent.Element;
+                }
+            }
+
+            private readonly string queryText;
+            private readonly Func<float> CurrentValueAction;
+            private readonly Action<float> OnUpdateAction;
+            private readonly float min, max, range;
+            private readonly int rounding;
+            private float start;
+
+            public MenuSliderInput(float min, float max, Func<float> GetCurrentValue, Func<string> GetDisplay, string queryText, Action<float> OnUpdate, MenuCategoryBase parent = null) : base(GetDisplay, parent)
+            {
+                this.min = min;
+                this.max = max;
+                range = max - min;
+                rounding = 2;
+
+                this.queryText = queryText;
+                CurrentValueAction = GetCurrentValue;
+                OnUpdateAction = OnUpdate;
+            }
+
+            public MenuSliderInput(int min, int max, Func<float> GetCurrentValue, Func<string> GetDisplay, string queryText, Action<float> OnUpdate, MenuCategoryBase parent = null) : base(GetDisplay, parent)
+            {
+                this.min = min;
+                this.max = max;
+                range = max - min;
+                rounding = 0;
+
+                this.queryText = queryText;
+                CurrentValueAction = GetCurrentValue;
+                OnUpdateAction = OnUpdate;
+            }
+
+            private void OnSubmit(float percent)
+            {
+                OnUpdateAction((float)Math.Round(Utilities.Clamp(min + (range * percent), min, max), rounding));
+                Element.InitialPercent = GetCurrentValue();
+                Element.Text = GetDisplay();
+                start = GetCurrentValue();
+            }
+
+            private void OnCancel()
+            {
+                OnUpdateAction((float)Math.Round(Utilities.Clamp(min + (range * start), min, max), rounding));
+                Element.InitialPercent = start;
+                Element.Text = GetDisplay();
+            }
+
+            private float GetCurrentValue() =>
+                (float)Math.Round((CurrentValueAction() - min) / range, 2);
+
+            private object GetSliderValue(float percent)
+            {
+                OnUpdateAction((float)Math.Round(Utilities.Clamp(min + (range * percent), min, max), rounding));
+                return $"{Math.Round(min + range * percent, rounding)}";
+            }
+
+            protected override void InitElement()
+            {
+                start = GetCurrentValue();
+                Element = new HudAPIv2.MenuSliderInput(GetDisplay(), Parent?.Element, start, queryText, OnSubmit, GetSliderValue, OnCancel);
+            }
+        }
+
+        public class MenuColorInput : IMenuElement
+        {
+            public MenuCategoryBase Parent
+            {
+                get { return parent; }
+                set
+                {
+                    parent = value;
+                    colorRoot.Parent = value;
+                }
+            }
+
+            private MenuCategoryBase parent;
+            private readonly MenuCategory colorRoot;
+            private readonly MenuSliderInput r, g, b, a;
+
+            private readonly Action<Color> OnUpdate;
+            private readonly Func<Color> GetCurrentValue;
+
+            public MenuColorInput(string name, Func<Color> GetCurrentValue, Action<Color> OnUpdate, bool showAlpha = true, MenuCategoryBase parent = null)
+            {
+                Parent = parent;
+                this.GetCurrentValue = GetCurrentValue;
+                this.OnUpdate = OnUpdate;
+
+                List<IMenuElement> colorChannles = new List<IMenuElement>(4)
+                {
+                    new MenuSliderInput(0, 255, () => GetCurrentValue().R, () => "R", "Red Value", UpdateColorR),
+                    new MenuSliderInput(0, 255, () => GetCurrentValue().G, () => "G", "Green Value", UpdateColorG),
+                    new MenuSliderInput(0, 255, () => GetCurrentValue().B, () => "B", "Blue Value", UpdateColorB),
+                };
+
+                if (showAlpha)
+                    colorChannles.Add(new MenuSliderInput(0, 255, () => GetCurrentValue().A, () => "A", "Alpha Value", UpdateColorA));
+
+                colorRoot = new MenuCategory(name, "Colors", colorChannles, parent);               
+            }
+
+            private void UpdateColorR(float R)
+            {
+                Color current = GetCurrentValue();
+                current.R = (byte)R;
+                OnUpdate(current);
+            }
+
+            private void UpdateColorG(float G)
+            {
+                Color current = GetCurrentValue();
+                current.G = (byte)G;
+                OnUpdate(current);
+            }
+
+            private void UpdateColorB(float B)
+            {
+                Color current = GetCurrentValue();
+                current.B = (byte)B;
+                OnUpdate(current);
+            }
+
+            private void UpdateColorA(float A)
+            {
+                Color current = GetCurrentValue();
+                current.A = (byte)A;
+                OnUpdate(current);
             }
         }
 
@@ -81,6 +420,9 @@ namespace DarkHelmet.BuildVision2
         {
             public HudElement()
             {
+                if (Instance == null)
+                    throw new Exception("Hud Elements cannot be created without initializing HudUtilities.");
+
                 Instance.hudElementsDraw.Add(Draw);
             }
 
@@ -146,7 +488,15 @@ namespace DarkHelmet.BuildVision2
                 set
                 {
                     listText = value;
-                    
+
+                    if (list == null || list.Length < listText.Length)
+                    {
+                        list = new TextHudMessage[listText.Length];
+
+                        for (int n = 0; n < list.Length; n++)
+                            list[n] = new TextHudMessage(background, TextAlignment.Left);
+                    }
+
                     for (int n = 0; n < listText.Length; n++)
                         list[n].Message = listText[n];
                 }
@@ -157,6 +507,7 @@ namespace DarkHelmet.BuildVision2
                 get { return selectionIndex; }
                 set { selectionIndex = Utilities.Clamp(value, 0, (ListText != null ? list.Length - 1 : 0)); }
             }
+
             public Vector2D Size { get; private set; }
             public Color BodyColor { get { return background.color; } set { background.color = value; } }
             public Color SelectionBoxColor { get { return highlightBox.color; } set { highlightBox.color = value; } }
@@ -171,7 +522,7 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            private static readonly Vector2I padding = new Vector2I(72, 32);
+            private static Vector2I padding;
             private StringBuilder[] listText;
             private Color headerColor;
 
@@ -205,11 +556,13 @@ namespace DarkHelmet.BuildVision2
             {
                 if (Visible && ListText != null)
                 {
-                    Vector2I listSize = GetListSize(), textOffset = listSize / 2, pos;
-                    Origin = Instance.GetPixelPos(Utilities.Round(ScaledPos, 3));
+                    padding = new Vector2I((int)(72f * Scale), (int)(32f * Scale));
 
                     if (Scale != currentScale)
                         SetScale(Scale);
+
+                    Vector2I listSize = GetListSize(), textOffset = listSize / 2, pos;
+                    Origin = Instance.GetPixelPos(Utilities.Round(ScaledPos, 3));
 
                     background.Size = listSize + padding;
 
@@ -307,21 +660,6 @@ namespace DarkHelmet.BuildVision2
                 set { hudMessage.Origin = value; }
             }
 
-            public override bool Visible
-            {
-                get
-                {
-                    if (hudMessage != null)
-                    {
-                        hudMessage.Visible = Parent == null ? visible : Parent.Visible && visible;
-                        return hudMessage.Visible;
-                    }
-                    else
-                        return false;
-                }
-                set { visible = value; }
-            }
-
             public override double Scale
             {
                 get { return scale; }
@@ -338,7 +676,7 @@ namespace DarkHelmet.BuildVision2
             public Vector2I TextSize { get; private set; }
             public TextAlignment alignment;
 
-            private HUDMessage hudMessage;
+            private HudAPIv2.HUDMessage hudMessage;
             private StringBuilder message;
             private Vector2I alignmentOffset;
             private double scale;
@@ -356,19 +694,22 @@ namespace DarkHelmet.BuildVision2
             {
                 if (hudMessage == null)
                 {
-                    hudMessage = new HUDMessage
+                    hudMessage = new HudAPIv2.HUDMessage
                     {
                         Blend = BlendTypeEnum.LDR,
                         Scale = Scale,
                         Options = HudAPIv2.Options.Fixed,
-                        Visible = Visible
+                        Visible = false,
                     };
 
                     UpdateMessage();
                 }
 
                 if (Visible)
+                {
                     hudMessage.Origin = Instance.GetScaledPos(Origin + Offset + alignmentOffset);
+                    hudMessage.Draw();
+                }
             }
 
             private void UpdateMessage()

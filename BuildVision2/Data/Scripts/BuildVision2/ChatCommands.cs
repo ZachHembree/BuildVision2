@@ -70,11 +70,11 @@ namespace DarkHelmet.BuildVision2
                 new Command("resetConfig",
                     () => Main.ResetConfig()),
                 new Command ("toggleApi",
-                    () => Main.forceFallbackHud = !Main.forceFallbackHud),
+                    () => Main.Cfg.forceFallbackHud = !Main.Cfg.forceFallbackHud),
                 new Command ("toggleAutoclose",
-                    () => Main.closeIfNotInView = !Main.closeIfNotInView),
+                    () => Main.Cfg.closeIfNotInView = !Main.Cfg.closeIfNotInView),
                 new Command ("toggleOpenWhileHolding",
-                    () => Main.canOpenIfHandsNotEmpty = !Main.canOpenIfHandsNotEmpty),
+                    () => Main.Cfg.canOpenIfHolding = !Main.Cfg.canOpenIfHolding),
 
                 // Debug/Testing
                 new Command ("open",
@@ -123,7 +123,7 @@ namespace DarkHelmet.BuildVision2
                 if (TryParseCommand(message, out matches))
                 {
                     cmdName = matches[0];
-
+                    
                     foreach (Command cmd in commands)
                         if (cmd.cmdName == cmdName)
                         {
@@ -151,7 +151,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Parses list of arguments and their associated command name.
         /// </summary>
-        private bool TryParseCommand(string cmd, out string[] matches)
+        public bool TryParseCommand(string cmd, out string[] matches)
         {
             Match match = cmdParser.Match(cmd);
             CaptureCollection captures = match.Groups[3].Captures;
@@ -187,7 +187,7 @@ namespace DarkHelmet.BuildVision2
             Main.SendChatMessage(output);
         }
 
-        private string GetHelpMessage()
+        public string GetHelpMessage()
         {
             string helpMessage =
                 $"To open Build Vision press [{Binds.open.BindString}] while aiming at a block; to close the menu, press " +
@@ -206,7 +206,7 @@ namespace DarkHelmet.BuildVision2
             return helpMessage;
         }
 
-        private string GetBindHelpMessage()
+        public string GetBindHelpMessage()
         {
             string helpMessage = 
                 $"The syntax of the /bv2 bind command is as follows (without brackets): /bv2 bind [bindName] [control1] " +
@@ -225,7 +225,7 @@ namespace DarkHelmet.BuildVision2
             return helpMessage;
         }
 
-        private string GetPrintBindsMessage()
+        public string GetPrintBindsMessage()
         {
             string bindHelp = 
                 "\n---Build Vision 2 Binds---\n" +

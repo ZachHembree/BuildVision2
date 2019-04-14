@@ -111,7 +111,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     forceFallbackHud = false,
                     closeIfNotInView = true,
-                    canOpenIfHandsNotEmpty = true
+                    canOpenIfHolding = true
                 };
             }
         }
@@ -123,13 +123,12 @@ namespace DarkHelmet.BuildVision2
         public bool closeIfNotInView;
 
         [XmlElement(ElementName = "CanOpenIfHandsNotEmpty")]
-        public bool canOpenIfHandsNotEmpty;
+        public bool canOpenIfHolding;
     }
 
     internal sealed class BvMain
     {
         public static BvMain Instance { get; private set; }
-        public bool forceFallbackHud, closeIfNotInView, canOpenIfHandsNotEmpty;
 
         public const int versionID = 4;
         private const string configFileName = "BuildVision2Config.xml", logFileName = "bvLog.txt", 
@@ -139,8 +138,11 @@ namespace DarkHelmet.BuildVision2
         private static ConfigIO Config { get { return ConfigIO.Instance; } }
         private static Binds Binds { get { return Binds.Instance; } }
         private static ChatCommands Cmd { get { return ChatCommands.Instance; } }
-        private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
+        private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
+        //private static SettingsMenu Settings { get { return SettingsMenu.Instance; } }
+
+        public GeneralConfig Cfg { get; set; }
         private PropertyBlock target;
         private bool init, initStart, menuOpen;
 
@@ -178,10 +180,11 @@ namespace DarkHelmet.BuildVision2
         {
             if (!init && initStart)
             {
-                UpdateGeneralConfig(cfg.general);
+                Cfg = cfg.general;
                 Binds.Init(cfg.binds);
                 ChatCommands.Init(cmdPrefix);
                 HudUtilities.Init();
+                //SettingsMenu.Init();
                 PropertiesMenu.Init(cfg.menu);
                 PropertyBlock.UpdateConfig(cfg.propertyBlock);
 
@@ -207,9 +210,10 @@ namespace DarkHelmet.BuildVision2
             Binds?.Close();
             Cmd?.Close();
             Menu?.Close();
-            HudElements?.Close();
             Config?.Close();
             Log?.Close();
+            HudElements?.Close();
+            //Settings?.Close();
             Instance = null;
         }
 
@@ -251,21 +255,11 @@ namespace DarkHelmet.BuildVision2
             if (init && cfg != null)
             {
                 cfg.Validate();
-                UpdateGeneralConfig(cfg.general);
+                Cfg = cfg.general;
                 Binds.TryUpdateConfig(cfg.binds);
-                Menu.UpdateConfig(cfg.menu);
+                Menu.Cfg = cfg.menu;
                 PropertyBlock.UpdateConfig(cfg.propertyBlock);
             }
-        }
-
-        /// <summary>
-        /// Updates the general configuration
-        /// </summary>
-        public void UpdateGeneralConfig(GeneralConfig cfg)
-        {
-            forceFallbackHud = cfg.forceFallbackHud;
-            closeIfNotInView = cfg.closeIfNotInView;
-            canOpenIfHandsNotEmpty = cfg.canOpenIfHandsNotEmpty;
         }
 
         /// <summary>
@@ -278,24 +272,14 @@ namespace DarkHelmet.BuildVision2
                 return new ConfigData
                 {
                     versionID = versionID,
-                    general = GetGeneralConfig(),
+                    general = Cfg,
                     binds = Binds.GetConfig(),
-                    menu = Menu.GetConfig(),
+                    menu = Menu.Cfg,
                     propertyBlock = PropertyBlock.GetConfig()
                 };
             }
             else
                 return null;
-        }
-
-        private GeneralConfig GetGeneralConfig()
-        {
-            return new GeneralConfig
-            {
-                forceFallbackHud = forceFallbackHud,
-                closeIfNotInView = closeIfNotInView,
-                canOpenIfHandsNotEmpty = canOpenIfHandsNotEmpty
-            };
         }
 
         /// <summary>
@@ -332,7 +316,7 @@ namespace DarkHelmet.BuildVision2
                 Binds.Update();
 
                 if (menuOpen)
-                    Menu.Update(forceFallbackHud);
+                    Menu.Update(Cfg.forceFallbackHud);
 
                 if (Binds.open.IsNewPressed)
                     TryOpenMenu();
@@ -382,7 +366,7 @@ namespace DarkHelmet.BuildVision2
         /// Checks if the player can access the targeted block.
         /// </summary>
         private bool CanAccessTargetBlock() =>
-            BlockInRange() && target.CanLocalPlayerAccess && (!closeIfNotInView || LocalPlayer.IsLookingInBlockDir(target.TBlock));
+            BlockInRange() && target.CanLocalPlayerAccess && (!Cfg.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(target.TBlock));
 
         /// <summary>
         /// Tries to get terminal block being targeted by the local player if there is one.
@@ -392,7 +376,7 @@ namespace DarkHelmet.BuildVision2
             IMyCubeBlock block;
             IMyTerminalBlock termBlock;
 
-            if ((canOpenIfHandsNotEmpty || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(8.0, out block))
+            if ((Cfg.canOpenIfHolding || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(8.0, out block))
             {
                 termBlock = block as IMyTerminalBlock;
 

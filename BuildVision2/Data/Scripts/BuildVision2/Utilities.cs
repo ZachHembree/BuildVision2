@@ -45,6 +45,27 @@ namespace DarkHelmet.BuildVision2
                 return false;
         }
 
+        public static Color ParseColor(string colorData)
+        {
+            Match match = colorParser.Match(colorData);
+            CaptureCollection captures = match.Groups[2].Captures;
+            Color value = new Color();
+
+            if (captures.Count > 2)
+            {
+                value.R = byte.Parse(captures[0].Value);
+                value.G = byte.Parse(captures[1].Value);
+                value.B = byte.Parse(captures[2].Value);
+
+                if (captures.Count > 3)
+                    value.A = byte.Parse(captures[3].Value);
+
+                return value;
+            }
+            else
+                return Color.White;
+        }
+
         public static string GetColorString(Color color, bool includeAlpha = true)
         {
             if (includeAlpha)

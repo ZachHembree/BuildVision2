@@ -9,6 +9,8 @@ using VRageMath;
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using System.Reflection;
+using System.Text;
 using DoorStatus = Sandbox.ModAPI.Ingame.DoorStatus;
 using ChargeMode = Sandbox.ModAPI.Ingame.ChargeMode;
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
@@ -240,14 +242,13 @@ namespace DarkHelmet.BuildVision2
             {
                 name = GetTooltipName(prop);
 
-                // if Attributes.IsDefined were whitelisted, this would be a lot less dumb
                 if (name.Length > 0 && !(IsMechConnection && name.StartsWith("Safety")))
                 {
                     if (prop is ITerminalProperty<bool>)
                     {
                         boolProp = (ITerminalProperty<bool>)prop;
 
-                        if (IsPropertyChangeable(boolProp))
+                        if (name.StartsWith("Toggle") || IsPropertyChangeable(boolProp))
                             scrollables.Add(new BoolProperty(name, boolProp, this));
                     }
                     else if (prop is ITerminalProperty<float>)
