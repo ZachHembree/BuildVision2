@@ -129,6 +129,11 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public IKeyBind[] KeyBinds { get { return keyBinds; } }
         public IKeyBind open, close, select, scrollUp, scrollDown, multX, multY, multZ;
+        public BindsConfig Cfg
+        {
+            get { return new BindsConfig { bindData = GetBindData() }; }
+            set { TryUpdateConfig(value); }
+        }
 
         /// <summary>
         /// Total number of key binds
@@ -270,15 +275,6 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Returns the current key bind configuration.
-        /// </summary>
-        /// <returns></returns>
-        public BindsConfig GetConfig()
-        {
-            return new BindsConfig { bindData = GetBindData() };
-        }
-
-        /// <summary>
         /// Retrieves the set of key binds as an array of KeyBindData
         /// </summary>
         /// <returns></returns>
@@ -315,6 +311,8 @@ namespace DarkHelmet.BuildVision2
 
                             return true;
                         }
+                        else if (!silent)
+                            Main.SendChatMessage($"Invalid bind for {name}. One or more of the given controls conflict with existing binds.");
                     }
                     else if (!silent)
                         Main.SendChatMessage($"Invalid bind for {name}. One or more control names were not recognised.");
@@ -551,7 +549,7 @@ namespace DarkHelmet.BuildVision2
                 if (bind.Name == name)
                     return bind;
 
-            Main.SendChatMessage($"Invalid bind name.");
+            Main.SendChatMessage($"{name} is not a valid bind name.");
             return null;
         }
 

@@ -130,7 +130,7 @@ namespace DarkHelmet.BuildVision2
     {
         public static BvMain Instance { get; private set; }
 
-        public const int versionID = 4;
+        public const int configVersionID = 4;
         private const string configFileName = "BuildVision2Config.xml", logFileName = "bvLog.txt", 
             senderName = "Build Vision 2", cmdPrefix = "/bv2";
 
@@ -184,9 +184,9 @@ namespace DarkHelmet.BuildVision2
                 Binds.Init(cfg.binds);
                 ChatCommands.Init(cmdPrefix);
                 HudUtilities.Init();
-                //SettingsMenu.Init();
+                SettingsMenu.Init();
                 PropertiesMenu.Init(cfg.menu);
-                PropertyBlock.UpdateConfig(cfg.propertyBlock);
+                PropertyBlock.Cfg = cfg.propertyBlock;
 
                 init = true;
                 MyAPIGateway.Utilities.ShowMessage("Build Vision 2", $"Type {cmdPrefix} help for help");
@@ -258,7 +258,7 @@ namespace DarkHelmet.BuildVision2
                 Cfg = cfg.general;
                 Binds.TryUpdateConfig(cfg.binds);
                 Menu.Cfg = cfg.menu;
-                PropertyBlock.UpdateConfig(cfg.propertyBlock);
+                PropertyBlock.Cfg = cfg.propertyBlock;
             }
         }
 
@@ -271,11 +271,11 @@ namespace DarkHelmet.BuildVision2
             {
                 return new ConfigData
                 {
-                    versionID = versionID,
+                    versionID = configVersionID,
                     general = Cfg,
-                    binds = Binds.GetConfig(),
+                    binds = Binds.Cfg,
                     menu = Menu.Cfg,
-                    propertyBlock = PropertyBlock.GetConfig()
+                    propertyBlock = PropertyBlock.Cfg
                 };
             }
             else

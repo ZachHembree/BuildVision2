@@ -75,6 +75,15 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
+        /// A bit like System.Diagnostics.Assert, but not blacklisted by Keen
+        /// </summary>
+        public static void Assert(bool condition, string message)
+        {
+            if (!condition)
+                throw new Exception(message);
+        }
+
+        /// <summary>
         /// Clamps an int between two values.
         /// </summary>
         public static double Clamp(double value, double min, double max)
