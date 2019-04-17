@@ -639,14 +639,15 @@ namespace DarkHelmet.BuildVision2
                     incr0 = 0.1f;
                 else
                 {
-                    double exp = Math.Log10(maxValue / cfg.floatDiv);
+                    double exp = Math.Round(Math.Log10(maxValue / cfg.floatDiv));
 
-                    if (exp < 0)
-                        incr0 = (float)Math.Pow(10d, Math.Floor(exp));
-                    else
-                        incr0 = (float)Math.Pow(10d, Math.Ceiling(exp));
+                    if (exp >= 0d && exp <= 1d)
+                        exp = -1d;
+                    else if (exp < 0d)
+                        exp++;
 
-                    incr0 = Utilities.Clamp((float)Math.Round(incr0, 2), .01f, float.PositiveInfinity);
+                    incr0 = (float)Math.Pow(10d, exp);
+                    //incr0 = Utilities.Clamp((float)Math.Round(incr0, 2), .01f, float.PositiveInfinity);
                 }
 
                 incrC = incr0 * cfg.floatMult.Z; // x64
@@ -679,7 +680,7 @@ namespace DarkHelmet.BuildVision2
                 if (float.IsInfinity(current))
                     current = 0f;
 
-                prop.SetValue(pBlock.TBlock, (float)Math.Round(Utilities.Clamp((current + delta), minValue, maxValue), 2));
+                prop.SetValue(pBlock.TBlock, (float)Math.Round(Utilities.Clamp((current + delta), minValue, maxValue), 4));
             }
             /// <summary>
             /// Gets value to add or subtract from the property based on multipliers used.
