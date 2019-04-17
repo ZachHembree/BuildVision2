@@ -145,15 +145,6 @@ namespace DarkHelmet.BuildVision2
                     }),
 
                     // Color Properties
-                    new HudUtilities.MenuTextInput(
-                        () => $"Color Div: {PropertyBlock.Cfg.colorDiv}", 
-                        "Color Property Base Divisor",
-                        (string input) =>
-                        {
-                            int.TryParse(input, out PropertyBlock.Cfg.colorDiv);
-                            PropertyBlock.Cfg.Validate();
-                        }),
-
                     new HudUtilities.MenuCategory("Color Multipliers", "Color Multipliers", new List<HudUtilities.IMenuElement>()
                     {
                         new HudUtilities.MenuTextInput(

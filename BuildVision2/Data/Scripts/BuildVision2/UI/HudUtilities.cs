@@ -31,7 +31,10 @@ namespace DarkHelmet.BuildVision2
 
             screenWidth = (double)MyAPIGateway.Session.Config.ScreenWidth;
             screenHeight = (double)MyAPIGateway.Session.Config.ScreenHeight;
-            aspectRatio = screenWidth / screenHeight;
+            aspectRatio = (screenWidth / screenHeight);
+            screenWidth = 1080d * aspectRatio;
+            screenHeight = 1080d;
+
             fov = MyAPIGateway.Session.Camera.FovWithZoom;
             fovScale = 0.1 * Math.Tan(fov / 2d);
 
@@ -63,17 +66,6 @@ namespace DarkHelmet.BuildVision2
                     Draw();
 
                 CreateSettingsMenuElements();
-            }
-        }
-
-        private void CreateSettingsMenuElements()
-        {
-            Action InitElement;
-
-            while (menuElementsInit.Count > 0)
-            {
-                if (menuElementsInit.TryDequeue(out InitElement))
-                    InitElement();
             }
         }
 

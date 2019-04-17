@@ -15,6 +15,17 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     internal sealed partial class HudUtilities
     {
+        private void CreateSettingsMenuElements()
+        {
+            Action InitElement;
+
+            while (menuElementsInit.Count > 0)
+            {
+                if (menuElementsInit.TryDequeue(out InitElement))
+                    InitElement();
+            }
+        }
+
         /// <summary>
         /// Interface of all menu elements capable of serving as parents of other elements.
         /// </summary>
@@ -82,7 +93,7 @@ namespace DarkHelmet.BuildVision2
 
             private void TryInitElement()
             {
-                if (Parent != null && (Parent.CategoryBase != null || Parent.IsRoot))
+                if ((Parent != null && Parent.CategoryBase != null) || Parent.IsRoot)
                     InitElement();
                 else if (requeueCount < 5)
                 {

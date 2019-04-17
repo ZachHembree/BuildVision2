@@ -76,9 +76,8 @@ namespace DarkHelmet.BuildVision2
             {
                 return new PropBlockConfig
                 {
-                    floatDiv = 1000.0,
-                    colorDiv = 256,
-                    floatMult = new Vector3(10f, 25f, 100f),
+                    floatDiv = 100.0,
+                    floatMult = new Vector3(.1f, 5f, 10f),
                     colorMult = new Vector3I(8, 16, 64)
                 };
             }
@@ -86,9 +85,6 @@ namespace DarkHelmet.BuildVision2
 
         [XmlElement(ElementName = "FloatIncrementDivisor")]
         public double floatDiv;
-
-        [XmlElement(ElementName = "ColorIncrementDivisor")]
-        public int colorDiv;
 
         [XmlElement(ElementName = "FloatPropertyMultipliers")]
         public Vector3 floatMult;
@@ -103,30 +99,27 @@ namespace DarkHelmet.BuildVision2
         {
             PropBlockConfig defaults = Defaults;
             
-            if (floatDiv < 1f)
+            if (floatDiv <= 0f)
                 floatDiv = defaults.floatDiv;
 
-            if (colorDiv < 1)
-                colorDiv = defaults.colorDiv;
-
             // Float multipliers
-            if (floatMult.X < 1f)
+            if (floatMult.X <= 0f)
                 floatMult.X = defaults.floatMult.X;
 
-            if (floatMult.Y < 1f)
+            if (floatMult.Y <= 0f)
                 floatMult.Y = defaults.floatMult.Y;
 
-            if (floatMult.Z < 1f)
+            if (floatMult.Z <= 0f)
                 floatMult.Z = defaults.floatMult.Z;
 
             // Color multipiers
-            if (colorMult.X < 1)
+            if (colorMult.X <= 0)
                 colorMult.X = defaults.colorMult.X;
 
-            if (colorMult.Y < 1)
+            if (colorMult.Y <= 0)
                 colorMult.Y = defaults.colorMult.Y;
 
-            if (colorMult.Z < 1)
+            if (colorMult.Z <= 0)
                 colorMult.Z = defaults.colorMult.Z;
         }
     }
@@ -636,19 +629,15 @@ namespace DarkHelmet.BuildVision2
                 maxValue = this.prop.GetMaximum(pBlock.TBlock);
 
                 if (float.IsInfinity(minValue) || float.IsInfinity(maxValue))
-                    incr0 = 0.1f;
+                    incr0 = 1f;
                 else
                 {
-                    double exp = Math.Round(Math.Log10(maxValue / cfg.floatDiv));
-
-                    if (exp >= 0d && exp <= 1d)
-                        exp = -1d;
-                    else if (exp < 0d)
-                        exp++;
-
-                    incr0 = (float)Math.Pow(10d, exp);
-                    //incr0 = Utilities.Clamp((float)Math.Round(incr0, 2), .01f, float.PositiveInfinity);
+                    double exp = Math.Truncate(Math.Log10(maxValue - minValue));
+                    incr0 = (float)(Math.Pow(10d, exp) / cfg.floatDiv);
                 }
+
+                if (incr0 == 0)
+                    incr0 = 1f;
 
                 incrC = incr0 * cfg.floatMult.Z; // x64
                 incrB = incr0 * cfg.floatMult.Y; // x16
@@ -680,7 +669,7 @@ namespace DarkHelmet.BuildVision2
                 if (float.IsInfinity(current))
                     current = 0f;
 
-                prop.SetValue(pBlock.TBlock, (float)Math.Round(Utilities.Clamp((current + delta), minValue, maxValue), 4));
+                prop.SetValue(pBlock.TBlock, (float)Math.Round(Utilities.Clamp((current + delta), minValue, maxValue), 3));
             }
             /// <summary>
             /// Gets value to add or subtract from the property based on multipliers used.
@@ -728,7 +717,7 @@ namespace DarkHelmet.BuildVision2
                 property = prop;
                 name = GetTooltipName(prop);
 
-                incr0 = Utilities.Clamp(maxValue / cfg.colorDiv, 1, maxValue);
+                incr0 = 1;
                 incrC = incr0 * cfg.colorMult.Z; // x64
                 incrB = incr0 * cfg.colorMult.Y; // x16
                 incrA = incr0 * cfg.colorMult.X; // x8

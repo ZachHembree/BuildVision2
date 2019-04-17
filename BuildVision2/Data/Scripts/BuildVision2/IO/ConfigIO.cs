@@ -194,6 +194,9 @@ namespace DarkHelmet.BuildVision2
                 {
                     Backup();
 
+                    if (cfg.versionID < 5)
+                        cfg.propertyBlock = PropBlockConfig.Defaults;
+
                     if (cfg.versionID < 4)
                         cfg.menu.apiHudConfig = ApiHudConfig.Defaults;
 

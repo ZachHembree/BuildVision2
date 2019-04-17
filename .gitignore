@@ -9,10 +9,7 @@ bin/
 
 \.vs/
 
-BuildVision2\.csproj
-
 Properties/
 
 obj/
 
-BuildVision2\.sln
