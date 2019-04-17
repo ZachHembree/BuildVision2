@@ -18,7 +18,7 @@ namespace DarkHelmet.BuildVision2
             {
                 return new ConfigData
                 {
-                    versionID = BvMain.versionID,
+                    versionID = BvMain.configVersionID,
                     general = GeneralConfig.Defaults,
                     menu = PropMenuConfig.Defaults,
                     propertyBlock = PropBlockConfig.Defaults,
@@ -58,8 +58,8 @@ namespace DarkHelmet.BuildVision2
 
         public void Validate()
         {
-            if (versionID != BvMain.versionID)
-                versionID = BvMain.versionID;
+            if (versionID != BvMain.configVersionID)
+                versionID = BvMain.configVersionID;
 
             if (menu != null)
                 menu.Validate();
@@ -188,11 +188,14 @@ namespace DarkHelmet.BuildVision2
         {
             if (cfg != null)
             {
-                if (cfg.versionID == BvMain.versionID)
+                if (cfg.versionID == BvMain.configVersionID)
                     cfg.Validate();
                 else
                 {
                     Backup();
+
+                    if (cfg.versionID < 5)
+                        cfg.propertyBlock = PropBlockConfig.Defaults;
 
                     if (cfg.versionID < 4)
                         cfg.menu.apiHudConfig = ApiHudConfig.Defaults;

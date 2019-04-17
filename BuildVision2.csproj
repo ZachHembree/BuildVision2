@@ -75,6 +75,11 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\IO\ConfigIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\IO\LocalFileIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\KeyBinds.cs" />
+<<<<<<< HEAD
+=======
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\UI\MenuUtilities.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\UI\SettingsMenu.cs" />
+>>>>>>> prerelease
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\UI\HudAPIv2.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\LocalPlayer.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\IO\LogIO.cs" />

@@ -235,6 +235,7 @@ namespace DarkHelmet.BuildVision2
                         visStart = index;
 
                     visEnd = Utilities.Clamp((visStart + maxVisible), 0, target.ScrollableCount);
+                    visStart = Utilities.Clamp(visEnd - maxVisible, 0, visEnd); 
                 }
             }
         }
@@ -249,7 +250,7 @@ namespace DarkHelmet.BuildVision2
 
             public ApiHud(ApiHudConfig cfg)
             {
-                menu = new HudUtilities.ScrollMenu(cfg.maxVisible);
+                menu = new HudUtilities.ScrollMenu(20);
                 Cfg = cfg;
             }
 

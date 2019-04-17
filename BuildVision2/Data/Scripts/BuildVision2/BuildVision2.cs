@@ -130,7 +130,7 @@ namespace DarkHelmet.BuildVision2
     {
         public static BvMain Instance { get; private set; }
 
-        public const int versionID = 4;
+        public const int configVersionID = 5;
         private const string configFileName = "BuildVision2Config.xml", logFileName = "bvLog.txt", 
             senderName = "Build Vision 2", cmdPrefix = "/bv2";
 
@@ -140,7 +140,7 @@ namespace DarkHelmet.BuildVision2
         private static ChatCommands Cmd { get { return ChatCommands.Instance; } }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
         private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
-        //private static SettingsMenu Settings { get { return SettingsMenu.Instance; } }
+        private static SettingsMenu Settings { get { return SettingsMenu.Instance; } }
 
         public GeneralConfig Cfg { get; set; }
         private PropertyBlock target;
@@ -184,12 +184,12 @@ namespace DarkHelmet.BuildVision2
                 Binds.Init(cfg.binds);
                 ChatCommands.Init(cmdPrefix);
                 HudUtilities.Init();
-                //SettingsMenu.Init();
+                SettingsMenu.Init();
                 PropertiesMenu.Init(cfg.menu);
-                PropertyBlock.UpdateConfig(cfg.propertyBlock);
+                PropertyBlock.Cfg = cfg.propertyBlock;
 
                 init = true;
-                MyAPIGateway.Utilities.ShowMessage("Build Vision 2", $"Type {cmdPrefix} help for help");
+                MyAPIGateway.Utilities.ShowMessage("Build Vision 2", $"Type {cmdPrefix} help for help. All settings are now available through the Mod Menu.");
             }
         }
 
@@ -213,7 +213,7 @@ namespace DarkHelmet.BuildVision2
             Config?.Close();
             Log?.Close();
             HudElements?.Close();
-            //Settings?.Close();
+            Settings?.Close();
             Instance = null;
         }
 
@@ -258,7 +258,7 @@ namespace DarkHelmet.BuildVision2
                 Cfg = cfg.general;
                 Binds.TryUpdateConfig(cfg.binds);
                 Menu.Cfg = cfg.menu;
-                PropertyBlock.UpdateConfig(cfg.propertyBlock);
+                PropertyBlock.Cfg = cfg.propertyBlock;
             }
         }
 
@@ -271,11 +271,11 @@ namespace DarkHelmet.BuildVision2
             {
                 return new ConfigData
                 {
-                    versionID = versionID,
+                    versionID = configVersionID,
                     general = Cfg,
-                    binds = Binds.GetConfig(),
+                    binds = Binds.Cfg,
                     menu = Menu.Cfg,
-                    propertyBlock = PropertyBlock.GetConfig()
+                    propertyBlock = PropertyBlock.Cfg
                 };
             }
             else

@@ -76,9 +76,8 @@ namespace DarkHelmet.BuildVision2
             {
                 return new PropBlockConfig
                 {
-                    floatDiv = 1000.0,
-                    colorDiv = 256,
-                    floatMult = new Vector3(10f, 25f, 100f),
+                    floatDiv = 100.0,
+                    floatMult = new Vector3(.1f, 5f, 10f),
                     colorMult = new Vector3I(8, 16, 64)
                 };
             }
@@ -86,9 +85,6 @@ namespace DarkHelmet.BuildVision2
 
         [XmlElement(ElementName = "FloatIncrementDivisor")]
         public double floatDiv;
-
-        [XmlElement(ElementName = "ColorIncrementDivisor")]
-        public int colorDiv;
 
         [XmlElement(ElementName = "FloatPropertyMultipliers")]
         public Vector3 floatMult;
@@ -103,30 +99,27 @@ namespace DarkHelmet.BuildVision2
         {
             PropBlockConfig defaults = Defaults;
             
-            if (floatDiv == default(double))
+            if (floatDiv <= 0f)
                 floatDiv = defaults.floatDiv;
 
-            if (colorDiv == default(int))
-                colorDiv = defaults.colorDiv;
-
             // Float multipliers
-            if (floatMult.X == default(float))
+            if (floatMult.X <= 0f)
                 floatMult.X = defaults.floatMult.X;
 
-            if (floatMult.Y == default(float))
+            if (floatMult.Y <= 0f)
                 floatMult.Y = defaults.floatMult.Y;
 
-            if (floatMult.Z == default(float))
+            if (floatMult.Z <= 0f)
                 floatMult.Z = defaults.floatMult.Z;
 
             // Color multipiers
-            if (colorMult.X == default(int))
+            if (colorMult.X <= 0)
                 colorMult.X = defaults.colorMult.X;
 
-            if (colorMult.Y == default(int))
+            if (colorMult.Y <= 0)
                 colorMult.Y = defaults.colorMult.Y;
 
-            if (colorMult.Z == default(int))
+            if (colorMult.Z <= 0)
                 colorMult.Z = defaults.colorMult.Z;
         }
     }
@@ -144,13 +137,22 @@ namespace DarkHelmet.BuildVision2
         public bool IsFunctional { get { return TBlock.IsFunctional; } }
         public bool IsWorking { get { return TBlock.IsWorking; } }
         public bool CanLocalPlayerAccess { get { return TBlock.HasLocalPlayerAccess(); } }
+        public static PropBlockConfig Cfg
+        {
+            get { return cfg; }
+            set
+            {
+                value.Validate();
+                cfg = value;
+            }
+        }
 
         private static Binds Binds { get { return Binds.Instance; } }
         private static PropBlockConfig cfg;
 
         static PropertyBlock()
         {
-            UpdateConfig(PropBlockConfig.Defaults);
+            cfg = PropBlockConfig.Defaults;
         }
 
         public PropertyBlock(IMyTerminalBlock tBlock)
@@ -161,23 +163,6 @@ namespace DarkHelmet.BuildVision2
             Actions = GetScrollableActions();
             Properties = GetScrollableProps();
             ScrollableCount = Actions.Count + Properties.Count;
-        }
-        
-        /// <summary>
-        /// Updates the current configuration.
-        /// </summary>
-        public static void UpdateConfig(PropBlockConfig cfg)
-        {
-            cfg.Validate();
-            PropertyBlock.cfg = cfg;
-        }
-
-        /// <summary>
-        /// Returns the current configuration.
-        /// </summary>
-        public static PropBlockConfig GetConfig()
-        {
-            return cfg;
         }
 
         /// <summary>
@@ -248,7 +233,7 @@ namespace DarkHelmet.BuildVision2
                     {
                         boolProp = (ITerminalProperty<bool>)prop;
 
-                        if (name.StartsWith("Toggle") || IsPropertyChangeable(boolProp))
+                        if (name.StartsWith("Toggle block") || IsPropertyChangeable(boolProp))
                             scrollables.Add(new BoolProperty(name, boolProp, this));
                     }
                     else if (prop is ITerminalProperty<float>)
@@ -295,19 +280,12 @@ namespace DarkHelmet.BuildVision2
 
         private bool IsPropertyChangeable(ITerminalProperty<float> prop)
         {
-            float startValue = prop.GetValue(TBlock);
+            float startValue = prop.GetValue(TBlock), min = prop.GetMinimum(TBlock),
+                max = prop.GetMaximum(TBlock);
 
-            if (TestSetProperty(prop, startValue - 1f) != startValue)
+            if (startValue < max && (TestSetProperty(prop, max) != startValue))
                 return true;
-            else if (TestSetProperty(prop, startValue + 1f) != startValue)
-                return true;
-            else if (TestSetProperty(prop, startValue - 20f) != startValue)
-                return true;
-            else if (TestSetProperty(prop, startValue + 20f) != startValue)
-                return true;
-            else if (TestSetProperty(prop, startValue - 90f) != startValue)
-                return true;
-            else if (TestSetProperty(prop, startValue + 90f) != startValue)
+            else if (startValue > min && (TestSetProperty(prop, min) != startValue))
                 return true;
 
             return false;
@@ -650,13 +628,17 @@ namespace DarkHelmet.BuildVision2
                 minValue = this.prop.GetMinimum(pBlock.TBlock);
                 maxValue = this.prop.GetMaximum(pBlock.TBlock);
 
-                if (float.IsInfinity(minValue))
-                    minValue = -1000f;
+                if (float.IsInfinity(minValue) || float.IsInfinity(maxValue))
+                    incr0 = 1f;
+                else
+                {
+                    double exp = Math.Truncate(Math.Log10(maxValue - minValue));
+                    incr0 = (float)(Math.Pow(10d, exp) / cfg.floatDiv);
+                }
 
-                if (float.IsInfinity(maxValue))
-                    maxValue = 1000;
+                if (incr0 == 0)
+                    incr0 = 1f;
 
-                incr0 = Utilities.Clamp((float)Math.Round(maxValue / cfg.floatDiv, 1), .1f, float.PositiveInfinity);
                 incrC = incr0 * cfg.floatMult.Z; // x64
                 incrB = incr0 * cfg.floatMult.Y; // x16
                 incrA = incr0 * cfg.floatMult.X; // x8
@@ -687,7 +669,7 @@ namespace DarkHelmet.BuildVision2
                 if (float.IsInfinity(current))
                     current = 0f;
 
-                prop.SetValue(pBlock.TBlock, (float)Math.Round(Utilities.Clamp((current + delta), minValue, maxValue), 1));
+                prop.SetValue(pBlock.TBlock, (float)Math.Round(Utilities.Clamp((current + delta), minValue, maxValue), 3));
             }
             /// <summary>
             /// Gets value to add or subtract from the property based on multipliers used.
@@ -735,7 +717,7 @@ namespace DarkHelmet.BuildVision2
                 property = prop;
                 name = GetTooltipName(prop);
 
-                incr0 = Utilities.Clamp(maxValue / cfg.colorDiv, 1, maxValue);
+                incr0 = 1;
                 incrC = incr0 * cfg.colorMult.Z; // x64
                 incrB = incr0 * cfg.colorMult.Y; // x16
                 incrA = incr0 * cfg.colorMult.X; // x8
