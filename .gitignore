@@ -1,0 +1,10 @@
+
+bin/
+
+\.vs/
+
+obj/
+
+Properties/
+
+metadata\.mod
