@@ -42,7 +42,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     new HudUtilities.MenuSliderInput(
                         () => $"Hud Scale: {Math.Round(Menu.ApiHudConfig.hudScale, 2)}",
-                        "Hud Scale", 0.8f, 1.6f,
+                        "Hud Scale", 0.5f, 2f,
                         () => Menu.ApiHudConfig.hudScale,
                         (float scale) => Menu.ApiHudConfig.hudScale = scale),
                     new HudUtilities.MenuSliderInput(

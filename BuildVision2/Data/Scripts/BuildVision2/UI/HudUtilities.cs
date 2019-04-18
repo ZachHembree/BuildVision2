@@ -21,9 +21,8 @@ namespace DarkHelmet.BuildVision2
 
         private static BvMain Main { get { return BvMain.Instance; } }
         private HudAPIv2 textHudApi;
-        private double screenWidth, screenHeight, aspectRatio, fov, fovScale;
+        private double screenWidth, screenHeight, aspectRatio, resScale, fov, fovScale;
         private List<Action> hudElementsDraw;
-        private Queue<Action> menuElementsInit;
 
         private HudUtilities()
         {
@@ -32,8 +31,7 @@ namespace DarkHelmet.BuildVision2
             screenWidth = (double)MyAPIGateway.Session.Config.ScreenWidth;
             screenHeight = (double)MyAPIGateway.Session.Config.ScreenHeight;
             aspectRatio = (screenWidth / screenHeight);
-            screenWidth = 1080d * aspectRatio;
-            screenHeight = 1080d;
+            resScale = 1080d / screenHeight;
 
             fov = MyAPIGateway.Session.Camera.FovWithZoom;
             fovScale = 0.1 * Math.Tan(fov / 2d);
@@ -220,7 +218,7 @@ namespace DarkHelmet.BuildVision2
             {
                 if (Visible && ListText != null)
                 {
-                    padding = new Vector2I((int)(72f * Scale), (int)(32f * Scale));
+                    padding = new Vector2I((int)(72d * Scale), (int)(32d * Scale));
 
                     if (Scale != currentScale)
                         SetScale(Scale);
@@ -329,7 +327,7 @@ namespace DarkHelmet.BuildVision2
                 get { return scale; }
                 set
                 {
-                    scale = value * (278d / (500d - 138.75 * Instance.aspectRatio));
+                    scale = value * (278d / (500d - 138.75 * Instance.aspectRatio)) * Instance.resScale;
 
                     if (hudMessage != null)
                         hudMessage.Scale = scale;

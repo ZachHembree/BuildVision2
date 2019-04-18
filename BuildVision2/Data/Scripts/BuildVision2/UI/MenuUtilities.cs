@@ -15,6 +15,8 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     internal sealed partial class HudUtilities
     {
+        private Queue<Action> menuElementsInit;
+
         private void CreateSettingsMenuElements()
         {
             Action InitElement;
