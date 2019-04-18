@@ -632,7 +632,13 @@ namespace DarkHelmet.BuildVision2
                     incr0 = 1f;
                 else
                 {
-                    double exp = Math.Truncate(Math.Log10(maxValue - minValue));
+                    double range = Math.Abs(maxValue - minValue), exp; 
+
+                    if (range > maxValue)
+                        exp = Math.Truncate(Math.Log10(range));
+                    else
+                        exp = Math.Truncate(Math.Log10(2 * range));
+
                     incr0 = (float)(Math.Pow(10d, exp) / cfg.floatDiv);
                 }
 
