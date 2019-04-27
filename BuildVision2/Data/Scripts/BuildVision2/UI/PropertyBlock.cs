@@ -247,20 +247,8 @@ namespace DarkHelmet.BuildVision2
                     {
                         colorProp = (ITerminalProperty<Color>)prop;
 
-                        try
-                        {
-                            if (IsPropertyChangeable(colorProp))
-                                scrollables.AddRange(ColorProperty.GetColorProperties(name, this, colorProp));
-                        }
-                        catch
-                        {
-                            /*BvMain.Instance.ShowMissionScreen
-                            (
-                                "Debug",$"Bullshit color property: {prop.ToString()}\n " +
-                                $"Block Subtype Name: {TBlock.BlockDefinition.SubtypeName}"
-                            );*/
-                            //arrrggh
-                        }
+                        if (IsPropertyChangeable(colorProp))
+                            scrollables.AddRange(ColorProperty.GetColorProperties(name, this, colorProp));
                     }
                 }
             }
@@ -273,32 +261,46 @@ namespace DarkHelmet.BuildVision2
 
         private bool IsPropertyChangeable(ITerminalProperty<bool> prop)
         {
-            bool startValue = prop.GetValue(TBlock);
+            try
+            {
+                bool startValue = prop.GetValue(TBlock);
 
-            return TestSetProperty(prop, !startValue) == !startValue;
+                return TestSetProperty(prop, !startValue) == !startValue;
+            }
+            catch { }
+
+            return false;
         }
 
         private bool IsPropertyChangeable(ITerminalProperty<float> prop)
         {
-            float startValue = prop.GetValue(TBlock), min = prop.GetMinimum(TBlock),
-                max = prop.GetMaximum(TBlock);
+            try
+            { 
+                float startValue = prop.GetValue(TBlock), min = prop.GetMinimum(TBlock),
+                    max = prop.GetMaximum(TBlock);
 
-            if (startValue < max && (TestSetProperty(prop, max) != startValue))
-                return true;
-            else if (startValue > min && (TestSetProperty(prop, min) != startValue))
-                return true;
+                if (startValue < max && (TestSetProperty(prop, max) != startValue))
+                    return true;
+                else if (startValue > min && (TestSetProperty(prop, min) != startValue))
+                    return true;
+            }
+            catch { }
 
             return false;
         }
 
         private bool IsPropertyChangeable(ITerminalProperty<Color> prop)
         {
-            Color startValue = prop.GetValue(TBlock);
+            try
+            { 
+                Color startValue = prop.GetValue(TBlock);
 
-            if (TestSetProperty(prop, new Color(startValue.R + 1, 0, 0)) != startValue)
-                return true;
-            else if (TestSetProperty(prop, new Color(startValue.R - 1, 0, 0)) != startValue)
-                return true;
+                if (TestSetProperty(prop, new Color(startValue.R + 1, 0, 0)) != startValue)
+                    return true;
+                else if (TestSetProperty(prop, new Color(startValue.R - 1, 0, 0)) != startValue)
+                    return true;
+            }
+            catch { }
 
             return false;
         }
