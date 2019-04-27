@@ -214,10 +214,8 @@ namespace DarkHelmet.BuildVision2
         {
             List<ITerminalProperty> properties = new List<ITerminalProperty>(12);
             List<IScrollableProp> scrollables;
-            ITerminalProperty<bool> boolProp;
-            ITerminalProperty<float> floatProp;
-            ITerminalProperty<Color> colorProp;
             IMyBatteryBlock battery = TBlock as IMyBatteryBlock;
+            IMyTerminalControl terminalControl;
             string name;
 
             TBlock.GetProperties(properties);
@@ -226,30 +224,16 @@ namespace DarkHelmet.BuildVision2
             foreach (ITerminalProperty prop in properties)
             {
                 name = GetTooltipName(prop);
+                terminalControl = prop as IMyTerminalControl;
 
-                if (name.Length > 0 && !(IsMechConnection && name.StartsWith("Safety")))
+                if (name.Length > 0 && terminalControl != null && terminalControl.Visible(TBlock))
                 {
                     if (prop is ITerminalProperty<bool>)
-                    {
-                        boolProp = (ITerminalProperty<bool>)prop;
-
-                        if (name.StartsWith("Toggle block") || IsPropertyChangeable(boolProp))
-                            scrollables.Add(new BoolProperty(name, boolProp, this));
-                    }
+                        scrollables.Add(new BoolProperty(name, (ITerminalProperty<bool>)prop, this));
                     else if (prop is ITerminalProperty<float>)
-                    {
-                        floatProp = (ITerminalProperty<float>)prop;
-
-                        if (IsPropertyChangeable(floatProp))
-                            scrollables.Add(new FloatProperty(name, floatProp, this));
-                    }
+                        scrollables.Add(new FloatProperty(name, (ITerminalProperty<float>)prop, this));
                     else if (prop is ITerminalProperty<Color>)
-                    {
-                        colorProp = (ITerminalProperty<Color>)prop;
-
-                        if (IsPropertyChangeable(colorProp))
-                            scrollables.AddRange(ColorProperty.GetColorProperties(name, this, colorProp));
-                    }
+                        scrollables.AddRange(ColorProperty.GetColorProperties(name, this, (ITerminalProperty<Color>)prop));
                 }
             }
 
@@ -257,63 +241,6 @@ namespace DarkHelmet.BuildVision2
                 scrollables.Add(new BattProperty(battery));
 
             return scrollables;
-        }
-
-        private bool IsPropertyChangeable(ITerminalProperty<bool> prop)
-        {
-            try
-            {
-                bool startValue = prop.GetValue(TBlock);
-
-                return TestSetProperty(prop, !startValue) == !startValue;
-            }
-            catch { }
-
-            return false;
-        }
-
-        private bool IsPropertyChangeable(ITerminalProperty<float> prop)
-        {
-            try
-            { 
-                float startValue = prop.GetValue(TBlock), min = prop.GetMinimum(TBlock),
-                    max = prop.GetMaximum(TBlock);
-
-                if (startValue < max && (TestSetProperty(prop, max) != startValue))
-                    return true;
-                else if (startValue > min && (TestSetProperty(prop, min) != startValue))
-                    return true;
-            }
-            catch { }
-
-            return false;
-        }
-
-        private bool IsPropertyChangeable(ITerminalProperty<Color> prop)
-        {
-            try
-            { 
-                Color startValue = prop.GetValue(TBlock);
-
-                if (TestSetProperty(prop, new Color(startValue.R + 1, 0, 0)) != startValue)
-                    return true;
-                else if (TestSetProperty(prop, new Color(startValue.R - 1, 0, 0)) != startValue)
-                    return true;
-            }
-            catch { }
-
-            return false;
-        }
-
-        private T TestSetProperty<T>(ITerminalProperty<T> prop, T value)
-        {
-            T startValue = prop.GetValue(TBlock), changedValue;
-
-            prop.SetValue(TBlock, value);
-            changedValue = prop.GetValue(TBlock);
-            prop.SetValue(TBlock, startValue);
-
-            return changedValue;
         }
 
         /// <summary>
@@ -576,6 +503,7 @@ namespace DarkHelmet.BuildVision2
         {
             private readonly PropertyBlock pBlock;
             private readonly ITerminalProperty<bool> prop;
+            private readonly MyStringId OnText, OffText;
             private readonly string name;
 
             public BoolProperty(string name, ITerminalProperty<bool> prop, PropertyBlock block)
@@ -583,6 +511,26 @@ namespace DarkHelmet.BuildVision2
                 this.prop = prop;
                 this.pBlock = block;
                 this.name = name;
+
+                if (prop is IMyTerminalControlCheckbox)
+                {
+                    IMyTerminalControlCheckbox checkBox = (IMyTerminalControlCheckbox)prop;
+
+                    OnText = checkBox.OnText;
+                    OffText = checkBox.OffText;
+                }
+                else if (prop is IMyTerminalControlOnOffSwitch)
+                {
+                    IMyTerminalControlOnOffSwitch onOffSwitch = (IMyTerminalControlOnOffSwitch)prop;
+
+                    OnText = onOffSwitch.OnText;
+                    OffText = onOffSwitch.OffText;
+                }
+                else
+                {
+                    OnText = MySpaceTexts.SwitchText_On;
+                    OffText = MySpaceTexts.SwitchText_Off;
+                }
             }
 
             public string GetDisplay() =>
@@ -606,9 +554,9 @@ namespace DarkHelmet.BuildVision2
             private string GetPropStateText()
             {
                 if (prop.GetValue(pBlock.TBlock))
-                    return MyTexts.Get(MySpaceTexts.SwitchText_On).ToString();
+                    return MyTexts.Get(OnText).ToString();
                 else
-                    return MyTexts.Get(MySpaceTexts.SwitchText_Off).ToString();
+                    return MyTexts.Get(OffText).ToString();
             }
         }
 
