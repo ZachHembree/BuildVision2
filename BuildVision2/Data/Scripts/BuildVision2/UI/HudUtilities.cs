@@ -32,7 +32,7 @@ namespace DarkHelmet.BuildVision2
             screenHeight = (double)MyAPIGateway.Session.Config.ScreenHeight;
             aspectRatio = (screenWidth / screenHeight);
             resScale = 1080d / screenHeight;
-
+            
             fov = MyAPIGateway.Session.Camera.FovWithZoom;
             fovScale = 0.1 * Math.Tan(fov / 2d);
 
@@ -243,11 +243,11 @@ namespace DarkHelmet.BuildVision2
                     for (int n = ListText.Length; n < list.Count; n++)
                         list[n].Visible = false;
 
-                    highlightBox.Size = new Vector2I(listSize.X + 16, (int)(24d * Scale));
+                    highlightBox.Size = new Vector2I(listSize.X + (int)(16d * Scale), (int)(24d * Scale));
                     highlightBox.Offset = new Vector2I(0, list[SelectionIndex].Offset.Y);
 
-                    tab.Size = new Vector2I(4, highlightBox.Height);
-                    tab.Offset = new Vector2I(-highlightBox.Width / 2 + 1, 0);
+                    tab.Size = new Vector2I((int)(4d * Scale), highlightBox.Height);
+                    tab.Offset = new Vector2I((-highlightBox.Width + tab.Width) / 2 - 1, 0);
 
                     footerBg.Size = new Vector2I(background.Width, footerLeft.TextSize.Y + (int)(12d * Scale));
                     footerBg.Offset = new Vector2I(0, -(background.Height + footerBg.Height) / 2);
@@ -327,7 +327,7 @@ namespace DarkHelmet.BuildVision2
                 get { return scale; }
                 set
                 {
-                    scale = value * (278d / (500d - 138.75 * Instance.aspectRatio)) * Instance.resScale;
+                    scale = value * Instance.resScale;
 
                     if (hudMessage != null)
                         hudMessage.Scale = scale;
@@ -495,7 +495,6 @@ namespace DarkHelmet.BuildVision2
 
         /// <summary>
         /// Converts from a coordinate in the scaled coordinate system to a concrete coordinate in pixels.
-        /// Also useful for converting text block sizes to pixels for some reason.
         /// </summary>
         public Vector2I GetPixelPos(Vector2D scaledPos)
         {

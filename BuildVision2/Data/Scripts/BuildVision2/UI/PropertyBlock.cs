@@ -277,7 +277,6 @@ namespace DarkHelmet.BuildVision2
                 IMyMechanicalConnectionBlock mechBlock = (IMyMechanicalConnectionBlock)tBlock;
                 IMyPistonBase piston;
                 IMyMotorStator rotor;
-
                 mechBlock.GetActions(terminalActions);
 
                 foreach (IMyTerminalAction tAction in terminalActions) // sketchy, but I've done worse already
@@ -512,14 +511,7 @@ namespace DarkHelmet.BuildVision2
                 this.pBlock = block;
                 this.name = name;
 
-                if (prop is IMyTerminalControlCheckbox)
-                {
-                    IMyTerminalControlCheckbox checkBox = (IMyTerminalControlCheckbox)prop;
-
-                    OnText = checkBox.OnText;
-                    OffText = checkBox.OffText;
-                }
-                else if (prop is IMyTerminalControlOnOffSwitch)
+                if (prop is IMyTerminalControlOnOffSwitch)
                 {
                     IMyTerminalControlOnOffSwitch onOffSwitch = (IMyTerminalControlOnOffSwitch)prop;
 
@@ -542,11 +534,17 @@ namespace DarkHelmet.BuildVision2
             public string GetValue() =>
                 GetPropStateText();
 
-            public void ScrollDown() =>
-                prop.SetValue(pBlock.TBlock, false);
+            public void ScrollDown()
+            {
+                if (prop.GetValue(pBlock.TBlock) == true)
+                    prop.SetValue(pBlock.TBlock, false);
+            }
 
-            public void ScrollUp() =>
-                prop.SetValue(pBlock.TBlock, true);
+            public void ScrollUp()
+            {
+                if (prop.GetValue(pBlock.TBlock) == false)
+                    prop.SetValue(pBlock.TBlock, true);
+            }
 
             /// <summary>
             /// Retrieves the on/off state of given property of a given block as a string.
