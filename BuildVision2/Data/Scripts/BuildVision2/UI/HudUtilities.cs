@@ -28,11 +28,6 @@ namespace DarkHelmet.BuildVision2
         {
             textHudApi = new HudAPIv2();
 
-            screenWidth = (double)MyAPIGateway.Session.Config.ScreenWidth;
-            screenHeight = (double)MyAPIGateway.Session.Config.ScreenHeight;
-            aspectRatio = (screenWidth / screenHeight);
-            resScale = 1080d / screenHeight;
-            
             fov = MyAPIGateway.Session.Camera.FovWithZoom;
             fovScale = 0.1 * Math.Tan(fov / 2d);
 
@@ -54,6 +49,11 @@ namespace DarkHelmet.BuildVision2
         {
             if (Heartbeat)
             {
+                screenWidth = MyAPIGateway.Session.Camera.ViewportSize.X;
+                screenHeight = MyAPIGateway.Session.Camera.ViewportSize.Y;
+                aspectRatio = (screenWidth / screenHeight);
+                resScale = 1080d / screenHeight;
+
                 if (fov != MyAPIGateway.Session.Camera.FovWithZoom)
                 {
                     fov = MyAPIGateway.Session.Camera.FovWithZoom;
@@ -219,9 +219,7 @@ namespace DarkHelmet.BuildVision2
                 if (Visible && ListText != null)
                 {
                     padding = new Vector2I((int)(72d * Scale), (int)(32d * Scale));
-
-                    if (Scale != currentScale)
-                        SetScale(Scale);
+                    SetScale(Scale);
 
                     Vector2I listSize = GetListSize(), textOffset = listSize / 2, pos;
                     Origin = Instance.GetPixelPos(Utilities.Round(ScaledPos, 3));
