@@ -120,7 +120,7 @@ namespace DarkHelmet.BuildVision2
             public virtual double Scale { get; set; } = 1d;
 
             /// <summary>
-            /// Current position from the center of the screen or parent in pixels. Includes parented positions.
+            /// Current position from the center of the screen or parent in pixels.
             /// </summary>
             public virtual Vector2I Origin
             {
@@ -175,23 +175,20 @@ namespace DarkHelmet.BuildVision2
             public Color SelectionBoxColor { get { return highlightBox.color; } set { highlightBox.color = value; } }
             public Color HeaderColor
             {
-                get { return headerColor; }
+                get { return headerBg.color; }
                 set
                 {
                     headerBg.color = value;
                     footerBg.color = value;
-                    headerColor = value;
                 }
             }
 
             private static Vector2I padding;
             private StringBuilder[] listText;
-            private Color headerColor;
 
             private readonly TexturedBox headerBg, footerBg, background, highlightBox, tab;
             private readonly TextHudMessage header, footerLeft, footerRight;
             private List<TextHudMessage> list;
-            private double currentScale = 0d;
             private int selectionIndex = 0;
 
             public ScrollMenu(int maxListLength)
@@ -218,23 +215,23 @@ namespace DarkHelmet.BuildVision2
             {
                 if (Visible && ListText != null)
                 {
-                    padding = new Vector2I((int)(72d * Scale), (int)(32d * Scale));
                     SetScale(Scale);
+                    padding = new Vector2I((int)(72d * Scale), (int)(32d * Scale));
 
                     Vector2I listSize = GetListSize(), textOffset = listSize / 2, pos;
                     Origin = Instance.GetPixelPos(Utilities.Round(ScaledPos, 3));
 
                     background.Size = listSize + padding;
 
-                    headerBg.Size = new Vector2I(background.Width, header.TextSize.Y + (int)(28d * Scale));
+                    headerBg.Size = new Vector2I(background.Width, header.TextSize.Y + (int)(22d * Scale));
                     headerBg.Offset = new Vector2I(0, (headerBg.Height + background.Height) / 2);
 
                     pos = new Vector2I(-textOffset.X, textOffset.Y - list[0].TextSize.Y / 2);
 
                     for (int n = 0; n < ListText.Length; n++)
                     {
-                        list[n].Offset = pos;
                         list[n].Visible = true;
+                        list[n].Offset = pos;
                         pos.Y -= list[n].TextSize.Y;
                     }
 
@@ -292,13 +289,11 @@ namespace DarkHelmet.BuildVision2
 
                 foreach (TextHudMessage element in list)
                     element.Scale = scale;
-
-                currentScale = scale;
             }
         }
 
         /// <summary>
-        /// Wrapper used to make precise pixel-level manipluation of Text HUD API messages easier.
+        /// Wrapper used to make precise pixel-level manipluation of <see cref="HudAPIv2.HUDMessage"/> easier.
         /// </summary>
         public class TextHudMessage : HudElement
         {
@@ -325,10 +320,10 @@ namespace DarkHelmet.BuildVision2
                 get { return scale; }
                 set
                 {
-                    scale = value * Instance.resScale;
+                    scale = value;
 
                     if (hudMessage != null)
-                        hudMessage.Scale = scale;
+                        hudMessage.Scale = scale * Instance.resScale;
                 }
             }
 
@@ -480,7 +475,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Converts from a size given in pixels to the scale used by the text Hud API
+        /// Converts from a size given in pixels to the scale used by the textured box
         /// </summary>
         public Vector2D GetScaledSize(Vector2I pixelSize, double scale = 1d)
         {

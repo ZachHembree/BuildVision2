@@ -261,7 +261,7 @@ namespace DarkHelmet.BuildVision2
             {
                 this.index = index;
                 this.selection = selection;
-                headerText = $"Build Vision: {target.TBlock.CustomName}";
+                headerText = target.TBlock.CustomName;
 
                 maxVisible = Cfg.maxVisible;
                 menu.BodyColor = Cfg.colors.backgroundColor;
