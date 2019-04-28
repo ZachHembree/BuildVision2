@@ -28,11 +28,6 @@ namespace DarkHelmet.BuildVision2
         {
             textHudApi = new HudAPIv2();
 
-            screenWidth = (double)MyAPIGateway.Session.Config.ScreenWidth;
-            screenHeight = (double)MyAPIGateway.Session.Config.ScreenHeight;
-            aspectRatio = (screenWidth / screenHeight);
-            resScale = 1080d / screenHeight;
-
             fov = MyAPIGateway.Session.Camera.FovWithZoom;
             fovScale = 0.1 * Math.Tan(fov / 2d);
 
@@ -54,6 +49,11 @@ namespace DarkHelmet.BuildVision2
         {
             if (Heartbeat)
             {
+                screenWidth = MyAPIGateway.Session.Camera.ViewportSize.X;
+                screenHeight = MyAPIGateway.Session.Camera.ViewportSize.Y;
+                aspectRatio = (screenWidth / screenHeight);
+                resScale = 1080d / screenHeight;
+
                 if (fov != MyAPIGateway.Session.Camera.FovWithZoom)
                 {
                     fov = MyAPIGateway.Session.Camera.FovWithZoom;
@@ -120,7 +120,7 @@ namespace DarkHelmet.BuildVision2
             public virtual double Scale { get; set; } = 1d;
 
             /// <summary>
-            /// Current position from the center of the screen or parent in pixels. Includes parented positions.
+            /// Current position from the center of the screen or parent in pixels.
             /// </summary>
             public virtual Vector2I Origin
             {
@@ -175,23 +175,20 @@ namespace DarkHelmet.BuildVision2
             public Color SelectionBoxColor { get { return highlightBox.color; } set { highlightBox.color = value; } }
             public Color HeaderColor
             {
-                get { return headerColor; }
+                get { return headerBg.color; }
                 set
                 {
                     headerBg.color = value;
                     footerBg.color = value;
-                    headerColor = value;
                 }
             }
 
             private static Vector2I padding;
             private StringBuilder[] listText;
-            private Color headerColor;
 
             private readonly TexturedBox headerBg, footerBg, background, highlightBox, tab;
             private readonly TextHudMessage header, footerLeft, footerRight;
             private List<TextHudMessage> list;
-            private double currentScale = 0d;
             private int selectionIndex = 0;
 
             public ScrollMenu(int maxListLength)
@@ -218,36 +215,34 @@ namespace DarkHelmet.BuildVision2
             {
                 if (Visible && ListText != null)
                 {
+                    SetScale(Scale);
                     padding = new Vector2I((int)(72d * Scale), (int)(32d * Scale));
-
-                    if (Scale != currentScale)
-                        SetScale(Scale);
 
                     Vector2I listSize = GetListSize(), textOffset = listSize / 2, pos;
                     Origin = Instance.GetPixelPos(Utilities.Round(ScaledPos, 3));
 
                     background.Size = listSize + padding;
 
-                    headerBg.Size = new Vector2I(background.Width, header.TextSize.Y + (int)(28d * Scale));
+                    headerBg.Size = new Vector2I(background.Width, header.TextSize.Y + (int)(22d * Scale));
                     headerBg.Offset = new Vector2I(0, (headerBg.Height + background.Height) / 2);
 
                     pos = new Vector2I(-textOffset.X, textOffset.Y - list[0].TextSize.Y / 2);
 
                     for (int n = 0; n < ListText.Length; n++)
                     {
-                        list[n].Offset = pos;
                         list[n].Visible = true;
+                        list[n].Offset = pos;
                         pos.Y -= list[n].TextSize.Y;
                     }
 
                     for (int n = ListText.Length; n < list.Count; n++)
                         list[n].Visible = false;
 
-                    highlightBox.Size = new Vector2I(listSize.X + 16, (int)(24d * Scale));
+                    highlightBox.Size = new Vector2I(listSize.X + (int)(16d * Scale), (int)(24d * Scale));
                     highlightBox.Offset = new Vector2I(0, list[SelectionIndex].Offset.Y);
 
-                    tab.Size = new Vector2I(4, highlightBox.Height);
-                    tab.Offset = new Vector2I(-highlightBox.Width / 2 + 1, 0);
+                    tab.Size = new Vector2I((int)(4d * Scale), highlightBox.Height);
+                    tab.Offset = new Vector2I((-highlightBox.Width + tab.Width) / 2 - 1, 0);
 
                     footerBg.Size = new Vector2I(background.Width, footerLeft.TextSize.Y + (int)(12d * Scale));
                     footerBg.Offset = new Vector2I(0, -(background.Height + footerBg.Height) / 2);
@@ -294,13 +289,11 @@ namespace DarkHelmet.BuildVision2
 
                 foreach (TextHudMessage element in list)
                     element.Scale = scale;
-
-                currentScale = scale;
             }
         }
 
         /// <summary>
-        /// Wrapper used to make precise pixel-level manipluation of Text HUD API messages easier.
+        /// Wrapper used to make precise pixel-level manipluation of <see cref="HudAPIv2.HUDMessage"/> easier.
         /// </summary>
         public class TextHudMessage : HudElement
         {
@@ -327,10 +320,10 @@ namespace DarkHelmet.BuildVision2
                 get { return scale; }
                 set
                 {
-                    scale = value * (278d / (500d - 138.75 * Instance.aspectRatio)) * Instance.resScale;
+                    scale = value;
 
                     if (hudMessage != null)
-                        hudMessage.Scale = scale;
+                        hudMessage.Scale = scale * Instance.resScale;
                 }
             }
 
@@ -482,7 +475,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Converts from a size given in pixels to the scale used by the text Hud API
+        /// Converts from a size given in pixels to the scale used by the textured box
         /// </summary>
         public Vector2D GetScaledSize(Vector2I pixelSize, double scale = 1d)
         {
@@ -495,7 +488,6 @@ namespace DarkHelmet.BuildVision2
 
         /// <summary>
         /// Converts from a coordinate in the scaled coordinate system to a concrete coordinate in pixels.
-        /// Also useful for converting text block sizes to pixels for some reason.
         /// </summary>
         public Vector2I GetPixelPos(Vector2D scaledPos)
         {

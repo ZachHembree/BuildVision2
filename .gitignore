@@ -1,15 +1,12 @@
 
-metadata\.mod
-
-BuildVision2/modinfo\.sbmi
-
-BuildVision2/thumb\.jpg
-
 bin/
 
 \.vs/
 
-Properties/
-
 obj/
 
+Properties/
+
+metadata\.mod
+
+BuildVision2/thumb\.jpg
