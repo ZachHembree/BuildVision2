@@ -5,10 +5,10 @@ using VRageMath;
 using VRage.Utils;
 using VRage.Game;
 using System;
+using DarkHelmet.TextHudApi;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
-using MenuFlag = DarkHelmet.BuildVision2.HudAPIv2.MenuRootCategory.MenuFlag;
 
-namespace DarkHelmet.BuildVision2
+namespace DarkHelmet.UI
 {
     /// <summary>
     /// Collection of tools used to make working with the Text Hud API and general GUI stuff easier.
@@ -19,7 +19,6 @@ namespace DarkHelmet.BuildVision2
         public UiTestPattern TestPattern { get; private set; }
         public bool Heartbeat { get { return textHudApi.Heartbeat; } }
 
-        private static BvMain Main { get { return BvMain.Instance; } }
         private HudAPIv2 textHudApi;
         private double screenWidth, screenHeight, aspectRatio, resScale, fov, fovScale;
         private List<Action> hudElementsDraw;

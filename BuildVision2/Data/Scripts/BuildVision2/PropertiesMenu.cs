@@ -1,49 +1,8 @@
-﻿using Sandbox.ModAPI;
-using System.Collections.Generic;
-using System.Text;
-using VRage.Game;
-using VRage.Game.ModAPI;
-using VRageMath;
-using System.Xml.Serialization;
-using System;
+﻿using System.Xml.Serialization;
+using DarkHelmet.UI;
 
 namespace DarkHelmet.BuildVision2
 {
-    public class PropMenuConfig
-    {
-        [XmlIgnore]
-        public static PropMenuConfig Defaults
-        {
-            get
-            {
-                return new PropMenuConfig
-                {
-                    apiHudConfig = ApiHudConfig.Defaults,
-                    fallbackHudConfig = NotifHudConfig.Defaults
-                };
-            }
-        }
-
-        [XmlElement(ElementName = "ApiHudSettings")]
-        public ApiHudConfig apiHudConfig;
-
-        [XmlElement(ElementName = "FallbackHudSettings")]
-        public NotifHudConfig fallbackHudConfig;
-
-        public void Validate()
-        {
-            if (apiHudConfig != null)
-                apiHudConfig.Validate();
-            else
-                apiHudConfig = ApiHudConfig.Defaults;
-
-            if (fallbackHudConfig != null)
-                fallbackHudConfig.Validate();
-            else
-                fallbackHudConfig = NotifHudConfig.Defaults;
-        }
-    }
-
     /// <summary>
     /// Renders menu of block terminal properties given a target block; singleton.
     /// </summary>

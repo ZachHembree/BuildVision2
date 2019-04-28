@@ -3,12 +3,83 @@ using System;
 using ParallelTasks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Text;
 
-namespace DarkHelmet.BuildVision2
+namespace DarkHelmet
 {
+    /// <summary>
+    /// This class should not exist. I should have access to the .NET framework
+    /// AggregateException class, but here we are.
+    /// </summary>
+    internal class AggregateException : Exception
+    {
+        public AggregateException(string aggregatedMsg) : base(aggregatedMsg)
+        { }
+
+        public AggregateException(IList<Exception> exceptions) : base(GetExceptionMessages(exceptions))
+        { }
+
+        public AggregateException(IList<DhException> exceptions) : base(GetExceptionMessages(exceptions))
+        { }
+
+        public AggregateException(IList<AggregateException> exceptions) : base(GetExceptionMessages(exceptions))
+        { }
+
+        private static string GetExceptionMessages(IList<DhException> exceptions)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int n = 0; n < exceptions.Count; n++)
+                if (n != exceptions.Count - 1)
+                    sb.Append($"{exceptions[n].ToString()}\n");
+                else
+                    sb.Append($"{exceptions[n].ToString()}");
+
+            return sb.ToString();
+        }
+
+        private static string GetExceptionMessages(IList<Exception> exceptions)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int n = 0; n < exceptions.Count; n++)
+                if (n != exceptions.Count - 1)
+                    sb.Append($"{exceptions[n].ToString()}\n");
+                else
+                    sb.Append($"{exceptions[n].ToString()}");
+
+            return sb.ToString();
+        }
+
+        private static string GetExceptionMessages(IList<AggregateException> exceptions)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int n = 0; n < exceptions.Count; n++)
+                if (n != exceptions.Count - 1)
+                    sb.Append($"{exceptions[n].ToString()}\n");
+                else
+                    sb.Append($"{exceptions[n].ToString()}");
+
+            return sb.ToString();
+        }
+    }
+
+    internal class DhException : Exception
+    {
+        public DhException() : base()
+        { }
+
+        public DhException(string message) : base(message)
+        { }
+
+        public DhException(string message, Exception innerException) : base(message, innerException)
+        { }
+    }
+
     internal class TaskPool
     {
-        public delegate void ErrorCallback(List<BvException> known, BvAggregateException unknown);
+        public delegate void ErrorCallback(List<DhException> known, AggregateException unknown);
 
         private readonly ConcurrentQueue<Action> actions;
         private readonly Queue<Action> tasksWaiting;
@@ -72,9 +143,9 @@ namespace DarkHelmet.BuildVision2
             Task task;
             Queue<Task> currentTasks = new Queue<Task>();
             List<Exception> taskExceptions = new List<Exception>(); //unknown exceptions
-            List<BvException> knownExceptions = new List<BvException>(); 
-            BvException bvException = null;
-            BvAggregateException unknownExceptions = null;
+            List<DhException> knownExceptions = new List<DhException>(); 
+            DhException bvException = null;
+            AggregateException unknownExceptions = null;
 
             while (tasksRunning.Count > 0)
             {
@@ -99,7 +170,7 @@ namespace DarkHelmet.BuildVision2
             tasksRunning = currentTasks;
 
             if (taskExceptions.Count > 0)
-                unknownExceptions = new BvAggregateException(taskExceptions);
+                unknownExceptions = new AggregateException(taskExceptions);
 
             errorCallback(knownExceptions, unknownExceptions);
         }
@@ -107,9 +178,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Attempts to cast an Exception as BvException and returns true if successful.
         /// </summary>
-        private static bool TryGetBvException(Exception exception, out BvException bvException)
+        private static bool TryGetBvException(Exception exception, out DhException bvException)
         {
-            bvException = exception as BvException;
+            bvException = exception as DhException;
             return bvException != null;
         }
 

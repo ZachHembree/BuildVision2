@@ -9,8 +9,6 @@ using VRageMath;
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
-using System.Reflection;
-using System.Text;
 using DoorStatus = Sandbox.ModAPI.Ingame.DoorStatus;
 using ChargeMode = Sandbox.ModAPI.Ingame.ChargeMode;
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
@@ -20,6 +18,7 @@ using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
 using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
 using IMyTextSurfaceProvider = Sandbox.ModAPI.Ingame.IMyTextSurfaceProvider;
 using IMyCockpit = Sandbox.ModAPI.IMyCockpit;
+using DarkHelmet.Input;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -29,13 +28,13 @@ namespace DarkHelmet.BuildVision2
         /// Retrieves the block action name and current value.
         /// </summary>
         Func<string> GetDisplay { get; }
-        
+
         /// <summary>
         /// Triggers action associated with block;
         /// </summary>
         Action Action { get; }
     }
-    
+
     internal interface IScrollableProp
     {
         /// <summary>
@@ -65,66 +64,6 @@ namespace DarkHelmet.BuildVision2
     }
 
     /// <summary>
-    /// Stores configuration of scrollable data for serializatin.
-    /// </summary>
-    public class PropBlockConfig
-    {
-        [XmlIgnore]
-        public static PropBlockConfig Defaults
-        {
-            get
-            {
-                return new PropBlockConfig
-                {
-                    floatDiv = 100.0,
-                    floatMult = new Vector3(.1f, 5f, 10f),
-                    colorMult = new Vector3I(8, 16, 64)
-                };
-            }
-        }
-
-        [XmlElement(ElementName = "FloatIncrementDivisor")]
-        public double floatDiv;
-
-        [XmlElement(ElementName = "FloatPropertyMultipliers")]
-        public Vector3 floatMult;
-
-        [XmlElement(ElementName = "ColorPropertyMultipliers")]
-        public Vector3I colorMult;
-
-        /// <summary>
-        /// Checks for any fields that have invalid values and resets them to the default if necessary.
-        /// </summary>
-        public void Validate()
-        {
-            PropBlockConfig defaults = Defaults;
-            
-            if (floatDiv <= 0f)
-                floatDiv = defaults.floatDiv;
-
-            // Float multipliers
-            if (floatMult.X <= 0f)
-                floatMult.X = defaults.floatMult.X;
-
-            if (floatMult.Y <= 0f)
-                floatMult.Y = defaults.floatMult.Y;
-
-            if (floatMult.Z <= 0f)
-                floatMult.Z = defaults.floatMult.Z;
-
-            // Color multipiers
-            if (colorMult.X <= 0)
-                colorMult.X = defaults.colorMult.X;
-
-            if (colorMult.Y <= 0)
-                colorMult.Y = defaults.colorMult.Y;
-
-            if (colorMult.Z <= 0)
-                colorMult.Z = defaults.colorMult.Z;
-        }
-    }
-
-    /// <summary>
     /// Encapsulates all block property data needed for the UI.
     /// </summary>
     internal class PropertyBlock
@@ -133,7 +72,6 @@ namespace DarkHelmet.BuildVision2
         public List<IScrollableAction> Actions { get; private set; }
         public List<IScrollableProp> Properties { get; private set; }
         public int ScrollableCount { get; private set; }
-        public bool IsMechConnection { get; private set; }
         public bool IsFunctional { get { return TBlock.IsFunctional; } }
         public bool IsWorking { get { return TBlock.IsWorking; } }
         public bool CanLocalPlayerAccess { get { return TBlock.HasLocalPlayerAccess(); } }
@@ -158,7 +96,6 @@ namespace DarkHelmet.BuildVision2
         public PropertyBlock(IMyTerminalBlock tBlock)
         {
             TBlock = tBlock;
-            IsMechConnection = false;
 
             Actions = GetScrollableActions();
             Properties = GetScrollableProps();
@@ -181,7 +118,6 @@ namespace DarkHelmet.BuildVision2
             if (TBlock is IMyMechanicalConnectionBlock)
             {
                 BlockAction.GetMechActions(TBlock, actions);
-                IsMechConnection = true;
             }
             else if (TBlock is IMyDoor)
             {
@@ -203,7 +139,7 @@ namespace DarkHelmet.BuildVision2
             {
                 BlockAction.GetChuteActions(TBlock, actions);
             }
-            
+
             return actions;
         }
 
@@ -214,7 +150,6 @@ namespace DarkHelmet.BuildVision2
         {
             List<ITerminalProperty> properties = new List<ITerminalProperty>(12);
             List<IScrollableProp> scrollables;
-            IMyBatteryBlock battery = TBlock as IMyBatteryBlock;
             IMyTerminalControl terminalControl;
             string name;
 
@@ -237,8 +172,8 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            if (battery != null)
-                scrollables.Add(new BattProperty(battery));
+            if (TBlock is IMyBatteryBlock)
+                scrollables.Add(new BattProperty((IMyBatteryBlock)TBlock));
 
             return scrollables;
         }
@@ -250,7 +185,7 @@ namespace DarkHelmet.BuildVision2
         {
             IMyTerminalControlTitleTooltip tooltip = (prop as IMyTerminalControlTitleTooltip);
             MyStringId id = tooltip == null ? MyStringId.GetOrCompute("???") : tooltip.Title;
-            
+
             return MyTexts.Get(id).ToString();
         }
 
@@ -333,7 +268,7 @@ namespace DarkHelmet.BuildVision2
             public static void GetWarheadActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
             {
                 IMyWarhead warhead = (IMyWarhead)tBlock;
-                
+
                 actions.Add(new BlockAction(
                     () => $"Start Countdown",
                     () => warhead.StartCountdown()));
@@ -353,7 +288,7 @@ namespace DarkHelmet.BuildVision2
                 IMyLandingGear landingGear = (IMyLandingGear)tBlock;
 
                 actions.Add(new BlockAction(
-                    () => 
+                    () =>
                     {
                         string status = "";
 
@@ -377,7 +312,7 @@ namespace DarkHelmet.BuildVision2
                 IMyShipConnector connector = (IMyShipConnector)tBlock;
 
                 actions.Add(new BlockAction(
-                    () => 
+                    () =>
                     {
                         string status = "";
 
@@ -460,7 +395,7 @@ namespace DarkHelmet.BuildVision2
                 else
                     index++;
 
-                index= Utilities.Clamp(index, 1, 3);
+                index = Utilities.Clamp(index, 1, 3);
 
                 if (index == 1)
                     battery.ChargeMode = ChargeMode.Auto;
@@ -580,7 +515,7 @@ namespace DarkHelmet.BuildVision2
                     incr0 = 1f;
                 else
                 {
-                    double range = Math.Abs(maxValue - minValue), exp; 
+                    double range = Math.Abs(maxValue - minValue), exp;
 
                     if (range > maxValue)
                         exp = Math.Truncate(Math.Log10(range));
@@ -630,8 +565,8 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private float GetIncrement()
             {
-                bool 
-                    multA = Binds.multX.IsPressed, 
+                bool
+                    multA = Binds.multX.IsPressed,
                     multB = Binds.multY.IsPressed,
                     multC = Binds.multZ.IsPressed;
 
@@ -727,14 +662,14 @@ namespace DarkHelmet.BuildVision2
 
                 property.SetValue(pBlock.TBlock, curr);
             }
-            
+
             /// <summary>
             /// Gets value to add or subtract from the property based on multipliers used.
             /// </summary>
             private int GetIncrement()
             {
-                bool 
-                    multA = Binds.multX.IsPressed, 
+                bool
+                    multA = Binds.multX.IsPressed,
                     multB = Binds.multY.IsPressed,
                     multC = Binds.multZ.IsPressed;
 

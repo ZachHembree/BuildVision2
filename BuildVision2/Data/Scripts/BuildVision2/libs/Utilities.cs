@@ -3,12 +3,15 @@ using System;
 using System.Text.RegularExpressions;
 using Sandbox.ModAPI;
 
-namespace DarkHelmet.BuildVision2
+namespace DarkHelmet
 {
     internal static class Utilities
     {
         private static readonly Regex colorParser = new Regex(@"(\s*,?(\d{1,3})\s*,?){3,4}");
 
+        /// <summary>
+        /// Tries to convert a string of color values to its <see cref="VRageMath.Color"/> equivalent.
+        /// </summary>
         public static bool TryParseColor(string colorData, out Color value)
         {
             Match match = colorParser.Match(colorData);
@@ -38,6 +41,8 @@ namespace DarkHelmet.BuildVision2
 
                     value.A = a;
                 }
+                else
+                    value.A = 255;
 
                 return true;
             }
@@ -45,6 +50,9 @@ namespace DarkHelmet.BuildVision2
                 return false;
         }
 
+        /// <summary>
+        /// Converts a string of color values to its <see cref="VRageMath.Color"/> equivalent.
+        /// </summary>
         public static Color ParseColor(string colorData)
         {
             Match match = colorParser.Match(colorData);
@@ -59,6 +67,8 @@ namespace DarkHelmet.BuildVision2
 
                 if (captures.Count > 3)
                     value.A = byte.Parse(captures[3].Value);
+                else
+                    value.A = 255;
 
                 return value;
             }
@@ -74,9 +84,6 @@ namespace DarkHelmet.BuildVision2
                 return $"{color.R},{color.G},{color.B}";
         }
 
-        /// <summary>
-        /// A bit like System.Diagnostics.Assert, but not blacklisted by Keen
-        /// </summary>
         public static void Assert(bool condition, string message)
         {
             if (!condition)

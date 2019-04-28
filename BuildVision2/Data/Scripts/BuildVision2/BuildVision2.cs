@@ -4,10 +4,10 @@ using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using System;
 using System.Xml.Serialization;
-using ParallelTasks;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
+using DarkHelmet.IO;
+using DarkHelmet.UI;
+using DarkHelmet.Input;
+using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -100,49 +100,37 @@ namespace DarkHelmet.BuildVision2
         }
     }
 
-    public class GeneralConfig
-    {
-        [XmlIgnore]
-        public static GeneralConfig Defaults
-        {
-            get
-            {
-                return new GeneralConfig
-                {
-                    forceFallbackHud = false,
-                    closeIfNotInView = true,
-                    canOpenIfHolding = true
-                };
-            }
-        }
-
-        [XmlElement(ElementName = "ForceFallbackHud")]
-        public bool forceFallbackHud;
-
-        [XmlElement(ElementName = "CloseIfTargetNotInView")]
-        public bool closeIfNotInView;
-
-        [XmlElement(ElementName = "CanOpenIfHandsNotEmpty")]
-        public bool canOpenIfHolding;
-    }
-
     internal sealed class BvMain
     {
         public static BvMain Instance { get; private set; }
 
-        public const int configVersionID = 5;
         private const string configFileName = "BuildVision2Config.xml", logFileName = "bvLog.txt", 
             senderName = "Build Vision 2", cmdPrefix = "/bv2";
 
         public static LogIO Log { get { return LogIO.Instance; } }
-        private static ConfigIO Config { get { return ConfigIO.Instance; } }
+        private static ConfigIO<BvConfig> ConfigIO { get { return ConfigIO<BvConfig>.Instance; } }
         private static Binds Binds { get { return Binds.Instance; } }
         private static ChatCommands Cmd { get { return ChatCommands.Instance; } }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
         private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
         private static SettingsMenu Settings { get { return SettingsMenu.Instance; } }
 
-        public GeneralConfig Cfg { get; set; }
+        public BvConfig Cfg { get { return cfg; }
+            set
+            {
+                cfg = value;
+
+                if (init && cfg != null)
+                {
+                    cfg.Validate();
+                    Binds.Cfg = cfg.binds;
+                    Menu.Cfg = cfg.menu;
+                    PropertyBlock.Cfg = cfg.propertyBlock;
+                }
+            }
+        }
+
+        private BvConfig cfg;
         private PropertyBlock target;
         private bool init, initStart, menuOpen;
 
@@ -167,20 +155,20 @@ namespace DarkHelmet.BuildVision2
             if (!init && !initStart)
             {
                 initStart = true;
-                LogIO.Init(logFileName);
-                ConfigIO.Init(configFileName);
-                Config.LoadStart(InitFinish, true);
+                LogIO.Init(logFileName, SendChatMessage);
+                ConfigIO<BvConfig>.Init(configFileName, Log, SendChatMessage);
+                ConfigIO.LoadStart(InitFinish, true);
             }
         }
 
         /// <summary>
         /// Finishes initialization upon retrieval of configuration information.
         /// </summary>
-        private void InitFinish(ConfigData cfg)
+        private void InitFinish(BvConfig cfg)
         {
             if (!init && initStart)
             {
-                Cfg = cfg.general;
+                this.Cfg = cfg;
                 Binds.Init(cfg.binds);
                 ChatCommands.Init(cmdPrefix);
                 HudUtilities.Init();
@@ -189,7 +177,7 @@ namespace DarkHelmet.BuildVision2
                 PropertyBlock.Cfg = cfg.propertyBlock;
 
                 init = true;
-                MyAPIGateway.Utilities.ShowMessage("Build Vision 2", $"Type {cmdPrefix} help for help. All settings are now available through the Mod Menu.");
+                MyAPIGateway.Utilities.ShowMessage("Build Vision 2", $"Type {cmdPrefix} help for help. All settings are available through the mod menu.");
             }
         }
 
@@ -201,7 +189,7 @@ namespace DarkHelmet.BuildVision2
             if (init)
             {
                 TryCloseMenu();
-                Config.Save(GetConfig());
+                ConfigIO.Save(Cfg);
             }
 
             init = false;
@@ -210,7 +198,7 @@ namespace DarkHelmet.BuildVision2
             Binds?.Close();
             Cmd?.Close();
             Menu?.Close();
-            Config?.Close();
+            ConfigIO?.Close();
             Log?.Close();
             HudElements?.Close();
             Settings?.Close();
@@ -223,7 +211,7 @@ namespace DarkHelmet.BuildVision2
         public void LoadConfig(bool silent = false)
         {
             if (init)
-                Config.LoadStart(UpdateConfig, silent);
+                ConfigIO.LoadStart((BvConfig value) => Cfg = value, silent);
         }
 
         /// <summary>
@@ -233,7 +221,7 @@ namespace DarkHelmet.BuildVision2
         public void SaveConfig(bool silent = false)
         {
             if (init)
-                Config.SaveStart(GetConfig(), silent);
+                ConfigIO.SaveStart(Cfg, silent);
         }
 
         /// <summary>
@@ -242,44 +230,9 @@ namespace DarkHelmet.BuildVision2
         public void ResetConfig(bool silent = false)
         {
             if (init)
-                Config.SaveStart(ConfigData.Defaults, silent);
+                ConfigIO.SaveStart(BvConfig.Defaults, silent);
 
-            UpdateConfig(ConfigData.Defaults);
-        }
-
-        /// <summary>
-        /// Updates current configuration with given config data.
-        /// </summary>
-        public void UpdateConfig(ConfigData cfg)
-        {
-            if (init && cfg != null)
-            {
-                cfg.Validate();
-                Cfg = cfg.general;
-                Binds.TryUpdateConfig(cfg.binds);
-                Menu.Cfg = cfg.menu;
-                PropertyBlock.Cfg = cfg.propertyBlock;
-            }
-        }
-
-        /// <summary>
-        /// Returns the currently loaded configuration.
-        /// </summary>
-        public ConfigData GetConfig()
-        {
-            if (init)
-            {
-                return new ConfigData
-                {
-                    versionID = configVersionID,
-                    general = Cfg,
-                    binds = Binds.Cfg,
-                    menu = Menu.Cfg,
-                    propertyBlock = PropertyBlock.Cfg
-                };
-            }
-            else
-                return null;
+            Cfg = BvConfig.Defaults;
         }
 
         /// <summary>
@@ -308,7 +261,7 @@ namespace DarkHelmet.BuildVision2
             if (initStart)
             {
                 Log.Update();
-                Config.Update();
+                ConfigIO.Update();
             }
 
             if (init)
@@ -316,7 +269,7 @@ namespace DarkHelmet.BuildVision2
                 Binds.Update();
 
                 if (menuOpen)
-                    Menu.Update(Cfg.forceFallbackHud);
+                    Menu.Update(Cfg.general.forceFallbackHud);
 
                 if (Binds.open.IsNewPressed)
                     TryOpenMenu();
@@ -366,7 +319,7 @@ namespace DarkHelmet.BuildVision2
         /// Checks if the player can access the targeted block.
         /// </summary>
         private bool CanAccessTargetBlock() =>
-            BlockInRange() && target.CanLocalPlayerAccess && (!Cfg.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(target.TBlock));
+            BlockInRange() && target.CanLocalPlayerAccess && (!Cfg.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(target.TBlock));
 
         /// <summary>
         /// Tries to get terminal block being targeted by the local player if there is one.
@@ -376,7 +329,7 @@ namespace DarkHelmet.BuildVision2
             IMyCubeBlock block;
             IMyTerminalBlock termBlock;
 
-            if ((Cfg.canOpenIfHolding || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(8.0, out block))
+            if ((Cfg.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(8.0, out block))
             {
                 termBlock = block as IMyTerminalBlock;
 
@@ -390,7 +343,7 @@ namespace DarkHelmet.BuildVision2
                         return true;
                     }
                     else
-                        MyAPIGateway.Utilities.ShowNotification("ACCESS DENIED", font: MyFontEnum.Red);
+                        MyAPIGateway.Utilities.ShowNotification("ACCESS DENIED", 1000, MyFontEnum.Red);
                 }
             }
 

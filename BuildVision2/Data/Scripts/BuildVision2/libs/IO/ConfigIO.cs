@@ -3,106 +3,61 @@ using System;
 using System.Xml.Serialization;
 using System.Collections.Generic;
 
-namespace DarkHelmet.BuildVision2
+namespace DarkHelmet.IO
 {
-    /// <summary>
-    /// Stores all information needed for reading/writing from the config file.
-    /// </summary>
-    [XmlRoot, XmlType(TypeName = "BuildVisionSettings")]
-    public class ConfigData
+    public interface IConfigurable<TConfig> where TConfig : ConfigBase<TConfig>
     {
-        [XmlIgnore]
-        public static ConfigData Defaults
-        {
-            get
-            {
-                return new ConfigData
-                {
-                    versionID = BvMain.configVersionID,
-                    general = GeneralConfig.Defaults,
-                    menu = PropMenuConfig.Defaults,
-                    propertyBlock = PropBlockConfig.Defaults,
-                    binds = BindsConfig.Defaults
-                };
-            }
-        }
+        TConfig Cfg { get; }
+    }
 
-        [XmlAttribute(AttributeName = "ConfigVersionID")]
-        public int versionID;
+    /// <summary>
+    /// Generic base for serializable config types. ConfigBase.Defaults must be hidden with a new implimentation
+    /// for each config type.
+    /// </summary>
+    public abstract class ConfigBase<TConfig> where TConfig : ConfigBase<TConfig>
+    {
+        public static TConfig Defaults { get { throw new NotImplementedException(); } }
 
-        [XmlElement(ElementName = "GeneralSettings")]
-        public GeneralConfig general;
+        public abstract void Validate();
+    }
 
-        [XmlElement(ElementName = "GuiSettings")]
-        public PropMenuConfig menu;
-
-        [XmlElement(ElementName = "BlockPropertySettings")]
-        public PropBlockConfig propertyBlock;
-
-        [XmlElement(ElementName = "InputSettings")]
-        public BindsConfig binds;
-
-        public ConfigData() { }
-
-        public ConfigData GetCopy()
-        {
-            return new ConfigData
-            {
-                versionID = versionID,
-                general = general,
-                menu = menu,
-                propertyBlock = propertyBlock,
-                binds = binds
-            };
-        }
-
-        public void Validate()
-        {
-            if (versionID != BvMain.configVersionID)
-                versionID = BvMain.configVersionID;
-
-            if (menu != null)
-                menu.Validate();
-            else
-                menu = PropMenuConfig.Defaults;
-
-            if (binds != null)
-                binds.Validate();
-            else
-                binds = BindsConfig.Defaults;
-
-            if (propertyBlock != null)
-                propertyBlock.Validate();
-            else
-                propertyBlock = PropBlockConfig.Defaults;
-        }
+    public abstract class ConfigRootBase<TConfig> : ConfigBase<TConfig> where TConfig : ConfigBase<TConfig>
+    {
+        public virtual int VersionID { get; set; }
     }
 
     /// <summary>
     /// Handles loading/saving configuration data; singleton
     /// </summary>
-    internal sealed class ConfigIO
+    internal sealed class ConfigIO<TConfig> where TConfig : ConfigRootBase<TConfig>
     {
-        public delegate void ConfigDataCallback(ConfigData cfg);
-        public static ConfigIO Instance { get; private set; }
+        public static ConfigIO<TConfig> Instance { get; private set; }
+        public delegate void ConfigDataCallback(TConfig cfg);
         public bool SaveInProgress { get; private set; }
 
-        private static BvMain Main { get { return BvMain.Instance; } }
-        private static LogIO Log { get { return LogIO.Instance; } }
+        private readonly Action<string> SendMessage;
+        private readonly LogIO log;
         private readonly LocalFileIO cfgFile;
         private readonly TaskPool taskPool;
 
-        private ConfigIO(string configFileName)
+        private ConfigIO(string configFileName, LogIO log, Action<string> SendMessage)
         {
             cfgFile = new LocalFileIO(configFileName);
+            this.log = log;
+            this.SendMessage = SendMessage;
             taskPool = new TaskPool(1, ErrorCallback);
             SaveInProgress = false;
         }
 
-        public static void Init(string configFileName)
+        public static void Init(string configFileName, LogIO log, Action<string> SendMessage)
         {
             if (Instance == null)
-                Instance = new ConfigIO(configFileName);
+                Instance = new ConfigIO<TConfig>(configFileName, log, SendMessage);
+        }
+
+        public void Close()
+        {
+            Instance = null;
         }
 
         /// <summary>
@@ -112,7 +67,7 @@ namespace DarkHelmet.BuildVision2
         public void Update() =>
             taskPool.Update();
 
-        private void ErrorCallback(List<BvException> known, BvAggregateException unknown)
+        private void ErrorCallback(List<DhException> known, AggregateException unknown)
         {
             if (known != null && known.Count > 0)
             {
@@ -121,26 +76,21 @@ namespace DarkHelmet.BuildVision2
 
                 foreach (Exception e in known)
                 {
-                    Main.SendChatMessage(e.Message);
+                    SendMessage(e.Message);
                     exceptions += e.ToString();
                 }
 
-                Log.TryWriteToLogStart(exceptions);
+                log.TryWriteToLogStart(exceptions);
             }
 
             if (unknown != null)
             {
-                Log.TryWriteToLogStart($"\nSave operation failed.\n{unknown.ToString()}");
-                Main.SendChatMessage("Save operation failed.");
+                log.TryWriteToLogStart($"\nSave operation failed.\n{unknown.ToString()}");
+                SendMessage("Save operation failed.");
                 SaveInProgress = false;
 
                 throw unknown;
             }
-        }
-
-        public void Close()
-        {
-            Instance = null;
         }
 
         /// <summary>
@@ -151,12 +101,12 @@ namespace DarkHelmet.BuildVision2
             if (!SaveInProgress)
             {
                 SaveInProgress = true;
-                if (!silent) Main.SendChatMessage("Loading configuration...");
+                if (!silent) SendMessage("Loading configuration...");
 
                 taskPool.EnqueueTask(() =>
                 {
-                    ConfigData cfg;
-                    BvException loadException, saveException;
+                    TConfig cfg;
+                    DhException loadException, saveException;
 
                     loadException = TryLoad(out cfg);
                     cfg = ValidateConfig(cfg);
@@ -171,9 +121,9 @@ namespace DarkHelmet.BuildVision2
 
                         if (saveException != null)
                         {
-                            BvMain.Log.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
+                            log.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
                             taskPool.EnqueueAction(() => 
-                                Main.SendChatMessage("Unable to load or create configuration file."));
+                                SendMessage("Unable to load or create configuration file."));
                         }
                     }
                     else
@@ -181,29 +131,22 @@ namespace DarkHelmet.BuildVision2
                 });
             }
             else
-                Main.SendChatMessage("Save operation already in progress.");
+                SendMessage("Save operation already in progress.");
         }
 
-        private ConfigData ValidateConfig(ConfigData cfg)
+        private TConfig ValidateConfig(TConfig cfg)
         {
             if (cfg != null)
             {
-                if (cfg.versionID == BvMain.configVersionID)
+                if (cfg.VersionID == ConfigBase<TConfig>.Defaults.VersionID)
                     cfg.Validate();
                 else
                 {
                     Backup();
-
-                    if (cfg.versionID < 5)
-                        cfg.propertyBlock = PropBlockConfig.Defaults;
-
-                    if (cfg.versionID < 4)
-                        cfg.menu.apiHudConfig = ApiHudConfig.Defaults;
-
                     cfg.Validate();
 
                     taskPool.EnqueueAction(() => 
-                        Main.SendChatMessage("Config version mismatch. Some settings may have " +
+                        SendMessage("Config version mismatch. Some settings may have " +
                         "been reset. A backup of the original config file will be made."));
                 }
 
@@ -211,10 +154,10 @@ namespace DarkHelmet.BuildVision2
             }
             else
             {
-                taskPool.EnqueueAction(() => 
-                    Main.SendChatMessage("Unable to load configuration. Loading default settings..."));
+                taskPool.EnqueueAction(() =>
+                    SendMessage("Unable to load configuration. Loading default settings..."));
 
-                return ConfigData.Defaults;
+                return ConfigBase<TConfig>.Defaults;
             }
         }
 
@@ -225,7 +168,7 @@ namespace DarkHelmet.BuildVision2
                 if (!silent)
                 {
                     if (success)
-                        Main.SendChatMessage("Configuration loaded.");
+                        SendMessage("Configuration loaded.");
                 }
 
                 SaveInProgress = false;
@@ -235,17 +178,17 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Saves a given configuration to the save file in parallel.
         /// </summary>
-        public void SaveStart(ConfigData cfg, bool silent = false)
+        public void SaveStart(TConfig cfg, bool silent = false)
         {
             if (!SaveInProgress)
             {
-                if (!silent) Main.SendChatMessage("Saving configuration...");
+                if (!silent) SendMessage("Saving configuration...");
                 SaveInProgress = true;
 
                 taskPool.EnqueueTask(() =>
                 {
                     cfg.Validate();
-                    BvException exception = TrySave(cfg);
+                    DhException exception = TrySave(cfg);
 
                     if (exception != null)
                     {
@@ -257,7 +200,7 @@ namespace DarkHelmet.BuildVision2
                 });
             }
             else
-                Main.SendChatMessage("Save operation already in progress.");
+                SendMessage("Save operation already in progress.");
         }
 
         private void SaveFinish(bool success, bool silent = false)
@@ -267,9 +210,9 @@ namespace DarkHelmet.BuildVision2
                 if (!silent)
                 {
                     if (success)
-                        Main.SendChatMessage("Configuration saved.");
+                        SendMessage("Configuration saved.");
                     else
-                        Main.SendChatMessage("Unable to save configuration.");
+                        SendMessage("Unable to save configuration.");
                 }
 
                 SaveInProgress = false;
@@ -279,12 +222,12 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Saves the current configuration synchronously.
         /// </summary>
-        public void Save(ConfigData cfg)
+        public void Save(TConfig cfg)
         {
             if (!SaveInProgress)
             {
                 cfg.Validate();
-                BvException exception = TrySave(cfg);
+                DhException exception = TrySave(cfg);
 
                 if (exception != null)
                     throw exception;
@@ -297,9 +240,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void Backup()
         {
-            if (MyAPIGateway.Utilities.FileExistsInLocalStorage(cfgFile.file, typeof(ConfigIO)))
+            if (MyAPIGateway.Utilities.FileExistsInLocalStorage(cfgFile.file, typeof(TConfig)))
             {
-                BvException exception = cfgFile.TryDuplicate($"old_" + cfgFile.file);
+                DhException exception = cfgFile.TryDuplicate($"old_" + cfgFile.file);
 
                 if (exception != null)
                     throw exception;
@@ -309,11 +252,11 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Attempts to load config file and creates a new one if it can't.
         /// </summary>
-        private BvException TryLoad(out ConfigData cfg)
+        private DhException TryLoad(out TConfig cfg)
         {
             string data;
-            BvException exception = cfgFile.TryRead(out data);
-            cfg = null;
+            DhException exception = cfgFile.TryRead(out data);
+            cfg = default(TConfig);
 
             if (exception != null || data == null)
                 return exception;
@@ -323,7 +266,7 @@ namespace DarkHelmet.BuildVision2
             if (exception != null)
             {
                 Backup();
-                TrySave(ConfigData.Defaults);
+                TrySave(ConfigBase<TConfig>.Defaults);
             }
 
             return exception;
@@ -332,10 +275,10 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Attempts to save current configuration to a file.
         /// </summary>
-        private BvException TrySave(ConfigData cfg)
+        private DhException TrySave(TConfig cfg)
         {
             string xmlOut = null;
-            BvException exception = TrySerializeToXml(cfg, out xmlOut);
+            DhException exception = TrySerializeToXml(cfg, out xmlOut);
 
             if (exception == null && xmlOut != null)
                 exception = cfgFile.TryWrite(xmlOut);
@@ -346,9 +289,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Attempts to serialize an object to an Xml string.
         /// </summary>
-        private static BvException TrySerializeToXml<T>(T obj, out string xmlOut)
+        private static DhException TrySerializeToXml<T>(T obj, out string xmlOut)
         {
-            BvException exception = null;
+            DhException exception = null;
             xmlOut = null;
 
             try
@@ -357,7 +300,7 @@ namespace DarkHelmet.BuildVision2
             }
             catch (Exception e)
             {
-                exception = new BvException("IO Error. Failed to generate Xml.", e);
+                exception = new DhException("IO Error. Failed to generate Xml.", e);
             }
 
             return exception;
@@ -366,9 +309,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Attempts to deserialize an Xml string to an object of a given type.
         /// </summary>
-        private static BvException TryDeserializeXml<T>(string xmlIn, out T obj)
+        private static DhException TryDeserializeXml<T>(string xmlIn, out T obj)
         {
-            BvException exception = null;
+            DhException exception = null;
             obj = default(T);
 
             try
@@ -377,7 +320,7 @@ namespace DarkHelmet.BuildVision2
             }
             catch (Exception e)
             {
-                exception = new BvException("IO Error. Unable to interpret XML.", e);
+                exception = new DhException("IO Error. Unable to interpret XML.", e);
             }
 
             return exception;

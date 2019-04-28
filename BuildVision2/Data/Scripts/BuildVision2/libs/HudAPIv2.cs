@@ -8,7 +8,7 @@ using VRage.Utils;
 using VRageMath;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 
-namespace DarkHelmet.BuildVision2
+namespace DarkHelmet.TextHudApi
 {
 	public class HudAPIv2
 	{

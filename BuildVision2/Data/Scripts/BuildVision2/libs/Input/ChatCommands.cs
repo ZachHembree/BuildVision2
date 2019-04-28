@@ -1,8 +1,9 @@
 ﻿using System;
 using Sandbox.ModAPI;
 using System.Text.RegularExpressions;
+using DarkHelmet.BuildVision2;
 
-namespace DarkHelmet.BuildVision2
+namespace DarkHelmet.Input
 {
     /// <summary>
     /// Manages chat commands; singleton

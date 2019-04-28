@@ -5,15 +5,15 @@ using System.Collections.Generic;
 using VRage.Input;
 using Sandbox.ModAPI;
 
-namespace DarkHelmet.BuildVision2
+namespace DarkHelmet.Input
 {
     /// <summary>
     /// Stores data for serializing the configuration of the Binds class.
     /// </summary>
-    public class BindsConfig
+    public class BindsConfig : ConfigBase<BindsConfig>
     {
         [XmlIgnore]
-        public static BindsConfig Defaults { get { return new BindsConfig { bindData = DefaultBinds }; } }
+        public new static BindsConfig Defaults { get { return new BindsConfig { bindData = DefaultBinds }; } }
 
         [XmlIgnore]
         public static KeyBindData[] DefaultBinds
@@ -28,7 +28,7 @@ namespace DarkHelmet.BuildVision2
                 return copy;
             }
         }
-        
+
         private static readonly KeyBindData[] defaultBinds = new KeyBindData[]
         {
             new KeyBindData("open", new string[] { "control", "middlebutton" }),
@@ -47,7 +47,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Checks any if fields have invalid values and resets them to the default if necessary.
         /// </summary>
-        public void Validate()
+        public override void Validate()
         {
             if (bindData == null || bindData.Length != defaultBinds.Length)
                 bindData = DefaultBinds;
@@ -144,7 +144,6 @@ namespace DarkHelmet.BuildVision2
         private static Dictionary<string, Control> controls;
         private static List<Control> controlList;
 
-        private static BvMain Main { get { return BvMain.Instance; } }
         private KeyBind[] keyBinds;
         private List<Control> usedControls;
         private bool[,] controlBindMap; // X = used controls; Y = associated key binds

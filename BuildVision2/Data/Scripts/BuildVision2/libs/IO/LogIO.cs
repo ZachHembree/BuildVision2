@@ -1,31 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DarkHelmet.BuildVision2
+namespace DarkHelmet.IO
 {
     /// <summary>
     /// Handles logging; singleton
     /// </summary>
     internal sealed class LogIO
     {
-        public bool Accessible { get; private set; }
         public static LogIO Instance { get; private set; }
+        public bool Accessible { get; private set; }
 
-        private static BvMain Main { get { return BvMain.Instance; } }
+        private readonly Action<string> SendMessage;
         private readonly LocalFileIO logFile;
         private readonly TaskPool taskPool;
 
-        private LogIO(string fileName)
+        private LogIO(string fileName, Action<string> SendMessage)
         {
             Accessible = true;
             logFile = new LocalFileIO(fileName);
+            this.SendMessage = SendMessage;
             taskPool = new TaskPool(1, ErrorCallback);
         }
 
-        public static void Init(string fileName)
+        public static void Init(string fileName, Action<string> SendMessage)
         {
             if (Instance == null)
-                Instance = new LogIO(fileName);
+                Instance = new LogIO(fileName, SendMessage);
+        }
+
+        public void Close()
+        {
+            Instance = null;
         }
 
         /// <summary>
@@ -35,7 +41,7 @@ namespace DarkHelmet.BuildVision2
         public void Update() =>
             taskPool.Update();
 
-        private void ErrorCallback(List<BvException> known, BvAggregateException unknown)
+        private void ErrorCallback(List<DhException> known, AggregateException unknown)
         {
             if ((known != null && known.Count > 0) || unknown != null)
             {
@@ -43,16 +49,11 @@ namespace DarkHelmet.BuildVision2
 
                 if (known != null && known.Count > 0)
                     foreach (Exception e in known)
-                        Main.SendChatMessage(e.Message);
+                        SendMessage(e.Message);
 
                 if (unknown != null)
                     throw unknown;
             }
-        }
-
-        public void Close()
-        {
-            Instance = null;
         }
 
         /// <summary>
@@ -63,17 +64,17 @@ namespace DarkHelmet.BuildVision2
             if (Accessible)
             {
                 message = $"[{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss:ms")}] {message}";
-                BvException exception = logFile.TryAppend(message);
+                DhException exception = logFile.TryAppend(message);
 
                 if (exception != null)
                 {
-                    Main.SendChatMessage("Unable to update log; please check your file access permissions.");
+                    SendMessage("Unable to update log; please check your file access permissions.");
                     Accessible = false;
                     throw exception;
                 }
                 else
                 {
-                    Main.SendChatMessage("Log updated.");
+                    SendMessage("Log updated.");
                     Accessible = true;
                     return true;
                 }
@@ -93,7 +94,7 @@ namespace DarkHelmet.BuildVision2
 
                 taskPool.EnqueueTask(() =>
                 {
-                    BvException exception = logFile.TryAppend(message);
+                    DhException exception = logFile.TryAppend(message);
 
                     if (exception != null)
                     {
@@ -111,14 +112,14 @@ namespace DarkHelmet.BuildVision2
             if (!success)
             {
                 if (Accessible)
-                    Main.SendChatMessage("Unable to update log; please check your file access permissions.");
+                    SendMessage("Unable to update log; please check your file access permissions.");
 
                 Accessible = false;
             }
             else
             {
                 if (Accessible)
-                    Main.SendChatMessage("Log updated.");
+                    SendMessage("Log updated.");
 
                 Accessible = true;
             }

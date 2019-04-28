@@ -5,10 +5,10 @@ using VRageMath;
 using VRage.Utils;
 using VRage.Game;
 using System;
-using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
-using MenuFlag = DarkHelmet.BuildVision2.HudAPIv2.MenuRootCategory.MenuFlag;
+using DarkHelmet.TextHudApi;
+using MenuFlag = DarkHelmet.TextHudApi.HudAPIv2.MenuRootCategory.MenuFlag;
 
-namespace DarkHelmet.BuildVision2
+namespace DarkHelmet.UI
 {
     /// <summary>
     /// Collection of tools used to make working with the Text Hud API and general GUI stuff easier.

@@ -3,7 +3,7 @@ using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
 
-namespace DarkHelmet.BuildVision2
+namespace DarkHelmet.Game
 {
     /// <summary>
     /// Wrapper for various local player related fields and methods.
