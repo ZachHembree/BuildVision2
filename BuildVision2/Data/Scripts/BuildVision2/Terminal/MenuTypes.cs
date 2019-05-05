@@ -7,6 +7,7 @@ using VRageMath;
 using VRage.Utils;
 using System.Xml.Serialization;
 using DarkHelmet.UI;
+using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {

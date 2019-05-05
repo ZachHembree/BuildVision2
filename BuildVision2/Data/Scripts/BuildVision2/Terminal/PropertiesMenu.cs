@@ -28,7 +28,7 @@ namespace DarkHelmet.BuildVision2
         public ApiHudConfig ApiHudConfig { get { return apiHud.Cfg; } set { apiHud.Cfg = value; } }
         public NotifHudConfig NotifHudConfig { get { return fallbackHud.Cfg; } set { fallbackHud.Cfg = value; } }
 
-        private static Binds Binds { get { return Binds.Instance; } }
+        private static KeyBinds KeyBinds { get { return KeyBinds.Instance; } }
         private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
         private PropertyBlock target;
 
@@ -132,7 +132,7 @@ namespace DarkHelmet.BuildVision2
         {
             int scrolllDir = GetScrollDir(), action = index - target.Properties.Count;
 
-            if (Binds.select.IsNewPressed)
+            if (KeyBinds.Select.IsNewPressed)
             {
                 if (index >= target.Properties.Count)
                     target.Actions[action].Action();
@@ -156,9 +156,9 @@ namespace DarkHelmet.BuildVision2
 
         private int GetScrollDir()
         {
-            if ((Binds.scrollUp.Analog && Binds.scrollUp.IsPressed) || Binds.scrollUp.IsNewPressed)
+            if ((KeyBinds.ScrollUp.Analog && KeyBinds.ScrollUp.IsPressed) || KeyBinds.ScrollUp.IsNewPressed)
                 return 1;
-            else if ((Binds.scrollDown.Analog && Binds.scrollDown.IsPressed) || Binds.scrollDown.IsNewPressed)
+            else if ((KeyBinds.ScrollDown.Analog && KeyBinds.ScrollDown.IsPressed) || KeyBinds.ScrollDown.IsNewPressed)
                 return -1;
             else
                 return 0;

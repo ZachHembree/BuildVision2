@@ -1,5 +1,6 @@
 ﻿using VRageMath;
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Sandbox.ModAPI;
 
@@ -182,6 +183,22 @@ namespace DarkHelmet
                 trimmed[n - i] = arr[n];
 
             return trimmed;
+        }
+
+        /// <summary>
+        /// Gets list containing only unique items.
+        /// </summary>
+        public static List<T> GetUniqueList<T>(IList<T> original)
+        {
+            List<T> unique = new List<T>(original.Count);
+
+            for (int n = 0; n < original.Count; n++)
+            {
+                if (!unique.Contains(original[n]))
+                    unique.Add(original[n]);
+            }
+
+            return unique;
         }
     }
 }

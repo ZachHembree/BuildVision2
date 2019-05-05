@@ -85,7 +85,7 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private static Binds Binds { get { return Binds.Instance; } }
+        private static KeyBinds KeyBinds { get { return KeyBinds.Instance; } }
         private static PropBlockConfig cfg;
 
         static PropertyBlock()
@@ -566,9 +566,9 @@ namespace DarkHelmet.BuildVision2
             private float GetIncrement()
             {
                 bool
-                    multA = Binds.multX.IsPressed,
-                    multB = Binds.multY.IsPressed,
-                    multC = Binds.multZ.IsPressed;
+                    multA = KeyBinds.MultX.IsPressed,
+                    multB = KeyBinds.MultY.IsPressed,
+                    multC = KeyBinds.MultZ.IsPressed;
 
                 if (multC)
                     return incrC; // x64
@@ -669,9 +669,9 @@ namespace DarkHelmet.BuildVision2
             private int GetIncrement()
             {
                 bool
-                    multA = Binds.multX.IsPressed,
-                    multB = Binds.multY.IsPressed,
-                    multC = Binds.multZ.IsPressed;
+                    multA = KeyBinds.MultX.IsPressed,
+                    multB = KeyBinds.MultY.IsPressed,
+                    multC = KeyBinds.MultZ.IsPressed;
 
                 if (multC)
                     return incrC; // x64

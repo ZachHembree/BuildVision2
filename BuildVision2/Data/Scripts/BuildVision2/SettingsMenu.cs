@@ -2,6 +2,7 @@
 using System;
 using VRageMath;
 using DarkHelmet.UI;
+using DarkHelmet.Input;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -13,9 +14,9 @@ namespace DarkHelmet.BuildVision2
         public static SettingsMenu Instance { get; private set; }
 
         private static BvMain Main { get { return BvMain.Instance; } }
-        private static Binds Binds { get { return Binds.Instance; } }
+        private static KeyBinds KeyBinds { get { return KeyBinds.Instance; } }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
-        private static ChatCommands Cmd { get { return ChatCommands.Instance; } }
+        private static ChatCommands ChatCommands { get { return ChatCommands.Instance; } }
         private static HudUtilities.MenuRoot SettingsMenuRoot { get { return HudUtilities.MenuRoot.Instance; } }
 
         /// <summary>
@@ -29,14 +30,14 @@ namespace DarkHelmet.BuildVision2
             {
                 // General Settings
                 new HudUtilities.MenuButton(
-                    () => $"Force Fallback Hud: {Main.Cfg.forceFallbackHud}",
-                    () => Main.Cfg.forceFallbackHud = !Main.Cfg.forceFallbackHud),
+                    () => $"Force Fallback Hud: {Main.Cfg.general.forceFallbackHud}",
+                    () => Main.Cfg.general.forceFallbackHud = !Main.Cfg.general.forceFallbackHud),
                 new HudUtilities.MenuButton(
-                    () => $"Close If Not In View: {Main.Cfg.closeIfNotInView}",
-                    () => Main.Cfg.closeIfNotInView = !Main.Cfg.closeIfNotInView),
+                    () => $"Close If Not In View: {Main.Cfg.general.closeIfNotInView}",
+                    () => Main.Cfg.general.closeIfNotInView = !Main.Cfg.general.closeIfNotInView),
                 new HudUtilities.MenuButton(
-                    () => $"Can Open While Holding Tools: {Main.Cfg.canOpenIfHolding}",
-                    () => Main.Cfg.canOpenIfHolding = !Main.Cfg.canOpenIfHolding),
+                    () => $"Can Open While Holding Tools: {Main.Cfg.general.canOpenIfHolding}",
+                    () => Main.Cfg.general.canOpenIfHolding = !Main.Cfg.general.canOpenIfHolding),
 
                 // GUI Settings
                 new HudUtilities.MenuCategory("GUI Settings", "GUI Settings", new List<HudUtilities.IMenuElement>()
@@ -183,7 +184,7 @@ namespace DarkHelmet.BuildVision2
                 // General Settings Continued
                 new HudUtilities.MenuButton(
                     () => "Open Help Menu",
-                    () => Main.ShowMissionScreen("Help", Cmd.GetHelpMessage())),
+                    () => Main.ShowMissionScreen("Help", ChatCommands.GetHelpMessage())),
                 new HudUtilities.MenuButton(
                     () => "Reset Config",
                     () => Main.ResetConfig()),
@@ -198,26 +199,30 @@ namespace DarkHelmet.BuildVision2
 
         private List<HudUtilities.IMenuElement> GetBindSettings()
         {
-            List<HudUtilities.IMenuElement> bindSettings = new List<HudUtilities.IMenuElement>(Binds.Count + 2);
+            List<HudUtilities.IMenuElement> bindSettings = new List<HudUtilities.IMenuElement>(KeyBinds.BindManager.Count + 2);
 
-            foreach (IKeyBind bind in Binds.KeyBinds)
+            for (int n = 0; n < KeyBinds.BindManager.Count; n++)
             {
-                bindSettings.Add(new HudUtilities.MenuTextInput(bind.Name, "Enter Control Names", 
+                bindSettings.Add(new HudUtilities.MenuTextInput(
+                    KeyBinds.BindManager[n].Name, 
+                    "Enter Control Names", 
                     (string input) =>
                     {
                         string[] args;
                         input = input.ToLower();
 
-                        if (Cmd.TryParseCommand($"{bind.Name} {input}", out args))
-                            Binds.TryUpdateBind(bind.Name, args);
+                        if (ChatCommands.CmdManager.TryParseCommand($"{KeyBinds.BindManager[n].Name} {input}", out args))
+                            KeyBinds.BindManager.TryUpdateBind(KeyBinds.BindManager[n].Name, args);
                     }));
             }
 
-            bindSettings.Add(new HudUtilities.MenuButton(() => "Open Bind Help Menu",
-                () => Main.ShowMissionScreen("Bind Help", Cmd.GetBindHelpMessage())));
+            bindSettings.Add(new HudUtilities.MenuButton(
+                () => "Open Bind Help Menu",
+                () => Main.ShowMissionScreen("Bind Help", ChatCommands.GetBindHelpMessage())));
 
-            bindSettings.Add(new HudUtilities.MenuButton(() => "Reset Binds",
-                () => Binds.TryUpdateConfig(BindsConfig.Defaults)));
+            bindSettings.Add(new HudUtilities.MenuButton(
+                () => "Reset Binds",
+                () => KeyBinds.Cfg = BindsConfig.Defaults));
 
             return bindSettings;
         }

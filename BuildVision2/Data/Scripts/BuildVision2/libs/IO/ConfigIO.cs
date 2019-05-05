@@ -5,18 +5,13 @@ using System.Collections.Generic;
 
 namespace DarkHelmet.IO
 {
-    public interface IConfigurable<TConfig> where TConfig : ConfigBase<TConfig>
-    {
-        TConfig Cfg { get; }
-    }
-
     /// <summary>
     /// Generic base for serializable config types. ConfigBase.Defaults must be hidden with a new implimentation
     /// for each config type.
     /// </summary>
     public abstract class ConfigBase<TConfig> where TConfig : ConfigBase<TConfig>
     {
-        public static TConfig Defaults { get { throw new NotImplementedException(); } }
+        public static TConfig Defaults { get { throw new Exception("ConfigBase.Defaults has not been implemented."); } }
 
         public abstract void Validate();
     }
@@ -138,7 +133,7 @@ namespace DarkHelmet.IO
         {
             if (cfg != null)
             {
-                if (cfg.VersionID == ConfigBase<TConfig>.Defaults.VersionID)
+                if (cfg.VersionID == ConfigRootBase<TConfig>.Defaults.VersionID)
                     cfg.Validate();
                 else
                 {
@@ -157,7 +152,7 @@ namespace DarkHelmet.IO
                 taskPool.EnqueueAction(() =>
                     SendMessage("Unable to load configuration. Loading default settings..."));
 
-                return ConfigBase<TConfig>.Defaults;
+                return ConfigRootBase<TConfig>.Defaults;
             }
         }
 
@@ -266,7 +261,7 @@ namespace DarkHelmet.IO
             if (exception != null)
             {
                 Backup();
-                TrySave(ConfigBase<TConfig>.Defaults);
+                TrySave(ConfigRootBase<TConfig>.Defaults);
             }
 
             return exception;

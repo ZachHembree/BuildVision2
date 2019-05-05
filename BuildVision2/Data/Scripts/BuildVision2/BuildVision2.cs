@@ -109,7 +109,7 @@ namespace DarkHelmet.BuildVision2
 
         public static LogIO Log { get { return LogIO.Instance; } }
         private static ConfigIO<BvConfig> ConfigIO { get { return ConfigIO<BvConfig>.Instance; } }
-        private static Binds Binds { get { return Binds.Instance; } }
+        private static KeyBinds Binds { get { return KeyBinds.Instance; } }
         private static ChatCommands Cmd { get { return ChatCommands.Instance; } }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
         private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
@@ -169,8 +169,8 @@ namespace DarkHelmet.BuildVision2
             if (!init && initStart)
             {
                 this.Cfg = cfg;
-                Binds.Init(cfg.binds);
-                ChatCommands.Init(cmdPrefix);
+                KeyBinds.Init(SendChatMessage, cfg.binds);
+                ChatCommands.Init(SendChatMessage, cmdPrefix);
                 HudUtilities.Init();
                 SettingsMenu.Init();
                 PropertiesMenu.Init(cfg.menu);
@@ -271,10 +271,10 @@ namespace DarkHelmet.BuildVision2
                 if (menuOpen)
                     Menu.Update(Cfg.general.forceFallbackHud);
 
-                if (Binds.open.IsNewPressed)
+                if (Binds.Open.IsNewPressed)
                     TryOpenMenu();
 
-                if (Binds.close.IsNewPressed || !CanAccessTargetBlock())
+                if (Binds.Hide.IsNewPressed || !CanAccessTargetBlock())
                     TryCloseMenu();
             }
         }

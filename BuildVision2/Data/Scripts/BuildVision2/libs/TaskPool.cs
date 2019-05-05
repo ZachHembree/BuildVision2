@@ -25,33 +25,7 @@ namespace DarkHelmet
         public AggregateException(IList<AggregateException> exceptions) : base(GetExceptionMessages(exceptions))
         { }
 
-        private static string GetExceptionMessages(IList<DhException> exceptions)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            for (int n = 0; n < exceptions.Count; n++)
-                if (n != exceptions.Count - 1)
-                    sb.Append($"{exceptions[n].ToString()}\n");
-                else
-                    sb.Append($"{exceptions[n].ToString()}");
-
-            return sb.ToString();
-        }
-
-        private static string GetExceptionMessages(IList<Exception> exceptions)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            for (int n = 0; n < exceptions.Count; n++)
-                if (n != exceptions.Count - 1)
-                    sb.Append($"{exceptions[n].ToString()}\n");
-                else
-                    sb.Append($"{exceptions[n].ToString()}");
-
-            return sb.ToString();
-        }
-
-        private static string GetExceptionMessages(IList<AggregateException> exceptions)
+        private static string GetExceptionMessages<T>(IList<T> exceptions) where T : Exception
         {
             StringBuilder sb = new StringBuilder();
 
@@ -79,15 +53,13 @@ namespace DarkHelmet
 
     internal class TaskPool
     {
-        public delegate void ErrorCallback(List<DhException> known, AggregateException unknown);
-
         private readonly ConcurrentQueue<Action> actions;
         private readonly Queue<Action> tasksWaiting;
         private Queue<Task> tasksRunning;
         private readonly int maxTasksRunning;
-        private readonly ErrorCallback errorCallback;
+        private readonly Action<List<DhException>, AggregateException> errorCallback;
 
-        public TaskPool(int maxTasksRunning, ErrorCallback errorCallback)
+        public TaskPool(int maxTasksRunning, Action<List<DhException>, AggregateException> errorCallback)
         {
             this.maxTasksRunning = maxTasksRunning;
             this.errorCallback = errorCallback;
