@@ -350,7 +350,7 @@ namespace DarkHelmet.UI
                 {
                     hudMessage = new HudAPIv2.HUDMessage
                     {
-                        Blend = BlendTypeEnum.LDR,
+                        Blend = BlendTypeEnum.PostPP,
                         Scale = Scale,
                         Options = HudAPIv2.Options.Fixed,
                         Visible = false,
@@ -455,7 +455,7 @@ namespace DarkHelmet.UI
                         (float)boardSize.X,
                         (float)boardSize.Y,
                         Vector2.Zero,
-                        BlendTypeEnum.LDR
+                        BlendTypeEnum.PostPP
                     );
                 }
             }

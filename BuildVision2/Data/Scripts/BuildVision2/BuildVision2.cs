@@ -177,7 +177,7 @@ namespace DarkHelmet.BuildVision2
                 PropertyBlock.Cfg = cfg.propertyBlock;
 
                 init = true;
-                MyAPIGateway.Utilities.ShowMessage("Build Vision 2", $"Type {cmdPrefix} help for help. All settings are available through the mod menu.");
+                MyAPIGateway.Utilities.ShowMessage("Build Vision 2", $"Type {cmdPrefix} help for help. All settings available through the mod menu.");
             }
         }
 
