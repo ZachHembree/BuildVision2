@@ -154,7 +154,11 @@ namespace DarkHelmet.Input
         public bool TryAddBind(string bindName, bool silent = false)
         {
             if (!DoesBindExist(bindName))
+            {
                 keyBinds.Add(new KeyBind(bindName));
+
+                return true;
+            }
             else if (!silent)
                 Instance.SendMessage($"Bind {bindName} already exists.");
 
@@ -187,6 +191,8 @@ namespace DarkHelmet.Input
 
                 if (bind.controlNames != null)
                     TryUpdateBind(bind.name, bind.controlNames, silent);
+
+                return true;
             }
             else if (!silent)
                 Instance.SendMessage($"Bind {bind.name} already exists.");
@@ -204,9 +210,14 @@ namespace DarkHelmet.Input
 
             if (bindData != null && bindData.Length > 0)
             {
+                foreach (KeyBind bind in Instance.keyBinds)
+                {
+                    newBinds.TryAddBind(bind.Name, true);
+                }
+
                 foreach (KeyBindData bind in bindData)
                 {
-                    if (!newBinds.TryAddBind(bind, true))
+                    if (!newBinds.TryUpdateBind(bind.name, bind.controlNames, true))
                     {
                         bindError = true;
                         break;
@@ -215,7 +226,7 @@ namespace DarkHelmet.Input
 
                 if (bindError)
                 {
-                    Instance.SendMessage("One or more keybinds in the given configuration were invalid or conflict.");
+                    Instance.SendMessage("One or more keybinds in the given configuration were invalid or conflict with oneanother.");
                     return false;
                 }
                 else

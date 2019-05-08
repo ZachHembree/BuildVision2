@@ -45,6 +45,7 @@ namespace DarkHelmet.Input
         /// </summary>
         private CmdManager(Action<string> SendMessage, string prefix, Command[] commands)
         {
+            this.SendMessage = SendMessage;
             this.prefix = prefix;
             this.commands = commands;
             cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)(\w+))+");

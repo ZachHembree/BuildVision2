@@ -18,22 +18,6 @@ namespace DarkHelmet.BuildVision2
     [XmlRoot, XmlType(TypeName = "BuildVisionSettings")]
     public class BvConfig : ConfigRootBase<BvConfig>
     {
-        [XmlIgnore]
-        public new static BvConfig Defaults
-        {
-            get
-            {
-                return new BvConfig
-                {
-                    VersionID = 5,
-                    general = GeneralConfig.Defaults,
-                    menu = PropMenuConfig.Defaults,
-                    propertyBlock = PropBlockConfig.Defaults,
-                    binds = BindsConfig.Defaults
-                };
-            }
-        }
-
         [XmlElement(ElementName = "GeneralSettings")]
         public GeneralConfig general;
 
@@ -60,8 +44,25 @@ namespace DarkHelmet.BuildVision2
             };
         }
 
+        public override BvConfig GetDefaults()
+        {
+            return new BvConfig
+            {
+                VersionID = 5,
+                general = GeneralConfig.Defaults,
+                menu = PropMenuConfig.Defaults,
+                propertyBlock = PropBlockConfig.Defaults,
+                binds = BindsConfig.Defaults
+            };
+        }
+
         public override void Validate()
         {
+            Utilities.Assert(general != null, "General Is Null");
+            Utilities.Assert(menu != null, "Menu Is Null");
+            Utilities.Assert(binds != null, "Binds Is Null");
+            Utilities.Assert(propertyBlock != null, "propertyBlock Is Null");
+
             if (VersionID < 5)
                 propertyBlock = PropBlockConfig.Defaults;
 
@@ -95,20 +96,6 @@ namespace DarkHelmet.BuildVision2
 
     public class GeneralConfig : ConfigBase<GeneralConfig>
     {
-        [XmlIgnore]
-        public new static GeneralConfig Defaults
-        {
-            get
-            {
-                return new GeneralConfig
-                {
-                    forceFallbackHud = false,
-                    closeIfNotInView = true,
-                    canOpenIfHolding = true
-                };
-            }
-        }
-
         [XmlElement(ElementName = "ForceFallbackHud")]
         public bool forceFallbackHud;
 
@@ -118,30 +105,36 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "CanOpenIfHandsNotEmpty")]
         public bool canOpenIfHolding;
 
+        public override GeneralConfig GetDefaults()
+        {
+            return new GeneralConfig
+            {
+                forceFallbackHud = false,
+                closeIfNotInView = true,
+                canOpenIfHolding = true
+            };
+        }
+
         public override void Validate()
         { }
     }
 
     public class PropMenuConfig : ConfigBase<PropMenuConfig>
     {
-        [XmlIgnore]
-        public new static PropMenuConfig Defaults
-        {
-            get
-            {
-                return new PropMenuConfig
-                {
-                    apiHudConfig = ApiHudConfig.Defaults,
-                    fallbackHudConfig = NotifHudConfig.Defaults
-                };
-            }
-        }
-
         [XmlElement(ElementName = "ApiHudSettings")]
         public ApiHudConfig apiHudConfig;
 
         [XmlElement(ElementName = "FallbackHudSettings")]
         public NotifHudConfig fallbackHudConfig;
+
+        public override PropMenuConfig GetDefaults()
+        {
+            return new PropMenuConfig
+            {
+                apiHudConfig = ApiHudConfig.Defaults,
+                fallbackHudConfig = NotifHudConfig.Defaults
+            };
+        }
 
         public override void Validate()
         {
@@ -162,23 +155,6 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public class ApiHudConfig : ConfigBase<ApiHudConfig>
     {
-        [XmlIgnore]
-        public new static ApiHudConfig Defaults
-        {
-            get
-            {
-                return new ApiHudConfig
-                {
-                    hudScale = 1f,
-                    maxVisible = 11,
-                    hideIfNotVis = true,
-                    clampHudPos = true,
-                    forceToCenter = false,
-                    colors = Colors.Defaults
-                };
-            }
-        }
-
         [XmlElement(ElementName = "HudScale")]
         public float hudScale;
 
@@ -199,25 +175,6 @@ namespace DarkHelmet.BuildVision2
 
         public class Colors : ConfigBase<Colors>
         {
-            [XmlIgnore]
-            public new static Colors Defaults
-            {
-                get
-                {
-                    return new Colors
-                    {
-                        bodyText = "210,235,245",
-                        headerText = "210,235,245",
-                        blockIncText = "200,15,15",
-                        highlightText = "200,170,0",
-                        selectedText = "30,200,30",
-                        backgroundColor = new Color(60, 65, 70, 190),
-                        selectionBoxColor = new Color(41, 54, 62, 255),
-                        headerColor = new Color(54, 66, 76, 240)
-                    };
-                }
-            }
-
             [XmlIgnore]
             public Color backgroundColor, selectionBoxColor, headerColor;
 
@@ -244,6 +201,21 @@ namespace DarkHelmet.BuildVision2
 
             [XmlElement(ElementName = "HeaderBg")]
             public string headerColorData;
+
+            public override Colors GetDefaults()
+            {
+                return new Colors
+                {
+                    bodyText = "210,235,245",
+                    headerText = "210,235,245",
+                    blockIncText = "200,15,15",
+                    highlightText = "200,170,0",
+                    selectedText = "30,200,30",
+                    backgroundColor = new Color(60, 65, 70, 190),
+                    selectionBoxColor = new Color(41, 54, 62, 255),
+                    headerColor = new Color(54, 66, 76, 240)
+                };
+            }
 
             /// <summary>
             /// Checks any if fields have invalid values and resets them to the default if necessary.
@@ -284,6 +256,19 @@ namespace DarkHelmet.BuildVision2
 
         public ApiHudConfig() { }
 
+        public override ApiHudConfig GetDefaults()
+        {
+            return new ApiHudConfig
+            {
+                hudScale = 1f,
+                maxVisible = 11,
+                hideIfNotVis = true,
+                clampHudPos = true,
+                forceToCenter = false,
+                colors = Colors.Defaults
+            };
+        }
+
         /// <summary>
         /// Checks any if fields have invalid values and resets them to the default if necessary.
         /// </summary>
@@ -309,20 +294,16 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public class NotifHudConfig : ConfigBase<NotifHudConfig>
     {
-        [XmlIgnore]
-        public new static NotifHudConfig Defaults
-        {
-            get
-            {
-                return new NotifHudConfig
-                {
-                    maxVisible = 8
-                };
-            }
-        }
-
         [XmlElement(ElementName = "MaxVisibleItems")]
         public int maxVisible;
+
+        public override NotifHudConfig GetDefaults()
+        {
+            return new NotifHudConfig
+            {
+                maxVisible = 8
+            };
+        }
 
         /// <summary>
         /// Checks any if fields have invalid values and resets them to the default if necessary.
@@ -339,20 +320,6 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public class PropBlockConfig : ConfigBase<PropBlockConfig>
     {
-        [XmlIgnore]
-        public new static PropBlockConfig Defaults
-        {
-            get
-            {
-                return new PropBlockConfig
-                {
-                    floatDiv = 100.0,
-                    floatMult = new Vector3(.1f, 5f, 10f),
-                    colorMult = new Vector3I(8, 16, 64)
-                };
-            }
-        }
-
         [XmlElement(ElementName = "FloatIncrementDivisor")]
         public double floatDiv;
 
@@ -361,6 +328,16 @@ namespace DarkHelmet.BuildVision2
 
         [XmlElement(ElementName = "ColorPropertyMultipliers")]
         public Vector3I colorMult;
+
+        public override PropBlockConfig GetDefaults()
+        {
+            return new PropBlockConfig
+            {
+                floatDiv = 100.0,
+                floatMult = new Vector3(.1f, 5f, 10f),
+                colorMult = new Vector3I(8, 16, 64)
+            };
+        }
 
         /// <summary>
         /// Checks for any fields that have invalid values and resets them to the default if necessary.
@@ -391,6 +368,55 @@ namespace DarkHelmet.BuildVision2
 
             if (colorMult.Z <= 0)
                 colorMult.Z = defaults.colorMult.Z;
+        }
+    }
+
+    /// <summary>
+    /// Stores data for serializing the configuration of the Binds class.
+    /// </summary>
+    public class BindsConfig : ConfigBase<BindsConfig>
+    {
+        [XmlIgnore]
+        public static KeyBindData[] DefaultBinds
+        {
+            get
+            {
+                KeyBindData[] copy = new KeyBindData[defaultBinds.Length];
+
+                for (int n = 0; n < defaultBinds.Length; n++)
+                    copy[n] = defaultBinds[n];
+
+                return copy;
+            }
+        }
+
+        private static readonly KeyBindData[] defaultBinds = new KeyBindData[]
+        {
+            new KeyBindData("open", new string[] { "control", "middlebutton" }),
+            new KeyBindData("close", new string[] { "shift", "middlebutton" }),
+            new KeyBindData("select", new string[] { "middlebutton" }),
+            new KeyBindData("scrollup", new string[] { "mousewheelup" }),
+            new KeyBindData("scrolldown", new string[] { "mousewheeldown" }),
+            new KeyBindData("multx", new string[] { "control" }),
+            new KeyBindData("multy", new string[] { "shift" }),
+            new KeyBindData("multz", new string[] { "control", "shift" })
+        };
+
+        [XmlArray("KeyBinds")]
+        public KeyBindData[] bindData;
+
+        public override BindsConfig GetDefaults()
+        {
+            return new BindsConfig { bindData = DefaultBinds };
+        }
+
+        /// <summary>
+        /// Checks any if fields have invalid values and resets them to the default if necessary.
+        /// </summary>
+        public override void Validate()
+        {
+            if (bindData == null || bindData.Length != defaultBinds.Length)
+                bindData = DefaultBinds;
         }
     }
 }

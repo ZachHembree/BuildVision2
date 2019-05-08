@@ -9,14 +9,28 @@ namespace DarkHelmet.IO
     /// Generic base for serializable config types. ConfigBase.Defaults must be hidden with a new implimentation
     /// for each config type.
     /// </summary>
-    public abstract class ConfigBase<TConfig> where TConfig : ConfigBase<TConfig>
+    public abstract class ConfigBase<TConfig> where TConfig : ConfigBase<TConfig>, new()
     {
-        public static TConfig Defaults { get { throw new Exception("ConfigBase.Defaults has not been implemented."); } }
+        [XmlIgnore]
+        public static TConfig Defaults
+        {
+            get
+            {
+                if (defaults == null)
+                    defaults = new TConfig().GetDefaults();
+
+                return defaults;
+            }
+        }
+
+        private static TConfig defaults;
+
+        public abstract TConfig GetDefaults();
 
         public abstract void Validate();
     }
 
-    public abstract class ConfigRootBase<TConfig> : ConfigBase<TConfig> where TConfig : ConfigBase<TConfig>
+    public abstract class ConfigRootBase<TConfig> : ConfigBase<TConfig> where TConfig : ConfigRootBase<TConfig>, new()
     {
         public virtual int VersionID { get; set; }
     }
@@ -24,7 +38,7 @@ namespace DarkHelmet.IO
     /// <summary>
     /// Handles loading/saving configuration data; singleton
     /// </summary>
-    internal sealed class ConfigIO<TConfig> where TConfig : ConfigRootBase<TConfig>
+    internal sealed class ConfigIO<TConfig> where TConfig : ConfigRootBase<TConfig>, new()
     {
         public static ConfigIO<TConfig> Instance { get; private set; }
         public delegate void ConfigDataCallback(TConfig cfg);
