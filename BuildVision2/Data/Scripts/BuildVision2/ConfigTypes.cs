@@ -58,11 +58,6 @@ namespace DarkHelmet.BuildVision2
 
         public override void Validate()
         {
-            Utilities.Assert(general != null, "General Is Null");
-            Utilities.Assert(menu != null, "Menu Is Null");
-            Utilities.Assert(binds != null, "Binds Is Null");
-            Utilities.Assert(propertyBlock != null, "propertyBlock Is Null");
-
             if (VersionID < 5)
                 propertyBlock = PropBlockConfig.Defaults;
 
