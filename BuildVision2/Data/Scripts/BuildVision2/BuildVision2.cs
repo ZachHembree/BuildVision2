@@ -6,7 +6,7 @@ using System;
 using System.Xml.Serialization;
 using DarkHelmet.IO;
 using DarkHelmet.UI;
-using DarkHelmet.Input;
+using DarkHelmet.UI;
 using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2

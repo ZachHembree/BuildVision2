@@ -2,7 +2,7 @@
 using System;
 using System.Xml.Serialization;
 using System.Collections.Generic;
-using DarkHelmet.Input;
+using DarkHelmet.UI;
 using DarkHelmet.IO;
 
 namespace DarkHelmet.BuildVision2

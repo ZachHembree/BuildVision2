@@ -20,6 +20,7 @@ namespace DarkHelmet.IO
             Accessible = true;
             logFile = new LocalFileIO(fileName);
             this.SendMessage = SendMessage;
+
             taskPool = new TaskPool(1, ErrorCallback);
         }
 
@@ -41,7 +42,7 @@ namespace DarkHelmet.IO
         public void Update() =>
             taskPool.Update();
 
-        private void ErrorCallback(List<DhException> known, AggregateException unknown)
+        private void ErrorCallback(List<IOException> known, AggregateException unknown)
         {
             if ((known != null && known.Count > 0) || unknown != null)
             {
@@ -64,7 +65,7 @@ namespace DarkHelmet.IO
             if (Accessible)
             {
                 message = $"[{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss:ms")}] {message}";
-                DhException exception = logFile.TryAppend(message);
+                IOException exception = logFile.TryAppend(message);
 
                 if (exception != null)
                 {
@@ -94,7 +95,7 @@ namespace DarkHelmet.IO
 
                 taskPool.EnqueueTask(() =>
                 {
-                    DhException exception = logFile.TryAppend(message);
+                    IOException exception = logFile.TryAppend(message);
 
                     if (exception != null)
                     {

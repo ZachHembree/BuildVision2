@@ -2,7 +2,7 @@
 using Sandbox.ModAPI;
 using System.Text.RegularExpressions;
 
-namespace DarkHelmet.Input
+namespace DarkHelmet.UI
 {
     /// <summary>
     /// Stores chat command name and action

@@ -19,7 +19,7 @@ namespace DarkHelmet
         public AggregateException(IList<Exception> exceptions) : base(GetExceptionMessages(exceptions))
         { }
 
-        public AggregateException(IList<DhException> exceptions) : base(GetExceptionMessages(exceptions))
+        public AggregateException(IList<IOException> exceptions) : base(GetExceptionMessages(exceptions))
         { }
 
         public AggregateException(IList<AggregateException> exceptions) : base(GetExceptionMessages(exceptions))
@@ -39,15 +39,15 @@ namespace DarkHelmet
         }
     }
 
-    internal class DhException : Exception
+    internal class IOException : Exception
     {
-        public DhException() : base()
+        public IOException() : base()
         { }
 
-        public DhException(string message) : base(message)
+        public IOException(string message) : base(message)
         { }
 
-        public DhException(string message, Exception innerException) : base(message, innerException)
+        public IOException(string message, Exception innerException) : base(message, innerException)
         { }
     }
 
@@ -57,9 +57,9 @@ namespace DarkHelmet
         private readonly Queue<Action> tasksWaiting;
         private Queue<Task> tasksRunning;
         private readonly int maxTasksRunning;
-        private readonly Action<List<DhException>, AggregateException> errorCallback;
+        private readonly Action<List<IOException>, AggregateException> errorCallback;
 
-        public TaskPool(int maxTasksRunning, Action<List<DhException>, AggregateException> errorCallback)
+        public TaskPool(int maxTasksRunning, Action<List<IOException>, AggregateException> errorCallback)
         {
             this.maxTasksRunning = maxTasksRunning;
             this.errorCallback = errorCallback;
@@ -99,7 +99,7 @@ namespace DarkHelmet
         {
             Action action;
 
-            if (tasksWaiting.Count > 0 && tasksRunning.Count < 2)
+            if (tasksWaiting.Count > 0 && tasksRunning.Count <= maxTasksRunning)
             {
                 if (tasksWaiting.TryDequeue(out action))
                     tasksRunning.Enqueue(MyAPIGateway.Parallel.Start(action));
@@ -115,8 +115,8 @@ namespace DarkHelmet
             Task task;
             Queue<Task> currentTasks = new Queue<Task>();
             List<Exception> taskExceptions = new List<Exception>(); //unknown exceptions
-            List<DhException> knownExceptions = new List<DhException>(); 
-            DhException bvException = null;
+            List<IOException> knownExceptions = new List<IOException>(); 
+            IOException bvException = null;
             AggregateException unknownExceptions = null;
 
             while (tasksRunning.Count > 0)
@@ -150,9 +150,9 @@ namespace DarkHelmet
         /// <summary>
         /// Attempts to cast an Exception as BvException and returns true if successful.
         /// </summary>
-        private static bool TryGetBvException(Exception exception, out DhException bvException)
+        private static bool TryGetBvException(Exception exception, out IOException bvException)
         {
-            bvException = exception as DhException;
+            bvException = exception as IOException;
             return bvException != null;
         }
 

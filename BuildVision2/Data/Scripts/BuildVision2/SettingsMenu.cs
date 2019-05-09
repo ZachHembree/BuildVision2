@@ -2,7 +2,7 @@
 using System;
 using VRageMath;
 using DarkHelmet.UI;
-using DarkHelmet.Input;
+using DarkHelmet.UI;
 
 namespace DarkHelmet.BuildVision2
 {

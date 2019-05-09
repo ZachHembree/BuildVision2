@@ -73,10 +73,10 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BuildVision2.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\KeyBinds.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ChatCommands.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\libs\Input\CmdManager.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\libs\UI\CmdManager.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\libs\IO\ConfigIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\libs\IO\LocalFileIO.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\libs\Input\BindManager.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\libs\UI\BindManager.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\libs\UI\MenuUtilities.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\SettingsMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\libs\HudAPIv2.cs" />

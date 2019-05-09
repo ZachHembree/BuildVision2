@@ -1,7 +1,7 @@
 ﻿using System;
 using Sandbox.ModAPI;
 using System.Text.RegularExpressions;
-using DarkHelmet.Input;
+using DarkHelmet.UI;
 using DarkHelmet.UI;
 
 namespace DarkHelmet.BuildVision2

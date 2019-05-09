@@ -6,7 +6,7 @@ using VRage.Input;
 using Sandbox.ModAPI;
 using System.Collections;
 
-namespace DarkHelmet.Input
+namespace DarkHelmet.UI
 {
     /// <summary>
     /// Stores data for serializing individual key binds to XML.

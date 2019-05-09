@@ -54,6 +54,7 @@ namespace DarkHelmet.IO
             cfgFile = new LocalFileIO(configFileName);
             this.log = log;
             this.SendMessage = SendMessage;
+
             taskPool = new TaskPool(1, ErrorCallback);
             SaveInProgress = false;
         }
@@ -76,7 +77,7 @@ namespace DarkHelmet.IO
         public void Update() =>
             taskPool.Update();
 
-        private void ErrorCallback(List<DhException> known, AggregateException unknown)
+        private void ErrorCallback(List<IOException> known, AggregateException unknown)
         {
             if (known != null && known.Count > 0)
             {
@@ -115,7 +116,7 @@ namespace DarkHelmet.IO
                 taskPool.EnqueueTask(() =>
                 {
                     TConfig cfg;
-                    DhException loadException, saveException;
+                    IOException loadException, saveException;
 
                     loadException = TryLoad(out cfg);
                     cfg = ValidateConfig(cfg);
@@ -131,8 +132,7 @@ namespace DarkHelmet.IO
                         if (saveException != null)
                         {
                             log.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
-                            taskPool.EnqueueAction(() => 
-                                SendMessage("Unable to load or create configuration file."));
+                            taskPool.EnqueueAction(() => SendMessage("Unable to load or create configuration file."));
                         }
                     }
                     else
@@ -154,8 +154,7 @@ namespace DarkHelmet.IO
                     Backup();
                     cfg.Validate();
 
-                    taskPool.EnqueueAction(() => 
-                        SendMessage("Config version mismatch. Some settings may have " +
+                    taskPool.EnqueueAction(() => SendMessage("Config version mismatch. Some settings may have " +
                         "been reset. A backup of the original config file will be made."));
                 }
 
@@ -163,8 +162,7 @@ namespace DarkHelmet.IO
             }
             else
             {
-                taskPool.EnqueueAction(() =>
-                    SendMessage("Unable to load configuration. Loading default settings..."));
+                taskPool.EnqueueAction(() => SendMessage("Unable to load configuration. Loading default settings..."));
 
                 return ConfigRootBase<TConfig>.Defaults;
             }
@@ -197,7 +195,7 @@ namespace DarkHelmet.IO
                 taskPool.EnqueueTask(() =>
                 {
                     cfg.Validate();
-                    DhException exception = TrySave(cfg);
+                    IOException exception = TrySave(cfg);
 
                     if (exception != null)
                     {
@@ -236,7 +234,7 @@ namespace DarkHelmet.IO
             if (!SaveInProgress)
             {
                 cfg.Validate();
-                DhException exception = TrySave(cfg);
+                IOException exception = TrySave(cfg);
 
                 if (exception != null)
                     throw exception;
@@ -251,7 +249,7 @@ namespace DarkHelmet.IO
         {
             if (MyAPIGateway.Utilities.FileExistsInLocalStorage(cfgFile.file, typeof(TConfig)))
             {
-                DhException exception = cfgFile.TryDuplicate($"old_" + cfgFile.file);
+                IOException exception = cfgFile.TryDuplicate($"old_" + cfgFile.file);
 
                 if (exception != null)
                     throw exception;
@@ -261,11 +259,11 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Attempts to load config file and creates a new one if it can't.
         /// </summary>
-        private DhException TryLoad(out TConfig cfg)
+        private IOException TryLoad(out TConfig cfg)
         {
             string data;
-            DhException exception = cfgFile.TryRead(out data);
-            cfg = default(TConfig);
+            IOException exception = cfgFile.TryRead(out data);
+            cfg = null;
 
             if (exception != null || data == null)
                 return exception;
@@ -284,10 +282,10 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Attempts to save current configuration to a file.
         /// </summary>
-        private DhException TrySave(TConfig cfg)
+        private IOException TrySave(TConfig cfg)
         {
-            string xmlOut = null;
-            DhException exception = TrySerializeToXml(cfg, out xmlOut);
+            string xmlOut;
+            IOException exception = TrySerializeToXml(cfg, out xmlOut);
 
             if (exception == null && xmlOut != null)
                 exception = cfgFile.TryWrite(xmlOut);
@@ -298,9 +296,9 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Attempts to serialize an object to an Xml string.
         /// </summary>
-        private static DhException TrySerializeToXml<T>(T obj, out string xmlOut)
+        private static IOException TrySerializeToXml<T>(T obj, out string xmlOut)
         {
-            DhException exception = null;
+            IOException exception = null;
             xmlOut = null;
 
             try
@@ -309,7 +307,7 @@ namespace DarkHelmet.IO
             }
             catch (Exception e)
             {
-                exception = new DhException("IO Error. Failed to generate Xml.", e);
+                exception = new IOException("IO Error. Failed to generate XML.", e);
             }
 
             return exception;
@@ -318,9 +316,9 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Attempts to deserialize an Xml string to an object of a given type.
         /// </summary>
-        private static DhException TryDeserializeXml<T>(string xmlIn, out T obj)
+        private static IOException TryDeserializeXml<T>(string xmlIn, out T obj)
         {
-            DhException exception = null;
+            IOException exception = null;
             obj = default(T);
 
             try
@@ -329,7 +327,7 @@ namespace DarkHelmet.IO
             }
             catch (Exception e)
             {
-                exception = new DhException("IO Error. Unable to interpret XML.", e);
+                exception = new IOException("IO Error. Unable to interpret XML.", e);
             }
 
             return exception;

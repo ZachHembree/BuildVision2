@@ -24,10 +24,10 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Creates a local duplicate of a file with a given name.
         /// </summary>
-        public DhException TryDuplicate(string newName)
+        public IOException TryDuplicate(string newName)
         {
             string data;
-            DhException exception = TryRead(out data);
+            IOException exception = TryRead(out data);
             LocalFileIO newFile;
 
             if (exception == null && data != null)
@@ -42,10 +42,10 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Attempts to append string to an existing local file.
         /// </summary>
-        public DhException TryAppend(string data)
+        public IOException TryAppend(string data)
         {
             string current;
-            DhException exception = TryRead(out current);
+            IOException exception = TryRead(out current);
 
             if (exception == null && current != null)
             {
@@ -61,9 +61,9 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Attempts to retrieve local file data.
         /// </summary>
-        public DhException TryRead(out string data)
+        public IOException TryRead(out string data)
         {
-            DhException exception = null;
+            IOException exception = null;
             TextReader reader = null;
             data = null;
 
@@ -77,7 +77,7 @@ namespace DarkHelmet.IO
                 catch (Exception e)
                 {
                     data = null;
-                    exception = new DhException($"IO Error. Unable to read from {file}.", e);
+                    exception = new IOException($"IO Error. Unable to read from {file}.", e);
                 }
                 finally
                 {
@@ -92,9 +92,9 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Attempts to write data to a local file.
         /// </summary>
-        public DhException TryWrite(string data)
+        public IOException TryWrite(string data)
         {
-            DhException exception = null;
+            IOException exception = null;
             TextWriter writer = null;
             
             lock (fileLock)
@@ -107,7 +107,7 @@ namespace DarkHelmet.IO
                 }
                 catch (Exception e)
                 {
-                    exception = new DhException($"IO Error. Unable to write to {file}.", e);
+                    exception = new IOException($"IO Error. Unable to write to {file}.", e);
                 }
                 finally
                 {
