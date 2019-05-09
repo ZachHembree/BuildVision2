@@ -6,8 +6,7 @@ using System.Collections.Generic;
 namespace DarkHelmet.IO
 {
     /// <summary>
-    /// Generic base for serializable config types. ConfigBase.Defaults must be hidden with a new implimentation
-    /// for each config type.
+    /// Generic base for serializable config types.
     /// </summary>
     public abstract class ConfigBase<TConfig> where TConfig : ConfigBase<TConfig>, new()
     {
@@ -30,6 +29,9 @@ namespace DarkHelmet.IO
         public abstract void Validate();
     }
 
+    /// <summary>
+    /// Base class for config root. This is the only config type accepted by ConfigIO.
+    /// </summary>
     public abstract class ConfigRootBase<TConfig> : ConfigBase<TConfig> where TConfig : ConfigRootBase<TConfig>, new()
     {
         public virtual int VersionID { get; set; }
@@ -126,8 +128,7 @@ namespace DarkHelmet.IO
                     if (loadException != null)
                     {
                         loadException = TrySave(cfg);
-                        taskPool.EnqueueAction(
-                            () => LoadFinish(false, silent));
+                        taskPool.EnqueueAction(() => LoadFinish(false, silent));
 
                         if (saveException != null)
                         {

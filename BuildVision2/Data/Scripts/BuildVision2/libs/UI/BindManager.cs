@@ -211,9 +211,7 @@ namespace DarkHelmet.UI
             if (bindData != null && bindData.Length > 0)
             {
                 foreach (KeyBind bind in Instance.keyBinds)
-                {
                     newBinds.TryAddBind(bind.Name, true);
-                }
 
                 foreach (KeyBindData bind in bindData)
                 {

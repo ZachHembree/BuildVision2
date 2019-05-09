@@ -33,13 +33,9 @@ namespace DarkHelmet.BuildVision2
             BindManager.AddBinds(new string[] { "open", "close", "select", "scrollup", "scrolldown", "multx", "multy", "multz" });
 
             if (BindManager.TryUpdateBinds(cfg.bindData))
-            {
                 UpdateBindReferences();
-            }
             else if (BindManager.TryUpdateBinds(BindsConfig.DefaultBinds))
-            {
                 UpdateBindReferences();
-            }
         }
 
         public static void Init(Action<string> SendMessage, BindsConfig cfg)

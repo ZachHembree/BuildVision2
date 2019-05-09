@@ -15,7 +15,7 @@ namespace DarkHelmet.UI
     /// </summary>
     internal sealed partial class HudUtilities
     {
-        private Queue<Action> menuElementsInit;
+        private readonly Queue<Action> menuElementsInit;
 
         private void CreateSettingsMenuElements()
         {

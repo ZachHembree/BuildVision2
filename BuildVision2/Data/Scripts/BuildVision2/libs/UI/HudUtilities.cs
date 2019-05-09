@@ -19,9 +19,9 @@ namespace DarkHelmet.UI
         public UiTestPattern TestPattern { get; private set; }
         public bool Heartbeat { get { return textHudApi.Heartbeat; } }
 
-        private HudAPIv2 textHudApi;
+        private readonly HudAPIv2 textHudApi;
+        private readonly List<Action> hudElementsDraw;
         private double screenWidth, screenHeight, aspectRatio, resScale, fov, fovScale;
-        private List<Action> hudElementsDraw;
 
         private HudUtilities()
         {

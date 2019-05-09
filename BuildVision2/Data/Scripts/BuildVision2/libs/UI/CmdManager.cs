@@ -122,16 +122,6 @@ namespace DarkHelmet.UI
             for (int n = 0; n < captures.Count; n++)
                 matches[n] = captures[n].Value;
 
-            for (int a = 2; a < matches.Length; a++)
-                for (int b = 2; b < matches.Length; b++)
-                {
-                    if (a != b && matches[a] == matches[b])
-                    {   // remove this
-                        SendMessage("Invalid Command. The same argument cannot be used more than once.");
-                        return false;
-                    }
-                }
-
             return matches.Length > 0; 
         }       
     }

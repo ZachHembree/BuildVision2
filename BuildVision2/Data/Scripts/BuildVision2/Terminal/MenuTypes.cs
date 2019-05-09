@@ -194,14 +194,11 @@ namespace DarkHelmet.BuildVision2
                         $"<color={Cfg.colors.headerText}>[{visStart + 1} - {visEnd} of {target.ScrollableCount}]");
 
                 if (target.IsWorking)
-                    menu.FooterRightText = new StringBuilder(
-                        $"<color={Cfg.colors.headerText}>[Working]");
+                    menu.FooterRightText = new StringBuilder($"<color={Cfg.colors.headerText}>[Working]");
                 else if (target.IsFunctional)
-                    menu.FooterRightText = new StringBuilder(
-                        $"<color={Cfg.colors.headerText}>[Functional]");
+                    menu.FooterRightText = new StringBuilder($"<color={Cfg.colors.headerText}>[Functional]");
                 else
-                    menu.FooterRightText = new StringBuilder(
-                        $"<color={Cfg.colors.blockIncText}>[Incomplete]");
+                    menu.FooterRightText = new StringBuilder($"<color={Cfg.colors.blockIncText}>[Incomplete]");
             }
         }
 

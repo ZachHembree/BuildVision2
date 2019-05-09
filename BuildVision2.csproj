@@ -71,8 +71,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BuildVision2.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\KeyBinds.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ChatCommands.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\KeyBinds.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\ChatCommands.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\libs\UI\CmdManager.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\libs\IO\ConfigIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\libs\IO\LocalFileIO.cs" />

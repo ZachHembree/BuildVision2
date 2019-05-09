@@ -6,8 +6,6 @@ using System;
 using System.Xml.Serialization;
 using DarkHelmet.IO;
 using DarkHelmet.UI;
-using DarkHelmet.UI;
-using DarkHelmet.Game;
 using VRageMath;
 
 namespace DarkHelmet.BuildVision2
@@ -146,7 +144,7 @@ namespace DarkHelmet.BuildVision2
     }
 
     /// <summary>
-    /// Stores config information for the Text HUD API based menu
+    /// Stores config information for the Text HUD based menu
     /// </summary>
     public class ApiHudConfig : ConfigBase<ApiHudConfig>
     {
@@ -168,6 +166,9 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "ColorsRGB")]
         public Colors colors;
 
+        /// <summary>
+        /// Stores configurable text and background colors for Text HUD based menu.
+        /// </summary>
         public class Colors : ConfigBase<Colors>
         {
             [XmlIgnore]
