@@ -6,7 +6,7 @@ using DarkHelmet.UI;
 namespace DarkHelmet.BuildVision2
 {
     /// <summary>
-    /// Generates the settings menu
+    /// Generates a settings menu using elements based on HudAPIv2.MenuItems
     /// </summary>
     internal sealed class SettingsMenu
     {

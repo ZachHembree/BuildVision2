@@ -6,11 +6,13 @@ using System;
 using System.Xml.Serialization;
 using DarkHelmet.IO;
 using DarkHelmet.UI;
-using DarkHelmet.UI;
 using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
+    /// <summary>
+    /// Entry point for the mod.
+    /// </summary>
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
     public class BuildVision2 : MySessionComponentBase
     {
@@ -69,7 +71,7 @@ namespace DarkHelmet.BuildVision2
                     BvMain.Log?.TryWriteToLog("Build Vision has crashed!\n" + e.ToString());
                     MyAPIGateway.Utilities.ShowMissionScreen("Build Vision 2", "Debug", "",
                         "Build Vision has crashed! Press the X in the upper right hand corner if you don't want " +
-                        "" + "it to reload.\n" + e.ToString(), AllowReload, "Reload");
+                        "it to reload.\n" + e.ToString(), AllowReload, "Reload");
 
                     TryUnload();
                 }
@@ -100,6 +102,9 @@ namespace DarkHelmet.BuildVision2
         }
     }
 
+    /// <summary>
+    /// Build vision main class; singleton.
+    /// </summary>
     internal sealed class BvMain
     {
         public static BvMain Instance { get; private set; }

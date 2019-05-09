@@ -18,7 +18,6 @@ using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
 using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
 using IMyTextSurfaceProvider = Sandbox.ModAPI.Ingame.IMyTextSurfaceProvider;
 using IMyCockpit = Sandbox.ModAPI.IMyCockpit;
-using DarkHelmet.UI;
 
 namespace DarkHelmet.BuildVision2
 {
