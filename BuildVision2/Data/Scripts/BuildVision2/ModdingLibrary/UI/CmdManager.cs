@@ -1,6 +1,7 @@
 ﻿using System;
 using Sandbox.ModAPI;
 using System.Text.RegularExpressions;
+using DarkHelmet.Game;
 
 namespace DarkHelmet.UI
 {
@@ -36,16 +37,19 @@ namespace DarkHelmet.UI
         public static CmdManager Instance { get; private set; }
 
         private readonly string prefix;
-        private readonly Action<string> SendMessage;
         private readonly Regex cmdParser;
         private readonly Command[] commands;
+
+        static CmdManager()
+        {
+            ModBase.CloseActions.Add(() => Instance.Close());
+        }
 
         /// <summary>
         /// Instantiates commands and regex
         /// </summary>
-        private CmdManager(Action<string> SendMessage, string prefix, Command[] commands)
+        private CmdManager(string prefix, Command[] commands)
         {
-            this.SendMessage = SendMessage;
             this.prefix = prefix;
             this.commands = commands;
             cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)(\w+))+");
@@ -56,10 +60,10 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Returns the current instance or creates one if necessary.
         /// </summary>
-        public static void Init(Action<string> SendMessage, string prefix, Command[] commands)
+        public static void Init(string prefix, Command[] commands)
         {
             if (Instance == null)
-                Instance = new CmdManager(SendMessage, prefix, commands);
+                Instance = new CmdManager(prefix, commands);
         }
 
         public void Close()
@@ -96,7 +100,7 @@ namespace DarkHelmet.UI
                                 if (matches.Length > 1)
                                     cmd.action(Utilities.GetSubarray(matches, 1));
                                 else
-                                    SendMessage("Invalid Command. This command requires an argument.");
+                                    ModBase.SendChatMessage("Invalid Command. This command requires an argument.");
                             }
                             else
                                 cmd.action(null);
@@ -106,7 +110,7 @@ namespace DarkHelmet.UI
                 }
                 
                 if (!cmdFound)
-                    SendMessage("Command not recognised.");
+                    ModBase.SendChatMessage("Command not recognised.");
             }
         }
 

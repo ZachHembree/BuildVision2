@@ -29,7 +29,7 @@ namespace DarkHelmet.BuildVision2
         public NotifHudConfig NotifHudConfig { get { return fallbackHud.Cfg; } set { fallbackHud.Cfg = value; } }
 
         private static KeyBinds KeyBinds { get { return KeyBinds.Instance; } }
-        private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
+        private static HudUtilities HudUtilities { get { return HudUtilities.Instance; } }
         private PropertyBlock target;
 
         private ApiHud apiHud;
@@ -39,6 +39,7 @@ namespace DarkHelmet.BuildVision2
 
         private PropertiesMenu(PropMenuConfig cfg)
         {
+            HudUtilities.Init();
             apiHud = new ApiHud(cfg.apiHudConfig);
             fallbackHud = new NotifHud(cfg.fallbackHudConfig);
             target = null;
@@ -63,6 +64,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void Close()
         {
+            HudUtilities?.Close();
             Instance = null;
         }
 
@@ -88,7 +90,7 @@ namespace DarkHelmet.BuildVision2
                 menuOpen = true;
                 UpdateSelection();
 
-                if (HudElements.Heartbeat && !forceFallbackHud)
+                if (HudUtilities.Heartbeat && !forceFallbackHud)
                 {
                     if (fallbackHud.Open)
                         fallbackHud.Hide();

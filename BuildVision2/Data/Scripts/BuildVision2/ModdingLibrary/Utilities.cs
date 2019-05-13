@@ -6,6 +6,45 @@ using Sandbox.ModAPI;
 
 namespace DarkHelmet
 {
+    public class Singleton<T> where T : Singleton<T>, new()
+    {
+        public static T Instance { get; protected set; }
+        protected static bool canInstantiate;
+
+        static Singleton()
+        {
+            canInstantiate = false;
+        }
+
+        protected Singleton()
+        {
+            if (!canInstantiate)
+                throw new Exception("Tyes of Singleton<T> cannot be instantiated externally.");
+
+            canInstantiate = false;
+        }
+
+        public static void Init()
+        {
+            if (Instance == null && !canInstantiate)
+            {
+                canInstantiate = true;
+                Instance = new T();
+                Instance.AfterInit();
+            }
+        }
+
+        protected virtual void AfterInit() { }
+
+        protected virtual void BeforeClose() { }
+
+        public void Close()
+        {
+            BeforeClose();
+            Instance = null;
+        }
+    }
+
     internal static class Utilities
     {
         private static readonly Regex colorParser = new Regex(@"(\s*,?(\d{1,3})\s*,?){3,4}");

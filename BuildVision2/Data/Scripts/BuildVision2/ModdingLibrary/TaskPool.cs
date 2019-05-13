@@ -4,6 +4,7 @@ using ParallelTasks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using DarkHelmet.Game;
 
 namespace DarkHelmet
 {
@@ -67,12 +68,13 @@ namespace DarkHelmet
             actions = new ConcurrentQueue<Action>();
             tasksWaiting = new Queue<Action>();
             tasksRunning = new Queue<Task>();
+            ModBase.UpdateAfterSimActions.Add(Update);
         }
 
         /// <summary>
         /// Updates internal queues
         /// </summary>
-        public void Update()
+        private void Update()
         {
             TryStartWaitingTasks();
             UpdateRunningTasks();

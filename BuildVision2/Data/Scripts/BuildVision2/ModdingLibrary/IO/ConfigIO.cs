@@ -2,6 +2,7 @@
 using System;
 using System.Xml.Serialization;
 using System.Collections.Generic;
+using DarkHelmet.Game;
 
 namespace DarkHelmet.IO
 {
@@ -34,6 +35,7 @@ namespace DarkHelmet.IO
     /// </summary>
     public abstract class ConfigRootBase<TConfig> : ConfigBase<TConfig> where TConfig : ConfigRootBase<TConfig>, new()
     {
+        [XmlAttribute]
         public virtual int VersionID { get; set; }
     }
 
@@ -46,38 +48,27 @@ namespace DarkHelmet.IO
         public delegate void ConfigDataCallback(TConfig cfg);
         public bool SaveInProgress { get; private set; }
 
-        private readonly Action<string> SendMessage;
-        private readonly LogIO log;
         private readonly LocalFileIO cfgFile;
         private readonly TaskPool taskPool;
 
-        private ConfigIO(string configFileName, LogIO log, Action<string> SendMessage)
+        private ConfigIO(string configFileName)
         {
             cfgFile = new LocalFileIO(configFileName);
-            this.log = log;
-            this.SendMessage = SendMessage;
 
             taskPool = new TaskPool(1, ErrorCallback);
             SaveInProgress = false;
         }
 
-        public static void Init(string configFileName, LogIO log, Action<string> SendMessage)
+        public static void Init(string configFileName)
         {
             if (Instance == null)
-                Instance = new ConfigIO<TConfig>(configFileName, log, SendMessage);
+                Instance = new ConfigIO<TConfig>(configFileName);
         }
 
         public void Close()
         {
             Instance = null;
         }
-
-        /// <summary>
-        /// Updates internal task queue. Parallel methods will not work properly if this isn't being
-        /// updated regularly.
-        /// </summary>
-        public void Update() =>
-            taskPool.Update();
 
         private void ErrorCallback(List<IOException> known, AggregateException unknown)
         {
@@ -88,17 +79,17 @@ namespace DarkHelmet.IO
 
                 foreach (Exception e in known)
                 {
-                    SendMessage(e.Message);
+                    ModBase.SendChatMessage(e.Message);
                     exceptions += e.ToString();
                 }
 
-                log.TryWriteToLogStart(exceptions);
+                LogIO.Instance.TryWriteToLogStart(exceptions);
             }
 
             if (unknown != null)
             {
-                log.TryWriteToLogStart($"\nSave operation failed.\n{unknown.ToString()}");
-                SendMessage("Save operation failed.");
+                LogIO.Instance.TryWriteToLogStart($"\nSave operation failed.\n{unknown.ToString()}");
+                ModBase.SendChatMessage("Save operation failed.");
                 SaveInProgress = false;
 
                 throw unknown;
@@ -113,7 +104,7 @@ namespace DarkHelmet.IO
             if (!SaveInProgress)
             {
                 SaveInProgress = true;
-                if (!silent) SendMessage("Loading configuration...");
+                if (!silent) ModBase.SendChatMessage("Loading configuration...");
 
                 taskPool.EnqueueTask(() =>
                 {
@@ -132,8 +123,8 @@ namespace DarkHelmet.IO
 
                         if (saveException != null)
                         {
-                            log.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
-                            taskPool.EnqueueAction(() => SendMessage("Unable to load or create configuration file."));
+                            LogIO.Instance.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
+                            taskPool.EnqueueAction(() => ModBase.SendChatMessage("Unable to load or create configuration file."));
                         }
                     }
                     else
@@ -141,7 +132,7 @@ namespace DarkHelmet.IO
                 });
             }
             else
-                SendMessage("Save operation already in progress.");
+                ModBase.SendChatMessage("Save operation already in progress.");
         }
 
         private TConfig ValidateConfig(TConfig cfg)
@@ -155,7 +146,7 @@ namespace DarkHelmet.IO
                     Backup();
                     cfg.Validate();
 
-                    taskPool.EnqueueAction(() => SendMessage("Config version mismatch. Some settings may have " +
+                    taskPool.EnqueueAction(() => ModBase.SendChatMessage("Config version mismatch. Some settings may have " +
                         "been reset. A backup of the original config file will be made."));
                 }
 
@@ -163,7 +154,7 @@ namespace DarkHelmet.IO
             }
             else
             {
-                taskPool.EnqueueAction(() => SendMessage("Unable to load configuration. Loading default settings..."));
+                taskPool.EnqueueAction(() => ModBase.SendChatMessage("Unable to load configuration. Loading default settings..."));
 
                 return ConfigRootBase<TConfig>.Defaults;
             }
@@ -176,7 +167,7 @@ namespace DarkHelmet.IO
                 if (!silent)
                 {
                     if (success)
-                        SendMessage("Configuration loaded.");
+                        ModBase.SendChatMessage("Configuration loaded.");
                 }
 
                 SaveInProgress = false;
@@ -190,7 +181,7 @@ namespace DarkHelmet.IO
         {
             if (!SaveInProgress)
             {
-                if (!silent) SendMessage("Saving configuration...");
+                if (!silent) ModBase.SendChatMessage("Saving configuration...");
                 SaveInProgress = true;
 
                 taskPool.EnqueueTask(() =>
@@ -208,7 +199,7 @@ namespace DarkHelmet.IO
                 });
             }
             else
-                SendMessage("Save operation already in progress.");
+                ModBase.SendChatMessage("Save operation already in progress.");
         }
 
         private void SaveFinish(bool success, bool silent = false)
@@ -218,9 +209,9 @@ namespace DarkHelmet.IO
                 if (!silent)
                 {
                     if (success)
-                        SendMessage("Configuration saved.");
+                        ModBase.SendChatMessage("Configuration saved.");
                     else
-                        SendMessage("Unable to save configuration.");
+                        ModBase.SendChatMessage("Unable to save configuration.");
                 }
 
                 SaveInProgress = false;

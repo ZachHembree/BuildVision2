@@ -154,9 +154,6 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "MaxVisibleItems")]
         public int maxVisible;
 
-        [XmlElement(ElementName = "HideHudIfOutOfView")]
-        public bool hideIfNotVis;
-
         [XmlElement(ElementName = "ClampHudToScreenEdges")]
         public bool clampHudPos;
 
@@ -258,7 +255,6 @@ namespace DarkHelmet.BuildVision2
             {
                 hudScale = 1f,
                 maxVisible = 11,
-                hideIfNotVis = true,
                 clampHudPos = true,
                 forceToCenter = false,
                 colors = Colors.Defaults

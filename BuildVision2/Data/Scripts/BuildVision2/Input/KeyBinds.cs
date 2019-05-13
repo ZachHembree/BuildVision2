@@ -27,9 +27,8 @@ namespace DarkHelmet.BuildVision2
         public IKeyBind MultZ { get; private set; }
         public static BindManager BindManager { get { return BindManager.Instance; } }
 
-        private KeyBinds(Action<string> SendMessage, BindsConfig cfg)
+        private KeyBinds(BindsConfig cfg)
         {
-            BindManager.Init(SendMessage);
             BindManager.AddBinds(new string[] { "open", "close", "select", "scrollup", "scrolldown", "multx", "multy", "multz" });
 
             if (BindManager.TryUpdateBinds(cfg.bindData))
@@ -38,14 +37,11 @@ namespace DarkHelmet.BuildVision2
                 UpdateBindReferences();
         }
 
-        public static void Init(Action<string> SendMessage, BindsConfig cfg)
+        public static void Init(BindsConfig cfg)
         {
             if (Instance == null)
-                Instance = new KeyBinds(SendMessage, cfg);
+                Instance = new KeyBinds(cfg);
         }
-
-        public void Update() =>
-            BindManager.Update();
 
         public void Close()
         {

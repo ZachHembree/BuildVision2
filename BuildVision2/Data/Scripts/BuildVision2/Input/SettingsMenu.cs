@@ -6,13 +6,13 @@ using DarkHelmet.UI;
 namespace DarkHelmet.BuildVision2
 {
     /// <summary>
-    /// Generates a settings menu using elements based on HudAPIv2.MenuItems
+    /// Generates a settings menu using elements based on <see cref="TextHudApi.HudAPIv2.MenuItemBase"/>
     /// </summary>
     internal sealed class SettingsMenu
     {
         public static SettingsMenu Instance { get; private set; }
 
-        private static BvMain Main { get { return BvMain.Instance; } }
+        private static BuildVision2 Main { get { return BuildVision2.Instance as BuildVision2; } }
         private static KeyBinds KeyBinds { get { return KeyBinds.Instance; } }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
         private static ChatCommands ChatCommands { get { return ChatCommands.Instance; } }
@@ -51,9 +51,6 @@ namespace DarkHelmet.BuildVision2
                         "Max Visible Properties", 6, 20,
                         () => Menu.ApiHudConfig.maxVisible,
                         (float maxVisible) => Menu.ApiHudConfig.maxVisible = (int)maxVisible),
-                    new HudUtilities.MenuButton(
-                        () => $"Hide If Out  of View: {Menu.ApiHudConfig.hideIfNotVis}",
-                        () => Menu.ApiHudConfig.hideIfNotVis = !Menu.ApiHudConfig.hideIfNotVis),
                     new HudUtilities.MenuButton(
                         () => $"Clamp To Screen Edges: {Menu.ApiHudConfig.clampHudPos}",
                         () => Menu.ApiHudConfig.clampHudPos = !Menu.ApiHudConfig.clampHudPos),

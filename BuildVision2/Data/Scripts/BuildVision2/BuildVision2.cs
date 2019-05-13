@@ -11,121 +11,28 @@ using DarkHelmet.Game;
 namespace DarkHelmet.BuildVision2
 {
     /// <summary>
-    /// Entry point for the mod.
-    /// </summary>
-    [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
-    public class BuildVision2 : MySessionComponentBase
-    {
-        private static BvMain BuildVision { get { return BvMain.Instance; } }
-        private bool crashed = false, isDedicated = false, isServer = false;
-
-        public override void Draw()
-        {
-            if (!isDedicated)
-            {
-                isServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
-                isDedicated = (MyAPIGateway.Utilities.IsDedicated && isServer);
-            }
-
-            if (!crashed && !isDedicated)
-            {
-                try
-                {
-                    if (BuildVision != null)
-                        BuildVision.Draw();
-                }
-                catch (Exception e)
-                {
-                    crashed = true;
-                    BvMain.Log?.TryWriteToLog("Build Vision has crashed!\n" + e.ToString());
-                    MyAPIGateway.Utilities.ShowMissionScreen("Build Vision 2", "Debug", "",
-                        "Build Vision has crashed! Press the X in the upper right hand corner if you don't want " +
-                        "" + "it to reload.\n" + e.ToString(), AllowReload, "Reload");
-
-                    TryUnload();
-                }
-            }
-        }
-
-        public override void UpdateAfterSimulation()
-        {
-            if (!isDedicated)
-            {
-                isServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
-                isDedicated = (MyAPIGateway.Utilities.IsDedicated && isServer);
-            }
-
-            if (!crashed && !isDedicated)
-            {
-                try
-                {
-                    if (BuildVision == null)
-                        BvMain.Init();
-
-                    if (BuildVision != null)
-                        BuildVision.Update();
-                }
-                catch (Exception e)
-                {
-                    crashed = true;
-                    BvMain.Log?.TryWriteToLog("Build Vision has crashed!\n" + e.ToString());
-                    MyAPIGateway.Utilities.ShowMissionScreen("Build Vision 2", "Debug", "",
-                        "Build Vision has crashed! Press the X in the upper right hand corner if you don't want " +
-                        "it to reload.\n" + e.ToString(), AllowReload, "Reload");
-
-                    TryUnload();
-                }
-            }
-        }
-
-        private void AllowReload(ResultEnum response)
-        {
-            if (response == ResultEnum.OK)
-                crashed = false;
-            else
-                crashed = true;
-        }
-
-        protected override void UnloadData() =>
-            TryUnload();
-
-        private void TryUnload()
-        {
-            try
-            {
-                BuildVision?.Close();
-            }
-            catch
-            {
-                // you're kinda screwed at this point
-            }
-        }
-    }
-
-    /// <summary>
     /// Build vision main class; singleton.
     /// </summary>
-    internal sealed class BvMain
+    internal sealed class BuildVision2 : ModBase.Component<BuildVision2>
     {
-        public static BvMain Instance { get; private set; }
+        private const string configFileName = "BuildVision2Config.xml", logFileName = "bvLog.txt", cmdPrefix = "/bv2";
 
-        private const string configFileName = "BuildVision2Config.xml", logFileName = "bvLog.txt", 
-            senderName = "Build Vision 2", cmdPrefix = "/bv2";
-
-        public static LogIO Log { get { return LogIO.Instance; } }
         private static ConfigIO<BvConfig> ConfigIO { get { return ConfigIO<BvConfig>.Instance; } }
         private static KeyBinds Binds { get { return KeyBinds.Instance; } }
         private static ChatCommands Cmd { get { return ChatCommands.Instance; } }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
-        private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
         private static SettingsMenu Settings { get { return SettingsMenu.Instance; } }
 
-        public BvConfig Cfg { get { return cfg; }
+        private bool initStarted = false, initFinished = false;
+
+        public BvConfig Cfg
+        {
+            get { return cfg; }
             set
             {
                 cfg = value;
 
-                if (init && cfg != null)
+                if (initFinished && cfg != null)
                 {
                     cfg.Validate();
                     Binds.Cfg = cfg.binds;
@@ -137,31 +44,21 @@ namespace DarkHelmet.BuildVision2
 
         private BvConfig cfg;
         private PropertyBlock target;
-        private bool init, initStart, menuOpen;
+        private bool menuOpen;
 
-        private BvMain()
+        static BuildVision2()
         {
-            init = false;
-            initStart = false;
-            menuOpen = false;
+            ModBase.ModName = "Build Vision 2";
+            ModBase.RunOnServer = false;
         }
 
-        public static void Init()
+        protected override void AfterInit()
         {
-            if (Instance == null)
+            if (!initFinished && !initStarted)
             {
-                Instance = new BvMain();
-                Instance.InitStart();
-            }
-        }
-
-        private void InitStart()
-        {
-            if (!init && !initStart)
-            {
-                initStart = true;
-                LogIO.Init(logFileName, SendChatMessage);
-                ConfigIO<BvConfig>.Init(configFileName, Log, SendChatMessage);
+                menuOpen = false;
+                initStarted = true;
+                ConfigIO<BvConfig>.Init(configFileName);
                 ConfigIO.LoadStart(InitFinish, true);
             }
         }
@@ -171,43 +68,39 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void InitFinish(BvConfig cfg)
         {
-            if (!init && initStart)
+            if (!initFinished && initStarted)
             {
                 this.Cfg = cfg;
-                KeyBinds.Init(SendChatMessage, cfg.binds);
-                ChatCommands.Init(SendChatMessage, cmdPrefix);
-                HudUtilities.Init();
+                KeyBinds.Init(cfg.binds);
+                ChatCommands.Init(cmdPrefix);
                 SettingsMenu.Init();
                 PropertiesMenu.Init(cfg.menu);
                 PropertyBlock.Cfg = cfg.propertyBlock;
 
-                init = true;
-                MyAPIGateway.Utilities.ShowMessage("Build Vision 2", $"Type {cmdPrefix} help for help. All settings available through the mod menu.");
+                initFinished = true;
+                MyAPIGateway.Utilities.ShowMessage("Build Vision 2", $"Type {cmdPrefix} help for help. All settings are available through the mod menu.");
             }
         }
 
         /// <summary>
         /// Unloads all mod data.
         /// </summary>
-        public void Close()
+        protected override void BeforeClose()
         {
-            if (init)
+            if (initFinished)
             {
                 TryCloseMenu();
                 ConfigIO.Save(Cfg);
             }
 
-            init = false;
-            initStart = false;
+            initFinished = false;
+            initStarted = false;
 
             Binds?.Close();
             Cmd?.Close();
             Menu?.Close();
             ConfigIO?.Close();
-            Log?.Close();
-            HudElements?.Close();
             Settings?.Close();
-            Instance = null;
         }
 
         /// <summary>
@@ -215,7 +108,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void LoadConfig(bool silent = false)
         {
-            if (init)
+            if (initFinished)
                 ConfigIO.LoadStart((BvConfig value) => Cfg = value, silent);
         }
 
@@ -225,7 +118,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void SaveConfig(bool silent = false)
         {
-            if (init)
+            if (initFinished)
                 ConfigIO.SaveStart(Cfg, silent);
         }
 
@@ -234,28 +127,10 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void ResetConfig(bool silent = false)
         {
-            if (init)
+            if (initFinished)
                 ConfigIO.SaveStart(BvConfig.Defaults, silent);
 
             Cfg = BvConfig.Defaults;
-        }
-
-        /// <summary>
-        /// Sends chat message using predetermined sender name.
-        /// </summary>
-        public void SendChatMessage(string message)
-        {
-            if (initStart)
-                MyAPIGateway.Utilities.ShowMessage(senderName, message);
-        }
-
-        /// <summary>
-        /// Sends chat message using predetermined sender name.
-        /// </summary>
-        public void ShowMissionScreen(string subHeading, string message)
-        {
-            if (initStart)
-                MyAPIGateway.Utilities.ShowMissionScreen(senderName, subHeading, null, message, null, "Close");
         }
 
         /// <summary>
@@ -263,16 +138,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void Update()
         {
-            if (initStart)
+            if (initFinished)
             {
-                Log.Update();
-                ConfigIO.Update();
-            }
-
-            if (init)
-            {
-                Binds.Update();
-
                 if (menuOpen)
                     Menu.Update(Cfg.general.forceFallbackHud);
 
@@ -285,17 +152,11 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Draws hud elements.
-        /// </summary>
-        public void Draw() =>
-            HudElements?.Draw();
-
-        /// <summary>
         /// Opens the menu and/or updates the current target if that target is valid. If it isn't, it closes the menu.
         /// </summary>
         public void TryOpenMenu()
         {
-            if (init)
+            if (initFinished)
             {
                 if (TryGetTarget())
                 {
@@ -312,7 +173,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void TryCloseMenu()
         {
-            if (init)
+            if (initFinished)
             {
                 Menu.Hide();
                 menuOpen = false;

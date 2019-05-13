@@ -2,6 +2,7 @@
 using Sandbox.ModAPI;
 using System.Text.RegularExpressions;
 using DarkHelmet.UI;
+using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -9,23 +10,23 @@ namespace DarkHelmet.BuildVision2
     {
         public static ChatCommands Instance { get; private set; }
 
-        private static BvMain Main { get { return BvMain.Instance; } }
+        private static BuildVision2 Main { get { return BuildVision2.Instance as BuildVision2; } }
         private static KeyBinds KeyBinds { get { return KeyBinds.Instance; } }
         public static CmdManager CmdManager { get { return CmdManager.Instance; } }
         private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
 
         private readonly string controlList;
 
-        private ChatCommands(Action<string> SendMessage, string cmdPrefix)
+        private ChatCommands(string cmdPrefix)
         {
-            CmdManager.Init(SendMessage, cmdPrefix, new Command[]
+            CmdManager.Init(cmdPrefix, new Command[]
             {
                 new Command ("help",
-                    () => Main.ShowMissionScreen("Help", GetHelpMessage())),
+                    () => ModBase.ShowMessageScreen("Help", GetHelpMessage())),
                 new Command ("bindHelp",
-                    () => Main.ShowMissionScreen("Bind Help", GetBindHelpMessage())),
+                    () => ModBase.ShowMessageScreen("Bind Help", GetBindHelpMessage())),
                 new Command ("printBinds",
-                    () => Main.SendChatMessage(GetPrintBindsMessage())),
+                    () => ModBase.SendChatMessage(GetPrintBindsMessage())),
                 new Command ("bind",
                     (string[] args) => KeyBinds.BindManager.TryUpdateBind(args[0], Utilities.GetSubarray(args, 1))),
                 new Command("resetBinds",
@@ -57,10 +58,10 @@ namespace DarkHelmet.BuildVision2
             controlList = BindManager.GetControlListString();
         }
 
-        public static void Init(Action<string> SendMessage, string cmdPrefix)
+        public static void Init(string cmdPrefix)
         {
             if (Instance == null)
-                Instance = new ChatCommands(SendMessage, cmdPrefix);
+                Instance = new ChatCommands(cmdPrefix);
         }
 
         public void Close()
@@ -79,7 +80,7 @@ namespace DarkHelmet.BuildVision2
             for (int n = 0; n < KeyBinds.BindManager.Count; n++)
                 output += KeyBinds.BindManager[n].Name + ": [" + KeyBinds.BindManager[n].BindString + "]\n";
 
-            Main.SendChatMessage(output);
+            ModBase.SendChatMessage(output);
         }
 
         public string GetHelpMessage()
@@ -93,9 +94,9 @@ namespace DarkHelmet.BuildVision2
                 $"or On/Off value). If you move more than 10 meters (4 large blocks) from your target block, the menu will " +
                 $"automatically close. The rate at which a selected terminal value changes with each tick of the scroll wheel can " +
                 $"be changed using the multiplier binds listed below.\n\n" +
-                $"Key binds can be changed using the /bv2 bind chat command. Enter /bv2 bindHelp in chat for more information. Chat " +
-                $"commands are not case sensitive and , ; | or spaces can be used to separate arguments. For information on chat " +
-                $"commands see the Build Vision 2 mod page on the Steam Workshop.\n";
+                $"Key binds can be changed using the /bv2 bind chat command or through the F2 mod menu. Enter /bv2 bindHelp in chat " +
+                $"for more information. Chat commands are not case sensitive and , ; | or spaces can be used to separate arguments. " +
+                $"For information on chat commands see the Build Vision 2 mod page on the Steam Workshop.\n";
 
             helpMessage += GetPrintBindsMessage();
             return helpMessage;

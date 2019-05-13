@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using VRage.Input;
 using Sandbox.ModAPI;
 using System.Collections;
+using DarkHelmet.Game;
 
 namespace DarkHelmet.UI
 {
@@ -74,10 +75,8 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Manages custom keybinds; singleton
     /// </summary>
-    internal sealed class BindManager
+    internal sealed class BindManager : ModBase.Component<BindManager>
     {
-        public static BindManager Instance { get; private set; }
-
         /// <summary>
         /// Returns key bind by index.
         /// </summary>
@@ -92,19 +91,21 @@ namespace DarkHelmet.UI
         private static Dictionary<string, Control> controls;
         private static List<Control> controlList;
 
-        private readonly Action<string> SendMessage;
         private List<KeyBind> keyBinds;
         private List<Control> usedControls;
         private bool[,] controlBindMap; // X = used controls; Y = associated key binds
         private int[] bindHits;
 
+        static BindManager()
+        {
+            UpdateAfterSimActions.Add(() => Instance.Update());
+        }
+
         /// <summary>
         /// Initializes binds class. Generates control dictionary, list and key binds array.
         /// </summary>
-        private BindManager(Action<string> SendMessage)
+        protected override void AfterInit()
         {
-            this.SendMessage = SendMessage;
-
             if (controls == null)
             {
                 controlList = new List<Control>(220);
@@ -115,20 +116,8 @@ namespace DarkHelmet.UI
             keyBinds = new List<KeyBind>();
         }
 
-        /// <summary>
-        /// Returns the current instance or creates one if necessary.
-        /// </summary>
-        public static void Init(Action<string> SendMessage)
+        protected override void BeforeClose()
         {
-            if (Instance == null)
-            {
-                Instance = new BindManager(SendMessage);
-            }
-        }
-
-        public void Close()
-        {
-            Instance = null;
             controlList = null;
             controls = null;
         }
@@ -145,7 +134,7 @@ namespace DarkHelmet.UI
                     areAnyDuplicated = true;
 
             if (areAnyDuplicated)
-                Instance.SendMessage($"Some of the binds supplied contain duplicates or already existed.");
+                ModBase.SendChatMessage($"Some of the binds supplied contain duplicates or already existed.");
         }
 
         /// <summary>
@@ -160,7 +149,7 @@ namespace DarkHelmet.UI
                 return true;
             }
             else if (!silent)
-                Instance.SendMessage($"Bind {bindName} already exists.");
+                ModBase.SendChatMessage($"Bind {bindName} already exists.");
 
             return false;
         }
@@ -177,7 +166,7 @@ namespace DarkHelmet.UI
                     areAnyDuplicated = true;
 
             if (areAnyDuplicated)
-                Instance.SendMessage("Some of the bind names supplied contain duplicates or were added previously.");
+                ModBase.SendChatMessage("Some of the bind names supplied contain duplicates or were added previously.");
         }
 
         /// <summary>
@@ -195,7 +184,7 @@ namespace DarkHelmet.UI
                 return true;
             }
             else if (!silent)
-                Instance.SendMessage($"Bind {bind.name} already exists.");
+                ModBase.SendChatMessage($"Bind {bind.name} already exists.");
 
             return false;
         }
@@ -205,8 +194,11 @@ namespace DarkHelmet.UI
         /// </summary>
         public static bool TryUpdateBinds(KeyBindData[] bindData)
         {
-            BindManager newBinds = new BindManager(Instance.SendMessage);
+            BindManager newBinds;
             bool bindError = false;
+
+            canInstantiate = true;
+            newBinds = new BindManager();
 
             if (bindData != null && bindData.Length > 0)
             {
@@ -224,7 +216,7 @@ namespace DarkHelmet.UI
 
                 if (bindError)
                 {
-                    Instance.SendMessage("One or more keybinds in the given configuration were invalid or conflict with oneanother.");
+                    ModBase.SendChatMessage("One or more keybinds in the given configuration were invalid or conflict with oneanother.");
                     return false;
                 }
                 else
@@ -235,7 +227,7 @@ namespace DarkHelmet.UI
             }
             else
             {
-                Instance.SendMessage("Bind data cannot be null or empty.");
+                ModBase.SendChatMessage("Bind data cannot be null or empty.");
                 return false;
             }
         }
@@ -264,18 +256,18 @@ namespace DarkHelmet.UI
                             return true;
                         }
                         else if (!silent)
-                            Instance.SendMessage($"Invalid bind for {name}. One or more of the given controls conflict with existing binds.");
+                            ModBase.SendChatMessage($"Invalid bind for {name}. One or more of the given controls conflict with existing binds.");
                     }
                     else if (!silent)
-                        Instance.SendMessage($"Invalid bind for {name}. One or more control names were not recognised.");
+                        ModBase.SendChatMessage($"Invalid bind for {name}. One or more control names were not recognised.");
                 }
             }
             else if (!silent)
             {
                 if (controlNames.Length > 0)
-                    Instance.SendMessage($"Invalid key bind. No more than {maxBindLength} keys in a bind are allowed.");
+                    ModBase.SendChatMessage($"Invalid key bind. No more than {maxBindLength} keys in a bind are allowed.");
                 else
-                    Instance.SendMessage("Invalid key bind. There must be at least one control in a key bind.");
+                    ModBase.SendChatMessage("Invalid key bind. There must be at least one control in a key bind.");
             }
 
             return false;
@@ -375,7 +367,7 @@ namespace DarkHelmet.UI
                 if (bind.Name == name)
                     return bind;
 
-            Instance.SendMessage($"{name} is not a valid bind name.");
+            ModBase.SendChatMessage($"{name} is not a valid bind name.");
             return null;
         }
 
@@ -454,7 +446,7 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Updates bind presses each time its called. Key binds will not work if this isn't being run.
         /// </summary>
-        public void Update()
+        private void Update()
         {
             if (keyBinds.Count > 0)
             {
@@ -574,6 +566,9 @@ namespace DarkHelmet.UI
 
             public Control(MyKeys seKey, bool Analog = false)
             {
+                //(MyAPIGateway.Input as VRage.Input.IMyInput).SetControlBlock();
+                //Sandbox.MySandboxGame.IsPaused
+
                 Name = seKey.ToString();
                 IsPressed = () => MyAPIGateway.Input.IsKeyPress(seKey);
                 this.Analog = Analog;

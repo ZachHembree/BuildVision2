@@ -1,46 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
+using DarkHelmet.Game;
 
 namespace DarkHelmet.IO
 {
     /// <summary>
     /// Handles logging; singleton
     /// </summary>
-    internal sealed class LogIO
+    public sealed class LogIO
     {
         public static LogIO Instance { get; private set; }
         public bool Accessible { get; private set; }
 
-        private readonly Action<string> SendMessage;
         private readonly LocalFileIO logFile;
         private readonly TaskPool taskPool;
 
-        private LogIO(string fileName, Action<string> SendMessage)
+        private LogIO(string fileName)
         {
             Accessible = true;
             logFile = new LocalFileIO(fileName);
-            this.SendMessage = SendMessage;
 
             taskPool = new TaskPool(1, ErrorCallback);
         }
 
-        public static void Init(string fileName, Action<string> SendMessage)
+        public static void Init(string fileName)
         {
             if (Instance == null)
-                Instance = new LogIO(fileName, SendMessage);
+                Instance = new LogIO(fileName);
         }
 
         public void Close()
         {
             Instance = null;
         }
-
-        /// <summary>
-        /// Updates internal task queue. Parallel methods will not work properly if this isn't being
-        /// updated regularly.
-        /// </summary>
-        public void Update() =>
-            taskPool.Update();
 
         private void ErrorCallback(List<IOException> known, AggregateException unknown)
         {
@@ -50,7 +42,7 @@ namespace DarkHelmet.IO
 
                 if (known != null && known.Count > 0)
                     foreach (Exception e in known)
-                        SendMessage(e.Message);
+                        ModBase.SendChatMessage(e.Message);
 
                 if (unknown != null)
                     throw unknown;
@@ -69,13 +61,13 @@ namespace DarkHelmet.IO
 
                 if (exception != null)
                 {
-                    SendMessage("Unable to update log; please check your file access permissions.");
+                    ModBase.SendChatMessage("Unable to update log; please check your file access permissions.");
                     Accessible = false;
                     throw exception;
                 }
                 else
                 {
-                    SendMessage("Log updated.");
+                    ModBase.SendChatMessage("Log updated.");
                     Accessible = true;
                     return true;
                 }
@@ -113,14 +105,14 @@ namespace DarkHelmet.IO
             if (!success)
             {
                 if (Accessible)
-                    SendMessage("Unable to update log; please check your file access permissions.");
+                    ModBase.SendChatMessage("Unable to update log; please check your file access permissions.");
 
                 Accessible = false;
             }
             else
             {
                 if (Accessible)
-                    SendMessage("Log updated.");
+                    ModBase.SendChatMessage("Log updated.");
 
                 Accessible = true;
             }

@@ -102,12 +102,11 @@ namespace DarkHelmet.BuildVision2
                 menu.SelectionBoxColor = Cfg.colors.selectionBoxColor;
                 menu.Scale = Cfg.hudScale;
                 Open = true;
+                menu.Visible = true;
 
                 GetVisibleProperties();
-
                 UpdateText();
                 UpdatePos();
-                menu.Visible = true;
             }
 
             /// <summary>
@@ -143,11 +142,6 @@ namespace DarkHelmet.BuildVision2
                             screenPos.X = Utilities.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
                             screenPos.Y = Utilities.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
                         }
-                    }
-                    else if (Cfg.hideIfNotVis)
-                    {
-                        menu.Visible = false;
-                        screenPos = Vector2D.Zero;
                     }
                     else
                         screenPos = Vector2D.Zero;

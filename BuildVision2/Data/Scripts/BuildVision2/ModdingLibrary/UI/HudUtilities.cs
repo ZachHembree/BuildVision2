@@ -6,6 +6,7 @@ using VRage.Utils;
 using VRage.Game;
 using System;
 using DarkHelmet.TextHudApi;
+using DarkHelmet.Game;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 
 namespace DarkHelmet.UI
@@ -41,10 +42,11 @@ namespace DarkHelmet.UI
                 Instance = new HudUtilities();
                 Instance.TestPattern = new UiTestPattern();
                 Instance.TestPattern.Hide();
+                ModBase.DrawActions.Add(Instance.Draw);
             }
         }
 
-        public void Draw()
+        private void Draw()
         {
             if (Heartbeat)
             {
