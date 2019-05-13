@@ -18,12 +18,10 @@ namespace DarkHelmet.BuildVision2
         private const string configFileName = "BuildVision2Config.xml", logFileName = "bvLog.txt", cmdPrefix = "/bv2";
 
         private static ConfigIO<BvConfig> ConfigIO { get { return ConfigIO<BvConfig>.Instance; } }
-        private static KeyBinds Binds { get { return KeyBinds.Instance; } }
-        private static ChatCommands Cmd { get { return ChatCommands.Instance; } }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
         private static SettingsMenu Settings { get { return SettingsMenu.Instance; } }
 
-        private bool initStarted = false, initFinished = false;
+        private bool initStarted, initFinished;
 
         public BvConfig Cfg
         {
@@ -35,8 +33,8 @@ namespace DarkHelmet.BuildVision2
                 if (initFinished && cfg != null)
                 {
                     cfg.Validate();
-                    Binds.Cfg = cfg.binds;
-                    Menu.Cfg = cfg.menu;
+                    KeyBinds.Cfg = cfg.binds;
+                    PropertiesMenu.Cfg = cfg.menu;
                     PropertyBlock.Cfg = cfg.propertyBlock;
                 }
             }
@@ -44,21 +42,26 @@ namespace DarkHelmet.BuildVision2
 
         private BvConfig cfg;
         private PropertyBlock target;
-        private bool menuOpen;
 
         static BuildVision2()
         {
             ModBase.ModName = "Build Vision 2";
             ModBase.RunOnServer = false;
+            LogIO.FileName = logFileName;
+            ConfigIO<BvConfig>.FileName = configFileName;
+        }
+
+        public BuildVision2()
+        {
+            initStarted = false;
+            initFinished = false;
         }
 
         protected override void AfterInit()
         {
             if (!initFinished && !initStarted)
             {
-                menuOpen = false;
                 initStarted = true;
-                ConfigIO<BvConfig>.Init(configFileName);
                 ConfigIO.LoadStart(InitFinish, true);
             }
         }
@@ -71,10 +74,8 @@ namespace DarkHelmet.BuildVision2
             if (!initFinished && initStarted)
             {
                 this.Cfg = cfg;
-                KeyBinds.Init(cfg.binds);
-                ChatCommands.Init(cmdPrefix);
-                SettingsMenu.Init();
-                PropertiesMenu.Init(cfg.menu);
+                KeyBinds.Cfg = cfg.binds;
+                PropertiesMenu.Cfg = cfg.menu;
                 PropertyBlock.Cfg = cfg.propertyBlock;
 
                 initFinished = true;
@@ -92,15 +93,6 @@ namespace DarkHelmet.BuildVision2
                 TryCloseMenu();
                 ConfigIO.Save(Cfg);
             }
-
-            initFinished = false;
-            initStarted = false;
-
-            Binds?.Close();
-            Cmd?.Close();
-            Menu?.Close();
-            ConfigIO?.Close();
-            Settings?.Close();
         }
 
         /// <summary>
@@ -140,13 +132,10 @@ namespace DarkHelmet.BuildVision2
         {
             if (initFinished)
             {
-                if (menuOpen)
-                    Menu.Update(Cfg.general.forceFallbackHud);
-
-                if (Binds.Open.IsNewPressed)
+                if (KeyBinds.Open.IsNewPressed)
                     TryOpenMenu();
 
-                if (Binds.Hide.IsNewPressed || !CanAccessTargetBlock())
+                if (KeyBinds.Hide.IsNewPressed || !CanAccessTargetBlock())
                     TryCloseMenu();
             }
         }
@@ -161,7 +150,7 @@ namespace DarkHelmet.BuildVision2
                 if (TryGetTarget())
                 {
                     Menu.SetTarget(target);
-                    menuOpen = true;
+                    PropertiesMenu.menuOpen = true;
                 }
                 else
                     TryCloseMenu();
@@ -176,7 +165,7 @@ namespace DarkHelmet.BuildVision2
             if (initFinished)
             {
                 Menu.Hide();
-                menuOpen = false;
+                PropertiesMenu.menuOpen = false;
                 target = null;
             }
         }

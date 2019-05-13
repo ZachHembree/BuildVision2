@@ -7,31 +7,26 @@ namespace DarkHelmet.IO
     /// <summary>
     /// Handles logging; singleton
     /// </summary>
-    public sealed class LogIO
+    public sealed class LogIO : ModBase.Component<LogIO>
     {
-        public static LogIO Instance { get; private set; }
+        public static string FileName { get { return fileName; } set { if (value != null && value.Length > 0) fileName = value; } }
+        private static string fileName = "modLog.txt";
+
         public bool Accessible { get; private set; }
 
         private readonly LocalFileIO logFile;
         private readonly TaskPool taskPool;
 
-        private LogIO(string fileName)
+        static LogIO()
+        {
+            UpdateBeforeSimActions.Add(() => Instance.taskPool.Update());
+        }
+
+        public LogIO()
         {
             Accessible = true;
-            logFile = new LocalFileIO(fileName);
-
+            logFile = new LocalFileIO(FileName);
             taskPool = new TaskPool(1, ErrorCallback);
-        }
-
-        public static void Init(string fileName)
-        {
-            if (Instance == null)
-                Instance = new LogIO(fileName);
-        }
-
-        public void Close()
-        {
-            Instance = null;
         }
 
         private void ErrorCallback(List<IOException> known, AggregateException unknown)

@@ -3,52 +3,44 @@ using System;
 using System.Xml.Serialization;
 using System.Collections.Generic;
 using DarkHelmet.UI;
-using DarkHelmet.IO;
+using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal sealed class KeyBinds
+    internal static class KeyBinds
     {
-        public static KeyBinds Instance { get; private set; }
-        public BindsConfig Cfg { get { return new BindsConfig { bindData = BindManager.GetBindData() }; }
+        public static BindsConfig Cfg { get { return cfg; }
             set
             {
-                if(BindManager.TryUpdateBinds(value.bindData))
+                cfg = value;
+
+                if(BindManager.TryUpdateBinds(cfg.bindData))
                     UpdateBindReferences();
             }
         }
-        public IKeyBind Open { get; private set; }
-        public IKeyBind Hide { get; private set; }
-        public IKeyBind Select { get; private set; }
-        public IKeyBind ScrollUp { get; private set; }
-        public IKeyBind ScrollDown { get; private set; }
-        public IKeyBind MultX { get; private set; }
-        public IKeyBind MultY { get; private set; }
-        public IKeyBind MultZ { get; private set; }
+        public static IKeyBind Open { get; private set; }
+        public static IKeyBind Hide { get; private set; }
+        public static IKeyBind Select { get; private set; }
+        public static IKeyBind ScrollUp { get; private set; }
+        public static IKeyBind ScrollDown { get; private set; }
+        public static IKeyBind MultX { get; private set; }
+        public static IKeyBind MultY { get; private set; }
+        public static IKeyBind MultZ { get; private set; }
         public static BindManager BindManager { get { return BindManager.Instance; } }
 
-        private KeyBinds(BindsConfig cfg)
+        private static BindsConfig cfg = BindsConfig.Defaults;
+
+        static KeyBinds()
         {
             BindManager.AddBinds(new string[] { "open", "close", "select", "scrollup", "scrolldown", "multx", "multy", "multz" });
 
-            if (BindManager.TryUpdateBinds(cfg.bindData))
+            if (BindManager.TryUpdateBinds(Cfg.bindData))
                 UpdateBindReferences();
             else if (BindManager.TryUpdateBinds(BindsConfig.DefaultBinds))
                 UpdateBindReferences();
         }
 
-        public static void Init(BindsConfig cfg)
-        {
-            if (Instance == null)
-                Instance = new KeyBinds(cfg);
-        }
-
-        public void Close()
-        {
-            Instance = null;
-        }
-
-        private void UpdateBindReferences()
+        private static void UpdateBindReferences()
         {
             Open = BindManager.GetBindByName("open");
             Hide = BindManager.GetBindByName("close");

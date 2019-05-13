@@ -42,32 +42,27 @@ namespace DarkHelmet.IO
     /// <summary>
     /// Handles loading/saving configuration data; singleton
     /// </summary>
-    internal sealed class ConfigIO<TConfig> where TConfig : ConfigRootBase<TConfig>, new()
+    internal sealed class ConfigIO<TConfig> : ModBase.Component<ConfigIO<TConfig>> where TConfig : ConfigRootBase<TConfig>, new()
     {
-        public static ConfigIO<TConfig> Instance { get; private set; }
         public delegate void ConfigDataCallback(TConfig cfg);
-        public bool SaveInProgress { get; private set; }
 
+        public static string FileName { get { return fileName; } set { if (value != null && value.Length > 0) fileName = value; } }
+        private static string fileName = $"config_{typeof(TConfig).Name}.xml";
+
+        public bool SaveInProgress { get; private set; }
         private readonly LocalFileIO cfgFile;
         private readonly TaskPool taskPool;
 
-        private ConfigIO(string configFileName)
+        static ConfigIO()
         {
-            cfgFile = new LocalFileIO(configFileName);
+            UpdateBeforeSimActions.Add(() => Instance.taskPool.Update());
+        }
 
+        public ConfigIO()
+        {
+            cfgFile = new LocalFileIO(FileName);
             taskPool = new TaskPool(1, ErrorCallback);
             SaveInProgress = false;
-        }
-
-        public static void Init(string configFileName)
-        {
-            if (Instance == null)
-                Instance = new ConfigIO<TConfig>(configFileName);
-        }
-
-        public void Close()
-        {
-            Instance = null;
         }
 
         private void ErrorCallback(List<IOException> known, AggregateException unknown)

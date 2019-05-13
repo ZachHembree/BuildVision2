@@ -12,11 +12,10 @@ using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 namespace DarkHelmet.UI
 {
     /// <summary>
-    /// Collection of tools used to make working with the Text Hud API and general GUI stuff easier.
+    /// Collection of tools used to make working with the Text Hud API and general GUI stuff easier; singleton.
     /// </summary>
-    internal sealed partial class HudUtilities
+    internal sealed partial class HudUtilities : ModBase.Component<HudUtilities>
     {
-        public static HudUtilities Instance { get; private set; }
         public UiTestPattern TestPattern { get; private set; }
         public bool Heartbeat { get { return textHudApi.Heartbeat; } }
 
@@ -24,7 +23,12 @@ namespace DarkHelmet.UI
         private readonly List<Action> hudElementsDraw;
         private double screenWidth, screenHeight, aspectRatio, resScale, fov, fovScale;
 
-        private HudUtilities()
+        static HudUtilities()
+        {
+            DrawActions.Add(() => Instance.Draw());
+        }
+
+        public HudUtilities()
         {
             textHudApi = new HudAPIv2();
 
@@ -35,15 +39,10 @@ namespace DarkHelmet.UI
             menuElementsInit = new Queue<Action>();
         }
 
-        public static void Init()
+        protected override void AfterInit()
         {
-            if (Instance == null)
-            {
-                Instance = new HudUtilities();
-                Instance.TestPattern = new UiTestPattern();
-                Instance.TestPattern.Hide();
-                ModBase.DrawActions.Add(Instance.Draw);
-            }
+            TestPattern = new UiTestPattern();
+            TestPattern.Hide();
         }
 
         private void Draw()
@@ -68,10 +67,10 @@ namespace DarkHelmet.UI
             }
         }
 
-        public void Close()
+        protected override void BeforeClose()
         {
+            MenuRoot.Instance?.Close();
             textHudApi?.Close();
-            Instance = null;
         }
 
         public enum TextAlignment

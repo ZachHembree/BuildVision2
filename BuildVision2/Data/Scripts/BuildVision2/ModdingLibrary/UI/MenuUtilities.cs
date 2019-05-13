@@ -10,9 +10,6 @@ using MenuFlag = DarkHelmet.TextHudApi.HudAPIv2.MenuRootCategory.MenuFlag;
 
 namespace DarkHelmet.UI
 {
-    /// <summary>
-    /// Collection of tools used to make working with the Text Hud API and general GUI stuff easier.
-    /// </summary>
     internal sealed partial class HudUtilities
     {
         private readonly Queue<Action> menuElementsInit;

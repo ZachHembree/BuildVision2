@@ -9,6 +9,9 @@ using DarkHelmet.UI;
 
 namespace DarkHelmet.Game
 {
+    /// <summary>
+    /// Entry point for any mod using this library.
+    /// </summary>
     public class ModBase : MySessionComponentBase // try sealing this
     {
         public static LogIO Log { get { return LogIO.Instance; } }
@@ -43,7 +46,6 @@ namespace DarkHelmet.Game
                 isServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
                 isDedicated = (MyAPIGateway.Utilities.IsDedicated && isServer);
 
-                LogIO.Init("modLog.txt");
                 HudUtilities.Init();
 
                 foreach (Action initAction in initActions)
@@ -52,15 +54,15 @@ namespace DarkHelmet.Game
         }
 
         public override void Draw() =>
-            UpdateLoopActions(drawActions);
+            RunLoopActions(drawActions);
 
         public override void UpdateBeforeSimulation() =>
-            UpdateLoopActions(updateBeforeSimActions);
+            RunLoopActions(updateBeforeSimActions);
 
         public override void UpdateAfterSimulation() =>
-            UpdateLoopActions(updateAfterSimActions);
+            RunLoopActions(updateAfterSimActions);
 
-        private void UpdateLoopActions(List<Action> updateActions)
+        private void RunLoopActions(List<Action> updateActions)
         {
             if (!crashed && (!isDedicated || RunOnServer))
             {
@@ -132,7 +134,7 @@ namespace DarkHelmet.Game
         }
 
         /// <summary>
-        /// Generic base for all mod components that need to hook into the game's internal loops. Singleton.
+        /// Generic base for mod components that need to hook into the game's internal loops; singleton.
         /// </summary>
         public class Component<T> : Singleton<T> where T : Component<T>, new()
         {
@@ -143,7 +145,7 @@ namespace DarkHelmet.Game
             static Component()
             {
                 initActions.Add(Init);
-                closeActions.Add(() => Instance.Close());
+                closeActions.Add(() => Instance?.Close());
             }
         }
     }

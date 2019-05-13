@@ -89,9 +89,6 @@ namespace DarkHelmet.BuildVision2
 
     public class GeneralConfig : ConfigBase<GeneralConfig>
     {
-        [XmlElement(ElementName = "ForceFallbackHud")]
-        public bool forceFallbackHud;
-
         [XmlElement(ElementName = "CloseIfTargetNotInView")]
         public bool closeIfNotInView;
 
@@ -102,7 +99,6 @@ namespace DarkHelmet.BuildVision2
         {
             return new GeneralConfig
             {
-                forceFallbackHud = false,
                 closeIfNotInView = true,
                 canOpenIfHolding = true
             };
@@ -114,6 +110,9 @@ namespace DarkHelmet.BuildVision2
 
     public class PropMenuConfig : ConfigBase<PropMenuConfig>
     {
+        [XmlElement(ElementName = "ForceFallabckHud")]
+        public bool forceFallbackHud;
+
         [XmlElement(ElementName = "ApiHudSettings")]
         public ApiHudConfig apiHudConfig;
 

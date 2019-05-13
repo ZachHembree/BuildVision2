@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Sandbox.ModAPI;
 using System.Text.RegularExpressions;
 using DarkHelmet.Game;
@@ -32,44 +33,36 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Manages chat commands; singleton
     /// </summary>
-    internal sealed class CmdManager
+    internal sealed class CmdManager : ModBase.Component<CmdManager>
     {
-        public static CmdManager Instance { get; private set; }
+        public static string Prefix { get { return prefix; } set { if (value != null && value.Length > 0) prefix = value; } }
 
-        private readonly string prefix;
-        private readonly Regex cmdParser;
-        private readonly Command[] commands;
+        private static string prefix = "/cmd";
+        private static readonly Regex cmdParser;
+        private static readonly List<Command> commands;
 
         static CmdManager()
         {
-            ModBase.CloseActions.Add(() => Instance.Close());
+            commands = new List<Command>();
+            cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)(\w+))+");
         }
 
         /// <summary>
         /// Instantiates commands and regex
         /// </summary>
-        private CmdManager(string prefix, Command[] commands)
+        public CmdManager()
         {
-            this.prefix = prefix;
-            this.commands = commands;
-            cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)(\w+))+");
-
             MyAPIGateway.Utilities.MessageEntered += MessageHandler;
         }
 
-        /// <summary>
-        /// Returns the current instance or creates one if necessary.
-        /// </summary>
-        public static void Init(string prefix, Command[] commands)
-        {
-            if (Instance == null)
-                Instance = new CmdManager(prefix, commands);
-        }
-
-        public void Close()
+        protected override void BeforeClose()
         {
             MyAPIGateway.Utilities.MessageEntered -= MessageHandler;
-            Instance = null;
+        }
+
+        public static void AddCommands(IEnumerable<Command> newCommands)
+        {
+            commands.AddRange(newCommands);
         }
 
         /// <summary>
@@ -82,7 +75,7 @@ namespace DarkHelmet.UI
             bool cmdFound = false;
             message = message.ToLower();
 
-            if (message.StartsWith(prefix))
+            if (message.StartsWith(Prefix))
             {
                 sendToOthers = false;
 

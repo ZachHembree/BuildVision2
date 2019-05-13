@@ -84,7 +84,6 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private static KeyBinds KeyBinds { get { return KeyBinds.Instance; } }
         private static PropBlockConfig cfg;
 
         static PropertyBlock()

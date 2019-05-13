@@ -6,20 +6,19 @@ using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal sealed class ChatCommands
+    internal static class ChatCommands
     {
-        public static ChatCommands Instance { get; private set; }
-
         private static BuildVision2 Main { get { return BuildVision2.Instance as BuildVision2; } }
-        private static KeyBinds KeyBinds { get { return KeyBinds.Instance; } }
         public static CmdManager CmdManager { get { return CmdManager.Instance; } }
         private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
 
-        private readonly string controlList;
+        private static readonly string controlList;
 
-        private ChatCommands(string cmdPrefix)
+        static ChatCommands()
         {
-            CmdManager.Init(cmdPrefix, new Command[]
+            CmdManager.Prefix = "/bv2";
+
+            CmdManager.AddCommands(new Command[]
             {
                 new Command ("help",
                     () => ModBase.ShowMessageScreen("Help", GetHelpMessage())),
@@ -38,7 +37,7 @@ namespace DarkHelmet.BuildVision2
                 new Command("resetConfig",
                     () => Main.ResetConfig()),
                 new Command ("toggleApi",
-                    () => Main.Cfg.general.forceFallbackHud = !Main.Cfg.general.forceFallbackHud),
+                    () => PropertiesMenu.Cfg.forceFallbackHud = !PropertiesMenu.Cfg.forceFallbackHud),
                 new Command ("toggleAutoclose",
                     () => Main.Cfg.general.closeIfNotInView = !Main.Cfg.general.closeIfNotInView),
                 new Command ("toggleOpenWhileHolding",
@@ -58,22 +57,10 @@ namespace DarkHelmet.BuildVision2
             controlList = BindManager.GetControlListString();
         }
 
-        public static void Init(string cmdPrefix)
-        {
-            if (Instance == null)
-                Instance = new ChatCommands(cmdPrefix);
-        }
-
-        public void Close()
-        {
-            CmdManager.Close();
-            Instance = null;
-        }
-
         /// <summary>
         /// Prints the names and bind strings of all keybinds.
         /// </summary>
-        private void PrintBinds()
+        private static void PrintBinds()
         {
             string output = "Keybinds\n";
 
@@ -83,7 +70,7 @@ namespace DarkHelmet.BuildVision2
             ModBase.SendChatMessage(output);
         }
 
-        public string GetHelpMessage()
+        public static string GetHelpMessage()
         {
             string helpMessage =
                 $"To open Build Vision press [{KeyBinds.Open.BindString}] while aiming at a block; to close the menu, press " +
@@ -102,7 +89,7 @@ namespace DarkHelmet.BuildVision2
             return helpMessage;
         }
 
-        public string GetBindHelpMessage()
+        public static string GetBindHelpMessage()
         {
             string helpMessage =
                 $"The syntax of the /bv2 bind command is as follows (without brackets): /bv2 bind [bindName] [control1] " +
@@ -121,7 +108,7 @@ namespace DarkHelmet.BuildVision2
             return helpMessage;
         }
 
-        public string GetPrintBindsMessage()
+        public static string GetPrintBindsMessage()
         {
             string bindHelp =
                 "\n---Build Vision 2 Binds---\n" +

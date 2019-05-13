@@ -68,13 +68,12 @@ namespace DarkHelmet
             actions = new ConcurrentQueue<Action>();
             tasksWaiting = new Queue<Action>();
             tasksRunning = new Queue<Task>();
-            ModBase.UpdateAfterSimActions.Add(Update);
         }
 
         /// <summary>
         /// Updates internal queues
         /// </summary>
-        private void Update()
+        public void Update()
         {
             TryStartWaitingTasks();
             UpdateRunningTasks();

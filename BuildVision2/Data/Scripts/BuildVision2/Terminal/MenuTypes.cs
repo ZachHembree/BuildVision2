@@ -78,13 +78,11 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ApiHud : PropertyList
         {
-            public ApiHudConfig Cfg { get; set; }
             private HudUtilities.ScrollMenu menu;
 
-            public ApiHud(ApiHudConfig cfg)
+            public ApiHud()
             {
                 menu = new HudUtilities.ScrollMenu(20);
-                Cfg = cfg;
             }
 
             /// <summary>
@@ -96,11 +94,11 @@ namespace DarkHelmet.BuildVision2
                 this.selection = selection;
                 headerText = target.TBlock.CustomName;
 
-                maxVisible = Cfg.maxVisible;
-                menu.BodyColor = Cfg.colors.backgroundColor;
-                menu.HeaderColor = Cfg.colors.headerColor;
-                menu.SelectionBoxColor = Cfg.colors.selectionBoxColor;
-                menu.Scale = Cfg.hudScale;
+                maxVisible = ApiHudCfg.maxVisible;
+                menu.BodyColor = ApiHudCfg.colors.backgroundColor;
+                menu.HeaderColor = ApiHudCfg.colors.headerColor;
+                menu.SelectionBoxColor = ApiHudCfg.colors.selectionBoxColor;
+                menu.Scale = ApiHudCfg.hudScale;
                 Open = true;
                 menu.Visible = true;
 
@@ -128,7 +126,7 @@ namespace DarkHelmet.BuildVision2
                 Vector3D targetPos, worldPos;
                 Vector2D screenPos, screenBounds;
                 
-                if (!Cfg.forceToCenter)
+                if (!ApiHudCfg.forceToCenter)
                 {
                     if (LocalPlayer.IsLookingInBlockDir(target.TBlock))
                     {
@@ -137,7 +135,7 @@ namespace DarkHelmet.BuildVision2
                         screenPos = new Vector2D(worldPos.X, worldPos.Y);
                         screenBounds = new Vector2D(1d, 1d) - menu.Size / 2;
 
-                        if (Cfg.clampHudPos)
+                        if (ApiHudCfg.clampHudPos)
                         {
                             screenPos.X = Utilities.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
                             screenPos.Y = Utilities.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
@@ -158,11 +156,11 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void UpdateText()
             {
-                int elements = Utilities.Clamp(visEnd - visStart, 0, Cfg.maxVisible), i, action;
+                int elements = Utilities.Clamp(visEnd - visStart, 0, ApiHudCfg.maxVisible), i, action;
                 StringBuilder[] list = new StringBuilder[elements];
                 string colorCode;
 
-                menu.HeaderText = new StringBuilder($"<color={Cfg.colors.headerText}>{headerText}");
+                menu.HeaderText = new StringBuilder($"<color={ApiHudCfg.colors.headerText}>{headerText}");
 
                 for (int n = 0; n < elements; n++)
                 {
@@ -170,29 +168,29 @@ namespace DarkHelmet.BuildVision2
                     action = i - target.Properties.Count;
 
                     if (i == selection)
-                        colorCode = $"<color={Cfg.colors.selectedText}>";
+                        colorCode = $"<color={ApiHudCfg.colors.selectedText}>";
                     else if (i == index)
-                        colorCode = $"<color={Cfg.colors.highlightText}>";
+                        colorCode = $"<color={ApiHudCfg.colors.highlightText}>";
                     else
-                        colorCode = $"<color={Cfg.colors.bodyText}>";
+                        colorCode = $"<color={ApiHudCfg.colors.bodyText}>";
 
                     if (i >= target.Properties.Count)
                         list[n] = new StringBuilder(colorCode + target.Actions[action].GetDisplay());
                     else
                         list[n] = new StringBuilder(
-                            $"<color={Cfg.colors.bodyText}>{target.Properties[i].GetName()}: {colorCode}{target.Properties[i].GetValue()}");
+                            $"<color={ApiHudCfg.colors.bodyText}>{target.Properties[i].GetName()}: {colorCode}{target.Properties[i].GetValue()}");
                 }
 
                 menu.ListText = list;
                 menu.FooterLeftText = new StringBuilder(
-                        $"<color={Cfg.colors.headerText}>[{visStart + 1} - {visEnd} of {target.ScrollableCount}]");
+                        $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visEnd} of {target.ScrollableCount}]");
 
                 if (target.IsWorking)
-                    menu.FooterRightText = new StringBuilder($"<color={Cfg.colors.headerText}>[Working]");
+                    menu.FooterRightText = new StringBuilder($"<color={ApiHudCfg.colors.headerText}>[Working]");
                 else if (target.IsFunctional)
-                    menu.FooterRightText = new StringBuilder($"<color={Cfg.colors.headerText}>[Functional]");
+                    menu.FooterRightText = new StringBuilder($"<color={ApiHudCfg.colors.headerText}>[Functional]");
                 else
-                    menu.FooterRightText = new StringBuilder($"<color={Cfg.colors.blockIncText}>[Incomplete]");
+                    menu.FooterRightText = new StringBuilder($"<color={ApiHudCfg.colors.blockIncText}>[Incomplete]");
             }
         }
 
@@ -201,17 +199,13 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class NotifHud : PropertyList
         {
-            public NotifHudConfig Cfg { get; set; }
-
             private IMyHudNotification header;
             private IMyHudNotification[] list;
 
-            public NotifHud(NotifHudConfig cfg)
+            public NotifHud()
             {
-                Cfg = cfg;
-
                 header = MyAPIGateway.Utilities.CreateNotification("");
-                list = new IMyHudNotification[cfg.maxVisible];
+                list = new IMyHudNotification[ApiHudCfg.maxVisible];
             }
 
             /// <summary>
@@ -222,11 +216,11 @@ namespace DarkHelmet.BuildVision2
                 this.index = index;
                 this.selection = selection;
                 headerText = $"Build Vision: {target.TBlock.CustomName}";
-                maxVisible = Cfg.maxVisible;
+                maxVisible = ApiHudCfg.maxVisible;
                 Open = true;
 
-                if (list == null || list.Length < Cfg.maxVisible)
-                    list = new IMyHudNotification[Cfg.maxVisible];
+                if (list == null || list.Length < ApiHudCfg.maxVisible)
+                    list = new IMyHudNotification[ApiHudCfg.maxVisible];
 
                 GetVisibleProperties();
                 UpdateText();                
@@ -253,7 +247,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void UpdateText()
             {
-                int elements = Utilities.Clamp(visEnd - visStart, 0, Cfg.maxVisible), i, action;
+                int elements = Utilities.Clamp(visEnd - visStart, 0, ApiHudCfg.maxVisible), i, action;
 
                 header.Show();
                 header.ResetAliveTime();

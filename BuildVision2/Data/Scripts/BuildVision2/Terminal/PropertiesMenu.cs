@@ -1,71 +1,40 @@
 ﻿using System.Xml.Serialization;
 using DarkHelmet.UI;
+using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
     /// <summary>
     /// Renders menu of block terminal properties given a target block; singleton.
     /// </summary>
-    internal sealed partial class PropertiesMenu
+    internal sealed partial class PropertiesMenu : ModBase.Component<PropertiesMenu>
     {
-        public static PropertiesMenu Instance { get; private set; }
-        public PropMenuConfig Cfg
-        {
-            get
-            {
-                return new PropMenuConfig
-                {
-                    apiHudConfig = apiHud.Cfg,
-                    fallbackHudConfig = fallbackHud.Cfg
-                };
-            }
-            set
-            {
-                apiHud.Cfg = value.apiHudConfig;
-                fallbackHud.Cfg = value.fallbackHudConfig;
-            }
-        }
-        public ApiHudConfig ApiHudConfig { get { return apiHud.Cfg; } set { apiHud.Cfg = value; } }
-        public NotifHudConfig NotifHudConfig { get { return fallbackHud.Cfg; } set { fallbackHud.Cfg = value; } }
+        public static PropMenuConfig Cfg { get; set; } = PropMenuConfig.Defaults;
+        public static ApiHudConfig ApiHudCfg { get { return Cfg.apiHudConfig; } set { Cfg.apiHudConfig = value; } }
+        public static NotifHudConfig NotifHudCfg { get { return Cfg.fallbackHudConfig; } set { Cfg.fallbackHudConfig = value; } }
+        public static bool menuOpen;
 
-        private static KeyBinds KeyBinds { get { return KeyBinds.Instance; } }
         private static HudUtilities HudUtilities { get { return HudUtilities.Instance; } }
         private PropertyBlock target;
 
         private ApiHud apiHud;
         private NotifHud fallbackHud;
         private int index, selection;
-        private bool menuOpen;
 
-        private PropertiesMenu(PropMenuConfig cfg)
+        static PropertiesMenu()
         {
-            HudUtilities.Init();
-            apiHud = new ApiHud(cfg.apiHudConfig);
-            fallbackHud = new NotifHud(cfg.fallbackHudConfig);
+            UpdateAfterSimActions.Add(() => Instance.Update());
+        }
+
+        public PropertiesMenu()
+        {
+            apiHud = new ApiHud();
+            fallbackHud = new NotifHud();
             target = null;
 
             index = 0;
             selection = -1;
             menuOpen = false;
-            Cfg = cfg;
-        }
-
-        /// <summary>
-        /// Returns the current instance or creates one if necessary.
-        /// </summary>
-        public static void Init(PropMenuConfig cfg)
-        {
-            if (Instance == null)
-                Instance = new PropertiesMenu(cfg);
-        }
-
-        /// <summary>
-        /// Sets the menu's instance to null.
-        /// </summary>
-        public void Close()
-        {
-            HudUtilities?.Close();
-            Instance = null;
         }
 
         /// <summary>
@@ -83,14 +52,13 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Updates the menu each time it's called. Reopens menu if closed.
         /// </summary>
-        public void Update(bool forceFallbackHud)
+        private void Update()
         {
-            if (target != null)
+            if (menuOpen && target != null)
             {
-                menuOpen = true;
                 UpdateSelection();
 
-                if (HudUtilities.Heartbeat && !forceFallbackHud)
+                if (HudUtilities.Heartbeat && !Cfg.forceFallbackHud)
                 {
                     if (fallbackHud.Open)
                         fallbackHud.Hide();

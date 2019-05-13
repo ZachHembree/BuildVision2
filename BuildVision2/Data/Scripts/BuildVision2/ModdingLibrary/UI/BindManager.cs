@@ -104,7 +104,7 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Initializes binds class. Generates control dictionary, list and key binds array.
         /// </summary>
-        protected override void AfterInit()
+        public BindManager()
         {
             if (controls == null)
             {
