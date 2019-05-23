@@ -7,7 +7,7 @@ using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal static class KeyBinds
+    internal class KeyBinds : ModBase.Component<KeyBinds>
     {
         public static BindsConfig Cfg { get { return cfg; }
             set
@@ -42,14 +42,14 @@ namespace DarkHelmet.BuildVision2
 
         private static void UpdateBindReferences()
         {
-            Open = BindManager.GetBindByName("open");
-            Hide = BindManager.GetBindByName("close");
-            Select = BindManager.GetBindByName("select");
-            ScrollUp = BindManager.GetBindByName("scrollup");
-            ScrollDown = BindManager.GetBindByName("scrolldown");
-            MultX = BindManager.GetBindByName("multx");
-            MultY = BindManager.GetBindByName("multy");
-            MultZ = BindManager.GetBindByName("multz");
+            Open = BindManager["open"];
+            Hide = BindManager["close"];
+            Select = BindManager["select"];
+            ScrollUp = BindManager["scrollup"];
+            ScrollDown = BindManager["scrolldown"];
+            MultX = BindManager["multx"];
+            MultY = BindManager["multy"];
+            MultZ = BindManager["multz"];
         }
     }
 }

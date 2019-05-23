@@ -87,9 +87,6 @@ namespace DarkHelmet.UI
         {
             public HudElement()
             {
-                if (Instance == null)
-                    throw new Exception("Hud Elements cannot be created without initializing HudUtilities.");
-
                 Instance.hudElementsDraw.Add(Draw);
             }
 
@@ -238,7 +235,7 @@ namespace DarkHelmet.UI
                     for (int n = ListText.Length; n < list.Count; n++)
                         list[n].Visible = false;
 
-                    highlightBox.Size = new Vector2I(listSize.X + (int)(16d * Scale), (int)(24d * Scale));
+                    highlightBox.Size = new Vector2I(listSize.X + (int)(16d * Scale), (int)(23d * Scale));
                     highlightBox.Offset = new Vector2I(0, list[SelectionIndex].Offset.Y);
 
                     tab.Size = new Vector2I((int)(4d * Scale), highlightBox.Height);

@@ -23,7 +23,7 @@ namespace DarkHelmet.BuildVision2
 
         static PropertiesMenu()
         {
-            UpdateAfterSimActions.Add(() => Instance.Update());
+            UpdateActions.Add(() => Instance.Update());
         }
 
         public PropertiesMenu()
@@ -35,6 +35,7 @@ namespace DarkHelmet.BuildVision2
             index = 0;
             selection = -1;
             menuOpen = false;
+            KeyBinds.Select.OnNewPress += OnSelect;
         }
 
         /// <summary>
@@ -95,20 +96,25 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        /// <summary>
-        /// Updates scrollable index, range of visible scrollables and input for selected property.
-        /// </summary>
-        private void UpdateSelection()
+        private void OnSelect()
         {
-            int scrolllDir = GetScrollDir(), action = index - target.Properties.Count;
-
-            if (KeyBinds.Select.IsNewPressed)
+            if (menuOpen)
             {
+                int action = index - target.Properties.Count;
+
                 if (index >= target.Properties.Count)
                     target.Actions[action].Action();
                 else
                     selection = (selection == -1) ? index : -1;
             }
+        }
+
+        /// <summary>
+        /// Updates scrollable index, range of visible scrollables and input for selected property.
+        /// </summary>
+        private void UpdateSelection()
+        {
+            int scrolllDir = GetScrollDir();
 
             if (selection != -1 && index < target.Properties.Count)
             {
@@ -120,7 +126,7 @@ namespace DarkHelmet.BuildVision2
             else
             {
                 index -= scrolllDir;
-                index= Utilities.Clamp(index, 0, target.ScrollableCount - 1);
+                index = Utilities.Clamp(index, 0, target.ScrollableCount - 1);
             }
         }
 

@@ -66,6 +66,8 @@ namespace DarkHelmet.UI
         /// </summary>
         bool IsReleased { get; }
 
+        event Action OnPressed, OnNewPress, OnRelease;
+
         /// <summary>
         /// Returns bind name and the name of the controls used. 
         /// </summary>
@@ -83,6 +85,11 @@ namespace DarkHelmet.UI
         public IKeyBind this[int index] { get { return keyBinds[index]; } }
 
         /// <summary>
+        /// Returns key bind by name.
+        /// </summary>
+        public IKeyBind this[string name] { get { return GetBindByName(name); } }
+
+        /// <summary>
         /// Total number of key binds
         /// </summary>
         public int Count { get { return keyBinds.Count; } }
@@ -98,7 +105,7 @@ namespace DarkHelmet.UI
 
         static BindManager()
         {
-            UpdateAfterSimActions.Add(() => Instance.Update());
+            UpdateActions.Add(() => Instance.Update());
         }
 
         /// <summary>
@@ -599,6 +606,8 @@ namespace DarkHelmet.UI
             public bool IsNewPressed { get { return IsPressed && !wasPressed; } }
             public bool IsReleased { get { return !IsPressed && wasPressed; } }
 
+            public event Action OnPressed, OnNewPress, OnRelease;
+
             private IControl[] combo;
             public int Count { get { return combo != null ? combo.Length : 0; } }
             private bool wasPressed;
@@ -639,6 +648,15 @@ namespace DarkHelmet.UI
             {
                 wasPressed = IsPressed;
                 IsPressed = pressed;
+
+                if (IsPressed)
+                    OnPressed?.Invoke();
+
+                if (IsNewPressed)
+                    OnNewPress?.Invoke();
+
+                if (IsReleased)
+                    OnRelease?.Invoke();
             }
 
             /// <summary>

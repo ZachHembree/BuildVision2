@@ -13,13 +13,13 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Build vision main class; singleton.
     /// </summary>
+    [ModMain]
     internal sealed class BuildVision2 : ModBase.Component<BuildVision2>
     {
         private const string configFileName = "BuildVision2Config.xml", logFileName = "bvLog.txt", cmdPrefix = "/bv2";
 
         private static ConfigIO<BvConfig> ConfigIO { get { return ConfigIO<BvConfig>.Instance; } }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
-        private static SettingsMenu Settings { get { return SettingsMenu.Instance; } }
 
         private bool initStarted, initFinished;
 
@@ -45,10 +45,12 @@ namespace DarkHelmet.BuildVision2
 
         static BuildVision2()
         {
-            ModBase.ModName = "Build Vision 2";
+            ModBase.ModName = "Build Vision";
             ModBase.RunOnServer = false;
             LogIO.FileName = logFileName;
             ConfigIO<BvConfig>.FileName = configFileName;
+
+            UpdateActions.Add(() => Instance?.Update());
         }
 
         public BuildVision2()
@@ -59,11 +61,8 @@ namespace DarkHelmet.BuildVision2
 
         protected override void AfterInit()
         {
-            if (!initFinished && !initStarted)
-            {
-                initStarted = true;
-                ConfigIO.LoadStart(InitFinish, true);
-            }
+            initStarted = true;
+            ConfigIO.LoadStart(InitFinish, true);
         }
 
         /// <summary>
@@ -78,8 +77,13 @@ namespace DarkHelmet.BuildVision2
                 PropertiesMenu.Cfg = cfg.menu;
                 PropertyBlock.Cfg = cfg.propertyBlock;
 
+                ChatCommands.Init();
+                SettingsMenu.Init();
                 initFinished = true;
-                MyAPIGateway.Utilities.ShowMessage("Build Vision 2", $"Type {cmdPrefix} help for help. All settings are available through the mod menu.");
+
+                KeyBinds.Open.OnNewPress += TryOpenMenu;
+                KeyBinds.Hide.OnNewPress += TryCloseMenu;
+                MyAPIGateway.Utilities.ShowMessage(ModBase.ModName, $"Type {cmdPrefix} help for help. All settings are available through the mod menu.");
             }
         }
 
@@ -91,7 +95,7 @@ namespace DarkHelmet.BuildVision2
             if (initFinished)
             {
                 TryCloseMenu();
-                ConfigIO.Save(Cfg);
+                ConfigIO?.Save(Cfg);
             }
         }
 
@@ -132,10 +136,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (initFinished)
             {
-                if (KeyBinds.Open.IsNewPressed)
-                    TryOpenMenu();
-
-                if (KeyBinds.Hide.IsNewPressed || !CanAccessTargetBlock())
+                if (!CanAccessTargetBlock())
                     TryCloseMenu();
             }
         }

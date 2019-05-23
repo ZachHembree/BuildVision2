@@ -19,7 +19,7 @@ namespace DarkHelmet.IO
 
         static LogIO()
         {
-            UpdateBeforeSimActions.Add(() => Instance.taskPool.Update());
+            UpdateActions.Add(() => Instance.taskPool.Update());
         }
 
         public LogIO()

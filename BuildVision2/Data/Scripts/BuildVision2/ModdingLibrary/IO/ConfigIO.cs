@@ -55,7 +55,7 @@ namespace DarkHelmet.IO
 
         static ConfigIO()
         {
-            UpdateBeforeSimActions.Add(() => Instance.taskPool.Update());
+            UpdateActions.Add(() => Instance.taskPool.Update());
         }
 
         public ConfigIO()

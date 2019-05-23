@@ -39,18 +39,22 @@ namespace DarkHelmet.UI
 
         private static string prefix = "/cmd";
         private static readonly Regex cmdParser;
-        private static readonly List<Command> commands;
+        private readonly List<Command> commands;
 
         static CmdManager()
         {
-            commands = new List<Command>();
             cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)(\w+))+");
+        }
+
+        public CmdManager()
+        {
+            commands = new List<Command>();
         }
 
         /// <summary>
         /// Instantiates commands and regex
         /// </summary>
-        public CmdManager()
+        protected override void AfterInit()
         {
             MyAPIGateway.Utilities.MessageEntered += MessageHandler;
         }
@@ -62,13 +66,13 @@ namespace DarkHelmet.UI
 
         public static void AddCommands(IEnumerable<Command> newCommands)
         {
-            commands.AddRange(newCommands);
+            Instance.commands.AddRange(newCommands);
         }
 
         /// <summary>
         /// Recieves chat commands and attempts to execute them.
         /// </summary>
-        private void MessageHandler(string message, ref bool sendToOthers)
+        private static void MessageHandler(string message, ref bool sendToOthers)
         {
             string cmdName;
             string[] matches;
@@ -83,7 +87,7 @@ namespace DarkHelmet.UI
                 {
                     cmdName = matches[0];
                     
-                    foreach (Command cmd in commands)
+                    foreach (Command cmd in Instance.commands)
                         if (cmd.cmdName == cmdName)
                         {
                             cmdFound = true;
@@ -110,7 +114,7 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Parses list of arguments and their associated command name.
         /// </summary>
-        public bool TryParseCommand(string cmd, out string[] matches)
+        public static bool TryParseCommand(string cmd, out string[] matches)
         {
             Match match = cmdParser.Match(cmd);
             CaptureCollection captures = match.Groups[3].Captures;

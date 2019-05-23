@@ -81,9 +81,6 @@ namespace DarkHelmet.UI
 
             private void Init(Func<string> GetName, IMenuCategory parent)
             {
-                if (Instance == null)
-                    throw new Exception("Menu Elements cannot be created without initializing HudUtilities.");
-
                 requeueCount = 0;
                 this.GetName = GetName;
                 Parent = parent;

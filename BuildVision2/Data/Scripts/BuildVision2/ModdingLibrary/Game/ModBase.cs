@@ -5,22 +5,28 @@ using VRage.Game.ModAPI;
 using System;
 using System.Collections.Generic;
 using DarkHelmet.IO;
-using DarkHelmet.UI;
+using System.Runtime.CompilerServices;
 
 namespace DarkHelmet.Game
 {
+    public class ModMainAttribute : MySessionComponentDescriptor
+    {
+        public ModMainAttribute() : base(MyUpdateOrder.NoUpdate)
+        { }
+    }
+
     /// <summary>
     /// Entry point for any mod using this library.
     /// </summary>
-    public class ModBase : MySessionComponentBase // try sealing this
+    [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
+    public sealed class ModBase : MySessionComponentBase 
     {
         public static LogIO Log { get { return LogIO.Instance; } }
         public static string ModName { get; set; }
         public static bool RunOnServer { get; set; }
 
         private static ModBase Instance { get; set; }
-        private static readonly List<Action> initActions, closeActions, 
-            drawActions, updateBeforeSimActions, updateAfterSimActions;
+        private static readonly List<Action> initActions, closeActions, drawActions, updateActions;
 
         private bool crashed = false, isDedicated = false, isServer = false;
 
@@ -32,44 +38,35 @@ namespace DarkHelmet.Game
             initActions = new List<Action>();
             closeActions = new List<Action>();
             drawActions = new List<Action>();
-            updateBeforeSimActions = new List<Action>();
-            updateAfterSimActions = new List<Action>();
+            updateActions = new List<Action>();
         }
 
-        public override void Init(MyObjectBuilder_SessionComponent sessionComponent)
-        {
-            base.Init(sessionComponent);
+        public override void Draw() =>
+            RunUpdateActions(drawActions);
 
+        public override void UpdateAfterSimulation()
+        {
             if (Instance == null)
             {
                 Instance = this;
                 isServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
                 isDedicated = (MyAPIGateway.Utilities.IsDedicated && isServer);
 
-                HudUtilities.Init();
-
-                foreach (Action initAction in initActions)
-                    initAction();
+                SendChatMessage($"Base Init. Init action count: {initActions.Count}");                
             }
+
+            RunUpdateActions(initActions);
+            RunUpdateActions(updateActions);
         }
 
-        public override void Draw() =>
-            RunLoopActions(drawActions);
-
-        public override void UpdateBeforeSimulation() =>
-            RunLoopActions(updateBeforeSimActions);
-
-        public override void UpdateAfterSimulation() =>
-            RunLoopActions(updateAfterSimActions);
-
-        private void RunLoopActions(List<Action> updateActions)
+        private void RunUpdateActions(List<Action> updateActions)
         {
-            if (!crashed && (!isDedicated || RunOnServer))
+            if (!crashed)
             {
                 try
                 {
-                    foreach (Action action in updateActions)
-                        action();
+                    for (int n = 0; n < updateActions.Count; n++)
+                        updateActions[n]();
                 }
                 catch (Exception e)
                 {
@@ -78,11 +75,11 @@ namespace DarkHelmet.Game
 
                     MyAPIGateway.Utilities.ShowMissionScreen
                     (
-                        ModName, 
+                        ModName,
                         "Debug", "",
                         $"{ModName} has crashed! Press the X in the upper right hand corner if you don't want " +
-                        "it to reload.\n" + e.ToString(), 
-                        AllowReload, 
+                        "it to reload.\n" + e.ToString(),
+                        AllowReload,
                         "Reload"
                     );
 
@@ -121,10 +118,9 @@ namespace DarkHelmet.Game
         {
             try
             {
-                foreach (Action closeAction in closeActions)
-                    closeAction();
+                foreach (Action CloseAction in closeActions)
+                    CloseAction();
 
-                Log.Close();
                 Instance = null;
             }
             catch
@@ -133,19 +129,24 @@ namespace DarkHelmet.Game
             }
         }
 
+        public static void Close()
+        {
+            if (Instance != null)
+                Instance.UnloadData();
+        }
+
         /// <summary>
         /// Generic base for mod components that need to hook into the game's internal loops; singleton.
         /// </summary>
         public class Component<T> : Singleton<T> where T : Component<T>, new()
         {
             protected static List<Action> DrawActions { get { return ModBase.drawActions; } }
-            protected static List<Action> UpdateBeforeSimActions { get { return ModBase.updateBeforeSimActions; } }
-            protected static List<Action> UpdateAfterSimActions { get { return ModBase.updateAfterSimActions; } }
+            protected static List<Action> UpdateActions { get { return ModBase.updateActions; } }
 
             static Component()
             {
                 initActions.Add(Init);
-                closeActions.Add(() => Instance?.Close());
+                closeActions.Add(Close);
             }
         }
     }

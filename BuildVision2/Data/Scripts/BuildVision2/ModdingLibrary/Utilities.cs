@@ -7,17 +7,18 @@ using Sandbox.ModAPI;
 namespace DarkHelmet
 {
     /// <summary>
-    /// Generic singleton. CanInstantiate must be set to true in order to instantiate this type outside the Init() method.
+    /// Generic singleton.
     /// </summary>
     public class Singleton<T> where T : Singleton<T>, new()
     {
-        public static T Instance { get; protected set; }
-        protected static bool canInstantiate;
-
-        static Singleton()
+        public static T Instance
         {
-            canInstantiate = false;
+            get { if (instance == null) Init(); return instance; }
+            protected set { instance = value; }
         }
+
+        protected static bool canInstantiate = false;
+        private static T instance;
 
         protected Singleton()
         {
@@ -29,11 +30,11 @@ namespace DarkHelmet
 
         public static void Init()
         {
-            if (Instance == null)
+            if (instance == null)
             {
                 canInstantiate = true;
-                Instance = new T();
-                Instance.AfterInit();
+                instance = new T();
+                instance.AfterInit();
             }
         }
 
@@ -41,10 +42,13 @@ namespace DarkHelmet
 
         protected virtual void BeforeClose() { }
 
-        public void Close()
+        public static void Close()
         {
-            BeforeClose();
-            Instance = null;
+            if (Instance != null)
+            {
+                Instance.BeforeClose();
+                Instance = null;
+            }
         }
     }
 

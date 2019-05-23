@@ -9,7 +9,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Generates a settings menu using elements based on <see cref="TextHudApi.HudAPIv2.MenuItemBase"/>
     /// </summary>
-    internal sealed class SettingsMenu : ModBase.Component<SettingsMenu>
+    internal static class SettingsMenu
     {
         private static BuildVision2 Main { get { return BuildVision2.Instance as BuildVision2; } }
         private static HudUtilities.MenuRoot SettingsMenuRoot { get { return HudUtilities.MenuRoot.Instance; } }
@@ -17,7 +17,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Generates a collection containing all settings menu elements.
         /// </summary>
-        public SettingsMenu()
+        public static void Init()
         {
             HudUtilities.MenuRoot.Init("Build Vision", "Build Vision Settings");
 
@@ -189,7 +189,7 @@ namespace DarkHelmet.BuildVision2
             });
         }
 
-        private List<HudUtilities.IMenuElement> GetBindSettings()
+        private static List<HudUtilities.IMenuElement> GetBindSettings()
         {
             List<HudUtilities.IMenuElement> bindSettings = new List<HudUtilities.IMenuElement>(KeyBinds.BindManager.Count + 2);
 
@@ -203,7 +203,7 @@ namespace DarkHelmet.BuildVision2
                         string[] args;
                         input = input.ToLower();
 
-                        if (ChatCommands.CmdManager.TryParseCommand($"{KeyBinds.BindManager[n].Name} {input}", out args))
+                        if (CmdManager.TryParseCommand($"{KeyBinds.BindManager[n].Name} {input}", out args))
                             KeyBinds.BindManager.TryUpdateBind(KeyBinds.BindManager[n].Name, args);
                     }));
             }

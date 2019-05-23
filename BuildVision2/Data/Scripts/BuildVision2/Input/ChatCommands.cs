@@ -6,15 +6,15 @@ using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal static class ChatCommands
+    internal static class ChatCommands 
     {
         private static BuildVision2 Main { get { return BuildVision2.Instance as BuildVision2; } }
         public static CmdManager CmdManager { get { return CmdManager.Instance; } }
         private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
 
-        private static readonly string controlList;
+        private static string controlList;
 
-        static ChatCommands()
+        public static void Init()
         {
             CmdManager.Prefix = "/bv2";
 
@@ -51,7 +51,7 @@ namespace DarkHelmet.BuildVision2
                 new Command ("toggleTestPattern",
                     () => HudElements.TestPattern.Toggle()),
                 new Command ("reload",
-                    () => Main.Close())
+                    () => ModBase.Close())
             });
 
             controlList = BindManager.GetControlListString();
