@@ -215,7 +215,7 @@ namespace DarkHelmet.BuildVision2
             {
                 this.index = index;
                 this.selection = selection;
-                headerText = $"Build Vision: {target.TBlock.CustomName}";
+                headerText = $"{ModBase.ModName}: {target.TBlock.CustomName}";
                 maxVisible = ApiHudCfg.maxVisible;
                 Open = true;
 

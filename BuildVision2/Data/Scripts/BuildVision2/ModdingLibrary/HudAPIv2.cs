@@ -12,7 +12,19 @@ namespace DarkHelmet.TextHudApi
 {
 	public class HudAPIv2
 	{
-		private static HudAPIv2 instance;
+		public static HudAPIv2 Instance
+        {
+            get
+            {
+                if (instance == null)
+                    instance = new HudAPIv2();
+
+                return instance;
+            }
+            private set { instance = value; }
+        }
+
+        private static HudAPIv2 instance;
 		private const long REGISTRATIONID = 573804956;
 		private bool registered = false;
 		private Action m_onRegisteredAction;
@@ -114,7 +126,7 @@ namespace DarkHelmet.TextHudApi
 
 
 		#region Intercomm
-		private void DeleteMessage(object BackingObject)
+		public void DeleteMessage(object BackingObject)
 		{
 			if(BackingObject != null)
 				RemoveMessage(BackingObject);

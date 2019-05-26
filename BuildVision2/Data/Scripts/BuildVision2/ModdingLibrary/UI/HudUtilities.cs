@@ -14,12 +14,11 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Collection of tools used to make working with the Text Hud API and general GUI stuff easier; singleton.
     /// </summary>
-    internal sealed partial class HudUtilities : ModBase.Component<HudUtilities>
+    internal sealed class HudUtilities : ModBase.Component<HudUtilities>
     {
         public UiTestPattern TestPattern { get; private set; }
-        public bool Heartbeat { get { return textHudApi.Heartbeat; } }
+        public bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
 
-        private readonly HudAPIv2 textHudApi;
         private readonly List<Action> hudElementsDraw;
         private double screenWidth, screenHeight, aspectRatio, resScale, fov, fovScale;
 
@@ -30,13 +29,10 @@ namespace DarkHelmet.UI
 
         public HudUtilities()
         {
-            textHudApi = new HudAPIv2();
-
             fov = MyAPIGateway.Session.Camera.FovWithZoom;
             fovScale = 0.1 * Math.Tan(fov / 2d);
 
             hudElementsDraw = new List<Action>();
-            menuElementsInit = new Queue<Action>();
         }
 
         protected override void AfterInit()
@@ -62,15 +58,12 @@ namespace DarkHelmet.UI
 
                 foreach (Action Draw in hudElementsDraw)
                     Draw();
-
-                CreateSettingsMenuElements();
             }
         }
 
         protected override void BeforeClose()
         {
-            MenuRoot.Instance?.Close();
-            textHudApi?.Close();
+            HudAPIv2.Instance?.Close();
         }
 
         public enum TextAlignment

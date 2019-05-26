@@ -6,19 +6,15 @@ using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal static class ChatCommands 
+    internal sealed partial class BvMain
     {
-        private static BuildVision2 Main { get { return BuildVision2.Instance as BuildVision2; } }
-        public static CmdManager CmdManager { get { return CmdManager.Instance; } }
-        private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
-
         private static string controlList;
 
-        public static void Init()
+        private Command[] GetChatCommands()
         {
-            CmdManager.Prefix = "/bv2";
+            controlList = BindManager.GetControlListString();
 
-            CmdManager.AddCommands(new Command[]
+            return new Command[]
             {
                 new Command ("help",
                     () => ModBase.ShowMessageScreen("Help", GetHelpMessage())),
@@ -31,30 +27,28 @@ namespace DarkHelmet.BuildVision2
                 new Command("resetBinds",
                     () => KeyBinds.Cfg = BindsConfig.Defaults),
                 new Command ("save",
-                    () => Main.SaveConfig()),
+                    () => SaveConfig()),
                 new Command ("load",
-                    () => Main.LoadConfig()),
+                    () => LoadConfig()),
                 new Command("resetConfig",
-                    () => Main.ResetConfig()),
+                    () => ResetConfig()),
                 new Command ("toggleApi",
                     () => PropertiesMenu.Cfg.forceFallbackHud = !PropertiesMenu.Cfg.forceFallbackHud),
                 new Command ("toggleAutoclose",
-                    () => Main.Cfg.general.closeIfNotInView = !Main.Cfg.general.closeIfNotInView),
+                    () => Cfg.general.closeIfNotInView = !Cfg.general.closeIfNotInView),
                 new Command ("toggleOpenWhileHolding",
-                    () => Main.Cfg.general.canOpenIfHolding = !Main.Cfg.general.canOpenIfHolding),
+                    () => Cfg.general.canOpenIfHolding = !Cfg.general.canOpenIfHolding),
 
                 // Debug/Testing
                 new Command ("open",
-                    () => Main.TryOpenMenu()),
+                    () => TryOpenMenu()),
                 new Command ("close",
-                    () => Main.TryCloseMenu()),
+                    () => TryCloseMenu()),
                 new Command ("toggleTestPattern",
                     () => HudElements.TestPattern.Toggle()),
                 new Command ("reload",
                     () => ModBase.Close())
-            });
-
-            controlList = BindManager.GetControlListString();
+            };
         }
 
         /// <summary>
@@ -70,7 +64,7 @@ namespace DarkHelmet.BuildVision2
             ModBase.SendChatMessage(output);
         }
 
-        public static string GetHelpMessage()
+        private static string GetHelpMessage()
         {
             string helpMessage =
                 $"To open Build Vision press [{KeyBinds.Open.BindString}] while aiming at a block; to close the menu, press " +
@@ -89,7 +83,7 @@ namespace DarkHelmet.BuildVision2
             return helpMessage;
         }
 
-        public static string GetBindHelpMessage()
+        private static string GetBindHelpMessage()
         {
             string helpMessage =
                 $"The syntax of the /bv2 bind command is as follows (without brackets): /bv2 bind [bindName] [control1] " +
@@ -108,7 +102,7 @@ namespace DarkHelmet.BuildVision2
             return helpMessage;
         }
 
-        public static string GetPrintBindsMessage()
+        private static string GetPrintBindsMessage()
         {
             string bindHelp =
                 "\n---Build Vision 2 Binds---\n" +

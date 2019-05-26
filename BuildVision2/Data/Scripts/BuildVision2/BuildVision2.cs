@@ -1,9 +1,6 @@
 ﻿using Sandbox.ModAPI;
 using VRage.Game;
-using VRage.Game.Components;
 using VRage.Game.ModAPI;
-using System;
-using System.Xml.Serialization;
 using DarkHelmet.IO;
 using DarkHelmet.UI;
 using DarkHelmet.Game;
@@ -14,23 +11,23 @@ namespace DarkHelmet.BuildVision2
     /// Build vision main class; singleton.
     /// </summary>
     [ModMain]
-    internal sealed class BuildVision2 : ModBase.Component<BuildVision2>
+    internal sealed partial class BvMain : ModBase.Component<BvMain>
     {
-        private const string configFileName = "BuildVision2Config.xml", logFileName = "bvLog.txt", cmdPrefix = "/bv2";
-
         private static ConfigIO<BvConfig> ConfigIO { get { return ConfigIO<BvConfig>.Instance; } }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
+        private static CmdManager CmdManager { get { return CmdManager.Instance; } }
+        private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
 
         private bool initStarted, initFinished;
 
-        public BvConfig Cfg
+        public static BvConfig Cfg
         {
             get { return cfg; }
             set
             {
                 cfg = value;
 
-                if (initFinished && cfg != null)
+                if (Instance.initFinished && cfg != null)
                 {
                     cfg.Validate();
                     KeyBinds.Cfg = cfg.binds;
@@ -40,20 +37,22 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private BvConfig cfg;
+        private static BvConfig cfg;
         private PropertyBlock target;
 
-        static BuildVision2()
+        static BvMain()
         {
-            ModBase.ModName = "Build Vision";
             ModBase.RunOnServer = false;
-            LogIO.FileName = logFileName;
-            ConfigIO<BvConfig>.FileName = configFileName;
+
+            ModBase.ModName = "Build Vision";
+            CmdManager.Prefix = "/bv2";
+            LogIO.FileName = "bvLog.txt";
+            ConfigIO<BvConfig>.FileName = "BuildVision2Config.xml";
 
             UpdateActions.Add(() => Instance?.Update());
         }
 
-        public BuildVision2()
+        public BvMain()
         {
             initStarted = false;
             initFinished = false;
@@ -72,18 +71,19 @@ namespace DarkHelmet.BuildVision2
         {
             if (!initFinished && initStarted)
             {
-                this.Cfg = cfg;
+                Cfg = cfg;
                 KeyBinds.Cfg = cfg.binds;
                 PropertiesMenu.Cfg = cfg.menu;
                 PropertyBlock.Cfg = cfg.propertyBlock;
 
-                ChatCommands.Init();
-                SettingsMenu.Init();
-                initFinished = true;
+                CmdManager.AddCommands(GetChatCommands());
+                SettingsMenu.AddMenuElements(GetSettingsMenuElements());
 
                 KeyBinds.Open.OnNewPress += TryOpenMenu;
                 KeyBinds.Hide.OnNewPress += TryCloseMenu;
-                MyAPIGateway.Utilities.ShowMessage(ModBase.ModName, $"Type {cmdPrefix} help for help. All settings are available through the mod menu.");
+
+                initFinished = true;
+                MyAPIGateway.Utilities.ShowMessage(ModBase.ModName, $"Type {CmdManager.Prefix} help for help. All settings are available through the mod menu.");
             }
         }
 

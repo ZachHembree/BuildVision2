@@ -6,24 +6,55 @@ using VRage.Utils;
 using VRage.Game;
 using System;
 using DarkHelmet.TextHudApi;
+using DarkHelmet.Game;
 using MenuFlag = DarkHelmet.TextHudApi.HudAPIv2.MenuRootCategory.MenuFlag;
 
 namespace DarkHelmet.UI
 {
-    internal sealed partial class HudUtilities
+    /// <summary>
+    /// Collection of wrapper types and utilities used to simplify the creation of settings menu elements in the Text HUD API Mod Menu
+    /// </summary>
+    internal sealed class SettingsMenu : ModBase.Component<SettingsMenu>
     {
+        public bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
         private readonly Queue<Action> menuElementsInit;
 
-        private void CreateSettingsMenuElements()
+        public SettingsMenu()
         {
-            Action InitElement;
+            menuElementsInit = new Queue<Action>();
+        }
 
-            while (menuElementsInit.Count > 0)
+        protected override void AfterInit()
+        {
+            MenuRoot.Init(ModBase.ModName, $"{ModBase.ModName} Settings");
+            UpdateActions.Add(() => Instance?.UpdateMenuElements());
+        }
+
+        private void UpdateMenuElements()
+        {
+            if (Heartbeat)
             {
-                if (menuElementsInit.TryDequeue(out InitElement))
-                    InitElement();
+                Action InitElement;
+
+                while (menuElementsInit.Count > 0)
+                {
+                    if (menuElementsInit.TryDequeue(out InitElement))
+                        InitElement();
+                }
             }
         }
+
+        protected override void BeforeClose()
+        {
+            MenuRoot.Instance?.Close();
+            //HudAPIv2.Instance?.Close();
+        }
+
+        public static void AddMenuElement(IMenuElement newChild) =>
+            MenuRoot.Instance.AddChild(newChild);
+
+        public static void AddMenuElements(IEnumerable<IMenuElement> newChildren) =>
+            MenuRoot.Instance.AddChildren(newChildren);
 
         /// <summary>
         /// Interface of all menu elements capable of serving as parents of other elements.
@@ -42,6 +73,7 @@ namespace DarkHelmet.UI
         {
             string Name { get; }
             IMenuCategory Parent { get; set; }
+            void Close();
         }
 
         /// <summary>
@@ -102,6 +134,11 @@ namespace DarkHelmet.UI
             /// Used to instantiate HudAPIv2.MenuItemBase elements upon initialization of the Text Hud API
             /// </summary>
             protected abstract void InitElement();
+
+            public virtual void Close()
+            {
+                TextHudApi.HudAPIv2.Instance.DeleteMessage(Element);
+            }
         }
 
         /// <summary>
@@ -165,12 +202,20 @@ namespace DarkHelmet.UI
 
                 children.AddRange(newChildren);
             }
+
+            public override void Close()
+            {
+                foreach (IMenuElement child in children)
+                    child.Close();
+
+                base.Close();
+            }
         }
 
         /// <summary>
         /// Contains all settings menu elements for a given mod; singleton. Must be initalized before any other menu elements.
         /// </summary>
-        public sealed class MenuRoot : MenuCategoryBase<HudAPIv2.MenuRootCategory>
+        private sealed class MenuRoot : MenuCategoryBase<HudAPIv2.MenuRootCategory>
         {
             public static MenuRoot Instance { get; private set; }
 
@@ -188,8 +233,10 @@ namespace DarkHelmet.UI
                     Instance = new MenuRoot(name, header);
             }
 
-            public void Close()
+            public override void Close()
             {
+                base.Close();
+
                 Instance = null;
             }
 
@@ -478,6 +525,8 @@ namespace DarkHelmet.UI
                 current.A = (byte)A;
                 OnUpdate(current);
             }
+
+            public void Close() { }
         }
     }
 }
