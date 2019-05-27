@@ -35,6 +35,16 @@ namespace DarkHelmet.BuildVision2
                         () => PropertiesMenu.ApiHudCfg.hudScale,
                         (float scale) => PropertiesMenu.ApiHudCfg.hudScale = scale),
                     new SettingsMenu.MenuSliderInput(
+                        () => $"Header Bg Opacity: {Math.Round(PropertiesMenu.ApiHudCfg.colors.headerColor.A / 255d, 2)}",
+                        "Header Bg Opacity", .01f, 1f,
+                        () => (float)Math.Round(PropertiesMenu.ApiHudCfg.colors.headerColor.A / 255d, 2),
+                        (float value) => PropertiesMenu.ApiHudCfg.colors.headerColor.A = (byte)(value * 255f)),
+                    new SettingsMenu.MenuSliderInput(
+                        () => $"List Bg Opacity: {Math.Round(PropertiesMenu.ApiHudCfg.colors.listBgColor.A / 255d, 2)}",
+                        "List Bg Opacity", .01f, 1f,
+                        () => (float)Math.Round(PropertiesMenu.ApiHudCfg.colors.listBgColor.A / 255d, 2),
+                        (float value) => PropertiesMenu.ApiHudCfg.colors.listBgColor.A = (byte)(value * 255f)),
+                    new SettingsMenu.MenuSliderInput(
                         () => $"Max Visible Properties: {PropertiesMenu.ApiHudCfg.maxVisible}",
                         "Max Visible Properties", 6, 20,
                         () => PropertiesMenu.ApiHudCfg.maxVisible,
@@ -45,41 +55,6 @@ namespace DarkHelmet.BuildVision2
                     new SettingsMenu.MenuButton(
                         () => $"Lock To Screen Center: {PropertiesMenu.ApiHudCfg.forceToCenter}",
                         () => PropertiesMenu.ApiHudCfg.forceToCenter = !PropertiesMenu.ApiHudCfg.forceToCenter),
-                
-                    //Text Colors
-                    new SettingsMenu.MenuCategory("Text Colors", "Text Colors", new List<SettingsMenu.IMenuElement>()
-                    {
-                        new SettingsMenu.MenuColorInput("Body Text Color",
-                            () => Utilities.ParseColor(PropertiesMenu.ApiHudCfg.colors.bodyText),
-                            (Color color) => PropertiesMenu.ApiHudCfg.colors.bodyText = Utilities.GetColorString(color, false), false),
-                        new SettingsMenu.MenuColorInput("Header Text Color",
-                            () => Utilities.ParseColor(PropertiesMenu.ApiHudCfg.colors.headerText),
-                            (Color color) => PropertiesMenu.ApiHudCfg.colors.headerText = Utilities.GetColorString(color, false), false),
-                        new SettingsMenu.MenuColorInput("Block Inc Text Color",
-                            () => Utilities.ParseColor(PropertiesMenu.ApiHudCfg.colors.blockIncText),
-                            (Color color) => PropertiesMenu.ApiHudCfg.colors.blockIncText = Utilities.GetColorString(color, false), false),
-                        new SettingsMenu.MenuColorInput("Highlight Text Color",
-                            () => Utilities.ParseColor(PropertiesMenu.ApiHudCfg.colors.highlightText),
-                            (Color color) => PropertiesMenu.ApiHudCfg.colors.highlightText = Utilities.GetColorString(color, false), false),
-                        new SettingsMenu.MenuColorInput("Selection Text Color",
-                            () => Utilities.ParseColor(PropertiesMenu.ApiHudCfg.colors.selectedText),
-                            (Color color) => PropertiesMenu.ApiHudCfg.colors.selectedText = Utilities.GetColorString(color, false), false),
-                    }),
-
-                    //Background Colors
-                    new SettingsMenu.MenuCategory("Background Colors", "Background Colors", new List<SettingsMenu.IMenuElement>()
-                    {
-                        new SettingsMenu.MenuColorInput("List Bg Color",
-                            () => PropertiesMenu.ApiHudCfg.colors.backgroundColor,
-                            (Color color) => PropertiesMenu.ApiHudCfg.colors.backgroundColor = color),
-                        new SettingsMenu.MenuColorInput("Selection Bg Color",
-                            () => PropertiesMenu.ApiHudCfg.colors.selectionBoxColor,
-                            (Color color) => PropertiesMenu.ApiHudCfg.colors.selectionBoxColor = color),
-                        new SettingsMenu.MenuColorInput("Header Bg Color",
-                            () => PropertiesMenu.ApiHudCfg.colors.headerColor,
-                            (Color color) => PropertiesMenu.ApiHudCfg.colors.headerColor = color),
-                    }),
-
                     new SettingsMenu.MenuButton(
                         "Reset Settings",
                         () => PropertiesMenu.ApiHudCfg = ApiHudConfig.Defaults

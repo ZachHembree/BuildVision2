@@ -95,7 +95,7 @@ namespace DarkHelmet.BuildVision2
                 headerText = target.TBlock.CustomName;
 
                 maxVisible = ApiHudCfg.maxVisible;
-                menu.BodyColor = ApiHudCfg.colors.backgroundColor;
+                menu.BodyColor = ApiHudCfg.colors.listBgColor;
                 menu.HeaderColor = ApiHudCfg.colors.headerColor;
                 menu.SelectionBoxColor = ApiHudCfg.colors.selectionBoxColor;
                 menu.Scale = ApiHudCfg.hudScale;
@@ -157,10 +157,10 @@ namespace DarkHelmet.BuildVision2
             private void UpdateText()
             {
                 int elements = Utilities.Clamp(visEnd - visStart, 0, ApiHudCfg.maxVisible), i, action;
-                StringBuilder[] list = new StringBuilder[elements];
+                string[] list = new string[elements];
                 string colorCode;
 
-                menu.HeaderText = new StringBuilder($"<color={ApiHudCfg.colors.headerText}>{headerText}");
+                menu.HeaderText = $"<color={ApiHudCfg.colors.headerText}>{headerText}";
 
                 for (int n = 0; n < elements; n++)
                 {
@@ -175,22 +175,20 @@ namespace DarkHelmet.BuildVision2
                         colorCode = $"<color={ApiHudCfg.colors.bodyText}>";
 
                     if (i >= target.Properties.Count)
-                        list[n] = new StringBuilder(colorCode + target.Actions[action].GetDisplay());
+                        list[n] = colorCode + target.Actions[action].GetDisplay();
                     else
-                        list[n] = new StringBuilder(
-                            $"<color={ApiHudCfg.colors.bodyText}>{target.Properties[i].GetName()}: {colorCode}{target.Properties[i].GetValue()}");
+                        list[n] = $"<color={ApiHudCfg.colors.bodyText}>{target.Properties[i].GetName()}: {colorCode}{target.Properties[i].GetValue()}";
                 }
 
                 menu.ListText = list;
-                menu.FooterLeftText = new StringBuilder(
-                        $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visEnd} of {target.ScrollableCount}]");
+                menu.FooterLeftText = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visEnd} of {target.ScrollableCount}]";
 
                 if (target.IsWorking)
-                    menu.FooterRightText = new StringBuilder($"<color={ApiHudCfg.colors.headerText}>[Working]");
+                    menu.FooterRightText = $"<color={ApiHudCfg.colors.headerText}>[Working]";
                 else if (target.IsFunctional)
-                    menu.FooterRightText = new StringBuilder($"<color={ApiHudCfg.colors.headerText}>[Functional]");
+                    menu.FooterRightText = $"<color={ApiHudCfg.colors.headerText}>[Functional]";
                 else
-                    menu.FooterRightText = new StringBuilder($"<color={ApiHudCfg.colors.blockIncText}>[Incomplete]");
+                    menu.FooterRightText = $"<color={ApiHudCfg.colors.blockIncText}>[Incomplete]";
             }
         }
 

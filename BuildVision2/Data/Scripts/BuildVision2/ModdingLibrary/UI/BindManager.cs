@@ -3,6 +3,7 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using VRage.Input;
+using VRage.Utils;
 using Sandbox.ModAPI;
 using System.Collections;
 using DarkHelmet.Game;
@@ -105,7 +106,7 @@ namespace DarkHelmet.UI
 
         static BindManager()
         {
-            UpdateActions.Add(() => Instance.Update());
+            InputActions.Add(() => Instance.Update());
         }
 
         /// <summary>
@@ -573,7 +574,7 @@ namespace DarkHelmet.UI
 
             public Control(MyKeys seKey, bool Analog = false)
             {
-                //(MyAPIGateway.Input as VRage.Input.IMyInput).SetControlBlock();
+                //(MyAPIGateway.Input as VRage.Input.IMyInput).SetControlBlock(MyStringId.GetOrCompute(seKey.ToString()), true);
                 //Sandbox.MySandboxGame.IsPaused
 
                 Name = seKey.ToString();

@@ -9,24 +9,17 @@ using System.Runtime.CompilerServices;
 
 namespace DarkHelmet.Game
 {
-    public class ModMainAttribute : MySessionComponentDescriptor
-    {
-        public ModMainAttribute() : base(MyUpdateOrder.NoUpdate)
-        { }
-    }
-
     /// <summary>
-    /// Entry point for any mod using this library.
+    /// Base class for mods using this library. 
     /// </summary>
-    [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
-    public sealed class ModBase : MySessionComponentBase 
+    public abstract class ModBase : MySessionComponentBase
     {
         public static LogIO Log { get { return LogIO.Instance; } }
-        public static string ModName { get; set; }
-        public static bool RunOnServer { get; set; }
+        public static string ModName { get; protected set; }
+        public static bool RunOnServer { get; protected set; }
 
-        private static ModBase Instance { get; set; }
-        private static readonly List<Action> initActions, closeActions, drawActions, updateActions;
+        protected static ModBase Instance { get; private set; }
+        protected static readonly List<Action> initActions, closeActions, drawActions, inputActions, updateActions;
 
         private bool crashed = false, isDedicated = false, isServer = false;
 
@@ -38,13 +31,26 @@ namespace DarkHelmet.Game
             initActions = new List<Action>();
             closeActions = new List<Action>();
             drawActions = new List<Action>();
+            inputActions = new List<Action>();
             updateActions = new List<Action>();
         }
 
-        public override void Draw() =>
+        public sealed override void Draw() =>
             RunUpdateActions(drawActions);
 
-        public override void UpdateAfterSimulation()
+        public sealed override void HandleInput() =>
+            RunUpdateActions(inputActions);
+
+        public sealed override void UpdateBeforeSimulation() =>
+            Update();
+
+        public sealed override void Simulate() =>
+            Update();
+
+        public sealed override void UpdateAfterSimulation() =>
+            Update();
+
+        private void Update()
         {
             if (Instance == null)
             {
@@ -52,16 +58,18 @@ namespace DarkHelmet.Game
                 isServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
                 isDedicated = (MyAPIGateway.Utilities.IsDedicated && isServer);
 
-                SendChatMessage($"Base Init. Init action count: {initActions.Count}");                
+                if (!isDedicated || RunOnServer) AfterInit();
             }
 
             RunUpdateActions(initActions);
             RunUpdateActions(updateActions);
         }
 
+        protected abstract void AfterInit();
+
         private void RunUpdateActions(List<Action> updateActions)
         {
-            if (!crashed)
+            if (!crashed && (!isDedicated || RunOnServer))
             {
                 try
                 {
@@ -97,7 +105,7 @@ namespace DarkHelmet.Game
         }
 
         /// <summary>
-        /// Sends chat message using predetermined sender name.
+        /// Sends chat message using the mod name as the sender.
         /// </summary>
         public static void SendChatMessage(string message)
         {
@@ -129,10 +137,12 @@ namespace DarkHelmet.Game
             }
         }
 
+        protected abstract void BeforeClose();
+
         public static void Close()
         {
-            if (Instance != null)
-                Instance.UnloadData();
+            Instance?.BeforeClose();
+            Instance?.UnloadData();
         }
 
         /// <summary>
@@ -141,6 +151,7 @@ namespace DarkHelmet.Game
         public class Component<T> : Singleton<T> where T : Component<T>, new()
         {
             protected static List<Action> DrawActions { get { return ModBase.drawActions; } }
+            protected static List<Action> InputActions { get { return ModBase.inputActions; } }
             protected static List<Action> UpdateActions { get { return ModBase.updateActions; } }
 
             static Component()

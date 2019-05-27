@@ -44,12 +44,6 @@ namespace DarkHelmet.UI
             }
         }
 
-        protected override void BeforeClose()
-        {
-            MenuRoot.Instance?.Close();
-            //HudAPIv2.Instance?.Close();
-        }
-
         public static void AddMenuElement(IMenuElement newChild) =>
             MenuRoot.Instance.AddChild(newChild);
 
@@ -73,7 +67,6 @@ namespace DarkHelmet.UI
         {
             string Name { get; }
             IMenuCategory Parent { get; set; }
-            void Close();
         }
 
         /// <summary>
@@ -134,11 +127,6 @@ namespace DarkHelmet.UI
             /// Used to instantiate HudAPIv2.MenuItemBase elements upon initialization of the Text Hud API
             /// </summary>
             protected abstract void InitElement();
-
-            public virtual void Close()
-            {
-                TextHudApi.HudAPIv2.Instance.DeleteMessage(Element);
-            }
         }
 
         /// <summary>
@@ -202,14 +190,6 @@ namespace DarkHelmet.UI
 
                 children.AddRange(newChildren);
             }
-
-            public override void Close()
-            {
-                foreach (IMenuElement child in children)
-                    child.Close();
-
-                base.Close();
-            }
         }
 
         /// <summary>
@@ -231,13 +211,6 @@ namespace DarkHelmet.UI
             {
                 if (Instance == null)
                     Instance = new MenuRoot(name, header);
-            }
-
-            public override void Close()
-            {
-                base.Close();
-
-                Instance = null;
             }
 
             protected override void InitElement() =>
@@ -525,8 +498,6 @@ namespace DarkHelmet.UI
                 current.A = (byte)A;
                 OnUpdate(current);
             }
-
-            public void Close() { }
         }
     }
 }

@@ -61,11 +61,6 @@ namespace DarkHelmet.UI
             }
         }
 
-        protected override void BeforeClose()
-        {
-            HudAPIv2.Instance?.Close();
-        }
-
         public enum TextAlignment
         {
             Left,
@@ -136,10 +131,10 @@ namespace DarkHelmet.UI
         /// </summary>
         public class ScrollMenu : HudElement
         {
-            public StringBuilder HeaderText { get { return header.Message; } set { header.Message = value; } }
-            public StringBuilder FooterLeftText { get { return footerLeft.Message; } set { footerLeft.Message = value; } }
-            public StringBuilder FooterRightText { get { return footerRight.Message; } set { footerRight.Message = value; } }
-            public StringBuilder[] ListText
+            public string HeaderText { get { return header.Message; } set { header.Message = value; } }
+            public string FooterLeftText { get { return footerLeft.Message; } set { footerLeft.Message = value; } }
+            public string FooterRightText { get { return footerRight.Message; } set { footerRight.Message = value; } }
+            public string[] ListText
             {
                 get { return listText; }
                 set
@@ -174,7 +169,7 @@ namespace DarkHelmet.UI
             }
 
             private static Vector2I padding;
-            private StringBuilder[] listText;
+            private string[] listText;
 
             private readonly TexturedBox headerBg, footerBg, background, highlightBox, tab;
             private readonly TextHudMessage header, footerLeft, footerRight;
@@ -287,7 +282,7 @@ namespace DarkHelmet.UI
         /// </summary>
         public class TextHudMessage : HudElement
         {
-            public StringBuilder Message
+            public string Message
             {
                 get { return message; }
                 set
@@ -322,7 +317,7 @@ namespace DarkHelmet.UI
             public TextAlignment alignment;
 
             private HudAPIv2.HUDMessage hudMessage;
-            private StringBuilder message;
+            private string message;
             private Vector2I alignmentOffset;
             private double scale;
 
@@ -363,7 +358,9 @@ namespace DarkHelmet.UI
                 {
                     Vector2D length;
 
-                    hudMessage.Message = Message;
+                    hudMessage.Message.Clear();
+                    hudMessage.Message.Append(Message);
+
                     length = hudMessage.GetTextLength();
                     ScaledTextSize = length;
                     TextSize = Utilities.Abs(Instance.GetPixelPos(ScaledTextSize));

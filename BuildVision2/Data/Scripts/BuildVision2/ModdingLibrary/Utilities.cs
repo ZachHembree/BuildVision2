@@ -57,13 +57,12 @@ namespace DarkHelmet
         private static readonly Regex colorParser = new Regex(@"(\s*,?(\d{1,3})\s*,?){3,4}");
 
         /// <summary>
-        /// Tries to convert a string of color values to its <see cref="VRageMath.Color"/> equivalent.
+        /// Determines whether a string can be parsed into a <see cref="VRageMath.Color"/> and returns true if so.
         /// </summary>
-        public static bool TryParseColor(string colorData, out Color value)
+        public static bool CanParseColor(string colorData)
         {
             Match match = colorParser.Match(colorData);
             CaptureCollection captures = match.Groups[2].Captures;
-            value = new Color();
             byte r, g, b, a;
 
             if (captures.Count > 2)
@@ -77,19 +76,11 @@ namespace DarkHelmet
                 if (!byte.TryParse(captures[2].Value, out b))
                     return false;
 
-                value.R = r;
-                value.G = g;
-                value.B = b;
-
                 if (captures.Count > 3)
                 {
                     if (!byte.TryParse(captures[3].Value, out a))
                         return false;
-
-                    value.A = a;
                 }
-                else
-                    value.A = 255;
 
                 return true;
             }
@@ -98,9 +89,30 @@ namespace DarkHelmet
         }
 
         /// <summary>
+        /// Tries to convert a string of color values to its <see cref="VRageMath.Color"/> equivalent.
+        /// </summary>
+        public static bool TryParseColor(string colorData, out Color value, bool ignoreAlpha = false)
+        {
+            bool successful;
+
+            try
+            {
+                value = ParseColor(colorData, ignoreAlpha);
+                successful = true;
+            }
+            catch
+            {
+                value = Color.White;
+                successful = false;
+            }
+
+            return successful;
+        }
+
+        /// <summary>
         /// Converts a string of color values to its <see cref="VRageMath.Color"/> equivalent.
         /// </summary>
-        public static Color ParseColor(string colorData)
+        public static Color ParseColor(string colorData, bool ignoreAlpha = false)
         {
             Match match = colorParser.Match(colorData);
             CaptureCollection captures = match.Groups[2].Captures;
@@ -112,7 +124,7 @@ namespace DarkHelmet
                 value.G = byte.Parse(captures[1].Value);
                 value.B = byte.Parse(captures[2].Value);
 
-                if (captures.Count > 3)
+                if (captures.Count > 3 || ignoreAlpha)
                     value.A = byte.Parse(captures[3].Value);
                 else
                     value.A = 255;
@@ -120,7 +132,7 @@ namespace DarkHelmet
                 return value;
             }
             else
-                return Color.White;
+                throw new Exception("Color string must contain at least 3 values.");
         }
 
         public static string GetColorString(Color color, bool includeAlpha = true)

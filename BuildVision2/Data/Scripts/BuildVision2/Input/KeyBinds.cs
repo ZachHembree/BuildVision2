@@ -32,6 +32,11 @@ namespace DarkHelmet.BuildVision2
 
         static KeyBinds()
         {
+            Init();
+        }
+
+        protected override void AfterInit()
+        {
             BindManager.AddBinds(new string[] { "open", "close", "select", "scrollup", "scrolldown", "multx", "multy", "multz" });
 
             if (BindManager.TryUpdateBinds(Cfg.bindData))

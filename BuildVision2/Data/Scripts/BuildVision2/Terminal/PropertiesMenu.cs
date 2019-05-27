@@ -35,7 +35,10 @@ namespace DarkHelmet.BuildVision2
             index = 0;
             selection = -1;
             menuOpen = false;
+
             KeyBinds.Select.OnNewPress += OnSelect;
+            KeyBinds.ScrollUp.OnPressed += ScrollUp;
+            KeyBinds.ScrollDown.OnPressed += ScrollDown;
         }
 
         /// <summary>
@@ -57,8 +60,6 @@ namespace DarkHelmet.BuildVision2
         {
             if (menuOpen && target != null)
             {
-                UpdateSelection();
-
                 if (HudUtilities.Heartbeat && !Cfg.forceFallbackHud)
                 {
                     if (fallbackHud.Open)
@@ -109,13 +110,17 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        private void ScrollDown() =>
+            UpdateSelection(-1);
+
+        private void ScrollUp() =>
+            UpdateSelection(1);
+
         /// <summary>
         /// Updates scrollable index, range of visible scrollables and input for selected property.
         /// </summary>
-        private void UpdateSelection()
+        private void UpdateSelection(int scrolllDir)
         {
-            int scrolllDir = GetScrollDir();
-
             if (selection != -1 && index < target.Properties.Count)
             {
                 if (scrolllDir > 0)
@@ -128,16 +133,6 @@ namespace DarkHelmet.BuildVision2
                 index -= scrolllDir;
                 index = Utilities.Clamp(index, 0, target.ScrollableCount - 1);
             }
-        }
-
-        private int GetScrollDir()
-        {
-            if ((KeyBinds.ScrollUp.Analog && KeyBinds.ScrollUp.IsPressed) || KeyBinds.ScrollUp.IsNewPressed)
-                return 1;
-            else if ((KeyBinds.ScrollDown.Analog && KeyBinds.ScrollDown.IsPressed) || KeyBinds.ScrollDown.IsNewPressed)
-                return -1;
-            else
-                return 0;
         }
     }
 }

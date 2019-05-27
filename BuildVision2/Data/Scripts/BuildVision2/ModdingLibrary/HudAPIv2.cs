@@ -6,24 +6,13 @@ using VRage.Input;
 using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
+using DarkHelmet.Game;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 
 namespace DarkHelmet.TextHudApi
 {
-	public class HudAPIv2
+	public class HudAPIv2 : ModBase.Component<HudAPIv2>
 	{
-		public static HudAPIv2 Instance
-        {
-            get
-            {
-                if (instance == null)
-                    instance = new HudAPIv2();
-
-                return instance;
-            }
-            private set { instance = value; }
-        }
-
         private static HudAPIv2 instance;
 		private const long REGISTRATIONID = 573804956;
 		private bool registered = false;
@@ -60,21 +49,22 @@ namespace DarkHelmet.TextHudApi
 		/// Create a HudAPI Instance. Please only create one per mod. 
 		/// </summary>
 		/// <param name="onRegisteredAction">Callback once the HudAPI is active. You can Instantiate HudAPI objects in this Action</param>
-		public HudAPIv2(Action onRegisteredAction = null)
+		public HudAPIv2()
 		{
 			if (instance != null)
 			{
 					return;
 			}
 			instance = this;
-			m_onRegisteredAction = onRegisteredAction;
+			m_onRegisteredAction = null;
             MyAPIGateway.Utilities.RegisterMessageHandler(REGISTRATIONID, RegisterComponents);
         }
 
-		public void Close()
+		protected override void BeforeClose()
 		{
 			Unload();
 		}
+
 		/// <summary>
 		/// Unregisters mod and frees references. 
 		/// </summary>
@@ -123,10 +113,8 @@ namespace DarkHelmet.TextHudApi
 			}
 		}
 
-
-
-		#region Intercomm
-		public void DeleteMessage(object BackingObject)
+        #region Intercomm
+        private void DeleteMessage(object BackingObject)
 		{
 			if(BackingObject != null)
 				RemoveMessage(BackingObject);

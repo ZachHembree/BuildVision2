@@ -168,7 +168,7 @@ namespace DarkHelmet.BuildVision2
         public class Colors : ConfigBase<Colors>
         {
             [XmlIgnore]
-            public Color backgroundColor, selectionBoxColor, headerColor;
+            public Color listBgColor, selectionBoxColor, headerColor;
 
             [XmlElement(ElementName = "BodyText")]
             public string bodyText;
@@ -186,7 +186,7 @@ namespace DarkHelmet.BuildVision2
             public string selectedText;
 
             [XmlElement(ElementName = "ListBg")]
-            public string backgroundColorData;
+            public string listBgColorData;
 
             [XmlElement(ElementName = "SelectionBg")]
             public string selectionBoxColorData;
@@ -203,7 +203,7 @@ namespace DarkHelmet.BuildVision2
                     blockIncText = "200,15,15",
                     highlightText = "200,170,0",
                     selectedText = "30,200,30",
-                    backgroundColor = new Color(60, 65, 70, 190),
+                    listBgColor = new Color(60, 65, 70, 190),
                     selectionBoxColor = new Color(41, 54, 62, 255),
                     headerColor = new Color(54, 66, 76, 240)
                 };
@@ -214,22 +214,22 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public override void Validate()
             {
-                if (bodyText == null)
+                if (bodyText == null || !Utilities.CanParseColor(bodyText))
                     bodyText = Defaults.bodyText;
 
-                if (blockIncText == null)
+                if (blockIncText == null || !Utilities.CanParseColor(blockIncText))
                     blockIncText = Defaults.blockIncText;
 
-                if (highlightText == null)
+                if (highlightText == null || !Utilities.CanParseColor(highlightText))
                     highlightText = Defaults.highlightText;
 
-                if (selectedText == null)
+                if (selectedText == null || !Utilities.CanParseColor(selectedText))
                     selectedText = Defaults.selectedText;
 
-                if (backgroundColorData == null || !Utilities.TryParseColor(backgroundColorData, out backgroundColor))
+                if (listBgColorData == null || !Utilities.TryParseColor(listBgColorData, out listBgColor))
                 {
-                    backgroundColor = Defaults.backgroundColor;
-                    backgroundColorData = Utilities.GetColorString(backgroundColor);
+                    listBgColor = Defaults.listBgColor;
+                    listBgColorData = Utilities.GetColorString(listBgColor);
                 }
 
                 if (selectionBoxColorData == null || !Utilities.TryParseColor(selectionBoxColorData, out selectionBoxColor))

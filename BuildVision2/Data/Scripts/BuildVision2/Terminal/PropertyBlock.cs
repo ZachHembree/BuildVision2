@@ -67,6 +67,7 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     internal class PropertyBlock
     {
+        public event Action OnBlockChanged;
         public IMyTerminalBlock TBlock { get; private set; }
         public List<IScrollableAction> Actions { get; private set; }
         public List<IScrollableProp> Properties { get; private set; }
@@ -98,6 +99,15 @@ namespace DarkHelmet.BuildVision2
             Actions = GetScrollableActions();
             Properties = GetScrollableProps();
             ScrollableCount = Actions.Count + Properties.Count;
+
+            TBlock.PropertiesChanged += BlockChanged;
+            TBlock.CustomNameChanged += BlockChanged;
+        }
+
+        private void BlockChanged(IMyTerminalBlock block)
+        {
+            Utilities.Assert(block == TBlock, "Wrong block sent.");
+            OnBlockChanged?.Invoke();
         }
 
         /// <summary>
@@ -212,7 +222,7 @@ namespace DarkHelmet.BuildVision2
                 IMyMotorStator rotor;
                 mechBlock.GetActions(terminalActions);
 
-                foreach (IMyTerminalAction tAction in terminalActions) // sketchy, but I've done worse already
+                foreach (IMyTerminalAction tAction in terminalActions)
                 {
                     string tActionName = tAction.Name.ToString();
 

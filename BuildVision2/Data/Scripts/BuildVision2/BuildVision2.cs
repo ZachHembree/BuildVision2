@@ -1,5 +1,6 @@
 ﻿using Sandbox.ModAPI;
 using VRage.Game;
+using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using DarkHelmet.IO;
 using DarkHelmet.UI;
@@ -10,9 +11,10 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Build vision main class; singleton.
     /// </summary>
-    [ModMain]
-    internal sealed partial class BvMain : ModBase.Component<BvMain>
+    [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation, 1)]
+    internal sealed partial class BvMain : ModBase
     {
+        private const double maxDist = 10d, maxDistSquared = maxDist * maxDist;
         private static ConfigIO<BvConfig> ConfigIO { get { return ConfigIO<BvConfig>.Instance; } }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
         private static CmdManager CmdManager { get { return CmdManager.Instance; } }
@@ -27,7 +29,7 @@ namespace DarkHelmet.BuildVision2
             {
                 cfg = value;
 
-                if (Instance.initFinished && cfg != null)
+                if ((Instance as BvMain).initFinished && cfg != null)
                 {
                     cfg.Validate();
                     KeyBinds.Cfg = cfg.binds;
@@ -43,13 +45,12 @@ namespace DarkHelmet.BuildVision2
         static BvMain()
         {
             ModBase.RunOnServer = false;
-
             ModBase.ModName = "Build Vision";
             CmdManager.Prefix = "/bv2";
             LogIO.FileName = "bvLog.txt";
             ConfigIO<BvConfig>.FileName = "BuildVision2Config.xml";
 
-            UpdateActions.Add(() => Instance?.Update());
+            updateActions.Add(() => (Instance as BvMain)?.Update());
         }
 
         public BvMain()
@@ -148,7 +149,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (initFinished)
             {
-                if (TryGetTarget())
+                if (TryGetTarget() && CanAccessTargetBlock())
                 {
                     Menu.SetTarget(target);
                     PropertiesMenu.menuOpen = true;
@@ -185,7 +186,7 @@ namespace DarkHelmet.BuildVision2
             IMyCubeBlock block;
             IMyTerminalBlock termBlock;
 
-            if ((Cfg.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(8.0, out block))
+            if ((Cfg.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(maxDist, out block))
             {
                 termBlock = block as IMyTerminalBlock;
 
@@ -199,7 +200,7 @@ namespace DarkHelmet.BuildVision2
                         return true;
                     }
                     else
-                        MyAPIGateway.Utilities.ShowNotification("ACCESS DENIED", 1000, MyFontEnum.Red);
+                        MyAPIGateway.Utilities.ShowNotification("Access denied", 1000, MyFontEnum.Red);
                 }
             }
 
@@ -211,12 +212,12 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private bool BlockInRange()
         {
-            double dist = 10000.0;
+            double dist = double.PositiveInfinity;
 
             if (target != null)
                 dist = (LocalPlayer.Position - target.GetPosition()).LengthSquared();
 
-            return dist < 100.0;
+            return dist < maxDistSquared;
         }
     }
 }
