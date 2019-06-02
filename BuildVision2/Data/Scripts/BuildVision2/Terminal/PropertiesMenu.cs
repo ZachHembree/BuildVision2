@@ -7,24 +7,20 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Renders menu of block terminal properties given a target block; singleton.
     /// </summary>
-    internal sealed partial class PropertiesMenu : ModBase.Component<PropertiesMenu>
+    internal sealed partial class PropertiesMenu : Singleton<PropertiesMenu>
     {
         public static PropMenuConfig Cfg { get; set; } = PropMenuConfig.Defaults;
         public static ApiHudConfig ApiHudCfg { get { return Cfg.apiHudConfig; } set { Cfg.apiHudConfig = value; } }
         public static NotifHudConfig NotifHudCfg { get { return Cfg.fallbackHudConfig; } set { Cfg.fallbackHudConfig = value; } }
-        public static bool menuOpen;
+        public static bool MenuOpen { get { return menuOpen; } set { menuOpen = value; Instance?.Update(); } }
 
         private static HudUtilities HudUtilities { get { return HudUtilities.Instance; } }
         private PropertyBlock target;
+        private static bool menuOpen;
 
         private ApiHud apiHud;
         private NotifHud fallbackHud;
         private int index, selection;
-
-        static PropertiesMenu()
-        {
-            UpdateActions.Add(() => Instance.Update());
-        }
 
         public PropertiesMenu()
         {
@@ -35,71 +31,26 @@ namespace DarkHelmet.BuildVision2
             index = 0;
             selection = -1;
             menuOpen = false;
-
-            KeyBinds.Select.OnNewPress += OnSelect;
-            KeyBinds.ScrollUp.OnPressed += ScrollUp;
-            KeyBinds.ScrollDown.OnPressed += ScrollDown;
+            KeyBinds.Select.OnNewPress += SelectProperty;
+            KeyBinds.ScrollUp.OnNewPress += ScrollUp;
+            KeyBinds.ScrollDown.OnNewPress += ScrollDown;
         }
 
         /// <summary>
         /// Sets target block and acquires its properties.
         /// </summary>
-        public void SetTarget(PropertyBlock block)
+        public void SetTarget(PropertyBlock newTarget)
         {
-            target = block;
+            target = newTarget;
             index = 0;
             selection = -1;
-            apiHud.SetTarget(block);
-            fallbackHud.SetTarget(block);
+            apiHud.SetTarget(newTarget);
+            fallbackHud.SetTarget(newTarget);
         }
 
-        /// <summary>
-        /// Updates the menu each time it's called. Reopens menu if closed.
-        /// </summary>
-        private void Update()
+        private void SelectProperty()
         {
-            if (menuOpen && target != null)
-            {
-                if (HudUtilities.Heartbeat && !Cfg.forceFallbackHud)
-                {
-                    if (fallbackHud.Open)
-                        fallbackHud.Hide();
-
-                    apiHud.Update(index, selection);
-                }
-                else
-                {
-                    if (apiHud.Open)
-                        apiHud.Hide();
-
-                    fallbackHud.Update(index, selection);
-                }
-            }
-            else
-            {
-                Hide();
-            }
-        }
-
-        /// <summary>
-        /// Hides all menu elements.
-        /// </summary>
-        public void Hide()
-        {
-            if (menuOpen)
-            {
-                apiHud.Hide();
-                fallbackHud.Hide();
-
-                index = 0;
-                selection = -1;
-                menuOpen = false;
-            }
-        }
-
-        private void OnSelect()
-        {
-            if (menuOpen)
+            if (MenuOpen)
             {
                 int action = index - target.Properties.Count;
 
@@ -110,11 +61,17 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private void ScrollDown() =>
-            UpdateSelection(-1);
+        private void ScrollDown()
+        {
+            if (MenuOpen)
+                UpdateSelection(-1);
+        }
 
-        private void ScrollUp() =>
-            UpdateSelection(1);
+        private void ScrollUp()
+        {
+            if (MenuOpen)
+                UpdateSelection(1);
+        }
 
         /// <summary>
         /// Updates scrollable index, range of visible scrollables and input for selected property.
@@ -133,6 +90,44 @@ namespace DarkHelmet.BuildVision2
                 index -= scrolllDir;
                 index = Utilities.Clamp(index, 0, target.ScrollableCount - 1);
             }
+        }
+
+        /// <summary>
+        /// Updates the menu each time it's called. Reopens menu if closed.
+        /// </summary>
+        public void Update()
+        {
+            if (MenuOpen && target != null)
+            {
+                if (HudUtilities.Heartbeat && !Cfg.forceFallbackHud)
+                {
+                    if (fallbackHud.Open)
+                        fallbackHud.Hide();
+
+                    apiHud.Update(index, selection);
+                }
+                else
+                {
+                    if (apiHud.Open)
+                        apiHud.Hide();
+
+                    fallbackHud.Update(index, selection);
+                }
+            }
+            else
+                Hide();
+        }
+
+        /// <summary>
+        /// Hides all menu elements.
+        /// </summary>
+        private void Hide()
+        {
+            apiHud.Hide();
+            fallbackHud.Hide();
+
+            index = 0;
+            selection = -1;
         }
     }
 }

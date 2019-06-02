@@ -14,13 +14,14 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Collection of tools used to make working with the Text Hud API and general GUI stuff easier; singleton.
     /// </summary>
-    internal sealed class HudUtilities : ModBase.Component<HudUtilities>
+    public sealed class HudUtilities : ModBase.Component<HudUtilities>
     {
+        public static double ResScale { get; private set; }
         public UiTestPattern TestPattern { get; private set; }
         public bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
 
         private readonly List<Action> hudElementsDraw;
-        private double screenWidth, screenHeight, aspectRatio, resScale, fov, fovScale;
+        private double screenWidth, screenHeight, aspectRatio, invTextApiScale, fov, fovScale;
 
         static HudUtilities()
         {
@@ -48,7 +49,9 @@ namespace DarkHelmet.UI
                 screenWidth = MyAPIGateway.Session.Camera.ViewportSize.X;
                 screenHeight = MyAPIGateway.Session.Camera.ViewportSize.Y;
                 aspectRatio = (screenWidth / screenHeight);
-                resScale = 1080d / screenHeight;
+
+                invTextApiScale = 1080d / screenHeight;
+                ResScale = (screenHeight > 1080d) ? screenHeight / 1080d : 1d;
 
                 if (fov != MyAPIGateway.Session.Camera.FovWithZoom)
                 {
@@ -308,7 +311,7 @@ namespace DarkHelmet.UI
                     scale = value;
 
                     if (hudMessage != null)
-                        hudMessage.Scale = scale * Instance.resScale;
+                        hudMessage.Scale = scale * Instance.invTextApiScale;
                 }
             }
 

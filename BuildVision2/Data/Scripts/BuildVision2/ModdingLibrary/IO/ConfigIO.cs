@@ -25,7 +25,7 @@ namespace DarkHelmet.IO
 
         private static TConfig defaults;
 
-        public abstract TConfig GetDefaults();
+        protected abstract TConfig GetDefaults();
 
         public abstract void Validate();
     }
@@ -33,16 +33,16 @@ namespace DarkHelmet.IO
     /// <summary>
     /// Base class for config root. This is the only config type accepted by ConfigIO.
     /// </summary>
-    public abstract class ConfigRootBase<TConfig> : ConfigBase<TConfig> where TConfig : ConfigRootBase<TConfig>, new()
+    public abstract class ConfigRoot<TConfig> : ConfigBase<TConfig> where TConfig : ConfigRoot<TConfig>, new()
     {
-        [XmlAttribute]
+        [XmlAttribute("ConfigVersionID")]
         public virtual int VersionID { get; set; }
     }
 
     /// <summary>
     /// Handles loading/saving configuration data; singleton
     /// </summary>
-    internal sealed class ConfigIO<TConfig> : ModBase.Component<ConfigIO<TConfig>> where TConfig : ConfigRootBase<TConfig>, new()
+    public sealed class ConfigIO<TConfig> : ModBase.Component<ConfigIO<TConfig>> where TConfig : ConfigRoot<TConfig>, new()
     {
         public delegate void ConfigDataCallback(TConfig cfg);
 
@@ -134,7 +134,7 @@ namespace DarkHelmet.IO
         {
             if (cfg != null)
             {
-                if (cfg.VersionID == ConfigRootBase<TConfig>.Defaults.VersionID)
+                if (cfg.VersionID == ConfigRoot<TConfig>.Defaults.VersionID)
                     cfg.Validate();
                 else
                 {
@@ -151,7 +151,7 @@ namespace DarkHelmet.IO
             {
                 taskPool.EnqueueAction(() => ModBase.SendChatMessage("Unable to load configuration. Loading default settings..."));
 
-                return ConfigRootBase<TConfig>.Defaults;
+                return ConfigRoot<TConfig>.Defaults;
             }
         }
 
@@ -260,7 +260,7 @@ namespace DarkHelmet.IO
             if (exception != null)
             {
                 Backup();
-                TrySave(ConfigRootBase<TConfig>.Defaults);
+                TrySave(ConfigRoot<TConfig>.Defaults);
             }
 
             return exception;

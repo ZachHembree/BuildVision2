@@ -143,10 +143,15 @@ namespace DarkHelmet
                 return $"{color.R},{color.G},{color.B}";
         }
 
-        public static void Assert(bool condition, string message)
+        public static void AssertNotNull<T>(T obj)
+        {
+            Assert(obj != null, $"Object of type {typeof(T).ToString()} is null.");
+        }
+
+        public static void Assert(bool condition, string message = "")
         {
             if (!condition)
-                throw new Exception(message);
+                throw new Exception("Assertion failed. " + message);
         }
 
         /// <summary>

@@ -32,7 +32,7 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Interface for anything used as a control
     /// </summary>
-    internal interface IControl
+    public interface IControl
     {
         string Name { get; }
         Func<bool> IsPressed { get; }
@@ -42,15 +42,24 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Key bind interface
     /// </summary>
-    internal interface IKeyBind
+    public interface IKeyBind
     {
         string Name { get; }
+
+        /// <summary>
+        /// True if any controls in the bind are marked analog. For these types of binds, IsPressed == IsNewPressed.
+        /// </summary>
         bool Analog { get; }
 
         /// <summary>
-        /// Returns list of controls in the bind using their names.
+        /// Returns the binds controls as a list of control names in a string.
         /// </summary>
         string BindString { get;}
+
+        /// <summary>
+        /// Events triggered whenever their corresponding booleans are true.
+        /// </summary>
+        event Action OnPressed, OnNewPress, OnRelease;
 
         /// <summary>
         /// True if just released; any larger bind with conflicting controls will supersede it if pressed.
@@ -67,8 +76,6 @@ namespace DarkHelmet.UI
         /// </summary>
         bool IsReleased { get; }
 
-        event Action OnPressed, OnNewPress, OnRelease;
-
         /// <summary>
         /// Returns bind name and the name of the controls used. 
         /// </summary>
@@ -78,7 +85,7 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Manages custom keybinds; singleton
     /// </summary>
-    internal sealed class BindManager : ModBase.Component<BindManager>
+    public sealed class BindManager : ModBase.Component<BindManager>
     {
         /// <summary>
         /// Returns key bind by index.
@@ -126,29 +133,29 @@ namespace DarkHelmet.UI
 
         protected override void BeforeClose()
         {
-            controlList = null;
-            controls = null;
+            foreach (KeyBind bind in keyBinds)
+                bind.ClearSubscribers();
         }
 
         /// <summary>
         /// Attempts to create a set of empty key binds given only the names of the binds.
         /// </summary>
-        public void AddBinds(string[] bindNames)
+        public void RegisterBinds(string[] bindNames, bool silent = false)
         {
             bool areAnyDuplicated = false;
 
             foreach (string name in bindNames)
-                if (!TryAddBind(name, true))
+                if (!TryRegisterBind(name, true))
                     areAnyDuplicated = true;
 
-            if (areAnyDuplicated)
-                ModBase.SendChatMessage($"Some of the binds supplied contain duplicates or already existed.");
+            if (areAnyDuplicated && !silent)
+                ModBase.SendChatMessage("Some of the binds supplied contain duplicates or already existed.");
         }
 
         /// <summary>
         /// Attempts to add a create a new key bind with a given name.
         /// </summary>
-        public bool TryAddBind(string bindName, bool silent = false)
+        public bool TryRegisterBind(string bindName, bool silent = false)
         {
             if (!DoesBindExist(bindName))
             {
@@ -165,22 +172,22 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Attempts to create a set of key binds given the name of the bind and the controls names for that bind.
         /// </summary>
-        public void AddBinds(KeyBindData[] binds)
+        public void RegisterBinds(KeyBindData[] binds, bool silent = false)
         {
             bool areAnyDuplicated = false;
 
             foreach (KeyBindData bind in binds)
-                if (!TryAddBind(bind, true))
+                if (!TryRegisterBind(bind, true))
                     areAnyDuplicated = true;
 
-            if (areAnyDuplicated)
+            if (areAnyDuplicated && !silent)
                 ModBase.SendChatMessage("Some of the bind names supplied contain duplicates or were added previously.");
         }
 
         /// <summary>
         /// Attempts to create a new <see cref="IKeyBind"/> from <see cref="KeyBindData"/> and add it to the bind list.
         /// </summary>
-        public bool TryAddBind(KeyBindData bind, bool silent = false)
+        public bool TryRegisterBind(KeyBindData bind, bool silent = false)
         {
             if (!DoesBindExist(bind.name))
             {
@@ -198,20 +205,21 @@ namespace DarkHelmet.UI
         }
 
         /// <summary>
-        /// Updates the current key bind configuration.
+        /// Replaces current keybind configuration with a new one based on the given KeyBindData. Will not register new binds.
         /// </summary>
         public static bool TryUpdateBinds(KeyBindData[] bindData)
         {
             BindManager newBinds;
             bool bindError = false;
 
-            canInstantiate = true;
-            newBinds = new BindManager();
-
             if (bindData != null && bindData.Length > 0)
             {
+                canInstantiate = true;
+                newBinds = new BindManager();
+                newBinds.keyBinds = new List<KeyBind>(Instance.keyBinds.Count);
+
                 foreach (KeyBind bind in Instance.keyBinds)
-                    newBinds.TryAddBind(bind.Name, true);
+                    newBinds.keyBinds.Add(new KeyBind(bind.Name));
 
                 foreach (KeyBindData bind in bindData)
                 {
@@ -229,6 +237,9 @@ namespace DarkHelmet.UI
                 }
                 else
                 {
+                    for (int n = 0; n < Instance.keyBinds.Count; n++)
+                        Instance.keyBinds[n].TransferSubscribers(newBinds.keyBinds[n]);
+
                     Instance = newBinds;
                     return true;
                 }
@@ -463,7 +474,7 @@ namespace DarkHelmet.UI
                 if (usedControls == null)
                     usedControls = GetControlsInUse();
 
-                if (controlBindMap == null || controlBindMap.GetLength(0) != usedControls.Count || controlBindMap.GetLength(1) != keyBinds.Count)
+                if (controlBindMap == null || (controlBindMap.GetLength(0) != usedControls.Count) || (controlBindMap.GetLength(1) != keyBinds.Count))
                     controlBindMap = GetBindMap();
 
                 bindsPressed = GetPressedBinds();
@@ -472,10 +483,7 @@ namespace DarkHelmet.UI
                     DisambiguatePresses();
 
                 for (int n = 0; n < keyBinds.Count; n++)
-                    if (bindHits[n] > 0)
-                        keyBinds[n].UpdatePress(true);
-                    else
-                        keyBinds[n].UpdatePress(false);
+                    keyBinds[n].UpdatePress(bindHits[n] > 0);
             }
         }
 
@@ -504,7 +512,10 @@ namespace DarkHelmet.UI
 
             for (int y = 0; y < keyBinds.Count; y++)
             {
-                if (bindHits[y] != keyBinds[y].Count)
+                if (keyBinds[y].IsPressed && (bindHits[y] > 0 && bindHits[y] < keyBinds[y].Count))
+                    bindHits[y] = int.MaxValue;
+
+                if (bindHits[y] < keyBinds[y].Count)
                     bindHits[y] = 0;
                 else
                     bindsPressed++;
@@ -520,17 +531,19 @@ namespace DarkHelmet.UI
         {
             int controlHits, first, longest;
 
+            // If more than one pressed bind shares the same control, the longest
+            // binds take precedence. Shorter binds are decremented each time there
+            // is a conflict. If a bind was previously pressed it wont be released
+            // until all its controls are.
             for (int x = 0; x < usedControls.Count; x++)
             {
-                longest = GetLongestBindPressForControl(x);
                 first = -1;
                 controlHits = 0;
+                longest = GetLongestBindPressForControl(x);
 
-                // If more than one pressed bind shares the same control, the longest
-                // binds take precedence. Shorter binds are decremented each time there
-                // is a conflict.
                 for (int y = 0; y < keyBinds.Count; y++)
-                    if (bindHits[y] > 0 && keyBinds[y].Count < longest && controlBindMap[x, y])
+                {
+                    if (bindHits[y] > 0 && (keyBinds[y].Count < longest && controlBindMap[x, y]))
                     {
                         if (controlHits > 0)
                             bindHits[y]--;
@@ -539,6 +552,7 @@ namespace DarkHelmet.UI
 
                         controlHits++;
                     }
+                }
 
                 if (controlHits > 0)
                     bindHits[first]--;
@@ -553,11 +567,16 @@ namespace DarkHelmet.UI
             int longest = 0;
 
             for (int y = 0; y < keyBinds.Count; y++)
+            {
+                if (bindHits[y] == int.MaxValue)
+                    return int.MaxValue;
+
                 if (bindHits[y] > 0 && controlBindMap[control, y]) //if (bind has at least one control press && bind Y uses control X)
                 {
                     if (keyBinds[y].Count >= longest)
                         longest = keyBinds[y].Count;
                 }
+            }
 
             return longest;
         }
@@ -570,14 +589,12 @@ namespace DarkHelmet.UI
             public string Name { get; }
             public Func<bool> IsPressed { get; }
             public bool Analog { get; }
-            public int usedCount, usedIndex; 
+            public int usedCount, usedIndex;
 
             public Control(MyKeys seKey, bool Analog = false)
             {
-                //(MyAPIGateway.Input as VRage.Input.IMyInput).SetControlBlock(MyStringId.GetOrCompute(seKey.ToString()), true);
-                //Sandbox.MySandboxGame.IsPaused
-
                 Name = seKey.ToString();
+
                 IsPressed = () => MyAPIGateway.Input.IsKeyPress(seKey);
                 this.Analog = Analog;
                 usedCount = 0;
@@ -587,6 +604,7 @@ namespace DarkHelmet.UI
             public Control(string name, Func<bool> IsPressed, bool Analog = false)
             {
                 Name = name;
+
                 this.IsPressed = IsPressed;
                 this.Analog = Analog;
                 usedCount = 0;
@@ -604,20 +622,21 @@ namespace DarkHelmet.UI
             public bool Analog { get; private set; }
             public string BindString { get; private set; }
             public bool IsPressed { get; private set; }
-            public bool IsNewPressed { get { return IsPressed && !wasPressed; } }
+            public bool IsNewPressed { get { return IsPressed && (!wasPressed || Analog); } }
             public bool IsReleased { get { return !IsPressed && wasPressed; } }
 
             public event Action OnPressed, OnNewPress, OnRelease;
+            public int Count { get { return combo != null ? combo.Length : int.MinValue; } }
 
             private IControl[] combo;
-            public int Count { get { return combo != null ? combo.Length : 0; } }
-            private bool wasPressed;
+            private bool wasPressed, beingReleased;
 
             public KeyBind(string Name, IControl[] combo = null)
             {
                 this.Name = Name;
                 this.combo = combo;
                 wasPressed = false;
+                beingReleased = false;
                 BindString = GetBindString();
 
                 if (combo != null)
@@ -643,12 +662,12 @@ namespace DarkHelmet.UI
             }
 
             /// <summary>
-            /// Used to update the key bind with each tick of the Binds.Update function. Not meant for anything else.
+            /// Used to update the key bind with each tick of the Binds.Update function. 
             /// </summary>
-            public void UpdatePress(bool pressed)
+            public void UpdatePress(bool isPressed)
             {
                 wasPressed = IsPressed;
-                IsPressed = pressed;
+                IsPressed = isPressed;
 
                 if (IsPressed)
                     OnPressed?.Invoke();
@@ -658,6 +677,15 @@ namespace DarkHelmet.UI
 
                 if (IsReleased)
                     OnRelease?.Invoke();
+            }
+
+            internal bool AreAnyControlsPressed()
+            {
+                foreach (IControl control in combo)
+                    if (control.IsPressed())
+                        return true;
+
+                return false;
             }
 
             /// <summary>
@@ -697,7 +725,7 @@ namespace DarkHelmet.UI
             /// <summary>
             /// Determines if any control in the bind is analog.
             /// </summary>
-            private bool AreAnyAnalog()
+            public bool AreAnyAnalog()
             {
                 foreach (Control con in combo)
                     if (con.Analog)
@@ -709,7 +737,7 @@ namespace DarkHelmet.UI
             /// <summary>
             /// Builds string of the names of controls in the bind.
             /// </summary>
-            private string GetBindString()
+            public string GetBindString()
             {
                 string conString, bindString = "";
 
@@ -730,13 +758,32 @@ namespace DarkHelmet.UI
                 return bindString;
             }
 
-            private void RegisterControls()
+            /// <summary>
+            /// Transfers subscribers from this bind to a new bind.
+            /// </summary>
+            public void TransferSubscribers(KeyBind newBind)
+            {
+                newBind.OnPressed = OnPressed;
+                newBind.OnNewPress = OnNewPress;
+                newBind.OnRelease = OnRelease;
+
+                ClearSubscribers();
+            }
+
+            public void ClearSubscribers()
+            {
+                OnPressed = null;
+                OnNewPress = null;
+                OnRelease = null;
+            }
+
+            public void RegisterControls()
             {
                 foreach (Control con in combo)
                     con.usedCount++;
             }
 
-            private void UnregisterControls()
+            public void UnregisterControls()
             {
                 foreach (Control con in combo)
                     con.usedCount--;

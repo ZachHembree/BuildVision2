@@ -7,17 +7,19 @@ using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal class KeyBinds : ModBase.Component<KeyBinds>
+    internal static class KeyBinds
     {
-        public static BindsConfig Cfg { get { return cfg; }
+        public static BindsConfig Cfg
+        {
+            get { return new BindsConfig { bindData = BindManager.GetBindData() }; }
             set
             {
-                cfg = value;
-
-                if(BindManager.TryUpdateBinds(cfg.bindData))
+                if(BindManager.TryUpdateBinds(value.bindData))
                     UpdateBindReferences();
             }
         }
+
+        public static BindManager BindManager { get { return BindManager.Instance; } }
         public static IKeyBind Open { get; private set; }
         public static IKeyBind Hide { get; private set; }
         public static IKeyBind Select { get; private set; }
@@ -26,24 +28,6 @@ namespace DarkHelmet.BuildVision2
         public static IKeyBind MultX { get; private set; }
         public static IKeyBind MultY { get; private set; }
         public static IKeyBind MultZ { get; private set; }
-        public static BindManager BindManager { get { return BindManager.Instance; } }
-
-        private static BindsConfig cfg = BindsConfig.Defaults;
-
-        static KeyBinds()
-        {
-            Init();
-        }
-
-        protected override void AfterInit()
-        {
-            BindManager.AddBinds(new string[] { "open", "close", "select", "scrollup", "scrolldown", "multx", "multy", "multz" });
-
-            if (BindManager.TryUpdateBinds(Cfg.bindData))
-                UpdateBindReferences();
-            else if (BindManager.TryUpdateBinds(BindsConfig.DefaultBinds))
-                UpdateBindReferences();
-        }
 
         private static void UpdateBindReferences()
         {

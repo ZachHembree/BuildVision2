@@ -78,7 +78,7 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\IO\ConfigIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\IO\LocalFileIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\UI\BindManager.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\UI\SettingsMenu.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\UI\MenuUtilities.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\SettingsMenuElements.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\HudAPIv2.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\Game\LocalPlayer.cs" />

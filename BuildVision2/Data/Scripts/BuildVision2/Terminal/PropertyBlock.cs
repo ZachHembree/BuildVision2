@@ -104,11 +104,8 @@ namespace DarkHelmet.BuildVision2
             TBlock.CustomNameChanged += BlockChanged;
         }
 
-        private void BlockChanged(IMyTerminalBlock block)
-        {
-            Utilities.Assert(block == TBlock, "Wrong block sent.");
+        private void BlockChanged(IMyTerminalBlock block) =>
             OnBlockChanged?.Invoke();
-        }
 
         /// <summary>
         /// Gets the block's current position.
@@ -172,11 +169,17 @@ namespace DarkHelmet.BuildVision2
                 if (name.Length > 0 && terminalControl != null && terminalControl.Visible(TBlock))
                 {
                     if (prop is ITerminalProperty<bool>)
+                    {
                         scrollables.Add(new BoolProperty(name, (ITerminalProperty<bool>)prop, this));
+                    }
                     else if (prop is ITerminalProperty<float>)
+                    {
                         scrollables.Add(new FloatProperty(name, (ITerminalProperty<float>)prop, this));
+                    }
                     else if (prop is ITerminalProperty<Color>)
+                    {
                         scrollables.AddRange(ColorProperty.GetColorProperties(name, this, (ITerminalProperty<Color>)prop));
+                    }
                 }
             }
 

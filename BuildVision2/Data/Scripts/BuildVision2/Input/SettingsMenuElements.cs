@@ -11,64 +11,67 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Generates list of settings for configuring Build Vision via the Text HUD API's Mod Menu
         /// </summary>
-        private List<SettingsMenu.IMenuElement> GetSettingsMenuElements()
+        private List<MenuUtilities.IMenuElement> GetSettingsMenuElements()
         {
-            return new List<SettingsMenu.IMenuElement>()
+            return new List<MenuUtilities.IMenuElement>()
             {
                 // General Settings Pt.1
-                new SettingsMenu.MenuButton(
+                new MenuUtilities.MenuButton(
                         () => $"Force Fallback Hud: {PropertiesMenu.Cfg.forceFallbackHud}",
                         () => PropertiesMenu.Cfg.forceFallbackHud = !PropertiesMenu.Cfg.forceFallbackHud),
-                new SettingsMenu.MenuButton(
+                new MenuUtilities.MenuButton(
                         () => $"Close If Not In View: {Cfg.general.closeIfNotInView}",
                         () => Cfg.general.closeIfNotInView = !Cfg.general.closeIfNotInView),
-                new SettingsMenu.MenuButton(
+                new MenuUtilities.MenuButton(
                         () => $"Can Open While Holding Tools: {Cfg.general.canOpenIfHolding}",
                         () => Cfg.general.canOpenIfHolding = !Cfg.general.canOpenIfHolding),
-
+                
                 // GUI Settings
-                new SettingsMenu.MenuCategory("GUI Settings", "GUI Settings", new List<SettingsMenu.IMenuElement>()
+                new MenuUtilities.MenuCategory("GUI Settings", "GUI Settings", new List<MenuUtilities.IMenuElement>()
                 {
-                    new SettingsMenu.MenuSliderInput(
+                    new MenuUtilities.MenuButton(
+                        () => $"Enable Resolution Scaling: {PropertiesMenu.ApiHudCfg.resolutionScaling}",
+                        () => PropertiesMenu.ApiHudCfg.resolutionScaling = !PropertiesMenu.ApiHudCfg.resolutionScaling),
+                    new MenuUtilities.MenuSliderInput(
                         () => $"Hud Scale: {Math.Round(PropertiesMenu.ApiHudCfg.hudScale, 2)}",
                         "Hud Scale", 0.5f, 2f,
                         () => PropertiesMenu.ApiHudCfg.hudScale,
                         (float scale) => PropertiesMenu.ApiHudCfg.hudScale = scale),
-                    new SettingsMenu.MenuSliderInput(
+                    new MenuUtilities.MenuSliderInput(
                         () => $"Header Bg Opacity: {Math.Round(PropertiesMenu.ApiHudCfg.colors.headerColor.A / 255d, 2)}",
                         "Header Bg Opacity", .01f, 1f,
                         () => (float)Math.Round(PropertiesMenu.ApiHudCfg.colors.headerColor.A / 255d, 2),
                         (float value) => PropertiesMenu.ApiHudCfg.colors.headerColor.A = (byte)(value * 255f)),
-                    new SettingsMenu.MenuSliderInput(
+                    new MenuUtilities.MenuSliderInput(
                         () => $"List Bg Opacity: {Math.Round(PropertiesMenu.ApiHudCfg.colors.listBgColor.A / 255d, 2)}",
                         "List Bg Opacity", .01f, 1f,
                         () => (float)Math.Round(PropertiesMenu.ApiHudCfg.colors.listBgColor.A / 255d, 2),
                         (float value) => PropertiesMenu.ApiHudCfg.colors.listBgColor.A = (byte)(value * 255f)),
-                    new SettingsMenu.MenuSliderInput(
+                    new MenuUtilities.MenuSliderInput(
                         () => $"Max Visible Properties: {PropertiesMenu.ApiHudCfg.maxVisible}",
                         "Max Visible Properties", 6, 20,
                         () => PropertiesMenu.ApiHudCfg.maxVisible,
                         (float maxVisible) => PropertiesMenu.ApiHudCfg.maxVisible = (int)maxVisible),
-                    new SettingsMenu.MenuButton(
+                    new MenuUtilities.MenuButton(
                         () => $"Clamp To Screen Edges: {PropertiesMenu.ApiHudCfg.clampHudPos}",
                         () => PropertiesMenu.ApiHudCfg.clampHudPos = !PropertiesMenu.ApiHudCfg.clampHudPos),
-                    new SettingsMenu.MenuButton(
+                    new MenuUtilities.MenuButton(
                         () => $"Lock To Screen Center: {PropertiesMenu.ApiHudCfg.forceToCenter}",
                         () => PropertiesMenu.ApiHudCfg.forceToCenter = !PropertiesMenu.ApiHudCfg.forceToCenter),
-                    new SettingsMenu.MenuButton(
+                    new MenuUtilities.MenuButton(
                         "Reset Settings",
                         () => PropertiesMenu.ApiHudCfg = ApiHudConfig.Defaults
                     ),
                 }),
-
+                
                 // Bind Settings
-                new SettingsMenu.MenuCategory("Bind Settings", "Key Binds", GetBindSettings()),
+                new MenuUtilities.MenuCategory("Bind Settings", "Key Binds", GetBindSettings()),
 
                 // Property Settings
-                new SettingsMenu.MenuCategory("Property Settings", "Property Settings", new List<SettingsMenu.IMenuElement>()
+                new MenuUtilities.MenuCategory("Property Settings", "Property Settings", new List<MenuUtilities.IMenuElement>()
                 {
                     // Float Properties
-                    new SettingsMenu.MenuTextInput(
+                    new MenuUtilities.MenuTextInput(
                         () => $"Float Div: {PropertyBlock.Cfg.floatDiv}",
                         "Float Property Base Divisor",
                         (string input) =>
@@ -77,9 +80,9 @@ namespace DarkHelmet.BuildVision2
                             PropertyBlock.Cfg.Validate();
                         }),
 
-                    new SettingsMenu.MenuCategory("Float Multipliers", "Float Multipliers", new List<SettingsMenu.IMenuElement>()
+                    new MenuUtilities.MenuCategory("Float Multipliers", "Float Multipliers", new List<MenuUtilities.IMenuElement>()
                     {
-                        new SettingsMenu.MenuTextInput(
+                        new MenuUtilities.MenuTextInput(
                             () => $"X: {PropertyBlock.Cfg.floatMult.X}",
                             "Float Multiplier X",
                             (string input) =>
@@ -87,7 +90,7 @@ namespace DarkHelmet.BuildVision2
                                 float.TryParse(input, out PropertyBlock.Cfg.floatMult.X);
                                 PropertyBlock.Cfg.Validate();
                             }),
-                        new SettingsMenu.MenuTextInput(
+                        new MenuUtilities.MenuTextInput(
                             () => $"Y: {PropertyBlock.Cfg.floatMult.Y}",
                             "Float Multiplier Y",
                             (string input) =>
@@ -95,7 +98,7 @@ namespace DarkHelmet.BuildVision2
                                 float.TryParse(input, out PropertyBlock.Cfg.floatMult.Y);
                                 PropertyBlock.Cfg.Validate();
                             }),
-                        new SettingsMenu.MenuTextInput(
+                        new MenuUtilities.MenuTextInput(
                             () => $"Z: {PropertyBlock.Cfg.floatMult.Z}",
                             "Float Multiplier Z",
                             (string input) =>
@@ -106,9 +109,9 @@ namespace DarkHelmet.BuildVision2
                     }),
 
                     // Color Properties
-                    new SettingsMenu.MenuCategory("Color Multipliers", "Color Multipliers", new List<SettingsMenu.IMenuElement>()
+                    new MenuUtilities.MenuCategory("Color Multipliers", "Color Multipliers", new List<MenuUtilities.IMenuElement>()
                     {
-                        new SettingsMenu.MenuTextInput(
+                        new MenuUtilities.MenuTextInput(
                             () => $"X: {PropertyBlock.Cfg.colorMult.X}",
                             "Color Multiplier X",
                             (string input) =>
@@ -116,7 +119,7 @@ namespace DarkHelmet.BuildVision2
                                 int.TryParse(input, out PropertyBlock.Cfg.colorMult.X);
                                 PropertyBlock.Cfg.Validate();
                             }),
-                        new SettingsMenu.MenuTextInput(
+                        new MenuUtilities.MenuTextInput(
                             () => $"Y: {PropertyBlock.Cfg.colorMult.Y}",
                             "Color Multiplier Y",
                             (string input) =>
@@ -124,7 +127,7 @@ namespace DarkHelmet.BuildVision2
                                 int.TryParse(input, out PropertyBlock.Cfg.colorMult.Y);
                                 PropertyBlock.Cfg.Validate();
                             }),
-                        new SettingsMenu.MenuTextInput(
+                        new MenuUtilities.MenuTextInput(
                             () => $"Z: {PropertyBlock.Cfg.colorMult.Z}",
                             "Color Multiplier Z",
                             (string input) =>
@@ -134,23 +137,23 @@ namespace DarkHelmet.BuildVision2
                             }),
                     }),
 
-                    new SettingsMenu.MenuButton(
+                    new MenuUtilities.MenuButton(
                         "Reset Settings",
                         () => PropertyBlock.Cfg = PropBlockConfig.Defaults
                     ),
                 }),
 
                 // General Settings Pt.2
-                new SettingsMenu.MenuButton(
+                new MenuUtilities.MenuButton(
                         () => "Open Help Menu",
                         () => ModBase.ShowMessageScreen("Help", GetHelpMessage())),
-                new SettingsMenu.MenuButton(
+                new MenuUtilities.MenuButton(
                         () => "Reset Config",
                         () => ResetConfig()),
-                new SettingsMenu.MenuButton(
+                new MenuUtilities.MenuButton(
                         () => "Save Config",
                         () => SaveConfig()),
-                new SettingsMenu.MenuButton(
+                new MenuUtilities.MenuButton(
                         () => "Load Config",
                         () => LoadConfig()),
             };
@@ -159,13 +162,13 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Creates list of settings for configuring keybinds via the Text HUD API's Mod Menu
         /// </summary>
-        private static List<SettingsMenu.IMenuElement> GetBindSettings()
+        private static List<MenuUtilities.IMenuElement> GetBindSettings()
         {
-            List<SettingsMenu.IMenuElement> bindSettings = new List<SettingsMenu.IMenuElement>(KeyBinds.BindManager.Count + 2);
+            List<MenuUtilities.IMenuElement> bindSettings = new List<MenuUtilities.IMenuElement>(KeyBinds.BindManager.Count + 2);
 
             for (int n = 0; n < KeyBinds.BindManager.Count; n++)
             {
-                bindSettings.Add(new SettingsMenu.MenuTextInput(
+                bindSettings.Add(new MenuUtilities.MenuTextInput(
                     KeyBinds.BindManager[n].Name, 
                     "Enter Control Names", 
                     (string input) =>
@@ -178,11 +181,11 @@ namespace DarkHelmet.BuildVision2
                     }));
             }
 
-            bindSettings.Add(new SettingsMenu.MenuButton(
+            bindSettings.Add(new MenuUtilities.MenuButton(
                 () => "Open Bind Help Menu",
                 () => ModBase.ShowMessageScreen("Bind Help", GetBindHelpMessage())));
 
-            bindSettings.Add(new SettingsMenu.MenuButton(
+            bindSettings.Add(new MenuUtilities.MenuButton(
                 () => "Reset Binds",
                 () => KeyBinds.Cfg = BindsConfig.Defaults));
 

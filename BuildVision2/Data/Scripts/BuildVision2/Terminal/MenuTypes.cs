@@ -33,11 +33,13 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Updates the menu's current target
             /// </summary>
-            public virtual void SetTarget(PropertyBlock target)
+            public virtual void SetTarget(PropertyBlock newTarget)
             {
-                this.target = target;
+                target = newTarget;
+
                 visStart = 0;
                 visEnd = 0;
+                Open = true;
             }
 
             public abstract void Update(int index, int selection);
@@ -90,18 +92,22 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public override void Update(int index, int selection)
             {
+                Open = true;
                 this.index = index;
                 this.selection = selection;
                 headerText = target.TBlock.CustomName;
-
+                
                 maxVisible = ApiHudCfg.maxVisible;
                 menu.BodyColor = ApiHudCfg.colors.listBgColor;
                 menu.HeaderColor = ApiHudCfg.colors.headerColor;
                 menu.SelectionBoxColor = ApiHudCfg.colors.selectionBoxColor;
-                menu.Scale = ApiHudCfg.hudScale;
-                Open = true;
                 menu.Visible = true;
 
+                if (ApiHudCfg.resolutionScaling)
+                    menu.Scale = ApiHudCfg.hudScale * HudUtilities.ResScale;
+                else
+                    menu.Scale = ApiHudCfg.hudScale;
+                
                 GetVisibleProperties();
                 UpdateText();
                 UpdatePos();
@@ -125,7 +131,7 @@ namespace DarkHelmet.BuildVision2
             {
                 Vector3D targetPos, worldPos;
                 Vector2D screenPos, screenBounds;
-                
+
                 if (!ApiHudCfg.forceToCenter)
                 {
                     if (LocalPlayer.IsLookingInBlockDir(target.TBlock))
@@ -148,7 +154,6 @@ namespace DarkHelmet.BuildVision2
                     screenPos = Vector2D.Zero;
 
                 menu.ScaledPos = screenPos;
-                menu.SelectionIndex = index - visStart;
             }
 
             /// <summary>
@@ -161,6 +166,7 @@ namespace DarkHelmet.BuildVision2
                 string colorCode;
 
                 menu.HeaderText = $"<color={ApiHudCfg.colors.headerText}>{headerText}";
+                menu.SelectionIndex = index - visStart;
 
                 for (int n = 0; n < elements; n++)
                 {
@@ -211,17 +217,17 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public override void Update(int index, int selection)
             {
+                Open = true;
                 this.index = index;
                 this.selection = selection;
                 headerText = $"{ModBase.ModName}: {target.TBlock.CustomName}";
-                maxVisible = ApiHudCfg.maxVisible;
-                Open = true;
+                maxVisible = NotifHudCfg.maxVisible;
 
                 if (list == null || list.Length < ApiHudCfg.maxVisible)
                     list = new IMyHudNotification[ApiHudCfg.maxVisible];
 
                 GetVisibleProperties();
-                UpdateText();                
+                UpdateText();
             }
 
             /// <summary>
@@ -248,7 +254,7 @@ namespace DarkHelmet.BuildVision2
                 int elements = Utilities.Clamp(visEnd - visStart, 0, ApiHudCfg.maxVisible), i, action;
 
                 header.Show();
-                header.ResetAliveTime();
+                header.AliveTime = int.MaxValue;
                 header.Text = $"{headerText} ({visStart + 1} - {visEnd} of {target.ScrollableCount})";
 
                 for (int notif = 0; notif < elements; notif++)
@@ -261,7 +267,7 @@ namespace DarkHelmet.BuildVision2
 
                     // make sure its still being shown
                     list[notif].Show();
-                    list[notif].ResetAliveTime();
+                    list[notif].AliveTime = int.MaxValue;
 
                     // get name
                     if (i >= target.Properties.Count)

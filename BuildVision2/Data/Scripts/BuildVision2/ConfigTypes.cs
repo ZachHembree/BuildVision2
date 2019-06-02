@@ -1,9 +1,4 @@
-﻿using Sandbox.ModAPI;
-using VRage.Game;
-using VRage.Game.Components;
-using VRage.Game.ModAPI;
-using System;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 using DarkHelmet.IO;
 using DarkHelmet.UI;
 using VRageMath;
@@ -14,7 +9,7 @@ namespace DarkHelmet.BuildVision2
     /// Stores all information needed for reading/writing from the config file.
     /// </summary>
     [XmlRoot, XmlType(TypeName = "BuildVisionSettings")]
-    public class BvConfig : ConfigRootBase<BvConfig>
+    public class BvConfig : ConfigRoot<BvConfig>
     {
         [XmlElement(ElementName = "GeneralSettings")]
         public GeneralConfig general;
@@ -30,6 +25,30 @@ namespace DarkHelmet.BuildVision2
 
         public BvConfig() { }
 
+        public BvConfig(bool useDefaults)
+        {
+            if (useDefaults)
+            {
+                VersionID = 6;
+                general = GeneralConfig.Defaults;
+                menu = PropMenuConfig.Defaults;
+                propertyBlock = PropBlockConfig.Defaults;
+                binds = BindsConfig.Defaults;
+            }
+        }
+
+        protected override BvConfig GetDefaults()
+        {
+            return new BvConfig
+            {
+                VersionID = 6,
+                general = GeneralConfig.Defaults,
+                menu = PropMenuConfig.Defaults,
+                propertyBlock = PropBlockConfig.Defaults,
+                binds = BindsConfig.Defaults
+            };
+        }
+
         public BvConfig GetCopy()
         {
             return new BvConfig
@@ -42,20 +61,14 @@ namespace DarkHelmet.BuildVision2
             };
         }
 
-        public override BvConfig GetDefaults()
-        {
-            return new BvConfig
-            {
-                VersionID = 5,
-                general = GeneralConfig.Defaults,
-                menu = PropMenuConfig.Defaults,
-                propertyBlock = PropBlockConfig.Defaults,
-                binds = BindsConfig.Defaults
-            };
-        }
-
         public override void Validate()
         {
+            if (VersionID < 6)
+            {
+                menu.apiHudConfig.resolutionScaling = ApiHudConfig.Defaults.resolutionScaling;
+                menu.apiHudConfig.hudScale = ApiHudConfig.Defaults.hudScale;
+            }
+
             if (VersionID < 5)
                 propertyBlock = PropBlockConfig.Defaults;
 
@@ -95,7 +108,7 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "CanOpenIfHandsNotEmpty")]
         public bool canOpenIfHolding;
 
-        public override GeneralConfig GetDefaults()
+        protected override GeneralConfig GetDefaults()
         {
             return new GeneralConfig
             {
@@ -119,10 +132,11 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "FallbackHudSettings")]
         public NotifHudConfig fallbackHudConfig;
 
-        public override PropMenuConfig GetDefaults()
+        protected override PropMenuConfig GetDefaults()
         {
             return new PropMenuConfig
             {
+                forceFallbackHud = false,
                 apiHudConfig = ApiHudConfig.Defaults,
                 fallbackHudConfig = NotifHudConfig.Defaults
             };
@@ -147,6 +161,9 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public class ApiHudConfig : ConfigBase<ApiHudConfig>
     {
+        [XmlElement(ElementName = "EnableResolutionScaling")]
+        public bool resolutionScaling;
+
         [XmlElement(ElementName = "HudScale")]
         public float hudScale;
 
@@ -194,7 +211,7 @@ namespace DarkHelmet.BuildVision2
             [XmlElement(ElementName = "HeaderBg")]
             public string headerColorData;
 
-            public override Colors GetDefaults()
+            protected override Colors GetDefaults()
             {
                 return new Colors
                 {
@@ -246,13 +263,12 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        public ApiHudConfig() { }
-
-        public override ApiHudConfig GetDefaults()
+        protected override ApiHudConfig GetDefaults()
         {
             return new ApiHudConfig
             {
-                hudScale = 1f,
+                resolutionScaling = true,
+                hudScale = 0.9f,
                 maxVisible = 11,
                 clampHudPos = true,
                 forceToCenter = false,
@@ -265,18 +281,16 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public override void Validate()
         {
-            ApiHudConfig defaults = Defaults;
-
             if (maxVisible == default(int))
-                maxVisible = defaults.maxVisible;
+                maxVisible = Defaults.maxVisible;
 
             if (hudScale == default(float))
-                hudScale = defaults.hudScale;
+                hudScale = Defaults.hudScale;
 
             if (colors != null)
                 colors.Validate();
             else
-                colors = defaults.colors;
+                colors = Defaults.colors;
         }
     }
 
@@ -288,7 +302,7 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "MaxVisibleItems")]
         public int maxVisible;
 
-        public override NotifHudConfig GetDefaults()
+        protected override NotifHudConfig GetDefaults()
         {
             return new NotifHudConfig
             {
@@ -320,7 +334,7 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "ColorPropertyMultipliers")]
         public Vector3I colorMult;
 
-        public override PropBlockConfig GetDefaults()
+        protected override PropBlockConfig GetDefaults()
         {
             return new PropBlockConfig
             {
@@ -396,7 +410,7 @@ namespace DarkHelmet.BuildVision2
         [XmlArray("KeyBinds")]
         public KeyBindData[] bindData;
 
-        public override BindsConfig GetDefaults()
+        protected override BindsConfig GetDefaults()
         {
             return new BindsConfig { bindData = DefaultBinds };
         }

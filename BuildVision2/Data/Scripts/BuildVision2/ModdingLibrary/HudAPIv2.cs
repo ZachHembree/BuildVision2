@@ -45,17 +45,16 @@ namespace DarkHelmet.TextHudApi
 			rtl = 3
 		}
 
-		/// <summary>
-		/// Create a HudAPI Instance. Please only create one per mod. 
-		/// </summary>
-		/// <param name="onRegisteredAction">Callback once the HudAPI is active. You can Instantiate HudAPI objects in this Action</param>
-		public HudAPIv2()
+        /// <summary>
+        /// Create a HudAPI Instance. Please only create one per mod. 
+        /// </summary>
+        /// <param name="onRegisteredAction">Callback once the HudAPI is active. You can Instantiate HudAPI objects in this Action</param>
+        public HudAPIv2()
 		{
 			if (instance != null)
-			{
-					return;
-			}
-			instance = this;
+                return;
+
+            instance = this;
 			m_onRegisteredAction = null;
             MyAPIGateway.Utilities.RegisterMessageHandler(REGISTRATIONID, RegisterComponents);
         }

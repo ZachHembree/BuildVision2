@@ -17,11 +17,14 @@ namespace DarkHelmet.Game
         public static LogIO Log { get { return LogIO.Instance; } }
         public static string ModName { get; protected set; }
         public static bool RunOnServer { get; protected set; }
-
         protected static ModBase Instance { get; private set; }
-        protected static readonly List<Action> initActions, closeActions, drawActions, inputActions, updateActions;
+        protected static List<Action> DrawActions { get { return drawActions; } }
+        protected static List<Action> InputActions { get { return inputActions; } }
+        protected static List<Action> UpdateActions { get { return updateActions; } }
 
-        private bool crashed = false, isDedicated = false, isServer = false;
+        private static readonly List<Action> initActions, closeActions, drawActions, inputActions, updateActions;
+
+        private bool crashed, isDedicated, isServer, closing;
 
         static ModBase()
         {
@@ -33,6 +36,17 @@ namespace DarkHelmet.Game
             drawActions = new List<Action>();
             inputActions = new List<Action>();
             updateActions = new List<Action>();
+        }
+
+        public ModBase()
+        {
+            if (Instance != null)
+                throw new Exception("Only one instance of type ModBase can exist at a given time.");
+
+            crashed = false;
+            isDedicated = false;
+            isServer = false;
+            closing = false;
         }
 
         public sealed override void Draw() =>
@@ -50,11 +64,16 @@ namespace DarkHelmet.Game
         public sealed override void UpdateAfterSimulation() =>
             Update();
 
+        /// <summary>
+        /// The update function used Before/Sim/After is determined by the settings used by
+        /// the MySessionComponentDescriptorAttribute applied to the child class.
+        /// </summary>
         private void Update()
         {
             if (Instance == null)
             {
                 Instance = this;
+                closing = false;
                 isServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
                 isDedicated = (MyAPIGateway.Utilities.IsDedicated && isServer);
 
@@ -65,16 +84,31 @@ namespace DarkHelmet.Game
             RunUpdateActions(updateActions);
         }
 
-        protected abstract void AfterInit();
+        protected virtual void AfterInit() { }
 
         private void RunUpdateActions(List<Action> updateActions)
         {
             if (!crashed && (!isDedicated || RunOnServer))
             {
-                try
+                RunSafeAction(() =>
                 {
                     for (int n = 0; n < updateActions.Count; n++)
                         updateActions[n]();
+                });
+            }
+        }
+
+        /// <summary>
+        /// Executes a given <see cref="Action"/> in a try-catch block. If an exception occurs, it will attempt
+        /// to log it, display an error message to the user, and unload the mod and its components.
+        /// </summary>
+        protected void RunSafeAction(Action action)
+        {
+            if (!crashed && (!isDedicated || RunOnServer))
+            {
+                try
+                {
+                    action();
                 }
                 catch (Exception e)
                 {
@@ -83,15 +117,13 @@ namespace DarkHelmet.Game
 
                     MyAPIGateway.Utilities.ShowMissionScreen
                     (
-                        ModName,
-                        "Debug", "",
+                        ModName, "Debug", "",
                         $"{ModName} has crashed! Press the X in the upper right hand corner if you don't want " +
                         "it to reload.\n" + e.ToString(),
-                        AllowReload,
-                        "Reload"
+                        AllowReload, "Reload"
                     );
 
-                    UnloadData();
+                    Close();
                 }
             }
         }
@@ -109,7 +141,7 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void SendChatMessage(string message)
         {
-            if (Instance != null)
+            if (Instance != null && !Instance.closing)
                 MyAPIGateway.Utilities.ShowMessage(ModName, message);
         }
 
@@ -118,31 +150,28 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void ShowMessageScreen(string subHeading, string message)
         {
-            if (Instance != null)
+            if (Instance != null && !Instance.closing)
                 MyAPIGateway.Utilities.ShowMissionScreen(ModName, subHeading, null, message, null, "Close");
         }
 
         protected override void UnloadData()
         {
-            try
+            closing = true;
+            Close();
+        }
+
+        protected virtual void BeforeClose() { }
+
+        public static void Close()
+        {
+            Instance?.RunSafeAction(() =>
             {
                 foreach (Action CloseAction in closeActions)
                     CloseAction();
 
+                Instance.BeforeClose();
                 Instance = null;
-            }
-            catch
-            {
-                // you're kinda screwed at this point
-            }
-        }
-
-        protected abstract void BeforeClose();
-
-        public static void Close()
-        {
-            Instance?.BeforeClose();
-            Instance?.UnloadData();
+            });
         }
 
         /// <summary>
@@ -159,6 +188,85 @@ namespace DarkHelmet.Game
                 initActions.Add(Init);
                 closeActions.Add(Close);
             }
+        }
+    }
+
+    public abstract class ConfigurableMod : ModBase
+    {
+
+    }
+
+    public class ConfigurableMod<ConfigT> : ConfigurableMod where ConfigT : ConfigRoot<ConfigT>, new()
+    {
+        public static ConfigT Cfg { get; set; }
+
+        private static ConfigIO<ConfigT> ConfigIO { get { return ConfigIO<ConfigT>.Instance; } }
+        protected bool initStarted, initFinished;
+
+        public ConfigurableMod()
+        {
+            initStarted = false;
+            initFinished = false;
+        }
+
+        protected sealed override void AfterInit()
+        {
+            initStarted = true;
+            initFinished = false;
+            ConfigIO.LoadStart(BeforeInitFinish, true);
+        }
+
+        private void BeforeInitFinish(ConfigT cfg)
+        {
+            if (!initFinished && initStarted)
+            {
+                initFinished = true;
+                Cfg = cfg;
+                InitFinish();
+            }
+        }
+
+        protected virtual void InitFinish() { }
+
+        protected sealed override void BeforeClose()
+        {
+            if (initFinished)
+            {
+                ConfigIO?.Save(Cfg);
+                BeforeUnload();
+            }
+        }
+
+        protected virtual void BeforeUnload() { }
+
+        /// <summary>
+        /// Loads config from file and applies it. Runs in parallel.
+        /// </summary>
+        public void LoadConfig(bool silent = false)
+        {
+            if (Instance != null)
+                ConfigIO.LoadStart((ConfigT value) => Cfg = value, silent);
+        }
+
+        /// <summary>
+        /// Gets the current configuration and writes it to the config file. 
+        /// Runs in parallel.
+        /// </summary>
+        public void SaveConfig(bool silent = false)
+        {
+            if (Instance != null)
+                ConfigIO.SaveStart(Cfg, silent);
+        }
+
+        /// <summary>
+        /// Resets the current configuration to the default settings and saves them.
+        /// </summary>
+        public void ResetConfig(bool silent = false)
+        {
+            if (Instance != null)
+                ConfigIO.SaveStart(ConfigRoot<ConfigT>.Defaults, silent);
+
+            Cfg = ConfigRoot<ConfigT>.Defaults;
         }
     }
 }

@@ -14,12 +14,12 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Collection of wrapper types and utilities used to simplify the creation of settings menu elements in the Text HUD API Mod Menu
     /// </summary>
-    internal sealed class SettingsMenu : ModBase.Component<SettingsMenu>
+    public sealed class MenuUtilities : ModBase.Component<MenuUtilities>
     {
-        public bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
+        public static bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
         private readonly Queue<Action> menuElementsInit;
 
-        public SettingsMenu()
+        public MenuUtilities()
         {
             menuElementsInit = new Queue<Action>();
         }
@@ -93,24 +93,16 @@ namespace DarkHelmet.UI
             protected string name;
             private int requeueCount;
 
-            public MenuElement(string name, IMenuCategory parent = null)
-            {
-                this.name = name;
-                Init(() => this.name, parent);
-            }
-
             public MenuElement(Func<string> GetName, IMenuCategory parent = null)
-            {
-                Init(GetName, parent);
-            }
-
-            private void Init(Func<string> GetName, IMenuCategory parent)
             {
                 requeueCount = 0;
                 this.GetName = GetName;
                 Parent = parent;
                 Instance.menuElementsInit.Enqueue(TryInitElement);
             }
+
+            public MenuElement(string name, IMenuCategory parent = null) : this(() => name, parent)
+            { }
 
             private void TryInitElement()
             {
@@ -152,20 +144,10 @@ namespace DarkHelmet.UI
             protected string header;
             protected List<IMenuElement> children;
 
-            public MenuCategoryBase(string name, string header, IMenuCategory parent = null, List<IMenuElement> children = null, bool IsRoot = false) : base(name, parent)
-            {
-                Init(header, children, IsRoot);
-            }
-
-            public MenuCategoryBase(Func<string> GetName, string header, IMenuCategory parent = null, List<IMenuElement> children = null, bool IsRoot = false) : base(GetName, parent)
-            {
-                Init(header, children, IsRoot);
-            }
-
-            private void Init(string header, List<IMenuElement> children, bool IsRoot)
+            public MenuCategoryBase(Func<string> GetName, string header, IMenuCategory parent = null, List<IMenuElement> children = null, bool isRoot = false) : base(GetName, parent)
             {
                 this.Header = header;
-                this.IsRoot = IsRoot;
+                this.IsRoot = isRoot;
                 this.children = children;
 
                 if (this.children != null)
@@ -176,6 +158,9 @@ namespace DarkHelmet.UI
                 else
                     this.children = new List<IMenuElement>();
             }
+
+            public MenuCategoryBase(string name, string header, IMenuCategory parent = null, List<IMenuElement> children = null, bool isRoot = false) : this(() => name, header, parent, children, isRoot)
+            { }
 
             public virtual void AddChild(IMenuElement child)
             {
@@ -253,17 +238,14 @@ namespace DarkHelmet.UI
         /// </summary>
         public abstract class MenuSetting<T> : MenuElement<T> where T : HudAPIv2.MenuItemBase
         {
-            public MenuSetting(string name, IMenuCategory parent = null) : base(name, parent)
-            {
-                if (typeof(T) == typeof(HudAPIv2.MenuCategoryBase))
-                    throw new Exception("Types of HudAPIv2.MenuCategoryBase cannot be used to create MenuSettings.");
-            }
-
             public MenuSetting(Func<string> GetName, IMenuCategory parent = null) : base(GetName, parent)
             {
                 if (typeof(T) == typeof(HudAPIv2.MenuCategoryBase))
                     throw new Exception("Types of HudAPIv2.MenuCategoryBase cannot be used to create MenuSettings.");
             }
+
+            public MenuSetting(string name, IMenuCategory parent = null) : this(() => name, parent)
+            { }
         }
 
         /// <summary>
@@ -378,36 +360,31 @@ namespace DarkHelmet.UI
             private int rounding;
             private float start;
 
-            public MenuSliderInput(string name, string queryText, float min, float max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null) : base(name, parent)
-            {
-                Init(queryText, min, max, 2, GetCurrentValue, OnUpdate, parent);
-            }
-
-            public MenuSliderInput(string name, string queryText, int min, int max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null) : base(name, parent)
-            {
-                Init(queryText, min, max, 0, GetCurrentValue, OnUpdate, parent);
-            }
-
             public MenuSliderInput(Func<string> GetName, string queryText, float min, float max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null) : base(GetName, parent)
-            {
-                Init(queryText, min, max, 2, GetCurrentValue, OnUpdate, parent);
-            }
-
-            public MenuSliderInput(Func<string> GetName, string queryText, int min, int max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null) : base(GetName, parent)
-            {
-                Init(queryText, min, max, 0, GetCurrentValue, OnUpdate, parent);
-            }
-
-            private void Init(string queryText, float min, float max, int rounding, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null)
             {
                 this.queryText = queryText;
                 this.min = min;
                 this.max = max;
                 range = max - min;
-                this.rounding = rounding;
+                this.rounding = 2;
 
                 CurrentValueAction = GetCurrentValue;
                 OnUpdateAction = OnUpdate;
+            }
+
+            public MenuSliderInput(string name, string queryText, float min, float max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null)
+                : this(() => name, queryText, min, max, GetCurrentValue, OnUpdate, parent) { }
+
+            public MenuSliderInput(Func<string> GetName, string queryText, int min, int max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null)
+                : this(GetName, queryText, (float)min, (float)max, GetCurrentValue, OnUpdate, parent)
+            {
+                this.rounding = 0;
+            }
+
+            public MenuSliderInput(string name, string queryText, int min, int max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null)
+                : this(name, queryText, (float)min, (float)max, GetCurrentValue, OnUpdate, parent)
+            {
+                this.rounding = 0;
             }
 
             private void OnSubmit(float percent)

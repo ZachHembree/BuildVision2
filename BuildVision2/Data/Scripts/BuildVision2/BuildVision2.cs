@@ -1,26 +1,25 @@
-﻿using Sandbox.ModAPI;
+﻿using DarkHelmet.Game;
+using DarkHelmet.IO;
+using DarkHelmet.UI;
+using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
-using DarkHelmet.IO;
-using DarkHelmet.UI;
-using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
     /// <summary>
-    /// Build vision main class; singleton.
+    /// Build vision main class
     /// </summary>
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation, 1)]
-    internal sealed partial class BvMain : ModBase
+    internal sealed partial class BvMain : ConfigurableMod<BvConfig>
     {
         private const double maxDist = 10d, maxDistSquared = maxDist * maxDist;
-        private static ConfigIO<BvConfig> ConfigIO { get { return ConfigIO<BvConfig>.Instance; } }
+        private new static BvMain Instance { get; set; }
         private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
         private static CmdManager CmdManager { get { return CmdManager.Instance; } }
+        private static BindManager BindManager { get { return BindManager.Instance; } }
         private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
-
-        private bool initStarted, initFinished;
 
         public static BvConfig Cfg
         {
@@ -29,7 +28,7 @@ namespace DarkHelmet.BuildVision2
             {
                 cfg = value;
 
-                if ((Instance as BvMain).initFinished && cfg != null)
+                if (Instance.initFinished && cfg != null)
                 {
                     cfg.Validate();
                     KeyBinds.Cfg = cfg.binds;
@@ -44,101 +43,56 @@ namespace DarkHelmet.BuildVision2
 
         static BvMain()
         {
-            ModBase.RunOnServer = false;
-            ModBase.ModName = "Build Vision";
+            ModName = "Build Vision";
             CmdManager.Prefix = "/bv2";
             LogIO.FileName = "bvLog.txt";
             ConfigIO<BvConfig>.FileName = "BuildVision2Config.xml";
 
-            updateActions.Add(() => (Instance as BvMain)?.Update());
-        }
-
-        public BvMain()
-        {
-            initStarted = false;
-            initFinished = false;
-        }
-
-        protected override void AfterInit()
-        {
-            initStarted = true;
-            ConfigIO.LoadStart(InitFinish, true);
+            UpdateActions.Add(() => Instance?.Update());
         }
 
         /// <summary>
         /// Finishes initialization upon retrieval of configuration information.
         /// </summary>
-        private void InitFinish(BvConfig cfg)
+        protected override void InitFinish()
         {
             if (!initFinished && initStarted)
             {
-                Cfg = cfg;
-                KeyBinds.Cfg = cfg.binds;
-                PropertiesMenu.Cfg = cfg.menu;
-                PropertyBlock.Cfg = cfg.propertyBlock;
+                Instance = (BvMain)ModBase.Instance;
+                BindManager.RegisterBinds(new string[] { "open", "close", "select", "scrollup", "scrolldown", "multx", "multy", "multz" });
+                //Cfg = cfg;
 
                 CmdManager.AddCommands(GetChatCommands());
-                SettingsMenu.AddMenuElements(GetSettingsMenuElements());
+                MenuUtilities.AddMenuElements(GetSettingsMenuElements());
+                PropertiesMenu.Init();
 
                 KeyBinds.Open.OnNewPress += TryOpenMenu;
                 KeyBinds.Hide.OnNewPress += TryCloseMenu;
 
-                initFinished = true;
-                MyAPIGateway.Utilities.ShowMessage(ModBase.ModName, $"Type {CmdManager.Prefix} help for help. All settings are available through the mod menu.");
+                SendChatMessage($"Type {CmdManager.Prefix} help for help. All settings are available through the mod menu.");
             }
         }
 
         /// <summary>
         /// Unloads all mod data.
         /// </summary>
-        protected override void BeforeClose()
+        protected override void BeforeUnload()
         {
-            if (initFinished)
-            {
-                TryCloseMenu();
-                ConfigIO?.Save(Cfg);
-            }
-        }
-
-        /// <summary>
-        /// Loads config from file and applies it. Runs in parallel.
-        /// </summary>
-        public void LoadConfig(bool silent = false)
-        {
-            if (initFinished)
-                ConfigIO.LoadStart((BvConfig value) => Cfg = value, silent);
-        }
-
-        /// <summary>
-        /// Gets the current configuration and writes it to the config file. 
-        /// Runs in parallel.
-        /// </summary>
-        public void SaveConfig(bool silent = false)
-        {
-            if (initFinished)
-                ConfigIO.SaveStart(Cfg, silent);
-        }
-
-        /// <summary>
-        /// Resets the current configuration to the default settings and saves them.
-        /// </summary>
-        public void ResetConfig(bool silent = false)
-        {
-            if (initFinished)
-                ConfigIO.SaveStart(BvConfig.Defaults, silent);
-
-            Cfg = BvConfig.Defaults;
+            TryCloseMenu();
+            PropertiesMenu.Close();
         }
 
         /// <summary>
         /// Mod main loop. This mod will not work if this isn't being called regularly.
         /// </summary>
-        public void Update()
+        private void Update()
         {
             if (initFinished)
             {
                 if (!CanAccessTargetBlock())
                     TryCloseMenu();
+
+                PropertiesMenu.Instance?.Update();
             }
         }
 
@@ -152,7 +106,7 @@ namespace DarkHelmet.BuildVision2
                 if (TryGetTarget() && CanAccessTargetBlock())
                 {
                     Menu.SetTarget(target);
-                    PropertiesMenu.menuOpen = true;
+                    PropertiesMenu.MenuOpen = true;
                 }
                 else
                     TryCloseMenu();
@@ -166,9 +120,9 @@ namespace DarkHelmet.BuildVision2
         {
             if (initFinished)
             {
-                Menu.Hide();
-                PropertiesMenu.menuOpen = false;
-                target = null;
+                //Menu.Hide();
+                PropertiesMenu.MenuOpen = false;
+                //target = null;
             }
         }
 
