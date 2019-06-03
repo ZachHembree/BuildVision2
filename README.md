@@ -25,7 +25,7 @@ The “Mult” binds or multiplier binds are used to increase the speed a select
 #### Note: 
 Some properties use fairly aggressive rounding/clamping for their values, so some settings may not change at all unless you use the multipliers; projectors, in particular, suffer from this problem. 
 
-### Settings Menu:
+## Settings Menu:
 Build Vision now makes use of the Text Hud API's Mod Menu. The Mod Menu is an in-game settings menu through which you can configure text and background colors, UI size, change your property multipliers, set key binds as well as a few other settings. Fair warning, the shading on the settings menu can make it hard to see in daylight, so I'd try to only use it indoors if I were you.
 
 ## Chat Commands:
