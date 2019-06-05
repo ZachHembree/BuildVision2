@@ -5,35 +5,26 @@ using DarkHelmet.Game;
 namespace DarkHelmet.IO
 {
     /// <summary>
-    /// Handles logging; singleton
+    /// Handles logging
     /// </summary>
-    public sealed class LogIO : ModBase.Component<LogIO>
+    public class LogIO
     {
-        public static string FileName { get { return fileName; } set { if (value != null && value.Length > 0) fileName = value; } }
-        private static string fileName = "modLog.txt";
-
         public bool Accessible { get; private set; }
-
         private readonly LocalFileIO logFile;
-        private readonly TaskPool taskPool;
+        private readonly TaskPool.IClient taskPoolClient;
 
-        static LogIO()
-        {
-            UpdateActions.Add(() => Instance.taskPool.Update());
-        }
-
-        public LogIO()
+        public LogIO(string fileName)
         {
             Accessible = true;
-            logFile = new LocalFileIO(FileName);
-            taskPool = new TaskPool(1, ErrorCallback);
+            logFile = new LocalFileIO(fileName);
+            taskPoolClient = TaskPool.GetTaskPoolClient(ErrorCallback);
         }
 
-        private void ErrorCallback(List<IOException> known, AggregateException unknown)
+        private void ErrorCallback(List<KnownException> known, AggregateException unknown)
         {
             if ((known != null && known.Count > 0) || unknown != null)
             {
-                TryWriteToLogFinish(false);
+                WriteToLogFinish(false);
 
                 if (known != null && known.Count > 0)
                     foreach (Exception e in known)
@@ -52,7 +43,7 @@ namespace DarkHelmet.IO
             if (Accessible)
             {
                 message = $"[{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss:ms")}] {message}";
-                IOException exception = logFile.TryAppend(message);
+                KnownException exception = logFile.TryAppend(message);
 
                 if (exception != null)
                 {
@@ -74,28 +65,28 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Attempts to update log in parallel with message and adds a time stamp.
         /// </summary>
-        public void TryWriteToLogStart(string message)
+        public void WriteToLogStart(string message)
         {
             if (Accessible)
             {
                 message = $"[{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss:ms")}] {message}";
 
-                taskPool.EnqueueTask(() =>
+                taskPoolClient.EnqueueTask(() =>
                 {
-                    IOException exception = logFile.TryAppend(message);
+                    KnownException exception = logFile.TryAppend(message);
 
                     if (exception != null)
                     {
-                        taskPool.EnqueueAction(() => TryWriteToLogFinish(false));
+                        taskPoolClient.EnqueueAction(() => WriteToLogFinish(false));
                         throw exception;
                     }
                     else
-                        taskPool.EnqueueAction(() => TryWriteToLogFinish(true));
+                        taskPoolClient.EnqueueAction(() => WriteToLogFinish(true));
                 });
             }
         }
 
-        private void TryWriteToLogFinish(bool success)
+        private void WriteToLogFinish(bool success)
         {
             if (!success)
             {

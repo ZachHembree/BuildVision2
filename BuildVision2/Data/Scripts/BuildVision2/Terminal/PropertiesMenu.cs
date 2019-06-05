@@ -7,9 +7,9 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Renders menu of block terminal properties given a target block; singleton.
     /// </summary>
-    internal sealed partial class PropertiesMenu : Singleton<PropertiesMenu>
+    internal sealed partial class PropertiesMenu : ModBase.Component<PropertiesMenu>
     {
-        public static PropMenuConfig Cfg { get; set; } = PropMenuConfig.Defaults;
+        public static PropMenuConfig Cfg { get { return BvConfig.Instance.menu; } set { BvConfig.Instance.menu = value; } }
         public static ApiHudConfig ApiHudCfg { get { return Cfg.apiHudConfig; } set { Cfg.apiHudConfig = value; } }
         public static NotifHudConfig NotifHudCfg { get { return Cfg.fallbackHudConfig; } set { Cfg.fallbackHudConfig = value; } }
         public static bool MenuOpen { get { return menuOpen; } set { menuOpen = value; Instance?.Update(); } }
@@ -95,7 +95,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Updates the menu each time it's called. Reopens menu if closed.
         /// </summary>
-        public void Update()
+        protected override void Update()
         {
             if (MenuOpen && target != null)
             {

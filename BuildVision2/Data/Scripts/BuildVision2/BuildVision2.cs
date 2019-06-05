@@ -12,59 +12,57 @@ namespace DarkHelmet.BuildVision2
     /// Build vision main class
     /// </summary>
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation, 1)]
-    internal sealed partial class BvMain : ConfigurableMod<BvConfig>
+    internal sealed partial class BvMain : ModBase
     {
         private const double maxDist = 10d, maxDistSquared = maxDist * maxDist;
         private new static BvMain Instance { get; set; }
-        private static PropertiesMenu Menu { get { return PropertiesMenu.Instance; } }
+        public static BvConfig Cfg { get { return BvConfig.Instance; } }
+        private static PropertiesMenu PropertiesMenu { get { return PropertiesMenu.Instance; } }
         private static CmdManager CmdManager { get { return CmdManager.Instance; } }
         private static BindManager BindManager { get { return BindManager.Instance; } }
         private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
 
-        public static BvConfig Cfg
-        {
-            get { return cfg; }
-            set
-            {
-                cfg = value;
-
-                if (Instance.initFinished && cfg != null)
-                {
-                    cfg.Validate();
-                    KeyBinds.Cfg = cfg.binds;
-                    PropertiesMenu.Cfg = cfg.menu;
-                    PropertyBlock.Cfg = cfg.propertyBlock;
-                }
-            }
-        }
-
-        private static BvConfig cfg;
         private PropertyBlock target;
+        private bool LoadFinished, LoadStarted;
 
         static BvMain()
         {
             ModName = "Build Vision";
+            LogFileName = "bvLog.txt";
             CmdManager.Prefix = "/bv2";
-            LogIO.FileName = "bvLog.txt";
-            ConfigIO<BvConfig>.FileName = "BuildVision2Config.xml";
+            BvConfig.FileName = "BuildVision2Config.xml";
 
-            UpdateActions.Add(() => Instance?.Update());
+            updateActions.Add(() => Instance?.Update());
+        }
+
+        public BvMain()
+        {
+            LoadStarted = false;
+            LoadFinished = false;
+        }
+
+        protected override void AfterInit()
+        {
+            LoadStarted = true;
+            LoadFinished = false;
+            BvConfig.LoadStart(InitFinish, true);
         }
 
         /// <summary>
         /// Finishes initialization upon retrieval of configuration information.
         /// </summary>
-        protected override void InitFinish()
+        private void InitFinish()
         {
-            if (!initFinished && initStarted)
+            if (!LoadFinished && LoadStarted)
             {
+                LoadFinished = true;
                 Instance = (BvMain)ModBase.Instance;
+
                 BindManager.RegisterBinds(new string[] { "open", "close", "select", "scrollup", "scrolldown", "multx", "multy", "multz" });
-                //Cfg = cfg;
+                KeyBinds.Cfg = Cfg.binds;
 
                 CmdManager.AddCommands(GetChatCommands());
                 MenuUtilities.AddMenuElements(GetSettingsMenuElements());
-                PropertiesMenu.Init();
 
                 KeyBinds.Open.OnNewPress += TryOpenMenu;
                 KeyBinds.Hide.OnNewPress += TryCloseMenu;
@@ -73,13 +71,16 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        /// <summary>
-        /// Unloads all mod data.
-        /// </summary>
-        protected override void BeforeUnload()
+        protected override void BeforeClose()
         {
-            TryCloseMenu();
-            PropertiesMenu.Close();
+            if (LoadFinished)
+            {
+                LoadStarted = false;
+                LoadFinished = false;
+
+                BvConfig.Save();
+                TryCloseMenu();
+            }
         }
 
         /// <summary>
@@ -87,12 +88,10 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void Update()
         {
-            if (initFinished)
+            if (LoadFinished)
             {
                 if (!CanAccessTargetBlock())
                     TryCloseMenu();
-
-                PropertiesMenu.Instance?.Update();
             }
         }
 
@@ -101,11 +100,11 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void TryOpenMenu()
         {
-            if (initFinished)
+            if (LoadFinished)
             {
                 if (TryGetTarget() && CanAccessTargetBlock())
                 {
-                    Menu.SetTarget(target);
+                    PropertiesMenu.SetTarget(target);
                     PropertiesMenu.MenuOpen = true;
                 }
                 else
@@ -118,12 +117,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void TryCloseMenu()
         {
-            if (initFinished)
-            {
-                //Menu.Hide();
+            if (LoadFinished)
                 PropertiesMenu.MenuOpen = false;
-                //target = null;
-            }
         }
 
         /// <summary>
@@ -149,8 +144,10 @@ namespace DarkHelmet.BuildVision2
                     if (termBlock.HasLocalPlayerAccess())
                     {
                         if (target == null || termBlock != target.TBlock)
+                        {
+                            if (target != null) target.UnsubscribeFromEvents();
                             target = new PropertyBlock(termBlock);
-
+                        }
                         return true;
                     }
                     else

@@ -149,13 +149,13 @@ namespace DarkHelmet.BuildVision2
                         () => ModBase.ShowMessageScreen("Help", GetHelpMessage())),
                 new MenuUtilities.MenuButton(
                         () => "Reset Config",
-                        () => ResetConfig()),
+                        () => BvConfig.ResetConfig()),
                 new MenuUtilities.MenuButton(
                         () => "Save Config",
-                        () => SaveConfig()),
+                        () => BvConfig.SaveStart()),
                 new MenuUtilities.MenuButton(
                         () => "Load Config",
-                        () => LoadConfig()),
+                        () => BvConfig.LoadStart()),
             };
         }
 

@@ -5,9 +5,6 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    /// <summary>
-    /// Stores all information needed for reading/writing from the config file.
-    /// </summary>
     [XmlRoot, XmlType(TypeName = "BuildVisionSettings")]
     public class BvConfig : ConfigRoot<BvConfig>
     {
@@ -23,20 +20,6 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "InputSettings")]
         public BindsConfig binds;
 
-        public BvConfig() { }
-
-        public BvConfig(bool useDefaults)
-        {
-            if (useDefaults)
-            {
-                VersionID = 6;
-                general = GeneralConfig.Defaults;
-                menu = PropMenuConfig.Defaults;
-                propertyBlock = PropBlockConfig.Defaults;
-                binds = BindsConfig.Defaults;
-            }
-        }
-
         protected override BvConfig GetDefaults()
         {
             return new BvConfig
@@ -49,24 +32,15 @@ namespace DarkHelmet.BuildVision2
             };
         }
 
-        public BvConfig GetCopy()
-        {
-            return new BvConfig
-            {
-                VersionID = VersionID,
-                general = general,
-                menu = menu,
-                propertyBlock = propertyBlock,
-                binds = binds
-            };
-        }
-
         public override void Validate()
         {
             if (VersionID < 6)
             {
                 menu.apiHudConfig.resolutionScaling = ApiHudConfig.Defaults.resolutionScaling;
                 menu.apiHudConfig.hudScale = ApiHudConfig.Defaults.hudScale;
+                menu.apiHudConfig.colors.headerColor = ApiHudConfig.Defaults.colors.headerColor;
+                menu.apiHudConfig.colors.listBgColor = ApiHudConfig.Defaults.colors.listBgColor;
+                menu.apiHudConfig.colors.selectionBoxColor = ApiHudConfig.Defaults.colors.selectionBoxColor;
             }
 
             if (VersionID < 5)
@@ -100,7 +74,7 @@ namespace DarkHelmet.BuildVision2
         }
     }
 
-    public class GeneralConfig : ConfigBase<GeneralConfig>
+    public class GeneralConfig : Config<GeneralConfig>
     {
         [XmlElement(ElementName = "CloseIfTargetNotInView")]
         public bool closeIfNotInView;
@@ -121,7 +95,7 @@ namespace DarkHelmet.BuildVision2
         { }
     }
 
-    public class PropMenuConfig : ConfigBase<PropMenuConfig>
+    public class PropMenuConfig : Config<PropMenuConfig>
     {
         [XmlElement(ElementName = "ForceFallabckHud")]
         public bool forceFallbackHud;
@@ -159,7 +133,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Stores config information for the Text HUD based menu
     /// </summary>
-    public class ApiHudConfig : ConfigBase<ApiHudConfig>
+    public class ApiHudConfig : Config<ApiHudConfig>
     {
         [XmlElement(ElementName = "EnableResolutionScaling")]
         public bool resolutionScaling;
@@ -182,7 +156,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Stores configurable text and background colors for Text HUD based menu.
         /// </summary>
-        public class Colors : ConfigBase<Colors>
+        public class Colors : Config<Colors>
         {
             [XmlIgnore]
             public Color listBgColor, selectionBoxColor, headerColor;
@@ -297,7 +271,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Stores config information for the built in Notifications based menu
     /// </summary>
-    public class NotifHudConfig : ConfigBase<NotifHudConfig>
+    public class NotifHudConfig : Config<NotifHudConfig>
     {
         [XmlElement(ElementName = "MaxVisibleItems")]
         public int maxVisible;
@@ -323,7 +297,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Stores configuration of scrollable data for serializatin.
     /// </summary>
-    public class PropBlockConfig : ConfigBase<PropBlockConfig>
+    public class PropBlockConfig : Config<PropBlockConfig>
     {
         [XmlElement(ElementName = "FloatIncrementDivisor")]
         public double floatDiv;
@@ -379,7 +353,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Stores data for serializing the configuration of the Binds class.
     /// </summary>
-    public class BindsConfig : ConfigBase<BindsConfig>
+    public class BindsConfig : Config<BindsConfig>
     {
         [XmlIgnore]
         public static KeyBindData[] DefaultBinds

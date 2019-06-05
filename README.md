@@ -8,7 +8,7 @@ Like the original, this depends on Draygo's Text Hud API to function properly. T
 This mod can be found on the Steam Workshop [here](https://steamcommunity.com/sharedfiles/filedetails/?id=1697184408).
 
 ## Usage:
-Build Vision 2 uses seven key binds for its controls, all of which are user configurable via chat commands or by editing the config file manually (details below). The keys supported can be found in the bind help menu by using the /bv2 bindHelp command or in this [pastebin](https://pastebin.com/mGNq3u1T). I just grabbed the 200+ enums they had in the ModAPI and I'm not sure what does what or if they all work. Have fun!
+Build Vision 2 uses seven key binds for its controls, all of which are user configurable via chat commands or by editing the config file manually (details below). The keys supported can be found in the bind help menu by using the **/bv2 bindHelp** command or in this [pastebin](https://pastebin.com/mGNq3u1T). I just grabbed the 200+ enums they had in the ModAPI and I'm not sure what does what or if they all work. Have fun!
 
 #### Default Binds:
 * Open: Control + MiddleButton
@@ -16,14 +16,17 @@ Build Vision 2 uses seven key binds for its controls, all of which are user conf
 * Select: Middlebutton
 * Scroll Up: MouseWheelUp
 * Scroll Down: MouseWheelDown
-* MultX: Control (x10 for float values, x8 for colors)
-* MultY: Shift (x25 for float values, x16 for colors)
-* MultZ: Control + Shift (x100 for float values, x64 for colors)
+* MultX: Control (0.1 for float values, x8 for colors)
+* MultY: Shift (x5 for float values, x16 for colors)
+* MultZ: Control + Shift (x10 for float values, x64 for colors)
 
-The “Mult” binds or multiplier binds are used to increase the speed a selected property will change with each tick of the scroll wheel, ten times normal, 25 times normal, 100 times, etc. The base rate is proportional to the maximum value of the selected property. If you have a thruster override selected (probably with a max value in the millions) that’s going to change in much larger increments than the targeting range of a turret (with a max around 800 meters, usually).
+The “Mult” binds or multiplier binds are used to increase the speed a selected property will change with each tick of the scroll wheel, ten times normal, **1/10th** normal, **5** times, **10** times, etc. The base rate is proportional to the maximum value of the selected property. If you have a thruster override selected (probably with a max value in the millions) that’s going to change in much larger increments than the targeting range of a turret (with a max around 800 meters, usually).
 
 #### Note: 
 Some properties use fairly aggressive rounding/clamping for their values, so some settings may not change at all unless you use the multipliers; projectors, in particular, suffer from this problem. 
+
+## Settings Menu:
+Build Vision now makes use of the Text Hud API's Mod Menu. The Mod Menu is an in-game settings menu through which you can configure text and background colors, UI size, change your property multipliers, set key binds as well as a few other settings. Fair warning, the shading on the settings menu can make it hard to see in daylight, so I'd try to only use it indoors if I were you.
 
 ## Chat Commands:
 All chat commands must begin with “/bv2” and are not case-sensitive. The arguments following “/bv2” can be separated either by whitespace, a comma, semicolon or pipe character. Whatever floats your boat, just make sure there’s something between them.
@@ -43,8 +46,8 @@ All chat commands must begin with “/bv2” and are not case-sensitive. The arg
 Example: "/bv2 bind open control shift"
 
 ## Editing the Config File:
-In addition to storing your keybinds, the config file has a handful of other settings for changing your multiplier rates and a few UI settings. For those of you comfortable tinkering with XML, it's a hell of a lot faster than dicking around with chat commands. Just make your changes, use /bv2 load and they'll be instantly applied.
+In addition to storing your keybinds, the config file has a handful of other settings for changing your multiplier rates and a few UI settings. Just make your changes, use **/bv2 load** and they'll be instantly applied.
 
-The config file can be found in **%AppData%\Roaming\SpaceEngineers\Storage\1697184408.sbm_BuildVision2.** At the risk of stating the obvious, improperly formatted XML will not be interpreted correctly and will result in the default settings being loaded instead. The config file will not be generated until you run the mod at least once.
+The config file can be found in **%AppData%\Roaming\SpaceEngineers\Storage\1697184408.sbm_BuildVision2.** At the risk of stating the obvious, improperly formatted XML will not be interpreted correctly and will result in the default settings being loaded instead (unless a set of valid settings are already loaded). The config file will not be generated until you run the mod at least once.
 
-Any formatting errors or general IO errors will be saved to bvLog.txt in the same directory. If the error log isn't working, you might have a problem with your file access permissions. The log file won't be created unless there was an error to log at some point.
+Any formatting errors or general IO errors will be saved to **bvLog.txt** in the same directory. If the error log isn't working, you might have a problem with your file access permissions. The log file won't be created unless there was an error to log at some point.

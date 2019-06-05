@@ -5,9 +5,9 @@ using VRageMath;
 using VRage.Utils;
 using VRage.Game;
 using System;
-using DarkHelmet.TextHudApi;
+using DarkHelmet.UI.TextHudApi;
 using DarkHelmet.Game;
-using MenuFlag = DarkHelmet.TextHudApi.HudAPIv2.MenuRootCategory.MenuFlag;
+using MenuFlag = DarkHelmet.UI.TextHudApi.HudAPIv2.MenuRootCategory.MenuFlag;
 
 namespace DarkHelmet.UI
 {
@@ -17,6 +17,7 @@ namespace DarkHelmet.UI
     public sealed class MenuUtilities : ModBase.Component<MenuUtilities>
     {
         public static bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
+        private static bool wasClosed = false;
         private readonly Queue<Action> menuElementsInit;
 
         public MenuUtilities()
@@ -26,17 +27,22 @@ namespace DarkHelmet.UI
 
         protected override void AfterInit()
         {
-            MenuRoot.Init(ModBase.ModName, $"{ModBase.ModName} Settings");
-            UpdateActions.Add(() => Instance?.UpdateMenuElements());
+            if (!wasClosed)
+                MenuRoot.Init(ModBase.ModName, $"{ModBase.ModName} Settings");
         }
 
-        private void UpdateMenuElements()
+        protected override void BeforeClose()
+        {
+            wasClosed = true;
+        }
+
+        protected override void Update()
         {
             if (Heartbeat)
             {
                 Action InitElement;
 
-                while (menuElementsInit.Count > 0)
+                while (!wasClosed && menuElementsInit.Count > 0)
                 {
                     if (menuElementsInit.TryDequeue(out InitElement))
                         InitElement();
@@ -44,11 +50,17 @@ namespace DarkHelmet.UI
             }
         }
 
-        public static void AddMenuElement(IMenuElement newChild) =>
-            MenuRoot.Instance.AddChild(newChild);
+        public static void AddMenuElement(IMenuElement newChild)
+        {
+            if (!wasClosed)
+                MenuRoot.Instance.AddChild(newChild);
+        }
 
-        public static void AddMenuElements(IEnumerable<IMenuElement> newChildren) =>
-            MenuRoot.Instance.AddChildren(newChildren);
+        public static void AddMenuElements(IEnumerable<IMenuElement> newChildren)
+        {
+            if (!wasClosed)
+                MenuRoot.Instance.AddChildren(newChildren);
+        }
 
         /// <summary>
         /// Interface of all menu elements capable of serving as parents of other elements.
@@ -280,7 +292,7 @@ namespace DarkHelmet.UI
 
             private void OnClick()
             {
-                OnClickAction();
+                ModBase.RunSafeAction(OnClickAction);
                 Element.Text = Name;
             }
 

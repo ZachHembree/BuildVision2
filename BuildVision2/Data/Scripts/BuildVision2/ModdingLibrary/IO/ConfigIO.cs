@@ -9,315 +9,376 @@ namespace DarkHelmet.IO
     /// <summary>
     /// Generic base for serializable config types.
     /// </summary>
-    public abstract class ConfigBase<TConfig> where TConfig : ConfigBase<TConfig>, new()
+    public abstract class Config<ConfigT> where ConfigT : Config<ConfigT>, new()
     {
-        [XmlIgnore]
-        public static TConfig Defaults
+        public static ConfigT Defaults
         {
             get
             {
                 if (defaults == null)
-                    defaults = new TConfig().GetDefaults();
+                    defaults = new ConfigT().GetDefaults();
 
                 return defaults;
             }
         }
 
-        private static TConfig defaults;
-
-        protected abstract TConfig GetDefaults();
-
         public abstract void Validate();
+
+        private static ConfigT defaults;
+        protected abstract ConfigT GetDefaults();
     }
 
     /// <summary>
-    /// Base class for config root. This is the only config type accepted by ConfigIO.
+    /// Base class for config root. Handles its own serialization/deserialization.
     /// </summary>
-    public abstract class ConfigRoot<TConfig> : ConfigBase<TConfig> where TConfig : ConfigRoot<TConfig>, new()
+    public abstract class ConfigRoot<ConfigT> : Config<ConfigT> where ConfigT : ConfigRoot<ConfigT>, new()
     {
         [XmlAttribute("ConfigVersionID")]
         public virtual int VersionID { get; set; }
-    }
 
-    /// <summary>
-    /// Handles loading/saving configuration data; singleton
-    /// </summary>
-    public sealed class ConfigIO<TConfig> : ModBase.Component<ConfigIO<TConfig>> where TConfig : ConfigRoot<TConfig>, new()
-    {
-        public delegate void ConfigDataCallback(TConfig cfg);
+        public static event Action OnConfigLoad;
+        public static ConfigT Instance { get; private set; }
+        public static string FileName { get { return ConfigIO.FileName; } set { ConfigIO.FileName = value; } }
 
-        public static string FileName { get { return fileName; } set { if (value != null && value.Length > 0) fileName = value; } }
-        private static string fileName = $"config_{typeof(TConfig).Name}.xml";
-
-        public bool SaveInProgress { get; private set; }
-        private readonly LocalFileIO cfgFile;
-        private readonly TaskPool taskPool;
-
-        static ConfigIO()
+        /// <summary>
+        /// Loads config from file and applies it. Runs synchronously.
+        /// </summary>
+        public static void Load(bool silent = false)
         {
-            UpdateActions.Add(() => Instance.taskPool.Update());
-        }
-
-        public ConfigIO()
-        {
-            cfgFile = new LocalFileIO(FileName);
-            taskPool = new TaskPool(1, ErrorCallback);
-            SaveInProgress = false;
-        }
-
-        private void ErrorCallback(List<IOException> known, AggregateException unknown)
-        {
-            if (known != null && known.Count > 0)
-            {
-                SaveInProgress = false;
-                string exceptions = "";
-
-                foreach (Exception e in known)
-                {
-                    ModBase.SendChatMessage(e.Message);
-                    exceptions += e.ToString();
-                }
-
-                LogIO.Instance.TryWriteToLogStart(exceptions);
-            }
-
-            if (unknown != null)
-            {
-                LogIO.Instance.TryWriteToLogStart($"\nSave operation failed.\n{unknown.ToString()}");
-                ModBase.SendChatMessage("Save operation failed.");
-                SaveInProgress = false;
-
-                throw unknown;
-            }
+            Instance = ConfigIO.Instance.Load(silent);
+            OnConfigLoad?.Invoke();
         }
 
         /// <summary>
-        /// Loads the current configuration in parallel.
+        /// Loads config from file and applies it. Runs in parallel.
         /// </summary>
-        public void LoadStart(ConfigDataCallback UpdateConfig, bool silent = false)
-        {
-            if (!SaveInProgress)
-            {
-                SaveInProgress = true;
-                if (!silent) ModBase.SendChatMessage("Loading configuration...");
+        public static void LoadStart(bool silent = false) =>
+            LoadStart(null, silent);
 
-                taskPool.EnqueueTask(() =>
+        /// <summary>
+        /// Loads config from file and applies it. Runs in parallel.
+        /// </summary>
+        public static void LoadStart(Action Callback, bool silent = false)
+        {
+            ConfigIO.Instance.LoadStart((ConfigT value) =>
+            {
+                Instance = value;
+                OnConfigLoad?.Invoke();
+                Callback?.Invoke();
+            }, silent);
+        }
+
+        /// <summary>
+        /// Writes the current configuration to the config file. Runs synchronously.
+        /// </summary>
+        public static void Save() =>
+            ConfigIO.Instance.Save(Instance);
+
+        /// <summary>
+        /// Writes the current configuration to the config file. Runs in parallel.
+        /// </summary>
+        public static void SaveStart(bool silent = false) =>
+            ConfigIO.Instance.SaveStart(Instance, silent);
+
+        /// <summary>
+        /// Resets the current configuration to the default settings and saves them.
+        /// </summary>
+        public static void ResetConfig(bool silent = false)
+        {
+            ConfigIO.Instance.SaveStart(Defaults, silent);
+            Instance = Defaults;
+        }
+
+        /// <summary>
+        /// Handles loading/saving configuration data; singleton
+        /// </summary>
+        private sealed class ConfigIO : Singleton<ConfigIO>
+        {
+            public static string FileName { get { return fileName; } set { if (value != null && value.Length > 0) fileName = value; } }
+            private static string fileName = $"config_{typeof(ConfigT).Name}.xml";
+
+            public bool SaveInProgress { get; private set; }
+            private readonly LocalFileIO cfgFile;
+            private readonly TaskPool.IClient taskPoolClient;
+
+            public ConfigIO()
+            {
+                cfgFile = new LocalFileIO(FileName);
+                taskPoolClient = TaskPool.GetTaskPoolClient(ErrorCallback);
+                SaveInProgress = false;
+            }
+
+            protected override void BeforeClose()
+            {
+                taskPoolClient.UnregisterClient();
+            }
+
+            private void ErrorCallback(List<KnownException> known, AggregateException unknown)
+            {
+                if (known != null && known.Count > 0)
                 {
-                    TConfig cfg;
-                    IOException loadException, saveException;
+                    SaveInProgress = false;
+                    string exceptions = "";
+
+                    foreach (Exception e in known)
+                    {
+                        ModBase.SendChatMessage(e.Message);
+                        exceptions += e.ToString();
+                    }
+
+                    ModBase.WriteToLogStart(exceptions);
+                }
+
+                if (unknown != null)
+                {
+                    ModBase.WriteToLogStart("\nSave operation failed.\n" + unknown.ToString());
+                    ModBase.SendChatMessage("Save operation failed.");
+                    SaveInProgress = false;
+
+                    throw unknown;
+                }
+            }
+
+            /// <summary>
+            /// Loads the current configuration synchronously.
+            /// </summary>
+            public ConfigT Load(bool silent = false)
+            {
+                ConfigT cfg = null;
+                KnownException loadException, saveException;
+
+                if (!SaveInProgress)
+                {
+                    SaveInProgress = true;
+
+                    if (!silent) ModBase.SendChatMessage("Loading configuration...");
 
                     loadException = TryLoad(out cfg);
                     cfg = ValidateConfig(cfg);
-                    taskPool.EnqueueAction(() => UpdateConfig(cfg));
                     saveException = TrySave(cfg);
 
                     if (loadException != null)
                     {
-                        loadException = TrySave(cfg);
-                        taskPool.EnqueueAction(() => LoadFinish(false, silent));
+                        //loadException = TrySave(cfg);
 
                         if (saveException != null)
                         {
-                            LogIO.Instance.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
-                            taskPool.EnqueueAction(() => ModBase.SendChatMessage("Unable to load or create configuration file."));
+                            ModBase.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
+                            ModBase.SendChatMessage("Unable to load or create configuration file.");
                         }
                     }
                     else
-                        taskPool.EnqueueAction(() => LoadFinish(true, silent));
-                });
-            }
-            else
-                ModBase.SendChatMessage("Save operation already in progress.");
-        }
-
-        private TConfig ValidateConfig(TConfig cfg)
-        {
-            if (cfg != null)
-            {
-                if (cfg.VersionID == ConfigRoot<TConfig>.Defaults.VersionID)
-                    cfg.Validate();
-                else
-                {
-                    Backup();
-                    cfg.Validate();
-
-                    taskPool.EnqueueAction(() => ModBase.SendChatMessage("Config version mismatch. Some settings may have " +
-                        "been reset. A backup of the original config file will be made."));
-                }
-
-                return cfg;
-            }
-            else
-            {
-                taskPool.EnqueueAction(() => ModBase.SendChatMessage("Unable to load configuration. Loading default settings..."));
-
-                return ConfigRoot<TConfig>.Defaults;
-            }
-        }
-
-        private void LoadFinish(bool success, bool silent = false)
-        {
-            if (SaveInProgress)
-            {
-                if (!silent)
-                {
-                    if (success)
                         ModBase.SendChatMessage("Configuration loaded.");
                 }
+                else
+                    ModBase.SendChatMessage("Save operation already in progress.");
 
                 SaveInProgress = false;
+                return cfg;
             }
-        }
 
-        /// <summary>
-        /// Saves a given configuration to the save file in parallel.
-        /// </summary>
-        public void SaveStart(TConfig cfg, bool silent = false)
-        {
-            if (!SaveInProgress)
+            /// <summary>
+            /// Loads the current configuration in parallel.
+            /// </summary>
+            public void LoadStart(Action<ConfigT> UpdateConfig, bool silent = false)
             {
-                if (!silent) ModBase.SendChatMessage("Saving configuration...");
-                SaveInProgress = true;
+                if (!SaveInProgress)
+                {
+                    SaveInProgress = true;
+                    if (!silent) ModBase.SendChatMessage("Loading configuration...");
 
-                taskPool.EnqueueTask(() =>
+                    taskPoolClient.EnqueueTask(() =>
+                    {
+                        ConfigT cfg;
+                        KnownException loadException, saveException;
+
+                        // Load and validate
+                        loadException = TryLoad(out cfg);
+                        cfg = ValidateConfig(cfg);
+
+                        // Enqueue callback when the configuration
+                        taskPoolClient.EnqueueAction(() => 
+                            UpdateConfig(cfg));
+
+                        // Write validated config back to the file
+                        saveException = TrySave(cfg);
+
+                        if (loadException != null)
+                        {
+                            //loadException = TrySave(cfg);
+                            taskPoolClient.EnqueueAction(() => 
+                                LoadFinish(false, silent));
+
+                            if (saveException != null)
+                            {
+                                ModBase.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
+
+                                taskPoolClient.EnqueueAction(() => 
+                                    ModBase.SendChatMessage("Unable to load or create configuration file."));
+                            }
+                        }
+                        else
+                            taskPoolClient.EnqueueAction(() => 
+                                LoadFinish(true, silent));
+                    });
+                }
+                else
+                    ModBase.SendChatMessage("Save operation already in progress.");
+            }
+
+            private ConfigT ValidateConfig(ConfigT cfg)
+            {
+                if (cfg != null)
+                {
+                    if (cfg.VersionID != Defaults.VersionID)
+                    {
+                        taskPoolClient.EnqueueAction(() =>
+                            ModBase.SendChatMessage("Config version mismatch. Some settings may have " +
+                            "been reset. A backup of the original config file will be made."));
+
+                        Backup();
+                    }
+
+                    cfg.Validate();
+
+                    return cfg;
+                }
+                else
+                {
+                    taskPoolClient.EnqueueAction(() => 
+                    ModBase.SendChatMessage("Unable to load configuration. Loading default settings..."));
+
+                    return Defaults;
+                }
+            }
+
+            private void LoadFinish(bool success, bool silent = false)
+            {
+                if (SaveInProgress)
+                {
+                    if (!silent)
+                    {
+                        if (success)
+                            ModBase.SendChatMessage("Configuration loaded.");
+                    }
+
+                    SaveInProgress = false;
+                }
+            }
+
+            /// <summary>
+            /// Saves a given configuration to the save file in parallel.
+            /// </summary>
+            public void SaveStart(ConfigT cfg, bool silent = false)
+            {
+                if (!SaveInProgress)
+                {
+                    if (!silent) ModBase.SendChatMessage("Saving configuration...");
+                    SaveInProgress = true;
+
+                    taskPoolClient.EnqueueTask(() =>
+                    {
+                        cfg.Validate();
+                        KnownException exception = TrySave(cfg);
+
+                        if (exception != null)
+                        {
+                            taskPoolClient.EnqueueAction(() => 
+                                SaveFinish(false, silent));
+
+                            throw exception;
+                        }
+                        else
+                            taskPoolClient.EnqueueAction(() => 
+                                SaveFinish(true, silent));
+                    });
+                }
+                else
+                    ModBase.SendChatMessage("Save operation already in progress.");
+            }
+
+            private void SaveFinish(bool success, bool silent = false)
+            {
+                if (SaveInProgress)
+                {
+                    if (!silent)
+                    {
+                        if (success)
+                            ModBase.SendChatMessage("Configuration saved.");
+                        else
+                            ModBase.SendChatMessage("Unable to save configuration.");
+                    }
+
+                    SaveInProgress = false;
+                }
+            }
+
+            /// <summary>
+            /// Saves the current configuration synchronously.
+            /// </summary>
+            public void Save(ConfigT cfg)
+            {
+                if (!SaveInProgress)
                 {
                     cfg.Validate();
-                    IOException exception = TrySave(cfg);
+                    KnownException exception = TrySave(cfg);
 
                     if (exception != null)
-                    {
-                        taskPool.EnqueueAction(() => SaveFinish(false, silent));
                         throw exception;
-                    }
-                    else
-                        taskPool.EnqueueAction(() => SaveFinish(true, silent));
-                });
+                }
             }
-            else
-                ModBase.SendChatMessage("Save operation already in progress.");
-        }
 
-        private void SaveFinish(bool success, bool silent = false)
-        {
-            if (SaveInProgress)
+            /// <summary>
+            /// Creates a duplicate of the config file starting with a new file name starting with "old_"
+            /// if one exists.
+            /// </summary>
+            private void Backup()
             {
-                if (!silent)
+                if (MyAPIGateway.Utilities.FileExistsInLocalStorage(cfgFile.file, typeof(ConfigT)))
                 {
-                    if (success)
-                        ModBase.SendChatMessage("Configuration saved.");
-                    else
-                        ModBase.SendChatMessage("Unable to save configuration.");
+                    KnownException exception = cfgFile.TryDuplicate($"old_" + cfgFile.file);
+
+                    if (exception != null)
+                        throw exception;
+                }
+            }
+
+            /// <summary>
+            /// Attempts to load config file and creates a new one if it can't.
+            /// </summary>
+            private KnownException TryLoad(out ConfigT cfg)
+            {
+                string data;
+                KnownException exception = cfgFile.TryRead(out data);
+                cfg = null;
+
+                if (exception != null || data == null)
+                    return exception;
+                else
+                    exception = Xml.TryDeserialize(data, out cfg);
+
+                if (exception != null)
+                {
+                    Backup();
+                    TrySave(Defaults);
                 }
 
-                SaveInProgress = false;
-            }
-        }
-
-        /// <summary>
-        /// Saves the current configuration synchronously.
-        /// </summary>
-        public void Save(TConfig cfg)
-        {
-            if (!SaveInProgress)
-            {
-                cfg.Validate();
-                IOException exception = TrySave(cfg);
-
-                if (exception != null)
-                    throw exception;
-            }
-        }
-
-        /// <summary>
-        /// Creates a duplicate of the config file starting with a new file name starting with "old_"
-        /// if one exists.
-        /// </summary>
-        private void Backup()
-        {
-            if (MyAPIGateway.Utilities.FileExistsInLocalStorage(cfgFile.file, typeof(TConfig)))
-            {
-                IOException exception = cfgFile.TryDuplicate($"old_" + cfgFile.file);
-
-                if (exception != null)
-                    throw exception;
-            }
-        }
-
-        /// <summary>
-        /// Attempts to load config file and creates a new one if it can't.
-        /// </summary>
-        private IOException TryLoad(out TConfig cfg)
-        {
-            string data;
-            IOException exception = cfgFile.TryRead(out data);
-            cfg = null;
-
-            if (exception != null || data == null)
                 return exception;
-            else
-                exception = TryDeserializeXml(data, out cfg);
-
-            if (exception != null)
-            {
-                Backup();
-                TrySave(ConfigRoot<TConfig>.Defaults);
             }
 
-            return exception;
+            /// <summary>
+            /// Attempts to save current configuration to a file.
+            /// </summary>
+            private KnownException TrySave(ConfigT cfg)
+            {
+                string xmlOut;
+                KnownException exception = Xml.TrySerialize(cfg, out xmlOut);
+
+                if (exception == null && xmlOut != null)
+                    exception = cfgFile.TryWrite(xmlOut);
+
+                return exception;
+            }
         }
-
-        /// <summary>
-        /// Attempts to save current configuration to a file.
-        /// </summary>
-        private IOException TrySave(TConfig cfg)
-        {
-            string xmlOut;
-            IOException exception = TrySerializeToXml(cfg, out xmlOut);
-
-            if (exception == null && xmlOut != null)
-                exception = cfgFile.TryWrite(xmlOut);
-
-            return exception;
-        }
-
-        /// <summary>
-        /// Attempts to serialize an object to an Xml string.
-        /// </summary>
-        private static IOException TrySerializeToXml<T>(T obj, out string xmlOut)
-        {
-            IOException exception = null;
-            xmlOut = null;
-
-            try
-            {
-                xmlOut = MyAPIGateway.Utilities.SerializeToXML(obj);
-            }
-            catch (Exception e)
-            {
-                exception = new IOException("IO Error. Failed to generate XML.", e);
-            }
-
-            return exception;
-        }
-
-        /// <summary>
-        /// Attempts to deserialize an Xml string to an object of a given type.
-        /// </summary>
-        private static IOException TryDeserializeXml<T>(string xmlIn, out T obj)
-        {
-            IOException exception = null;
-            obj = default(T);
-
-            try
-            {
-                obj = MyAPIGateway.Utilities.SerializeFromXML<T>(xmlIn);
-            }
-            catch (Exception e)
-            {
-                exception = new IOException("IO Error. Unable to interpret XML.", e);
-            }
-
-            return exception;
-        }
-    }    
+    }
 }

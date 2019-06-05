@@ -19,6 +19,11 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        static KeyBinds()
+        {
+            BvConfig.OnConfigLoad += () => { Cfg = BvConfig.Instance.binds; };
+        }
+
         public static BindManager BindManager { get { return BindManager.Instance; } }
         public static IKeyBind Open { get; private set; }
         public static IKeyBind Hide { get; private set; }

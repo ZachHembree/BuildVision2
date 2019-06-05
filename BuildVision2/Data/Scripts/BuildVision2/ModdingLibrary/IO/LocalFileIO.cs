@@ -10,7 +10,7 @@ namespace DarkHelmet.IO
     /// <summary>
     /// Handles basic file I/O operations in local storage. Will not allow multiple threads to operate on the same file object concurrently.
     /// </summary>
-    internal class LocalFileIO
+    public class LocalFileIO
     {
         public readonly string file;
         private readonly object fileLock;
@@ -24,10 +24,10 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Creates a local duplicate of a file with a given name.
         /// </summary>
-        public IOException TryDuplicate(string newName)
+        public KnownException TryDuplicate(string newName)
         {
             string data;
-            IOException exception = TryRead(out data);
+            KnownException exception = TryRead(out data);
             LocalFileIO newFile;
 
             if (exception == null && data != null)
@@ -42,10 +42,10 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Attempts to append string to an existing local file.
         /// </summary>
-        public IOException TryAppend(string data)
+        public KnownException TryAppend(string data)
         {
             string current;
-            IOException exception = TryRead(out current);
+            KnownException exception = TryRead(out current);
 
             if (exception == null && current != null)
             {
@@ -61,9 +61,9 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Attempts to retrieve local file data.
         /// </summary>
-        public IOException TryRead(out string data)
+        public KnownException TryRead(out string data)
         {
-            IOException exception = null;
+            KnownException exception = null;
             TextReader reader = null;
             data = null;
 
@@ -77,7 +77,7 @@ namespace DarkHelmet.IO
                 catch (Exception e)
                 {
                     data = null;
-                    exception = new IOException($"IO Error. Unable to read from {file}.", e);
+                    exception = new KnownException($"IO Error. Unable to read from {file}.", e);
                 }
                 finally
                 {
@@ -92,9 +92,9 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Attempts to write data to a local file.
         /// </summary>
-        public IOException TryWrite(string data)
+        public KnownException TryWrite(string data)
         {
-            IOException exception = null;
+            KnownException exception = null;
             TextWriter writer = null;
             
             lock (fileLock)
@@ -107,7 +107,7 @@ namespace DarkHelmet.IO
                 }
                 catch (Exception e)
                 {
-                    exception = new IOException($"IO Error. Unable to write to {file}.", e);
+                    exception = new KnownException($"IO Error. Unable to write to {file}.", e);
                 }
                 finally
                 {

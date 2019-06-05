@@ -13,20 +13,20 @@ namespace DarkHelmet.UI
     {
         public readonly string cmdName;
         public readonly Func<string[], bool> action;
-        public readonly bool takesArgs;
+        public readonly bool needsArgs;
 
         public Command(string cmdName, Func<string[], bool> argAction)
         {
             this.cmdName = cmdName.ToLower();
             action = argAction;
-            takesArgs = true;
+            needsArgs = true;
         }
 
         public Command(string cmdName, Action action)
         {
             this.cmdName = cmdName.ToLower();
             this.action = (string[] args) => { action(); return true; };
-            takesArgs = false;
+            needsArgs = false;
         }
     }
 
@@ -92,10 +92,10 @@ namespace DarkHelmet.UI
                         {
                             cmdFound = true;
 
-                            if (cmd.takesArgs)
+                            if (cmd.needsArgs)
                             {
                                 if (matches.Length > 1)
-                                    cmd.action(Utilities.GetSubarray(matches, 1));
+                                    ModBase.RunSafeAction(() => cmd.action(Utilities.GetSubarray(matches, 1)));
                                 else
                                     ModBase.SendChatMessage("Invalid Command. This command requires an argument.");
                             }

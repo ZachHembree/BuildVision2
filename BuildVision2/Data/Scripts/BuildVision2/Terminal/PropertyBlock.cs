@@ -21,35 +21,38 @@ using IMyCockpit = Sandbox.ModAPI.IMyCockpit;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal interface IScrollableAction
+    internal interface IScrollableElement
     {
         /// <summary>
-        /// Retrieves the block action name and current value.
+        /// Retrieves the block element name and current value.
         /// </summary>
-        Func<string> GetDisplay { get; }
+        string Display { get; }
 
+        /// <summary>
+        /// Updates block information for the given element.
+        /// </summary>
+        void Update();
+    }
+
+    internal interface IScrollableAction : IScrollableElement
+    {
         /// <summary>
         /// Triggers action associated with block;
         /// </summary>
         Action Action { get; }
     }
 
-    internal interface IScrollableProp
+    internal interface IScrollableProp : IScrollableElement
     {
-        /// <summary>
-        /// Retrieves the block property name and current value.
-        /// </summary>
-        string GetDisplay();
-
         /// <summary>
         /// Retrieves the name of the block
         /// </summary>
-        string GetName();
+        string Name { get; }
 
         /// <summary>
         /// Retrieves the current value of the block property as a string
         /// </summary>
-        string GetValue();
+        string Value { get; }
 
         /// <summary>
         /// Decreases block property value each time its called.
@@ -67,7 +70,6 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     internal class PropertyBlock
     {
-        public event Action OnBlockChanged;
         public IMyTerminalBlock TBlock { get; private set; }
         public List<IScrollableAction> Actions { get; private set; }
         public List<IScrollableProp> Properties { get; private set; }
@@ -75,22 +77,7 @@ namespace DarkHelmet.BuildVision2
         public bool IsFunctional { get { return TBlock.IsFunctional; } }
         public bool IsWorking { get { return TBlock.IsWorking; } }
         public bool CanLocalPlayerAccess { get { return TBlock.HasLocalPlayerAccess(); } }
-        public static PropBlockConfig Cfg
-        {
-            get { return cfg; }
-            set
-            {
-                value.Validate();
-                cfg = value;
-            }
-        }
-
-        private static PropBlockConfig cfg;
-
-        static PropertyBlock()
-        {
-            cfg = PropBlockConfig.Defaults;
-        }
+        public static PropBlockConfig Cfg { get { return BvConfig.Instance.propertyBlock; } set { BvConfig.Instance.propertyBlock = value; } }
 
         public PropertyBlock(IMyTerminalBlock tBlock)
         {
@@ -104,8 +91,24 @@ namespace DarkHelmet.BuildVision2
             TBlock.CustomNameChanged += BlockChanged;
         }
 
-        private void BlockChanged(IMyTerminalBlock block) =>
-            OnBlockChanged?.Invoke();
+        private void BlockChanged(object block)
+        {
+            foreach (IScrollableProp prop in Properties)
+                prop.Update();
+
+            foreach (IScrollableAction action in Actions)
+                action.Update();
+        }
+
+        /// <summary>
+        /// This method unsubscribes this object from the event queues in its terminal block.
+        /// Once unsubscribed, its <see cref="IScrollableElement"/>s will no longer automatically update.
+        /// </summary>
+        public void UnsubscribeFromEvents()
+        {
+            TBlock.PropertiesChanged -= BlockChanged;
+            TBlock.CustomNameChanged -= BlockChanged;
+        }
 
         /// <summary>
         /// Gets the block's current position.
@@ -205,13 +208,20 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BlockAction : IScrollableAction
         {
-            public Func<string> GetDisplay { get; private set; }
+            public string Display { get; set; }
             public Action Action { get; private set; }
+            public Func<string> GetDisplay { get; private set; }
 
             public BlockAction(Func<string> GetDisplay, Action Action)
             {
                 this.GetDisplay = GetDisplay;
                 this.Action = Action;
+                Display = GetDisplay();
+            }
+
+            public void Update()
+            {
+                Display = GetDisplay();
             }
 
             /// <summary>
@@ -371,25 +381,28 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BattProperty : IScrollableProp
         {
+            public string Display { get; private set; }
+            public string Name { get; private set; }
+            public string Value { get; private set; }
+
             private readonly IMyBatteryBlock battery;
-            private readonly string name;
             private int index;
 
             public BattProperty(IMyBatteryBlock battery)
             {
                 this.battery = battery;
-                name = "Charge Mode ";
                 index = GetChargeModeIndex();
+
+                Name = "Charge Mode";
+                Value = GetChargeModeName();
+                Display = Name + ": " + Value;
             }
 
-            public string GetDisplay() =>
-                name + ": " + GetChargeModeName();
-
-            public string GetName() =>
-                name;
-
-            public string GetValue() =>
-                GetChargeModeName();
+            public void Update()
+            {
+                Value = GetChargeModeName();
+                Display = Name + ": " + Value;
+            }
 
             public void ScrollDown() =>
                 ChangeChargeMode(true);
@@ -446,16 +459,18 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BoolProperty : IScrollableProp
         {
+            public string Name { get; private set; }
+            public string Value { get; private set; }
+            public string Display { get; private set; }
+
             private readonly PropertyBlock pBlock;
             private readonly ITerminalProperty<bool> prop;
             private readonly MyStringId OnText, OffText;
-            private readonly string name;
 
             public BoolProperty(string name, ITerminalProperty<bool> prop, PropertyBlock block)
             {
                 this.prop = prop;
                 this.pBlock = block;
-                this.name = name;
 
                 if (prop is IMyTerminalControlOnOffSwitch)
                 {
@@ -469,16 +484,17 @@ namespace DarkHelmet.BuildVision2
                     OnText = MySpaceTexts.SwitchText_On;
                     OffText = MySpaceTexts.SwitchText_Off;
                 }
+
+                Name = name;
+                Value = GetPropStateText();
+                Display = name + ": " + Value;
             }
 
-            public string GetDisplay() =>
-                name + ": " + GetPropStateText();
-
-            public string GetName() =>
-                name;
-
-            public string GetValue() =>
-                GetPropStateText();
+            public void Update()
+            {
+                Value = GetPropStateText();
+                Display = Name + ": " + Value;
+            }
 
             public void ScrollDown()
             {
@@ -509,16 +525,23 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class FloatProperty : IScrollableProp
         {
+            public string Name { get; private set; }
+            public string Value { get; private set; }
+            public string Display { get; private set; }
+
             private readonly PropertyBlock pBlock;
             private readonly ITerminalProperty<float> prop;
-            private readonly string name;
             private float minValue, maxValue, incrA, incrB, incrC, incr0;
 
             public FloatProperty(string name, ITerminalProperty<float> prop, PropertyBlock block)
             {
                 this.prop = prop;
                 this.pBlock = block;
-                this.name = name;
+
+                Name = name;
+                Value = prop.GetValue(pBlock.TBlock).ToString();
+                Display = Name + ": " + Value;
+
                 minValue = this.prop.GetMinimum(pBlock.TBlock);
                 maxValue = this.prop.GetMaximum(pBlock.TBlock);
 
@@ -533,26 +556,23 @@ namespace DarkHelmet.BuildVision2
                     else
                         exp = Math.Truncate(Math.Log10(2 * range));
 
-                    incr0 = (float)(Math.Pow(10d, exp) / cfg.floatDiv);
+                    incr0 = (float)(Math.Pow(10d, exp) / Cfg.floatDiv);
                 }
 
                 if (incr0 == 0)
                     incr0 = 1f;
 
-                incrC = incr0 * cfg.floatMult.Z; // x64
-                incrB = incr0 * cfg.floatMult.Y; // x16
-                incrA = incr0 * cfg.floatMult.X; // x8
+                incrC = incr0 * Cfg.floatMult.Z; // x64
+                incrB = incr0 * Cfg.floatMult.Y; // x16
+                incrA = incr0 * Cfg.floatMult.X; // x8
             }
 
-            public string GetDisplay() =>
-                prop.Id + ": " + prop.GetValue(pBlock.TBlock);
-
-            public string GetName() =>
-                prop.Id;
-
-            public string GetValue() =>
-                prop.GetValue(pBlock.TBlock).ToString();
-
+            public void Update()
+            {
+                Value = prop.GetValue(pBlock.TBlock).ToString();
+                Display = Name + ": " + Value;
+            }
+            
             public void ScrollDown() =>
                 ChangePropValue(-GetIncrement());
 
@@ -597,9 +617,12 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ColorProperty : IScrollableProp
         {
+            public string Name { get; private set; }
+            public string Value { get; private set; }
+            public string Display { get; private set; }
+
             private readonly PropertyBlock pBlock;
             private readonly ITerminalProperty<Color> property;
-            private readonly string name;
             private readonly Color delta;
             private readonly Func<string> colorDisp;
             private static int minValue, maxValue, incrA, incrB, incrC, incr0;
@@ -613,17 +636,19 @@ namespace DarkHelmet.BuildVision2
             public ColorProperty(string name, PropertyBlock pBlock, ITerminalProperty<Color> prop, Color delta, Func<string> colorDisp)
             {
                 this.pBlock = pBlock;
-                this.name = name;
                 property = prop;
-                name = GetTooltipName(prop);
 
                 incr0 = 1;
-                incrC = incr0 * cfg.colorMult.Z; // x64
-                incrB = incr0 * cfg.colorMult.Y; // x16
-                incrA = incr0 * cfg.colorMult.X; // x8
+                incrC = incr0 * Cfg.colorMult.Z; // x64
+                incrB = incr0 * Cfg.colorMult.Y; // x16
+                incrA = incr0 * Cfg.colorMult.X; // x8
 
                 this.delta = delta;
                 this.colorDisp = colorDisp;
+
+                Name = name;
+                Value = colorDisp();
+                Display = Name + colorDisp();
             }
 
             /// <summary>
@@ -639,14 +664,11 @@ namespace DarkHelmet.BuildVision2
                 };
             }
 
-            public string GetDisplay() =>
-                name + colorDisp();
-
-            public string GetName() =>
-                name;
-
-            public string GetValue() =>
-                colorDisp();
+            public void Update()
+            {
+                Value = colorDisp();
+                Display = Name + colorDisp();
+            }
 
             public void ScrollDown() =>
                 ChangePropValue(false);

@@ -23,7 +23,7 @@ namespace DarkHelmet
         protected Singleton()
         {
             if (!canInstantiate)
-                throw new Exception("Tyes of Singleton<T> cannot be instantiated externally.");
+                throw new Exception("Types of Singleton<T> cannot be instantiated externally.");
 
             canInstantiate = false;
         }

@@ -181,9 +181,9 @@ namespace DarkHelmet.BuildVision2
                         colorCode = $"<color={ApiHudCfg.colors.bodyText}>";
 
                     if (i >= target.Properties.Count)
-                        list[n] = colorCode + target.Actions[action].GetDisplay();
+                        list[n] = colorCode + target.Actions[action].Display;
                     else
-                        list[n] = $"<color={ApiHudCfg.colors.bodyText}>{target.Properties[i].GetName()}: {colorCode}{target.Properties[i].GetValue()}";
+                        list[n] = $"<color={ApiHudCfg.colors.bodyText}>{target.Properties[i].Name}: {colorCode}{target.Properties[i].Value}";
                 }
 
                 menu.ListText = list;
@@ -271,9 +271,9 @@ namespace DarkHelmet.BuildVision2
 
                     // get name
                     if (i >= target.Properties.Count)
-                        list[notif].Text = target.Actions[action].GetDisplay();
+                        list[notif].Text = target.Actions[action].Display;
                     else
-                        list[notif].Text = target.Properties[i].GetDisplay();
+                        list[notif].Text = target.Properties[i].Display;
 
                     // get color
                     if (i == selection)

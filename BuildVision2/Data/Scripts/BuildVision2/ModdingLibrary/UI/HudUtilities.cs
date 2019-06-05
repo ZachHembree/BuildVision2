@@ -5,7 +5,7 @@ using VRageMath;
 using VRage.Utils;
 using VRage.Game;
 using System;
-using DarkHelmet.TextHudApi;
+using DarkHelmet.UI.TextHudApi;
 using DarkHelmet.Game;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 
@@ -23,11 +23,6 @@ namespace DarkHelmet.UI
         private readonly List<Action> hudElementsDraw;
         private double screenWidth, screenHeight, aspectRatio, invTextApiScale, fov, fovScale;
 
-        static HudUtilities()
-        {
-            DrawActions.Add(() => Instance.Draw());
-        }
-
         public HudUtilities()
         {
             fov = MyAPIGateway.Session.Camera.FovWithZoom;
@@ -42,7 +37,7 @@ namespace DarkHelmet.UI
             TestPattern.Hide();
         }
 
-        private void Draw()
+        protected override void Draw()
         {
             if (Heartbeat)
             {
@@ -439,7 +434,7 @@ namespace DarkHelmet.UI
                     MyTransparentGeometry.AddBillboardOriented
                     (
                         material,
-                        color,
+                        GetBillboardColor(color),
                         boardPos,
                         cameraMatrix.Left,
                         cameraMatrix.Up,
@@ -449,6 +444,17 @@ namespace DarkHelmet.UI
                         BlendTypeEnum.PostPP
                     );
                 }
+            }
+
+            private static Color GetBillboardColor(Color color)
+            {
+                double opacity = color.A / 255d;
+
+                color.R = (byte)(color.R * opacity);
+                color.G = (byte)(color.G * opacity);
+                color.B = (byte)(color.B * opacity);
+
+                return color;
             }
         }
 

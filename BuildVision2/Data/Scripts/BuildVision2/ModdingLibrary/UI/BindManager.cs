@@ -35,7 +35,7 @@ namespace DarkHelmet.UI
     public interface IControl
     {
         string Name { get; }
-        Func<bool> IsPressed { get; }
+        bool IsPressed { get; }
         bool Analog { get; }
     }
 
@@ -54,7 +54,12 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Returns the binds controls as a list of control names in a string.
         /// </summary>
-        string BindString { get;}
+        string BindString { get; }
+
+        /// <summary>
+        /// The set of all controls associated with a given key bind.
+        /// </summary>
+        IControl[] Combo { get; }
 
         /// <summary>
         /// Events triggered whenever their corresponding booleans are true.
@@ -110,11 +115,6 @@ namespace DarkHelmet.UI
         private List<Control> usedControls;
         private bool[,] controlBindMap; // X = used controls; Y = associated key binds
         private int[] bindHits;
-
-        static BindManager()
-        {
-            InputActions.Add(() => Instance.Update());
-        }
 
         /// <summary>
         /// Initializes binds class. Generates control dictionary, list and key binds array.
@@ -260,7 +260,7 @@ namespace DarkHelmet.UI
             {
                 List<string> uniqueControls = Utilities.GetUniqueList(controlNames);
                 KeyBind bind = GetBindByName(name) as KeyBind;
-                IControl[] newCombo;
+                Control[] newCombo;
 
                 if (bind != null)
                 {
@@ -295,7 +295,7 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Tries to create a key combo from a list of control names.
         /// </summary>
-        private bool TryGetCombo(IList<string> controlNames, out IControl[] newCombo)
+        private bool TryGetCombo(IList<string> controlNames, out Control[] newCombo)
         {
             Control con;
             newCombo = new Control[controlNames.Count];
@@ -465,7 +465,7 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Updates bind presses each time its called. Key binds will not work if this isn't being run.
         /// </summary>
-        private void Update()
+        protected override void HandleInput()
         {
             if (keyBinds.Count > 0)
             {
@@ -502,7 +502,7 @@ namespace DarkHelmet.UI
 
             for (int x = 0; x < usedControls.Count; x++)
             {
-                if (usedControls[x].IsPressed())
+                if (usedControls[x].IsPressed)
                     for (int y = 0; y < keyBinds.Count; y++)
                     {
                         if (controlBindMap[x, y])
@@ -587,15 +587,17 @@ namespace DarkHelmet.UI
         private class Control : IControl
         {
             public string Name { get; }
-            public Func<bool> IsPressed { get; }
+            public bool IsPressed { get { return isPressedFunc(); } }
             public bool Analog { get; }
+
             public int usedCount, usedIndex;
+            private Func<bool> isPressedFunc;
 
             public Control(MyKeys seKey, bool Analog = false)
             {
                 Name = seKey.ToString();
 
-                IsPressed = () => MyAPIGateway.Input.IsKeyPress(seKey);
+                isPressedFunc = () => MyAPIGateway.Input.IsKeyPress(seKey);
                 this.Analog = Analog;
                 usedCount = 0;
                 usedIndex = -1;
@@ -605,7 +607,7 @@ namespace DarkHelmet.UI
             {
                 Name = name;
 
-                this.IsPressed = IsPressed;
+                isPressedFunc = IsPressed;
                 this.Analog = Analog;
                 usedCount = 0;
                 usedIndex = -1;
@@ -621,22 +623,21 @@ namespace DarkHelmet.UI
             public string Name { get; private set; }
             public bool Analog { get; private set; }
             public string BindString { get; private set; }
+            public IControl[] Combo { get { return combo?.Clone() as IControl[]; } }
             public bool IsPressed { get; private set; }
             public bool IsNewPressed { get { return IsPressed && (!wasPressed || Analog); } }
             public bool IsReleased { get { return !IsPressed && wasPressed; } }
-
             public event Action OnPressed, OnNewPress, OnRelease;
+
             public int Count { get { return combo != null ? combo.Length : int.MinValue; } }
+            private Control[] combo;
+            private bool wasPressed;
 
-            private IControl[] combo;
-            private bool wasPressed, beingReleased;
-
-            public KeyBind(string Name, IControl[] combo = null)
+            public KeyBind(string Name, Control[] combo = null)
             {
                 this.Name = Name;
                 this.combo = combo;
                 wasPressed = false;
-                beingReleased = false;
                 BindString = GetBindString();
 
                 if (combo != null)
@@ -651,7 +652,7 @@ namespace DarkHelmet.UI
             /// <summary>
             /// Updates control combination; unregisters old controls and registers the new ones.
             /// </summary>
-            public void UpdateCombo(IControl[] newCombo)
+            public void UpdateCombo(Control[] newCombo)
             {
                 if (combo != null) UnregisterControls();
                 combo = newCombo;
@@ -681,8 +682,8 @@ namespace DarkHelmet.UI
 
             internal bool AreAnyControlsPressed()
             {
-                foreach (IControl control in combo)
-                    if (control.IsPressed())
+                foreach (Control control in combo)
+                    if (control.IsPressed)
                         return true;
 
                 return false;
