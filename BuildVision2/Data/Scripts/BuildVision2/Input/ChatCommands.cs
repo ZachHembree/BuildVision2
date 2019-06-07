@@ -23,7 +23,7 @@ namespace DarkHelmet.BuildVision2
                 new Command ("printBinds",
                     () => ModBase.SendChatMessage(GetPrintBindsMessage())),
                 new Command ("bind",
-                    (string[] args) => KeyBinds.BindManager.TryUpdateBind(args[0], Utilities.GetSubarray(args, 1))),
+                    (string[] args) => KeyBinds.BindManager.TryUpdateBind(args[0], args.GetSubarray(1))),
                 new Command("resetBinds",
                     () => KeyBinds.Cfg = BindsConfig.Defaults),
                 new Command ("save",

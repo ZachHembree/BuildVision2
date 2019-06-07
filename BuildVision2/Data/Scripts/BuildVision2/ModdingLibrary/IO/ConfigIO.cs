@@ -1,8 +1,8 @@
-﻿using Sandbox.ModAPI;
+﻿using DarkHelmet.Game;
+using Sandbox.ModAPI;
 using System;
-using System.Xml.Serialization;
 using System.Collections.Generic;
-using DarkHelmet.Game;
+using System.Xml.Serialization;
 
 namespace DarkHelmet.IO
 {
@@ -37,7 +37,7 @@ namespace DarkHelmet.IO
         public virtual int VersionID { get; set; }
 
         public static event Action OnConfigLoad;
-        public static ConfigT Instance { get; private set; }
+        public static ConfigT Current { get; private set; }
         public static string FileName { get { return ConfigIO.FileName; } set { ConfigIO.FileName = value; } }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace DarkHelmet.IO
         /// </summary>
         public static void Load(bool silent = false)
         {
-            Instance = ConfigIO.Instance.Load(silent);
+            Current = ConfigIO.Instance.Load(silent);
             OnConfigLoad?.Invoke();
         }
 
@@ -62,7 +62,7 @@ namespace DarkHelmet.IO
         {
             ConfigIO.Instance.LoadStart((ConfigT value) =>
             {
-                Instance = value;
+                Current = value;
                 OnConfigLoad?.Invoke();
                 Callback?.Invoke();
             }, silent);
@@ -72,13 +72,13 @@ namespace DarkHelmet.IO
         /// Writes the current configuration to the config file. Runs synchronously.
         /// </summary>
         public static void Save() =>
-            ConfigIO.Instance.Save(Instance);
+            ConfigIO.Instance.Save(Current);
 
         /// <summary>
         /// Writes the current configuration to the config file. Runs in parallel.
         /// </summary>
         public static void SaveStart(bool silent = false) =>
-            ConfigIO.Instance.SaveStart(Instance, silent);
+            ConfigIO.Instance.SaveStart(Current, silent);
 
         /// <summary>
         /// Resets the current configuration to the default settings and saves them.
@@ -86,34 +86,27 @@ namespace DarkHelmet.IO
         public static void ResetConfig(bool silent = false)
         {
             ConfigIO.Instance.SaveStart(Defaults, silent);
-            Instance = Defaults;
+            Current = Defaults;
         }
 
         /// <summary>
         /// Handles loading/saving configuration data; singleton
         /// </summary>
-        private sealed class ConfigIO : Singleton<ConfigIO>
+        private sealed class ConfigIO : ModBase.ParallelComponent<ConfigIO>
         {
             public static string FileName { get { return fileName; } set { if (value != null && value.Length > 0) fileName = value; } }
             private static string fileName = $"config_{typeof(ConfigT).Name}.xml";
 
             public bool SaveInProgress { get; private set; }
             private readonly LocalFileIO cfgFile;
-            private readonly TaskPool.IClient taskPoolClient;
 
             public ConfigIO()
             {
                 cfgFile = new LocalFileIO(FileName);
-                taskPoolClient = TaskPool.GetTaskPoolClient(ErrorCallback);
                 SaveInProgress = false;
             }
 
-            protected override void BeforeClose()
-            {
-                taskPoolClient.UnregisterClient();
-            }
-
-            private void ErrorCallback(List<KnownException> known, AggregateException unknown)
+            protected override void ErrorCallback(List<KnownException> known, AggregateException unknown)
             {
                 if (known != null && known.Count > 0)
                 {
@@ -126,12 +119,12 @@ namespace DarkHelmet.IO
                         exceptions += e.ToString();
                     }
 
-                    ModBase.WriteToLogStart(exceptions);
+                    LogIO.Instance.WriteToLogStart(exceptions);
                 }
 
                 if (unknown != null)
                 {
-                    ModBase.WriteToLogStart("\nSave operation failed.\n" + unknown.ToString());
+                    LogIO.Instance.WriteToLogStart("\nSave operation failed.\n" + unknown.ToString());
                     ModBase.SendChatMessage("Save operation failed.");
                     SaveInProgress = false;
 
@@ -163,7 +156,7 @@ namespace DarkHelmet.IO
 
                         if (saveException != null)
                         {
-                            ModBase.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
+                            LogIO.Instance.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
                             ModBase.SendChatMessage("Unable to load or create configuration file.");
                         }
                     }
@@ -187,7 +180,7 @@ namespace DarkHelmet.IO
                     SaveInProgress = true;
                     if (!silent) ModBase.SendChatMessage("Loading configuration...");
 
-                    taskPoolClient.EnqueueTask(() =>
+                    EnqueueTask(() =>
                     {
                         ConfigT cfg;
                         KnownException loadException, saveException;
@@ -197,7 +190,7 @@ namespace DarkHelmet.IO
                         cfg = ValidateConfig(cfg);
 
                         // Enqueue callback when the configuration
-                        taskPoolClient.EnqueueAction(() => 
+                        EnqueueAction(() =>
                             UpdateConfig(cfg));
 
                         // Write validated config back to the file
@@ -206,19 +199,19 @@ namespace DarkHelmet.IO
                         if (loadException != null)
                         {
                             //loadException = TrySave(cfg);
-                            taskPoolClient.EnqueueAction(() => 
+                            EnqueueAction(() =>
                                 LoadFinish(false, silent));
 
                             if (saveException != null)
                             {
-                                ModBase.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
+                                LogIO.Instance.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
 
-                                taskPoolClient.EnqueueAction(() => 
+                                EnqueueAction(() =>
                                     ModBase.SendChatMessage("Unable to load or create configuration file."));
                             }
                         }
                         else
-                            taskPoolClient.EnqueueAction(() => 
+                            EnqueueAction(() =>
                                 LoadFinish(true, silent));
                     });
                 }
@@ -232,7 +225,7 @@ namespace DarkHelmet.IO
                 {
                     if (cfg.VersionID != Defaults.VersionID)
                     {
-                        taskPoolClient.EnqueueAction(() =>
+                        EnqueueAction(() =>
                             ModBase.SendChatMessage("Config version mismatch. Some settings may have " +
                             "been reset. A backup of the original config file will be made."));
 
@@ -245,7 +238,7 @@ namespace DarkHelmet.IO
                 }
                 else
                 {
-                    taskPoolClient.EnqueueAction(() => 
+                    EnqueueAction(() =>
                     ModBase.SendChatMessage("Unable to load configuration. Loading default settings..."));
 
                     return Defaults;
@@ -276,20 +269,20 @@ namespace DarkHelmet.IO
                     if (!silent) ModBase.SendChatMessage("Saving configuration...");
                     SaveInProgress = true;
 
-                    taskPoolClient.EnqueueTask(() =>
+                    EnqueueTask(() =>
                     {
                         cfg.Validate();
                         KnownException exception = TrySave(cfg);
 
                         if (exception != null)
                         {
-                            taskPoolClient.EnqueueAction(() => 
+                            EnqueueAction(() =>
                                 SaveFinish(false, silent));
 
                             throw exception;
                         }
                         else
-                            taskPoolClient.EnqueueAction(() => 
+                            EnqueueAction(() =>
                                 SaveFinish(true, silent));
                     });
                 }
@@ -355,7 +348,7 @@ namespace DarkHelmet.IO
                 if (exception != null || data == null)
                     return exception;
                 else
-                    exception = Xml.TryDeserialize(data, out cfg);
+                    exception = Utils.Xml.TryDeserialize(data, out cfg);
 
                 if (exception != null)
                 {
@@ -372,7 +365,7 @@ namespace DarkHelmet.IO
             private KnownException TrySave(ConfigT cfg)
             {
                 string xmlOut;
-                KnownException exception = Xml.TrySerialize(cfg, out xmlOut);
+                KnownException exception = Utils.Xml.TrySerialize(cfg, out xmlOut);
 
                 if (exception == null && xmlOut != null)
                     exception = cfgFile.TryWrite(xmlOut);

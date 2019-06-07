@@ -1,12 +1,10 @@
-﻿using System.Xml.Serialization;
-using System;
-using System.Text;
-using System.Collections.Generic;
-using VRage.Input;
-using VRage.Utils;
+﻿using DarkHelmet.Game;
 using Sandbox.ModAPI;
-using System.Collections;
-using DarkHelmet.Game;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Xml.Serialization;
+using VRage.Input;
 
 namespace DarkHelmet.UI
 {
@@ -90,7 +88,7 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Manages custom keybinds; singleton
     /// </summary>
-    public sealed class BindManager : ModBase.Component<BindManager>
+    public sealed class BindManager : ModBase.SingletonComponent<BindManager>
     {
         /// <summary>
         /// Returns key bind by index.
@@ -258,7 +256,7 @@ namespace DarkHelmet.UI
         {
             if (controlNames.Length <= maxBindLength && controlNames.Length > 0)
             {
-                List<string> uniqueControls = Utilities.GetUniqueList(controlNames);
+                string[] uniqueControls = controlNames.GetUnique();
                 KeyBind bind = GetBindByName(name) as KeyBind;
                 Control[] newCombo;
 
@@ -421,7 +419,7 @@ namespace DarkHelmet.UI
         /// Retrieves the set of key binds as an array of KeyBindData
         /// </summary>
         /// <returns></returns>
-        public KeyBindData[] GetBindData() 
+        public KeyBindData[] GetBindData()
         {
             KeyBindData[] bindData = new KeyBindData[Count];
 

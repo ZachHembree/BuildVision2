@@ -11,7 +11,7 @@ using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 
 namespace DarkHelmet.UI.TextHudApi
 {
-	public class HudAPIv2 : ModBase.Component<HudAPIv2>
+	public class HudAPIv2 : ModBase.SingletonComponent<HudAPIv2>
 	{
         private static HudAPIv2 instance;
 		private const long REGISTRATIONID = 573804956;

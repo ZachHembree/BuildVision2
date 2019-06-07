@@ -7,20 +7,19 @@ namespace DarkHelmet.IO
     /// <summary>
     /// Handles logging
     /// </summary>
-    public class LogIO
+    public sealed class LogIO : ModBase.ParallelComponent<LogIO>
     {
+        public static string FileName { get; set; } 
         public bool Accessible { get; private set; }
         private readonly LocalFileIO logFile;
-        private readonly TaskPool.IClient taskPoolClient;
 
-        public LogIO(string fileName)
+        public LogIO()
         {
             Accessible = true;
-            logFile = new LocalFileIO(fileName);
-            taskPoolClient = TaskPool.GetTaskPoolClient(ErrorCallback);
+            logFile = new LocalFileIO(FileName);
         }
 
-        private void ErrorCallback(List<KnownException> known, AggregateException unknown)
+        protected override void ErrorCallback(List<KnownException> known, AggregateException unknown)
         {
             if ((known != null && known.Count > 0) || unknown != null)
             {
@@ -71,17 +70,17 @@ namespace DarkHelmet.IO
             {
                 message = $"[{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss:ms")}] {message}";
 
-                taskPoolClient.EnqueueTask(() =>
+                EnqueueTask(() =>
                 {
                     KnownException exception = logFile.TryAppend(message);
 
                     if (exception != null)
                     {
-                        taskPoolClient.EnqueueAction(() => WriteToLogFinish(false));
+                        EnqueueAction(() => WriteToLogFinish(false));
                         throw exception;
                     }
                     else
-                        taskPoolClient.EnqueueAction(() => WriteToLogFinish(true));
+                        EnqueueAction(() => WriteToLogFinish(true));
                 });
             }
         }

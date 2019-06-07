@@ -16,7 +16,7 @@ namespace DarkHelmet.BuildVision2
     {
         private const double maxDist = 10d, maxDistSquared = maxDist * maxDist;
         private new static BvMain Instance { get; set; }
-        public static BvConfig Cfg { get { return BvConfig.Instance; } }
+        public static BvConfig Cfg { get { return BvConfig.Current; } }
         private static PropertiesMenu PropertiesMenu { get { return PropertiesMenu.Instance; } }
         private static CmdManager CmdManager { get { return CmdManager.Instance; } }
         private static BindManager BindManager { get { return BindManager.Instance; } }
@@ -28,11 +28,9 @@ namespace DarkHelmet.BuildVision2
         static BvMain()
         {
             ModName = "Build Vision";
-            LogFileName = "bvLog.txt";
+            LogIO.FileName = "bvLog.txt";
             CmdManager.Prefix = "/bv2";
             BvConfig.FileName = "BuildVision2Config.xml";
-
-            updateActions.Add(() => Instance?.Update());
         }
 
         public BvMain()
@@ -86,7 +84,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Mod main loop. This mod will not work if this isn't being called regularly.
         /// </summary>
-        private void Update()
+        protected override void Update()
         {
             if (LoadFinished)
             {
@@ -145,7 +143,6 @@ namespace DarkHelmet.BuildVision2
                     {
                         if (target == null || termBlock != target.TBlock)
                         {
-                            if (target != null) target.UnsubscribeFromEvents();
                             target = new PropertyBlock(termBlock);
                         }
                         return true;

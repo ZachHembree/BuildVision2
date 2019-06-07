@@ -14,7 +14,7 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Collection of tools used to make working with the Text Hud API and general GUI stuff easier; singleton.
     /// </summary>
-    public sealed class HudUtilities : ModBase.Component<HudUtilities>
+    public sealed class HudUtilities : ModBase.SingletonComponent<HudUtilities>
     {
         public static double ResScale { get; private set; }
         public UiTestPattern TestPattern { get; private set; }
@@ -25,8 +25,8 @@ namespace DarkHelmet.UI
 
         public HudUtilities()
         {
-            fov = MyAPIGateway.Session.Camera.FovWithZoom;
-            fovScale = 0.1 * Math.Tan(fov / 2d);
+            GetResScaling();
+            GetFovScaling();
 
             hudElementsDraw = new List<Action>();
         }
@@ -41,22 +41,31 @@ namespace DarkHelmet.UI
         {
             if (Heartbeat)
             {
-                screenWidth = MyAPIGateway.Session.Camera.ViewportSize.X;
-                screenHeight = MyAPIGateway.Session.Camera.ViewportSize.Y;
-                aspectRatio = (screenWidth / screenHeight);
-
-                invTextApiScale = 1080d / screenHeight;
-                ResScale = (screenHeight > 1080d) ? screenHeight / 1080d : 1d;
+                if (screenHeight != MyAPIGateway.Session.Camera.ViewportSize.Y || screenWidth != MyAPIGateway.Session.Camera.ViewportSize.X)
+                    GetResScaling();
 
                 if (fov != MyAPIGateway.Session.Camera.FovWithZoom)
-                {
-                    fov = MyAPIGateway.Session.Camera.FovWithZoom;
-                    fovScale = 0.1 * Math.Tan(fov / 2d);
-                }
+                    GetFovScaling();
 
                 foreach (Action Draw in hudElementsDraw)
                     Draw();
             }
+        }
+
+        private void GetResScaling()
+        {
+            screenWidth = MyAPIGateway.Session.Camera.ViewportSize.X;
+            screenHeight = MyAPIGateway.Session.Camera.ViewportSize.Y;
+            aspectRatio = (screenWidth / screenHeight);
+
+            invTextApiScale = 1080d / screenHeight;
+            ResScale = (screenHeight > 1080d) ? screenHeight / 1080d : 1d;
+        }
+
+        private void GetFovScaling()
+        {
+            fov = MyAPIGateway.Session.Camera.FovWithZoom;
+            fovScale = 0.1 * Math.Tan(fov / 2d);
         }
 
         public enum TextAlignment
@@ -150,7 +159,7 @@ namespace DarkHelmet.UI
             public int SelectionIndex
             {
                 get { return selectionIndex; }
-                set { selectionIndex = Utilities.Clamp(value, 0, (ListText != null ? ListText.Length - 1 : 0)); }
+                set { selectionIndex = Utils.Math.Clamp(value, 0, (ListText != null ? ListText.Length - 1 : 0)); }
             }
 
             public Vector2D Size { get; private set; }
@@ -202,7 +211,7 @@ namespace DarkHelmet.UI
                     padding = new Vector2I((int)(72d * Scale), (int)(32d * Scale));
 
                     Vector2I listSize = GetListSize(), textOffset = listSize / 2, pos;
-                    Origin = Instance.GetPixelPos(Utilities.Round(ScaledPos, 3));
+                    Origin = Instance.GetPixelPos(Utils.Math.Round(ScaledPos, 3));
 
                     background.Size = listSize + padding;
 
@@ -361,7 +370,7 @@ namespace DarkHelmet.UI
 
                     length = hudMessage.GetTextLength();
                     ScaledTextSize = length;
-                    TextSize = Utilities.Abs(Instance.GetPixelPos(ScaledTextSize));
+                    TextSize = Utils.Math.Abs(Instance.GetPixelPos(ScaledTextSize));
                     GetAlignmentOffset();
                 }
             }
@@ -388,7 +397,7 @@ namespace DarkHelmet.UI
         public class TexturedBox : HudElement
         {
             public Vector2D ScaledSize { get; private set; }
-            public Vector2I Size { get { return size; } set { size = Utilities.Abs(value); } }
+            public Vector2I Size { get { return size; } set { size = Utils.Math.Abs(value); } }
             public int Height { get { return Size.Y; } set { Size = new Vector2I(value, Size.Y); } }
             public int Width { get { return Size.X; } set { Size = new Vector2I(Size.X, value); ; } }
 
@@ -409,7 +418,7 @@ namespace DarkHelmet.UI
 
             protected override void Draw()
             {
-                if (Visible)
+                if (Visible && color.A > 0)
                 {
                     MatrixD cameraMatrix;
                     Quaternion rotquad;

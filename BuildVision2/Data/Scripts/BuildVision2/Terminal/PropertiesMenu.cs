@@ -7,9 +7,9 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Renders menu of block terminal properties given a target block; singleton.
     /// </summary>
-    internal sealed partial class PropertiesMenu : ModBase.Component<PropertiesMenu>
+    internal sealed partial class PropertiesMenu : ModBase.SingletonComponent<PropertiesMenu>
     {
-        public static PropMenuConfig Cfg { get { return BvConfig.Instance.menu; } set { BvConfig.Instance.menu = value; } }
+        public static PropMenuConfig Cfg { get { return BvConfig.Current.menu; } set { BvConfig.Current.menu = value; } }
         public static ApiHudConfig ApiHudCfg { get { return Cfg.apiHudConfig; } set { Cfg.apiHudConfig = value; } }
         public static NotifHudConfig NotifHudCfg { get { return Cfg.fallbackHudConfig; } set { Cfg.fallbackHudConfig = value; } }
         public static bool MenuOpen { get { return menuOpen; } set { menuOpen = value; Instance?.Update(); } }
@@ -31,6 +31,7 @@ namespace DarkHelmet.BuildVision2
             index = 0;
             selection = -1;
             menuOpen = false;
+
             KeyBinds.Select.OnNewPress += SelectProperty;
             KeyBinds.ScrollUp.OnNewPress += ScrollUp;
             KeyBinds.ScrollDown.OnNewPress += ScrollDown;
@@ -88,7 +89,7 @@ namespace DarkHelmet.BuildVision2
             else
             {
                 index -= scrolllDir;
-                index = Utilities.Clamp(index, 0, target.ScrollableCount - 1);
+                index = Utils.Math.Clamp(index, 0, target.ScrollableCount - 1);
             }
         }
 

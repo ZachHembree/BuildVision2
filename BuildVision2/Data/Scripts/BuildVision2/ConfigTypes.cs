@@ -194,9 +194,9 @@ namespace DarkHelmet.BuildVision2
                     blockIncText = "200,15,15",
                     highlightText = "200,170,0",
                     selectedText = "30,200,30",
-                    listBgColor = new Color(60, 65, 70, 190),
+                    listBgColor = new Color(75, 80, 85, 230),
                     selectionBoxColor = new Color(41, 54, 62, 255),
-                    headerColor = new Color(54, 66, 76, 240)
+                    headerColor = new Color(41, 54, 62, 230)
                 };
             }
 
@@ -205,34 +205,34 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public override void Validate()
             {
-                if (bodyText == null || !Utilities.CanParseColor(bodyText))
+                if (bodyText == null || !Utils.Color.CanParseColor(bodyText))
                     bodyText = Defaults.bodyText;
 
-                if (blockIncText == null || !Utilities.CanParseColor(blockIncText))
+                if (blockIncText == null || !Utils.Color.CanParseColor(blockIncText))
                     blockIncText = Defaults.blockIncText;
 
-                if (highlightText == null || !Utilities.CanParseColor(highlightText))
+                if (highlightText == null || !Utils.Color.CanParseColor(highlightText))
                     highlightText = Defaults.highlightText;
 
-                if (selectedText == null || !Utilities.CanParseColor(selectedText))
+                if (selectedText == null || !Utils.Color.CanParseColor(selectedText))
                     selectedText = Defaults.selectedText;
 
-                if (listBgColorData == null || !Utilities.TryParseColor(listBgColorData, out listBgColor))
+                if (listBgColorData == null || !Utils.Color.TryParseColor(listBgColorData, out listBgColor))
                 {
                     listBgColor = Defaults.listBgColor;
-                    listBgColorData = Utilities.GetColorString(listBgColor);
+                    listBgColorData = Utils.Color.GetColorString(listBgColor);
                 }
 
-                if (selectionBoxColorData == null || !Utilities.TryParseColor(selectionBoxColorData, out selectionBoxColor))
+                if (selectionBoxColorData == null || !Utils.Color.TryParseColor(selectionBoxColorData, out selectionBoxColor))
                 {
                     selectionBoxColor = Defaults.selectionBoxColor;
-                    selectionBoxColorData = Utilities.GetColorString(selectionBoxColor);
+                    selectionBoxColorData = Utils.Color.GetColorString(selectionBoxColor);
                 }
 
-                if (headerColorData == null || !Utilities.TryParseColor(headerColorData, out headerColor))
+                if (headerColorData == null || !Utils.Color.TryParseColor(headerColorData, out headerColor))
                 {
                     headerColor = Defaults.headerColor;
-                    headerColorData = Utilities.GetColorString(headerColor);
+                    headerColorData = Utils.Color.GetColorString(headerColor);
                 }
             }
         }
@@ -243,7 +243,7 @@ namespace DarkHelmet.BuildVision2
             {
                 resolutionScaling = true,
                 hudScale = 0.9f,
-                maxVisible = 11,
+                maxVisible = 12,
                 clampHudPos = true,
                 forceToCenter = false,
                 colors = Colors.Defaults

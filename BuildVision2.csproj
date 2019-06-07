@@ -30,6 +30,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" />
     <Reference Include="Sandbox.Common">
       <HintPath>F:\Steam\SteamApps\common\SpaceEngineers\Bin64\Sandbox.Common.dll</HintPath>
     </Reference>
@@ -74,7 +75,7 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\KeyBinds.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\ChatCommands.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\Game\ModBase.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\IO\Xml.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\General\Extensions.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\UI\CmdManager.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\IO\ConfigIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\IO\LocalFileIO.cs" />
@@ -84,11 +85,12 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\UI\HudAPIv2.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\Game\LocalPlayer.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\IO\LogIO.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\General\GenericSingleton.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\MenuTypes.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\PropertiesMenu.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\Utilities\TaskPool.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\General\TaskPool.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\UI\HudUtilities.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\Utilities\Utilities.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\General\Utilities.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ConfigTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\PropertyBlock.cs" />

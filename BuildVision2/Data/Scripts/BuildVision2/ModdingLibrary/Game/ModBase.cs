@@ -1,11 +1,10 @@
-﻿using Sandbox.ModAPI;
+﻿using DarkHelmet.IO;
+using Sandbox.ModAPI;
+using System;
+using System.Collections.Generic;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
-using System;
-using System.Collections.Generic;
-using DarkHelmet.IO;
-using System.Runtime.CompilerServices;
 
 namespace DarkHelmet.Game
 {
@@ -15,20 +14,22 @@ namespace DarkHelmet.Game
     public abstract class ModBase : MySessionComponentBase
     {
         public static string ModName { get; protected set; }
-        public static string LogFileName { get; protected set; }
         public static bool RunOnServer { get; protected set; }
+
         protected static ModBase Instance { get; private set; }
+        protected bool Crashed { get; private set; }
+        protected bool IsDedicated { get; private set; }
+        protected bool IsServer { get; private set; }
+        protected bool Closing { get; private set; }
 
-        protected static readonly List<Action> closeActions, drawActions, inputActions, updateActions;
-
-        private LogIO modLog;
-        private bool crashed, isDedicated, isServer, closing;
+        private static readonly List<Action> closeActions, drawActions, inputActions, updateActions;
 
         static ModBase()
         {
             ModName = "Mod Base";
-            RunOnServer = false;
+            LogIO.FileName = "modLog.txt";
             TaskPool.MaxTasksRunning = 2;
+            RunOnServer = false;
 
             closeActions = new List<Action>();
             drawActions = new List<Action>();
@@ -41,50 +42,55 @@ namespace DarkHelmet.Game
             if (Instance != null)
                 throw new Exception("Only one instance of type ModBase can exist at a given time.");
 
-            modLog = new LogIO(LogFileName);
-            crashed = false;
-            isDedicated = false;
-            isServer = false;
-            closing = false;
+            Crashed = false;
+            IsDedicated = false;
+            IsServer = false;
+            Closing = false;
         }
 
+        public sealed override void Init(MyObjectBuilder_SessionComponent sessionComponent)
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+                Closing = false;
+                IsServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
+                IsDedicated = (MyAPIGateway.Utilities.IsDedicated && IsServer);
+
+                RunSafeAction(AfterInit);
+            }
+        }
+
+        protected virtual void AfterInit() { }
+
         public sealed override void Draw() =>
-            RunUpdateActions(drawActions);
+            UpdateComponents(drawActions);
 
         public sealed override void HandleInput() =>
-            RunUpdateActions(inputActions);
+            UpdateComponents(inputActions);
 
         public sealed override void UpdateBeforeSimulation() =>
-            Update();
+            BeforeUpdate();
 
         public sealed override void Simulate() =>
-            Update();
+            BeforeUpdate();
 
         public sealed override void UpdateAfterSimulation() =>
-            Update();
+            BeforeUpdate();
 
         /// <summary>
         /// The update function used (Before/Sim/After) is determined by the settings used by
         /// the MySessionComponentDescriptorAttribute applied to the child class.
         /// </summary>
-        private void Update()
+        private void BeforeUpdate()
         {
-            if (Instance == null) // move mod init somewhere else
-            {
-                Instance = this;
-                closing = false;
-                isServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
-                isDedicated = (MyAPIGateway.Utilities.IsDedicated && isServer);
-
-                RunSafeAction(() => AfterInit());
-            }
-
-            RunUpdateActions(updateActions);
+            UpdateComponents(updateActions);
+            RunSafeAction(Update);
         }
 
-        protected virtual void AfterInit() { }
+        protected virtual void Update() { }
 
-        private void RunUpdateActions(List<Action> updateActions)
+        private void UpdateComponents(List<Action> updateActions)
         {
             RunSafeAction(() =>
             {
@@ -95,11 +101,11 @@ namespace DarkHelmet.Game
 
         /// <summary>
         /// Executes a given <see cref="Action"/> in a try-catch block. If an exception occurs, it will attempt
-        /// to log it, display an error message to the user, then unload the mod and its components.
+        /// to log it, display an error message to the user then unload the mod and its components.
         /// </summary>
         public static void RunSafeAction(Action action)
         {
-            if (Instance != null && !Instance.crashed && (!Instance.isDedicated || RunOnServer))
+            if (Instance != null && !Instance.Crashed && (!Instance.IsDedicated || RunOnServer))
             {
                 try
                 {
@@ -107,18 +113,22 @@ namespace DarkHelmet.Game
                 }
                 catch (Exception e)
                 {
-                    Instance.crashed = true;
-                    TryWriteToLog(ModName + " has crashed!\n" + e.ToString());
+                    Instance.Crashed = true;
 
-                    MyAPIGateway.Utilities.ShowMissionScreen
-                    (
-                        ModName, "Debug", "",
-                        $"{ModName} has encountered a problem and will attempt to reload. Press the X in the upper right hand corner " +
-                        "to cancel.\n" + e.ToString(),
-                        Instance.AllowReload, "Reload"
-                    );
+                    if (!Instance.Closing)
+                    {
+                        LogIO.Instance.TryWriteToLog(ModName + " has crashed!\n" + e.ToString());
 
-                    Close();
+                        MyAPIGateway.Utilities.ShowMissionScreen
+                        (
+                            ModName, "Debug", "",
+                            $"{ModName} has encountered a problem and will attempt to reload. Press the X in the upper right hand corner " +
+                            "to cancel.\n" + e.ToString(),
+                            Instance.AllowReload, "Reload"
+                        );
+
+                        Close();
+                    }
                 }
             }
         }
@@ -126,23 +136,17 @@ namespace DarkHelmet.Game
         private void AllowReload(ResultEnum response)
         {
             if (response == ResultEnum.OK)
-                crashed = false;
+                Crashed = false;
             else
-                crashed = true;
+                Crashed = true;
         }
-
-        public static bool TryWriteToLog(string message) =>
-            Instance.modLog.TryWriteToLog(message);
-
-        public static void WriteToLogStart(string message) =>
-            Instance.modLog.WriteToLogStart(message);
 
         /// <summary>
         /// Sends chat message using the mod name as the sender.
         /// </summary>
         public static void SendChatMessage(string message)
         {
-            if (Instance != null && !Instance.closing)
+            if (Instance != null && !Instance.Closing)
                 MyAPIGateway.Utilities.ShowMessage(ModName, message);
         }
 
@@ -151,13 +155,13 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void ShowMessageScreen(string subHeading, string message)
         {
-            if (Instance != null && !Instance.closing)
+            if (Instance != null && !Instance.Closing)
                 MyAPIGateway.Utilities.ShowMissionScreen(ModName, subHeading, null, message, null, "Close");
         }
 
         protected override void UnloadData()
         {
-            closing = true;
+            Closing = true;
             Close();
         }
 
@@ -171,16 +175,45 @@ namespace DarkHelmet.Game
                     CloseAction();
 
                 Instance.BeforeClose();
+                drawActions.Clear();
+                inputActions.Clear();
+                updateActions.Clear();
+                closeActions.Clear();
                 Instance = null;
             });
         }
 
-        /// <summary>
-        /// Generic base for mod components that need to hook into the game's internal loops; singleton.
-        /// </summary>
-        public class Component<T> : Singleton<T> where T : Component<T>, new()
+        public abstract class Component
         {
-            static Component()
+            protected Component()
+            {
+                drawActions.Add(Draw);
+                inputActions.Add(HandleInput);
+                updateActions.Add(Update);
+                closeActions.Add(Close);
+            }
+
+            protected virtual void Draw() { }
+
+            protected virtual void HandleInput() { }
+
+            protected virtual void Update() { }
+
+            protected virtual void BeforeClose() { }
+
+            public virtual void Close()
+            {
+                BeforeClose();
+                drawActions.Remove(Draw);
+                inputActions.Remove(HandleInput);
+                updateActions.Remove(Update);
+                closeActions.Remove(Close);
+            }
+        }
+
+        public abstract class SingletonComponent<T> : Singleton<T> where T : SingletonComponent<T>, new()
+        {
+            static SingletonComponent()
             {
                 drawActions.Add(() => Instance?.Draw());
                 inputActions.Add(() => Instance?.HandleInput());
@@ -193,6 +226,39 @@ namespace DarkHelmet.Game
             protected virtual void HandleInput() { }
 
             protected virtual void Update() { }
+        }
+
+        public abstract class ParallelComponent<T> : SingletonComponent<T> where T : ParallelComponent<T>, new()
+        {
+            private TaskPool taskPool;
+
+            static ParallelComponent()
+            {
+                updateActions.Add(() => Instance?.taskPool?.Update());
+            }
+
+            protected ParallelComponent()
+            {
+                taskPool = new TaskPool(ErrorCallback);
+            }
+
+            /// <summary>
+            /// Called in the event an exception occurs in one of the component's tasks with a list of <see cref="KnownException"/>s
+            /// and a single aggregate exception of all other exceptions.
+            /// </summary>
+            protected abstract void ErrorCallback(List<KnownException> knownExceptions, AggregateException aggregate);
+
+            /// <summary>
+            /// Enqueues an action to run in parallel. Not thread safe; must be called from the main thread.
+            /// </summary>
+            protected void EnqueueTask(Action action) =>
+                taskPool.EnqueueTask(action);
+
+            /// <summary>
+            /// Enqueues an action to run on the main thread. Meant to be used by threads other than the main.
+            /// </summary>
+            protected void EnqueueAction(Action action) =>
+                taskPool.EnqueueAction(action);
         }
     }
 }

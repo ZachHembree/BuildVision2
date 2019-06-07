@@ -21,7 +21,7 @@ namespace DarkHelmet.BuildVision2
 
         static KeyBinds()
         {
-            BvConfig.OnConfigLoad += () => { Cfg = BvConfig.Instance.binds; };
+            BvConfig.OnConfigLoad += () => { Cfg = BvConfig.Current.binds; };
         }
 
         public static BindManager BindManager { get { return BindManager.Instance; } }

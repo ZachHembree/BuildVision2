@@ -14,7 +14,7 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Collection of wrapper types and utilities used to simplify the creation of settings menu elements in the Text HUD API Mod Menu
     /// </summary>
-    public sealed class MenuUtilities : ModBase.Component<MenuUtilities>
+    public sealed class MenuUtilities : ModBase.SingletonComponent<MenuUtilities>
     {
         public static bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
         private static bool wasClosed = false;
@@ -401,7 +401,7 @@ namespace DarkHelmet.UI
 
             private void OnSubmit(float percent)
             {
-                OnUpdateAction((float)Math.Round(Utilities.Clamp(min + (range * percent), min, max), rounding));
+                OnUpdateAction((float)Math.Round(Utils.Math.Clamp(min + (range * percent), min, max), rounding));
                 Element.InitialPercent = GetCurrentValue();
                 Element.Text = Name;
                 start = GetCurrentValue();
@@ -409,7 +409,7 @@ namespace DarkHelmet.UI
 
             private void OnCancel()
             {
-                OnUpdateAction((float)Math.Round(Utilities.Clamp(min + (range * start), min, max), rounding));
+                OnUpdateAction((float)Math.Round(Utils.Math.Clamp(min + (range * start), min, max), rounding));
                 Element.InitialPercent = start;
                 Element.Text = Name;
             }
@@ -419,7 +419,7 @@ namespace DarkHelmet.UI
 
             private object GetSliderValue(float percent)
             {
-                OnUpdateAction((float)Math.Round(Utilities.Clamp(min + (range * percent), min, max), rounding));
+                OnUpdateAction((float)Math.Round(Utils.Math.Clamp(min + (range * percent), min, max), rounding));
                 return $"{Math.Round(min + range * percent, rounding)}";
             }
 

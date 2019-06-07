@@ -33,7 +33,7 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Manages chat commands; singleton
     /// </summary>
-    internal sealed class CmdManager : ModBase.Component<CmdManager>
+    public sealed class CmdManager : ModBase.SingletonComponent<CmdManager>
     {
         public static string Prefix { get { return prefix; } set { if (value != null && value.Length > 0) prefix = value; } }
 
@@ -95,7 +95,7 @@ namespace DarkHelmet.UI
                             if (cmd.needsArgs)
                             {
                                 if (matches.Length > 1)
-                                    ModBase.RunSafeAction(() => cmd.action(Utilities.GetSubarray(matches, 1)));
+                                    ModBase.RunSafeAction(() => cmd.action(matches.GetSubarray(1)));
                                 else
                                     ModBase.SendChatMessage("Invalid Command. This command requires an argument.");
                             }

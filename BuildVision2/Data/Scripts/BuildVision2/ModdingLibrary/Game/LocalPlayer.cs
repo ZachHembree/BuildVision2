@@ -8,7 +8,7 @@ namespace DarkHelmet.Game
     /// <summary>
     /// Wrapper for various local player related fields and methods.
     /// </summary>
-    internal static class LocalPlayer
+    public static class LocalPlayer
     {
         public static IMyCharacter LocalPly { get { return MyAPIGateway.Session.ControlledObject as IMyCharacter; } }
         public static MyObjectBuilder_Character CharEnt { get { return LocalPly?.GetObjectBuilder() as MyObjectBuilder_Character; } }

@@ -69,8 +69,8 @@ namespace DarkHelmet.BuildVision2
                     else if (index < visStart)
                         visStart = index;
 
-                    visEnd = Utilities.Clamp((visStart + maxVisible), 0, target.ScrollableCount);
-                    visStart = Utilities.Clamp(visEnd - maxVisible, 0, visEnd); 
+                    visEnd = Utils.Math.Clamp((visStart + maxVisible), 0, target.ScrollableCount);
+                    visStart = Utils.Math.Clamp(visEnd - maxVisible, 0, visEnd); 
                 }
             }
         }
@@ -143,8 +143,8 @@ namespace DarkHelmet.BuildVision2
 
                         if (ApiHudCfg.clampHudPos)
                         {
-                            screenPos.X = Utilities.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
-                            screenPos.Y = Utilities.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
+                            screenPos.X = Utils.Math.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
+                            screenPos.Y = Utils.Math.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
                         }
                     }
                     else
@@ -161,7 +161,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void UpdateText()
             {
-                int elements = Utilities.Clamp(visEnd - visStart, 0, ApiHudCfg.maxVisible), i, action;
+                int elements = Utils.Math.Clamp(visEnd - visStart, 0, ApiHudCfg.maxVisible), i, action;
                 string[] list = new string[elements];
                 string colorCode;
 
@@ -251,7 +251,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void UpdateText()
             {
-                int elements = Utilities.Clamp(visEnd - visStart, 0, ApiHudCfg.maxVisible), i, action;
+                int elements = Utils.Math.Clamp(visEnd - visStart, 0, ApiHudCfg.maxVisible), i, action;
 
                 header.Show();
                 header.AliveTime = int.MaxValue;
