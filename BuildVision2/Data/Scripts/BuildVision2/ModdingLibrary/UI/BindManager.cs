@@ -71,7 +71,7 @@ namespace DarkHelmet.UI
         bool IsPressed { get; }
 
         /// <summary>
-        /// True on new press and if held for more than 400ms.
+        /// True on new press and if held for more than 500ms. Triggers, at most, every 30ms.
         /// </summary>
         bool IsPressedAndHeld { get; }
 
@@ -558,10 +558,7 @@ namespace DarkHelmet.UI
 
             for (int y = 0; y < keyBinds.Count; y++)
             {
-                if (keyBinds[y].IsPressed && (bindHits[y] > 0 && bindHits[y] < keyBinds[y].Count))
-                    bindHits[y] = int.MaxValue;
-
-                if (bindHits[y] < keyBinds[y].Count)
+                if (bindHits[y] < keyBinds[y].Count && !keyBinds[y].IsPressed)
                     bindHits[y] = 0;
                 else
                     bindsPressed++;
@@ -579,8 +576,9 @@ namespace DarkHelmet.UI
 
             // If more than one pressed bind shares the same control, the longest
             // binds take precedence. Shorter binds are decremented each time there
-            // is a conflict. If a bind was previously pressed it wont be released
-            // until all its controls are.
+            // is a conflict. If a bind is in the process of being released and is
+            // longer than the others, it will take precedence until all keys are 
+            // released.
             for (int x = 0; x < usedControls.Count; x++)
             {
                 first = -1;
@@ -589,9 +587,28 @@ namespace DarkHelmet.UI
 
                 for (int y = 0; y < keyBinds.Count; y++)
                 {
-                    if (longest < int.MaxValue)
+                    if (controlBindMap[x, y] && (bindHits[y] > 0 && bindHits[y] < keyBinds[y].Count))
                     {
-                        if (bindHits[y] > 0 && (keyBinds[y].Count < longest && controlBindMap[x, y]))
+                        if (keyBinds[y].Count >= longest)
+                        {
+                            bindHits[y] = int.MaxValue;
+                            longest = int.MaxValue;
+                            break;
+                        }
+                        else
+                            bindHits[y] = 0;
+                    }
+                }
+
+                for (int y = 0; y < keyBinds.Count; y++)
+                {
+                    if (controlBindMap[x, y])
+                    {
+                        if (longest == int.MaxValue && bindHits[y] != int.MaxValue)
+                        {
+                            bindHits[y] = 0;
+                        }
+                        else if (bindHits[y] > 0 && (keyBinds[y].Count < longest))
                         {
                             if (controlHits > 0)
                                 bindHits[y]--;
@@ -601,8 +618,6 @@ namespace DarkHelmet.UI
                             controlHits++;
                         }
                     }
-                    else if (bindHits[y] != int.MaxValue)
-                        bindHits[y] = 0;
                 }
 
                 if (controlHits > 0)
@@ -619,14 +634,8 @@ namespace DarkHelmet.UI
 
             for (int y = 0; y < keyBinds.Count; y++)
             {
-                if (bindHits[y] == int.MaxValue)
-                    return int.MaxValue;
-
-                if (bindHits[y] > 0 && controlBindMap[control, y]) //if (bind has at least one control press && bind Y uses control X)
-                {
-                    if (keyBinds[y].Count > longest)
-                        longest = keyBinds[y].Count;
-                }
+                if (keyBinds[y].Count > longest && controlBindMap[control, y])
+                    longest = keyBinds[y].Count;
             }
 
             return longest;
@@ -691,9 +700,9 @@ namespace DarkHelmet.UI
                 this.Name = Name;
                 this.combo = combo;
 
-                pressAndHoldTimer = new Timer(400);
+                pressAndHoldTimer = new Timer(500);
                 pressAndHoldTimer.Elapsed += SetPressedAndHeld;
-
+      
                 isPressedAndHeld = false;
                 wasPressed = false;
                 BindString = GetBindString();
@@ -709,7 +718,7 @@ namespace DarkHelmet.UI
 
             private void SetPressedAndHeld(object sender, ElapsedEventArgs args)
             {
-                isPressedAndHeld = IsPressed;
+                isPressedAndHeld = !isPressedAndHeld && IsPressed;
             }
 
             /// <summary>
@@ -734,25 +743,26 @@ namespace DarkHelmet.UI
                 IsPressed = isPressed;
 
                 if (IsPressed)
-                {
                     OnPressed?.Invoke();
-                    pressAndHoldTimer.Start();
-                }
-
-                if (IsNewPressed)
-                    OnNewPress?.Invoke();
-
-                if (IsReleased)
+                else
                 {
-                    OnRelease?.Invoke();
                     pressAndHoldTimer.Stop();
                     isPressedAndHeld = false;
                 }
 
-                if (IsPressedAndHeld)
+                if (IsNewPressed)
                 {
-                    OnPressAndHold?.Invoke();
+                    OnNewPress?.Invoke();
+
+                    if (!pressAndHoldTimer.Enabled)
+                        pressAndHoldTimer.Start();
                 }
+
+                if (IsReleased)
+                    OnRelease?.Invoke();
+
+                if (IsPressedAndHeld)
+                    OnPressAndHold?.Invoke();
             }
 
             internal bool AreAnyControlsPressed()

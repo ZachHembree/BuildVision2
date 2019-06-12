@@ -52,17 +52,24 @@ namespace DarkHelmet.BuildVision2
                 BindManager.RegisterBinds(bindNames);
                 Cfg = BvConfig.Current.binds;
 
-                BvConfig.OnConfigLoad += instance.UpdateConfig;
+                BvConfig.OnConfigSave += instance.UpdateConfig;
+                BvConfig.OnConfigLoad += instance.UpdateBinds;
             }
         }
 
         public override void Close()
         {
+            BvConfig.OnConfigSave -= UpdateConfig;
+            BvConfig.OnConfigLoad -= UpdateBinds;
             Instance = null;
-            BvConfig.OnConfigLoad -= UpdateConfig;
         }
 
         private void UpdateConfig()
+        {
+            BvConfig.Current.binds = Cfg;
+        }
+
+        private void UpdateBinds()
         {
             Cfg = BvConfig.Current.binds;
             ModBase.SendChatMessage("Updating Bind Cfg...");

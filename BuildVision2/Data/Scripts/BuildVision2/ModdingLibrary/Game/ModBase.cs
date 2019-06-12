@@ -213,7 +213,7 @@ namespace DarkHelmet.Game
                 Unload = true;
                 RunSafeAction(Instance.BeforeClose);
 
-                for (int n = 0; n < modComponents.Count; n++)
+                for (int n = modComponents.Count - 1; n >= 0; n--)
                     RunSafeAction(modComponents[n].Close);
 
                 Instance = null;

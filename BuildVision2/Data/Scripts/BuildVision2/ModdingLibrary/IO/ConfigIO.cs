@@ -51,7 +51,7 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Event triggered after the config file has been loaded.
         /// </summary>
-        public static event Action OnConfigLoad;
+        public static event Action OnConfigSave, OnConfigLoad;
 
         /// <summary>
         /// File name to be used for the config file. Should end in .xml.
@@ -94,14 +94,20 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Writes the current configuration to the config file. Runs synchronously.
         /// </summary>
-        public static void Save() =>
+        public static void Save()
+        {
+            OnConfigSave?.Invoke();
             ConfigIO.Instance.Save(Current);
+        }
 
         /// <summary>
         /// Writes the current configuration to the config file. Runs in parallel.
         /// </summary>
-        public static void SaveStart(bool silent = false) =>
+        public static void SaveStart(bool silent = false)
+        {
+            OnConfigSave?.Invoke();
             ConfigIO.Instance.SaveStart(Current, silent);
+        }
 
         /// <summary>
         /// Resets the current configuration to the default settings and saves them.

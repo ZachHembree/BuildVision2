@@ -509,26 +509,33 @@ namespace DarkHelmet.BuildVision2
                 minValue = this.prop.GetMinimum(pBlock.TBlock);
                 maxValue = this.prop.GetMaximum(pBlock.TBlock);
 
-                if (float.IsInfinity(minValue) || float.IsInfinity(maxValue))
-                    incr0 = 1f;
+                if (Name == "Pitch" || Name == "Yaw" || Name == "Roll")
+                {
+                    incr0 = 90f;
+                }
                 else
                 {
-                    double range = Math.Abs(maxValue - minValue), exp;
-
-                    if (range > maxValue)
-                        exp = Math.Truncate(Math.Log10(range));
+                    if (float.IsInfinity(minValue) || float.IsInfinity(maxValue))
+                        incr0 = 1f;
                     else
-                        exp = Math.Truncate(Math.Log10(2 * range));
+                    {
+                        double range = Math.Abs(maxValue - minValue), exp;
 
-                    incr0 = (float)(Math.Pow(10d, exp) / Cfg.floatDiv);
+                        if (range > maxValue)
+                            exp = Math.Truncate(Math.Log10(range));
+                        else
+                            exp = Math.Truncate(Math.Log10(2 * range));
+
+                        incr0 = (float)(Math.Pow(10d, exp) / Cfg.floatDiv);
+                    }
+
+                    if (incr0 == 0)
+                        incr0 = 1f;
                 }
 
-                if (incr0 == 0)
-                    incr0 = 1f;
-
-                incrC = incr0 * Cfg.floatMult.Z; // x64
-                incrB = incr0 * Cfg.floatMult.Y; // x16
-                incrA = incr0 * Cfg.floatMult.X; // x8
+                incrC = incr0 * Cfg.floatMult.Z; // x10
+                incrB = incr0 * Cfg.floatMult.Y; // x5
+                incrA = incr0 * Cfg.floatMult.X; // x0.1
             }
 
             public void ScrollDown() =>
