@@ -7,6 +7,8 @@ using VRage.Game;
 using System;
 using DarkHelmet.UI.TextHudApi;
 using DarkHelmet.Game;
+using VRage.Collections;
+using VRage.Game.ModAPI;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 
 namespace DarkHelmet.UI
@@ -14,16 +16,30 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Collection of tools used to make working with the Text Hud API and general GUI stuff easier; singleton.
     /// </summary>
-    public sealed class HudUtilities : ModBase.SingletonComponent<HudUtilities>
+    public sealed class HudUtilities : ModBase.ComponentBase
     {
         public static double ResScale { get; private set; }
-        public UiTestPattern TestPattern { get; private set; }
-        public bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
+        public static UiTestPattern TestPattern { get; private set; }
+        public static bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
+
+        private static HudUtilities Instance
+        {
+            get { Init(); return instance; }
+            set { instance = value; }
+        }
+
+        private static HudUtilities instance;
+        private static bool initializing = false;
 
         private readonly List<Action> hudElementsDraw;
         private double screenWidth, screenHeight, aspectRatio, invTextApiScale, fov, fovScale;
 
-        public HudUtilities()
+        static HudUtilities()
+        {
+            Init();
+        }
+
+        private HudUtilities()
         {
             GetResScaling();
             GetFovScaling();
@@ -31,13 +47,25 @@ namespace DarkHelmet.UI
             hudElementsDraw = new List<Action>();
         }
 
-        protected override void AfterInit()
+        private static void Init()
         {
-            TestPattern = new UiTestPattern();
-            TestPattern.Hide();
+            if (instance == null && !initializing)
+            {
+                initializing = true;
+                instance = new HudUtilities();
+                initializing = false;
+
+                TestPattern = new UiTestPattern();
+                TestPattern.Hide();
+            }
         }
 
-        protected override void Draw()
+        public override void Close()
+        {
+            Instance = null;
+        }
+
+        public override void Draw()
         {
             if (Heartbeat)
             {
@@ -73,6 +101,77 @@ namespace DarkHelmet.UI
             Left,
             Center,
             Right
+        }
+
+        public sealed class TextInput : ModBase.ComponentBase
+        {
+            public static string CurrentText { get { return Instance.currentText.ToString(); } }
+            public static bool Open { get; set; }
+
+            private static TextInput Instance
+            {
+                get { Init(); return instance; }
+                set { instance = value; }
+            }
+
+            private static TextInput instance;
+            private static bool initializing = false;
+
+            private StringBuilder currentText;
+            private IKeyBind backspace;
+
+            private TextInput()
+            {
+                currentText = new StringBuilder(50);
+
+                //if (BindManager.TryRegisterBind(new KeyBindData("backspace", new string[] { "back" })))
+                 //   backspace = BindManager.GetBindByName("backspace");
+
+                //backspace.OnPressAndHold += OnBackspace;
+                //MyAPIGateway.Utilities.MessageEntered += MessageHandler;
+            }
+
+            public static void Clear() =>
+                Instance?.currentText.Clear();
+
+            private static void Init()
+            {
+                if (instance == null && !initializing)
+                {
+                    initializing = true;
+                    instance = new TextInput();
+                    initializing = false;
+                }
+            }
+
+            public override void Close()
+            {
+                instance = null;
+                MyAPIGateway.Utilities.MessageEntered -= MessageHandler;
+            }
+
+            public override void HandleInput()
+            {
+                if (Open)
+                {
+                    ListReader<char> input = MyAPIGateway.Input.TextInput;
+
+                    for (int n = 0; n < input.Count; n++)
+                      currentText.Append(input[n]);
+                }
+            }
+
+            private void OnBackspace()
+            {
+                if (Open && currentText.Length > 0)
+                    currentText.Length--;
+            }
+
+            private void MessageHandler(string message, ref bool sendToOthers)
+            {
+                if (Open)
+                    sendToOthers = false;
+            }
         }
 
         /// <summary>
@@ -400,10 +499,16 @@ namespace DarkHelmet.UI
             public Vector2I Size { get { return size; } set { size = Utils.Math.Abs(value); } }
             public int Height { get { return Size.Y; } set { Size = new Vector2I(value, Size.Y); } }
             public int Width { get { return Size.X; } set { Size = new Vector2I(Size.X, value); ; } }
-
             public MyStringId material;
             public Color color;
+
+            private static MyStringId square;
             private Vector2I size;
+
+            static TexturedBox()
+            {
+                square = MyStringId.GetOrCompute("Square");
+            }
 
             public TexturedBox(HudElement Parent = null, Color color = default(Color), MyStringId material = default(MyStringId))
             {
@@ -411,7 +516,7 @@ namespace DarkHelmet.UI
                 this.Parent = Parent;
 
                 if (material == default(MyStringId))
-                    this.material = MyStringId.GetOrCompute("Square");
+                    this.material = square;
                 else
                     this.material = material;
             }
@@ -494,7 +599,7 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Converts from a coordinate in the scaled coordinate system to a concrete coordinate in pixels.
         /// </summary>
-        public Vector2I GetPixelPos(Vector2D scaledPos)
+        private Vector2I GetPixelPos(Vector2D scaledPos)
         {
             scaledPos /= 2d;
 
@@ -508,7 +613,7 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Converts from a coordinate given in pixels to the API's scaled coordinate system.
         /// </summary>
-        public Vector2D GetScaledPos(Vector2I pixelPos)
+        private Vector2D GetScaledPos(Vector2I pixelPos)
         {
             pixelPos *= 2;
 

@@ -1,8 +1,5 @@
-﻿using System;
-using Sandbox.ModAPI;
-using System.Text.RegularExpressions;
+﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
-using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -23,7 +20,7 @@ namespace DarkHelmet.BuildVision2
                 new Command ("printBinds",
                     () => ModBase.SendChatMessage(GetPrintBindsMessage())),
                 new Command ("bind",
-                    (string[] args) => KeyBinds.BindManager.TryUpdateBind(args[0], args.GetSubarray(1))),
+                    (string[] args) => BindManager.TryUpdateBind(args[0], args.GetSubarray(1))),
                 new Command("resetBinds",
                     () => KeyBinds.Cfg = BindsConfig.Defaults),
                 new Command ("save",
@@ -45,9 +42,9 @@ namespace DarkHelmet.BuildVision2
                 new Command ("close",
                     () => TryCloseMenu()),
                 new Command ("toggleTestPattern",
-                    () => HudElements.TestPattern.Toggle()),
+                    () => HudUtilities.TestPattern.Toggle()),
                 new Command ("reload",
-                    () => ModBase.Close())
+                    () => ModBase.Instance.Close())
             };
         }
 
@@ -58,8 +55,8 @@ namespace DarkHelmet.BuildVision2
         {
             string output = "Keybinds\n";
 
-            for (int n = 0; n < KeyBinds.BindManager.Count; n++)
-                output += KeyBinds.BindManager[n].Name + ": [" + KeyBinds.BindManager[n].BindString + "]\n";
+            for (int n = 0; n < BindManager.Count; n++)
+                output += BindManager.GetBindByIndex(n).Name + ": [" + BindManager.GetBindByIndex(n).BindString + "]\n";
 
             ModBase.SendChatMessage(output);
         }

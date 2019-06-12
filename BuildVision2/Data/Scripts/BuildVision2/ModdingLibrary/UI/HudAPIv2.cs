@@ -11,10 +11,18 @@ using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 
 namespace DarkHelmet.UI.TextHudApi
 {
-	public class HudAPIv2 : ModBase.SingletonComponent<HudAPIv2>
+	public class HudAPIv2 : ModBase.ComponentBase
 	{
+        public static HudAPIv2 Instance
+        {
+            get { Init(); return instance; }
+            private set { instance = value; }
+        }
+
         private static HudAPIv2 instance;
-		private const long REGISTRATIONID = 573804956;
+        private static bool initializing = false;
+
+        private const long REGISTRATIONID = 573804956;
 		private bool registered = false;
 		private Action m_onRegisteredAction;
 
@@ -49,18 +57,28 @@ namespace DarkHelmet.UI.TextHudApi
         /// Create a HudAPI Instance. Please only create one per mod. 
         /// </summary>
         /// <param name="onRegisteredAction">Callback once the HudAPI is active. You can Instantiate HudAPI objects in this Action</param>
-        public HudAPIv2()
+        private HudAPIv2()
 		{
-			if (instance != null)
+			if (Instance != null)
                 return;
 
-            instance = this;
 			m_onRegisteredAction = null;
             MyAPIGateway.Utilities.RegisterMessageHandler(REGISTRATIONID, RegisterComponents);
         }
 
-		protected override void BeforeClose()
+        private static void Init()
+        {
+            if (instance == null && !initializing)
+            {
+                initializing = true;
+                instance = new HudAPIv2();
+                initializing = false;
+            }
+        }
+
+        public override void Close()
 		{
+            Instance = null;
 			Unload();
 		}
 
@@ -76,7 +94,7 @@ namespace DarkHelmet.UI.TextHudApi
 			RemoveMessage = null;
 			registered = false;
 			m_onRegisteredAction = null;
-			instance = null;
+			Instance = null;
         }
 		private enum RegistrationEnum : int
 		{
@@ -132,7 +150,7 @@ namespace DarkHelmet.UI.TextHudApi
 		}
 		private void RegisterCheck()
 		{
-			if (instance.registered == false)
+			if (Instance.registered == false)
 			{
 				throw new InvalidOperationException("HudAPI: Failed to create backing object. Do not instantiate without checking if heartbeat is true.");
 			}
@@ -175,7 +193,7 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector2D)instance.MessageGet(null, (int)APIinfoMembers.ScreenPositionOnePX);
+					return (Vector2D)Instance.MessageGet(null, (int)APIinfoMembers.ScreenPositionOnePX);
 				}
 			}
 
@@ -213,11 +231,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (StringBuilder)(instance.MessageGet(BackingObject, (int)MessageBaseMembers.Message));
+					return (StringBuilder)(Instance.MessageGet(BackingObject, (int)MessageBaseMembers.Message));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MessageBaseMembers.Message, value);
+					Instance.MessageSet(BackingObject, (int)MessageBaseMembers.Message, value);
 				}
 			}
 
@@ -229,11 +247,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (bool)(instance.MessageGet(BackingObject, (int)MessageBaseMembers.Visible));
+					return (bool)(Instance.MessageGet(BackingObject, (int)MessageBaseMembers.Visible));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MessageBaseMembers.Visible, value);
+					Instance.MessageSet(BackingObject, (int)MessageBaseMembers.Visible, value);
 				}
 			}
 
@@ -244,11 +262,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (int)(instance.MessageGet(BackingObject, (int)MessageBaseMembers.TimeToLive));
+					return (int)(Instance.MessageGet(BackingObject, (int)MessageBaseMembers.TimeToLive));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MessageBaseMembers.TimeToLive, value);
+					Instance.MessageSet(BackingObject, (int)MessageBaseMembers.TimeToLive, value);
 				}
 			}
 
@@ -260,11 +278,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (double)(instance.MessageGet(BackingObject, (int)MessageBaseMembers.Scale));
+					return (double)(Instance.MessageGet(BackingObject, (int)MessageBaseMembers.Scale));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MessageBaseMembers.Scale, value);
+					Instance.MessageSet(BackingObject, (int)MessageBaseMembers.Scale, value);
 				}
 			}
 
@@ -276,11 +294,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector2D)(instance.MessageGet(BackingObject, (int)MessageBaseMembers.Offset));
+					return (Vector2D)(Instance.MessageGet(BackingObject, (int)MessageBaseMembers.Offset));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MessageBaseMembers.Offset, value);
+					Instance.MessageSet(BackingObject, (int)MessageBaseMembers.Offset, value);
 				}
 			}
 
@@ -291,11 +309,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (BlendTypeEnum)(instance.MessageGet(BackingObject, (int)MessageBaseMembers.BlendType));
+					return (BlendTypeEnum)(Instance.MessageGet(BackingObject, (int)MessageBaseMembers.BlendType));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MessageBaseMembers.BlendType, value);
+					Instance.MessageSet(BackingObject, (int)MessageBaseMembers.BlendType, value);
 				}
 			}
 			#endregion
@@ -308,12 +326,12 @@ namespace DarkHelmet.UI.TextHudApi
 			/// <returns>Lower Right Corner</returns>
 			public Vector2D GetTextLength()
 			{
-				return (Vector2D)(instance.MessageGet(BackingObject, (int)MessageBaseMembers.TextLength));
+				return (Vector2D)(Instance.MessageGet(BackingObject, (int)MessageBaseMembers.TextLength));
 			}
 
 			public void Draw()
 			{
-				instance.MessageGet(BackingObject, (int)MessageBaseMembers.Draw);
+				Instance.MessageGet(BackingObject, (int)MessageBaseMembers.Draw);
 			}
 
 		}
@@ -339,11 +357,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return instance.MessageGet(BackingObject, (int)EntityMembers.Entity) as IMyEntity;
+					return Instance.MessageGet(BackingObject, (int)EntityMembers.Entity) as IMyEntity;
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Entity, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Entity, value);
 				}
 			}
 
@@ -355,11 +373,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector3D)instance.MessageGet(BackingObject, (int)EntityMembers.LocalPosition);
+					return (Vector3D)Instance.MessageGet(BackingObject, (int)EntityMembers.LocalPosition);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.LocalPosition, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.LocalPosition, value);
 				}
 			}
 
@@ -370,11 +388,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector3D)instance.MessageGet(BackingObject, (int)EntityMembers.Up);
+					return (Vector3D)Instance.MessageGet(BackingObject, (int)EntityMembers.Up);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Up, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Up, value);
 				}
 			}
 
@@ -385,11 +403,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector3D)instance.MessageGet(BackingObject, (int)EntityMembers.Forward);
+					return (Vector3D)Instance.MessageGet(BackingObject, (int)EntityMembers.Forward);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Forward, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Forward, value);
 				}
 			}
 
@@ -400,11 +418,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (TextOrientation)instance.MessageGet(BackingObject, (int)EntityMembers.Orientation);
+					return (TextOrientation)Instance.MessageGet(BackingObject, (int)EntityMembers.Orientation);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Orientation, (byte)value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Orientation, (byte)value);
 				}
 			}
 
@@ -416,11 +434,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector2D)instance.MessageGet(BackingObject, (int)EntityMembers.Max);
+					return (Vector2D)Instance.MessageGet(BackingObject, (int)EntityMembers.Max);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Max, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Max, value);
 				}
 			}
 
@@ -431,11 +449,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (MatrixD)instance.MessageGet(BackingObject, (int)EntityMembers.TransformMatrix);
+					return (MatrixD)Instance.MessageGet(BackingObject, (int)EntityMembers.TransformMatrix);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.TransformMatrix, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.TransformMatrix, value);
 				}
 			}
 			/// <summary>
@@ -445,18 +463,18 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (string)(instance.MessageGet(BackingObject, (int)EntityMembers.Font));
+					return (string)(Instance.MessageGet(BackingObject, (int)EntityMembers.Font));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Font, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Font, value);
 				}
 			}
 			#endregion
 			public EntityMessage(StringBuilder Message, IMyEntity Entity, MatrixD TransformMatrix, int TimeToLive = -1, double Scale = 1, TextOrientation Orientation = TextOrientation.ltr, Vector2D? Offset = null, Vector2D? Max = null, string Font = "white")
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.EntityMessage);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.EntityMessage);
 				if (BackingObject != null)
 				{
 					if (Max.HasValue)
@@ -482,8 +500,8 @@ namespace DarkHelmet.UI.TextHudApi
 			}
 			public EntityMessage(StringBuilder Message, IMyEntity Entity, Vector3D LocalPosition, Vector3D Forward, Vector3D Up, int TimeToLive = -1, double Scale = 1, TextOrientation Orientation = TextOrientation.ltr, Vector2D? Offset = null, Vector2D? Max = null, BlendTypeEnum Blend = BlendTypeEnum.Standard, string Font = "white")
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.EntityMessage);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.EntityMessage);
 				if(BackingObject != null)
 				{
 					if (Max.HasValue)
@@ -513,8 +531,8 @@ namespace DarkHelmet.UI.TextHudApi
 
 			public EntityMessage()
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.EntityMessage);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.EntityMessage);
 
 			}
 
@@ -523,7 +541,7 @@ namespace DarkHelmet.UI.TextHudApi
 			/// </summary>
 			public override void DeleteMessage()
 			{
-				instance.DeleteMessage(BackingObject);
+				Instance.DeleteMessage(BackingObject);
 				BackingObject = null;
 			}
 		}
@@ -544,11 +562,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector2D)(instance.MessageGet(BackingObject, (int)EntityMembers.Origin));
+					return (Vector2D)(Instance.MessageGet(BackingObject, (int)EntityMembers.Origin));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Origin, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Origin, value);
 				}
 			}
 
@@ -560,11 +578,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Options)(instance.MessageGet(BackingObject, (int)EntityMembers.Options));
+					return (Options)(Instance.MessageGet(BackingObject, (int)EntityMembers.Options));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Options, (byte)value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Options, (byte)value);
 				}
 			}
 
@@ -575,11 +593,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Color)(instance.MessageGet(BackingObject, (int)EntityMembers.ShadowColor));
+					return (Color)(Instance.MessageGet(BackingObject, (int)EntityMembers.ShadowColor));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.ShadowColor, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.ShadowColor, value);
 				}
 			}
 			/// <summary>
@@ -589,19 +607,19 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (string)(instance.MessageGet(BackingObject, (int)EntityMembers.Font));
+					return (string)(Instance.MessageGet(BackingObject, (int)EntityMembers.Font));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Font, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Font, value);
 				}
 			}
 			#endregion
 
 			public HUDMessage(StringBuilder Message, Vector2D Origin, Vector2D? Offset = null, int TimeToLive = -1,   double Scale = 1.0d, bool HideHud = true, bool Shadowing = false, Color? ShadowColor = null, BlendTypeEnum Blend = BlendTypeEnum.SDR, string Font = "white")
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.HUDMessage);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.HUDMessage);
 				if(BackingObject != null)
 				{
 					this.TimeToLive = TimeToLive;
@@ -630,13 +648,13 @@ namespace DarkHelmet.UI.TextHudApi
 			}
 			public HUDMessage()
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.HUDMessage);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.HUDMessage);
 			}
 
 			public override void DeleteMessage()
 			{
-				instance.DeleteMessage(BackingObject);
+				Instance.DeleteMessage(BackingObject);
 				BackingObject = null;
 			}
 
@@ -663,11 +681,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector2D)instance.MessageGet(BackingObject, (int)EntityMembers.Origin);
+					return (Vector2D)Instance.MessageGet(BackingObject, (int)EntityMembers.Origin);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Origin, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Origin, value);
 				}
 			}
 
@@ -678,11 +696,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (MyStringId)instance.MessageGet(BackingObject, (int)EntityMembers.Material);
+					return (MyStringId)Instance.MessageGet(BackingObject, (int)EntityMembers.Material);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Material, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Material, value);
 				}
 			}
 
@@ -694,11 +712,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Options)instance.MessageGet(BackingObject, (int)EntityMembers.Options);
+					return (Options)Instance.MessageGet(BackingObject, (int)EntityMembers.Options);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Options, (byte)value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Options, (byte)value);
 				}
 			}
 
@@ -710,11 +728,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Color)instance.MessageGet(BackingObject, (int)EntityMembers.BillBoardColor);
+					return (Color)Instance.MessageGet(BackingObject, (int)EntityMembers.BillBoardColor);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.BillBoardColor, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.BillBoardColor, value);
 				}
 			}
 
@@ -725,11 +743,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (float)instance.MessageGet(BackingObject, (int)EntityMembers.Rotation);
+					return (float)Instance.MessageGet(BackingObject, (int)EntityMembers.Rotation);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Rotation, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Rotation, value);
 				}
 			}
 
@@ -742,11 +760,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (float)instance.MessageGet(BackingObject, (int)EntityMembers.Width);
+					return (float)Instance.MessageGet(BackingObject, (int)EntityMembers.Width);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Width, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Width, value);
 				}
 			}
 
@@ -758,19 +776,19 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (float)instance.MessageGet(BackingObject, (int)EntityMembers.Height);
+					return (float)Instance.MessageGet(BackingObject, (int)EntityMembers.Height);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Height, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Height, value);
 				}
 			}
 			#endregion
 
 			public BillBoardHUDMessage(MyStringId Material, Vector2D Origin, Color BillBoardColor, Vector2D? Offset = null, int TimeToLive = -1, double Scale = 1d, float Width = 1f, float Height = 1f, float Rotation = 0, bool HideHud = true, bool Shadowing = true, BlendTypeEnum Blend = BlendTypeEnum.SDR)
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.BillBoardHUDMessage);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.BillBoardHUDMessage);
 
 				if(BackingObject != null)
 				{
@@ -803,13 +821,13 @@ namespace DarkHelmet.UI.TextHudApi
 
 			public BillBoardHUDMessage()
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.BillBoardHUDMessage);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.BillBoardHUDMessage);
 			}
 
 			public override void DeleteMessage()
 			{
-				instance.DeleteMessage(BackingObject);
+				Instance.DeleteMessage(BackingObject);
 				BackingObject = null;
 			}
 		}
@@ -832,11 +850,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector3D)instance.MessageGet(BackingObject, (int)EntityMembers.WorldPosition);
+					return (Vector3D)Instance.MessageGet(BackingObject, (int)EntityMembers.WorldPosition);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.WorldPosition, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.WorldPosition, value);
 				}
 			}
 
@@ -848,11 +866,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector3D)instance.MessageGet(BackingObject, (int)EntityMembers.Up);
+					return (Vector3D)Instance.MessageGet(BackingObject, (int)EntityMembers.Up);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Up, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Up, value);
 				}
 			}
 
@@ -864,11 +882,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector3D)instance.MessageGet(BackingObject, (int)EntityMembers.Left);
+					return (Vector3D)Instance.MessageGet(BackingObject, (int)EntityMembers.Left);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Left, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Left, value);
 				}
 			}
 			/// <summary>
@@ -878,11 +896,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (string)(instance.MessageGet(BackingObject, (int)EntityMembers.Font));
+					return (string)(Instance.MessageGet(BackingObject, (int)EntityMembers.Font));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.Font, value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.Font, value);
 				}
 			}
 
@@ -893,11 +911,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (TextOrientation)instance.MessageGet(BackingObject, (int)EntityMembers.TxtOrientation);
+					return (TextOrientation)Instance.MessageGet(BackingObject, (int)EntityMembers.TxtOrientation);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)EntityMembers.TxtOrientation, (byte)value);
+					Instance.MessageSet(BackingObject, (int)EntityMembers.TxtOrientation, (byte)value);
 				}
 			}
 			#endregion
@@ -905,8 +923,8 @@ namespace DarkHelmet.UI.TextHudApi
 
 			public SpaceMessage(StringBuilder Message, Vector3D WorldPosition, Vector3D Up, Vector3D Left, double Scale = 1, Vector2D? Offset = null, int TimeToLive = -1,  TextOrientation TxtOrientation = TextOrientation.ltr, BlendTypeEnum Blend = BlendTypeEnum.Standard, string Font = "white")
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.SpaceMessage);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.SpaceMessage);
 				if(BackingObject != null)
 				{
 					this.TimeToLive = TimeToLive;
@@ -932,13 +950,13 @@ namespace DarkHelmet.UI.TextHudApi
 
 			public SpaceMessage()
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.SpaceMessage);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.SpaceMessage);
 			}
 
 			public override void DeleteMessage()
 			{
-				instance.DeleteMessage(BackingObject);
+				Instance.DeleteMessage(BackingObject);
 				BackingObject = null;
 			}
 		}
@@ -961,11 +979,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (string)(instance.MessageGet(BackingObject, (int)MenuItemBaseMembers.Text));
+					return (string)(Instance.MessageGet(BackingObject, (int)MenuItemBaseMembers.Text));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuItemBaseMembers.Text, value);
+					Instance.MessageSet(BackingObject, (int)MenuItemBaseMembers.Text, value);
 				}
 			}
 			/// <summary>
@@ -975,11 +993,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (bool)(instance.MessageGet(BackingObject, (int)MenuItemBaseMembers.Interactable));
+					return (bool)(Instance.MessageGet(BackingObject, (int)MenuItemBaseMembers.Interactable));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuItemBaseMembers.Interactable, value);
+					Instance.MessageSet(BackingObject, (int)MenuItemBaseMembers.Interactable, value);
 				}
 			}
 		}
@@ -997,11 +1015,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Action)(instance.MessageGet(BackingObject, (int)MenuItemMembers.OnClickAction));
+					return (Action)(Instance.MessageGet(BackingObject, (int)MenuItemMembers.OnClickAction));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuItemMembers.OnClickAction, value);
+					Instance.MessageSet(BackingObject, (int)MenuItemMembers.OnClickAction, value);
 				}
 			}
 			/// <summary>
@@ -1011,7 +1029,7 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuItemMembers.Parent, value.BackingObject);
+					Instance.MessageSet(BackingObject, (int)MenuItemMembers.Parent, value.BackingObject);
 				}
 			}
 			/// <summary>
@@ -1023,8 +1041,8 @@ namespace DarkHelmet.UI.TextHudApi
 			/// <param name="Interactable">User can select this item. true by default</param>
 			public MenuItem(string Text, MenuCategoryBase Parent, Action OnClick = null, bool Interactable = true)
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.MenuItem);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.MenuItem);
 
 				this.Text = Text;
 				this.Parent = Parent;
@@ -1046,11 +1064,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (string)(instance.MessageGet(BackingObject, (int)MenuBaseCategoryMembers.Header));
+					return (string)(Instance.MessageGet(BackingObject, (int)MenuBaseCategoryMembers.Header));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuBaseCategoryMembers.Header, value);
+					Instance.MessageSet(BackingObject, (int)MenuBaseCategoryMembers.Header, value);
 				}
 			}
 		}
@@ -1074,11 +1092,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (MenuFlag)(instance.MessageGet(BackingObject, (int)MenuRootCategoryMembers.MenuFlag));
+					return (MenuFlag)(Instance.MessageGet(BackingObject, (int)MenuRootCategoryMembers.MenuFlag));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuRootCategoryMembers.MenuFlag, (int)value);
+					Instance.MessageSet(BackingObject, (int)MenuRootCategoryMembers.MenuFlag, (int)value);
 				}
 			}
 			/// <summary>
@@ -1089,8 +1107,8 @@ namespace DarkHelmet.UI.TextHudApi
 			/// <param name="HeaderText">Header text of this menu list.</param>
 			public MenuRootCategory(string Text, MenuFlag AttachedMenu = MenuFlag.None, string HeaderText = "Default Header")
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.MenuRootCategory);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.MenuRootCategory);
 				this.Text = Text;
 				Header = HeaderText;
 				Menu = AttachedMenu;
@@ -1110,7 +1128,7 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuSubCategoryMembers.Parent, value.BackingObject);
+					Instance.MessageSet(BackingObject, (int)MenuSubCategoryMembers.Parent, value.BackingObject);
 				}
 			}
 
@@ -1122,8 +1140,8 @@ namespace DarkHelmet.UI.TextHudApi
 			/// <param name="HeaderText">Header text of this menu list.</param>
 			public MenuSubCategory(string Text, MenuCategoryBase Parent, string HeaderText = "Default Header")
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.MenuSubCategory);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.MenuSubCategory);
 				this.Text = Text;
 				this.Header = HeaderText;
 				this.Parent = Parent;
@@ -1145,7 +1163,7 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuTextInputMembers.Parent, value.BackingObject);
+					Instance.MessageSet(BackingObject, (int)MenuTextInputMembers.Parent, value.BackingObject);
 				}
 			}
 
@@ -1156,11 +1174,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (string)(instance.MessageGet(BackingObject, (int)MenuTextInputMembers.InputDialogTitle));
+					return (string)(Instance.MessageGet(BackingObject, (int)MenuTextInputMembers.InputDialogTitle));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuTextInputMembers.InputDialogTitle, value);
+					Instance.MessageSet(BackingObject, (int)MenuTextInputMembers.InputDialogTitle, value);
 				}
 			}
 
@@ -1171,11 +1189,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Action<string>)(instance.MessageGet(BackingObject, (int)MenuTextInputMembers.OnSubmitAction));
+					return (Action<string>)(Instance.MessageGet(BackingObject, (int)MenuTextInputMembers.OnSubmitAction));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuTextInputMembers.OnSubmitAction, value);
+					Instance.MessageSet(BackingObject, (int)MenuTextInputMembers.OnSubmitAction, value);
 				}
 			}
 
@@ -1188,8 +1206,8 @@ namespace DarkHelmet.UI.TextHudApi
 			/// <param name="onSubmit">Returns inputted string on submit. </param>
 			public MenuTextInput(string Text, MenuCategoryBase Parent, string InputDialogTitle = "Enter text value", Action<string> onSubmit = null)
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.MenuTextInput);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.MenuTextInput);
 				this.Text = Text;
 				this.InputDialogTitle = InputDialogTitle;
 				this.OnSubmitAction = onSubmit;
@@ -1212,7 +1230,7 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuKeybindInputMembers.Parent, value.BackingObject);
+					Instance.MessageSet(BackingObject, (int)MenuKeybindInputMembers.Parent, value.BackingObject);
 				}
 			}
 
@@ -1223,11 +1241,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (string)(instance.MessageGet(BackingObject, (int)MenuKeybindInputMembers.InputDialogTitle));
+					return (string)(Instance.MessageGet(BackingObject, (int)MenuKeybindInputMembers.InputDialogTitle));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuKeybindInputMembers.InputDialogTitle, value);
+					Instance.MessageSet(BackingObject, (int)MenuKeybindInputMembers.InputDialogTitle, value);
 				}
 			}
 
@@ -1238,11 +1256,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Action<MyKeys, bool, bool, bool>)(instance.MessageGet(BackingObject, (int)MenuKeybindInputMembers.OnSubmitAction));
+					return (Action<MyKeys, bool, bool, bool>)(Instance.MessageGet(BackingObject, (int)MenuKeybindInputMembers.OnSubmitAction));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuKeybindInputMembers.OnSubmitAction, value);
+					Instance.MessageSet(BackingObject, (int)MenuKeybindInputMembers.OnSubmitAction, value);
 				}
 			}
 
@@ -1255,8 +1273,8 @@ namespace DarkHelmet.UI.TextHudApi
 			/// <param name="onSubmit">Called with Key pressed, Shift Pressed, Ctrl Pressed, Alt Pressed when user Submits the dialog. </param>
 			public MenuKeybindInput(string Text, MenuCategoryBase Parent, string InputDialogTitle = "Keybind - Press any key", Action<MyKeys, bool, bool, bool> onSubmit = null)
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.MenuKeybindInput);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.MenuKeybindInput);
 				this.Text = Text;
 				this.InputDialogTitle = InputDialogTitle;
 				this.OnSubmitAction = onSubmit;
@@ -1284,7 +1302,7 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.Parent, value.BackingObject);
+					Instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.Parent, value.BackingObject);
 				}
 			}
 
@@ -1295,11 +1313,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (string)(instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.InputDialogTitle));
+					return (string)(Instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.InputDialogTitle));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.InputDialogTitle, value);
+					Instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.InputDialogTitle, value);
 				}
 			}
 			/// <summary>
@@ -1309,11 +1327,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Action)(instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.Cancel));
+					return (Action)(Instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.Cancel));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.Cancel, value);
+					Instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.Cancel, value);
 				}
 			}
 			/// <summary>
@@ -1323,11 +1341,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector2D)(instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.Origin));
+					return (Vector2D)(Instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.Origin));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.Origin, value);
+					Instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.Origin, value);
 				}
 			}
 			/// <summary>
@@ -1337,11 +1355,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Vector2D)(instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.Size));
+					return (Vector2D)(Instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.Size));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.Size, value);
+					Instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.Size, value);
 				}
 			}
 			/// <summary>
@@ -1351,11 +1369,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Action<Vector2D>)(instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.OnSubmitAction));
+					return (Action<Vector2D>)(Instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.OnSubmitAction));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.OnSubmitAction, value);
+					Instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.OnSubmitAction, value);
 				}
 			}
 
@@ -1366,11 +1384,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Action<Vector2D>)(instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.OnUpdateAction));
+					return (Action<Vector2D>)(Instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.OnUpdateAction));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.OnUpdateAction, value);
+					Instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.OnUpdateAction, value);
 				}
 			}
 
@@ -1378,11 +1396,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Action)instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.OnSelect);
+					return (Action)Instance.MessageGet(BackingObject, (int)MenuScreenInputMembers.OnSelect);
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.OnSelect, value);
+					Instance.MessageSet(BackingObject, (int)MenuScreenInputMembers.OnSelect, value);
 				}
 			}
 
@@ -1400,8 +1418,8 @@ namespace DarkHelmet.UI.TextHudApi
 			/// <param name="OnSelect">Called when user invokes this dialog box use to refresh the Size property</param>
 			public MenuScreenInput(string Text, MenuCategoryBase Parent, Vector2D Origin, Vector2D Size, string InputDialogTitle = "Move this element",  Action<Vector2D> OnSubmit = null, Action<Vector2D> Update = null, Action Cancel = null, Action OnSelect = null)
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.MenuScreenInput);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.MenuScreenInput);
 				this.Text = Text;
 				this.InputDialogTitle = InputDialogTitle;
 				this.OnSubmitAction = OnSubmit;
@@ -1439,7 +1457,7 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuSliderItemMembers.Parent, value.BackingObject);
+					Instance.MessageSet(BackingObject, (int)MenuSliderItemMembers.Parent, value.BackingObject);
 				}
 			}
 
@@ -1450,11 +1468,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (string)(instance.MessageGet(BackingObject, (int)MenuSliderItemMembers.InputDialogTitle));
+					return (string)(Instance.MessageGet(BackingObject, (int)MenuSliderItemMembers.InputDialogTitle));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuSliderItemMembers.InputDialogTitle, value);
+					Instance.MessageSet(BackingObject, (int)MenuSliderItemMembers.InputDialogTitle, value);
 				}
 			}
 			/// <summary>
@@ -1464,11 +1482,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (float)(instance.MessageGet(BackingObject, (int)MenuSliderItemMembers.InitialPercent));
+					return (float)(Instance.MessageGet(BackingObject, (int)MenuSliderItemMembers.InitialPercent));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuSliderItemMembers.InitialPercent, value);
+					Instance.MessageSet(BackingObject, (int)MenuSliderItemMembers.InitialPercent, value);
 				}
 			}
 			/// <summary>
@@ -1478,11 +1496,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Action<float>)(instance.MessageGet(BackingObject, (int)MenuSliderItemMembers.OnSubmitAction));
+					return (Action<float>)(Instance.MessageGet(BackingObject, (int)MenuSliderItemMembers.OnSubmitAction));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuSliderItemMembers.OnSubmitAction, value);
+					Instance.MessageSet(BackingObject, (int)MenuSliderItemMembers.OnSubmitAction, value);
 				}
 			}
 			/// <summary>
@@ -1492,11 +1510,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Action)(instance.MessageGet(BackingObject, (int)MenuSliderItemMembers.OnCancel));
+					return (Action)(Instance.MessageGet(BackingObject, (int)MenuSliderItemMembers.OnCancel));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuSliderItemMembers.OnCancel, value);
+					Instance.MessageSet(BackingObject, (int)MenuSliderItemMembers.OnCancel, value);
 				}
 			}
 
@@ -1507,11 +1525,11 @@ namespace DarkHelmet.UI.TextHudApi
 			{
 				get
 				{
-					return (Func<float, object>)(instance.MessageGet(BackingObject, (int)MenuSliderItemMembers.SliderPercentToValue));
+					return (Func<float, object>)(Instance.MessageGet(BackingObject, (int)MenuSliderItemMembers.SliderPercentToValue));
 				}
 				set
 				{
-					instance.MessageSet(BackingObject, (int)MenuSliderItemMembers.SliderPercentToValue, value);
+					Instance.MessageSet(BackingObject, (int)MenuSliderItemMembers.SliderPercentToValue, value);
 				}
 			}
 
@@ -1527,8 +1545,8 @@ namespace DarkHelmet.UI.TextHudApi
 			/// <param name="OnCancel">Called when the user cancels the dialog window or otherwise closes the dialog box without confirming.</param>
 			public MenuSliderInput(string Text, MenuCategoryBase Parent, float InitialPercent, string InputDialogTitle = "Adjust Slider to modify value", Action<float> OnSubmitAction = null, Func<float, object> SliderPercentToValue = null, Action OnCancel = null)
 			{
-				instance.RegisterCheck();
-				BackingObject = instance.CreateMessage(MessageTypes.MenuSliderItem);
+				Instance.RegisterCheck();
+				BackingObject = Instance.CreateMessage(MessageTypes.MenuSliderItem);
 				this.Text = Text;
 				this.InputDialogTitle = InputDialogTitle;
 				this.OnSubmitAction = OnSubmitAction;

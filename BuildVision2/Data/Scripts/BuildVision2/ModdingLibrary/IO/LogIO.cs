@@ -7,16 +7,15 @@ namespace DarkHelmet.IO
     /// <summary>
     /// Handles logging
     /// </summary>
-    public sealed class LogIO : ModBase.ParallelComponent<LogIO>
+    public sealed class LogIO : ModBase.ParallelComponentBase
     {
-        public static string FileName { get; set; } 
         public bool Accessible { get; private set; }
         private readonly LocalFileIO logFile;
 
-        public LogIO()
+        public LogIO(string fileName)
         {
             Accessible = true;
-            logFile = new LocalFileIO(FileName);
+            logFile = new LocalFileIO(fileName);
         }
 
         protected override void ErrorCallback(List<KnownException> known, AggregateException unknown)

@@ -7,7 +7,10 @@ using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal static class KeyBinds
+    /// <summary>
+    /// Wrapper used to provide easy access to Build Vision key binds.
+    /// </summary>
+    internal sealed class KeyBinds : ModBase.ComponentBase
     {
         public static BindsConfig Cfg
         {
@@ -15,35 +18,62 @@ namespace DarkHelmet.BuildVision2
             set
             {
                 if(BindManager.TryUpdateBinds(value.bindData))
-                    UpdateBindReferences();
+                    Instance.UpdateBindReferences();
             }
         }
 
-        static KeyBinds()
+        public static IKeyBind Open { get { return Instance.bvBinds[0]; } }
+        public static IKeyBind Hide { get { return Instance.bvBinds[1]; } }
+        public static IKeyBind Select { get { return Instance.bvBinds[2]; } }
+        public static IKeyBind ScrollUp { get { return Instance.bvBinds[3]; } }
+        public static IKeyBind ScrollDown { get { return Instance.bvBinds[4]; } }
+        public static IKeyBind MultX { get { return Instance.bvBinds[5]; } }
+        public static IKeyBind MultY { get { return Instance.bvBinds[6]; } }
+        public static IKeyBind MultZ { get { return Instance.bvBinds[7]; } }
+
+        private static KeyBinds Instance
         {
-            BvConfig.OnConfigLoad += () => { Cfg = BvConfig.Current.binds; };
+            get { Init(); return instance; }
+            set { instance = value; }
+        }
+        private static KeyBinds instance;
+
+        private static readonly string[] bindNames = new string[] { "open", "close", "select", "scrollup", "scrolldown", "multx", "multy", "multz" };
+        private IKeyBind[] bvBinds;
+
+        private KeyBinds() { }
+
+        private static void Init()
+        {
+            if (instance == null)
+            {
+                instance = new KeyBinds();
+
+                BindManager.RegisterBinds(bindNames);
+                Cfg = BvConfig.Current.binds;
+
+                BvConfig.OnConfigLoad += instance.UpdateConfig;
+            }
         }
 
-        public static BindManager BindManager { get { return BindManager.Instance; } }
-        public static IKeyBind Open { get; private set; }
-        public static IKeyBind Hide { get; private set; }
-        public static IKeyBind Select { get; private set; }
-        public static IKeyBind ScrollUp { get; private set; }
-        public static IKeyBind ScrollDown { get; private set; }
-        public static IKeyBind MultX { get; private set; }
-        public static IKeyBind MultY { get; private set; }
-        public static IKeyBind MultZ { get; private set; }
-
-        private static void UpdateBindReferences()
+        public override void Close()
         {
-            Open = BindManager["open"];
-            Hide = BindManager["close"];
-            Select = BindManager["select"];
-            ScrollUp = BindManager["scrollup"];
-            ScrollDown = BindManager["scrolldown"];
-            MultX = BindManager["multx"];
-            MultY = BindManager["multy"];
-            MultZ = BindManager["multz"];
+            Instance = null;
+            BvConfig.OnConfigLoad -= UpdateConfig;
+        }
+
+        private void UpdateConfig()
+        {
+            Cfg = BvConfig.Current.binds;
+            ModBase.SendChatMessage("Updating Bind Cfg...");
+        }
+
+        private void UpdateBindReferences()
+        {
+            bvBinds = new IKeyBind[bindNames.Length];
+
+            for (int n = 0; n < bvBinds.Length; n++)
+                bvBinds[n] = BindManager.GetBindByName(bindNames[n]);
         }
     }
 }

@@ -26,6 +26,12 @@ namespace DarkHelmet.BuildVision2
         string Display { get; }
     }
 
+    internal interface IScrollableText : IScrollableElement
+    {
+        string Text { get; set; }
+
+    }
+
     internal interface IScrollableAction : IScrollableElement
     {
         /// <summary>
@@ -69,7 +75,7 @@ namespace DarkHelmet.BuildVision2
         public bool IsFunctional { get { return TBlock.IsFunctional; } }
         public bool IsWorking { get { return TBlock.IsWorking; } }
         public bool CanLocalPlayerAccess { get { return TBlock.HasLocalPlayerAccess(); } }
-        public static PropBlockConfig Cfg { get { return BvConfig.Current.propertyBlock; } set { BvConfig.Current.propertyBlock = value; } }
+        public static PropBlockConfig Cfg { get { return BvConfig.Current.block; } set { BvConfig.Current.block = value; } }
 
         public PropertyBlock(IMyTerminalBlock tBlock)
         {
@@ -215,19 +221,19 @@ namespace DarkHelmet.BuildVision2
                 if (mechBlock is IMyMotorSuspension)
                 {
                     actions.Add(new BlockAction(
-                        () => "Attach Wheel",
+                        () => mechBlock.IsAttached ? "Attach Wheel (Attached)" : "Attach Wheel",
                         () => mechBlock.Attach()));
                     actions.Add(new BlockAction(
-                        () => mechBlock.IsAttached ? "Detach Wheel (Ready)" : "Detach Wheel",
+                        () => "Detach Wheel",
                         () => mechBlock.Detach()));
                 }
                 else
                 {
                     actions.Add(new BlockAction(
-                        () => "Attach Head",
+                        () => mechBlock.IsAttached ? "Attach Head (Attached)" : "Attach Head",
                         () => mechBlock.Attach()));
                     actions.Add(new BlockAction(
-                        () => mechBlock.IsAttached ? "Detach Head (Ready)" : "Detach Head",
+                        () => "Detach Head",
                         () => mechBlock.Detach()));
                 }
 

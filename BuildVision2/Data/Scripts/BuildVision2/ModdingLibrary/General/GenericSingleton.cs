@@ -9,42 +9,30 @@ namespace DarkHelmet
     {
         public static T Instance
         {
-            get { if (instance == null) Init(); return instance; }
+            get { Init(); return instance; }
             protected set { instance = value; }
         }
 
-        protected static bool canInstantiate = false;
         private static T instance;
+        private static bool initializing;
 
         protected Singleton()
         {
-            if (!canInstantiate)
+            if (instance != null)
                 throw new Exception("Types of Singleton<T> cannot be instantiated externally.");
-
-            canInstantiate = false;
         }
 
         public static void Init()
         {
-            if (instance == null)
+            if (instance == null && !initializing)
             {
-                canInstantiate = true;
+                initializing = true;
                 instance = new T();
                 instance.AfterInit();
+                initializing = false;
             }
         }
 
         protected virtual void AfterInit() { }
-
-        protected virtual void BeforeClose() { }
-
-        public static void Close()
-        {
-            if (Instance != null)
-            {
-                Instance.BeforeClose();
-                Instance = null;
-            }
-        }
     }
 }

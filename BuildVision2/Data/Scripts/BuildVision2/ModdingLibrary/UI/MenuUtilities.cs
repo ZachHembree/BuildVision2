@@ -14,29 +14,43 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Collection of wrapper types and utilities used to simplify the creation of settings menu elements in the Text HUD API Mod Menu
     /// </summary>
-    public sealed class MenuUtilities : ModBase.SingletonComponent<MenuUtilities>
+    public sealed class MenuUtilities : ModBase.ComponentBase
     {
         public static bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
+
+        private static MenuUtilities Instance
+        {
+            get { Init(); return instance; }
+            set { instance = value; }
+        }
+
+        private static MenuUtilities instance = null;
         private static bool wasClosed = false;
         private readonly Queue<Action> menuElementsInit;
 
-        public MenuUtilities()
+        private MenuUtilities()
         {
             menuElementsInit = new Queue<Action>();
         }
 
-        protected override void AfterInit()
+        private static void Init()
         {
-            if (!wasClosed)
-                MenuRoot.Init(ModBase.ModName, $"{ModBase.ModName} Settings");
+            if (instance == null)
+            {
+                instance = new MenuUtilities();
+
+                if (!wasClosed)
+                    MenuRoot.Init(ModBase.ModName, $"{ModBase.ModName} Settings");
+            }
         }
 
-        protected override void BeforeClose()
+        public override void Close()
         {
+            Instance = null;
             wasClosed = true;
         }
 
-        protected override void Update()
+        public override void Update()
         {
             if (Heartbeat)
             {

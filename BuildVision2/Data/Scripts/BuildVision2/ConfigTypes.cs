@@ -15,7 +15,7 @@ namespace DarkHelmet.BuildVision2
         public PropMenuConfig menu;
 
         [XmlElement(ElementName = "BlockPropertySettings")]
-        public PropBlockConfig propertyBlock;
+        public PropBlockConfig block;
 
         [XmlElement(ElementName = "InputSettings")]
         public BindsConfig binds;
@@ -27,7 +27,7 @@ namespace DarkHelmet.BuildVision2
                 VersionID = 6,
                 general = GeneralConfig.Defaults,
                 menu = PropMenuConfig.Defaults,
-                propertyBlock = PropBlockConfig.Defaults,
+                block = PropBlockConfig.Defaults,
                 binds = BindsConfig.Defaults
             };
         }
@@ -38,13 +38,14 @@ namespace DarkHelmet.BuildVision2
             {
                 menu.apiHudConfig.resolutionScaling = ApiHudConfig.Defaults.resolutionScaling;
                 menu.apiHudConfig.hudScale = ApiHudConfig.Defaults.hudScale;
+                menu.apiHudConfig.maxVisible = ApiHudConfig.Defaults.maxVisible;
                 menu.apiHudConfig.colors.headerColor = ApiHudConfig.Defaults.colors.headerColor;
                 menu.apiHudConfig.colors.listBgColor = ApiHudConfig.Defaults.colors.listBgColor;
                 menu.apiHudConfig.colors.selectionBoxColor = ApiHudConfig.Defaults.colors.selectionBoxColor;
             }
 
             if (VersionID < 5)
-                propertyBlock = PropBlockConfig.Defaults;
+                block = PropBlockConfig.Defaults;
 
             if (VersionID < 4)
                 menu.apiHudConfig = ApiHudConfig.Defaults;
@@ -67,10 +68,10 @@ namespace DarkHelmet.BuildVision2
             else
                 binds = BindsConfig.Defaults;
 
-            if (propertyBlock != null)
-                propertyBlock.Validate();
+            if (block != null)
+                block.Validate();
             else
-                propertyBlock = PropBlockConfig.Defaults;
+                block = PropBlockConfig.Defaults;
         }
     }
 
@@ -242,8 +243,8 @@ namespace DarkHelmet.BuildVision2
             return new ApiHudConfig
             {
                 resolutionScaling = true,
-                hudScale = 0.9f,
-                maxVisible = 12,
+                hudScale = 0.85f,
+                maxVisible = 14,
                 clampHudPos = true,
                 forceToCenter = false,
                 colors = Colors.Defaults

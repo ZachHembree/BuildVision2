@@ -2,6 +2,7 @@
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
@@ -14,38 +15,29 @@ namespace DarkHelmet.Game
     public abstract class ModBase : MySessionComponentBase
     {
         public static string ModName { get; protected set; }
+        public static string LogFileName { get; protected set; }
         public static bool RunOnServer { get; protected set; }
+        public static bool IsDedicated { get; private set; }
+        public static bool IsServer { get; private set; }
 
         protected static ModBase Instance { get; private set; }
+        protected static bool Unload { get; private set; }
         protected bool Crashed { get; private set; }
-        protected bool IsDedicated { get; private set; }
-        protected bool IsServer { get; private set; }
-        protected bool Closing { get; private set; }
 
-        private static readonly List<Action> closeActions, drawActions, inputActions, updateActions;
+        private LogIO log;
+        protected List<ComponentBase> modComponents;
 
         static ModBase()
         {
             ModName = "Mod Base";
-            LogIO.FileName = "modLog.txt";
-            TaskPool.MaxTasksRunning = 2;
-            RunOnServer = false;
-
-            closeActions = new List<Action>();
-            drawActions = new List<Action>();
-            inputActions = new List<Action>();
-            updateActions = new List<Action>();
+            LogFileName = "modLog.txt";
+            RunOnServer = false;            
         }
 
         public ModBase()
         {
             if (Instance != null)
-                throw new Exception("Only one instance of type ModBase can exist at a given time.");
-
-            Crashed = false;
-            IsDedicated = false;
-            IsServer = false;
-            Closing = false;
+                throw new Exception("Only one instance of type ModBase can exist at a given time.");            
         }
 
         public sealed override void Init(MyObjectBuilder_SessionComponent sessionComponent)
@@ -53,30 +45,50 @@ namespace DarkHelmet.Game
             if (Instance == null)
             {
                 Instance = this;
-                Closing = false;
+                Unload = false;
                 IsServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
                 IsDedicated = (MyAPIGateway.Utilities.IsDedicated && IsServer);
+                modComponents = new List<ComponentBase>(10);
 
+                log = new LogIO(LogFileName);
                 RunSafeAction(AfterInit);
             }
         }
 
         protected virtual void AfterInit() { }
 
-        public sealed override void Draw() =>
-            UpdateComponents(drawActions);
+        public sealed override void Draw()
+        {
+            if (Instance == null && !Unload)
+                Init(null);
 
-        public sealed override void HandleInput() =>
-            UpdateComponents(inputActions);
+            RunSafeAction(() =>
+            {
+                for (int n = 0; n < modComponents.Count; n++)
+                    modComponents[n].Draw();
+            });
+        }
+
+        public sealed override void HandleInput()
+        {
+            if (Instance == null && !Unload)
+                Init(null);
+
+            RunSafeAction(() =>
+            {
+                for (int n = 0; n < modComponents.Count; n++)
+                    modComponents[n].HandleInput();
+            });
+        }
 
         public sealed override void UpdateBeforeSimulation() =>
-            BeforeUpdate();
+            RunSafeAction(BeforeUpdate);
 
         public sealed override void Simulate() =>
-            BeforeUpdate();
+            RunSafeAction(BeforeUpdate);
 
         public sealed override void UpdateAfterSimulation() =>
-            BeforeUpdate();
+            RunSafeAction(BeforeUpdate);
 
         /// <summary>
         /// The update function used (Before/Sim/After) is determined by the settings used by
@@ -84,18 +96,21 @@ namespace DarkHelmet.Game
         /// </summary>
         private void BeforeUpdate()
         {
-            UpdateComponents(updateActions);
+            if (Instance == null && !Unload)
+                Init(null);
+
+            UpdateComponents();
             RunSafeAction(Update);
         }
 
         protected virtual void Update() { }
 
-        private void UpdateComponents(List<Action> updateActions)
+        private void UpdateComponents()
         {
             RunSafeAction(() =>
             {
-                for (int n = 0; n < updateActions.Count; n++)
-                    updateActions[n]();
+                for (int n = 0; n < modComponents.Count; n++)
+                    modComponents[n].Update();
             });
         }
 
@@ -105,7 +120,7 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void RunSafeAction(Action action)
         {
-            if (Instance != null && !Instance.Crashed && (!Instance.IsDedicated || RunOnServer))
+            if (Instance != null && !Instance.Crashed && (!IsDedicated || RunOnServer))
             {
                 try
                 {
@@ -115,19 +130,25 @@ namespace DarkHelmet.Game
                 {
                     Instance.Crashed = true;
 
-                    if (!Instance.Closing)
+                    if (!Unload)
                     {
-                        LogIO.Instance.TryWriteToLog(ModName + " has crashed!\n" + e.ToString());
+                        StringBuilder errorMessage = new StringBuilder(e.ToString());
+                        errorMessage.Replace(" --->", "\n   --->");
+
+                        TryWriteToLog(ModName + " crashed!\n" + errorMessage);
 
                         MyAPIGateway.Utilities.ShowMissionScreen
                         (
                             ModName, "Debug", "",
                             $"{ModName} has encountered a problem and will attempt to reload. Press the X in the upper right hand corner " +
-                            "to cancel.\n" + e.ToString(),
-                            Instance.AllowReload, "Reload"
+                            "to cancel.\n\n" + 
+                            "Error Details:\n" +
+                            errorMessage,
+                            Instance.AllowReload, 
+                            "Reload"
                         );
 
-                        Close();
+                        Instance.Close();
                     }
                 }
             }
@@ -142,11 +163,29 @@ namespace DarkHelmet.Game
         }
 
         /// <summary>
+        /// Attempts to synchronously update mod log with message and adds a time stamp.
+        /// </summary>
+        public static void TryWriteToLog(string message)
+        {
+            if (Instance != null && !Unload && Instance.log != null)
+                Instance.log.TryWriteToLog(message);
+        }
+
+        /// <summary>
+        /// Attempts to update mod log in parallel with message and adds a time stamp.
+        /// </summary>
+        public static void WriteToLogStart(string message)
+        {
+            if (Instance != null && !Unload && Instance.log != null)
+                Instance.log.WriteToLogStart(message);
+        }
+
+        /// <summary>
         /// Sends chat message using the mod name as the sender.
         /// </summary>
         public static void SendChatMessage(string message)
         {
-            if (Instance != null && !Instance.Closing)
+            if (Instance != null && !Unload)
                 MyAPIGateway.Utilities.ShowMessage(ModName, message);
         }
 
@@ -155,89 +194,70 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void ShowMessageScreen(string subHeading, string message)
         {
-            if (Instance != null && !Instance.Closing)
+            if (Instance != null && !Unload)
                 MyAPIGateway.Utilities.ShowMissionScreen(ModName, subHeading, null, message, null, "Close");
         }
 
         protected override void UnloadData()
         {
-            Closing = true;
             Close();
+            Unload = true;
         }
 
         protected virtual void BeforeClose() { }
 
-        public static void Close()
+        public void Close()
         {
-            RunSafeAction(() =>
+            if (Instance != null && !Unload)
             {
-                foreach (Action CloseAction in closeActions)
-                    CloseAction();
+                Unload = true;
+                RunSafeAction(Instance.BeforeClose);
 
-                Instance.BeforeClose();
-                drawActions.Clear();
-                inputActions.Clear();
-                updateActions.Clear();
-                closeActions.Clear();
+                for (int n = 0; n < modComponents.Count; n++)
+                    RunSafeAction(modComponents[n].Close);
+
                 Instance = null;
-            });
+                Unload = false;
+            }
         }
 
-        public abstract class Component
+        /// <summary>
+        /// Base for classes that need to be continuously updated by the game. This should not be used for short
+        /// lived objects.
+        /// </summary>
+        public abstract class ComponentBase
         {
-            protected Component()
+            protected ComponentBase()
             {
-                drawActions.Add(Draw);
-                inputActions.Add(HandleInput);
-                updateActions.Add(Update);
-                closeActions.Add(Close);
+                Instance.modComponents.Add(this);
             }
 
-            protected virtual void Draw() { }
-
-            protected virtual void HandleInput() { }
-
-            protected virtual void Update() { }
-
-            protected virtual void BeforeClose() { }
-
-            public virtual void Close()
+            /// <summary>
+            /// Used to manually remove object from update queue. This should only be used for objects that
+            /// need to be closed while the mod is running.
+            /// </summary>
+            public virtual void UnregisterComponent()
             {
-                BeforeClose();
-                drawActions.Remove(Draw);
-                inputActions.Remove(HandleInput);
-                updateActions.Remove(Update);
-                closeActions.Remove(Close);
+                Instance.modComponents.Remove(this);
             }
+
+            public virtual void Draw() { }
+
+            public virtual void HandleInput() { }
+
+            public virtual void Update() { }
+
+            public virtual void Close() { }
         }
 
-        public abstract class SingletonComponent<T> : Singleton<T> where T : SingletonComponent<T>, new()
-        {
-            static SingletonComponent()
-            {
-                drawActions.Add(() => Instance?.Draw());
-                inputActions.Add(() => Instance?.HandleInput());
-                updateActions.Add(() => Instance?.Update());
-                closeActions.Add(Close);
-            }
-
-            protected virtual void Draw() { }
-
-            protected virtual void HandleInput() { }
-
-            protected virtual void Update() { }
-        }
-
-        public abstract class ParallelComponent<T> : SingletonComponent<T> where T : ParallelComponent<T>, new()
+        /// <summary>
+        /// Extension of <see cref="ComponentBase"/> that includes a task pool.
+        /// </summary>
+        public abstract class ParallelComponentBase : ComponentBase
         {
             private TaskPool taskPool;
 
-            static ParallelComponent()
-            {
-                updateActions.Add(() => Instance?.taskPool?.Update());
-            }
-
-            protected ParallelComponent()
+            protected ParallelComponentBase()
             {
                 taskPool = new TaskPool(ErrorCallback);
             }

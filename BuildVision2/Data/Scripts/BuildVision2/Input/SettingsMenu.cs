@@ -164,20 +164,20 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private static List<MenuUtilities.IMenuElement> GetBindSettings()
         {
-            List<MenuUtilities.IMenuElement> bindSettings = new List<MenuUtilities.IMenuElement>(KeyBinds.BindManager.Count + 2);
+            List<MenuUtilities.IMenuElement> bindSettings = new List<MenuUtilities.IMenuElement>(BindManager.Count + 2);
 
-            for (int n = 0; n < KeyBinds.BindManager.Count; n++)
+            for (int n = 0; n < BindManager.Count; n++)
             {
                 bindSettings.Add(new MenuUtilities.MenuTextInput(
-                    KeyBinds.BindManager[n].Name, 
+                    BindManager.GetBindByIndex(n).Name, 
                     "Enter Control Names", 
                     (string input) =>
                     {
                         string[] args;
                         input = input.ToLower();
 
-                        if (CmdManager.TryParseCommand($"{KeyBinds.BindManager[n].Name} {input}", out args))
-                            KeyBinds.BindManager.TryUpdateBind(KeyBinds.BindManager[n].Name, args);
+                        if (CmdManager.TryParseCommand($"{BindManager.GetBindByIndex(n).Name} {input}", out args))
+                            BindManager.TryUpdateBind(BindManager.GetBindByIndex(n).Name, args);
                     }));
             }
 

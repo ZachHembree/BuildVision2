@@ -33,10 +33,17 @@ namespace DarkHelmet.UI
     /// <summary>
     /// Manages chat commands; singleton
     /// </summary>
-    public sealed class CmdManager : ModBase.SingletonComponent<CmdManager>
+    public sealed class CmdManager : ModBase.ComponentBase
     {
         public static string Prefix { get { return prefix; } set { if (value != null && value.Length > 0) prefix = value; } }
 
+        private static CmdManager Instance
+        {
+            get { Init(); return instance; }
+            set { instance = value; }
+        }
+
+        private static CmdManager instance;
         private static string prefix = "/cmd";
         private static readonly Regex cmdParser;
         private readonly List<Command> commands;
@@ -46,22 +53,22 @@ namespace DarkHelmet.UI
             cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)(\w+))+");
         }
 
-        public CmdManager()
+        private CmdManager()
         {
             commands = new List<Command>();
-        }
-
-        /// <summary>
-        /// Instantiates commands and regex
-        /// </summary>
-        protected override void AfterInit()
-        {
             MyAPIGateway.Utilities.MessageEntered += MessageHandler;
         }
 
-        protected override void BeforeClose()
+        private static void Init()
+        {
+            if (instance == null)
+                instance = new CmdManager();
+        }
+
+        public override void Close()
         {
             MyAPIGateway.Utilities.MessageEntered -= MessageHandler;
+            Instance = null;
         }
 
         public static void AddCommands(IEnumerable<Command> newCommands)

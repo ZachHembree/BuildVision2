@@ -1,28 +1,44 @@
-﻿using System.Xml.Serialization;
+﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
-using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
     /// <summary>
     /// Renders menu of block terminal properties given a target block; singleton.
     /// </summary>
-    internal sealed partial class PropertiesMenu : ModBase.SingletonComponent<PropertiesMenu>
+    internal sealed partial class PropertiesMenu : ModBase.ComponentBase
     {
         public static PropMenuConfig Cfg { get { return BvConfig.Current.menu; } set { BvConfig.Current.menu = value; } }
         public static ApiHudConfig ApiHudCfg { get { return Cfg.apiHudConfig; } set { Cfg.apiHudConfig = value; } }
         public static NotifHudConfig NotifHudCfg { get { return Cfg.fallbackHudConfig; } set { Cfg.fallbackHudConfig = value; } }
-        public static bool MenuOpen { get { return menuOpen; } set { menuOpen = value; Instance?.Update(); } }
 
-        private static HudUtilities HudUtilities { get { return HudUtilities.Instance; } }
+        public static PropertyBlock Target
+        {
+            get { return Instance.target; }
+            set
+            {
+                Instance.target = value;
+                Instance.index = 0;
+                Instance.selection = -1;
+            }
+        }
         private PropertyBlock target;
-        private static bool menuOpen;
+
+        public static bool Open { get { return Instance.open; } set { Instance.open = value; } }
+        private bool open;
+
+        private static PropertiesMenu Instance
+        {
+            get { Init(); return instance; }
+            set { instance = value; }
+        }
+        private static PropertiesMenu instance;
 
         private ApiHud apiHud;
         private NotifHud fallbackHud;
         private int index, selection;
 
-        public PropertiesMenu()
+        private PropertiesMenu()
         {
             apiHud = new ApiHud();
             fallbackHud = new NotifHud();
@@ -30,28 +46,29 @@ namespace DarkHelmet.BuildVision2
 
             index = 0;
             selection = -1;
-            menuOpen = false;
-
-            KeyBinds.Select.OnNewPress += SelectProperty;
-            KeyBinds.ScrollUp.OnNewPress += ScrollUp;
-            KeyBinds.ScrollDown.OnNewPress += ScrollDown;
+            open = false;
         }
 
-        /// <summary>
-        /// Sets target block and acquires its properties.
-        /// </summary>
-        public void SetTarget(PropertyBlock newTarget)
+        private static void Init()
         {
-            target = newTarget;
-            index = 0;
-            selection = -1;
-            apiHud.SetTarget(newTarget);
-            fallbackHud.SetTarget(newTarget);
+            if (instance == null)
+            {
+                instance = new PropertiesMenu();
+
+                KeyBinds.Select.OnNewPress += instance.SelectProperty;
+                KeyBinds.ScrollUp.OnPressAndHold += instance.ScrollUp;
+                KeyBinds.ScrollDown.OnPressAndHold += instance.ScrollDown;
+            }
+        }
+
+        public override void Close()
+        {
+            Instance = null;
         }
 
         private void SelectProperty()
         {
-            if (MenuOpen)
+            if (open)
             {
                 int action = index - target.Properties.Count;
 
@@ -64,13 +81,13 @@ namespace DarkHelmet.BuildVision2
 
         private void ScrollDown()
         {
-            if (MenuOpen)
+            if (open)
                 UpdateSelection(-1);
         }
 
         private void ScrollUp()
         {
-            if (MenuOpen)
+            if (open)
                 UpdateSelection(1);
         }
 
@@ -96,9 +113,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Updates the menu each time it's called. Reopens menu if closed.
         /// </summary>
-        protected override void Update()
+        public override void Update()
         {
-            if (MenuOpen && target != null)
+            if (open && target != null)
             {
                 if (HudUtilities.Heartbeat && !Cfg.forceFallbackHud)
                 {
@@ -120,16 +137,26 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
+        /// Shows the menu if its hidden.
+        /// </summary>
+        public static void Show()
+        {
+            Instance.open = true;
+            Instance.apiHud.Show();
+            Instance.fallbackHud.Show();
+        }
+
+        /// <summary>
         /// Hides all menu elements.
         /// </summary>
-        private void Hide()
+        public static void Hide()
         {
-            apiHud.Hide();
-            fallbackHud.Hide();
+            Instance.open = false;
+            Instance.apiHud.Hide();
+            Instance.fallbackHud.Hide();
 
-            index = 0;
-            selection = -1;
+            Instance.index = 0;
+            Instance.selection = -1;
         }
     }
 }
- 

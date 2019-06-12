@@ -1,13 +1,11 @@
-﻿using Sandbox.ModAPI;
-using System.Collections.Generic;
+﻿using DarkHelmet.Game;
+using DarkHelmet.UI;
+using Sandbox.ModAPI;
 using System.Text;
+using VRage.Collections;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
-using VRage.Utils;
-using System.Xml.Serialization;
-using DarkHelmet.UI;
-using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -17,7 +15,6 @@ namespace DarkHelmet.BuildVision2
         {
             public bool Open { get; protected set; }
 
-            protected PropertyBlock target;
             protected int visStart, visEnd, index, selection, maxVisible;
             protected string headerText;
 
@@ -33,10 +30,8 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Updates the menu's current target
             /// </summary>
-            public virtual void SetTarget(PropertyBlock newTarget)
+            public virtual void Show()
             {
-                target = newTarget;
-
                 visStart = 0;
                 visEnd = 0;
                 Open = true;
@@ -58,9 +53,9 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             protected virtual void GetVisibleProperties()
             {
-                if (target.ScrollableCount <= maxVisible)
+                if (Target.ScrollableCount <= maxVisible)
                 {
-                    visEnd = target.ScrollableCount;
+                    visEnd = Target.ScrollableCount;
                 }
                 else
                 {
@@ -69,8 +64,8 @@ namespace DarkHelmet.BuildVision2
                     else if (index < visStart)
                         visStart = index;
 
-                    visEnd = Utils.Math.Clamp((visStart + maxVisible), 0, target.ScrollableCount);
-                    visStart = Utils.Math.Clamp(visEnd - maxVisible, 0, visEnd); 
+                    visEnd = Utils.Math.Clamp((visStart + maxVisible), 0, Target.ScrollableCount);
+                    visStart = Utils.Math.Clamp(visEnd - maxVisible, 0, visEnd);
                 }
             }
         }
@@ -92,25 +87,27 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public override void Update(int index, int selection)
             {
-                Open = true;
-                this.index = index;
-                this.selection = selection;
-                headerText = target.TBlock.CustomName;
-                
-                maxVisible = ApiHudCfg.maxVisible;
-                menu.BodyColor = ApiHudCfg.colors.listBgColor;
-                menu.HeaderColor = ApiHudCfg.colors.headerColor;
-                menu.SelectionBoxColor = ApiHudCfg.colors.selectionBoxColor;
-                menu.Visible = true;
+                if (Open)
+                {
+                    this.index = index;
+                    this.selection = selection;
+                    headerText = Target.TBlock.CustomName;
 
-                if (ApiHudCfg.resolutionScaling)
-                    menu.Scale = ApiHudCfg.hudScale * HudUtilities.ResScale;
-                else
-                    menu.Scale = ApiHudCfg.hudScale;
-                
-                GetVisibleProperties();
-                UpdateText();
-                UpdatePos();
+                    maxVisible = ApiHudCfg.maxVisible;
+                    menu.BodyColor = ApiHudCfg.colors.listBgColor;
+                    menu.HeaderColor = ApiHudCfg.colors.headerColor;
+                    menu.SelectionBoxColor = ApiHudCfg.colors.selectionBoxColor;
+                    menu.Visible = true;
+
+                    if (ApiHudCfg.resolutionScaling)
+                        menu.Scale = ApiHudCfg.hudScale * HudUtilities.ResScale;
+                    else
+                        menu.Scale = ApiHudCfg.hudScale;
+
+                    GetVisibleProperties();
+                    UpdateText();
+                    UpdatePos();
+                }
             }
 
             /// <summary>
@@ -123,7 +120,7 @@ namespace DarkHelmet.BuildVision2
 
                 base.Hide();
             }
-   
+
             /// <summary>
             /// Updates position of menu on screen.
             /// </summary>
@@ -134,9 +131,9 @@ namespace DarkHelmet.BuildVision2
 
                 if (!ApiHudCfg.forceToCenter)
                 {
-                    if (LocalPlayer.IsLookingInBlockDir(target.TBlock))
+                    if (LocalPlayer.IsLookingInBlockDir(Target.TBlock))
                     {
-                        targetPos = target.GetPosition();
+                        targetPos = Target.GetPosition();
                         worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
                         screenPos = new Vector2D(worldPos.X, worldPos.Y);
                         screenBounds = new Vector2D(1d, 1d) - menu.Size / 2;
@@ -171,7 +168,7 @@ namespace DarkHelmet.BuildVision2
                 for (int n = 0; n < elements; n++)
                 {
                     i = n + visStart;
-                    action = i - target.Properties.Count;
+                    action = i - Target.Properties.Count;
 
                     if (i == selection)
                         colorCode = $"<color={ApiHudCfg.colors.selectedText}>";
@@ -180,18 +177,18 @@ namespace DarkHelmet.BuildVision2
                     else
                         colorCode = $"<color={ApiHudCfg.colors.bodyText}>";
 
-                    if (i >= target.Properties.Count)
-                        list[n] = colorCode + target.Actions[action].Display;
+                    if (i >= Target.Properties.Count)
+                        list[n] = colorCode + Target.Actions[action].Display;
                     else
-                        list[n] = $"<color={ApiHudCfg.colors.bodyText}>{target.Properties[i].Name}: {colorCode}{target.Properties[i].Value}";
+                        list[n] = $"<color={ApiHudCfg.colors.bodyText}>{Target.Properties[i].Name}: {colorCode}{Target.Properties[i].Value}";
                 }
 
                 menu.ListText = list;
-                menu.FooterLeftText = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visEnd} of {target.ScrollableCount}]";
+                menu.FooterLeftText = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visEnd} of {Target.ScrollableCount}]";
 
-                if (target.IsWorking)
+                if (Target.IsWorking)
                     menu.FooterRightText = $"<color={ApiHudCfg.colors.headerText}>[Working]";
-                else if (target.IsFunctional)
+                else if (Target.IsFunctional)
                     menu.FooterRightText = $"<color={ApiHudCfg.colors.headerText}>[Functional]";
                 else
                     menu.FooterRightText = $"<color={ApiHudCfg.colors.blockIncText}>[Incomplete]";
@@ -217,17 +214,19 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public override void Update(int index, int selection)
             {
-                Open = true;
-                this.index = index;
-                this.selection = selection;
-                headerText = $"{ModBase.ModName}: {target.TBlock.CustomName}";
-                maxVisible = NotifHudCfg.maxVisible;
+                if (Open)
+                {
+                    this.index = index;
+                    this.selection = selection;
+                    headerText = $"{ModBase.ModName}: {Target.TBlock.CustomName}";
+                    maxVisible = NotifHudCfg.maxVisible;
 
-                if (list == null || list.Length < ApiHudCfg.maxVisible)
-                    list = new IMyHudNotification[ApiHudCfg.maxVisible];
+                    if (list == null || list.Length < ApiHudCfg.maxVisible)
+                        list = new IMyHudNotification[ApiHudCfg.maxVisible];
 
-                GetVisibleProperties();
-                UpdateText();
+                    GetVisibleProperties();
+                    UpdateText();
+                }
             }
 
             /// <summary>
@@ -255,7 +254,7 @@ namespace DarkHelmet.BuildVision2
 
                 header.Show();
                 header.AliveTime = int.MaxValue;
-                header.Text = $"{headerText} ({visStart + 1} - {visEnd} of {target.ScrollableCount})";
+                header.Text = $"{headerText} ({visStart + 1} - {visEnd} of {Target.ScrollableCount})";
 
                 for (int notif = 0; notif < elements; notif++)
                 {
@@ -263,17 +262,17 @@ namespace DarkHelmet.BuildVision2
                         list[notif] = MyAPIGateway.Utilities.CreateNotification("");
 
                     i = notif + visStart;
-                    action = i - target.Properties.Count;
+                    action = i - Target.Properties.Count;
 
                     // make sure its still being shown
                     list[notif].Show();
                     list[notif].AliveTime = int.MaxValue;
 
                     // get name
-                    if (i >= target.Properties.Count)
-                        list[notif].Text = target.Actions[action].Display;
+                    if (i >= Target.Properties.Count)
+                        list[notif].Text = Target.Actions[action].Display;
                     else
-                        list[notif].Text = target.Properties[i].Display;
+                        list[notif].Text = Target.Properties[i].Display;
 
                     // get color
                     if (i == selection)

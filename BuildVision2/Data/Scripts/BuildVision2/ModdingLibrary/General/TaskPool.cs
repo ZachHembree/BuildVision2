@@ -9,7 +9,7 @@ using DarkHelmet.Game;
 namespace DarkHelmet
 {
     /// <summary>
-    /// Dead simple aggregate exception class. Feed it a list of exceptions and out pops a new exception with their contents
+    /// Simple aggregate exception class. Feed it a list of exceptions and out pops a new exception with their contents
     /// crammed into one message.
     /// </summary>
     public class AggregateException : Exception
@@ -53,12 +53,12 @@ namespace DarkHelmet
         { }
     }
 
-    public class TaskPool
+    public class TaskPool : ModBase.ComponentBase
     {
         public static int MaxTasksRunning { get { return maxTasksRunning; } set { maxTasksRunning = Utils.Math.Clamp(value, 1, 10); } }
-        private static int maxTasksRunning = 1;
+        private static int maxTasksRunning = 1, tasksRunningCount = 0;
 
-        private readonly LinkedList<Task> tasksRunning;
+        private readonly List<Task> tasksRunning;
         private readonly Queue<Action> tasksWaiting;
         private readonly ConcurrentQueue<Action> actions;
         private readonly Action<List<KnownException>, AggregateException> errorCallback;
@@ -67,15 +67,20 @@ namespace DarkHelmet
         {
             this.errorCallback = errorCallback;
 
-            tasksRunning = new LinkedList<Task>();
+            tasksRunning = new List<Task>();
             actions = new ConcurrentQueue<Action>();
             tasksWaiting = new Queue<Action>();
+        }
+
+        public override void Close()
+        {
+            tasksRunningCount = 0;
         }
 
         /// <summary>
         /// Updates internal task/action queues and runs exception handling.
         /// </summary>
-        public void Update()
+        public override void Update()
         {
             TryStartWaitingTasks();
             UpdateRunningTasks();
@@ -102,28 +107,29 @@ namespace DarkHelmet
         /// Attempts to start any tasks in the waiting queue if the number of tasks running
         /// is below a set threshold.
         /// </summary>
-        public void TryStartWaitingTasks()
+        private void TryStartWaitingTasks()
         {
             Action action;
 
-            while (tasksRunning.Count < maxTasksRunning && (tasksWaiting.Count > 0) && tasksWaiting.TryDequeue(out action))
-                tasksRunning.AddLast(MyAPIGateway.Parallel.Start(action));
+            while (tasksRunningCount < maxTasksRunning && (tasksWaiting.Count > 0) && tasksWaiting.TryDequeue(out action))
+            {
+                tasksRunning.Add(MyAPIGateway.Parallel.Start(action));
+                tasksRunningCount++;
+            }
         }
 
         /// <summary>
-        /// Checks a task queue for invalid tasks and tasks with exceptions, logs and throws exceptions
-        /// as needed and rebuilds queue with remaining valid tasks.
+        /// Checks the task list for invalid tasks and tasks with exceptions then logs and throws exceptions as needed.
         /// </summary>
-        public void UpdateRunningTasks()
+        private void UpdateRunningTasks()
         {
             List<KnownException> knownExceptions = new List<KnownException>();
             List<Exception> otherExceptions = new List<Exception>(); //unknown exceptions
             AggregateException unknownExceptions = null;
-            LinkedListNode<Task> node = tasksRunning.First;
 
-            while (node != null)
+            for (int n = 0; n < tasksRunning.Count; n++)
             {
-                Task task = node.Value;
+                Task task = tasksRunning[n];
 
                 if (task.Exceptions != null && task.Exceptions.Length > 0)
                 {
@@ -137,9 +143,7 @@ namespace DarkHelmet
                 }
 
                 if (!task.valid || task.IsComplete || (task.Exceptions != null && task.Exceptions.Length > 0))
-                    tasksRunning.Remove(node);
-
-                node = node.Next;
+                    tasksRunning.Remove(task);
             }
 
             if (otherExceptions.Count > 0)
@@ -152,7 +156,7 @@ namespace DarkHelmet
         /// Checks actions queue for any actions sent from tasks to be executed on the main 
         /// thread and executes them.
         /// </summary>
-        public void RunTaskActions()
+        private void RunTaskActions()
         {
             Action action;
 

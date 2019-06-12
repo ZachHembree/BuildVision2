@@ -11,6 +11,9 @@ namespace DarkHelmet.IO
     /// </summary>
     public abstract class Config<ConfigT> where ConfigT : Config<ConfigT>, new()
     {
+        /// <summary>
+        /// Stores a copy of the default values for the configuration.
+        /// </summary>
         public static ConfigT Defaults
         {
             get
@@ -21,24 +24,44 @@ namespace DarkHelmet.IO
                 return defaults;
             }
         }
+        private static ConfigT defaults;
 
+        /// <summary>
+        /// Used to check the configuration for any invalid values.
+        /// </summary>
         public abstract void Validate();
 
-        private static ConfigT defaults;
+        /// <summary>
+        /// Used to retrieve the default values for the type.
+        /// </summary>
         protected abstract ConfigT GetDefaults();
     }
 
     /// <summary>
-    /// Base class for config root. Handles its own serialization/deserialization.
+    /// Base class for config root. Handles its own saving and loading.
     /// </summary>
     public abstract class ConfigRoot<ConfigT> : Config<ConfigT> where ConfigT : ConfigRoot<ConfigT>, new()
     {
+        /// <summary>
+        /// Indicates the version of the config file. Used to differentiate older/incompatible config files.
+        /// </summary>
         [XmlAttribute("ConfigVersionID")]
         public virtual int VersionID { get; set; }
 
+        /// <summary>
+        /// Event triggered after the config file has been loaded.
+        /// </summary>
         public static event Action OnConfigLoad;
-        public static ConfigT Current { get; private set; }
+
+        /// <summary>
+        /// File name to be used for the config file. Should end in .xml.
+        /// </summary>
         public static string FileName { get { return ConfigIO.FileName; } set { ConfigIO.FileName = value; } }
+
+        /// <summary>
+        /// The most recently loaded configuration.
+        /// </summary>
+        public static ConfigT Current { get; private set; }
 
         /// <summary>
         /// Loads config from file and applies it. Runs synchronously.
@@ -90,20 +113,38 @@ namespace DarkHelmet.IO
         }
 
         /// <summary>
-        /// Handles loading/saving configuration data; singleton
+        /// Handles loading/saving configuration data
         /// </summary>
-        private sealed class ConfigIO : ModBase.ParallelComponent<ConfigIO>
+        private sealed class ConfigIO : ModBase.ParallelComponentBase
         {
-            public static string FileName { get { return fileName; } set { if (value != null && value.Length > 0) fileName = value; } }
-            private static string fileName = $"config_{typeof(ConfigT).Name}.xml";
-
             public bool SaveInProgress { get; private set; }
+            public static ConfigIO Instance
+            {
+                get { Init(); return instance; }
+                private set { instance = value; }
+            }
+            private static ConfigIO instance;
+
+            public static string FileName { get { return fileName; } set { if (value != null && value.Length > 0) fileName = value; } }
+            private static string fileName = $"{typeof(ConfigT).Name}.xml";
+
             private readonly LocalFileIO cfgFile;
 
-            public ConfigIO()
+            private ConfigIO()
             {
                 cfgFile = new LocalFileIO(FileName);
                 SaveInProgress = false;
+            }
+
+            private static void Init()
+            {
+                if (instance == null)
+                    instance = new ConfigIO();
+            }
+
+            public override void Close()
+            {
+                Instance = null;
             }
 
             protected override void ErrorCallback(List<KnownException> known, AggregateException unknown)
@@ -119,12 +160,12 @@ namespace DarkHelmet.IO
                         exceptions += e.ToString();
                     }
 
-                    LogIO.Instance.WriteToLogStart(exceptions);
+                    ModBase.WriteToLogStart(exceptions);
                 }
 
                 if (unknown != null)
                 {
-                    LogIO.Instance.WriteToLogStart("\nSave operation failed.\n" + unknown.ToString());
+                    ModBase.WriteToLogStart("\nSave operation failed.\n" + unknown.ToString());
                     ModBase.SendChatMessage("Save operation failed.");
                     SaveInProgress = false;
 
@@ -156,7 +197,7 @@ namespace DarkHelmet.IO
 
                         if (saveException != null)
                         {
-                            LogIO.Instance.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
+                            ModBase.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
                             ModBase.SendChatMessage("Unable to load or create configuration file.");
                         }
                     }
@@ -204,7 +245,7 @@ namespace DarkHelmet.IO
 
                             if (saveException != null)
                             {
-                                LogIO.Instance.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
+                                ModBase.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
 
                                 EnqueueAction(() =>
                                     ModBase.SendChatMessage("Unable to load or create configuration file."));

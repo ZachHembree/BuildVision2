@@ -15,12 +15,7 @@ namespace DarkHelmet.BuildVision2
     internal sealed partial class BvMain : ModBase
     {
         private const double maxDist = 10d, maxDistSquared = maxDist * maxDist;
-        private new static BvMain Instance { get; set; }
         public static BvConfig Cfg { get { return BvConfig.Current; } }
-        private static PropertiesMenu PropertiesMenu { get { return PropertiesMenu.Instance; } }
-        private static CmdManager CmdManager { get { return CmdManager.Instance; } }
-        private static BindManager BindManager { get { return BindManager.Instance; } }
-        private static HudUtilities HudElements { get { return HudUtilities.Instance; } }
 
         private PropertyBlock target;
         private bool LoadFinished, LoadStarted;
@@ -28,15 +23,10 @@ namespace DarkHelmet.BuildVision2
         static BvMain()
         {
             ModName = "Build Vision";
-            LogIO.FileName = "bvLog.txt";
+            LogFileName = "bvLog.txt";
             CmdManager.Prefix = "/bv2";
             BvConfig.FileName = "BuildVision2Config.xml";
-        }
-
-        public BvMain()
-        {
-            LoadStarted = false;
-            LoadFinished = false;
+            TaskPool.MaxTasksRunning = 2;
         }
 
         protected override void AfterInit()
@@ -54,10 +44,6 @@ namespace DarkHelmet.BuildVision2
             if (!LoadFinished && LoadStarted)
             {
                 LoadFinished = true;
-                Instance = (BvMain)ModBase.Instance;
-
-                BindManager.RegisterBinds(new string[] { "open", "close", "select", "scrollup", "scrolldown", "multx", "multy", "multz" });
-                KeyBinds.Cfg = Cfg.binds;
 
                 CmdManager.AddCommands(GetChatCommands());
                 MenuUtilities.AddMenuElements(GetSettingsMenuElements());
@@ -88,22 +74,28 @@ namespace DarkHelmet.BuildVision2
         {
             if (LoadFinished)
             {
-                if (!CanAccessTargetBlock())
+                if (PropertiesMenu.Open && !CanAccessTargetBlock())
                     TryCloseMenu();
             }
         }
 
         /// <summary>
+        /// Checks if the player can access the targeted block.
+        /// </summary>
+        private bool CanAccessTargetBlock() =>
+            target != null && BlockInRange() && target.CanLocalPlayerAccess && (!Cfg.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(target.TBlock));
+
+        /// <summary>
         /// Opens the menu and/or updates the current target if that target is valid. If it isn't, it closes the menu.
         /// </summary>
-        public void TryOpenMenu()
+        private void TryOpenMenu()
         {
             if (LoadFinished)
             {
                 if (TryGetTarget() && CanAccessTargetBlock())
                 {
-                    PropertiesMenu.SetTarget(target);
-                    PropertiesMenu.MenuOpen = true;
+                    PropertiesMenu.Target = target;
+                    PropertiesMenu.Show();
                 }
                 else
                     TryCloseMenu();
@@ -113,17 +105,11 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Closes the menu and clears the current target.
         /// </summary>
-        public void TryCloseMenu()
+        private void TryCloseMenu()
         {
             if (LoadFinished)
-                PropertiesMenu.MenuOpen = false;
+                PropertiesMenu.Hide();
         }
-
-        /// <summary>
-        /// Checks if the player can access the targeted block.
-        /// </summary>
-        private bool CanAccessTargetBlock() =>
-            BlockInRange() && target.CanLocalPlayerAccess && (!Cfg.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(target.TBlock));
 
         /// <summary>
         /// Tries to get terminal block being targeted by the local player if there is one.
