@@ -116,6 +116,7 @@ namespace DarkHelmet.IO
         {
             ConfigIO.Instance.SaveStart(Defaults, silent);
             Current = Defaults;
+            OnConfigLoad?.Invoke();
         }
 
         /// <summary>

@@ -3,8 +3,8 @@ using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml.Serialization;
 using System.Timers;
+using System.Xml.Serialization;
 using VRage.Input;
 
 namespace DarkHelmet.UI
@@ -71,7 +71,7 @@ namespace DarkHelmet.UI
         bool IsPressed { get; }
 
         /// <summary>
-        /// True on new press and if held for more than 500ms. Triggers, at most, every 30ms.
+        /// True on new press and if held for more than 500ms.
         /// </summary>
         bool IsPressedAndHeld { get; }
 
@@ -246,6 +246,8 @@ namespace DarkHelmet.UI
 
                     Instance.keyBinds = originalBinds;
                     RegisterControls();
+                    Instance.usedControls = Instance.GetControlsInUse();
+                    Instance.controlBindMap = Instance.GetBindMap();
 
                     return false;
                 }
@@ -423,15 +425,9 @@ namespace DarkHelmet.UI
         {
             name = name.ToLower();
 
-            for (int n = 0; n < Instance.keyBinds.Count; n++)
-                if (Instance.keyBinds[n].Name == name)
-                {
-                    ModBase.SendChatMessage($"Bind: {name}");
-                    return Instance.keyBinds[n];
-                }
-            //foreach (KeyBind bind in Instance.keyBinds)
-            //   if (bind.Name == name)
-            //    return bind;
+            foreach (KeyBind bind in Instance.keyBinds)
+                if (bind.Name == name)
+                    return bind;
 
             ModBase.SendChatMessage($"{name} is not a valid bind name.");
             return null;
@@ -556,12 +552,16 @@ namespace DarkHelmet.UI
                     }
             }
 
+            // Partial presses on previously pressed binds count as full presses.
             for (int y = 0; y < keyBinds.Count; y++)
             {
-                if (bindHits[y] < keyBinds[y].Count && !keyBinds[y].IsPressed)
-                    bindHits[y] = 0;
-                else
+                if (bindHits[y] == keyBinds[y].Count || (bindHits[y] > 0 && keyBinds[y].IsPressed))
+                {
+                    bindHits[y] = keyBinds[y].Count;
                     bindsPressed++;
+                }
+                else
+                    bindHits[y] = 0;
             }
 
             return bindsPressed;
@@ -587,36 +587,14 @@ namespace DarkHelmet.UI
 
                 for (int y = 0; y < keyBinds.Count; y++)
                 {
-                    if (controlBindMap[x, y] && (bindHits[y] > 0 && bindHits[y] < keyBinds[y].Count))
+                    if (controlBindMap[x, y] && bindHits[y] > 0 && (keyBinds[y].Count < longest))
                     {
-                        if (keyBinds[y].Count >= longest)
-                        {
-                            bindHits[y] = int.MaxValue;
-                            longest = int.MaxValue;
-                            break;
-                        }
-                        else
-                            bindHits[y] = 0;
-                    }
-                }
+                        if (controlHits > 0)
+                            bindHits[y]--;
+                        else if (controlHits == 0)
+                            first = y;
 
-                for (int y = 0; y < keyBinds.Count; y++)
-                {
-                    if (controlBindMap[x, y])
-                    {
-                        if (longest == int.MaxValue && bindHits[y] != int.MaxValue)
-                        {
-                            bindHits[y] = 0;
-                        }
-                        else if (bindHits[y] > 0 && (keyBinds[y].Count < longest))
-                        {
-                            if (controlHits > 0)
-                                bindHits[y]--;
-                            else if (controlHits == 0)
-                                first = y;
-
-                            controlHits++;
-                        }
+                        controlHits++;
                     }
                 }
 
@@ -685,7 +663,7 @@ namespace DarkHelmet.UI
             public IControl[] Combo { get { return combo?.Clone() as IControl[]; } }
             public bool IsPressed { get; private set; }
             public bool IsNewPressed { get { return IsPressed && (!wasPressed || Analog); } }
-            public bool IsPressedAndHeld { get { return isPressedAndHeld || (Analog && IsPressed) || IsNewPressed; } }
+            public bool IsPressedAndHeld { get { return isPressedAndHeld || IsNewPressed; } }
             public bool IsReleased { get { return !IsPressed && wasPressed; } }
 
             public event Action OnPressed, OnNewPress, OnPressAndHold, OnRelease;
@@ -702,7 +680,7 @@ namespace DarkHelmet.UI
 
                 pressAndHoldTimer = new Timer(500);
                 pressAndHoldTimer.Elapsed += SetPressedAndHeld;
-      
+
                 isPressedAndHeld = false;
                 wasPressed = false;
                 BindString = GetBindString();
@@ -718,7 +696,7 @@ namespace DarkHelmet.UI
 
             private void SetPressedAndHeld(object sender, ElapsedEventArgs args)
             {
-                isPressedAndHeld = !isPressedAndHeld && IsPressed;
+                isPressedAndHeld = IsPressed;
             }
 
             /// <summary>
@@ -763,15 +741,6 @@ namespace DarkHelmet.UI
 
                 if (IsPressedAndHeld)
                     OnPressAndHold?.Invoke();
-            }
-
-            internal bool AreAnyControlsPressed()
-            {
-                foreach (Control control in combo)
-                    if (control.IsPressed)
-                        return true;
-
-                return false;
             }
 
             /// <summary>

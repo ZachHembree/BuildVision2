@@ -1,9 +1,5 @@
-﻿using Sandbox.ModAPI;
-using System;
-using System.Xml.Serialization;
-using System.Collections.Generic;
+﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
-using DarkHelmet.Game;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -17,7 +13,7 @@ namespace DarkHelmet.BuildVision2
             get { return new BindsConfig { bindData = BindManager.GetBindData() }; }
             set
             {
-                if(BindManager.TryUpdateBinds(value.bindData))
+                if (BindManager.TryUpdateBinds(value.bindData))
                     Instance.UpdateBindReferences();
             }
         }

@@ -143,7 +143,10 @@ namespace DarkHelmet
                 }
 
                 if (!task.valid || task.IsComplete || (task.Exceptions != null && task.Exceptions.Length > 0))
+                {
                     tasksRunning.Remove(task);
+                    tasksRunningCount--;
+                }
             }
 
             if (otherExceptions.Count > 0)

@@ -117,22 +117,21 @@ namespace DarkHelmet.UI
             private static TextInput instance;
             private static bool initializing = false;
 
-            private StringBuilder currentText;
+            private StringBuilder currentText, inputText, openChatMsg;
             private IKeyBind backspace;
 
             private TextInput()
             {
-                currentText = new StringBuilder(50);
+                currentText = new StringBuilder(0);
+                inputText = new StringBuilder(50);
+                openChatMsg = new StringBuilder("Open Chat To Continue");
 
-                //if (BindManager.TryRegisterBind(new KeyBindData("backspace", new string[] { "back" })))
-                 //   backspace = BindManager.GetBindByName("backspace");
+                if (BindManager.TryRegisterBind(new KeyBindData("backspace", new string[] { "back" })))
+                    backspace = BindManager.GetBindByName("backspace");
 
-                //backspace.OnPressAndHold += OnBackspace;
-                //MyAPIGateway.Utilities.MessageEntered += MessageHandler;
+                backspace.OnPressAndHold += OnBackspace;
+                MyAPIGateway.Utilities.MessageEntered += MessageHandler;
             }
-
-            public static void Clear() =>
-                Instance?.currentText.Clear();
 
             private static void Init()
             {
@@ -142,6 +141,15 @@ namespace DarkHelmet.UI
                     instance = new TextInput();
                     initializing = false;
                 }
+            }
+
+            public static void Clear() =>
+                Instance?.inputText.Clear();
+
+            private void OnBackspace()
+            {
+                if (Open && currentText.Length > 0 && MyAPIGateway.Gui.ChatEntryVisible)
+                    currentText.Length--;
             }
 
             public override void Close()
@@ -154,17 +162,20 @@ namespace DarkHelmet.UI
             {
                 if (Open)
                 {
-                    ListReader<char> input = MyAPIGateway.Input.TextInput;
+                    if (MyAPIGateway.Gui.ChatEntryVisible)
+                    {
+                        ListReader<char> input = MyAPIGateway.Input.TextInput;
+                        currentText = inputText;
 
-                    for (int n = 0; n < input.Count; n++)
-                      currentText.Append(input[n]);
+                        for (int n = 0; n < input.Count; n++)
+                        {
+                            if (input[n] != '\b')
+                                currentText.Append(input[n]);
+                        }
+                    }
+                    else
+                        currentText = openChatMsg;
                 }
-            }
-
-            private void OnBackspace()
-            {
-                if (Open && currentText.Length > 0)
-                    currentText.Length--;
             }
 
             private void MessageHandler(string message, ref bool sendToOthers)

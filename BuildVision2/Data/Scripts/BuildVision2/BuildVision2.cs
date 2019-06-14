@@ -67,9 +67,6 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        /// <summary>
-        /// Mod main loop. This mod will not work if this isn't being called regularly.
-        /// </summary>
         protected override void Update()
         {
             if (LoadFinished)

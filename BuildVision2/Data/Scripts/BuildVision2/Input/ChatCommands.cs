@@ -48,19 +48,6 @@ namespace DarkHelmet.BuildVision2
             };
         }
 
-        /// <summary>
-        /// Prints the names and bind strings of all keybinds.
-        /// </summary>
-        private static void PrintBinds()
-        {
-            string output = "Keybinds\n";
-
-            for (int n = 0; n < BindManager.Count; n++)
-                output += BindManager.GetBindByIndex(n).Name + ": [" + BindManager.GetBindByIndex(n).BindString + "]\n";
-
-            ModBase.SendChatMessage(output);
-        }
-
         private static string GetHelpMessage()
         {
             string helpMessage =

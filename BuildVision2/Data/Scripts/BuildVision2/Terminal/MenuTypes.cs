@@ -218,8 +218,11 @@ namespace DarkHelmet.BuildVision2
                 {
                     this.index = index;
                     this.selection = selection;
-                    headerText = $"{ModBase.ModName}: {Target.TBlock.CustomName}";
+                    //headerText = $"{ModBase.ModName}: {Target.TBlock.CustomName}";
                     maxVisible = NotifHudCfg.maxVisible;
+
+                    HudUtilities.TextInput.Open = true;
+                    headerText = HudUtilities.TextInput.CurrentText;
 
                     if (list == null || list.Length < ApiHudCfg.maxVisible)
                         list = new IMyHudNotification[ApiHudCfg.maxVisible];
@@ -235,6 +238,7 @@ namespace DarkHelmet.BuildVision2
             public override void Hide()
             {
                 header.Hide();
+                HudUtilities.TextInput.Open = false;
 
                 foreach (IMyHudNotification prop in list)
                 {

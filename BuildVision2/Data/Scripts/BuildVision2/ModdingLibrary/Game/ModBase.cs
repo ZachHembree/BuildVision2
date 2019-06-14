@@ -10,22 +10,35 @@ using VRage.Game.ModAPI;
 namespace DarkHelmet.Game
 {
     /// <summary>
-    /// Base class for mods using this library. 
+    /// Base class for mods using this library. Library tools will not function without at an instance of this type running.
+    /// Only one of this type can exist at a given time.
     /// </summary>
     public abstract class ModBase : MySessionComponentBase
     {
+        /// <summary>
+        /// Sets the mod name to be used in chat messages, popups and anything else that might require it.
+        /// </summary>
         public static string ModName { get; protected set; }
+
+        /// <summary>
+        /// Sets the name of the log file to be created in the mod's local storage. Should end in .txt.
+        /// </summary>
         public static string LogFileName { get; protected set; }
+
+        /// <summary>
+        /// Determines whether or not the main class will be initialized/closed if the mod is run on a server.
+        /// </summary>
         public static bool RunOnServer { get; protected set; }
+
         public static bool IsDedicated { get; private set; }
         public static bool IsServer { get; private set; }
 
         protected static ModBase Instance { get; private set; }
-        protected static bool Unload { get; private set; }
+        protected static bool Unloading { get; private set; }
         protected bool Crashed { get; private set; }
 
         private LogIO log;
-        protected List<ComponentBase> modComponents;
+        private List<ComponentBase> modComponents;
 
         static ModBase()
         {
@@ -45,13 +58,15 @@ namespace DarkHelmet.Game
             if (Instance == null)
             {
                 Instance = this;
-                Unload = false;
+                Unloading = false;
                 IsServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
                 IsDedicated = (MyAPIGateway.Utilities.IsDedicated && IsServer);
                 modComponents = new List<ComponentBase>(10);
 
                 log = new LogIO(LogFileName);
-                RunSafeAction(AfterInit);
+
+                if (RunOnServer || !IsDedicated)
+                    RunSafeAction(AfterInit);
             }
         }
 
@@ -59,25 +74,31 @@ namespace DarkHelmet.Game
 
         public sealed override void Draw()
         {
-            if (Instance == null && !Unload)
+            if (Instance == null && !Unloading)
                 Init(null);
 
             RunSafeAction(() =>
             {
                 for (int n = 0; n < modComponents.Count; n++)
-                    modComponents[n].Draw();
+                {
+                    if (modComponents[n].RunOnServer || !IsDedicated)
+                        modComponents[n].Draw();
+                }
             });
         }
 
         public sealed override void HandleInput()
         {
-            if (Instance == null && !Unload)
+            if (Instance == null && !Unloading)
                 Init(null);
 
             RunSafeAction(() =>
             {
                 for (int n = 0; n < modComponents.Count; n++)
-                    modComponents[n].HandleInput();
+                {
+                    if (modComponents[n].RunOnServer || !IsDedicated)
+                        modComponents[n].HandleInput();
+                }
             });
         }
 
@@ -96,11 +117,13 @@ namespace DarkHelmet.Game
         /// </summary>
         private void BeforeUpdate()
         {
-            if (Instance == null && !Unload)
+            if (Instance == null && !Unloading)
                 Init(null);
 
             UpdateComponents();
-            RunSafeAction(Update);
+
+            if (RunOnServer || !IsDedicated)
+                RunSafeAction(Update);
         }
 
         protected virtual void Update() { }
@@ -110,7 +133,10 @@ namespace DarkHelmet.Game
             RunSafeAction(() =>
             {
                 for (int n = 0; n < modComponents.Count; n++)
-                    modComponents[n].Update();
+                {
+                    if (modComponents[n].RunOnServer || !IsDedicated)
+                        modComponents[n].Update();
+                }
             });
         }
 
@@ -120,7 +146,7 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void RunSafeAction(Action action)
         {
-            if (Instance != null && !Instance.Crashed && (!IsDedicated || RunOnServer))
+            if (Instance != null && !Instance.Crashed)
             {
                 try
                 {
@@ -128,27 +154,29 @@ namespace DarkHelmet.Game
                 }
                 catch (Exception e)
                 {
+                    StringBuilder errorMessage = new StringBuilder(e.ToString());
+                    errorMessage.Replace(" --->", "\n   --->");
+
                     Instance.Crashed = true;
+                    TryWriteToLog(ModName + " crashed!\n" + errorMessage);
 
-                    if (!Unload)
-                    {
-                        StringBuilder errorMessage = new StringBuilder(e.ToString());
-                        errorMessage.Replace(" --->", "\n   --->");
+                    if (!Unloading)
+                    {                      
+                        if (!IsDedicated)
+                        {
+                            MyAPIGateway.Utilities.ShowMissionScreen
+                            (
+                                ModName, "Debug", "",
+                                $"{ModName} has encountered a problem and will attempt to reload. Press the X in the upper right hand corner " +
+                                "to cancel.\n\n" +
+                                "Error Details:\n" +
+                                errorMessage,
+                                Instance.AllowReload,
+                                "Reload"
+                            );
+                        }
 
-                        TryWriteToLog(ModName + " crashed!\n" + errorMessage);
-
-                        MyAPIGateway.Utilities.ShowMissionScreen
-                        (
-                            ModName, "Debug", "",
-                            $"{ModName} has encountered a problem and will attempt to reload. Press the X in the upper right hand corner " +
-                            "to cancel.\n\n" + 
-                            "Error Details:\n" +
-                            errorMessage,
-                            Instance.AllowReload, 
-                            "Reload"
-                        );
-
-                        Instance.Close();
+                        Instance.UnloadData();
                     }
                 }
             }
@@ -157,9 +185,9 @@ namespace DarkHelmet.Game
         private void AllowReload(ResultEnum response)
         {
             if (response == ResultEnum.OK)
-                Crashed = false;
+                Unloading = false;
             else
-                Crashed = true;
+                Unloading = true;
         }
 
         /// <summary>
@@ -167,7 +195,7 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void TryWriteToLog(string message)
         {
-            if (Instance != null && !Unload && Instance.log != null)
+            if (Instance != null && !Unloading && Instance.log != null)
                 Instance.log.TryWriteToLog(message);
         }
 
@@ -176,7 +204,7 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void WriteToLogStart(string message)
         {
-            if (Instance != null && !Unload && Instance.log != null)
+            if (Instance != null && !Unloading && Instance.log != null)
                 Instance.log.WriteToLogStart(message);
         }
 
@@ -185,7 +213,7 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void SendChatMessage(string message)
         {
-            if (Instance != null && !Unload)
+            if (Instance != null && !Unloading)
                 MyAPIGateway.Utilities.ShowMessage(ModName, message);
         }
 
@@ -194,30 +222,35 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void ShowMessageScreen(string subHeading, string message)
         {
-            if (Instance != null && !Unload)
+            if (Instance != null && !Unloading)
                 MyAPIGateway.Utilities.ShowMissionScreen(ModName, subHeading, null, message, null, "Close");
         }
 
         protected override void UnloadData()
         {
             Close();
-            Unload = true;
+            Unloading = true;
         }
 
         protected virtual void BeforeClose() { }
 
         public void Close()
         {
-            if (Instance != null && !Unload)
+            if (Instance != null && !Unloading)
             {
-                Unload = true;
-                RunSafeAction(Instance.BeforeClose);
+                Unloading = true;
+
+                if (RunOnServer || !IsDedicated)
+                    RunSafeAction(Instance.BeforeClose);
 
                 for (int n = modComponents.Count - 1; n >= 0; n--)
-                    RunSafeAction(modComponents[n].Close);
+                {
+                    if (modComponents[n].RunOnServer || !IsDedicated)
+                        RunSafeAction(modComponents[n].Close);
+                }
 
                 Instance = null;
-                Unload = false;
+                Unloading = false;
             }
         }
 
@@ -227,8 +260,14 @@ namespace DarkHelmet.Game
         /// </summary>
         public abstract class ComponentBase
         {
+            /// <summary>
+            /// Determines whether or not this component will run on a dedicated server.
+            /// </summary>
+            public bool RunOnServer { get; protected set; }
+
             protected ComponentBase()
             {
+                RunOnServer = false;
                 Instance.modComponents.Add(this);
             }
 
