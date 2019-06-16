@@ -21,6 +21,7 @@ namespace DarkHelmet.UI
         public static double ResScale { get; private set; }
         public static UiTestPattern TestPattern { get; private set; }
         public static bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
+        private IKeyBind backspace;
 
         private static HudUtilities Instance
         {
@@ -57,6 +58,9 @@ namespace DarkHelmet.UI
 
                 TestPattern = new UiTestPattern();
                 TestPattern.Hide();
+
+                if (BindManager.TryRegisterBind(new KeyBindData("backspace", new string[] { "back" })))
+                    Instance.backspace = BindManager.GetBindByName("backspace");
             }
         }
 
@@ -105,7 +109,11 @@ namespace DarkHelmet.UI
 
         public sealed class TextInput : ModBase.ComponentBase
         {
-            public static string CurrentText { get { return Instance.currentText.ToString(); } }
+            public static string CurrentText
+            {
+                get { return Instance.currentText.ToString(); }
+                set { Instance.currentText.Clear(); Instance.currentText.Append(value); }
+            }
             public static bool Open { get; set; }
 
             private static TextInput Instance
@@ -117,19 +125,13 @@ namespace DarkHelmet.UI
             private static TextInput instance;
             private static bool initializing = false;
 
-            private StringBuilder currentText, inputText, openChatMsg;
-            private IKeyBind backspace;
+            private StringBuilder currentText;
 
             private TextInput()
             {
-                currentText = new StringBuilder(0);
-                inputText = new StringBuilder(50);
-                openChatMsg = new StringBuilder("Open Chat To Continue");
+                currentText = new StringBuilder(50);
 
-                if (BindManager.TryRegisterBind(new KeyBindData("backspace", new string[] { "back" })))
-                    backspace = BindManager.GetBindByName("backspace");
-
-                backspace.OnPressAndHold += OnBackspace;
+                HudUtilities.Instance.backspace.OnPressAndHold += OnBackspace;
                 MyAPIGateway.Utilities.MessageEntered += MessageHandler;
             }
 
@@ -144,11 +146,11 @@ namespace DarkHelmet.UI
             }
 
             public static void Clear() =>
-                Instance?.inputText.Clear();
+                Instance?.currentText.Clear();
 
             private void OnBackspace()
             {
-                if (Open && currentText.Length > 0 && MyAPIGateway.Gui.ChatEntryVisible)
+                if (Open && currentText.Length > 0)
                     currentText.Length--;
             }
 
@@ -162,19 +164,13 @@ namespace DarkHelmet.UI
             {
                 if (Open)
                 {
-                    if (MyAPIGateway.Gui.ChatEntryVisible)
-                    {
-                        ListReader<char> input = MyAPIGateway.Input.TextInput;
-                        currentText = inputText;
+                    ListReader<char> input = MyAPIGateway.Input.TextInput;
 
-                        for (int n = 0; n < input.Count; n++)
-                        {
-                            if (input[n] != '\b')
-                                currentText.Append(input[n]);
-                        }
+                    for (int n = 0; n < input.Count; n++)
+                    {
+                        if (input[n] != '\b')
+                            currentText.Append(input[n]);
                     }
-                    else
-                        currentText = openChatMsg;
                 }
             }
 

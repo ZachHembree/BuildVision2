@@ -66,19 +66,6 @@ namespace DarkHelmet.BuildVision2
             Instance = null;
         }
 
-        private void SelectProperty()
-        {
-            if (open)
-            {
-                int action = index - target.Properties.Count;
-
-                if (index >= target.Properties.Count)
-                    target.Actions[action].Action();
-                else
-                    selection = (selection == -1) ? index : -1;
-            }
-        }
-
         private void ScrollDown()
         {
             if (open)
@@ -91,23 +78,46 @@ namespace DarkHelmet.BuildVision2
                 UpdateSelection(1);
         }
 
+        private void SelectProperty()
+        {
+            if (open)
+            {
+                int action = index - target.Properties.Count;
+
+                if (index >= target.Properties.Count)
+                    target.Actions[action].Action();
+                else
+                {
+                    if (selection == -1)
+                    {
+                        target.Properties[index].OnSelect();
+                        selection = index;
+                    }
+                    else
+                    {
+                        target.Properties[index].OnDeselect();
+                        selection = -1;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Updates scrollable index, range of visible scrollables and input for selected property.
         /// </summary>
         private void UpdateSelection(int scrolllDir)
         {
-            if (selection != -1 && index < target.Properties.Count)
-            {
-                if (scrolllDir > 0)
-                    target.Properties[index].ScrollUp();
-                else if (scrolllDir < 0)
-                    target.Properties[index].ScrollDown();
-            }
-            else
+            if (selection == -1)
             {
                 index -= scrolllDir;
-                index = Utils.Math.Clamp(index, 0, target.ScrollableCount - 1);
+                index = Utils.Math.Clamp(index, 0, target.Count - 1);
             }
+        }
+
+        public override void HandleInput()
+        {
+            if (selection != -1)
+                target.Properties[selection].HandleInput();
         }
 
         /// <summary>

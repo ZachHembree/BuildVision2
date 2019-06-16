@@ -246,8 +246,8 @@ namespace DarkHelmet.UI
 
                     Instance.keyBinds = originalBinds;
                     RegisterControls();
-                    Instance.usedControls = Instance.GetControlsInUse();
-                    Instance.controlBindMap = Instance.GetBindMap();
+                    Instance.UpdateControlsInUse();
+                    Instance.UpdateBindMap();
 
                     return false;
                 }
@@ -284,8 +284,8 @@ namespace DarkHelmet.UI
                         if (!Instance.DoesComboConflict(newCombo, bind))
                         {
                             bind.UpdateCombo(newCombo);
-                            Instance.usedControls = Instance.GetControlsInUse();
-                            Instance.controlBindMap = Instance.GetBindMap();
+                            Instance.UpdateControlsInUse();
+                            Instance.UpdateBindMap();
 
                             return true;
                         }
@@ -363,10 +363,10 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Finds all controls associated with a key bind.
         /// </summary>
-        private List<Control> GetControlsInUse()
+        private void UpdateControlsInUse()
         {
             int count = 0;
-            List<Control> usedControls = new List<Control>(11);
+            usedControls = new List<Control>(11);
 
             foreach (Control con in controlList)
                 if (con.usedCount > 0)
@@ -375,22 +375,18 @@ namespace DarkHelmet.UI
                     con.usedIndex = count;
                     count++;
                 }
-
-            return usedControls;
         }
 
         /// <summary>
         /// Associates each control with a key bind on a 2D bool array.
         /// </summary>
-        private bool[,] GetBindMap()
+        private void UpdateBindMap()
         {
-            bool[,] controlBindMap = new bool[usedControls.Count, keyBinds.Count];
+            controlBindMap = new bool[usedControls.Count, keyBinds.Count];
 
             for (int x = 0; x < usedControls.Count; x++)
                 for (int y = 0; y < keyBinds.Count; y++)
                     controlBindMap[x, y] = keyBinds[y].UsesControl(x);
-
-            return controlBindMap;
         }
 
         /// <summary>
@@ -513,11 +509,11 @@ namespace DarkHelmet.UI
             {
                 int bindsPressed;
 
-                if (usedControls == null)
-                    usedControls = GetControlsInUse();
-
                 if (controlBindMap == null || (controlBindMap.GetLength(0) != usedControls.Count) || (controlBindMap.GetLength(1) != keyBinds.Count))
-                    controlBindMap = GetBindMap();
+                {
+                    UpdateControlsInUse();
+                    UpdateBindMap();
+                }
 
                 bindsPressed = GetPressedBinds();
 
@@ -575,10 +571,8 @@ namespace DarkHelmet.UI
             int controlHits, first, longest;
 
             // If more than one pressed bind shares the same control, the longest
-            // binds take precedence. Shorter binds are decremented each time there
-            // is a conflict. If a bind is in the process of being released and is
-            // longer than the others, it will take precedence until all keys are 
-            // released.
+            // binds take precedence. Any binds shorter than the longest will not
+            // be counted as being pressed.
             for (int x = 0; x < usedControls.Count; x++)
             {
                 first = -1;

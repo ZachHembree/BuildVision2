@@ -53,9 +53,9 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             protected virtual void GetVisibleProperties()
             {
-                if (Target.ScrollableCount <= maxVisible)
+                if (Target.Count <= maxVisible)
                 {
-                    visEnd = Target.ScrollableCount;
+                    visEnd = Target.Count;
                 }
                 else
                 {
@@ -64,7 +64,7 @@ namespace DarkHelmet.BuildVision2
                     else if (index < visStart)
                         visStart = index;
 
-                    visEnd = Utils.Math.Clamp((visStart + maxVisible), 0, Target.ScrollableCount);
+                    visEnd = Utils.Math.Clamp((visStart + maxVisible), 0, Target.Count);
                     visStart = Utils.Math.Clamp(visEnd - maxVisible, 0, visEnd);
                 }
             }
@@ -91,7 +91,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     this.index = index;
                     this.selection = selection;
-                    headerText = Target.TBlock.CustomName;
+                    headerText = ModBase.ModName;
 
                     maxVisible = ApiHudCfg.maxVisible;
                     menu.BodyColor = ApiHudCfg.colors.listBgColor;
@@ -178,13 +178,13 @@ namespace DarkHelmet.BuildVision2
                         colorCode = $"<color={ApiHudCfg.colors.bodyText}>";
 
                     if (i >= Target.Properties.Count)
-                        list[n] = colorCode + Target.Actions[action].Display;
+                        list[n] = colorCode + Target.Actions[action].Value;
                     else
                         list[n] = $"<color={ApiHudCfg.colors.bodyText}>{Target.Properties[i].Name}: {colorCode}{Target.Properties[i].Value}";
                 }
 
                 menu.ListText = list;
-                menu.FooterLeftText = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visEnd} of {Target.ScrollableCount}]";
+                menu.FooterLeftText = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visEnd} of {Target.Count}]";
 
                 if (Target.IsWorking)
                     menu.FooterRightText = $"<color={ApiHudCfg.colors.headerText}>[Working]";
@@ -218,11 +218,8 @@ namespace DarkHelmet.BuildVision2
                 {
                     this.index = index;
                     this.selection = selection;
-                    //headerText = $"{ModBase.ModName}: {Target.TBlock.CustomName}";
+                    headerText = ModBase.ModName;
                     maxVisible = NotifHudCfg.maxVisible;
-
-                    HudUtilities.TextInput.Open = true;
-                    headerText = HudUtilities.TextInput.CurrentText;
 
                     if (list == null || list.Length < ApiHudCfg.maxVisible)
                         list = new IMyHudNotification[ApiHudCfg.maxVisible];
@@ -238,7 +235,6 @@ namespace DarkHelmet.BuildVision2
             public override void Hide()
             {
                 header.Hide();
-                HudUtilities.TextInput.Open = false;
 
                 foreach (IMyHudNotification prop in list)
                 {
@@ -258,7 +254,7 @@ namespace DarkHelmet.BuildVision2
 
                 header.Show();
                 header.AliveTime = int.MaxValue;
-                header.Text = $"{headerText} ({visStart + 1} - {visEnd} of {Target.ScrollableCount})";
+                header.Text = $"{headerText} ({visStart + 1} - {visEnd} of {Target.Count})";
 
                 for (int notif = 0; notif < elements; notif++)
                 {
@@ -274,9 +270,9 @@ namespace DarkHelmet.BuildVision2
 
                     // get name
                     if (i >= Target.Properties.Count)
-                        list[notif].Text = Target.Actions[action].Display;
+                        list[notif].Text = Target.Actions[action].Value;
                     else
-                        list[notif].Text = Target.Properties[i].Display;
+                        list[notif].Text = $"{Target.Properties[i].Name}: {Target.Properties[i].Value}";
 
                     // get color
                     if (i == selection)

@@ -15,52 +15,41 @@ using IMyBatteryBlock = Sandbox.ModAPI.Ingame.IMyBatteryBlock;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
 using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
 using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
+using DarkHelmet.UI;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal interface IScrollableElement
+    internal interface IBlockMember
     {
         /// <summary>
-        /// Retrieves the block element name and current value.
+        /// Retrieves the current value of the block member as a string
         /// </summary>
-        string Display { get; }
+        string Value { get; }
     }
 
-    internal interface IScrollableText : IScrollableElement
+    internal interface IBlockProperty : IBlockMember
     {
-        string Text { get; set; }
+        /// <summary>
+        /// Retrieves the name of the block property
+        /// </summary>
+        string Name { get; }
 
+        void OnSelect();
+
+        void OnDeselect();
+
+        /// <summary>
+        /// Updates input of the property.
+        /// </summary>
+        void HandleInput();
     }
 
-    internal interface IScrollableAction : IScrollableElement
+    internal interface IBlockAction : IBlockMember
     {
         /// <summary>
         /// Triggers action associated with block;
         /// </summary>
         void Action();
-    }
-
-    internal interface IScrollableProp : IScrollableElement
-    {
-        /// <summary>
-        /// Retrieves the name of the block
-        /// </summary>
-        string Name { get; }
-
-        /// <summary>
-        /// Retrieves the current value of the block property as a string
-        /// </summary>
-        string Value { get; }
-
-        /// <summary>
-        /// Decreases block property value each time its called.
-        /// </summary>
-        void ScrollDown();
-
-        /// <summary>
-        /// Increases block property value each time its called.
-        /// </summary>
-        void ScrollUp();
     }
 
     /// <summary>
@@ -69,9 +58,9 @@ namespace DarkHelmet.BuildVision2
     internal class PropertyBlock
     {
         public IMyTerminalBlock TBlock { get; private set; }
-        public List<IScrollableAction> Actions { get; private set; }
-        public List<IScrollableProp> Properties { get; private set; }
-        public int ScrollableCount { get; private set; }
+        public List<IBlockProperty> Properties { get; private set; }
+        public List<IBlockAction> Actions { get; private set; }
+        public int Count { get { return Properties.Count + Actions.Count; } }
         public bool IsFunctional { get { return TBlock.IsFunctional; } }
         public bool IsWorking { get { return TBlock.IsWorking; } }
         public bool CanLocalPlayerAccess { get { return TBlock.HasLocalPlayerAccess(); } }
@@ -80,10 +69,11 @@ namespace DarkHelmet.BuildVision2
         public PropertyBlock(IMyTerminalBlock tBlock)
         {
             TBlock = tBlock;
+            Properties = new List<IBlockProperty>(10);
+            Actions = new List<IBlockAction>();
 
-            Actions = GetScrollableActions();
-            Properties = GetScrollableProps();
-            ScrollableCount = Actions.Count + Properties.Count;
+            GetScrollableProps();
+            GetScrollableActions();
         }
 
         /// <summary>
@@ -93,52 +83,34 @@ namespace DarkHelmet.BuildVision2
             TBlock.GetPosition();
 
         /// <summary>
-        /// Retrieves a set of custom block actions.
-        /// </summary>
-        private List<IScrollableAction> GetScrollableActions()
-        {
-            List<IScrollableAction> actions = new List<IScrollableAction>();
-
-            if (TBlock is IMyMechanicalConnectionBlock)
-            {
-                BlockAction.GetMechActions(TBlock, actions);
-            }
-            else if (TBlock is IMyDoor)
-            {
-                BlockAction.GetDoorActions(TBlock, actions);
-            }
-            else if (TBlock is IMyWarhead)
-            {
-                BlockAction.GetWarheadActions(TBlock, actions);
-            }
-            else if (TBlock is IMyLandingGear)
-            {
-                BlockAction.GetGearActions(TBlock, actions);
-            }
-            else if (TBlock is IMyShipConnector)
-            {
-                BlockAction.GetConnectorActions(TBlock, actions);
-            }
-            else if (TBlock is IMyParachute)
-            {
-                BlockAction.GetChuteActions(TBlock, actions);
-            }
-
-            return actions;
-        }
-
-        /// <summary>
         /// Retrieves all block ITerminalProperty values.
         /// </summary>
-        private List<IScrollableProp> GetScrollableProps()
+        private void GetScrollableProps()
         {
             List<ITerminalProperty> properties = new List<ITerminalProperty>(12);
-            List<IScrollableProp> scrollables;
             IMyTerminalControl terminalControl;
             string name;
 
+            Properties.Add
+            (
+                new TextProperty("Name",
+                    () => TBlock.CustomName,
+                    x => TBlock.CustomName = x)
+            );
+
+            if (TBlock is IMyBatteryBlock)
+            {
+                IMyBatteryBlock batteryBlock = (IMyBatteryBlock)TBlock;
+
+                Properties.Add
+                (
+                    new EnumProperty<ChargeMode>("Charge Mode",
+                        () => batteryBlock.ChargeMode,
+                        x => batteryBlock.ChargeMode = x)
+                );
+            }
+
             TBlock.GetProperties(properties);
-            scrollables = new List<IScrollableProp>(properties.Count);
 
             foreach (ITerminalProperty prop in properties)
             {
@@ -149,23 +121,49 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (prop is ITerminalProperty<bool>)
                     {
-                        scrollables.Add(new BoolProperty(name, (ITerminalProperty<bool>)prop, this));
+                        Properties.Add(new BoolProperty(name, (ITerminalProperty<bool>)prop, this));
                     }
                     else if (prop is ITerminalProperty<float>)
                     {
-                        scrollables.Add(new FloatProperty(name, (ITerminalProperty<float>)prop, this));
+                        Properties.Add(new FloatProperty(name, (ITerminalProperty<float>)prop, this));
                     }
                     else if (prop is ITerminalProperty<Color>)
                     {
-                        scrollables.AddRange(ColorProperty.GetColorProperties(name, this, (ITerminalProperty<Color>)prop));
+                        Properties.AddRange(ColorProperty.GetColorProperties(name, this, (ITerminalProperty<Color>)prop));
                     }
                 }
             }
+        }
 
-            if (TBlock is IMyBatteryBlock)
-                scrollables.Add(new BattProperty((IMyBatteryBlock)TBlock));
-
-            return scrollables;
+        /// <summary>
+        /// Retrieves a set of custom block actions.
+        /// </summary>
+        private void GetScrollableActions()
+        {
+            if (TBlock is IMyMechanicalConnectionBlock)
+            {
+                BlockAction.GetMechActions(TBlock, Actions);
+            }
+            else if (TBlock is IMyDoor)
+            {
+                BlockAction.GetDoorActions(TBlock, Actions);
+            }
+            else if (TBlock is IMyWarhead)
+            {
+                BlockAction.GetWarheadActions(TBlock, Actions);
+            }
+            else if (TBlock is IMyLandingGear)
+            {
+                BlockAction.GetGearActions(TBlock, Actions);
+            }
+            else if (TBlock is IMyShipConnector)
+            {
+                BlockAction.GetConnectorActions(TBlock, Actions);
+            }
+            else if (TBlock is IMyParachute)
+            {
+                BlockAction.GetChuteActions(TBlock, Actions);
+            }
         }
 
         /// <summary>
@@ -182,9 +180,10 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Custom block actions
         /// </summary>
-        private class BlockAction : IScrollableAction
+        private class BlockAction : IBlockAction
         {
-            public string Display { get { return GetDisplay(); } }
+            //public string Name { get; } = null;
+            public string Value { get { return GetDisplay(); } }
             private Action ActionDelegate { get; set; }
             private Func<string> GetDisplay { get; set; }
 
@@ -200,7 +199,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyMechanicalConnectionBlock.
             /// </summary>
-            public static void GetMechActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
+            public static void GetMechActions(IMyTerminalBlock tBlock, List<IBlockAction> actions)
             {
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
                 IMyMechanicalConnectionBlock mechBlock = (IMyMechanicalConnectionBlock)tBlock;
@@ -259,7 +258,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyDoor.
             /// </summary>
-            public static void GetDoorActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
+            public static void GetDoorActions(IMyTerminalBlock tBlock, List<IBlockAction> actions)
             {
                 IMyDoor doorBlock = (IMyDoor)tBlock;
 
@@ -271,7 +270,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyWarhead.
             /// </summary>
-            public static void GetWarheadActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
+            public static void GetWarheadActions(IMyTerminalBlock tBlock, List<IBlockAction> actions)
             {
                 IMyWarhead warhead = (IMyWarhead)tBlock;
 
@@ -289,7 +288,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyLandingGear.
             /// </summary>
-            public static void GetGearActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
+            public static void GetGearActions(IMyTerminalBlock tBlock, List<IBlockAction> actions)
             {
                 IMyLandingGear landingGear = (IMyLandingGear)tBlock;
 
@@ -313,7 +312,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyShipConnector.
             /// </summary>
-            public static void GetConnectorActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
+            public static void GetConnectorActions(IMyTerminalBlock tBlock, List<IBlockAction> actions)
             {
                 IMyShipConnector connector = (IMyShipConnector)tBlock;
 
@@ -337,7 +336,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyParachute.
             /// </summary>
-            public static void GetChuteActions(IMyTerminalBlock tBlock, List<IScrollableAction> actions)
+            public static void GetChuteActions(IMyTerminalBlock tBlock, List<IBlockAction> actions)
             {
                 IMyParachute parachute = (IMyParachute)tBlock;
 
@@ -362,81 +361,140 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
+        /// Field for changing block property text. 
+        /// </summary>
+        private class TextProperty : IBlockProperty
+        {
+            public string Name { get; }
+            public string Value { get { return GetCurrentValue(); } }
+
+            private bool selected;
+            private readonly Func<string> GetValueFunc;
+            private readonly Action<string> SetValueAction;
+
+            public TextProperty(string name, Func<string> GetValueFunc, Action<string> SetValueAction)
+            {
+                Name = name;
+                this.GetValueFunc = GetValueFunc;
+                this.SetValueAction = SetValueAction;
+            }
+
+            public void OnSelect()
+            {
+                HudUtilities.TextInput.CurrentText = Value;
+                selected = true;
+            }
+
+            public void OnDeselect()
+            {
+                HudUtilities.TextInput.Open = false;
+                SetValueAction(HudUtilities.TextInput.CurrentText);
+                selected = false;
+            }
+
+            public void HandleInput()
+            {
+                HudUtilities.TextInput.Open = selected && MyAPIGateway.Gui.ChatEntryVisible;
+            }
+
+            private string GetCurrentValue()
+            {
+                if (selected)
+                {
+                    if (MyAPIGateway.Gui.ChatEntryVisible)
+                        return HudUtilities.TextInput.CurrentText;
+                    else
+                        return "Please Open Chat to Continue";
+                }
+                else
+                    return GetValueFunc();
+            }
+        }
+
+        /// <summary>
+        /// Base for block properties that use scrolling for input.
+        /// </summary>
+        private abstract class ScrollablePropBase : IBlockProperty
+        {
+            public virtual string Name { get; protected set; }
+
+            public abstract string Value { get; }
+
+            public virtual void OnSelect() { }
+
+            public virtual void OnDeselect() { }
+
+            public void HandleInput()
+            {
+                if (KeyBinds.ScrollUp.IsPressedAndHeld)
+                    ScrollUp();
+
+                if (KeyBinds.ScrollDown.IsPressedAndHeld)
+                    ScrollDown();
+            }
+
+            protected abstract void ScrollUp();
+
+            protected abstract void ScrollDown();
+        }
+
+        /// <summary>
         /// Scrollable property for battery charge modes
         /// </summary>
-        private class BattProperty : IScrollableProp
+        private class EnumProperty<T> : ScrollablePropBase where T : struct, IComparable
         {
-            public string Display { get { return Name + ": " + Value; } }
-            public string Name { get; } = "Charge Mode";
-            public string Value { get { return GetChargeModeName(); } }
+            public override string Value { get { return GetEnumFunc().ToString(); } }
 
-            private readonly IMyBatteryBlock battery;
+            private static readonly T[] enums;
+            private readonly Func<T> GetEnumFunc;
+            private readonly Action<T> SetEnumAction;
             private int index;
 
-            public BattProperty(IMyBatteryBlock battery)
+            static EnumProperty()
             {
-                this.battery = battery;
-                index = GetChargeModeIndex();
+                enums = (T[])Enum.GetValues(typeof(T));
             }
 
-            public void ScrollDown() =>
-                ChangeChargeMode(true);
-
-            public void ScrollUp() =>
-                ChangeChargeMode(false);
-
-            private void ChangeChargeMode(bool scrollUp)
+            public EnumProperty(string name, Func<T> GetEnumFunc, Action<T> SetEnumAction)
             {
-                index = GetChargeModeIndex();
+                Name = name;
+                this.GetEnumFunc = GetEnumFunc;
+                this.SetEnumAction = SetEnumAction;
 
-                if (scrollUp)
-                    index--;
-                else
-                    index++;
-
-                index = Utils.Math.Clamp(index, 1, 3);
-
-                if (index == 1)
-                    battery.ChargeMode = ChargeMode.Auto;
-                else if (index == 2)
-                    battery.ChargeMode = ChargeMode.Discharge;
-                else if (index == 3)
-                    battery.ChargeMode = ChargeMode.Recharge;
+                index = GetEnumIndex();
             }
 
-            private int GetChargeModeIndex()
+            protected override void ScrollDown() =>
+                SetEnum(-1);
+
+            protected override void ScrollUp() =>
+                SetEnum(1);
+
+            private void SetEnum(int scrollDir)
             {
-                if (battery.ChargeMode == ChargeMode.Auto)
-                    return 1;
-                else if (battery.ChargeMode == ChargeMode.Discharge)
-                    return 2;
-                else if (battery.ChargeMode == ChargeMode.Recharge)
-                    return 3;
-                else
-                    return 0;
+                index += scrollDir;
+                index = Utils.Math.Clamp(index, 0, enums.Length - 1);
+                SetEnumAction(enums[index]);
             }
 
-            private string GetChargeModeName()
+            private int GetEnumIndex()
             {
-                if (index == 1)
-                    return "Auto";
-                else if (index == 2)
-                    return "Discharge";
-                else if (index == 3)
-                    return "Recharge";
-                else
-                    return "null";
+                for (int n = 0; n < enums.Length; n++)
+                {
+                    if (enums[n].Equals(GetEnumFunc()))
+                        return n;
+                }
+
+                return -1;
             }
         }
 
         /// <summary>
         /// Block Terminal Property of a Boolean
         /// </summary>
-        private class BoolProperty : IScrollableProp
+        private class BoolProperty : ScrollablePropBase
         {
-            public string Name { get; private set; }
-            public string Value { get { return GetPropStateText(); } }
-            public string Display { get { return Name + ": " + Value; } }
+            public override string Value { get { return GetPropStateText(); } }
 
             private readonly PropertyBlock pBlock;
             private readonly ITerminalProperty<bool> prop;
@@ -463,13 +521,13 @@ namespace DarkHelmet.BuildVision2
                 Name = name;
             }
 
-            public void ScrollDown()
+            protected override void ScrollDown()
             {
                 if (prop.GetValue(pBlock.TBlock) == true)
                     prop.SetValue(pBlock.TBlock, false);
             }
 
-            public void ScrollUp()
+            protected override void ScrollUp()
             {
                 if (prop.GetValue(pBlock.TBlock) == false)
                     prop.SetValue(pBlock.TBlock, true);
@@ -490,11 +548,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Block Terminal Property of a Float
         /// </summary>
-        private class FloatProperty : IScrollableProp
+        private class FloatProperty : ScrollablePropBase
         {
-            public string Name { get; private set; }
-            public string Value { get { return prop.GetValue(pBlock.TBlock).ToString(); } }
-            public string Display { get { return Name + ": " + Value; } }
+            public override string Value { get { return prop.GetValue(pBlock.TBlock).ToString(); } }
 
             private readonly PropertyBlock pBlock;
             private readonly ITerminalProperty<float> prop;
@@ -538,10 +594,10 @@ namespace DarkHelmet.BuildVision2
                 incrA = incr0 * Cfg.floatMult.X; // x0.1
             }
 
-            public void ScrollDown() =>
+            protected override void ScrollDown() =>
                 ChangePropValue(-GetIncrement());
 
-            public void ScrollUp() =>
+            protected override void ScrollUp() =>
                 ChangePropValue(+GetIncrement());
 
             /// <summary>
@@ -581,11 +637,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Block Terminal Property for individual color channels of a VRageMath.Color
         /// </summary>
-        private class ColorProperty : IScrollableProp
+        private class ColorProperty : ScrollablePropBase
         {
-            public string Name { get; private set; }
-            public string Value { get { return colorDisp(); } }
-            public string Display { get { return Name + colorDisp(); } }
+            public override string Value { get { return colorDisp(); } }
 
             private readonly PropertyBlock pBlock;
             private readonly ITerminalProperty<Color> property;
@@ -618,9 +672,9 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns a scrollable property for each color channel in an ITerminalProperty<Color> object
             /// </summary>
-            public static IScrollableProp[] GetColorProperties(string name, PropertyBlock pBlock, ITerminalProperty<Color> prop)
+            public static ColorProperty[] GetColorProperties(string name, PropertyBlock pBlock, ITerminalProperty<Color> prop)
             {
-                return new IScrollableProp[]
+                return new ColorProperty[]
                 {
                     new ColorProperty(name, pBlock, prop, new Color(1, 0, 0), () => (" R: " + prop.GetValue(pBlock.TBlock).R)), // R
                     new ColorProperty(name, pBlock, prop, new Color(0, 1, 0), () => (" G: " + prop.GetValue(pBlock.TBlock).G)), // G
@@ -628,10 +682,10 @@ namespace DarkHelmet.BuildVision2
                 };
             }
 
-            public void ScrollDown() =>
+            protected override void ScrollDown() =>
                 ChangePropValue(false);
 
-            public void ScrollUp() =>
+            protected override void ScrollUp() =>
                 ChangePropValue(true);
 
             /// <summary>
