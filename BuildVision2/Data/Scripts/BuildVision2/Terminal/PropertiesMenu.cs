@@ -34,8 +34,8 @@ namespace DarkHelmet.BuildVision2
         }
         private static PropertiesMenu instance;
 
-        private ApiHud apiHud;
-        private NotifHud fallbackHud;
+        private readonly ApiHud apiHud;
+        private readonly NotifHud fallbackHud;
         private int index, selection;
 
         private PropertiesMenu()
@@ -110,7 +110,7 @@ namespace DarkHelmet.BuildVision2
             if (selection == -1)
             {
                 index -= scrolllDir;
-                index = Utils.Math.Clamp(index, 0, target.Count - 1);
+                index = Utils.Math.Clamp(index, 0, target.ElementCount - 1);
             }
         }
 
@@ -125,25 +125,45 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public override void Update()
         {
-            if (open && target != null)
+            if (target != null)
             {
-                if (HudUtilities.Heartbeat && !Cfg.forceFallbackHud)
+                if (open)
                 {
-                    if (fallbackHud.Open)
-                        fallbackHud.Hide();
+                    if (HudUtilities.Heartbeat && !Cfg.forceFallbackHud)
+                    {
+                        if (fallbackHud.Open)
+                            fallbackHud.Hide();
 
-                    apiHud.Update(index, selection);
+                        if (!apiHud.Open)
+                            apiHud.Show();
+
+                        apiHud.Update(index, selection);
+                    }
+                    else
+                    {
+                        if (apiHud.Open)
+                            apiHud.Hide();
+
+                        if (!fallbackHud.Open)
+                            fallbackHud.Show();
+
+                        fallbackHud.Update(index, selection);
+                    }
                 }
                 else
                 {
-                    if (apiHud.Open)
-                        apiHud.Hide();
+                    apiHud.Hide();
+                    fallbackHud.Hide();
 
-                    fallbackHud.Update(index, selection);
+                    if (index < target.Properties.Count && selection != -1)
+                    {
+                        target.Properties[selection].OnDeselect();
+                        selection = -1;
+                    }
+
+                    index = 0;
                 }
             }
-            else
-                Hide();
         }
 
         /// <summary>
@@ -152,8 +172,6 @@ namespace DarkHelmet.BuildVision2
         public static void Show()
         {
             Instance.open = true;
-            Instance.apiHud.Show();
-            Instance.fallbackHud.Show();
         }
 
         /// <summary>
@@ -162,11 +180,6 @@ namespace DarkHelmet.BuildVision2
         public static void Hide()
         {
             Instance.open = false;
-            Instance.apiHud.Hide();
-            Instance.fallbackHud.Hide();
-
-            Instance.index = 0;
-            Instance.selection = -1;
         }
     }
 }

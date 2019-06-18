@@ -1,12 +1,8 @@
-﻿using Sandbox.ModAPI;
-using System.Collections.Generic;
-using System.Text;
-using VRageMath;
-using VRage.Utils;
-using VRage.Game;
-using System;
+﻿using DarkHelmet.Game;
 using DarkHelmet.UI.TextHudApi;
-using DarkHelmet.Game;
+using System;
+using System.Collections.Generic;
+using VRageMath;
 using MenuFlag = DarkHelmet.UI.TextHudApi.HudAPIv2.MenuRootCategory.MenuFlag;
 
 namespace DarkHelmet.UI
@@ -379,11 +375,11 @@ namespace DarkHelmet.UI
             }
 
             private IMenuCategory parent;
-            private string queryText;
-            private Func<float> CurrentValueAction;
-            private Action<float> OnUpdateAction;
-            private float min, max, range;
-            private int rounding;
+            private readonly string queryText;
+            private readonly Func<float> CurrentValueAction;
+            private readonly Action<float> OnUpdateAction;
+            private readonly float min, max, range;
+            private readonly int rounding;
             private float start;
 
             public MenuSliderInput(Func<string> GetName, string queryText, float min, float max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null) : base(GetName, parent)
@@ -402,13 +398,13 @@ namespace DarkHelmet.UI
                 : this(() => name, queryText, min, max, GetCurrentValue, OnUpdate, parent) { }
 
             public MenuSliderInput(Func<string> GetName, string queryText, int min, int max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null)
-                : this(GetName, queryText, (float)min, (float)max, GetCurrentValue, OnUpdate, parent)
+                : this(GetName, queryText, min, (float)max, GetCurrentValue, OnUpdate, parent)
             {
                 this.rounding = 0;
             }
 
             public MenuSliderInput(string name, string queryText, int min, int max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null)
-                : this(name, queryText, (float)min, (float)max, GetCurrentValue, OnUpdate, parent)
+                : this(name, queryText, min, (float)max, GetCurrentValue, OnUpdate, parent)
             {
                 this.rounding = 0;
             }

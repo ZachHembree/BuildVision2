@@ -1,6 +1,6 @@
-﻿using System.Xml.Serialization;
-using DarkHelmet.IO;
+﻿using DarkHelmet.IO;
 using DarkHelmet.UI;
+using System.Xml.Serialization;
 using VRageMath;
 
 namespace DarkHelmet.BuildVision2
@@ -35,20 +35,10 @@ namespace DarkHelmet.BuildVision2
         public override void Validate()
         {
             if (VersionID < 6)
-            {
-                menu.apiHudConfig.resolutionScaling = ApiHudConfig.Defaults.resolutionScaling;
-                menu.apiHudConfig.hudScale = ApiHudConfig.Defaults.hudScale;
-                menu.apiHudConfig.maxVisible = ApiHudConfig.Defaults.maxVisible;
-                menu.apiHudConfig.colors.headerColor = ApiHudConfig.Defaults.colors.headerColor;
-                menu.apiHudConfig.colors.listBgColor = ApiHudConfig.Defaults.colors.listBgColor;
-                menu.apiHudConfig.colors.selectionBoxColor = ApiHudConfig.Defaults.colors.selectionBoxColor;
-            }
+                menu.apiHudConfig = ApiHudConfig.Defaults;
 
             if (VersionID < 5)
                 block = PropBlockConfig.Defaults;
-
-            if (VersionID < 4)
-                menu.apiHudConfig = ApiHudConfig.Defaults;
 
             if (VersionID != Defaults.VersionID)
                 VersionID = Defaults.VersionID;
@@ -91,9 +81,6 @@ namespace DarkHelmet.BuildVision2
                 canOpenIfHolding = true
             };
         }
-
-        public override void Validate()
-        { }
     }
 
     public class PropMenuConfig : Config<PropMenuConfig>

@@ -3,7 +3,6 @@ using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Timers;
 using System.Xml.Serialization;
 using VRage.Input;
 
@@ -96,26 +95,18 @@ namespace DarkHelmet.UI
     /// </summary>
     public sealed class BindManager : ModBase.ComponentBase
     {
-        /// <summary>
-        /// Total number of key binds
-        /// </summary>
-        public static int Count { get { return Instance.keyBinds.Count; } }
-
         private static BindManager Instance
         {
             get { Init(); return instance; }
             set { instance = value; }
         }
         private static BindManager instance;
-
+        private static readonly Dictionary<string, Control> controls;
+        private static readonly List<Control> controlList;
         private const int maxBindLength = 3;
-        private static Dictionary<string, Control> controls;
-        private static List<Control> controlList;
+        private const long holdTime = TimeSpan.TicksPerMillisecond * 500;
 
-        private List<KeyBind> keyBinds;
-        private List<Control> usedControls;
-        private bool[,] controlBindMap; // X = used controls; Y = associated key binds
-        private int[] bindHits;
+        private readonly List<Group> bindGroups;
 
         static BindManager()
         {
@@ -126,7 +117,7 @@ namespace DarkHelmet.UI
 
         private BindManager()
         {
-            keyBinds = new List<KeyBind>();
+            bindGroups = new List<Group>();
         }
 
         private static void Init()
@@ -135,205 +126,29 @@ namespace DarkHelmet.UI
                 instance = new BindManager();
         }
 
+        public override void HandleInput()
+        {
+            foreach (Group group in bindGroups)
+                group.HandleInput();
+        }
+
         public override void Close()
         {
-            foreach (KeyBind bind in keyBinds)
-            {
-                bind.ClearSubscribers();
-                bind.UnregisterControls();
-            }
+            foreach (Group group in bindGroups)
+                group.UnregisterBinds();
 
             Instance = null;
         }
 
-        /// <summary>
-        /// Attempts to create a set of empty key binds given only the names of the binds.
-        /// </summary>
-        public static void RegisterBinds(string[] bindNames, bool silent = false)
+        public static Group GetBindGroup(string name)
         {
-            bool areAnyDuplicated = false;
-
-            foreach (string name in bindNames)
-                if (!TryRegisterBind(name, true))
-                    areAnyDuplicated = true;
-
-            if (areAnyDuplicated && !silent)
-                ModBase.SendChatMessage("Some of the binds supplied contain duplicates or already existed.");
-        }
-
-        /// <summary>
-        /// Attempts to add a create a new key bind with a given name.
-        /// </summary>
-        public static bool TryRegisterBind(string bindName, bool silent = false)
-        {
-            if (!DoesBindExist(bindName))
+            foreach (Group group in Instance.bindGroups)
             {
-                Instance.keyBinds.Add(new KeyBind(bindName));
-
-                return true;
-            }
-            else if (!silent)
-                ModBase.SendChatMessage($"Bind {bindName} already exists.");
-
-            return false;
-        }
-
-        /// <summary>
-        /// Attempts to create a set of key binds given the name of the bind and the controls names for that bind.
-        /// </summary>
-        public static void RegisterBinds(KeyBindData[] binds, bool silent = false)
-        {
-            bool areAnyDuplicated = false;
-
-            foreach (KeyBindData bind in binds)
-                if (!TryRegisterBind(bind, true))
-                    areAnyDuplicated = true;
-
-            if (areAnyDuplicated && !silent)
-                ModBase.SendChatMessage("Some of the bind names supplied contain duplicates or were added previously.");
-        }
-
-        /// <summary>
-        /// Attempts to create a new <see cref="IKeyBind"/> from <see cref="KeyBindData"/> and add it to the bind list.
-        /// </summary>
-        public static bool TryRegisterBind(KeyBindData bind, bool silent = false)
-        {
-            if (!DoesBindExist(bind.name))
-            {
-                Instance.keyBinds.Add(new KeyBind(bind.name));
-
-                if (bind.controlNames != null)
-                    TryUpdateBind(bind.name, bind.controlNames, silent);
-
-                return true;
-            }
-            else if (!silent)
-                ModBase.SendChatMessage($"Bind {bind.name} already exists.");
-
-            return false;
-        }
-
-        /// <summary>
-        /// Replaces current keybind configuration with a new one based on the given KeyBindData. Will not register new binds.
-        /// </summary>
-        public static bool TryUpdateBinds(KeyBindData[] bindData)
-        {
-            List<KeyBind> originalBinds;
-            bool bindError = false;
-
-            if (bindData != null && bindData.Length > 0)
-            {
-                UnregisterControls();
-                originalBinds = Instance.keyBinds;
-                Instance.keyBinds = new List<KeyBind>(Instance.keyBinds.Count);
-
-                foreach (KeyBind bind in originalBinds)
-                    Instance.keyBinds.Add(new KeyBind(bind.Name));
-
-                foreach (KeyBindData bind in bindData)
-                {
-                    if (!TryUpdateBind(bind.name, bind.controlNames, true))
-                    {
-                        bindError = true;
-                        break;
-                    }
-                }
-
-                if (bindError)
-                {
-                    ModBase.SendChatMessage("One or more keybinds in the given configuration were invalid or conflict with oneanother.");
-                    UnregisterControls();
-
-                    Instance.keyBinds = originalBinds;
-                    RegisterControls();
-                    Instance.UpdateControlsInUse();
-                    Instance.UpdateBindMap();
-
-                    return false;
-                }
-                else
-                {
-                    for (int n = 0; n < originalBinds.Count; n++)
-                        originalBinds[n].TransferSubscribers(Instance.keyBinds[n]);
-
-                    return true;
-                }
-            }
-            else
-            {
-                ModBase.SendChatMessage("Bind data cannot be null or empty.");
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Tries to update a key bind using the name of the key bind and the names of the controls to be bound. Case sensitive.
-        /// </summary>
-        public static bool TryUpdateBind(string bindName, string[] controlNames, bool silent = false)
-        {
-            if (controlNames.Length <= maxBindLength && controlNames.Length > 0)
-            {
-                string[] uniqueControls = controlNames.GetUnique();
-                KeyBind bind = GetBindByName(bindName) as KeyBind;
-                Control[] newCombo;
-
-                if (bind != null)
-                {
-                    if (Instance.TryGetCombo(uniqueControls, out newCombo))
-                    {
-                        if (!Instance.DoesComboConflict(newCombo, bind))
-                        {
-                            bind.UpdateCombo(newCombo);
-                            Instance.UpdateControlsInUse();
-                            Instance.UpdateBindMap();
-
-                            return true;
-                        }
-                        else if (!silent)
-                            ModBase.SendChatMessage($"Invalid bind for {bindName}. One or more of the given controls conflict with existing binds.");
-                    }
-                    else if (!silent)
-                        ModBase.SendChatMessage($"Invalid bind for {bindName}. One or more control names were not recognised.");
-                }
-            }
-            else if (!silent)
-            {
-                if (controlNames.Length > 0)
-                    ModBase.SendChatMessage($"Invalid key bind. No more than {maxBindLength} keys in a bind are allowed.");
-                else
-                    ModBase.SendChatMessage("Invalid key bind. There must be at least one control in a key bind.");
+                if (group.name == name)
+                    return group;
             }
 
-            return false;
-        }
-
-        private static void RegisterControls()
-        {
-            foreach (KeyBind bind in Instance.keyBinds)
-                bind.RegisterControls();
-        }
-
-        private static void UnregisterControls()
-        {
-            foreach (KeyBind bind in Instance.keyBinds)
-                bind.UnregisterControls();
-        }
-
-        /// <summary>
-        /// Tries to create a key combo from a list of control names.
-        /// </summary>
-        private bool TryGetCombo(IList<string> controlNames, out Control[] newCombo)
-        {
-            Control con;
-            newCombo = new Control[controlNames.Count];
-
-            for (int n = 0; n < controlNames.Count; n++)
-                if (controls.TryGetValue(controlNames[n].ToLower(), out con))
-                    newCombo[n] = con;
-                else
-                    return false;
-
-            return true;
+            return null;
         }
 
         /// <summary>
@@ -341,92 +156,25 @@ namespace DarkHelmet.UI
         /// </summary>
         private static void GetControls()
         {
-            string name;
-
             controlList.Add(new Control("MousewheelUp",
                 () => MyAPIGateway.Input.DeltaMouseScrollWheelValue() > 0, true));
             controlList.Add(new Control("MousewheelDown",
                 () => MyAPIGateway.Input.DeltaMouseScrollWheelValue() < 0, true));
 
-            foreach (MyKeys seKey in Enum.GetValues(typeof(MyKeys)))
-                controlList.Add(new Control(seKey));
+            controls.Add("mousewheelup", controlList[0]);
+            controls.Add("mousewheeldown", controlList[1]);
 
-            foreach (Control con in controlList)
+            foreach (MyKeys seKey in Enum.GetValues(typeof(MyKeys)))
             {
-                name = con.Name.ToLower();
+                Control con = new Control(seKey);
+                string name = con.Name.ToLower();
 
                 if (!controls.ContainsKey(name))
-                    controls.Add(name, con);
-            }
-        }
-
-        /// <summary>
-        /// Finds all controls associated with a key bind.
-        /// </summary>
-        private void UpdateControlsInUse()
-        {
-            int count = 0;
-            usedControls = new List<Control>(11);
-
-            foreach (Control con in controlList)
-                if (con.usedCount > 0)
                 {
-                    usedControls.Add(con);
-                    con.usedIndex = count;
-                    count++;
+                    controls.Add(name, con);
+                    controlList.Add(con);
                 }
-        }
-
-        /// <summary>
-        /// Associates each control with a key bind on a 2D bool array.
-        /// </summary>
-        private void UpdateBindMap()
-        {
-            controlBindMap = new bool[usedControls.Count, keyBinds.Count];
-
-            for (int x = 0; x < usedControls.Count; x++)
-                for (int y = 0; y < keyBinds.Count; y++)
-                    controlBindMap[x, y] = keyBinds[y].UsesControl(x);
-        }
-
-        /// <summary>
-        /// Returns true if a keybind with the given name exists.
-        /// </summary>
-        public static bool DoesBindExist(string name)
-        {
-            foreach (KeyBind bind in Instance.keyBinds)
-                if (bind.Name == name)
-                    return true;
-
-            return false;
-        }
-
-        public static IKeyBind[] GetKeyBinds()
-        {
-            return Instance.keyBinds.ToArray() as IKeyBind[];
-        }
-
-        /// <summary>
-        /// Retrieves key bind using its index.
-        /// </summary>
-        public static IKeyBind GetBindByIndex(int index)
-        {
-            return Instance.keyBinds[index];
-        }
-
-        /// <summary>
-        /// Retrieves key bind using its name.
-        /// </summary>
-        public static IKeyBind GetBindByName(string name)
-        {
-            name = name.ToLower();
-
-            foreach (KeyBind bind in Instance.keyBinds)
-                if (bind.Name == name)
-                    return bind;
-
-            ModBase.SendChatMessage($"{name} is not a valid bind name.");
-            return null;
+            }
         }
 
         /// <summary>
@@ -436,181 +184,493 @@ namespace DarkHelmet.UI
         {
             StringBuilder sb = new StringBuilder();
 
-            foreach (Control con in controlList)
-                sb.AppendLine(con.Name);
+            foreach (KeyValuePair<string, Control> pair in controls)
+                sb.AppendLine(pair.Key);
 
             return sb.ToString();
         }
 
         /// <summary>
-        /// Returns true if all key binds are instantiated and have at least one control.
+        /// Contains a set of keybinds independent of other groups. While a group's own binds cannot conflict with oneanother,
+        /// binds from other groups can.
         /// </summary>
-        public static bool AreAllBindsInitialized()
+        public class Group
         {
-            int initCount = 0;
+            public readonly string name;
 
-            foreach (KeyBind bind in Instance.keyBinds)
-                if (bind != null && bind.Count > 0)
-                    initCount++;
+            public IKeyBind this[int index] { get { return keyBinds[index]; } }
+            public IKeyBind this[string name] { get { return GetBindByName(name); } }
+            public int Count { get { return keyBinds.Count; } }
 
-            return initCount == Instance.keyBinds.Count;
-        }
+            private List<Bind> keyBinds;
+            private List<Control> usedControls;
+            private bool[,] controlBindMap; // X = used controls; Y = associated key binds
+            private int[] bindHits;
+            private readonly bool wereAnyPressed, areAnyPressed;
+            private readonly int index;
 
-        /// <summary>
-        /// Retrieves the set of key binds as an array of KeyBindData
-        /// </summary>
-        public static KeyBindData[] GetBindData()
-        {
-            KeyBindData[] bindData = new KeyBindData[Count];
-
-            for (int n = 0; n < Instance.keyBinds.Count; n++)
-                bindData[n] = Instance.keyBinds[n].GetKeyBindData();
-
-            return bindData;
-        }
-
-        /// <summary>
-        /// Determines if given combo is equivalent to any existing binds.
-        /// </summary>
-        private bool DoesComboConflict(IControl[] newCombo, IKeyBind exception = null)
-        {
-            int matchCount;
-
-            for (int n = 0; n < keyBinds.Count; n++)
-                if (keyBinds[n] != exception && keyBinds[n].Count == newCombo.Length)
-                {
-                    matchCount = 0;
-
-                    foreach (Control con in newCombo)
-                        if (BindUsesControl(n, con))
-                            matchCount++;
-                        else
-                            break;
-
-                    if (matchCount == newCombo.Length)
-                        return true;
-                }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Determines whether or not a bind with a given index uses a given control.
-        /// </summary>
-        private bool BindUsesControl(int bind, Control con) =>
-            (con.usedCount > 0 && con.usedIndex >= 0 && controlBindMap[con.usedIndex, bind]);
-
-        /// <summary>
-        /// Updates bind presses each time its called. Key binds will not work if this isn't being run.
-        /// </summary>
-        public override void HandleInput()
-        {
-            if (keyBinds.Count > 0)
+            public Group(string name)
             {
-                int bindsPressed;
+                this.name = name;
+                keyBinds = new List<Bind>();
+                areAnyPressed = false;
+                wereAnyPressed = false;
 
-                if (controlBindMap == null || (controlBindMap.GetLength(0) != usedControls.Count) || (controlBindMap.GetLength(1) != keyBinds.Count))
+                index = Instance.bindGroups.Count;
+                Instance.bindGroups.Add(this);
+
+                foreach (Control con in controlList)
                 {
-                    UpdateControlsInUse();
-                    UpdateBindMap();
+                    while (con.usedIndex.Count <= index)
+                    {
+                        con.usedIndex.Add(-1);
+                        con.usedCount.Add(0);
+                    }
+
+                    con.usedIndex[index] = -1;
+                    con.usedCount[index] = 0;
                 }
-
-                bindsPressed = GetPressedBinds();
-
-                if (bindsPressed > 1)
-                    DisambiguatePresses();
-
-                for (int n = 0; n < keyBinds.Count; n++)
-                    keyBinds[n].UpdatePress(bindHits[n] > 0);
             }
-        }
 
-        /// <summary>
-        /// Finds and counts number of pressed key binds.
-        /// </summary>
-        private int GetPressedBinds()
-        {
-            int bindsPressed = 0;
-
-            if (bindHits == null || bindHits.Length != keyBinds.Count)
-                bindHits = new int[keyBinds.Count];
-
-            for (int n = 0; n < bindHits.Length; n++)
-                bindHits[n] = 0;
-
-            for (int x = 0; x < usedControls.Count; x++)
+            /// <summary>
+            /// Updates bind presses each time its called. Key binds will not work if this isn't being run.
+            /// </summary>
+            public void HandleInput()
             {
-                if (usedControls[x].IsPressed)
+                if (keyBinds.Count > 0)
+                {
+                    int bindsPressed;
+
+                    if (controlBindMap == null || (controlBindMap.GetLength(0) != usedControls.Count) || (controlBindMap.GetLength(1) != keyBinds.Count))
+                    {
+                        UpdateControlsInUse();
+                        UpdateBindMap();
+                    }
+
+                    bindsPressed = GetPressedBinds();
+
+                    if (bindsPressed > 1)
+                        DisambiguatePresses();
+
+                    for (int n = 0; n < keyBinds.Count; n++)
+                        keyBinds[n].UpdatePress(bindHits[n] > 0);
+                }
+            }
+
+            /// <summary>
+            /// Finds and counts number of pressed key binds.
+            /// </summary>
+            private int GetPressedBinds()
+            {
+                int bindsPressed = 0;
+
+                if (bindHits == null || bindHits.Length != keyBinds.Count)
+                    bindHits = new int[keyBinds.Count];
+
+                for (int n = 0; n < bindHits.Length; n++)
+                    bindHits[n] = 0;
+
+                for (int x = 0; x < usedControls.Count; x++)
+                {
+                    if (usedControls[x].IsPressed)
+                        for (int y = 0; y < keyBinds.Count; y++)
+                        {
+                            if (controlBindMap[x, y])
+                                bindHits[y]++;
+                        }
+                }
+
+                // Partial presses on previously pressed binds count as full presses.
+                for (int y = 0; y < keyBinds.Count; y++)
+                {
+                    if (bindHits[y] == keyBinds[y].Count || (bindHits[y] > 0 && keyBinds[y].IsPressed))
+                    {
+                        bindHits[y] = keyBinds[y].Count;
+                        bindsPressed++;
+                    }
+                    else
+                        bindHits[y] = 0;
+                }
+
+                return bindsPressed;
+            }
+
+            /// <summary>
+            /// Resolves conflicts between pressed binds with shared controls.
+            /// </summary>
+            private void DisambiguatePresses()
+            {
+                int controlHits, first, longest;
+
+                // If more than one pressed bind shares the same control, the longest
+                // binds take precedence. Any binds shorter than the longest will not
+                // be counted as being pressed.
+                for (int x = 0; x < usedControls.Count; x++)
+                {
+                    first = -1;
+                    controlHits = 0;
+                    longest = GetLongestBindPressForControl(x);
+
                     for (int y = 0; y < keyBinds.Count; y++)
                     {
-                        if (controlBindMap[x, y])
-                            bindHits[y]++;
+                        if (controlBindMap[x, y] && bindHits[y] > 0 && (keyBinds[y].Count < longest))
+                        {
+                            if (controlHits > 0)
+                                bindHits[y]--;
+                            else if (controlHits == 0)
+                                first = y;
+
+                            controlHits++;
+                        }
                     }
-            }
 
-            // Partial presses on previously pressed binds count as full presses.
-            for (int y = 0; y < keyBinds.Count; y++)
-            {
-                if (bindHits[y] == keyBinds[y].Count || (bindHits[y] > 0 && keyBinds[y].IsPressed))
-                {
-                    bindHits[y] = keyBinds[y].Count;
-                    bindsPressed++;
+                    if (controlHits > 0)
+                        bindHits[first]--;
                 }
-                else
-                    bindHits[y] = 0;
             }
 
-            return bindsPressed;
-        }
-
-        /// <summary>
-        /// Resolves conflicts between pressed binds with shared controls.
-        /// </summary>
-        private void DisambiguatePresses()
-        {
-            int controlHits, first, longest;
-
-            // If more than one pressed bind shares the same control, the longest
-            // binds take precedence. Any binds shorter than the longest will not
-            // be counted as being pressed.
-            for (int x = 0; x < usedControls.Count; x++)
+            /// <summary>
+            /// Determines the length of the longest bind pressed for a given control on the bind map.
+            /// </summary>
+            private int GetLongestBindPressForControl(int control)
             {
-                first = -1;
-                controlHits = 0;
-                longest = GetLongestBindPressForControl(x);
+                int longest = 0;
 
                 for (int y = 0; y < keyBinds.Count; y++)
                 {
-                    if (controlBindMap[x, y] && bindHits[y] > 0 && (keyBinds[y].Count < longest))
-                    {
-                        if (controlHits > 0)
-                            bindHits[y]--;
-                        else if (controlHits == 0)
-                            first = y;
-
-                        controlHits++;
-                    }
+                    if (keyBinds[y].Count > longest && controlBindMap[control, y])
+                        longest = keyBinds[y].Count;
                 }
 
-                if (controlHits > 0)
-                    bindHits[first]--;
+                return longest;
             }
-        }
 
-        /// <summary>
-        /// Determines the length of the longest bind pressed for a given control on the bind map.
-        /// </summary>
-        private int GetLongestBindPressForControl(int control)
-        {
-            int longest = 0;
-
-            for (int y = 0; y < keyBinds.Count; y++)
+            /// <summary>
+            /// Unregisters controls from each bind and clears their even subscribers.
+            /// </summary>
+            public void UnregisterBinds()
             {
-                if (keyBinds[y].Count > longest && controlBindMap[control, y])
-                    longest = keyBinds[y].Count;
+                foreach (Bind bind in keyBinds)
+                {
+                    bind.ClearSubscribers();
+                    bind.UnregisterControls();
+                }
             }
 
-            return longest;
+            private void RegisterControls()
+            {
+                foreach (Bind bind in keyBinds)
+                    bind.RegisterControls();
+            }
+
+            private void UnregisterControls()
+            {
+                foreach (Bind bind in keyBinds)
+                    bind.UnregisterControls();
+            }
+
+            /// <summary>
+            /// Attempts to create a set of empty key binds given only the names of the binds.
+            /// </summary>
+            public void RegisterBinds(string[] bindNames, bool silent = false)
+            {
+                bool areAnyDuplicated = false;
+
+                foreach (string name in bindNames)
+                    if (!TryRegisterBind(name, true))
+                        areAnyDuplicated = true;
+
+                if (areAnyDuplicated && !silent)
+                    ModBase.SendChatMessage("Some of the binds supplied contain duplicates or already existed.");
+            }
+
+            /// <summary>
+            /// Attempts to add a create a new key bind with a given name.
+            /// </summary>
+            public bool TryRegisterBind(string bindName, bool silent = false)
+            {
+                if (!DoesBindExist(bindName))
+                {
+                    keyBinds.Add(new Bind(bindName, index));
+
+                    return true;
+                }
+                else if (!silent)
+                    ModBase.SendChatMessage($"Bind {bindName} already exists.");
+
+                return false;
+            }
+
+            /// <summary>
+            /// Attempts to create a set of key binds given the name of the bind and the controls names for that bind.
+            /// </summary>
+            public void RegisterBinds(KeyBindData[] binds, bool silent = false)
+            {
+                bool areAnyDuplicated = false;
+
+                foreach (KeyBindData bind in binds)
+                    if (!TryRegisterBind(bind, true))
+                        areAnyDuplicated = true;
+
+                if (areAnyDuplicated && !silent)
+                    ModBase.SendChatMessage("Some of the bind names supplied contain duplicates or were added previously.");
+            }
+
+            /// <summary>
+            /// Attempts to create a new <see cref="IKeyBind"/> from <see cref="KeyBindData"/> and add it to the bind list.
+            /// </summary>
+            public bool TryRegisterBind(KeyBindData bind, bool silent = false)
+            {
+                if (!DoesBindExist(bind.name))
+                {
+                    keyBinds.Add(new Bind(bind.name, index));
+
+                    if (bind.controlNames != null)
+                        TryUpdateBind(bind.name, bind.controlNames, silent);
+
+                    return true;
+                }
+                else if (!silent)
+                    ModBase.SendChatMessage($"Bind {bind.name} already exists.");
+
+                return false;
+            }
+
+            /// <summary>
+            /// Replaces current keybind configuration with a new one based on the given KeyBindData. Will not register new binds.
+            /// </summary>
+            public bool TryUpdateBinds(KeyBindData[] bindData)
+            {
+                List<Bind> originalBinds;
+                bool bindError = false;
+
+                if (bindData != null && bindData.Length > 0)
+                {
+                    UnregisterControls();
+                    originalBinds = keyBinds;
+                    keyBinds = new List<Bind>(keyBinds.Count);
+
+                    foreach (Bind bind in originalBinds)
+                        keyBinds.Add(new Bind(bind.Name, index));
+
+                    foreach (KeyBindData bind in bindData)
+                    {
+                        if (!TryUpdateBind(bind.name, bind.controlNames, true))
+                        {
+                            bindError = true;
+                            break;
+                        }
+                    }
+
+                    if (bindError)
+                    {
+                        ModBase.SendChatMessage("One or more keybinds in the given configuration were invalid or conflict with oneanother.");
+                        UnregisterControls();
+
+                        keyBinds = originalBinds;
+                        RegisterControls();
+                        UpdateControlsInUse();
+                        UpdateBindMap();
+
+                        return false;
+                    }
+                    else
+                    {
+                        for (int n = 0; n < originalBinds.Count; n++)
+                            originalBinds[n].TransferSubscribers(keyBinds[n]);
+
+                        return true;
+                    }
+                }
+                else
+                {
+                    ModBase.SendChatMessage("Bind data cannot be null or empty.");
+                    return false;
+                }
+            }
+
+            /// <summary>
+            /// Tries to update a key bind using the name of the key bind and the names of the controls to be bound. Case sensitive.
+            /// </summary>
+            public bool TryUpdateBind(string bindName, string[] controlNames, bool silent = false)
+            {
+                if (controlNames.Length <= maxBindLength && controlNames.Length > 0)
+                {
+                    string[] uniqueControls = controlNames.GetUnique();
+                    Bind bind = GetBindByName(bindName) as Bind;
+                    Control[] newCombo;
+
+                    if (bind != null)
+                    {
+                        if (TryGetCombo(uniqueControls, out newCombo))
+                        {
+                            if (!DoesComboConflict(newCombo, bind))
+                            {
+                                bind.UpdateCombo(newCombo);
+                                UpdateControlsInUse();
+                                UpdateBindMap();
+
+                                return true;
+                            }
+                            else if (!silent)
+                                ModBase.SendChatMessage($"Invalid bind for {bindName}. One or more of the given controls conflict with existing binds.");
+                        }
+                        else if (!silent)
+                            ModBase.SendChatMessage($"Invalid bind for {bindName}. One or more control names were not recognised.");
+                    }
+                }
+                else if (!silent)
+                {
+                    if (controlNames.Length > 0)
+                        ModBase.SendChatMessage($"Invalid key bind. No more than {maxBindLength} keys in a bind are allowed.");
+                    else
+                        ModBase.SendChatMessage("Invalid key bind. There must be at least one control in a key bind.");
+                }
+
+                return false;
+            }
+
+            /// <summary>
+            /// Tries to create a key combo from a list of control names.
+            /// </summary>
+            private bool TryGetCombo(IList<string> controlNames, out Control[] newCombo)
+            {
+                Control con;
+                newCombo = new Control[controlNames.Count];
+
+                for (int n = 0; n < controlNames.Count; n++)
+                    if (controls.TryGetValue(controlNames[n].ToLower(), out con))
+                        newCombo[n] = con;
+                    else
+                        return false;
+
+                return true;
+            }
+
+            /// <summary>
+            /// Finds all controls associated with a key bind.
+            /// </summary>
+            private void UpdateControlsInUse()
+            {
+                int count = 0;
+                usedControls = new List<Control>(11);
+
+                foreach (Control con in controlList)
+                    if (con.usedCount[index] > 0)
+                    {
+                        usedControls.Add(con);
+                        con.usedIndex[index] = count;
+                        count++;
+                    }
+            }
+
+            /// <summary>
+            /// Associates each control with a key bind on a 2D bool array.
+            /// </summary>
+            private void UpdateBindMap()
+            {
+                controlBindMap = new bool[usedControls.Count, keyBinds.Count];
+
+                for (int x = 0; x < usedControls.Count; x++)
+                    for (int y = 0; y < keyBinds.Count; y++)
+                        controlBindMap[x, y] = keyBinds[y].UsesControl(x);
+            }
+
+            /// <summary>
+            /// Returns true if a keybind with the given name exists.
+            /// </summary>
+            public bool DoesBindExist(string name)
+            {
+                foreach (Bind bind in keyBinds)
+                    if (bind.Name == name)
+                        return true;
+
+                return false;
+            }
+
+            public IKeyBind[] GetKeyBinds()
+            {
+                return keyBinds.ToArray() as IKeyBind[];
+            }
+
+            /// <summary>
+            /// Retrieves key bind using its index.
+            /// </summary>
+            public IKeyBind GetBindByIndex(int index) =>
+                keyBinds[index];
+
+            /// <summary>
+            /// Retrieves key bind using its name.
+            /// </summary>
+            public IKeyBind GetBindByName(string name)
+            {
+                name = name.ToLower();
+
+                foreach (Bind bind in keyBinds)
+                    if (bind.Name == name)
+                        return bind;
+
+                ModBase.SendChatMessage($"{name} is not a valid bind name.");
+                return null;
+            }
+
+            /// <summary>
+            /// Returns true if all key binds are instantiated and have at least one control.
+            /// </summary>
+            public bool AreAllBindsInitialized()
+            {
+                int initCount = 0;
+
+                foreach (Bind bind in keyBinds)
+                    if (bind != null && bind.Count > 0)
+                        initCount++;
+
+                return initCount == keyBinds.Count;
+            }
+
+            /// <summary>
+            /// Retrieves the set of key binds as an array of KeyBindData
+            /// </summary>
+            public KeyBindData[] GetBindData()
+            {
+                KeyBindData[] bindData = new KeyBindData[keyBinds.Count];
+
+                for (int n = 0; n < keyBinds.Count; n++)
+                    bindData[n] = keyBinds[n].GetKeyBindData();
+
+                return bindData;
+            }
+
+            /// <summary>
+            /// Determines if given combo is equivalent to any existing binds.
+            /// </summary>
+            private bool DoesComboConflict(IControl[] newCombo, IKeyBind exception = null)
+            {
+                int matchCount;
+
+                for (int n = 0; n < keyBinds.Count; n++)
+                    if (keyBinds[n] != exception && keyBinds[n].Count == newCombo.Length)
+                    {
+                        matchCount = 0;
+
+                        foreach (Control con in newCombo)
+                            if (BindUsesControl(n, con))
+                                matchCount++;
+                            else
+                                break;
+
+                        if (matchCount == newCombo.Length)
+                            return true;
+                    }
+
+                return false;
+            }
+
+            /// <summary>
+            /// Determines whether or not a bind with a given index uses a given control.
+            /// </summary>
+            private bool BindUsesControl(int bind, Control con) =>
+                (con.usedCount[index] > 0 && con.usedIndex[index] >= 0 && controlBindMap[con.usedIndex[index], bind]);
         }
 
         /// <summary>
@@ -622,39 +682,33 @@ namespace DarkHelmet.UI
             public bool IsPressed { get { return isPressedFunc(); } }
             public bool Analog { get; }
 
-            public int usedCount, usedIndex;
-            private Func<bool> isPressedFunc;
+            public readonly List<int> usedCount, usedIndex;
+            private readonly Func<bool> isPressedFunc;
 
-            public Control(MyKeys seKey, bool Analog = false)
-            {
-                Name = seKey.ToString();
-                isPressedFunc = () => MyAPIGateway.Input.IsKeyPress(seKey);
-                this.Analog = Analog;
-                usedCount = 0;
-                usedIndex = -1;
-            }
+            public Control(MyKeys seKey, bool Analog = false) : this(seKey.ToString(), () => MyAPIGateway.Input.IsKeyPress(seKey), Analog)
+            { }
 
             public Control(string name, Func<bool> IsPressed, bool Analog = false)
             {
                 Name = name;
+                usedCount = new List<int>();
+                usedIndex = new List<int>();
 
                 isPressedFunc = IsPressed;
                 this.Analog = Analog;
-                usedCount = 0;
-                usedIndex = -1;
             }
         }
 
         /// <summary>
         /// Logic and data for individual keybinds
         /// </summary>
-        private class KeyBind : IKeyBind
+        private class Bind : IKeyBind
         {
             // Interface properties
             public string Name { get; private set; }
             public bool Analog { get; private set; }
             public string BindString { get; private set; }
-            public IControl[] Combo { get { return combo?.Clone() as IControl[]; } }
+            public IControl[] Combo { get { return combo; } }
             public bool IsPressed { get; private set; }
             public bool IsNewPressed { get { return IsPressed && (!wasPressed || Analog); } }
             public bool IsPressedAndHeld { get { return isPressedAndHeld || IsNewPressed; } }
@@ -664,17 +718,17 @@ namespace DarkHelmet.UI
             public int Count { get { return combo != null ? combo.Length : int.MinValue; } }
 
             private Control[] combo;
-            private Timer pressAndHoldTimer;
+            private long lastTime;
+            private readonly int groupIndex;
             private bool isPressedAndHeld, wasPressed;
 
-            public KeyBind(string Name, Control[] combo = null)
+            public Bind(string Name, int groupIndex, Control[] combo = null)
             {
                 this.Name = Name;
                 this.combo = combo;
+                this.groupIndex = groupIndex;
 
-                pressAndHoldTimer = new Timer(500);
-                pressAndHoldTimer.Elapsed += SetPressedAndHeld;
-
+                lastTime = long.MaxValue;
                 isPressedAndHeld = false;
                 wasPressed = false;
                 BindString = GetBindString();
@@ -686,11 +740,6 @@ namespace DarkHelmet.UI
                 }
                 else
                     Analog = false;
-            }
-
-            private void SetPressedAndHeld(object sender, ElapsedEventArgs args)
-            {
-                isPressedAndHeld = IsPressed;
             }
 
             /// <summary>
@@ -715,19 +764,20 @@ namespace DarkHelmet.UI
                 IsPressed = isPressed;
 
                 if (IsPressed)
+                {
+                    isPressedAndHeld = (DateTime.Now.Ticks >= lastTime + holdTime);
                     OnPressed?.Invoke();
+                }
                 else
                 {
-                    pressAndHoldTimer.Stop();
+                    lastTime = long.MaxValue;
                     isPressedAndHeld = false;
                 }
 
                 if (IsNewPressed)
                 {
                     OnNewPress?.Invoke();
-
-                    if (!pressAndHoldTimer.Enabled)
-                        pressAndHoldTimer.Start();
+                    lastTime = DateTime.Now.Ticks;
                 }
 
                 if (IsReleased)
@@ -745,7 +795,7 @@ namespace DarkHelmet.UI
                 if (combo != null)
                 {
                     foreach (Control a in combo)
-                        if (a.usedIndex == b)
+                        if (a.usedIndex[groupIndex] == b)
                             return true;
                 }
 
@@ -810,7 +860,7 @@ namespace DarkHelmet.UI
             /// <summary>
             /// Transfers subscribers from this bind to a new bind.
             /// </summary>
-            public void TransferSubscribers(KeyBind newBind)
+            public void TransferSubscribers(Bind newBind)
             {
                 newBind.OnPressed = OnPressed;
                 newBind.OnNewPress = OnNewPress;
@@ -833,7 +883,7 @@ namespace DarkHelmet.UI
                 if (combo != null)
                 {
                     foreach (Control con in combo)
-                        con.usedCount++;
+                        con.usedCount[groupIndex]++;
                 }
             }
 
@@ -842,7 +892,7 @@ namespace DarkHelmet.UI
                 if (combo != null)
                 {
                     foreach (Control con in combo)
-                        con.usedCount--;
+                        con.usedCount[groupIndex]--;
                 }
             }
         }

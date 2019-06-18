@@ -1,5 +1,4 @@
 ﻿using DarkHelmet.Game;
-using DarkHelmet.IO;
 using DarkHelmet.UI;
 using Sandbox.ModAPI;
 using VRage.Game;

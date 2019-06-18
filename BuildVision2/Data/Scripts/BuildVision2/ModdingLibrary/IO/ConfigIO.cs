@@ -29,7 +29,7 @@ namespace DarkHelmet.IO
         /// <summary>
         /// Used to check the configuration for any invalid values.
         /// </summary>
-        public abstract void Validate();
+        public virtual void Validate() { }
 
         /// <summary>
         /// Used to retrieve the default values for the type.

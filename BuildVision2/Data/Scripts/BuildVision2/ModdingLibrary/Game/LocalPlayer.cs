@@ -25,7 +25,7 @@ namespace DarkHelmet.Game
         /// <summary>
         /// Determines whether or not the target block is within a 180 degree arc in front of the camera.
         /// </summary>
-        public static bool IsLookingInBlockDir(IMyTerminalBlock block) 
+        public static bool IsLookingInBlockDir(IMyTerminalBlock block)
         {
             if (block != null)
             {
@@ -43,14 +43,14 @@ namespace DarkHelmet.Game
         /// </summary>
         public static bool TryGetTargetedBlock(double maxDist, out IMyCubeBlock fatBlock)
         {
-            IMyCubeGrid grid; 
-            IMySlimBlock slimBlock; 
+            IMyCubeGrid grid;
+            IMySlimBlock slimBlock;
             LineD line = new LineD(HeadTransform.Translation, HeadTransform.Translation + HeadTransform.Forward * maxDist);
             double dist;
             fatBlock = null;
-            
+
             if (TryGetTargetedGrid(line, out grid))
-            {                
+            {
                 grid.GetLineIntersectionExactAll(ref line, out dist, out slimBlock);
                 fatBlock = slimBlock?.FatBlock;
             }

@@ -44,13 +44,13 @@ namespace DarkHelmet.Game
         {
             ModName = "Mod Base";
             LogFileName = "modLog.txt";
-            RunOnServer = false;            
+            RunOnServer = false;
         }
 
         public ModBase()
         {
             if (Instance != null)
-                throw new Exception("Only one instance of type ModBase can exist at a given time.");            
+                throw new Exception("Only one instance of type ModBase can exist at a given time.");
         }
 
         public sealed override void Init(MyObjectBuilder_SessionComponent sessionComponent)
@@ -161,7 +161,7 @@ namespace DarkHelmet.Game
                     TryWriteToLog(ModName + " crashed!\n" + errorMessage);
 
                     if (!Unloading)
-                    {                      
+                    {
                         if (!IsDedicated)
                         {
                             MyAPIGateway.Utilities.ShowMissionScreen
@@ -243,7 +243,7 @@ namespace DarkHelmet.Game
                 if (RunOnServer || !IsDedicated)
                     RunSafeAction(Instance.BeforeClose);
 
-                for (int n = modComponents.Count - 1; n >= 0; n--)
+                for (int n = 0; n < modComponents.Count; n++)
                 {
                     if (modComponents[n].RunOnServer || !IsDedicated)
                         RunSafeAction(modComponents[n].Close);
@@ -267,6 +267,9 @@ namespace DarkHelmet.Game
 
             protected ComponentBase()
             {
+                if (Instance == null)
+                    throw new Exception("Types of ComponentBase cannot be instantiated before ModBase.");
+
                 RunOnServer = false;
                 Instance.modComponents.Add(this);
             }
@@ -294,7 +297,7 @@ namespace DarkHelmet.Game
         /// </summary>
         public abstract class ParallelComponentBase : ComponentBase
         {
-            private TaskPool taskPool;
+            private readonly TaskPool taskPool;
 
             protected ParallelComponentBase()
             {

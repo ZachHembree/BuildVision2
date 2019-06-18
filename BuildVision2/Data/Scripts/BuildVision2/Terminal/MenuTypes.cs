@@ -1,8 +1,6 @@
 ﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
 using Sandbox.ModAPI;
-using System.Text;
-using VRage.Collections;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
@@ -53,9 +51,9 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             protected virtual void GetVisibleProperties()
             {
-                if (Target.Count <= maxVisible)
+                if (Target.ElementCount <= maxVisible)
                 {
-                    visEnd = Target.Count;
+                    visEnd = Target.ElementCount;
                 }
                 else
                 {
@@ -64,7 +62,7 @@ namespace DarkHelmet.BuildVision2
                     else if (index < visStart)
                         visStart = index;
 
-                    visEnd = Utils.Math.Clamp((visStart + maxVisible), 0, Target.Count);
+                    visEnd = Utils.Math.Clamp((visStart + maxVisible), 0, Target.ElementCount);
                     visStart = Utils.Math.Clamp(visEnd - maxVisible, 0, visEnd);
                 }
             }
@@ -75,7 +73,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ApiHud : PropertyList
         {
-            private HudUtilities.ScrollMenu menu;
+            private readonly HudUtilities.ScrollMenu menu;
 
             public ApiHud()
             {
@@ -184,7 +182,7 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 menu.ListText = list;
-                menu.FooterLeftText = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visEnd} of {Target.Count}]";
+                menu.FooterLeftText = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visEnd} of {Target.ElementCount}]";
 
                 if (Target.IsWorking)
                     menu.FooterRightText = $"<color={ApiHudCfg.colors.headerText}>[Working]";
@@ -200,7 +198,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class NotifHud : PropertyList
         {
-            private IMyHudNotification header;
+            private readonly IMyHudNotification header;
             private IMyHudNotification[] list;
 
             public NotifHud()
@@ -254,7 +252,7 @@ namespace DarkHelmet.BuildVision2
 
                 header.Show();
                 header.AliveTime = int.MaxValue;
-                header.Text = $"{headerText} ({visStart + 1} - {visEnd} of {Target.Count})";
+                header.Text = $"{headerText} ({visStart + 1} - {visEnd} of {Target.ElementCount})";
 
                 for (int notif = 0; notif < elements; notif++)
                 {

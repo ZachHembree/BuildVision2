@@ -7,6 +7,37 @@ namespace DarkHelmet
 {
     public static class Utils
     {
+        /// <summary>
+        /// Simple stopwatch class in lieu of <see cref="System.Diagnostics.Stopwatch"/>.
+        /// </summary>
+        public class Stopwatch
+        {
+            public long ElapsedTicks { get { return !stopped ? (DateTime.Now.Ticks - startTime) : (stopTime - startTime); } }
+            public long ElapsedMilliseconds { get { return ElapsedTicks / TimeSpan.TicksPerMillisecond; } }
+
+            private long startTime, stopTime;
+            private bool stopped;
+
+            public Stopwatch()
+            {
+                startTime = long.MaxValue;
+                stopTime = long.MaxValue;
+                stopped = true;
+            }
+
+            public void Start()
+            {
+                startTime = DateTime.Now.Ticks;
+                stopped = false;
+            }
+
+            public void Stop()
+            {
+                stopTime = DateTime.Now.Ticks;
+                stopped = true;
+            }
+        }
+
         public static class Xml
         {
             /// <summary>

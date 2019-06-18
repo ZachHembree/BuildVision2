@@ -1,3 +1,4 @@
+using DarkHelmet.UI;
 using Sandbox.Game.Localization;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
@@ -10,19 +11,17 @@ using VRage.Utils;
 using VRageMath;
 using ChargeMode = Sandbox.ModAPI.Ingame.ChargeMode;
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
-using DoorStatus = Sandbox.ModAPI.Ingame.DoorStatus;
 using IMyBatteryBlock = Sandbox.ModAPI.Ingame.IMyBatteryBlock;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
 using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
 using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
-using DarkHelmet.UI;
 
 namespace DarkHelmet.BuildVision2
 {
     internal interface IBlockMember
     {
         /// <summary>
-        /// Retrieves the current value of the block member as a string
+        /// Retrieves the current value of the block member as a <see cref="string"/>
         /// </summary>
         string Value { get; }
     }
@@ -60,7 +59,7 @@ namespace DarkHelmet.BuildVision2
         public IMyTerminalBlock TBlock { get; private set; }
         public List<IBlockProperty> Properties { get; private set; }
         public List<IBlockAction> Actions { get; private set; }
-        public int Count { get { return Properties.Count + Actions.Count; } }
+        public int ElementCount { get { return Properties.Count + Actions.Count; } }
         public bool IsFunctional { get { return TBlock.IsFunctional; } }
         public bool IsWorking { get { return TBlock.IsWorking; } }
         public bool CanLocalPlayerAccess { get { return TBlock.HasLocalPlayerAccess(); } }
@@ -98,10 +97,8 @@ namespace DarkHelmet.BuildVision2
                     x => TBlock.CustomName = x)
             );
 
-            if (TBlock is IMyBatteryBlock)
+            if (TBlock is IMyBatteryBlock batteryBlock)
             {
-                IMyBatteryBlock batteryBlock = (IMyBatteryBlock)TBlock;
-
                 Properties.Add
                 (
                     new EnumProperty<ChargeMode>("Charge Mode",
@@ -119,17 +116,17 @@ namespace DarkHelmet.BuildVision2
 
                 if (name.Length > 0 && terminalControl != null && terminalControl.Visible(TBlock))
                 {
-                    if (prop is ITerminalProperty<bool>)
+                    if (prop is ITerminalProperty<bool> boolProp)
                     {
-                        Properties.Add(new BoolProperty(name, (ITerminalProperty<bool>)prop, this));
+                        Properties.Add(new BoolProperty(name, boolProp, this));
                     }
-                    else if (prop is ITerminalProperty<float>)
+                    else if (prop is ITerminalProperty<float> floatProp)
                     {
-                        Properties.Add(new FloatProperty(name, (ITerminalProperty<float>)prop, this));
+                        Properties.Add(new FloatProperty(name, floatProp, this));
                     }
-                    else if (prop is ITerminalProperty<Color>)
+                    else if (prop is ITerminalProperty<Color> colorProp)
                     {
-                        Properties.AddRange(ColorProperty.GetColorProperties(name, this, (ITerminalProperty<Color>)prop));
+                        Properties.AddRange(ColorProperty.GetColorProperties(name, this, colorProp));
                     }
                 }
             }
@@ -140,29 +137,29 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void GetScrollableActions()
         {
-            if (TBlock is IMyMechanicalConnectionBlock)
+            if (TBlock is IMyMechanicalConnectionBlock mechBlock)
             {
-                BlockAction.GetMechActions(TBlock, Actions);
+                BlockAction.GetMechActions(mechBlock, Actions);
             }
-            else if (TBlock is IMyDoor)
+            else if (TBlock is IMyDoor door)
             {
-                BlockAction.GetDoorActions(TBlock, Actions);
+                BlockAction.GetDoorActions(door, Actions);
             }
-            else if (TBlock is IMyWarhead)
+            else if (TBlock is IMyWarhead warhead)
             {
-                BlockAction.GetWarheadActions(TBlock, Actions);
+                BlockAction.GetWarheadActions(warhead, Actions);
             }
-            else if (TBlock is IMyLandingGear)
+            else if (TBlock is IMyLandingGear landingGear)
             {
-                BlockAction.GetGearActions(TBlock, Actions);
+                BlockAction.GetGearActions(landingGear, Actions);
             }
-            else if (TBlock is IMyShipConnector)
+            else if (TBlock is IMyShipConnector connector)
             {
-                BlockAction.GetConnectorActions(TBlock, Actions);
+                BlockAction.GetConnectorActions(connector, Actions);
             }
-            else if (TBlock is IMyParachute)
+            else if (TBlock is IMyParachute chute)
             {
-                BlockAction.GetChuteActions(TBlock, Actions);
+                BlockAction.GetChuteActions(chute, Actions);
             }
         }
 
@@ -183,13 +180,13 @@ namespace DarkHelmet.BuildVision2
         private class BlockAction : IBlockAction
         {
             //public string Name { get; } = null;
-            public string Value { get { return GetDisplay(); } }
+            public string Value { get { return GetDisplayFunc(); } }
             private Action ActionDelegate { get; set; }
-            private Func<string> GetDisplay { get; set; }
+            private Func<string> GetDisplayFunc { get; set; }
 
-            public BlockAction(Func<string> GetDisplay, Action Action)
+            public BlockAction(Func<string> GetDisplayFunc, Action Action)
             {
-                this.GetDisplay = GetDisplay;
+                this.GetDisplayFunc = GetDisplayFunc;
                 this.ActionDelegate = Action;
             }
 
@@ -199,10 +196,9 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyMechanicalConnectionBlock.
             /// </summary>
-            public static void GetMechActions(IMyTerminalBlock tBlock, List<IBlockAction> actions)
+            public static void GetMechActions(IMyMechanicalConnectionBlock mechBlock, List<IBlockAction> actions)
             {
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
-                IMyMechanicalConnectionBlock mechBlock = (IMyMechanicalConnectionBlock)tBlock;
                 IMyPistonBase piston;
                 IMyMotorStator rotor;
                 mechBlock.GetActions(terminalActions);
@@ -258,10 +254,8 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyDoor.
             /// </summary>
-            public static void GetDoorActions(IMyTerminalBlock tBlock, List<IBlockAction> actions)
+            public static void GetDoorActions(IMyDoor doorBlock, List<IBlockAction> actions)
             {
-                IMyDoor doorBlock = (IMyDoor)tBlock;
-
                 actions.Add(new BlockAction(
                     () => "Open/Close",
                     () => doorBlock.ToggleDoor()));
@@ -270,12 +264,10 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyWarhead.
             /// </summary>
-            public static void GetWarheadActions(IMyTerminalBlock tBlock, List<IBlockAction> actions)
+            public static void GetWarheadActions(IMyWarhead warhead, List<IBlockAction> actions)
             {
-                IMyWarhead warhead = (IMyWarhead)tBlock;
-
                 actions.Add(new BlockAction(
-                    () => $"Start Countdown",
+                    () => "Start Countdown",
                     () => warhead.StartCountdown()));
                 actions.Add(new BlockAction(
                     () => "Stop Countdown",
@@ -288,10 +280,8 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyLandingGear.
             /// </summary>
-            public static void GetGearActions(IMyTerminalBlock tBlock, List<IBlockAction> actions)
+            public static void GetGearActions(IMyLandingGear landingGear, List<IBlockAction> actions)
             {
-                IMyLandingGear landingGear = (IMyLandingGear)tBlock;
-
                 actions.Add(new BlockAction(
                     () =>
                     {
@@ -312,10 +302,8 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyShipConnector.
             /// </summary>
-            public static void GetConnectorActions(IMyTerminalBlock tBlock, List<IBlockAction> actions)
+            public static void GetConnectorActions(IMyShipConnector connector, List<IBlockAction> actions)
             {
-                IMyShipConnector connector = (IMyShipConnector)tBlock;
-
                 actions.Add(new BlockAction(
                     () =>
                     {
@@ -336,26 +324,10 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyParachute.
             /// </summary>
-            public static void GetChuteActions(IMyTerminalBlock tBlock, List<IBlockAction> actions)
+            public static void GetChuteActions(IMyParachute parachute, List<IBlockAction> actions)
             {
-                IMyParachute parachute = (IMyParachute)tBlock;
-
                 actions.Add(new BlockAction(
-                    () =>
-                    {
-                        string status = "";
-
-                        if (parachute.Status == DoorStatus.Open)
-                            status = "Open";
-                        else if (parachute.Status == DoorStatus.Opening)
-                            status = "Opening";
-                        else if (parachute.Status == DoorStatus.Closing)
-                            status = "Closing";
-                        else if (parachute.Status == DoorStatus.Closed)
-                            status = "Closed";
-
-                        return $"Open/Close ({status})";
-                    },
+                    () => $"Open/Close ({parachute.Status.ToString()})",
                     () => parachute.ToggleDoor()));
             }
         }
@@ -368,15 +340,18 @@ namespace DarkHelmet.BuildVision2
             public string Name { get; }
             public string Value { get { return GetCurrentValue(); } }
 
-            private bool selected;
+            private bool selected, blink;
+            private long lastTime;
             private readonly Func<string> GetValueFunc;
             private readonly Action<string> SetValueAction;
+            private const long blinkInterval = TimeSpan.TicksPerMillisecond * 500;
 
             public TextProperty(string name, Func<string> GetValueFunc, Action<string> SetValueAction)
             {
                 Name = name;
                 this.GetValueFunc = GetValueFunc;
                 this.SetValueAction = SetValueAction;
+                lastTime = long.MinValue;
             }
 
             public void OnSelect()
@@ -395,6 +370,12 @@ namespace DarkHelmet.BuildVision2
             public void HandleInput()
             {
                 HudUtilities.TextInput.Open = selected && MyAPIGateway.Gui.ChatEntryVisible;
+
+                if (DateTime.Now.Ticks >= lastTime + blinkInterval)
+                {
+                    blink = !blink;
+                    lastTime = DateTime.Now.Ticks;
+                }
             }
 
             private string GetCurrentValue()
@@ -402,9 +383,14 @@ namespace DarkHelmet.BuildVision2
                 if (selected)
                 {
                     if (MyAPIGateway.Gui.ChatEntryVisible)
-                        return HudUtilities.TextInput.CurrentText;
+                    {
+                        if (blink)
+                            return HudUtilities.TextInput.CurrentText + '|';
+                        else
+                            return HudUtilities.TextInput.CurrentText;
+                    }
                     else
-                        return "Please Open Chat to Continue";
+                        return "Open Chat to Continue";
                 }
                 else
                     return GetValueFunc();
@@ -460,7 +446,11 @@ namespace DarkHelmet.BuildVision2
                 Name = name;
                 this.GetEnumFunc = GetEnumFunc;
                 this.SetEnumAction = SetEnumAction;
+                index = GetEnumIndex();
+            }
 
+            public override void OnSelect()
+            {
                 index = GetEnumIndex();
             }
 
@@ -554,7 +544,7 @@ namespace DarkHelmet.BuildVision2
 
             private readonly PropertyBlock pBlock;
             private readonly ITerminalProperty<float> prop;
-            private float minValue, maxValue, incrA, incrB, incrC, incr0;
+            private readonly float minValue, maxValue, incrA, incrB, incrC, incr0;
 
             public FloatProperty(string name, ITerminalProperty<float> prop, PropertyBlock block)
             {
@@ -645,7 +635,12 @@ namespace DarkHelmet.BuildVision2
             private readonly ITerminalProperty<Color> property;
             private readonly Color delta;
             private readonly Func<string> colorDisp;
-            private static int minValue, maxValue, incrA, incrB, incrC, incr0;
+            private static readonly int minValue;
+            private static readonly int maxValue;
+            private static int incrA;
+            private static int incrB;
+            private static int incrC;
+            private static int incr0;
 
             static ColorProperty()
             {

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Sandbox.ModAPI;
+using System;
 using System.IO;
-using System.Text;
-using Sandbox.ModAPI;
-using System.Xml.Serialization;
 
 namespace DarkHelmet.IO
 {
@@ -96,7 +93,7 @@ namespace DarkHelmet.IO
         {
             KnownException exception = null;
             TextWriter writer = null;
-            
+
             lock (fileLock)
             {
                 try

@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System;
-using VRageMath;
+﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
-using DarkHelmet.Game;
+using System;
+using System.Collections.Generic;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -164,20 +163,20 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private static List<MenuUtilities.IMenuElement> GetBindSettings()
         {
-            List<MenuUtilities.IMenuElement> bindSettings = new List<MenuUtilities.IMenuElement>(BindManager.Count + 2);
+            List<MenuUtilities.IMenuElement> bindSettings = new List<MenuUtilities.IMenuElement>(KeyBinds.BindGroup.Count + 2);
 
-            for (int n = 0; n < BindManager.Count; n++)
+            for (int n = 0; n < KeyBinds.BindGroup.Count; n++)
             {
                 bindSettings.Add(new MenuUtilities.MenuTextInput(
-                    BindManager.GetBindByIndex(n).Name, 
-                    "Enter Control Names", 
+                    KeyBinds.BindGroup[n].Name,
+                    "Enter Control Names",
                     (string input) =>
                     {
                         string[] args;
                         input = input.ToLower();
 
-                        if (CmdManager.TryParseCommand($"{BindManager.GetBindByIndex(n).Name} {input}", out args))
-                            BindManager.TryUpdateBind(BindManager.GetBindByIndex(n).Name, args);
+                        if (CmdManager.TryParseCommand($"{KeyBinds.BindGroup[n].Name} {input}", out args))
+                            KeyBinds.BindGroup.TryUpdateBind(KeyBinds.BindGroup[n].Name, args);
                     }));
             }
 

@@ -1,15 +1,15 @@
-﻿using Sandbox.ModAPI;
+﻿using DarkHelmet.Game;
+using DarkHelmet.UI.TextHudApi;
+using Sandbox.ModAPI;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using VRageMath;
-using VRage.Utils;
-using VRage.Game;
-using System;
-using DarkHelmet.UI.TextHudApi;
-using DarkHelmet.Game;
 using VRage.Collections;
-using VRage.Game.ModAPI;
+using VRage.Game;
+using VRage.Utils;
+using VRageMath;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
+using VRage.Game.Components;
 
 namespace DarkHelmet.UI
 {
@@ -21,7 +21,6 @@ namespace DarkHelmet.UI
         public static double ResScale { get; private set; }
         public static UiTestPattern TestPattern { get; private set; }
         public static bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
-        private IKeyBind backspace;
 
         private static HudUtilities Instance
         {
@@ -30,8 +29,9 @@ namespace DarkHelmet.UI
         }
 
         private static HudUtilities instance;
-        private static bool initializing = false;
 
+        private readonly BindManager.Group hudBinds;
+        private IKeyBind backspace;
         private readonly List<Action> hudElementsDraw;
         private double screenWidth, screenHeight, aspectRatio, invTextApiScale, fov, fovScale;
 
@@ -46,21 +46,20 @@ namespace DarkHelmet.UI
             GetFovScaling();
 
             hudElementsDraw = new List<Action>();
+            hudBinds = new BindManager.Group("HudUtilities");
         }
 
         private static void Init()
         {
-            if (instance == null && !initializing)
+            if (instance == null)
             {
-                initializing = true;
                 instance = new HudUtilities();
-                initializing = false;
 
                 TestPattern = new UiTestPattern();
                 TestPattern.Hide();
 
-                if (BindManager.TryRegisterBind(new KeyBindData("backspace", new string[] { "back" })))
-                    Instance.backspace = BindManager.GetBindByName("backspace");
+                if (Instance.hudBinds.TryRegisterBind(new KeyBindData("backspace", new string[] { "back" })))
+                    Instance.backspace = Instance.hudBinds.GetBindByName("backspace");
             }
         }
 
@@ -121,37 +120,30 @@ namespace DarkHelmet.UI
                 get { Init(); return instance; }
                 set { instance = value; }
             }
-
             private static TextInput instance;
-            private static bool initializing = false;
-
-            private StringBuilder currentText;
+            private readonly StringBuilder currentText;
 
             private TextInput()
             {
                 currentText = new StringBuilder(50);
 
-                HudUtilities.Instance.backspace.OnPressAndHold += OnBackspace;
+                HudUtilities.Instance.backspace.OnPressAndHold += Backspace;
                 MyAPIGateway.Utilities.MessageEntered += MessageHandler;
             }
 
             private static void Init()
             {
-                if (instance == null && !initializing)
-                {
-                    initializing = true;
+                if (instance == null)
                     instance = new TextInput();
-                    initializing = false;
-                }
             }
 
             public static void Clear() =>
                 Instance?.currentText.Clear();
 
-            private void OnBackspace()
+            private void Backspace()
             {
                 if (Open && currentText.Length > 0)
-                    currentText.Length--;
+                    currentText.Remove(CurrentText.Length - 1, 1);
             }
 
             public override void Close()
@@ -286,7 +278,7 @@ namespace DarkHelmet.UI
 
             private readonly TexturedBox headerBg, footerBg, background, highlightBox, tab;
             private readonly TextHudMessage header, footerLeft, footerRight;
-            private List<TextHudMessage> list;
+            private readonly List<TextHudMessage> list;
             private int selectionIndex = 0;
 
             public ScrollMenu(int maxListLength)
@@ -294,7 +286,7 @@ namespace DarkHelmet.UI
                 background = new TexturedBox(this);
 
                 headerBg = new TexturedBox(background);
-                header = new TextHudMessage(headerBg);                
+                header = new TextHudMessage(headerBg);
 
                 footerBg = new TexturedBox(background);
                 footerLeft = new TextHudMessage(footerBg, TextAlignment.Left);
@@ -437,7 +429,7 @@ namespace DarkHelmet.UI
             public TextHudMessage(HudElement Parent = null, TextAlignment alignment = TextAlignment.Center)
             {
                 this.Parent = Parent;
-                this.alignment = alignment;                
+                this.alignment = alignment;
             }
 
             /// <summary>

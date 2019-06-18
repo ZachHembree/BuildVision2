@@ -1,6 +1,6 @@
-﻿using System;
+﻿using DarkHelmet.Game;
+using System;
 using System.Collections.Generic;
-using DarkHelmet.Game;
 
 namespace DarkHelmet.IO
 {
@@ -100,6 +100,6 @@ namespace DarkHelmet.IO
 
                 Accessible = true;
             }
-        }               
+        }
     }
 }

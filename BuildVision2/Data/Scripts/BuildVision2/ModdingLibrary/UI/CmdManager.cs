@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using DarkHelmet.Game;
 using Sandbox.ModAPI;
+using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using DarkHelmet.Game;
 
 namespace DarkHelmet.UI
 {
@@ -93,7 +93,7 @@ namespace DarkHelmet.UI
                 if (TryParseCommand(message, out matches))
                 {
                     cmdName = matches[0];
-                    
+
                     foreach (Command cmd in Instance.commands)
                         if (cmd.cmdName == cmdName)
                         {
@@ -112,7 +112,7 @@ namespace DarkHelmet.UI
                             break;
                         }
                 }
-                
+
                 if (!cmdFound)
                     ModBase.SendChatMessage("Command not recognised.");
             }
@@ -130,7 +130,7 @@ namespace DarkHelmet.UI
             for (int n = 0; n < captures.Count; n++)
                 matches[n] = captures[n].Value;
 
-            return matches.Length > 0; 
-        }       
+            return matches.Length > 0;
+        }
     }
 }
