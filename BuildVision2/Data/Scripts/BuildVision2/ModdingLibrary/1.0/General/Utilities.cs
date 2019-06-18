@@ -5,36 +5,36 @@ using VRageMath;
 
 namespace DarkHelmet
 {
-    public static class Utils
+    public static partial class Utils
     {
         /// <summary>
         /// Simple stopwatch class in lieu of <see cref="System.Diagnostics.Stopwatch"/>.
         /// </summary>
         public class Stopwatch
         {
-            public long ElapsedTicks { get { return !stopped ? (DateTime.Now.Ticks - startTime) : (stopTime - startTime); } }
+            public long ElapsedTicks { get { return Enabled ? (DateTime.Now.Ticks - startTime) : (stopTime - startTime); } }
             public long ElapsedMilliseconds { get { return ElapsedTicks / TimeSpan.TicksPerMillisecond; } }
+            public bool Enabled { get; private set; }
 
             private long startTime, stopTime;
-            private bool stopped;
 
             public Stopwatch()
             {
                 startTime = long.MaxValue;
                 stopTime = long.MaxValue;
-                stopped = true;
+                Enabled = false;
             }
 
             public void Start()
             {
                 startTime = DateTime.Now.Ticks;
-                stopped = false;
+                Enabled = true;
             }
 
             public void Stop()
             {
                 stopTime = DateTime.Now.Ticks;
-                stopped = true;
+                Enabled = false;
             }
         }
 
@@ -190,7 +190,7 @@ namespace DarkHelmet
         public static class Math
         {
             /// <summary>
-            /// Clamps an int between two values.
+            /// Clamps a <see cref="double"/> between two values.
             /// </summary>
             public static double Clamp(double value, double min, double max)
             {
@@ -203,7 +203,7 @@ namespace DarkHelmet
             }
 
             /// <summary>
-            /// Clamps a float between two values.
+            /// Clamps a <see cref="float"/> between two values.
             /// </summary>
             public static float Clamp(float value, float min, float max)
             {
@@ -216,7 +216,7 @@ namespace DarkHelmet
             }
 
             /// <summary>
-            /// Clamps an int between two values.
+            /// Clamps an <see cref="int"/> between two values.
             /// </summary>
             public static int Clamp(int value, int min, int max)
             {
@@ -229,7 +229,20 @@ namespace DarkHelmet
             }
 
             /// <summary>
-            /// Clamps vector members between two values.
+            /// Clamps a <see cref="long"/> between two values.
+            /// </summary>
+            public static long Clamp(long value, long min, long max)
+            {
+                if (value < min)
+                    return min;
+                else if (value > max)
+                    return max;
+                else
+                    return value;
+            }
+
+            /// <summary>
+            /// Clamps a <see cref="Vector2D"/> members between two values.
             /// </summary>
             public static Vector2D Clamp(Vector2D value, double min, double max)
             {
@@ -240,7 +253,7 @@ namespace DarkHelmet
             }
 
             /// <summary>
-            /// Rounds vector elements to a specified number of digits.
+            /// Rounds <see cref="Vector2D"/> elements to a specified number of digits.
             /// </summary>
             public static Vector2D Round(Vector2D value, int digits)
             {
@@ -250,7 +263,7 @@ namespace DarkHelmet
             }
 
             /// <summary>
-            /// Rounds vector elements to a specified number of digits.
+            /// Rounds <see cref="Vector3D"/> elements to a specified number of digits.
             /// </summary>
             public static Vector3D Round(Vector3D value, int digits)
             {
@@ -261,7 +274,7 @@ namespace DarkHelmet
             }
 
             /// <summary>
-            /// Finds the absolute value of the components of a vector.
+            /// Finds the absolute value of the components of a <see cref="Vector2I"/>.
             /// </summary>
             public static Vector2I Abs(Vector2I value)
             {

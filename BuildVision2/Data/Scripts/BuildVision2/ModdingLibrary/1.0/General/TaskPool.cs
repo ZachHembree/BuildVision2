@@ -55,6 +55,9 @@ namespace DarkHelmet
 
     public class TaskPool : ModBase.ComponentBase
     {
+        /// <summary>
+        /// Sets the limit for the total number of tasks running in all <see cref="TaskPool"/>s.
+        /// </summary>
         public static int MaxTasksRunning { get { return maxTasksRunning; } set { maxTasksRunning = Utils.Math.Clamp(value, 1, 10); } }
         private static int maxTasksRunning = 1, tasksRunningCount = 0;
 

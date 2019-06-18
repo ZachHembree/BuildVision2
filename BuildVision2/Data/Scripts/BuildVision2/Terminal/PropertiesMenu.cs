@@ -1,5 +1,6 @@
 ﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
+using Sandbox.ModAPI;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -47,38 +48,57 @@ namespace DarkHelmet.BuildVision2
             index = 0;
             selection = -1;
             open = false;
+
+            MyAPIGateway.Utilities.MessageEntered += MessageHandler;
+
+            KeyBinds.Select.OnNewPress += Select;
+            KeyBinds.ScrollUp.OnPressAndHold += ScrollUp;
+            KeyBinds.ScrollDown.OnPressAndHold += ScrollDown;
         }
 
         private static void Init()
         {
             if (instance == null)
-            {
-                instance = new PropertiesMenu();
-
-                KeyBinds.Select.OnNewPress += instance.SelectProperty;
-                KeyBinds.ScrollUp.OnPressAndHold += instance.ScrollUp;
-                KeyBinds.ScrollDown.OnPressAndHold += instance.ScrollDown;
-            }
+                instance = new PropertiesMenu();               
         }
 
         public override void Close()
         {
+            MyAPIGateway.Utilities.MessageEntered -= MessageHandler;
             Instance = null;
+        }
+
+        private void MessageHandler(string message, ref bool sendToOthers)
+        {
+            if (Open)
+                sendToOthers = false;
         }
 
         private void ScrollDown()
         {
             if (open)
-                UpdateSelection(-1);
+                UpdateIndex(-1);
         }
 
         private void ScrollUp()
         {
             if (open)
-                UpdateSelection(1);
+                UpdateIndex(1);
         }
 
-        private void SelectProperty()
+        /// <summary>
+        /// Updates scrollable index, range of visible scrollables and input for selected property.
+        /// </summary>
+        private void UpdateIndex(int scrolllDir)
+        {
+            if (selection == -1)
+            {
+                index -= scrolllDir;
+                index = Utils.Math.Clamp(index, 0, target.ElementCount - 1);
+            }
+        }
+
+        private void Select()
         {
             if (open)
             {
@@ -99,18 +119,6 @@ namespace DarkHelmet.BuildVision2
                         selection = -1;
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// Updates scrollable index, range of visible scrollables and input for selected property.
-        /// </summary>
-        private void UpdateSelection(int scrolllDir)
-        {
-            if (selection == -1)
-            {
-                index -= scrolllDir;
-                index = Utils.Math.Clamp(index, 0, target.ElementCount - 1);
             }
         }
 

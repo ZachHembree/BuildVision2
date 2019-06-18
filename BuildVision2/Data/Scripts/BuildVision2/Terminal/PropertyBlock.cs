@@ -5,9 +5,11 @@ using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using SpaceEngineers.Game.ModAPI.Ingame;
 using System;
+using System.Text;
 using System.Collections.Generic;
 using VRage;
 using VRage.Utils;
+using VRage.ModAPI;
 using VRageMath;
 using ChargeMode = Sandbox.ModAPI.Ingame.ChargeMode;
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
@@ -70,7 +72,7 @@ namespace DarkHelmet.BuildVision2
             TBlock = tBlock;
             Properties = new List<IBlockProperty>(10);
             Actions = new List<IBlockAction>();
-
+            
             GetScrollableProps();
             GetScrollableActions();
         }
@@ -82,51 +84,57 @@ namespace DarkHelmet.BuildVision2
             TBlock.GetPosition();
 
         /// <summary>
+        /// Retrieves a Block Property's Terminal Name
+        /// </summary>
+        private static string GetTooltipName(ITerminalProperty prop)
+        {
+            if (prop is IMyTerminalControlTitleTooltip tooltip)
+                return MyTexts.Get(tooltip.Title).ToString();
+            else
+                return "";
+        }
+
+        /// <summary>
         /// Retrieves all block ITerminalProperty values.
         /// </summary>
         private void GetScrollableProps()
         {
             List<ITerminalProperty> properties = new List<ITerminalProperty>(12);
-            IMyTerminalControl terminalControl;
             string name;
-
-            Properties.Add
-            (
-                new TextProperty("Name",
-                    () => TBlock.CustomName,
-                    x => TBlock.CustomName = x)
-            );
-
-            if (TBlock is IMyBatteryBlock batteryBlock)
-            {
-                Properties.Add
-                (
-                    new EnumProperty<ChargeMode>("Charge Mode",
-                        () => batteryBlock.ChargeMode,
-                        x => batteryBlock.ChargeMode = x)
-                );
-            }
 
             TBlock.GetProperties(properties);
 
             foreach (ITerminalProperty prop in properties)
             {
-                name = GetTooltipName(prop);
-                terminalControl = prop as IMyTerminalControl;
-
-                if (name.Length > 0 && terminalControl != null && terminalControl.Visible(TBlock))
+                if (prop is IMyTerminalControl terminalControl && terminalControl.Visible(TBlock) && terminalControl.Enabled(TBlock))
                 {
-                    if (prop is ITerminalProperty<bool> boolProp)
+                    name = GetTooltipName(prop);
+
+                    if (name.Length > 0)
                     {
-                        Properties.Add(new BoolProperty(name, boolProp, this));
-                    }
-                    else if (prop is ITerminalProperty<float> floatProp)
-                    {
-                        Properties.Add(new FloatProperty(name, floatProp, this));
-                    }
-                    else if (prop is ITerminalProperty<Color> colorProp)
-                    {
-                        Properties.AddRange(ColorProperty.GetColorProperties(name, this, colorProp));
+                        if (prop is ITerminalProperty<StringBuilder> textProp)
+                        {
+                            if (name == "Name")
+                                Properties.Insert(0, new TextProperty(name, textProp, TBlock));
+                            else
+                                Properties.Add(new TextProperty(name, textProp, TBlock));
+                        }
+                        if (prop is IMyTerminalControlCombobox comboBox && !name.StartsWith("Assigned"))
+                        {
+                            Properties.Add(new ComboBoxProperty(name, comboBox, TBlock));
+                        }
+                        else if (prop is ITerminalProperty<bool> boolProp)
+                        {
+                            Properties.Add(new BoolProperty(name, boolProp, TBlock));
+                        }
+                        else if (prop is ITerminalProperty<float> floatProp)
+                        {
+                            Properties.Add(new FloatProperty(name, floatProp, TBlock));
+                        }
+                        else if (prop is ITerminalProperty<Color> colorProp)
+                        {
+                            Properties.AddRange(ColorProperty.GetColorProperties(name, TBlock, colorProp));
+                        }
                     }
                 }
             }
@@ -164,22 +172,10 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Retrieves a Block Property's Terminal Name
-        /// </summary>
-        private static string GetTooltipName(ITerminalProperty prop)
-        {
-            IMyTerminalControlTitleTooltip tooltip = (prop as IMyTerminalControlTitleTooltip);
-            MyStringId id = tooltip == null ? MyStringId.GetOrCompute("???") : tooltip.Title;
-
-            return MyTexts.Get(id).ToString();
-        }
-
-        /// <summary>
         /// Custom block actions
         /// </summary>
         private class BlockAction : IBlockAction
         {
-            //public string Name { get; } = null;
             public string Value { get { return GetDisplayFunc(); } }
             private Action ActionDelegate { get; set; }
             private Func<string> GetDisplayFunc { get; set; }
@@ -199,8 +195,6 @@ namespace DarkHelmet.BuildVision2
             public static void GetMechActions(IMyMechanicalConnectionBlock mechBlock, List<IBlockAction> actions)
             {
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
-                IMyPistonBase piston;
-                IMyMotorStator rotor;
                 mechBlock.GetActions(terminalActions);
 
                 foreach (IMyTerminalAction tAction in terminalActions)
@@ -232,20 +226,15 @@ namespace DarkHelmet.BuildVision2
                         () => mechBlock.Detach()));
                 }
 
-                piston = mechBlock as IMyPistonBase;
-
-                if (piston != null)
+                if (mechBlock is IMyPistonBase piston)
                 {
                     actions.Add(new BlockAction(
                         () => "Reverse",
                         () => piston.Reverse()));
                 }
-                else
+                else if (mechBlock is IMyMotorStator rotor)
                 {
-                    rotor = mechBlock as IMyMotorStator;
-
-                    if (rotor != null)
-                        actions.Add(new BlockAction(
+                    actions.Add(new BlockAction(
                             () => "Reverse",
                             () => rotor.TargetVelocityRad = -rotor.TargetVelocityRad));
                 }
@@ -342,28 +331,38 @@ namespace DarkHelmet.BuildVision2
 
             private bool selected, blink;
             private long lastTime;
-            private readonly Func<string> GetValueFunc;
-            private readonly Action<string> SetValueAction;
+            private readonly StringBuilder text;
             private const long blinkInterval = TimeSpan.TicksPerMillisecond * 500;
 
-            public TextProperty(string name, Func<string> GetValueFunc, Action<string> SetValueAction)
+            public TextProperty(string name, ITerminalProperty<StringBuilder> textProp, IMyTerminalBlock block)
             {
                 Name = name;
-                this.GetValueFunc = GetValueFunc;
-                this.SetValueAction = SetValueAction;
+                text = textProp.GetValue(block);
                 lastTime = long.MinValue;
+
+                StringBuilder newText = new StringBuilder(text.Length);
+
+                for (int n = 0; n < text.Length; n++)
+                {
+                    if (text[n] != '\t')
+                        newText.Append(text[n]);
+                }
+
+                text = newText;
             }
 
             public void OnSelect()
             {
-                HudUtilities.TextInput.CurrentText = Value;
+                HudUtilities.TextInput.CurrentText = text.ToString();
+                lastTime = DateTime.Now.Ticks;
                 selected = true;
             }
 
             public void OnDeselect()
             {
                 HudUtilities.TextInput.Open = false;
-                SetValueAction(HudUtilities.TextInput.CurrentText);
+                text.Clear();
+                text.Append(HudUtilities.TextInput.CurrentText);
                 selected = false;
             }
 
@@ -374,7 +373,10 @@ namespace DarkHelmet.BuildVision2
                 if (DateTime.Now.Ticks >= lastTime + blinkInterval)
                 {
                     blink = !blink;
-                    lastTime = DateTime.Now.Ticks;
+                    lastTime += blinkInterval;
+
+                    if (DateTime.Now.Ticks > lastTime)
+                        lastTime = DateTime.Now.Ticks;
                 }
             }
 
@@ -393,7 +395,7 @@ namespace DarkHelmet.BuildVision2
                         return "Open Chat to Continue";
                 }
                 else
-                    return GetValueFunc();
+                    return text.ToString();
             }
         }
 
@@ -425,57 +427,63 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Scrollable property for battery charge modes
+        /// Scrollable property for <see cref="IMyTerminalControlCombobox"/> / <see cref="ITerminalProperty{long}"/> terminal properties.
         /// </summary>
-        private class EnumProperty<T> : ScrollablePropBase where T : struct, IComparable
+        private class ComboBoxProperty : ScrollablePropBase
         {
-            public override string Value { get { return GetEnumFunc().ToString(); } }
+            public override string Value { get { return names?[GetCurrentIndex()]; } }
 
-            private static readonly T[] enums;
-            private readonly Func<T> GetEnumFunc;
-            private readonly Action<T> SetEnumAction;
-            private int index;
+            private readonly IMyTerminalBlock block;
+            private readonly List<long> keys;
+            private readonly List<string> names;
+            private readonly IMyTerminalControlCombobox comboBox;
 
-            static EnumProperty()
+            public ComboBoxProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalBlock block)
             {
-                enums = (T[])Enum.GetValues(typeof(T));
-            }
-
-            public EnumProperty(string name, Func<T> GetEnumFunc, Action<T> SetEnumAction)
-            {
+                this.comboBox = comboBox;
+                this.block = block;
                 Name = name;
-                this.GetEnumFunc = GetEnumFunc;
-                this.SetEnumAction = SetEnumAction;
-                index = GetEnumIndex();
-            }
+                keys = new List<long>();
+                names = new List<string>();
 
-            public override void OnSelect()
-            {
-                index = GetEnumIndex();
-            }
+                List<MyTerminalControlComboBoxItem> content = new List<MyTerminalControlComboBoxItem>();
+                comboBox.ComboBoxContent(content);
 
-            protected override void ScrollDown() =>
-                SetEnum(-1);
+                foreach (MyTerminalControlComboBoxItem item in content)
+                {
+                    string itemName = MyTexts.Get(item.Value)?.ToString();
+
+                    if (itemName != null)
+                    {
+                        keys.Add(item.Key);
+                        names.Add(itemName);
+                    }
+                }
+            }
 
             protected override void ScrollUp() =>
-                SetEnum(1);
+                ChangePropValue(1);
 
-            private void SetEnum(int scrollDir)
+            protected override void ScrollDown() =>
+                ChangePropValue(-1);
+
+            private void ChangePropValue(int delta)
             {
-                index += scrollDir;
-                index = Utils.Math.Clamp(index, 0, enums.Length - 1);
-                SetEnumAction(enums[index]);
+                int index = Utils.Math.Clamp((GetCurrentIndex() + delta), 0, keys.Count - 1);
+                comboBox.Setter(block, keys[index]);
             }
 
-            private int GetEnumIndex()
+            private int GetCurrentIndex()
             {
-                for (int n = 0; n < enums.Length; n++)
+                long key = comboBox.Getter(block);
+
+                for (int n = 0; n < keys.Count; n++)
                 {
-                    if (enums[n].Equals(GetEnumFunc()))
+                    if (keys[n] == key)
                         return n;
                 }
 
-                return -1;
+                return 0;
             }
         }
 
@@ -486,14 +494,14 @@ namespace DarkHelmet.BuildVision2
         {
             public override string Value { get { return GetPropStateText(); } }
 
-            private readonly PropertyBlock pBlock;
+            private readonly IMyTerminalBlock block;
             private readonly ITerminalProperty<bool> prop;
             private readonly MyStringId OnText, OffText;
 
-            public BoolProperty(string name, ITerminalProperty<bool> prop, PropertyBlock block)
+            public BoolProperty(string name, ITerminalProperty<bool> prop, IMyTerminalBlock block)
             {
                 this.prop = prop;
-                this.pBlock = block;
+                this.block = block;
 
                 if (prop is IMyTerminalControlOnOffSwitch)
                 {
@@ -513,14 +521,14 @@ namespace DarkHelmet.BuildVision2
 
             protected override void ScrollDown()
             {
-                if (prop.GetValue(pBlock.TBlock) == true)
-                    prop.SetValue(pBlock.TBlock, false);
+                if (prop.GetValue(block) == true)
+                    prop.SetValue(block, false);
             }
 
             protected override void ScrollUp()
             {
-                if (prop.GetValue(pBlock.TBlock) == false)
-                    prop.SetValue(pBlock.TBlock, true);
+                if (prop.GetValue(block) == false)
+                    prop.SetValue(block, true);
             }
 
             /// <summary>
@@ -528,7 +536,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private string GetPropStateText()
             {
-                if (prop.GetValue(pBlock.TBlock))
+                if (prop.GetValue(block))
                     return MyTexts.Get(OnText).ToString();
                 else
                     return MyTexts.Get(OffText).ToString();
@@ -540,20 +548,20 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class FloatProperty : ScrollablePropBase
         {
-            public override string Value { get { return prop.GetValue(pBlock.TBlock).ToString(); } }
+            public override string Value { get { return prop.GetValue(block).ToString(); } }
 
-            private readonly PropertyBlock pBlock;
+            private readonly IMyTerminalBlock block;
             private readonly ITerminalProperty<float> prop;
             private readonly float minValue, maxValue, incrA, incrB, incrC, incr0;
 
-            public FloatProperty(string name, ITerminalProperty<float> prop, PropertyBlock block)
+            public FloatProperty(string name, ITerminalProperty<float> prop, IMyTerminalBlock block)
             {
                 this.prop = prop;
-                this.pBlock = block;
+                this.block = block;
 
                 Name = name;
-                minValue = this.prop.GetMinimum(pBlock.TBlock);
-                maxValue = this.prop.GetMaximum(pBlock.TBlock);
+                minValue = this.prop.GetMinimum(block);
+                maxValue = this.prop.GetMaximum(block);
 
                 if (Name == "Pitch" || Name == "Yaw" || Name == "Roll")
                 {
@@ -595,12 +603,12 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void ChangePropValue(float delta)
             {
-                float current = prop.GetValue(pBlock.TBlock);
+                float current = prop.GetValue(block);
 
                 if (float.IsInfinity(current))
                     current = 0f;
 
-                prop.SetValue(pBlock.TBlock, (float)Math.Round(Utils.Math.Clamp((current + delta), minValue, maxValue), 3));
+                prop.SetValue(block, (float)Math.Round(Utils.Math.Clamp((current + delta), minValue, maxValue), 3));
             }
 
             /// <summary>
@@ -631,7 +639,7 @@ namespace DarkHelmet.BuildVision2
         {
             public override string Value { get { return colorDisp(); } }
 
-            private readonly PropertyBlock pBlock;
+            private readonly IMyTerminalBlock block;
             private readonly ITerminalProperty<Color> property;
             private readonly Color delta;
             private readonly Func<string> colorDisp;
@@ -648,9 +656,9 @@ namespace DarkHelmet.BuildVision2
                 maxValue = byte.MaxValue;
             }
 
-            public ColorProperty(string name, PropertyBlock pBlock, ITerminalProperty<Color> prop, Color delta, Func<string> colorDisp)
+            public ColorProperty(string name, IMyTerminalBlock block, ITerminalProperty<Color> prop, Color delta, Func<string> colorDisp)
             {
-                this.pBlock = pBlock;
+                this.block = block;
                 property = prop;
 
                 incr0 = 1;
@@ -667,13 +675,13 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns a scrollable property for each color channel in an ITerminalProperty<Color> object
             /// </summary>
-            public static ColorProperty[] GetColorProperties(string name, PropertyBlock pBlock, ITerminalProperty<Color> prop)
+            public static ColorProperty[] GetColorProperties(string name, IMyTerminalBlock block, ITerminalProperty<Color> prop)
             {
                 return new ColorProperty[]
                 {
-                    new ColorProperty(name, pBlock, prop, new Color(1, 0, 0), () => (" R: " + prop.GetValue(pBlock.TBlock).R)), // R
-                    new ColorProperty(name, pBlock, prop, new Color(0, 1, 0), () => (" G: " + prop.GetValue(pBlock.TBlock).G)), // G
-                    new ColorProperty(name, pBlock, prop, new Color(0, 0, 1), () => (" B: " + prop.GetValue(pBlock.TBlock).B))  // B
+                    new ColorProperty(name, block, prop, new Color(1, 0, 0), () => (" R: " + prop.GetValue(block).R)), // R
+                    new ColorProperty(name, block, prop, new Color(0, 1, 0), () => (" G: " + prop.GetValue(block).G)), // G
+                    new ColorProperty(name, block, prop, new Color(0, 0, 1), () => (" B: " + prop.GetValue(block).B))  // B
                 };
             }
 
@@ -688,7 +696,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void ChangePropValue(bool increment)
             {
-                Color curr = property.GetValue(pBlock.TBlock);
+                Color curr = property.GetValue(block);
                 int r = curr.R, g = curr.G, b = curr.B,
                     sign = increment ? 1 : -1, mult = GetIncrement();
 
@@ -700,7 +708,7 @@ namespace DarkHelmet.BuildVision2
                 curr.G = (byte)Utils.Math.Clamp(g, minValue, maxValue);
                 curr.B = (byte)Utils.Math.Clamp(b, minValue, maxValue);
 
-                property.SetValue(pBlock.TBlock, curr);
+                property.SetValue(block, curr);
             }
 
             /// <summary>

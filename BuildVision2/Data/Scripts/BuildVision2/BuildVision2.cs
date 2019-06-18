@@ -70,7 +70,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (LoadFinished)
             {
-                if (PropertiesMenu.Open && !CanAccessTargetBlock())
+                if (PropertiesMenu.Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))
                     TryCloseMenu();
             }
         }

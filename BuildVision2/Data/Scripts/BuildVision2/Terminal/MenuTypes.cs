@@ -95,6 +95,7 @@ namespace DarkHelmet.BuildVision2
                     menu.BodyColor = ApiHudCfg.colors.listBgColor;
                     menu.HeaderColor = ApiHudCfg.colors.headerColor;
                     menu.SelectionBoxColor = ApiHudCfg.colors.selectionBoxColor;
+                    menu.TextScale = .85;
                     menu.Visible = true;
 
                     if (ApiHudCfg.resolutionScaling)

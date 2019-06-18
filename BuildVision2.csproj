@@ -72,24 +72,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BuildVision2.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\UI\KeyBinds.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\KeyBinds.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\ChatCommands.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\Game\ModBase.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\Game\ModBase.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\General\Extensions.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\UI\CmdManager.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\IO\ConfigIO.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\IO\LocalFileIO.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\UI\BindManager.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\UI\MenuUtilities.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\CmdManager.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\IO\ConfigIO.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\IO\LocalFileIO.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\BindManager.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\MenuUtilities.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\SettingsMenu.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\UI\HudAPIv2.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\Game\LocalPlayer.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\IO\LogIO.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HudAPIv2.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\Game\LocalPlayer.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\IO\LogIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\General\GenericSingleton.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\MenuTypes.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\PropertiesMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\General\TaskPool.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\UI\HudUtilities.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HudUtilities.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\General\Utilities.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ConfigTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

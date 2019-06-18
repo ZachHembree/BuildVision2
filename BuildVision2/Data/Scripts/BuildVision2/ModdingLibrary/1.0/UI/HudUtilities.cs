@@ -9,7 +9,6 @@ using VRage.Game;
 using VRage.Utils;
 using VRageMath;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
-using VRage.Game.Components;
 
 namespace DarkHelmet.UI
 {
@@ -126,9 +125,7 @@ namespace DarkHelmet.UI
             private TextInput()
             {
                 currentText = new StringBuilder(50);
-
                 HudUtilities.Instance.backspace.OnPressAndHold += Backspace;
-                MyAPIGateway.Utilities.MessageEntered += MessageHandler;
             }
 
             private static void Init()
@@ -149,7 +146,6 @@ namespace DarkHelmet.UI
             public override void Close()
             {
                 instance = null;
-                MyAPIGateway.Utilities.MessageEntered -= MessageHandler;
             }
 
             public override void HandleInput()
@@ -160,16 +156,10 @@ namespace DarkHelmet.UI
 
                     for (int n = 0; n < input.Count; n++)
                     {
-                        if (input[n] != '\b')
+                        if (input[n] != '\b' && input[n] != '\t')
                             currentText.Append(input[n]);
                     }
                 }
-            }
-
-            private void MessageHandler(string message, ref bool sendToOthers)
-            {
-                if (Open)
-                    sendToOthers = false;
             }
         }
 
@@ -260,6 +250,7 @@ namespace DarkHelmet.UI
                 set { selectionIndex = Utils.Math.Clamp(value, 0, (ListText != null ? ListText.Length - 1 : 0)); }
             }
 
+            public double TextScale { get; set; } = 1d;
             public Vector2D Size { get; private set; }
             public Color BodyColor { get { return background.color; } set { background.color = value; } }
             public Color SelectionBoxColor { get { return highlightBox.color; } set { highlightBox.color = value; } }
@@ -305,15 +296,15 @@ namespace DarkHelmet.UI
             {
                 if (Visible && ListText != null)
                 {
-                    SetScale(Scale);
-                    padding = new Vector2I((int)(72d * Scale), (int)(32d * Scale));
+                    SetScale();
+                    padding = new Vector2I((int)(62d * Scale), (int)(26d * Scale));
 
                     Vector2I listSize = GetListSize(), textOffset = listSize / 2, pos;
-                    Origin = Instance.GetPixelPos(Utils.Math.Round(ScaledPos, 3));
+                    Origin = Instance.GetPixelPos(ScaledPos);
 
                     background.Size = listSize + padding;
 
-                    headerBg.Size = new Vector2I(background.Width, header.TextSize.Y + (int)(22d * Scale));
+                    headerBg.Size = new Vector2I(background.Width, header.TextSize.Y + (int)(18d * Scale));
                     headerBg.Offset = new Vector2I(0, (headerBg.Height + background.Height) / 2);
 
                     pos = new Vector2I(-textOffset.X, textOffset.Y - list[0].TextSize.Y / 2);
@@ -328,13 +319,13 @@ namespace DarkHelmet.UI
                     for (int n = ListText.Length; n < list.Count; n++)
                         list[n].Visible = false;
 
-                    highlightBox.Size = new Vector2I(listSize.X + (int)(16d * Scale), (int)(23d * Scale));
+                    highlightBox.Size = new Vector2I(listSize.X + (int)(14d * Scale), list[SelectionIndex].TextSize.Y + 1);
                     highlightBox.Offset = new Vector2I(0, list[SelectionIndex].Offset.Y);
 
-                    tab.Size = new Vector2I((int)(4d * Scale), highlightBox.Height);
+                    tab.Size = new Vector2I((int)(3d * Scale), highlightBox.Height);
                     tab.Offset = new Vector2I((-highlightBox.Width + tab.Width) / 2 - 1, 0);
 
-                    footerBg.Size = new Vector2I(background.Width, footerLeft.TextSize.Y + (int)(12d * Scale));
+                    footerBg.Size = new Vector2I(background.Width, footerLeft.TextSize.Y + (int)(10d * Scale));
                     footerBg.Offset = new Vector2I(0, -(background.Height + footerBg.Height) / 2);
                     footerLeft.Offset = new Vector2I((-footerBg.Width + padding.X) / 2, 0);
                     footerRight.Offset = new Vector2I((footerBg.Width - padding.X) / 2, 0);
@@ -371,14 +362,14 @@ namespace DarkHelmet.UI
                 return listSize;
             }
 
-            private void SetScale(double scale)
+            private void SetScale()
             {
-                header.Scale = scale * 1.1;
-                footerLeft.Scale = scale;
-                footerRight.Scale = scale;
+                header.Scale = Scale * TextScale * 1.1;
+                footerLeft.Scale = Scale * TextScale;
+                footerRight.Scale = Scale * TextScale;
 
                 foreach (TextHudMessage element in list)
-                    element.Scale = scale;
+                    element.Scale = Scale * TextScale;
             }
         }
 

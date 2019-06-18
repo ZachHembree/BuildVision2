@@ -90,31 +90,34 @@ namespace DarkHelmet.UI
             {
                 sendToOthers = false;
 
-                if (TryParseCommand(message, out matches))
+                ModBase.RunSafeAction(() =>
                 {
-                    cmdName = matches[0];
+                    if (TryParseCommand(message, out matches))
+                    {
+                        cmdName = matches[0];
 
-                    foreach (Command cmd in Instance.commands)
-                        if (cmd.cmdName == cmdName)
-                        {
-                            cmdFound = true;
-
-                            if (cmd.needsArgs)
+                        foreach (Command cmd in Instance.commands)
+                            if (cmd.cmdName == cmdName)
                             {
-                                if (matches.Length > 1)
-                                    ModBase.RunSafeAction(() => cmd.action(matches.GetSubarray(1)));
+                                cmdFound = true;
+
+                                if (cmd.needsArgs)
+                                {
+                                    if (matches.Length > 1)
+                                        cmd.action(matches.GetSubarray(1));
+                                    else
+                                        ModBase.SendChatMessage("Invalid Command. This command requires an argument.");
+                                }
                                 else
-                                    ModBase.SendChatMessage("Invalid Command. This command requires an argument.");
+                                    cmd.action(null);
+
+                                break;
                             }
-                            else
-                                cmd.action(null);
+                    }
 
-                            break;
-                        }
-                }
-
-                if (!cmdFound)
-                    ModBase.SendChatMessage("Command not recognised.");
+                    if (!cmdFound)
+                        ModBase.SendChatMessage("Command not recognised.");
+                });
             }
         }
 

@@ -10,10 +10,10 @@ namespace DarkHelmet.Game
     /// </summary>
     public static class LocalPlayer
     {
-        public static IMyCharacter LocalPly { get { return MyAPIGateway.Session.ControlledObject as IMyCharacter; } }
-        public static MyObjectBuilder_Character CharEnt { get { return LocalPly?.GetObjectBuilder() as MyObjectBuilder_Character; } }
-        public static MatrixD HeadTransform { get { return LocalPly != null ? LocalPly.GetHeadMatrix(true) : MatrixD.Zero; } }
-        public static Vector3D Position { get { return LocalPly != null ? LocalPly.GetPosition() : Vector3D.Zero; } }
+        public static IMyCharacter PlyEnt { get { return MyAPIGateway.Session.ControlledObject as IMyCharacter; } }
+        public static MyObjectBuilder_Character CharEnt { get { return PlyEnt?.GetObjectBuilder() as MyObjectBuilder_Character; } }
+        public static MatrixD HeadTransform { get { return PlyEnt != null ? PlyEnt.GetHeadMatrix(true) : MatrixD.Zero; } }
+        public static Vector3D Position { get { return PlyEnt != null ? PlyEnt.GetPosition() : Vector3D.Zero; } }
         public static bool HasEmptyHands { get { return CharEnt?.HandWeapon == null; } }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace DarkHelmet.Game
         {
             IHitInfo rayInfo;
 
-            if (LocalPly != null)
+            if (PlyEnt != null)
             {
                 MyAPIGateway.Physics.CastRay(line.From, line.To, out rayInfo);
                 grid = rayInfo?.HitEntity as IMyCubeGrid;
@@ -87,7 +87,7 @@ namespace DarkHelmet.Game
             Vector3D start, end;
             IHitInfo rayInfo;
 
-            if (LocalPly != null)
+            if (PlyEnt != null)
             {
                 start = HeadTransform.Translation;
                 end = start + HeadTransform.Forward * maxDist;

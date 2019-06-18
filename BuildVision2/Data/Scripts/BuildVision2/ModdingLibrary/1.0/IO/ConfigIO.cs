@@ -18,13 +18,13 @@ namespace DarkHelmet.IO
         {
             get
             {
-                if (defaults == null)
-                    defaults = new ConfigT().GetDefaults();
+                if (defaultInstance == null)
+                    defaultInstance = new ConfigT();
 
-                return defaults;
+                return defaultInstance.GetDefaults();
             }
         }
-        private static ConfigT defaults;
+        private static ConfigT defaultInstance;
 
         /// <summary>
         /// Used to check the configuration for any invalid values.

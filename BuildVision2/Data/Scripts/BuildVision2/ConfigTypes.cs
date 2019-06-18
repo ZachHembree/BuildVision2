@@ -182,7 +182,7 @@ namespace DarkHelmet.BuildVision2
                     blockIncText = "200,15,15",
                     highlightText = "200,170,0",
                     selectedText = "30,200,30",
-                    listBgColor = new Color(75, 80, 85, 230),
+                    listBgColor = new Color(70, 80, 90, 230),
                     selectionBoxColor = new Color(41, 54, 62, 255),
                     headerColor = new Color(41, 54, 62, 230)
                 };
@@ -230,7 +230,7 @@ namespace DarkHelmet.BuildVision2
             return new ApiHudConfig
             {
                 resolutionScaling = true,
-                hudScale = 0.85f,
+                hudScale = 1f,
                 maxVisible = 14,
                 clampHudPos = true,
                 forceToCenter = false,
