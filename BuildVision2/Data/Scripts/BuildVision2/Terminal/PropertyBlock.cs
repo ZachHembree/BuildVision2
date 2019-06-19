@@ -463,11 +463,12 @@ namespace DarkHelmet.BuildVision2
                 this.comboBox = comboBox;
                 this.block = block;
                 Name = name;
-                keys = new List<long>();
-                names = new List<string>();
 
                 List<MyTerminalControlComboBoxItem> content = new List<MyTerminalControlComboBoxItem>();
                 comboBox.ComboBoxContent(content);
+
+                keys = new List<long>(content.Count);
+                names = new List<string>(content.Count);
 
                 foreach (MyTerminalControlComboBoxItem item in content)
                 {
@@ -652,18 +653,7 @@ namespace DarkHelmet.BuildVision2
             private readonly ITerminalProperty<Color> property;
             private readonly Color delta;
             private readonly Func<string> colorDisp;
-            private static readonly int minValue;
-            private static readonly int maxValue;
-            private static int incrX;
-            private static int incrY;
-            private static int incrZ;
-            private static int incr0;
-
-            static ColorProperty()
-            {
-                minValue = byte.MinValue;
-                maxValue = byte.MaxValue;
-            }
+            private static int incrX, incrY, incrZ, incr0;
 
             public ColorProperty(string name, IMyTerminalBlock block, ITerminalProperty<Color> prop, Color delta, Func<string> colorDisp)
             {
@@ -705,19 +695,19 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void ChangePropValue(bool increment)
             {
-                Color curr = property.GetValue(block);
-                int r = curr.R, g = curr.G, b = curr.B,
-                    sign = increment ? 1 : -1, mult = GetIncrement();
+                Color current = property.GetValue(block);
+                int r = current.R, g = current.G, b = current.B,
+                    mult = increment ? GetIncrement() : -GetIncrement();
 
-                r += (sign * mult * delta.R);
-                g += (sign * mult * delta.G);
-                b += (sign * mult * delta.B);
+                r += (mult * delta.R);
+                g += (mult * delta.G);
+                b += (mult * delta.B);
 
-                curr.R = (byte)Utils.Math.Clamp(r, minValue, maxValue);
-                curr.G = (byte)Utils.Math.Clamp(g, minValue, maxValue);
-                curr.B = (byte)Utils.Math.Clamp(b, minValue, maxValue);
+                current.R = (byte)Utils.Math.Clamp(r, byte.MinValue, byte.MaxValue);
+                current.G = (byte)Utils.Math.Clamp(g, byte.MinValue, byte.MaxValue);
+                current.B = (byte)Utils.Math.Clamp(b, byte.MinValue, byte.MaxValue);
 
-                property.SetValue(block, curr);
+                property.SetValue(block, current);
             }
 
             /// <summary>

@@ -135,8 +135,11 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "ClampHudToScreenEdges")]
         public bool clampHudPos;
 
-        [XmlElement(ElementName = "LockHudToScreenCenter")]
-        public bool forceToCenter;
+        [XmlElement(ElementName = "UseCustomHudPosition")]
+        public bool useCustomPos;
+
+        [XmlElement(ElementName = "HudPosition")]
+        public Vector2D hudPos;
 
         [XmlElement(ElementName = "ColorsRGB")]
         public Colors colors;
@@ -233,7 +236,8 @@ namespace DarkHelmet.BuildVision2
                 hudScale = 1f,
                 maxVisible = 14,
                 clampHudPos = true,
-                forceToCenter = false,
+                useCustomPos = false,
+                hudPos = Vector2D.Zero,
                 colors = Colors.Defaults
             };
         }

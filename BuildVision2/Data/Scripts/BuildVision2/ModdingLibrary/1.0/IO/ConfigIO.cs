@@ -61,7 +61,12 @@ namespace DarkHelmet.IO
         /// <summary>
         /// The most recently loaded configuration.
         /// </summary>
-        public static ConfigT Current { get; private set; }
+        public static ConfigT Current
+        {
+            get { if (current == null) Load(); return current; }
+            private set { current = value; }
+        }
+        private static ConfigT current;
 
         /// <summary>
         /// Loads config from file and applies it. Runs synchronously.

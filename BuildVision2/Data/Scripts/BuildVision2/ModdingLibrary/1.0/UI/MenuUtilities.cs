@@ -96,7 +96,18 @@ namespace DarkHelmet.UI
         /// </summary>
         public abstract class MenuElement<T> : IMenuElement where T : HudAPIv2.MenuItemBase
         {
-            public abstract IMenuCategory Parent { get; set; }
+            public virtual IMenuCategory Parent
+            {
+                get { return parent; }
+                set
+                {
+                    parent = value;
+
+                    if (Element != null && parent != null && parent.CategoryBase != null)
+                        Element.Parent = parent.CategoryBase;
+                }
+            }
+            private IMenuCategory parent;
             public virtual T Element { get; protected set; }
 
             public virtual string Name
@@ -209,7 +220,7 @@ namespace DarkHelmet.UI
             /// <summary>
             /// This does nothing; it's only here because I couldn't be bothered to remove it from this type's base classes.
             /// </summary>
-            public override IMenuCategory Parent { get { return this; } set { } }
+            private new IMenuCategory Parent { get { return this; } set { } }
 
             private MenuRoot(string name, string header) : base(name, header, null, null, true)
             { }
@@ -229,18 +240,6 @@ namespace DarkHelmet.UI
         /// </summary>
         public class MenuCategory : MenuCategoryBase<HudAPIv2.MenuSubCategory>
         {
-            public override IMenuCategory Parent
-            {
-                get { return parent; }
-                set
-                {
-                    parent = value;
-
-                    if (Element != null && parent != null && parent.CategoryBase != null)
-                        Element.Parent = parent.CategoryBase;
-                }
-            }
-
             private IMenuCategory parent;
 
             public MenuCategory(Func<string> GetName, string header, List<IMenuElement> children = null, IMenuCategory parent = null) : base(GetName, header, parent, children)
@@ -271,23 +270,56 @@ namespace DarkHelmet.UI
         }
 
         /// <summary>
+        /// Creates a draggable box that the user can use to indicate a position on the screen.
+        /// </summary>
+        public class MenuPositionInput : MenuSetting<HudAPIv2.MenuScreenInput>
+        {
+            private readonly Action<Vector2D> SetPosition;
+            private readonly Func<Vector2D> GetPosition, GetSize;
+            private readonly string queryText;
+            private Vector2D startPos;
+
+            public MenuPositionInput(Func<string> GetName, string queryText, Func<Vector2D> GetSize, Func<Vector2D> GetPosition, Action<Vector2D> SetPosition, IMenuCategory parent = null) 
+                : base(GetName, parent)
+            {
+                this.queryText = queryText;
+                this.GetPosition = GetPosition;
+                this.GetSize = GetSize;
+                this.SetPosition = SetPosition;
+            }
+
+            public MenuPositionInput(string name, string queryText, Func<Vector2D> GetSize, Func<Vector2D> GetPosition, Action<Vector2D> SetPosition, IMenuCategory parent = null) 
+                : this(() => name, queryText, GetSize, GetPosition, SetPosition, parent) { }
+
+            private void OnSelect()
+            {
+                startPos = GetPosition();
+                Element.Size = GetSize();
+                Element.Origin = startPos - Element.Size / 2;
+            }
+
+            private void UpdatePos(Vector2D pos)
+            {
+                Element.Size = GetSize();
+                SetPosition(pos + Element.Size / 2);
+            }
+
+            private void OnCancel()
+            {
+                SetPosition(startPos);
+            }
+
+            protected override void InitElement()
+            {
+                Element = new HudAPIv2.MenuScreenInput(Name, Parent.CategoryBase, Vector2D.Zero, Vector2D.One * .02, queryText, UpdatePos, UpdatePos, OnCancel, OnSelect);
+            }
+        }
+
+        /// <summary>
         /// Creates a clickable menu button
         /// </summary>
         public class MenuButton : MenuSetting<HudAPIv2.MenuItem>
         {
-            public override IMenuCategory Parent
-            {
-                get { return parent; }
-                set
-                {
-                    parent = value;
-
-                    if (Element != null && parent != null && parent.CategoryBase != null)
-                        Element.Parent = parent.CategoryBase;
-                }
-            }
-
-            private IMenuCategory parent;
             private readonly Action OnClickAction;
 
             public MenuButton(Func<string> GetName, Action OnClick, IMenuCategory parent = null) : base(GetName, parent)
@@ -317,19 +349,6 @@ namespace DarkHelmet.UI
         /// </summary>
         public class MenuTextInput : MenuSetting<HudAPIv2.MenuTextInput>
         {
-            public override IMenuCategory Parent
-            {
-                get { return parent; }
-                set
-                {
-                    parent = value;
-
-                    if (Element != null && parent != null && parent.CategoryBase != null)
-                        Element.Parent = parent.CategoryBase;
-                }
-            }
-
-            private IMenuCategory parent;
             private readonly string queryText;
             private readonly Action<string> OnSubmitAction;
 
@@ -362,19 +381,6 @@ namespace DarkHelmet.UI
         /// </summary>
         public class MenuSliderInput : MenuSetting<HudAPIv2.MenuSliderInput>
         {
-            public override IMenuCategory Parent
-            {
-                get { return parent; }
-                set
-                {
-                    parent = value;
-
-                    if (Element != null && parent != null && parent.CategoryBase != null)
-                        Element.Parent = parent.CategoryBase;
-                }
-            }
-
-            private IMenuCategory parent;
             private readonly string queryText;
             private readonly Func<float> CurrentValueAction;
             private readonly Action<float> OnUpdateAction;
@@ -382,7 +388,8 @@ namespace DarkHelmet.UI
             private readonly int rounding;
             private float start;
 
-            public MenuSliderInput(Func<string> GetName, string queryText, float min, float max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null) : base(GetName, parent)
+            public MenuSliderInput(Func<string> GetName, string queryText, float min, float max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null) 
+                : base(GetName, parent)
             {
                 this.queryText = queryText;
                 this.min = min;
@@ -397,17 +404,21 @@ namespace DarkHelmet.UI
             public MenuSliderInput(string name, string queryText, float min, float max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null)
                 : this(() => name, queryText, min, max, GetCurrentValue, OnUpdate, parent) { }
 
-            public MenuSliderInput(Func<string> GetName, string queryText, int min, int max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null)
-                : this(GetName, queryText, min, (float)max, GetCurrentValue, OnUpdate, parent)
+            public MenuSliderInput(Func<string> GetName, string queryText, int min, int max, Func<int> GetCurrentValue, Action<int> OnUpdate, IMenuCategory parent = null) 
+                : base (GetName, parent)
             {
+                this.queryText = queryText;
+                this.min = min;
+                this.max = max;
+                range = max - min;
                 this.rounding = 0;
+
+                CurrentValueAction = () => GetCurrentValue();
+                OnUpdateAction = x => OnUpdate((int)x);
             }
 
-            public MenuSliderInput(string name, string queryText, int min, int max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null)
-                : this(name, queryText, min, (float)max, GetCurrentValue, OnUpdate, parent)
-            {
-                this.rounding = 0;
-            }
+            public MenuSliderInput(string name, string queryText, int min, int max, Func<int> GetCurrentValue, Action<int> OnUpdate, IMenuCategory parent = null)
+                : this(() => name, queryText, min, max, GetCurrentValue, OnUpdate, parent) { }
 
             private void OnSubmit(float percent)
             {
@@ -470,28 +481,28 @@ namespace DarkHelmet.UI
                 colorRoot = new MenuCategory(name, "Colors", colorChannles, parent);
             }
 
-            private void UpdateColorR(float R)
+            private void UpdateColorR(int R)
             {
                 Color current = GetCurrentValue();
                 current.R = (byte)R;
                 OnUpdate(current);
             }
 
-            private void UpdateColorG(float G)
+            private void UpdateColorG(int G)
             {
                 Color current = GetCurrentValue();
                 current.G = (byte)G;
                 OnUpdate(current);
             }
 
-            private void UpdateColorB(float B)
+            private void UpdateColorB(int B)
             {
                 Color current = GetCurrentValue();
                 current.B = (byte)B;
                 OnUpdate(current);
             }
 
-            private void UpdateColorA(float A)
+            private void UpdateColorA(int A)
             {
                 Color current = GetCurrentValue();
                 current.A = (byte)A;

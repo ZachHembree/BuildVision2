@@ -972,6 +972,8 @@ namespace DarkHelmet.UI.TextHudApi
             }
             internal object BackingObject;
 
+            public virtual MenuCategoryBase Parent { get;  set; }
+
             /// <summary>
             /// Text displayed in the category list
             /// </summary>
@@ -1025,7 +1027,7 @@ namespace DarkHelmet.UI.TextHudApi
             /// <summary>
             /// Must be either a MenuRootCategory or MenuSubCategory object
             /// </summary>
-            public MenuCategoryBase Parent
+            public override MenuCategoryBase Parent
             {
                 set
                 {
@@ -1124,7 +1126,7 @@ namespace DarkHelmet.UI.TextHudApi
             /// <summary>
             /// Must be either a MenuRootCategory or MenuSubCategory objectMust be either a MenuRootCategory or MenuSubCategory object
             /// </summary>
-            public MenuCategoryBase Parent
+            public override MenuCategoryBase Parent
             {
                 set
                 {
@@ -1159,7 +1161,7 @@ namespace DarkHelmet.UI.TextHudApi
             /// <summary>
             /// Must be either a MenuRootCategory or MenuSubCategory object
             /// </summary>
-            public MenuCategoryBase Parent
+            public override MenuCategoryBase Parent
             {
                 set
                 {
@@ -1226,7 +1228,7 @@ namespace DarkHelmet.UI.TextHudApi
             /// <summary>
             /// Must be either a MenuRootCategory or MenuSubCategory object
             /// </summary>
-            public MenuCategoryBase Parent
+            public override MenuCategoryBase Parent
             {
                 set
                 {
@@ -1298,7 +1300,7 @@ namespace DarkHelmet.UI.TextHudApi
             /// <summary>
             /// Must be either a MenuRootCategory or MenuSubCategory object
             /// </summary>
-            public MenuCategoryBase Parent
+            public override MenuCategoryBase Parent
             {
                 set
                 {
@@ -1453,7 +1455,7 @@ namespace DarkHelmet.UI.TextHudApi
             /// <summary>
             /// Must be either a MenuRootCategory or MenuSubCategory object
             /// </summary>
-            public MenuCategoryBase Parent
+            public override MenuCategoryBase Parent
             {
                 set
                 {

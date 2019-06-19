@@ -64,16 +64,11 @@ namespace DarkHelmet.BuildVision2
             Instance = null;
         }
 
-        private void UpdateConfig()
-        {
+        private void UpdateConfig() =>
             BvConfig.Current.binds = Cfg;
-        }
 
-        private void UpdateBinds()
-        {
+        private void UpdateBinds() =>
             Cfg = BvConfig.Current.binds;
-            ModBase.SendChatMessage("Updating Bind Cfg...");
-        }
 
         private void UpdateBindReferences()
         {

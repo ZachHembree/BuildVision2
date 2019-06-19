@@ -36,7 +36,7 @@ namespace DarkHelmet.BuildVision2
                         () => $"Hud Scale: {Math.Round(PropertiesMenu.ApiHudCfg.hudScale, 2)}",
                         "Hud Scale", 0.5f, 2f,
                         () => PropertiesMenu.ApiHudCfg.hudScale,
-                        (float scale) => PropertiesMenu.ApiHudCfg.hudScale = scale),
+                        x => PropertiesMenu.ApiHudCfg.hudScale = x),
                     // Opacity
                     new MenuUtilities.MenuSliderInput(
                         () => $"Header Bg Opacity: {AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.headerColor.A)}",
@@ -53,17 +53,21 @@ namespace DarkHelmet.BuildVision2
                         () => $"Max Visible Properties: {PropertiesMenu.ApiHudCfg.maxVisible}",
                         "Max Visible Properties", 6, 20,
                         () => PropertiesMenu.ApiHudCfg.maxVisible,
-                        (float maxVisible) => PropertiesMenu.ApiHudCfg.maxVisible = (int)maxVisible),
+                        x => PropertiesMenu.ApiHudCfg.maxVisible = x),
                     new MenuUtilities.MenuButton(
                         () => $"Clamp To Screen Edges: {PropertiesMenu.ApiHudCfg.clampHudPos}",
                         () => PropertiesMenu.ApiHudCfg.clampHudPos = !PropertiesMenu.ApiHudCfg.clampHudPos),
                     new MenuUtilities.MenuButton(
-                        () => $"Lock To Screen Center: {PropertiesMenu.ApiHudCfg.forceToCenter}",
-                        () => PropertiesMenu.ApiHudCfg.forceToCenter = !PropertiesMenu.ApiHudCfg.forceToCenter),
+                        () => $"Use Custom Position: {PropertiesMenu.ApiHudCfg.useCustomPos}",
+                        () => PropertiesMenu.ApiHudCfg.useCustomPos = !PropertiesMenu.ApiHudCfg.useCustomPos),
+                    new MenuUtilities.MenuPositionInput(
+                        "Set Hud Position", "Drag Me",
+                        () => PropertiesMenu.ApiHudSize,
+                        () => PropertiesMenu.ApiHudCfg.hudPos,
+                        x => PropertiesMenu.ApiHudCfg.hudPos = x),
                     new MenuUtilities.MenuButton(
                         "Reset Settings",
-                        () => PropertiesMenu.ApiHudCfg = ApiHudConfig.Defaults
-                    ),
+                        () => PropertiesMenu.ApiHudCfg = ApiHudConfig.Defaults),
                 }),
                 
                 // Bind Settings
@@ -161,8 +165,8 @@ namespace DarkHelmet.BuildVision2
             };
         }
 
-        private static float AlphaToPercent(byte alpha) =>
-            (float)Math.Round(alpha / 255d) * 100f;
+        private static int AlphaToPercent(byte alpha) =>
+            (int)Math.Round((alpha * 100d) / 255d);
 
         /// <summary>
         /// Creates list of settings for configuring keybinds via the Text HUD API's Mod Menu
