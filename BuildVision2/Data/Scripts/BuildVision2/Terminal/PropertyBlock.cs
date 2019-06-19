@@ -5,15 +5,13 @@ using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using SpaceEngineers.Game.ModAPI.Ingame;
 using System;
-using System.Text;
 using System.Collections.Generic;
+using System.Text;
 using VRage;
-using VRage.Utils;
 using VRage.ModAPI;
+using VRage.Utils;
 using VRageMath;
-using ChargeMode = Sandbox.ModAPI.Ingame.ChargeMode;
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
-using IMyBatteryBlock = Sandbox.ModAPI.Ingame.IMyBatteryBlock;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
 using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
 using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
@@ -72,7 +70,7 @@ namespace DarkHelmet.BuildVision2
             TBlock = tBlock;
             Properties = new List<IBlockProperty>(10);
             Actions = new List<IBlockAction>();
-            
+
             GetScrollableProps();
             GetScrollableActions();
         }
@@ -84,14 +82,45 @@ namespace DarkHelmet.BuildVision2
             TBlock.GetPosition();
 
         /// <summary>
-        /// Retrieves a Block Property's Terminal Name
+        /// Retrieves a Block Property's Terminal Name. Filters out any characters that aren't numbers, letters or spaces.
         /// </summary>
         private static string GetTooltipName(ITerminalProperty prop)
         {
             if (prop is IMyTerminalControlTitleTooltip tooltip)
-                return MyTexts.Get(tooltip.Title).ToString();
+            {
+                int trailingSpaceLength = 0;
+                StringBuilder name = MyTexts.Get(tooltip.Title),
+                    cleanedName = new StringBuilder(name.Length);
+
+                for (int n = name.Length - 1; (n >= 0 && name[n] == ' '); n--)
+                    trailingSpaceLength++;
+
+                for (int n = 0; n < name.Length - trailingSpaceLength; n++)
+                {
+                    if ((name[n] >= '0' && name[n] <= '9') || (name[n] >= 'A' && name[n] <= 'z') || name[n] == ' ')
+                        cleanedName.Append(name[n]);
+                }
+
+                return cleanedName.ToString();
+            }
             else
                 return "";
+        }
+
+        /// <summary>
+        /// Filters out any any special characters from a given string.
+        /// </summary>
+        private static string CleanText(StringBuilder text)
+        {
+            StringBuilder cleanedText = new StringBuilder(text.Length);
+
+            for (int n = 0; n < text.Length; n++)
+            {
+                if (text[n] >= ' ' && text[n] <= '~')
+                    cleanedText.Append(text[n]);
+            }
+
+            return cleanedText.ToString();
         }
 
         /// <summary>
@@ -119,7 +148,7 @@ namespace DarkHelmet.BuildVision2
                             else
                                 Properties.Add(new TextProperty(name, textProp, TBlock));
                         }
-                        if (prop is IMyTerminalControlCombobox comboBox && !name.StartsWith("Assigned"))
+                        if (prop is IMyTerminalControlCombobox comboBox && !name.StartsWith("Assign"))
                         {
                             Properties.Add(new ComboBoxProperty(name, comboBox, TBlock));
                         }
@@ -329,31 +358,23 @@ namespace DarkHelmet.BuildVision2
             public string Name { get; }
             public string Value { get { return GetCurrentValue(); } }
 
+            private const long blinkInterval = TimeSpan.TicksPerMillisecond * 500;
             private bool selected, blink;
             private long lastTime;
-            private readonly StringBuilder text;
-            private const long blinkInterval = TimeSpan.TicksPerMillisecond * 500;
+            private readonly ITerminalProperty<StringBuilder> textProp;
+            private readonly IMyTerminalBlock block;
 
             public TextProperty(string name, ITerminalProperty<StringBuilder> textProp, IMyTerminalBlock block)
             {
                 Name = name;
-                text = textProp.GetValue(block);
+                this.textProp = textProp;
+                this.block = block;
                 lastTime = long.MinValue;
-
-                StringBuilder newText = new StringBuilder(text.Length);
-
-                for (int n = 0; n < text.Length; n++)
-                {
-                    if (text[n] != '\t')
-                        newText.Append(text[n]);
-                }
-
-                text = newText;
             }
 
             public void OnSelect()
             {
-                HudUtilities.TextInput.CurrentText = text.ToString();
+                HudUtilities.TextInput.CurrentText = CleanText(textProp.GetValue(block));
                 lastTime = DateTime.Now.Ticks;
                 selected = true;
             }
@@ -361,8 +382,7 @@ namespace DarkHelmet.BuildVision2
             public void OnDeselect()
             {
                 HudUtilities.TextInput.Open = false;
-                text.Clear();
-                text.Append(HudUtilities.TextInput.CurrentText);
+                textProp.SetValue(block, new StringBuilder(HudUtilities.TextInput.CurrentText));
                 selected = false;
             }
 
@@ -395,7 +415,7 @@ namespace DarkHelmet.BuildVision2
                         return "Open Chat to Continue";
                 }
                 else
-                    return text.ToString();
+                    return CleanText(textProp.GetValue(block));
             }
         }
 
@@ -427,11 +447,11 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Scrollable property for <see cref="IMyTerminalControlCombobox"/> / <see cref="ITerminalProperty{long}"/> terminal properties.
+        /// Scrollable property for <see cref="IMyTerminalControlCombobox"/> terminal properties.
         /// </summary>
         private class ComboBoxProperty : ScrollablePropBase
         {
-            public override string Value { get { return names?[GetCurrentIndex()]; } }
+            public override string Value { get { return names[GetCurrentIndex()]; } }
 
             private readonly IMyTerminalBlock block;
             private readonly List<long> keys;
@@ -451,13 +471,9 @@ namespace DarkHelmet.BuildVision2
 
                 foreach (MyTerminalControlComboBoxItem item in content)
                 {
-                    string itemName = MyTexts.Get(item.Value)?.ToString();
-
-                    if (itemName != null)
-                    {
-                        keys.Add(item.Key);
-                        names.Add(itemName);
-                    }
+                    string itemName = MyTexts.Get(item.Value).ToString();
+                    keys.Add(item.Key);
+                    names.Add(itemName);
                 }
             }
 
@@ -552,7 +568,7 @@ namespace DarkHelmet.BuildVision2
 
             private readonly IMyTerminalBlock block;
             private readonly ITerminalProperty<float> prop;
-            private readonly float minValue, maxValue, incrA, incrB, incrC, incr0;
+            private readonly float minValue, maxValue, incrX, incrY, incrZ, incr0;
 
             public FloatProperty(string name, ITerminalProperty<float> prop, IMyTerminalBlock block)
             {
@@ -564,9 +580,7 @@ namespace DarkHelmet.BuildVision2
                 maxValue = this.prop.GetMaximum(block);
 
                 if (Name == "Pitch" || Name == "Yaw" || Name == "Roll")
-                {
                     incr0 = 90f;
-                }
                 else
                 {
                     if (float.IsInfinity(minValue) || float.IsInfinity(maxValue))
@@ -587,9 +601,9 @@ namespace DarkHelmet.BuildVision2
                         incr0 = 1f;
                 }
 
-                incrC = incr0 * Cfg.floatMult.Z; // x10
-                incrB = incr0 * Cfg.floatMult.Y; // x5
-                incrA = incr0 * Cfg.floatMult.X; // x0.1
+                incrZ = incr0 * Cfg.floatMult.Z; // x10
+                incrY = incr0 * Cfg.floatMult.Y; // x5
+                incrX = incr0 * Cfg.floatMult.X; // x0.1
             }
 
             protected override void ScrollDown() =>
@@ -616,19 +630,14 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private float GetIncrement()
             {
-                bool
-                    multA = KeyBinds.MultX.IsPressed,
-                    multB = KeyBinds.MultY.IsPressed,
-                    multC = KeyBinds.MultZ.IsPressed;
-
-                if (multC)
-                    return incrC; // x64
-                else if (multB)
-                    return incrB; // x16
-                else if (multA)
-                    return incrA; // x8
+                if (KeyBinds.MultZ.IsPressed)
+                    return incrZ;
+                else if (KeyBinds.MultY.IsPressed)
+                    return incrY;
+                else if (KeyBinds.MultX.IsPressed)
+                    return incrX;
                 else
-                    return incr0; // x1
+                    return incr0;
             }
         }
 
@@ -645,9 +654,9 @@ namespace DarkHelmet.BuildVision2
             private readonly Func<string> colorDisp;
             private static readonly int minValue;
             private static readonly int maxValue;
-            private static int incrA;
-            private static int incrB;
-            private static int incrC;
+            private static int incrX;
+            private static int incrY;
+            private static int incrZ;
             private static int incr0;
 
             static ColorProperty()
@@ -662,9 +671,9 @@ namespace DarkHelmet.BuildVision2
                 property = prop;
 
                 incr0 = 1;
-                incrC = incr0 * Cfg.colorMult.Z; // x64
-                incrB = incr0 * Cfg.colorMult.Y; // x16
-                incrA = incr0 * Cfg.colorMult.X; // x8
+                incrZ = incr0 * Cfg.colorMult.Z; // x64
+                incrY = incr0 * Cfg.colorMult.Y; // x16
+                incrX = incr0 * Cfg.colorMult.X; // x8
 
                 this.delta = delta;
                 this.colorDisp = colorDisp;
@@ -716,19 +725,14 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private int GetIncrement()
             {
-                bool
-                    multA = KeyBinds.MultX.IsPressed,
-                    multB = KeyBinds.MultY.IsPressed,
-                    multC = KeyBinds.MultZ.IsPressed;
-
-                if (multC)
-                    return incrC; // x64
-                else if (multB)
-                    return incrB; // x16
-                else if (multA)
-                    return incrA; // x8
+                if (KeyBinds.MultZ.IsPressed)
+                    return incrZ;
+                else if (KeyBinds.MultY.IsPressed)
+                    return incrY;
+                else if (KeyBinds.MultX.IsPressed)
+                    return incrX;
                 else
-                    return incr0; // x1
+                    return incr0;
             }
         }
     }

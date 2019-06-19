@@ -140,6 +140,17 @@ namespace DarkHelmet.UI
             Instance = null;
         }
 
+        /// <summary>
+        /// Retrieves a copy of the list of all registered groups.
+        /// </summary>
+        public static Group[] GetBindGroups()
+        {
+            Group[] currentGroups = new Group[Instance.bindGroups.Count];
+            Instance.bindGroups.CopyTo(currentGroups);
+
+            return currentGroups;
+        }
+
         public static Group GetBindGroup(string name)
         {
             foreach (Group group in Instance.bindGroups)
@@ -206,15 +217,12 @@ namespace DarkHelmet.UI
             private List<Control> usedControls;
             private bool[,] controlBindMap; // X = used controls; Y = associated key binds
             private int[] bindHits;
-            private readonly bool wereAnyPressed, areAnyPressed;
             private readonly int index;
 
             public Group(string name)
             {
                 this.name = name;
                 keyBinds = new List<Bind>();
-                areAnyPressed = false;
-                wereAnyPressed = false;
 
                 index = Instance.bindGroups.Count;
                 Instance.bindGroups.Add(this);
@@ -338,7 +346,7 @@ namespace DarkHelmet.UI
 
                 for (int y = 0; y < keyBinds.Count; y++)
                 {
-                    if (keyBinds[y].Count > longest && controlBindMap[control, y])
+                    if (bindHits[y] > 0 && keyBinds[y].Count > longest && controlBindMap[control, y])
                         longest = keyBinds[y].Count;
                 }
 
@@ -707,7 +715,7 @@ namespace DarkHelmet.UI
             // Interface properties
             public string Name { get; private set; }
             public bool Analog { get; private set; }
-            public string BindString { get; private set; }
+            public string BindString { get { return GetBindString(); } }
             public IControl[] Combo { get { return combo; } }
             public bool IsPressed { get; private set; }
             public bool IsNewPressed { get { return IsPressed && (!wasPressed || Analog); } }
@@ -731,7 +739,6 @@ namespace DarkHelmet.UI
                 lastTime = long.MaxValue;
                 isPressedAndHeld = false;
                 wasPressed = false;
-                BindString = GetBindString();
 
                 if (combo != null)
                 {
@@ -751,7 +758,6 @@ namespace DarkHelmet.UI
                 combo = newCombo;
                 Analog = AreAnyAnalog();
 
-                BindString = GetBindString();
                 RegisterControls();
             }
 

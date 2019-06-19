@@ -28,6 +28,7 @@ namespace DarkHelmet.BuildVision2
                 // GUI Settings
                 new MenuUtilities.MenuCategory("GUI Settings", "GUI Settings", new List<MenuUtilities.IMenuElement>()
                 {
+                    // Scaling
                     new MenuUtilities.MenuButton(
                         () => $"Enable Resolution Scaling: {PropertiesMenu.ApiHudCfg.resolutionScaling}",
                         () => PropertiesMenu.ApiHudCfg.resolutionScaling = !PropertiesMenu.ApiHudCfg.resolutionScaling),
@@ -36,16 +37,18 @@ namespace DarkHelmet.BuildVision2
                         "Hud Scale", 0.5f, 2f,
                         () => PropertiesMenu.ApiHudCfg.hudScale,
                         (float scale) => PropertiesMenu.ApiHudCfg.hudScale = scale),
+                    // Opacity
                     new MenuUtilities.MenuSliderInput(
-                        () => $"Header Bg Opacity: {Math.Round(PropertiesMenu.ApiHudCfg.colors.headerColor.A / 255d, 2)}",
-                        "Header Bg Opacity", .01f, 1f,
-                        () => (float)Math.Round(PropertiesMenu.ApiHudCfg.colors.headerColor.A / 255d, 2),
-                        (float value) => PropertiesMenu.ApiHudCfg.colors.headerColor.A = (byte)(value * 255f)),
+                        () => $"Header Bg Opacity: {AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.headerColor.A)}",
+                        "Header Bg Opacity", 0, 100,
+                        () => AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.headerColor.A),
+                        x => PropertiesMenu.ApiHudCfg.colors.headerColor.A = (byte)(x * 2.55f)),
                     new MenuUtilities.MenuSliderInput(
-                        () => $"List Bg Opacity: {Math.Round(PropertiesMenu.ApiHudCfg.colors.listBgColor.A / 255d, 2)}",
-                        "List Bg Opacity", .01f, 1f,
-                        () => (float)Math.Round(PropertiesMenu.ApiHudCfg.colors.listBgColor.A / 255d, 2),
-                        (float value) => PropertiesMenu.ApiHudCfg.colors.listBgColor.A = (byte)(value * 255f)),
+                        () => $"List Bg Opacity: {AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.listBgColor.A)}",
+                        "List Bg Opacity", 0, 100,
+                        () => AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.listBgColor.A),
+                        x => PropertiesMenu.ApiHudCfg.colors.listBgColor.A = (byte)(x * 2.55f)),
+                    // Misc
                     new MenuUtilities.MenuSliderInput(
                         () => $"Max Visible Properties: {PropertiesMenu.ApiHudCfg.maxVisible}",
                         "Max Visible Properties", 6, 20,
@@ -157,6 +160,9 @@ namespace DarkHelmet.BuildVision2
                         () => BvConfig.LoadStart()),
             };
         }
+
+        private static float AlphaToPercent(byte alpha) =>
+            (float)Math.Round(alpha / 255d) * 100f;
 
         /// <summary>
         /// Creates list of settings for configuring keybinds via the Text HUD API's Mod Menu

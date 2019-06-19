@@ -59,7 +59,7 @@ namespace DarkHelmet.BuildVision2
         private static void Init()
         {
             if (instance == null)
-                instance = new PropertiesMenu();               
+                instance = new PropertiesMenu();
         }
 
         public override void Close()
