@@ -2,6 +2,7 @@
 using DarkHelmet.UI;
 using System;
 using System.Collections.Generic;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -42,12 +43,20 @@ namespace DarkHelmet.BuildVision2
                         () => $"Header Bg Opacity: {AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.headerColor.A)}",
                         "Header Bg Opacity", 0, 100,
                         () => AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.headerColor.A),
-                        x => PropertiesMenu.ApiHudCfg.colors.headerColor.A = (byte)(x * 2.55f)),
+                        x =>
+                        {
+                            PropertiesMenu.ApiHudCfg.colors.headerColor.A = (byte)(x * 2.55f);
+                            PropertiesMenu.ApiHudCfg.colors.headerColorData = Utils.Color.GetColorString(PropertiesMenu.ApiHudCfg.colors.headerColor);
+                        }),
                     new MenuUtilities.MenuSliderInput(
                         () => $"List Bg Opacity: {AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.listBgColor.A)}",
                         "List Bg Opacity", 0, 100,
                         () => AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.listBgColor.A),
-                        x => PropertiesMenu.ApiHudCfg.colors.listBgColor.A = (byte)(x * 2.55f)),
+                        x => 
+                        {
+                            PropertiesMenu.ApiHudCfg.colors.listBgColor.A = (byte)(x * 2.55f);
+                            PropertiesMenu.ApiHudCfg.colors.listBgColorData = Utils.Color.GetColorString(PropertiesMenu.ApiHudCfg.colors.listBgColor);
+                        }),
                     // Misc
                     new MenuUtilities.MenuSliderInput(
                         () => $"Max Visible Properties: {PropertiesMenu.ApiHudCfg.maxVisible}",
@@ -61,8 +70,7 @@ namespace DarkHelmet.BuildVision2
                         () => $"Use Custom Position: {PropertiesMenu.ApiHudCfg.useCustomPos}",
                         () => PropertiesMenu.ApiHudCfg.useCustomPos = !PropertiesMenu.ApiHudCfg.useCustomPos),
                     new MenuUtilities.MenuPositionInput(
-                        "Set Hud Position", "Drag Me",
-                        () => PropertiesMenu.ApiHudSize,
+                        "Set Hud Position", "",
                         () => PropertiesMenu.ApiHudCfg.hudPos,
                         x => PropertiesMenu.ApiHudCfg.hudPos = x),
                     new MenuUtilities.MenuButton(
@@ -138,8 +146,8 @@ namespace DarkHelmet.BuildVision2
                             "Color Multiplier Z",
                             (string input) =>
                             {
-                            int.TryParse(input, out PropertyBlock.Cfg.colorMult.Z);
-                            PropertyBlock.Cfg.Validate();
+                                int.TryParse(input, out PropertyBlock.Cfg.colorMult.Z);
+                                PropertyBlock.Cfg.Validate();
                             }),
                     }),
 
@@ -166,7 +174,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         private static int AlphaToPercent(byte alpha) =>
-            (int)Math.Round((alpha * 100d) / 255d);
+            (int)Math.Round(alpha / 2.55d);
 
         /// <summary>
         /// Creates list of settings for configuring keybinds via the Text HUD API's Mod Menu

@@ -13,8 +13,6 @@ namespace DarkHelmet.BuildVision2
         public static PropMenuConfig Cfg { get { return BvConfig.Current.menu; } set { BvConfig.Current.menu = value; } }
         public static ApiHudConfig ApiHudCfg { get { return Cfg.apiHudConfig; } set { Cfg.apiHudConfig = value; } }
         public static NotifHudConfig NotifHudCfg { get { return Cfg.fallbackHudConfig; } set { Cfg.fallbackHudConfig = value; } }
-        public static Vector2D ApiHudSize { get { return Instance.apiHud.menu.Size; } }
-
         public static PropertyBlock Target
         {
             get { return Instance.target; }

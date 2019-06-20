@@ -73,7 +73,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ApiHud : PropertyList
         {
-            public readonly HudUtilities.ScrollMenu menu;
+            private readonly HudUtilities.ScrollMenu menu;
 
             public ApiHud()
             {
@@ -128,27 +128,26 @@ namespace DarkHelmet.BuildVision2
                 Vector3D targetPos, worldPos;
                 Vector2D screenPos, screenBounds;
 
-                if (LocalPlayer.IsLookingInBlockDir(Target.TBlock))
+                if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !ApiHudCfg.useCustomPos)
                 {
-                    if (!ApiHudCfg.useCustomPos)
-                    {
-                        targetPos = Target.GetPosition();
-                        worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
-                        screenPos = new Vector2D(worldPos.X, worldPos.Y);
-                    }
-                    else
-                        screenPos = ApiHudCfg.hudPos;
-
-                    screenBounds = new Vector2D(1d, 1d) - menu.Size / 2;
-
-                    if (ApiHudCfg.clampHudPos)
-                    {
-                        screenPos.X = Utils.Math.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
-                        screenPos.Y = Utils.Math.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
-                    }
+                    targetPos = Target.GetPosition();
+                    worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
+                    screenPos = new Vector2D(worldPos.X, worldPos.Y);
                 }
                 else
-                    screenPos = Vector2D.Zero;
+                {
+                    screenPos = ApiHudCfg.hudPos;
+                    screenPos.X += (screenPos.X < 0) ? menu.Size.X / 2d : -menu.Size.X / 2d;
+                    screenPos.Y += (screenPos.Y < 0) ? menu.Size.Y / 2d : -menu.Size.Y / 2d;
+                }
+
+                screenBounds = Vector2D.One - menu.Size / 2d;
+
+                if (ApiHudCfg.clampHudPos)
+                {
+                    screenPos.X = Utils.Math.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
+                    screenPos.Y = Utils.Math.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
+                }
 
                 menu.ScaledPos = screenPos;
             }

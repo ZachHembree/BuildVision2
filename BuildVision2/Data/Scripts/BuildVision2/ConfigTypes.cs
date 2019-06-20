@@ -237,7 +237,7 @@ namespace DarkHelmet.BuildVision2
                 maxVisible = 14,
                 clampHudPos = true,
                 useCustomPos = false,
-                hudPos = Vector2D.Zero,
+                hudPos = new Vector2D(-0.97083337604999542, 0.95370364189147949),
                 colors = Colors.Defaults
             };
         }

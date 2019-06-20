@@ -220,7 +220,7 @@ namespace DarkHelmet.UI
             /// <summary>
             /// This does nothing; it's only here because I couldn't be bothered to remove it from this type's base classes.
             /// </summary>
-            private new IMenuCategory Parent { get { return this; } set { } }
+            public override IMenuCategory Parent { get { return this; } set { } }
 
             private MenuRoot(string name, string header) : base(name, header, null, null, true)
             { }
@@ -279,29 +279,32 @@ namespace DarkHelmet.UI
             private readonly string queryText;
             private Vector2D startPos;
 
-            public MenuPositionInput(Func<string> GetName, string queryText, Func<Vector2D> GetSize, Func<Vector2D> GetPosition, Action<Vector2D> SetPosition, IMenuCategory parent = null) 
+            public MenuPositionInput(Func<string> GetName, string queryText, Func<Vector2D> GetPosition, Action<Vector2D> SetPosition, Func<Vector2D> GetSize = null, IMenuCategory parent = null) 
                 : base(GetName, parent)
             {
                 this.queryText = queryText;
                 this.GetPosition = GetPosition;
                 this.GetSize = GetSize;
                 this.SetPosition = SetPosition;
+
+                if (this.GetSize == null)
+                    this.GetSize = () => Vector2D.Zero;
             }
 
-            public MenuPositionInput(string name, string queryText, Func<Vector2D> GetSize, Func<Vector2D> GetPosition, Action<Vector2D> SetPosition, IMenuCategory parent = null) 
-                : this(() => name, queryText, GetSize, GetPosition, SetPosition, parent) { }
+            public MenuPositionInput(string name, string queryText, Func<Vector2D> GetPosition, Action<Vector2D> SetPosition, Func<Vector2D> GetSize = null, IMenuCategory parent = null) 
+                : this(() => name, queryText, GetPosition, SetPosition, GetSize, parent) { }
 
             private void OnSelect()
             {
                 startPos = GetPosition();
                 Element.Size = GetSize();
-                Element.Origin = startPos - Element.Size / 2;
+                Element.Origin = startPos - Element.Size / 2d;
             }
 
             private void UpdatePos(Vector2D pos)
             {
                 Element.Size = GetSize();
-                SetPosition(pos + Element.Size / 2);
+                SetPosition(pos + Element.Size / 2d);
             }
 
             private void OnCancel()
@@ -311,7 +314,7 @@ namespace DarkHelmet.UI
 
             protected override void InitElement()
             {
-                Element = new HudAPIv2.MenuScreenInput(Name, Parent.CategoryBase, Vector2D.Zero, Vector2D.One * .02, queryText, UpdatePos, UpdatePos, OnCancel, OnSelect);
+                Element = new HudAPIv2.MenuScreenInput(Name, Parent.CategoryBase, Vector2D.Zero, Vector2D.Zero, queryText, UpdatePos, UpdatePos, OnCancel, OnSelect);
             }
         }
 
