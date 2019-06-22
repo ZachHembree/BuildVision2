@@ -1,6 +1,5 @@
 ﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
-using VRageMath;
 using Sandbox.ModAPI;
 
 namespace DarkHelmet.BuildVision2
@@ -19,8 +18,8 @@ namespace DarkHelmet.BuildVision2
             set
             {
                 Instance.target = value;
-                Instance.index = 0;
-                Instance.selection = -1;
+                Instance.Deselect();
+                Instance.ResetIndex();
             }
         }
         private PropertyBlock target;
@@ -74,16 +73,22 @@ namespace DarkHelmet.BuildVision2
                 sendToOthers = false;
         }
 
+        private static bool IsElementEnabled(int index)
+        {
+            int a = index - Target.Properties.Count;
+            return (index < Target.Properties.Count && Target.Properties[index].Enabled) || (a >= 0 && Target.Actions[a].Enabled);
+        }
+
         private void ScrollDown()
         {
             if (open)
-                UpdateIndex(-1);
+                UpdateIndex(1);
         }
 
         private void ScrollUp()
         {
             if (open)
-                UpdateIndex(1);
+                UpdateIndex(-1);
         }
 
         /// <summary>
@@ -93,8 +98,19 @@ namespace DarkHelmet.BuildVision2
         {
             if (selection == -1)
             {
-                index -= scrolllDir;
-                index = Utils.Math.Clamp(index, 0, target.ElementCount - 1);
+                int newIndex = index;
+                bool scrollDown = scrolllDir > 0;
+
+                while ((scrollDown && newIndex < target.ElementCount - 1) || (!scrollDown && newIndex > 0))
+                {
+                    newIndex += scrolllDir;
+
+                    if (IsElementEnabled(newIndex))
+                    {
+                        index = newIndex;
+                        break;
+                    }
+                }
             }
         }
 
@@ -114,10 +130,33 @@ namespace DarkHelmet.BuildVision2
                         selection = index;
                     }
                     else
-                    {
-                        target.Properties[index].OnDeselect();
-                        selection = -1;
-                    }
+                        Deselect();
+                }
+            }
+        }
+
+        private void Deselect()
+        {
+            if (index < target.Properties.Count && selection != -1)
+            {
+                target.Properties[selection].OnDeselect();
+                selection = -1;
+            }
+        }
+
+        /// <summary>
+        /// Resets index to the first visible element.
+        /// </summary>
+        private void ResetIndex()
+        {
+            index = 0;
+
+            for (int n = 0; n < target.ElementCount; n++)
+            {
+                if (IsElementEnabled(n))
+                {
+                    index = n;
+                    break;
                 }
             }
         }
@@ -162,14 +201,8 @@ namespace DarkHelmet.BuildVision2
                 {
                     apiHud.Hide();
                     fallbackHud.Hide();
-
-                    if (index < target.Properties.Count && selection != -1)
-                    {
-                        target.Properties[selection].OnDeselect();
-                        selection = -1;
-                    }
-
-                    index = 0;
+                    Deselect();
+                    ResetIndex();
                 }
             }
         }

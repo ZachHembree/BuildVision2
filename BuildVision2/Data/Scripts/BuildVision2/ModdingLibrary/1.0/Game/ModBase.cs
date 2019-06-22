@@ -123,7 +123,7 @@ namespace DarkHelmet.Game
             UpdateComponents();
 
             if (RunOnServer || !IsDedicated)
-                RunSafeAction(Update);
+                Update();
         }
 
         protected virtual void Update() { }

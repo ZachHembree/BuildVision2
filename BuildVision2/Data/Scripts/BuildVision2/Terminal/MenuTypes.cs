@@ -1,6 +1,7 @@
 ﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
 using Sandbox.ModAPI;
+using System.Collections.Generic;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
@@ -13,15 +14,15 @@ namespace DarkHelmet.BuildVision2
         {
             public bool Open { get; protected set; }
 
-            protected int visStart, visEnd, index, selection, maxVisible;
+            protected int start, visStart, index, selection, maxVisible, visCount;
             protected string headerText;
 
             public PropertyList()
             {
                 Open = false;
                 index = 0;
+                start = 0;
                 visStart = 0;
-                visEnd = 0;
                 selection = -1;
             }
 
@@ -30,8 +31,8 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public virtual void Show()
             {
+                start = 0;
                 visStart = 0;
-                visEnd = 0;
                 Open = true;
             }
 
@@ -41,30 +42,52 @@ namespace DarkHelmet.BuildVision2
             {
                 Open = false;
                 index = 0;
+                start = 0;
                 visStart = 0;
-                visEnd = 0;
                 selection = -1;
             }
 
             /// <summary>
-            /// Determines what range of the block's properties are visible based on index and total number of properties.
+            /// Determines what range of the block's properties are visible based on index and total number of enabled properties.
             /// </summary>
             protected virtual void GetVisibleProperties()
             {
-                if (Target.ElementCount <= maxVisible)
-                {
-                    visEnd = Target.ElementCount;
-                }
-                else
-                {
-                    if (index >= (visStart + maxVisible))
-                        visStart++;
-                    else if (index < visStart)
-                        visStart = index;
+                int totalEnabled = Target.EnabledElementCount, visIndex = GetVisIndex();
+                visCount = (maxVisible > totalEnabled) ? totalEnabled : maxVisible;
 
-                    visEnd = Utils.Math.Clamp((visStart + maxVisible), 0, Target.ElementCount);
-                    visStart = Utils.Math.Clamp(visEnd - maxVisible, 0, visEnd);
+                if (index < start)
+                {
+                    visStart = visIndex;
+                    start = index;
                 }
+
+                if (visIndex >= visStart + visCount)
+                {
+                    int n = 0;
+                    visStart = visIndex - visCount + 1;
+                    start = index;
+
+                    while (n < visCount - 1 && start > 0)
+                    {
+                        start--;
+
+                        if (IsElementEnabled(start))
+                            n++;
+                    }
+                }
+            }
+
+            protected int GetVisIndex()
+            {
+                int visIndex = 0;
+
+                for (int n = 0; n < index; n++)
+                {
+                    if (IsElementEnabled(n))
+                        visIndex++;
+                }
+
+                return visIndex;
             }
         }
 
@@ -74,10 +97,12 @@ namespace DarkHelmet.BuildVision2
         private class ApiHud : PropertyList
         {
             private readonly HudUtilities.ScrollMenu menu;
+            private readonly List<string> propertyList;
 
             public ApiHud()
             {
                 menu = new HudUtilities.ScrollMenu(20);
+                propertyList = new List<string>(20);
             }
 
             /// <summary>
@@ -157,33 +182,39 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void UpdateText()
             {
-                int elements = Utils.Math.Clamp(visEnd - visStart, 0, ApiHudCfg.maxVisible), i, action;
-                string[] list = new string[elements];
+                int i = start, action;
                 string colorCode;
 
+                propertyList.Clear();
                 menu.HeaderText = $"<color={ApiHudCfg.colors.headerText}>{headerText}";
-                menu.SelectionIndex = index - visStart;
 
-                for (int n = 0; n < elements; n++)
+                for (int n = 0; (n < visCount && i < Target.ElementCount); n++)
                 {
-                    i = n + visStart;
                     action = i - Target.Properties.Count;
 
                     if (i == selection)
                         colorCode = $"<color={ApiHudCfg.colors.selectedText}>";
                     else if (i == index)
+                    {
                         colorCode = $"<color={ApiHudCfg.colors.highlightText}>";
+                        menu.SelectionIndex = propertyList.Count;
+                    }
                     else
                         colorCode = $"<color={ApiHudCfg.colors.bodyText}>";
 
                     if (i >= Target.Properties.Count)
-                        list[n] = colorCode + Target.Actions[action].Value;
+                        propertyList.Add(colorCode + Target.Actions[action].Value);
                     else
-                        list[n] = $"<color={ApiHudCfg.colors.bodyText}>{Target.Properties[i].Name}: {colorCode}{Target.Properties[i].Value}";
+                        propertyList.Add($"<color={ApiHudCfg.colors.bodyText}>{Target.Properties[i].Name}: {colorCode}{Target.Properties[i].Value}");
+
+                    i++;
+
+                    while (i < Target.ElementCount && !IsElementEnabled(i))
+                        i++;
                 }
 
-                menu.ListText = list;
-                menu.FooterLeftText = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visEnd} of {Target.ElementCount}]";
+                menu.ListText = propertyList.ToArray();
+                menu.FooterLeftText = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visStart + visCount} of {Target.EnabledElementCount}]";
 
                 if (Target.IsWorking)
                     menu.FooterRightText = $"<color={ApiHudCfg.colors.headerText}>[Working]";
@@ -249,47 +280,51 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void UpdateText()
             {
-                int elements = Utils.Math.Clamp(visEnd - visStart, 0, ApiHudCfg.maxVisible), i, action;
+                int i = start, action;
 
                 header.Show();
                 header.AliveTime = int.MaxValue;
-                header.Text = $"{headerText} ({visStart + 1} - {visEnd} of {Target.ElementCount})";
+                header.Text = $"{headerText} ({visStart + 1} - {visStart + visCount} of {Target.EnabledElementCount})";
 
-                for (int notif = 0; notif < elements; notif++)
-                {
-                    if (list[notif] == null)
-                        list[notif] = MyAPIGateway.Utilities.CreateNotification("");
-
-                    i = notif + visStart;
-                    action = i - Target.Properties.Count;
-
-                    // make sure its still being shown
-                    list[notif].Show();
-                    list[notif].AliveTime = int.MaxValue;
-
-                    // get name
-                    if (i >= Target.Properties.Count)
-                        list[notif].Text = Target.Actions[action].Value;
-                    else
-                        list[notif].Text = $"{Target.Properties[i].Name}: {Target.Properties[i].Value}";
-
-                    // get color
-                    if (i == selection)
-                        list[notif].Font = MyFontEnum.Green;
-                    else if (i == index)
-                        list[notif].Font = MyFontEnum.Red;
-                    else
-                        list[notif].Font = MyFontEnum.White;
-                }
-
-                // hide everything else
-                for (int n = elements; n < list.Length; n++)
+                for (int n = 0; (i < Target.ElementCount && n < visCount); n++)
                 {
                     if (list[n] == null)
                         list[n] = MyAPIGateway.Utilities.CreateNotification("");
 
-                    list[n].Text = "";
-                    list[n].Hide();
+                    action = i - Target.Properties.Count;
+
+                    // make sure its still being shown
+                    list[n].Show();
+                    list[n].AliveTime = int.MaxValue;
+
+                    // get name
+                    if (i >= Target.Properties.Count)
+                        list[n].Text = Target.Actions[action].Value;
+                    else
+                        list[n].Text = $"{Target.Properties[i].Name}: {Target.Properties[i].Value}";
+
+                    // get color
+                    if (i == selection)
+                        list[n].Font = MyFontEnum.Green;
+                    else if (i == index)
+                        list[n].Font = MyFontEnum.Red;
+                    else
+                        list[n].Font = MyFontEnum.White;
+
+                    i++;
+
+                    while (i < Target.ElementCount && !IsElementEnabled(i))
+                        i++;
+                }
+
+                // hide everything else
+                for (int n = visCount; n < list.Length; n++)
+                {
+                    if (list[n] != null)
+                    {
+                        list[n].Text = "";
+                        list[n].Hide();
+                    }
                 }
             }
         }

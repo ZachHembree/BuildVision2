@@ -224,7 +224,7 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Scrollable list menu; the selection box position is based on the selction index.
         /// </summary>
-        public class ScrollMenu : HudElement
+        public class ScrollMenu : HudElement // wouldn't it be cool if this implemented IList<TextHudMessage>?
         {
             public string HeaderText { get { return header.Message; } set { header.Message = value; } }
             public string FooterLeftText { get { return footerLeft.Message; } set { footerLeft.Message = value; } }
@@ -243,6 +243,7 @@ namespace DarkHelmet.UI
                         list[n].Message = listText[n];
                 }
             }
+            private string[] listText;
 
             public int SelectionIndex
             {
@@ -264,12 +265,10 @@ namespace DarkHelmet.UI
                 }
             }
 
-            private static Vector2I padding;
-            private string[] listText;
-
             private readonly TexturedBox headerBg, footerBg, background, highlightBox, tab;
             private readonly TextHudMessage header, footerLeft, footerRight;
             private readonly List<TextHudMessage> list;
+            private static Vector2I padding;
             private int selectionIndex = 0;
 
             public ScrollMenu(int maxListLength)
