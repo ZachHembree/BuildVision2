@@ -185,7 +185,7 @@ namespace DarkHelmet.BuildVision2
                     blockIncText = "200,15,15",
                     highlightText = "200,170,0",
                     selectedText = "30,200,30",
-                    listBgColor = new Color(70, 80, 90, 230),
+                    listBgColor = new Color(70, 78, 86, 204),
                     selectionBoxColor = new Color(41, 54, 62, 255),
                     headerColor = new Color(41, 54, 62, 230)
                 };
@@ -272,7 +272,7 @@ namespace DarkHelmet.BuildVision2
         {
             return new NotifHudConfig
             {
-                maxVisible = 8
+                maxVisible = 7
             };
         }
 

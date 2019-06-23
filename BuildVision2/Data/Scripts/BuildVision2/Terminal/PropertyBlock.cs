@@ -379,8 +379,8 @@ namespace DarkHelmet.BuildVision2
         private abstract class BvTerminalProperty<T> : IBlockProperty where T : ITerminalProperty
         {
             public virtual string Name { get; protected set; }
-            public virtual bool Enabled { get { return control.Enabled(block) && control.Visible(block); } }
             public abstract string Value { get; }
+            public virtual bool Enabled { get { return control.Enabled(block) && control.Visible(block); } }
 
             protected readonly T property;
             protected readonly IMyTerminalControl control;

@@ -69,7 +69,7 @@ namespace DarkHelmet.BuildVision2
 
         private void MessageHandler(string message, ref bool sendToOthers)
         {
-            if (Open)
+            if (open)
                 sendToOthers = false;
         }
 

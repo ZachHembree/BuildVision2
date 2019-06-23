@@ -51,6 +51,8 @@ namespace DarkHelmet.Game
         {
             if (Instance != null)
                 throw new Exception("Only one instance of type ModBase can exist at a given time.");
+
+            modComponents = new List<ComponentBase>(10);
         }
 
         public sealed override void Init(MyObjectBuilder_SessionComponent sessionComponent)
@@ -61,7 +63,6 @@ namespace DarkHelmet.Game
                 Unloading = false;
                 IsServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
                 IsDedicated = (MyAPIGateway.Utilities.IsDedicated && IsServer);
-                modComponents = new List<ComponentBase>(10);
 
                 log = new LogIO(LogFileName);
 
@@ -249,6 +250,7 @@ namespace DarkHelmet.Game
                         RunSafeAction(modComponents[n].Close);
                 }
 
+                modComponents.Clear();
                 Instance = null;
                 Unloading = false;
             }

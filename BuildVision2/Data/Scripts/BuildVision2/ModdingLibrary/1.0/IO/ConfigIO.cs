@@ -177,8 +177,8 @@ namespace DarkHelmet.IO
 
                 if (unknown != null)
                 {
-                    ModBase.WriteToLogStart("\nSave operation failed.\n" + unknown.ToString());
-                    ModBase.SendChatMessage("Save operation failed.");
+                    ModBase.WriteToLogStart("\nConfig operation failed.\n" + unknown.ToString());
+                    ModBase.SendChatMessage("Config operation failed.");
                     SaveInProgress = false;
 
                     throw unknown;
@@ -191,7 +191,7 @@ namespace DarkHelmet.IO
             public ConfigT Load(bool silent = false)
             {
                 ConfigT cfg = null;
-                KnownException loadException, saveException;
+                KnownException loadException;
 
                 if (!SaveInProgress)
                 {
@@ -201,18 +201,10 @@ namespace DarkHelmet.IO
 
                     loadException = TryLoad(out cfg);
                     cfg = ValidateConfig(cfg);
-                    saveException = TrySave(cfg);
+                    TrySave(cfg);
 
                     if (loadException != null)
-                    {
-                        //loadException = TrySave(cfg);
-
-                        if (saveException != null)
-                        {
-                            ModBase.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
-                            ModBase.SendChatMessage("Unable to load or create configuration file.");
-                        }
-                    }
+                        ModBase.TryWriteToLog(loadException.ToString());
                     else
                         ModBase.SendChatMessage("Configuration loaded.");
                 }
@@ -236,32 +228,25 @@ namespace DarkHelmet.IO
                     EnqueueTask(() =>
                     {
                         ConfigT cfg;
-                        KnownException loadException, saveException;
+                        KnownException loadException;
 
                         // Load and validate
                         loadException = TryLoad(out cfg);
                         cfg = ValidateConfig(cfg);
 
-                        // Enqueue callback when the configuration
+                        // Enqueue callback
                         EnqueueAction(() =>
                             UpdateConfig(cfg));
 
                         // Write validated config back to the file
-                        saveException = TrySave(cfg);
+                        TrySave(cfg);
 
                         if (loadException != null)
                         {
-                            //loadException = TrySave(cfg);
                             EnqueueAction(() =>
                                 LoadFinish(false, silent));
 
-                            if (saveException != null)
-                            {
-                                ModBase.TryWriteToLog(loadException.ToString() + "\n" + saveException.ToString());
-
-                                EnqueueAction(() =>
-                                    ModBase.SendChatMessage("Unable to load or create configuration file."));
-                            }
+                            throw loadException;
                         }
                         else
                             EnqueueAction(() =>
@@ -278,8 +263,7 @@ namespace DarkHelmet.IO
                 {
                     if (cfg.VersionID != Defaults.VersionID)
                     {
-                        EnqueueAction(() =>
-                            ModBase.SendChatMessage("Config version mismatch. Some settings may have " +
+                        EnqueueAction(() => ModBase.SendChatMessage("Config version mismatch. Some settings may have " +
                             "been reset. A backup of the original config file will be made."));
 
                         Backup();
@@ -291,9 +275,7 @@ namespace DarkHelmet.IO
                 }
                 else
                 {
-                    EnqueueAction(() =>
-                    ModBase.SendChatMessage("Unable to load configuration. Loading default settings..."));
-
+                    EnqueueAction(() => ModBase.SendChatMessage("Unable to load configuration."));
                     return Defaults;
                 }
             }

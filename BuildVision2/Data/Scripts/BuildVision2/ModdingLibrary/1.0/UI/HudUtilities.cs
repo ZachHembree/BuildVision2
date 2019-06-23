@@ -156,7 +156,7 @@ namespace DarkHelmet.UI
 
                     for (int n = 0; n < input.Count; n++)
                     {
-                        if (input[n] != '\b' && input[n] != '\t')
+                        if (input[n] >= ' ' && input[n] <= '~')
                             currentText.Append(input[n]);
                     }
                 }
@@ -325,7 +325,7 @@ namespace DarkHelmet.UI
                     tab.Offset = new Vector2I((-highlightBox.Width + tab.Width) / 2 - 1, 0);
 
                     footerBg.Size = new Vector2I(background.Width, footerLeft.TextSize.Y + (int)(10d * Scale));
-                    footerBg.Offset = new Vector2I(0, -(background.Height + footerBg.Height) / 2);
+                    footerBg.Offset = new Vector2I(0, -(background.Height + footerBg.Height + 1) / 2);
                     footerLeft.Offset = new Vector2I((-footerBg.Width + padding.X) / 2, 0);
                     footerRight.Offset = new Vector2I((footerBg.Width - padding.X) / 2, 0);
 
