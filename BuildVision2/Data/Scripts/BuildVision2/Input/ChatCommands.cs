@@ -1,5 +1,6 @@
 ﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
+using System;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -7,45 +8,51 @@ namespace DarkHelmet.BuildVision2
     {
         private static string controlList;
 
-        private Command[] GetChatCommands()
+        private CmdManager.Command[] GetChatCommands()
         {
             controlList = BindManager.GetControlListString();
 
-            return new Command[]
+            return new CmdManager.Command[]
             {
-                new Command ("help",
+                new CmdManager.Command ("help",
                     () => ModBase.ShowMessageScreen("Help", GetHelpMessage())),
-                new Command ("bindHelp",
+                new CmdManager.Command ("bindHelp",
                     () => ModBase.ShowMessageScreen("Bind Help", GetBindHelpMessage())),
-                new Command ("printBinds",
+                new CmdManager.Command ("printBinds",
                     () => ModBase.SendChatMessage(GetPrintBindsMessage())),
-                new Command ("bind",
+                new CmdManager.Command ("bind",
                     (string[] args) => KeyBinds.BindGroup.TryUpdateBind(args[0], args.GetSubarray(1))),
-                new Command("resetBinds",
+                new CmdManager.Command("resetBinds",
                     () => KeyBinds.Cfg = BindsConfig.Defaults),
-                new Command ("save",
+                new CmdManager.Command ("save",
                     () => BvConfig.SaveStart()),
-                new Command ("load",
+                new CmdManager.Command ("load",
                     () => BvConfig.LoadStart()),
-                new Command("resetConfig",
+                new CmdManager.Command("resetConfig",
                     () => BvConfig.ResetConfig()),
-                new Command ("toggleApi",
+                new CmdManager.Command ("toggleApi",
                     () => PropertiesMenu.Cfg.forceFallbackHud = !PropertiesMenu.Cfg.forceFallbackHud),
-                new Command ("toggleAutoclose",
+                new CmdManager.Command ("toggleAutoclose",
                     () => Cfg.general.closeIfNotInView = !Cfg.general.closeIfNotInView),
-                new Command ("toggleOpenWhileHolding",
+                new CmdManager.Command ("toggleOpenWhileHolding",
                     () => Cfg.general.canOpenIfHolding = !Cfg.general.canOpenIfHolding),
 
                 // Debug/Testing
-                new Command ("open",
+                new CmdManager.Command ("open",
                     () => TryOpenMenu()),
-                new Command ("close",
+                new CmdManager.Command ("close",
                     () => TryCloseMenu()),
-                new Command ("toggleTestPattern",
+                new CmdManager.Command ("toggleTestPattern",
                     () => HudUtilities.TestPattern.Toggle()),
-                new Command ("reload",
-                    () => ModBase.Instance.Close())
+                new CmdManager.Command ("reload",
+                    () => ModBase.Instance.Close()),
+                new CmdManager.Command("crash", Crash)
             };
+        }
+
+        private static void Crash()
+        {
+            throw new Exception("/bv2 crash was called.");
         }
 
         private static string GetHelpMessage()
@@ -60,8 +67,8 @@ namespace DarkHelmet.BuildVision2
                 $"automatically close. The rate at which a selected terminal value changes with each tick of the scroll wheel can " +
                 $"be changed using the multiplier binds listed below.\n\n" +
                 $"Key binds can be changed using the /bv2 bind chat command or through the F2 mod menu. Enter /bv2 bindHelp in chat " +
-                $"for more information. Chat commands are not case sensitive and , ; | or spaces can be used to separate arguments. " +
-                $"For information on chat commands see the Build Vision 2 mod page on the Steam Workshop.\n";
+                $"for more information. Chat command are not case sensitive and , ; | or spaces can be used to separate arguments. " +
+                $"For information on chat command see the Build Vision 2 mod page on the Steam Workshop.\n";
 
             helpMessage += GetPrintBindsMessage();
             return helpMessage;

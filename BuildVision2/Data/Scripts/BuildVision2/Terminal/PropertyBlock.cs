@@ -153,6 +153,7 @@ namespace DarkHelmet.BuildVision2
             string name;
 
             TBlock.GetProperties(properties);
+            Properties.Add(null);
 
             foreach (ITerminalProperty prop in properties)
             {
@@ -165,7 +166,7 @@ namespace DarkHelmet.BuildVision2
                         if (prop is ITerminalProperty<StringBuilder> textProp)
                         {
                             if (name == "Name")
-                                Properties.Insert(0, new TextProperty(name, textProp, control, TBlock));
+                                Properties[0] = new TextProperty(name, textProp, control, TBlock);
                             else
                                 Properties.Add(new TextProperty(name, textProp, control, TBlock));
                         }

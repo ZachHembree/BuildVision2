@@ -1,5 +1,6 @@
 ﻿using DarkHelmet.Game;
 using DarkHelmet.UI.TextHudApi;
+using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using VRageMath;
@@ -13,6 +14,7 @@ namespace DarkHelmet.UI
     public sealed class MenuUtilities : ModBase.ComponentBase
     {
         public static bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
+        public static bool CanAddElements { get { return !wasClosed; } }
 
         private static MenuUtilities Instance
         {
@@ -22,11 +24,11 @@ namespace DarkHelmet.UI
 
         private static MenuUtilities instance = null;
         private static bool wasClosed = false;
-        private readonly Queue<Action> menuElementsInit;
+        private readonly List<Action> menuUpdateActions;
 
         private MenuUtilities()
         {
-            menuElementsInit = new Queue<Action>();
+            menuUpdateActions = new List<Action>();
         }
 
         private static void Init()
@@ -48,15 +50,10 @@ namespace DarkHelmet.UI
 
         public override void Update()
         {
-            if (Heartbeat)
+            if (Heartbeat && MyAPIGateway.Gui.ChatEntryVisible)
             {
-                Action InitElement;
-
-                while (!wasClosed && menuElementsInit.Count > 0)
-                {
-                    if (menuElementsInit.TryDequeue(out InitElement))
-                        InitElement();
-                }
+                for (int n = 0; n < menuUpdateActions.Count; n++)
+                    menuUpdateActions[n]();
             }
         }
 
@@ -66,7 +63,7 @@ namespace DarkHelmet.UI
                 MenuRoot.Instance.AddChild(newChild);
         }
 
-        public static void AddMenuElements(IEnumerable<IMenuElement> newChildren)
+        public static void AddMenuElements(IList<IMenuElement> newChildren)
         {
             if (!wasClosed)
                 MenuRoot.Instance.AddChildren(newChildren);
@@ -89,6 +86,7 @@ namespace DarkHelmet.UI
         {
             string Name { get; }
             IMenuCategory Parent { get; set; }
+            void InitElement();
         }
 
         /// <summary>
@@ -108,14 +106,13 @@ namespace DarkHelmet.UI
                 }
             }
             private IMenuCategory parent;
-            public virtual T Element { get; protected set; }
 
             public virtual string Name
             {
                 get { return GetName(); }
                 set
                 {
-                    name = value;
+                    GetName = () => value;
 
                     if (Element != null)
                         Element.Text = GetName();
@@ -123,35 +120,31 @@ namespace DarkHelmet.UI
             }
 
             public virtual Func<string> GetName { get; set; }
-            protected string name;
-            private int requeueCount;
+            public virtual T Element { get; protected set; }
 
             public MenuElement(Func<string> GetName, IMenuCategory parent = null)
             {
-                requeueCount = 0;
                 this.GetName = GetName;
                 Parent = parent;
-                Instance.menuElementsInit.Enqueue(TryInitElement);
+                Instance.menuUpdateActions.Add(Update);
             }
 
             public MenuElement(string name, IMenuCategory parent = null) : this(() => name, parent)
             { }
 
-            private void TryInitElement()
-            {
-                if ((Parent != null && Parent.CategoryBase != null) || Parent.IsRoot)
-                    InitElement();
-                else if (requeueCount < 5)
-                {
-                    Instance.menuElementsInit.Enqueue(TryInitElement);
-                    requeueCount++;
-                }
-            }
-
             /// <summary>
             /// Used to instantiate HudAPIv2.MenuItemBase elements upon initialization of the Text Hud API
             /// </summary>
-            protected abstract void InitElement();
+            public abstract void InitElement();
+
+            /// <summary>
+            /// Used to continuously update menu elements
+            /// </summary>
+            protected virtual void Update()
+            {
+                if (Element != null)
+                    Element.Text = Name;
+            }
         }
 
         /// <summary>
@@ -175,38 +168,50 @@ namespace DarkHelmet.UI
             public virtual bool IsRoot { get; protected set; }
 
             protected string header;
-            protected List<IMenuElement> children;
+            protected Queue<IMenuElement> children;
 
-            public MenuCategoryBase(Func<string> GetName, string header, IMenuCategory parent = null, List<IMenuElement> children = null, bool isRoot = false) : base(GetName, parent)
+            public MenuCategoryBase(Func<string> GetName, string header, IMenuCategory parent = null, IList<IMenuElement> children = null, bool isRoot = false) : base(GetName, parent)
             {
                 this.Header = header;
                 this.IsRoot = isRoot;
-                this.children = children;
+                this.children = new Queue<IMenuElement>();
 
-                if (this.children != null)
-                {
-                    foreach (IMenuElement child in this.children)
-                        child.Parent = this;
-                }
-                else
-                    this.children = new List<IMenuElement>();
+                if (children != null)
+                    AddChildren(children);                    
             }
 
-            public MenuCategoryBase(string name, string header, IMenuCategory parent = null, List<IMenuElement> children = null, bool isRoot = false) : this(() => name, header, parent, children, isRoot)
+            public MenuCategoryBase(string name, string header, IMenuCategory parent = null, IList<IMenuElement> children = null, bool isRoot = false) : this(() => name, header, parent, children, isRoot)
             { }
 
             public virtual void AddChild(IMenuElement child)
             {
-                children.Add(child);
                 child.Parent = this;
+                children.Enqueue(child);
             }
 
-            public virtual void AddChildren(IEnumerable<IMenuElement> newChildren)
+            public virtual void AddChildren(IList<IMenuElement> newChildren)
             {
-                foreach (IMenuElement child in newChildren)
-                    child.Parent = this;
+                for (int n = 0; n < newChildren.Count; n++)
+                {
+                    newChildren[n].Parent = this;
+                    children.Enqueue(newChildren[n]);
+                }
+            }
 
-                children.AddRange(newChildren);
+            protected override void Update()
+            {
+                if (Element != null)
+                {
+                    IMenuElement child;
+
+                    while (children.Count > 0)
+                    {
+                        if (children.TryDequeue(out child))
+                            child.InitElement();
+                    }
+                }
+
+                base.Update();
             }
         }
 
@@ -231,8 +236,16 @@ namespace DarkHelmet.UI
                     Instance = new MenuRoot(name, header);
             }
 
-            protected override void InitElement() =>
+            public override void InitElement() =>
                 Element = new HudAPIv2.MenuRootCategory(Name, MenuFlag.PlayerMenu, Header);
+
+            protected override void Update()
+            {
+                if (Element == null)
+                    InitElement();
+
+                base.Update();
+            }
         }
 
         /// <summary>
@@ -240,18 +253,14 @@ namespace DarkHelmet.UI
         /// </summary>
         public class MenuCategory : MenuCategoryBase<HudAPIv2.MenuSubCategory>
         {
-            private IMenuCategory parent;
-
             public MenuCategory(Func<string> GetName, string header, List<IMenuElement> children = null, IMenuCategory parent = null) : base(GetName, header, parent, children)
             { }
 
             public MenuCategory(string name, string header, List<IMenuElement> children = null, IMenuCategory parent = null) : base(name, header, parent, children)
             { }
 
-            protected override void InitElement()
-            {
+            public override void InitElement() =>
                 Element = new HudAPIv2.MenuSubCategory(Name, Parent.CategoryBase, Header);
-            }
         }
 
         /// <summary>
@@ -279,7 +288,7 @@ namespace DarkHelmet.UI
             private readonly string queryText;
             private Vector2D startPos;
 
-            public MenuPositionInput(Func<string> GetName, string queryText, Func<Vector2D> GetPosition, Action<Vector2D> SetPosition, Func<Vector2D> GetSize = null, IMenuCategory parent = null) 
+            public MenuPositionInput(Func<string> GetName, string queryText, Func<Vector2D> GetPosition, Action<Vector2D> SetPosition, Func<Vector2D> GetSize = null, IMenuCategory parent = null)
                 : base(GetName, parent)
             {
                 this.queryText = queryText;
@@ -291,7 +300,7 @@ namespace DarkHelmet.UI
                     this.GetSize = () => Vector2D.Zero;
             }
 
-            public MenuPositionInput(string name, string queryText, Func<Vector2D> GetPosition, Action<Vector2D> SetPosition, Func<Vector2D> GetSize = null, IMenuCategory parent = null) 
+            public MenuPositionInput(string name, string queryText, Func<Vector2D> GetPosition, Action<Vector2D> SetPosition, Func<Vector2D> GetSize = null, IMenuCategory parent = null)
                 : this(() => name, queryText, GetPosition, SetPosition, GetSize, parent) { }
 
             private void OnSelect()
@@ -312,10 +321,8 @@ namespace DarkHelmet.UI
                 SetPosition(startPos);
             }
 
-            protected override void InitElement()
-            {
+            public override void InitElement() =>
                 Element = new HudAPIv2.MenuScreenInput(Name, Parent.CategoryBase, Vector2D.Zero, Vector2D.Zero, queryText, UpdatePos, UpdatePos, OnCancel, OnSelect);
-            }
         }
 
         /// <summary>
@@ -335,16 +342,11 @@ namespace DarkHelmet.UI
                 OnClickAction = OnClick;
             }
 
-            private void OnClick()
-            {
+            private void OnClick() =>
                 ModBase.RunSafeAction(OnClickAction);
-                Element.Text = Name;
-            }
 
-            protected override void InitElement()
-            {
+            public override void InitElement() =>
                 Element = new HudAPIv2.MenuItem(Name, Parent.CategoryBase, OnClick);
-            }
         }
 
         /// <summary>
@@ -370,10 +372,9 @@ namespace DarkHelmet.UI
             private void OnClick(string input)
             {
                 OnSubmitAction(input);
-                Element.Text = Name;
             }
 
-            protected override void InitElement()
+            public override void InitElement()
             {
                 Element = new HudAPIv2.MenuTextInput(Name, Parent.CategoryBase, queryText, OnClick);
             }
@@ -391,7 +392,7 @@ namespace DarkHelmet.UI
             private readonly int rounding;
             private float start;
 
-            public MenuSliderInput(Func<string> GetName, string queryText, float min, float max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null) 
+            public MenuSliderInput(Func<string> GetName, string queryText, float min, float max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null)
                 : base(GetName, parent)
             {
                 this.queryText = queryText;
@@ -407,8 +408,8 @@ namespace DarkHelmet.UI
             public MenuSliderInput(string name, string queryText, float min, float max, Func<float> GetCurrentValue, Action<float> OnUpdate, IMenuCategory parent = null)
                 : this(() => name, queryText, min, max, GetCurrentValue, OnUpdate, parent) { }
 
-            public MenuSliderInput(Func<string> GetName, string queryText, int min, int max, Func<int> GetCurrentValue, Action<int> OnUpdate, IMenuCategory parent = null) 
-                : base (GetName, parent)
+            public MenuSliderInput(Func<string> GetName, string queryText, int min, int max, Func<int> GetCurrentValue, Action<int> OnUpdate, IMenuCategory parent = null)
+                : base(GetName, parent)
             {
                 this.queryText = queryText;
                 this.min = min;
@@ -427,7 +428,6 @@ namespace DarkHelmet.UI
             {
                 OnUpdateAction((float)Math.Round(Utils.Math.Clamp(min + (range * percent), min, max), rounding));
                 Element.InitialPercent = GetCurrentValue();
-                Element.Text = Name;
                 start = GetCurrentValue();
             }
 
@@ -435,7 +435,6 @@ namespace DarkHelmet.UI
             {
                 OnUpdateAction((float)Math.Round(Utils.Math.Clamp(min + (range * start), min, max), rounding));
                 Element.InitialPercent = start;
-                Element.Text = Name;
             }
 
             private float GetCurrentValue() =>
@@ -447,7 +446,7 @@ namespace DarkHelmet.UI
                 return $"{Math.Round(min + range * percent, rounding)}";
             }
 
-            protected override void InitElement()
+            public override void InitElement()
             {
                 start = GetCurrentValue();
                 Element = new HudAPIv2.MenuSliderInput(Name, Parent.CategoryBase, start, queryText, OnSubmit, GetSliderValue, OnCancel);
@@ -483,6 +482,8 @@ namespace DarkHelmet.UI
 
                 colorRoot = new MenuCategory(name, "Colors", colorChannles, parent);
             }
+
+            public void InitElement() { }
 
             private void UpdateColorR(int R)
             {

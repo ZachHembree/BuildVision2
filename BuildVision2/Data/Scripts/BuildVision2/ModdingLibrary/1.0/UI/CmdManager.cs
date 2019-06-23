@@ -7,36 +7,10 @@ using System.Text.RegularExpressions;
 namespace DarkHelmet.UI
 {
     /// <summary>
-    /// Stores chat command name and action
-    /// </summary>
-    public class Command
-    {
-        public readonly string cmdName;
-        public readonly Func<string[], bool> action;
-        public readonly bool needsArgs;
-
-        public Command(string cmdName, Func<string[], bool> argAction)
-        {
-            this.cmdName = cmdName.ToLower();
-            action = argAction;
-            needsArgs = true;
-        }
-
-        public Command(string cmdName, Action action)
-        {
-            this.cmdName = cmdName.ToLower();
-            this.action = (string[] args) => { action(); return true; };
-            needsArgs = false;
-        }
-    }
-
-    /// <summary>
     /// Manages chat commands; singleton
     /// </summary>
     public sealed class CmdManager : ModBase.ComponentBase
     {
-        public static string Prefix { get { return prefix; } set { if (value != null && value.Length > 0) prefix = value; } }
-
         private static CmdManager Instance
         {
             get { Init(); return instance; }
@@ -44,9 +18,8 @@ namespace DarkHelmet.UI
         }
 
         private static CmdManager instance;
-        private static string prefix = "/cmd";
         private static readonly Regex cmdParser;
-        private readonly List<Command> commands;
+        private readonly List<Group> commandGroups;
 
         static CmdManager()
         {
@@ -55,7 +28,7 @@ namespace DarkHelmet.UI
 
         private CmdManager()
         {
-            commands = new List<Command>();
+            commandGroups = new List<Group>();
             MyAPIGateway.Utilities.MessageEntered += MessageHandler;
         }
 
@@ -71,9 +44,60 @@ namespace DarkHelmet.UI
             Instance = null;
         }
 
-        public static void AddCommands(IEnumerable<Command> newCommands)
+        /// <summary>
+        /// Adds a <see cref="Group"/> with a given prefix and returns it. If a group already exists with the same prefix
+        /// that group will be returned instead.
+        /// </summary>
+        public static Group AddOrGetCmdGroup(string prefix, IEnumerable<Command> commands = null)
         {
-            Instance.commands.AddRange(newCommands);
+            prefix = prefix.ToLower();
+            Group group = GetCmdGroup(prefix);
+
+            if (group == null)
+            {
+                group = new Group(prefix, new List<Command>(commands));
+                Instance.commandGroups.Add(group);
+            }
+            else if (commands != null)
+                group.commands.AddRange(commands);
+
+            return group;
+        }
+
+        /// <summary>
+        /// Returns the command group using the given prefix. Returns null if the group doesn't exist.
+        /// </summary>
+        public static Group GetCmdGroup(string prefix)
+        {
+            prefix = prefix.ToLower();
+
+            foreach (Group group in Instance.commandGroups)
+                if (group.prefix == prefix)
+                    return group;
+
+            return null;
+        }
+
+        public static void AddCommand(string prefix, Command newCommand)
+        {
+            prefix = prefix.ToLower();
+            Group group = GetCmdGroup(prefix);
+
+            if (group != null)
+                group.commands.Add(newCommand);
+            else
+                throw new Exception($"Could not add chat command. No group uses the prefix {prefix}.");
+        }
+
+        public static void AddCommands(string prefix, IEnumerable<Command> newCommands)
+        {
+            prefix = prefix.ToLower();
+            Group group = GetCmdGroup(prefix);
+
+            if (group != null)
+                group.commands.AddRange(newCommands);
+            else
+                throw new Exception($"Could not add chat commands. No group uses the prefix {prefix}.");
         }
 
         /// <summary>
@@ -86,38 +110,41 @@ namespace DarkHelmet.UI
             bool cmdFound = false;
             message = message.ToLower();
 
-            if (message.StartsWith(Prefix))
+            foreach (Group group in instance.commandGroups)
             {
-                sendToOthers = false;
-
-                ModBase.RunSafeAction(() =>
+                if (message.StartsWith(group.prefix))
                 {
-                    if (TryParseCommand(message, out matches))
+                    sendToOthers = false;
+
+                    ModBase.RunSafeAction(() =>
                     {
-                        cmdName = matches[0];
+                        if (TryParseCommand(message, out matches))
+                        {
+                            cmdName = matches[0];
 
-                        foreach (Command cmd in Instance.commands)
-                            if (cmd.cmdName == cmdName)
-                            {
-                                cmdFound = true;
-
-                                if (cmd.needsArgs)
+                            foreach (Command cmd in group.commands)
+                                if (cmd.cmdName == cmdName)
                                 {
-                                    if (matches.Length > 1)
-                                        cmd.action(matches.GetSubarray(1));
+                                    cmdFound = true;
+
+                                    if (cmd.needsArgs)
+                                    {
+                                        if (matches.Length > 1)
+                                            cmd.action(matches.GetSubarray(1));
+                                        else
+                                            ModBase.SendChatMessage("Invalid Command. This command requires an argument.");
+                                    }
                                     else
-                                        ModBase.SendChatMessage("Invalid Command. This command requires an argument.");
+                                        cmd.action(null);
+
+                                    break;
                                 }
-                                else
-                                    cmd.action(null);
+                        }
 
-                                break;
-                            }
-                    }
-
-                    if (!cmdFound)
-                        ModBase.SendChatMessage("Command not recognised.");
-                });
+                        if (!cmdFound)
+                            ModBase.SendChatMessage("Command not recognised.");
+                    });
+                }
             }
         }
 
@@ -134,6 +161,49 @@ namespace DarkHelmet.UI
                 matches[n] = captures[n].Value;
 
             return matches.Length > 0;
+        }
+
+        /// <summary>
+        /// Stores a group of chat commands associated with a given prefix.
+        /// </summary>
+        public class Group
+        {
+            public readonly string prefix;
+            public readonly List<Command> commands;
+
+            public Group(string prefix, List<Command> commands = null)
+            {
+                this.prefix = prefix;
+
+                if (commands != null)
+                    this.commands = commands;
+                else
+                    this.commands = new List<Command>();
+            }
+        }
+
+        /// <summary>
+        /// Stores chat command name and action
+        /// </summary>
+        public class Command
+        {
+            public readonly string cmdName;
+            public readonly Func<string[], bool> action;
+            public readonly bool needsArgs;
+
+            public Command(string cmdName, Func<string[], bool> argAction)
+            {
+                this.cmdName = cmdName.ToLower();
+                action = argAction;
+                needsArgs = true;
+            }
+
+            public Command(string cmdName, Action action)
+            {
+                this.cmdName = cmdName.ToLower();
+                this.action = (string[] args) => { action(); return true; };
+                needsArgs = false;
+            }
         }
     }
 }

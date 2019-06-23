@@ -17,13 +17,13 @@ namespace DarkHelmet.BuildVision2
         public static BvConfig Cfg { get { return BvConfig.Current; } }
 
         private PropertyBlock target;
+        private CmdManager.Group bvCommands;
         private bool LoadFinished, LoadStarted;
 
         static BvMain()
         {
             ModName = "Build Vision";
             LogFileName = "bvLog.txt";
-            CmdManager.Prefix = "/bv2";
             BvConfig.FileName = "BuildVision2Config.xml";
             TaskPool.MaxTasksRunning = 2;
         }
@@ -43,14 +43,15 @@ namespace DarkHelmet.BuildVision2
             if (!LoadFinished && LoadStarted)
             {
                 LoadFinished = true;
+                bvCommands = CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
 
-                CmdManager.AddCommands(GetChatCommands());
-                MenuUtilities.AddMenuElements(GetSettingsMenuElements());
+                if (MenuUtilities.CanAddElements)
+                    MenuUtilities.AddMenuElements(GetSettingsMenuElements());
 
                 KeyBinds.Open.OnNewPress += TryOpenMenu;
                 KeyBinds.Hide.OnNewPress += TryCloseMenu;
 
-                SendChatMessage($"Type {CmdManager.Prefix} help for help. All settings are available through the mod menu.");
+                SendChatMessage($"Type {bvCommands.prefix} help for help. All settings are available through the mod menu.");
             }
         }
 

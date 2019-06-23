@@ -61,7 +61,7 @@ namespace DarkHelmet.BuildVision2
                     start = index;
                 }
 
-                if (visIndex >= visStart + visCount)
+                if (visIndex >= visStart + visCount || (visStart + visCount > totalEnabled || visStart < 0))
                 {
                     int n = 0;
                     visStart = visIndex - visCount + 1;
@@ -77,6 +77,9 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            /// <summary>
+            /// Returns the visible position of the property at the current index
+            /// </summary>
             protected int GetVisIndex()
             {
                 int visIndex = 0;
