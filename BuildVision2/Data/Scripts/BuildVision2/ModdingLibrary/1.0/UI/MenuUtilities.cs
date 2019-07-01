@@ -13,8 +13,7 @@ namespace DarkHelmet.UI
     /// </summary>
     public sealed class MenuUtilities : ModBase.ComponentBase
     {
-        public static bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
-        public static bool CanAddElements { get { return !wasClosed; } }
+        public static bool CanAddElements => !wasClosed;
 
         private static MenuUtilities Instance
         {
@@ -24,9 +23,9 @@ namespace DarkHelmet.UI
 
         private static MenuUtilities instance = null;
         private static bool wasClosed = false;
-        private readonly List<Action> menuUpdateActions;
+        private static readonly List<Action> menuUpdateActions;
 
-        private MenuUtilities()
+        static MenuUtilities()
         {
             menuUpdateActions = new List<Action>();
         }
@@ -50,7 +49,7 @@ namespace DarkHelmet.UI
 
         public override void Update()
         {
-            if (Heartbeat && MyAPIGateway.Gui.ChatEntryVisible)
+            if (HudAPIv2.Heartbeat && MyAPIGateway.Gui.ChatEntryVisible)
             {
                 for (int n = 0; n < menuUpdateActions.Count; n++)
                     menuUpdateActions[n]();
@@ -124,9 +123,10 @@ namespace DarkHelmet.UI
 
             public MenuElement(Func<string> GetName, IMenuCategory parent = null)
             {
+                Init();
                 this.GetName = GetName;
                 Parent = parent;
-                Instance.menuUpdateActions.Add(Update);
+                menuUpdateActions.Add(Update);
             }
 
             public MenuElement(string name, IMenuCategory parent = null) : this(() => name, parent)

@@ -99,12 +99,12 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ApiHud : PropertyList
         {
-            private readonly HudUtilities.ScrollMenu menu;
+            private readonly BvScrollMenu menu;
             private readonly List<string> propertyList;
 
             public ApiHud()
             {
-                menu = new HudUtilities.ScrollMenu(20);
+                menu = new BvScrollMenu(20, null);
                 propertyList = new List<string>(20);
             }
 
@@ -120,9 +120,10 @@ namespace DarkHelmet.BuildVision2
                     headerText = ModBase.ModName;
 
                     maxVisible = ApiHudCfg.maxVisible;
-                    menu.BodyColor = ApiHudCfg.colors.listBgColor;
-                    menu.HeaderColor = ApiHudCfg.colors.headerColor;
-                    menu.SelectionBoxColor = ApiHudCfg.colors.selectionBoxColor;
+                    menu.list.background.color = ApiHudCfg.colors.listBgColor;
+                    menu.header.background.color = ApiHudCfg.colors.headerColor;
+                    menu.footer.background.color = ApiHudCfg.colors.headerColor;
+                    menu.selectionBox.color = ApiHudCfg.colors.selectionBoxColor;
                     menu.TextScale = .85;
                     menu.Visible = true;
 
@@ -165,11 +166,11 @@ namespace DarkHelmet.BuildVision2
                 else
                 {
                     screenPos = ApiHudCfg.hudPos;
-                    screenPos.X += (screenPos.X < 0) ? menu.Size.X / 2d : -menu.Size.X / 2d;
-                    screenPos.Y += (screenPos.Y < 0) ? menu.Size.Y / 2d : -menu.Size.Y / 2d;
+                    screenPos.X += (screenPos.X < 0) ? menu.ScaledSize.X / 2d : -menu.ScaledSize.X / 2d;
+                    screenPos.Y += (screenPos.Y < 0) ? menu.ScaledSize.Y / 2d : -menu.ScaledSize.Y / 2d;
                 }
 
-                screenBounds = Vector2D.One - menu.Size / 2d;
+                screenBounds = Vector2D.One - menu.ScaledSize / 2d;
 
                 if (ApiHudCfg.clampHudPos)
                 {
@@ -177,7 +178,7 @@ namespace DarkHelmet.BuildVision2
                     screenPos.Y = Utils.Math.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
                 }
 
-                menu.ScaledPos = screenPos;
+                menu.ScaledOrigin = screenPos;
             }
 
             /// <summary>
@@ -189,7 +190,7 @@ namespace DarkHelmet.BuildVision2
                 string colorCode;
 
                 propertyList.Clear();
-                menu.HeaderText = $"<color={ApiHudCfg.colors.headerText}>{headerText}";
+                menu.header.Text = $"<color={ApiHudCfg.colors.headerText}>{headerText}";
 
                 for (int n = 0; (n < visCount && i < Target.ElementCount); n++)
                 {
@@ -216,15 +217,15 @@ namespace DarkHelmet.BuildVision2
                         i++;
                 }
 
-                menu.ListText = propertyList.ToArray();
-                menu.FooterLeftText = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visStart + visCount} of {Target.EnabledElementCount}]";
+                menu.list.ListText = propertyList.ToArray();
+                menu.footer.left.Text = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visStart + visCount} of {Target.EnabledElementCount}]";
 
                 if (Target.IsWorking)
-                    menu.FooterRightText = $"<color={ApiHudCfg.colors.headerText}>[Working]";
+                    menu.footer.right.Text = $"<color={ApiHudCfg.colors.headerText}>[Working]";
                 else if (Target.IsFunctional)
-                    menu.FooterRightText = $"<color={ApiHudCfg.colors.headerText}>[Functional]";
+                    menu.footer.right.Text = $"<color={ApiHudCfg.colors.headerText}>[Functional]";
                 else
-                    menu.FooterRightText = $"<color={ApiHudCfg.colors.blockIncText}>[Incomplete]";
+                    menu.footer.right.Text = $"<color={ApiHudCfg.colors.blockIncText}>[Incomplete]";
             }
         }
 

@@ -174,7 +174,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         private static int AlphaToPercent(byte alpha) =>
-            (int)Math.Round(alpha / 2.55d);
+            (int)Math.Round((alpha * 100d) / 255d);
 
         /// <summary>
         /// Creates list of settings for configuring keybinds via the Text HUD API's Mod Menu

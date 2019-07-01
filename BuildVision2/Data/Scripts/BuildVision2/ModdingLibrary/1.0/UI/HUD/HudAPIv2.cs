@@ -19,6 +19,11 @@ namespace DarkHelmet.UI.TextHudApi
             private set { instance = value; }
         }
 
+        /// <summary>
+        /// If Heartbeat is true you may call any constructor in this class. Do not call any constructor or set properties if this is false.
+        /// </summary>
+        public static bool Heartbeat => Instance.registered;
+
         private static HudAPIv2 instance;
         private static bool initializing = false;
 
@@ -116,17 +121,6 @@ namespace DarkHelmet.UI.TextHudApi
                 if (m_onRegisteredAction != null)
                     m_onRegisteredAction();
                 MessageSet(null, (int)RegistrationEnum.OnScreenUpdate, new MyTuple<Action>(ScreenChangedHandle));
-            }
-        }
-
-        /// <summary>
-        /// If Heartbeat is true you may call any constructor in this class. Do not call any constructor or set properties if this is false.
-        /// </summary>
-        public bool Heartbeat
-        {
-            get
-            {
-                return registered;
             }
         }
 

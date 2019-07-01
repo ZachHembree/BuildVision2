@@ -242,6 +242,17 @@ namespace DarkHelmet
             }
 
             /// <summary>
+            /// Clamps a <see cref="Vector2I"/> members between two values.
+            /// </summary>
+            public static Vector2I Clamp(Vector2I value, int min, int max)
+            {
+                value.X = Clamp(value.X, min, max);
+                value.Y = Clamp(value.Y, min, max);
+
+                return value;
+            }
+
+            /// <summary>
             /// Clamps a <see cref="Vector2D"/> members between two values.
             /// </summary>
             public static Vector2D Clamp(Vector2D value, double min, double max)
@@ -277,6 +288,16 @@ namespace DarkHelmet
             /// Finds the absolute value of the components of a <see cref="Vector2I"/>.
             /// </summary>
             public static Vector2I Abs(Vector2I value)
+            {
+                value.X = System.Math.Abs(value.X);
+                value.Y = System.Math.Abs(value.Y);
+                return value;
+            }
+
+            /// <summary>
+            /// Finds the absolute value of the components of a <see cref="Vector2D"/>.
+            /// </summary>
+            public static Vector2D Abs(Vector2D value)
             {
                 value.X = System.Math.Abs(value.X);
                 value.Y = System.Math.Abs(value.Y);

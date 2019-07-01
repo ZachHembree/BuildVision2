@@ -191,16 +191,23 @@ namespace DarkHelmet.IO
             public ConfigT Load(bool silent = false)
             {
                 ConfigT cfg = null;
-                KnownException loadException;
+                KnownException loadException = null;
 
                 if (!SaveInProgress)
                 {
                     SaveInProgress = true;
 
-                    if (!silent) ModBase.SendChatMessage("Loading configuration...");
+                    if (!silent)
+                        ModBase.SendChatMessage("Loading configuration...");
 
-                    loadException = TryLoad(out cfg);
-                    cfg = ValidateConfig(cfg);
+                    if (cfgFile.FileExists)
+                    {
+                        loadException = TryLoad(out cfg);
+                        cfg = ValidateConfig(cfg);
+                    }
+                    else
+                        cfg = Defaults;
+
                     TrySave(cfg);
 
                     if (loadException != null)
@@ -227,12 +234,17 @@ namespace DarkHelmet.IO
 
                     EnqueueTask(() =>
                     {
-                        ConfigT cfg;
-                        KnownException loadException;
+                        ConfigT cfg = null;
+                        KnownException loadException = null;
 
                         // Load and validate
-                        loadException = TryLoad(out cfg);
-                        cfg = ValidateConfig(cfg);
+                        if (cfgFile.FileExists)
+                        {
+                            loadException = TryLoad(out cfg);
+                            cfg = ValidateConfig(cfg);
+                        }
+                        else
+                            cfg = Defaults;
 
                         // Enqueue callback
                         EnqueueAction(() =>
@@ -270,7 +282,6 @@ namespace DarkHelmet.IO
                     }
 
                     cfg.Validate();
-
                     return cfg;
                 }
                 else
@@ -362,7 +373,7 @@ namespace DarkHelmet.IO
             /// </summary>
             private void Backup()
             {
-                if (MyAPIGateway.Utilities.FileExistsInLocalStorage(cfgFile.file, typeof(ConfigT)))
+                if (cfgFile.FileExists)
                 {
                     KnownException exception = cfgFile.TryDuplicate($"old_" + cfgFile.file);
 
@@ -384,12 +395,6 @@ namespace DarkHelmet.IO
                     return exception;
                 else
                     exception = Utils.Xml.TryDeserialize(data, out cfg);
-
-                if (exception != null)
-                {
-                    Backup();
-                    TrySave(Defaults);
-                }
 
                 return exception;
             }

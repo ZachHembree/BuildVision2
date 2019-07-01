@@ -216,6 +216,7 @@ namespace DarkHelmet.UI
             private List<Bind> keyBinds;
             private List<Control> usedControls;
             private bool[,] controlBindMap; // X = used controls; Y = associated key binds
+            private bool[] bindsBeingReleased;
             private int[] bindHits;
             private readonly int index;
 
@@ -273,7 +274,10 @@ namespace DarkHelmet.UI
                 int bindsPressed = 0;
 
                 if (bindHits == null || bindHits.Length != keyBinds.Count)
+                {
                     bindHits = new int[keyBinds.Count];
+                    bindsBeingReleased = new bool[keyBinds.Count];
+                }
 
                 for (int n = 0; n < bindHits.Length; n++)
                     bindHits[n] = 0;
@@ -291,13 +295,21 @@ namespace DarkHelmet.UI
                 // Partial presses on previously pressed binds count as full presses.
                 for (int y = 0; y < keyBinds.Count; y++)
                 {
-                    if (bindHits[y] == keyBinds[y].Count || (bindHits[y] > 0 && keyBinds[y].IsPressed))
+                    if ((bindHits[y] > 0 && bindHits[y] < keyBinds[y].Count) && keyBinds[y].IsPressed)
                     {
                         bindHits[y] = keyBinds[y].Count;
-                        bindsPressed++;
+                        bindsBeingReleased[y] = true;
                     }
-                    else
+                    else if (bindsBeingReleased[y] && bindHits[y] == keyBinds[y].Count)
                         bindHits[y] = 0;
+
+                    if (bindHits[y] == keyBinds[y].Count)
+                        bindsPressed++;
+                    else
+                    {
+                        bindHits[y] = 0;
+                        bindsBeingReleased[y] = false;
+                    }
                 }
 
                 return bindsPressed;

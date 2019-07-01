@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BuildVision2.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudElements.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\KeyBinds.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\ChatCommands.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\Game\ModBase.cs" />
@@ -82,14 +83,15 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\BindManager.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\MenuUtilities.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\SettingsMenu.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HudAPIv2.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudAPIv2.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\Game\LocalPlayer.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\IO\LogIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\GenericSingleton.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BvScrollMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\MenuTypes.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\PropertiesMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\TaskPool.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HudUtilities.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudUtilities.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\Utilities.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ConfigTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

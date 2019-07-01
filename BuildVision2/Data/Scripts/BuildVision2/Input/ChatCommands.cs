@@ -15,11 +15,11 @@ namespace DarkHelmet.BuildVision2
             return new CmdManager.Command[]
             {
                 new CmdManager.Command ("help",
-                    () => ModBase.ShowMessageScreen("Help", GetHelpMessage())),
+                    () => ShowMessageScreen("Help", GetHelpMessage())),
                 new CmdManager.Command ("bindHelp",
-                    () => ModBase.ShowMessageScreen("Bind Help", GetBindHelpMessage())),
+                    () => ShowMessageScreen("Bind Help", GetBindHelpMessage())),
                 new CmdManager.Command ("printBinds",
-                    () => ModBase.SendChatMessage(GetPrintBindsMessage())),
+                    () => SendChatMessage(GetPrintBindsMessage())),
                 new CmdManager.Command ("bind",
                     (string[] args) => KeyBinds.BindGroup.TryUpdateBind(args[0], args.GetSubarray(1))),
                 new CmdManager.Command("resetBinds",
@@ -45,7 +45,7 @@ namespace DarkHelmet.BuildVision2
                 new CmdManager.Command ("toggleTestPattern",
                     () => HudUtilities.TestPattern.Toggle()),
                 new CmdManager.Command ("reload",
-                    () => ModBase.Instance.Close()),
+                    () => Instance.Close()),
                 new CmdManager.Command("crash", Crash)
             };
         }

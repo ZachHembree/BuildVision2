@@ -32,10 +32,10 @@ namespace DarkHelmet.Game
         public static bool RunOnServer { get; protected set; }
         public static bool IsDedicated { get; private set; }
         public static bool IsServer { get; private set; }
+        public static bool Unloading { get; private set; }
 
         protected static ModBase Instance { get; private set; }
-        protected static bool Unloading { get; private set; }
-        protected bool Crashed { get; private set; }
+        protected static bool Crashed { get; private set; }
 
         private LogIO log;
         private readonly List<ComponentBase> modComponents;
@@ -142,9 +142,9 @@ namespace DarkHelmet.Game
         /// Executes a given <see cref="Action"/> in a try-catch block. If an exception occurs, it will attempt
         /// to log it, display an error message to the user then unload the mod and its components.
         /// </summary>
-        public static void RunSafeAction(Action action, bool ignoreCrash = false)
+        public static void RunSafeAction(Action action)
         {
-            if (Instance != null && !Instance.Crashed)
+            if (Instance != null)
             {
                 try
                 {
@@ -152,8 +152,7 @@ namespace DarkHelmet.Game
                 }
                 catch (Exception e)
                 {
-                    if (!ignoreCrash)
-                        ReportException(e);
+                    ReportException(e);
                 }
             }
         }
@@ -166,8 +165,8 @@ namespace DarkHelmet.Game
             StringBuilder errorMessage = new StringBuilder(e.ToString());
             errorMessage.Replace("--->", "\n   --->");
 
-            Instance.Crashed = true;
-            TryWriteToLog(ModName + " crashed!\n" + errorMessage);
+            Crashed = true;
+            TryWriteToLog(ModName + " encountered an unhandled exception.\n" + errorMessage);
 
             if (!Unloading)
             {
@@ -208,7 +207,7 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void TryWriteToLog(string message)
         {
-            if (Instance != null && !Unloading && Instance.log != null)
+            if (Instance != null && Instance.log != null)
                 Instance.log.TryWriteToLog(message);
         }
 
@@ -217,7 +216,7 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void WriteToLogStart(string message)
         {
-            if (Instance != null && !Unloading && Instance.log != null)
+            if (Instance != null && Instance.log != null)
                 Instance.log.WriteToLogStart(message);
         }
 
@@ -226,7 +225,7 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void SendChatMessage(string message)
         {
-            if (Instance != null && !Unloading)
+            if (Instance != null && !Unloading && !IsDedicated)
                 MyAPIGateway.Utilities.ShowMessage(ModName, message);
         }
 
@@ -235,7 +234,7 @@ namespace DarkHelmet.Game
         /// </summary>
         public static void ShowMessageScreen(string subHeading, string message)
         {
-            if (Instance != null && !Unloading)
+            if (Instance != null && !Unloading && !IsDedicated)
                 MyAPIGateway.Utilities.ShowMissionScreen(ModName, subHeading, null, message, null, "Close");
         }
 
@@ -254,12 +253,12 @@ namespace DarkHelmet.Game
                 Unloading = true;
 
                 if (RunOnServer || !IsDedicated)
-                    RunSafeAction(Instance.BeforeClose, true);
+                    RunSafeAction(Instance.BeforeClose);
 
                 for (int n = 0; n < modComponents.Count; n++)
                 {
                     if (modComponents[n].RunOnServer || !IsDedicated)
-                        RunSafeAction(modComponents[n].Close, true);
+                        RunSafeAction(modComponents[n].Close);
                 }
 
                 modComponents.Clear();

@@ -9,6 +9,7 @@ namespace DarkHelmet.IO
     /// </summary>
     public class LocalFileIO
     {
+        public bool FileExists => MyAPIGateway.Utilities.FileExistsInLocalStorage(file, typeof(LocalFileIO));
         public readonly string file;
         private readonly object fileLock;
 

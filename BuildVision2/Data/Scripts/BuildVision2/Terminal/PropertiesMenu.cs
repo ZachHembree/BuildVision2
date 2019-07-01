@@ -1,5 +1,5 @@
 ﻿using DarkHelmet.Game;
-using DarkHelmet.UI;
+using DarkHelmet.UI.TextHudApi;
 using Sandbox.ModAPI;
 
 namespace DarkHelmet.BuildVision2
@@ -17,9 +17,13 @@ namespace DarkHelmet.BuildVision2
             get { return Instance.target; }
             set
             {
+                if (Instance.target != null)
+                {
+                    Instance.Deselect();
+                    Instance.ResetIndex();
+                }
+
                 Instance.target = value;
-                Instance.Deselect();
-                Instance.ResetIndex();
             }
         }
         private PropertyBlock target;
@@ -176,7 +180,7 @@ namespace DarkHelmet.BuildVision2
             {
                 if (open)
                 {
-                    if (HudUtilities.Heartbeat && !Cfg.forceFallbackHud)
+                    if (HudAPIv2.Heartbeat && !Cfg.forceFallbackHud)
                     {
                         if (fallbackHud.Open)
                             fallbackHud.Hide();

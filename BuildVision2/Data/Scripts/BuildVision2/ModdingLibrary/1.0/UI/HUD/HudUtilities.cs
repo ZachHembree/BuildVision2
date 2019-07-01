@@ -12,6 +12,31 @@ using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 
 namespace DarkHelmet.UI
 {
+    public enum OriginAlignment
+    {
+        Center,
+        UpperLeft,
+        UpperRight,
+        LowerRight,
+        LowerLeft,
+    }
+
+    public enum OffsetAlignment
+    {
+        Center,
+        Left,
+        Top,
+        Right,
+        Bottom
+    }
+
+    public enum TextAlignment
+    {
+        Left,
+        Center,
+        Right
+    }
+
     /// <summary>
     /// Collection of tools used to make working with the Text Hud API and general GUI stuff easier; singleton.
     /// </summary>
@@ -19,25 +44,18 @@ namespace DarkHelmet.UI
     {
         public static double ResScale { get; private set; }
         public static UiTestPattern TestPattern { get; private set; }
-        public static bool Heartbeat { get { return HudAPIv2.Instance.Heartbeat; } }
 
         private static HudUtilities Instance
         {
             get { Init(); return instance; }
             set { instance = value; }
         }
-
         private static HudUtilities instance;
 
+        private readonly List<Action> hudElementsDraw;
         private readonly BindManager.Group hudBinds;
         private IKeyBind backspace;
-        private readonly List<Action> hudElementsDraw;
         private double screenWidth, screenHeight, aspectRatio, invTextApiScale, fov, fovScale;
-
-        static HudUtilities()
-        {
-            Init();
-        }
 
         private HudUtilities()
         {
@@ -69,7 +87,7 @@ namespace DarkHelmet.UI
 
         public override void Draw()
         {
-            if (Heartbeat)
+            if (HudAPIv2.Heartbeat)
             {
                 if (screenHeight != MyAPIGateway.Session.Camera.ViewportSize.Y || screenWidth != MyAPIGateway.Session.Camera.ViewportSize.X)
                     GetResScaling();
@@ -96,13 +114,6 @@ namespace DarkHelmet.UI
         {
             fov = MyAPIGateway.Session.Camera.FovWithZoom;
             fovScale = 0.1 * Math.Tan(fov / 2d);
-        }
-
-        public enum TextAlignment
-        {
-            Left,
-            Center,
-            Right
         }
 
         public sealed class TextInput : ModBase.ComponentBase
@@ -166,265 +177,183 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Abstract base for hud elements
         /// </summary>
-        public abstract class HudElement
+        public abstract class HudElementBase
         {
-            public HudElement()
-            {
-                Instance.hudElementsDraw.Add(Draw);
-            }
-
-            /// <summary>
-            /// If a parent is set, the hud element's position will be centered around it.
-            /// </summary>
-            public virtual HudElement Parent { get; set; } = null;
-
-            /// <summary>
-            /// Position using scaled coordinate system
-            /// </summary>
-            public virtual Vector2D ScaledPos { get; set; } = Vector2D.Zero; // behavior of ScaledPos is not consistent; do something about that
-
             /// <summary>
             /// If set to true, the hud element will be visible. Parented elements will be hidden if the parent is not visible.
             /// </summary>
-            public virtual bool Visible
+            public bool Visible
             {
-                get { return Parent == null ? visible : Parent.Visible && visible; }
+                get { return parent == null ? visible : parent.Visible && visible; }
                 set { visible = value; }
             }
-
-            protected bool visible = true;
-
             /// <summary>
             /// Sizing scale corrected to be consistent across both HUD Message based elements and Billboard based elements.
             /// </summary>
-            public virtual double Scale { get; set; } = 1d;
-
-            /// <summary>
-            /// Current position from the center of the screen or parent in pixels.
-            /// </summary>
-            public virtual Vector2I Origin
+            public virtual Vector2I Size { get; protected set; }
+            public virtual Vector2D ScaledSize { get { return GetScaledVector(Size); } protected set { Size = Utils.Math.Abs(GetPixelVector(value)); } }
+            public virtual double Scale
             {
-                get { return Parent == null ? origin : (origin + Parent.Origin + Parent.Offset); }
-                set { origin = value; }
+                get { return (parent == null || ignoreParentScale) ? scale : scale * parent.Scale; }
+                set { scale = value; }
             }
 
-            protected Vector2I origin = Vector2I.Zero;
-
+            /// <summary>
+            /// Current position from the center of the screen in pixels.
+            /// </summary>
+            public Vector2I Origin
+            {
+                get { return parent == null ? origin : (origin + parent.Origin + parent.Offset + GetAlignmentOffset()); }
+                set { origin = value; }
+            }
             /// <summary>
             /// Determines location of the HUD element relative to the origin.
             /// </summary>
-            public virtual Vector2I Offset { get; set; } = Vector2I.Zero;
+            public Vector2I Offset { get; set; }
+            /// <summary>
+            /// Position using scaled coordinate system
+            /// </summary>
+            public virtual Vector2D ScaledOrigin { get { return GetScaledVector(Origin); } set { Origin = GetPixelVector(value); } }
+
+            /// <summary>
+            /// If a parent is set, the hud element's origin will be centered around it.
+            /// </summary>
+            public HudElementBase parent;
+            public OffsetAlignment offsetAlignment;
+            private Vector2I origin;
+            private double scale;
+            private bool visible;
+            private readonly bool ignoreParentScale;
+
+            public HudElementBase(HudElementBase parent, OffsetAlignment offsetAlignment, bool ignoreParentScale)
+            {
+                Scale = 1d;
+                Visible = true;
+                this.ignoreParentScale = ignoreParentScale;
+
+                this.parent = parent;
+                this.offsetAlignment = offsetAlignment;
+                Instance.hudElementsDraw.Add(BeforeDraw);
+            }
+
+            protected virtual void BeforeDraw()
+            {
+                if (Visible)
+                {
+                    Draw();
+                }
+            }
 
             /// <summary>
             /// Updates settings and draws hud element.
             /// </summary>
-            protected abstract void Draw();
+            protected virtual void Draw() { }
+
+            protected virtual Vector2I GetAlignmentOffset()
+            {
+                if (offsetAlignment == OffsetAlignment.Bottom)
+                    return new Vector2I(0, -(parent.Size.Y + Size.Y) / 2 + parent.Size.Y % 2);
+                else if (offsetAlignment == OffsetAlignment.Left)
+                    return new Vector2I(-(parent.Size.X + Size.X) / 2 + Size.X % 2, 0);
+                else if (offsetAlignment == OffsetAlignment.Right)
+                    return new Vector2I(+(parent.Size.X + Size.X) / 2 - parent.Size.X % 2, 0);
+                else if (offsetAlignment == OffsetAlignment.Top)
+                    return new Vector2I(0, +(parent.Size.Y + Size.Y) / 2 - Size.Y % 2);
+                else
+                    return Vector2I.Zero;
+            }
         }
 
-        /// <summary>
-        /// Scrollable list menu; the selection box position is based on the selction index.
-        /// </summary>
-        public class ScrollMenu : HudElement // wouldn't it be cool if this implemented IList<TextHudMessage>?
+        public abstract class ResizableElementBase : HudElementBase
         {
-            public string HeaderText { get { return header.Message; } set { header.Message = value; } }
-            public string FooterLeftText { get { return footerLeft.Message; } set { footerLeft.Message = value; } }
-            public string FooterRightText { get { return footerRight.Message; } set { footerRight.Message = value; } }
-            public string[] ListText
+            public sealed override Vector2I Size { get { return new Vector2I(Width, Height); } protected set { Width = value.X; Height = value.Y; } }
+            public virtual int Width { get { return width; } set { width = Math.Abs(value); } }
+            public virtual int Height { get { return height; } set { height = Math.Abs(value); } }
+
+            private int width, height;
+
+            public ResizableElementBase(HudElementBase parent, OffsetAlignment offsetAlignment, bool ignoreParentScale) : base(parent, offsetAlignment, ignoreParentScale)
+            { }
+
+            public virtual void SetSize(Vector2I newSize) =>
+                Size = newSize;
+        }
+
+        public abstract class TextBoxBase : ResizableElementBase
+        {
+            public Vector2I MinimumSize
             {
-                get { return listText; }
-                set
+                get
                 {
-                    listText = value;
-
-                    while (list.Count < listText.Length)
-                        list.Add(new TextHudMessage(background, TextAlignment.Left));
-
-                    for (int n = 0; n < listText.Length; n++)
-                        list[n].Message = listText[n];
+                    Vector2I minSize = TextSize;
+                    minSize.X += (int)(Padding.X * Scale);
+                    minSize.Y += (int)(Padding.Y * Scale);
+                    return minSize;
                 }
             }
-            private string[] listText;
+            public Vector2I Padding { get { return padding; } set { padding = Utils.Math.Abs(value); } }
+            public abstract Vector2I TextSize { get; }
+            public virtual double TextScale { get; set; }
 
-            public int SelectionIndex
+            private Vector2I padding;
+
+            public TextBoxBase(HudElementBase parent, Vector2I padding, OffsetAlignment offsetAlignment, bool ignoreParentScale) : base(parent, offsetAlignment, ignoreParentScale)
             {
-                get { return selectionIndex; }
-                set { selectionIndex = Utils.Math.Clamp(value, 0, (ListText != null ? ListText.Length - 1 : 0)); }
+                TextScale = 1d;
+                Padding = padding;
             }
 
-            public double TextScale { get; set; } = 1d;
-            public Vector2D Size { get; private set; }
-            public Color BodyColor { get { return background.color; } set { background.color = value; } }
-            public Color SelectionBoxColor { get { return highlightBox.color; } set { highlightBox.color = value; } }
-            public Color HeaderColor
+            protected override void BeforeDraw()
             {
-                get { return headerBg.color; }
-                set
+                if (Visible)
                 {
-                    headerBg.color = value;
-                    footerBg.color = value;
+                    Vector2I minSize = MinimumSize;
+
+                    if (Width < minSize.X)
+                        Width = minSize.X;
+
+                    if (Height < minSize.Y)
+                        Height = minSize.Y;
+
+                    Draw();
                 }
-            }
-
-            private readonly TexturedBox headerBg, footerBg, background, highlightBox, tab;
-            private readonly TextHudMessage header, footerLeft, footerRight;
-            private readonly List<TextHudMessage> list;
-            private static Vector2I padding;
-            private int selectionIndex = 0;
-
-            public ScrollMenu(int maxListLength)
-            {
-                background = new TexturedBox(this);
-
-                headerBg = new TexturedBox(background);
-                header = new TextHudMessage(headerBg);
-
-                footerBg = new TexturedBox(background);
-                footerLeft = new TextHudMessage(footerBg, TextAlignment.Left);
-                footerRight = new TextHudMessage(footerBg, TextAlignment.Right);
-
-                highlightBox = new TexturedBox(background);
-                tab = new TexturedBox(highlightBox, new Color(225, 225, 240, 255));
-
-                list = new List<TextHudMessage>(maxListLength);
-
-                for (int n = 0; n < maxListLength; n++)
-                    list.Add(new TextHudMessage(background, TextAlignment.Left));
-            }
-
-            protected override void Draw()
-            {
-                if (Visible && ListText != null)
-                {
-                    SetScale();
-                    padding = new Vector2I((int)(62d * Scale), (int)(26d * Scale));
-
-                    Vector2I listSize = GetListSize(), textOffset = listSize / 2, pos;
-                    Origin = Instance.GetPixelPos(ScaledPos);
-
-                    background.Size = listSize + padding;
-
-                    headerBg.Size = new Vector2I(background.Width, header.TextSize.Y + (int)(18d * Scale));
-                    headerBg.Offset = new Vector2I(0, (headerBg.Height + background.Height) / 2);
-
-                    pos = new Vector2I(-textOffset.X, textOffset.Y - list[0].TextSize.Y / 2);
-
-                    for (int n = 0; n < ListText.Length; n++)
-                    {
-                        list[n].Visible = true;
-                        list[n].Offset = pos;
-                        pos.Y -= list[n].TextSize.Y;
-                    }
-
-                    for (int n = ListText.Length; n < list.Count; n++)
-                        list[n].Visible = false;
-
-                    highlightBox.Size = new Vector2I(listSize.X + (int)(14d * Scale), list[SelectionIndex].TextSize.Y + 1);
-                    highlightBox.Offset = new Vector2I(0, list[SelectionIndex].Offset.Y);
-
-                    tab.Size = new Vector2I((int)(3d * Scale), highlightBox.Height);
-                    tab.Offset = new Vector2I((-highlightBox.Width + tab.Width) / 2 - 1, 0);
-
-                    footerBg.Size = new Vector2I(background.Width, footerLeft.TextSize.Y + (int)(10d * Scale));
-                    footerBg.Offset = new Vector2I(0, -(background.Height + footerBg.Height + 1) / 2);
-                    footerLeft.Offset = new Vector2I((-footerBg.Width + padding.X) / 2, 0);
-                    footerRight.Offset = new Vector2I((footerBg.Width - padding.X) / 2, 0);
-
-                    Offset = -new Vector2I(0, headerBg.Height - footerBg.Height) / 2;
-                    Size = Instance.GetScaledPos(background.Size + new Vector2I(0, headerBg.Height + footerBg.Height));
-                }
-            }
-
-            private Vector2I GetListSize()
-            {
-                Vector2I listSize, lineSize;
-                int maxLineWidth = 0, footerWidth;
-                listSize = Vector2I.Zero;
-
-                for (int n = 0; n < ListText.Length; n++)
-                {
-                    lineSize = list[n].TextSize;
-                    listSize.Y += lineSize.Y;
-
-                    if (lineSize.X > maxLineWidth)
-                        maxLineWidth = lineSize.X;
-                }
-
-                if (header.TextSize.X > maxLineWidth)
-                    maxLineWidth = header.TextSize.X;
-
-                footerWidth = footerLeft.TextSize.X + footerRight.TextSize.X + padding.X;
-
-                if (footerWidth > maxLineWidth)
-                    maxLineWidth = footerWidth;
-
-                listSize.X = maxLineWidth;
-                return listSize;
-            }
-
-            private void SetScale()
-            {
-                header.Scale = Scale * TextScale * 1.1;
-                footerLeft.Scale = Scale * TextScale;
-                footerRight.Scale = Scale * TextScale;
-
-                foreach (TextHudMessage element in list)
-                    element.Scale = Scale * TextScale;
             }
         }
 
         /// <summary>
         /// Wrapper used to make precise pixel-level manipluation of <see cref="HudAPIv2.HUDMessage"/> easier.
         /// </summary>
-        public class TextHudMessage : HudElement
+        public class TextHudMessage : HudElementBase
         {
-            public string Message
-            {
-                get { return message; }
-                set
-                {
-                    message = value;
+            public TextAlignment alignment;
+            private HudAPIv2.HUDMessage hudMessage;
+            private Vector2I alignmentOffset;
+            private string text;
+            private bool updateSize;
 
-                    if (hudMessage != null)
-                        UpdateMessage();
-                }
-            }
-
-            public override Vector2D ScaledPos
-            {
-                get { return hudMessage != null ? hudMessage.Origin : Vector2D.Zero; }
-                set { hudMessage.Origin = value; }
-            }
-
+            public string Text { get { return text; } set { text = value; UpdateMessage(); } }
             public override double Scale
             {
-                get { return scale; }
+                get => base.Scale;
                 set
                 {
-                    scale = value;
+                    base.Scale = value;
 
                     if (hudMessage != null)
-                        hudMessage.Scale = scale * Instance.invTextApiScale;
+                    {
+                        hudMessage.Scale = base.Scale * Instance.invTextApiScale;
+                        updateSize = true;
+                    }
                 }
             }
 
-            public Vector2D ScaledTextSize { get; private set; }
-            public Vector2I TextSize { get; private set; }
-            public TextAlignment alignment;
-
-            private HudAPIv2.HUDMessage hudMessage;
-            private string message;
-            private Vector2I alignmentOffset;
-            private double scale;
-
-            public TextHudMessage(HudElement Parent = null, TextAlignment alignment = TextAlignment.Center)
+            public TextHudMessage(HudElementBase parent = null, TextAlignment alignment = TextAlignment.Center, 
+                OffsetAlignment offsetAlignment = OffsetAlignment.Center, bool ignoreParentScale = false) : base(parent, offsetAlignment, ignoreParentScale)
             {
-                this.Parent = Parent;
                 this.alignment = alignment;
+                updateSize = false;
             }
 
-            /// <summary>
-            /// Updates settings of underlying Text HUD API type.
-            /// </summary>
             protected override void Draw()
             {
                 if (hudMessage == null)
@@ -432,77 +361,78 @@ namespace DarkHelmet.UI
                     hudMessage = new HudAPIv2.HUDMessage
                     {
                         Blend = BlendTypeEnum.PostPP,
-                        Scale = Scale,
+                        Scale = Scale * Instance.invTextApiScale,
                         Options = HudAPIv2.Options.Fixed,
                         Visible = false,
                     };
 
                     UpdateMessage();
+                    UpdateSize();
                 }
 
-                if (Visible)
-                {
-                    hudMessage.Origin = Instance.GetScaledPos(Origin + Offset + alignmentOffset);
-                    hudMessage.Draw();
-                }
+                if (updateSize)
+                    UpdateSize();
+
+                hudMessage.Origin = GetScaledVector(Origin + Offset + alignmentOffset);
+                hudMessage.Draw();
             }
 
             private void UpdateMessage()
             {
-                if (Message != null)
+                if (hudMessage != null && Text != null)
                 {
-                    Vector2D length;
-
                     hudMessage.Message.Clear();
-                    hudMessage.Message.Append(Message);
-
-                    length = hudMessage.GetTextLength();
-                    ScaledTextSize = length;
-                    TextSize = Utils.Math.Abs(Instance.GetPixelPos(ScaledTextSize));
-                    GetAlignmentOffset();
+                    hudMessage.Message.Append(Text);
+                    updateSize = true;
                 }
             }
 
-            private void GetAlignmentOffset()
+            private void UpdateSize()
             {
-                alignmentOffset = TextSize / 2;
+                ScaledSize = hudMessage.GetTextLength();
+                UpdateTextOffset();
+                updateSize = false;
+            }
+
+            private void UpdateTextOffset()
+            {
+                alignmentOffset = Size / 2;
                 alignmentOffset.X *= -1;
 
                 if (alignment == TextAlignment.Right)
-                {
-                    alignmentOffset.X -= TextSize.X / 2;
-                }
+                    alignmentOffset.X -= Size.X / 2;
                 else if (alignment == TextAlignment.Left)
-                {
-                    alignmentOffset.X += TextSize.X / 2;
-                }
+                    alignmentOffset.X += Size.X / 2;
             }
         }
 
         /// <summary>
         /// Creates a colored box of a given width and height with a given mateiral. The default material is just a plain color.
         /// </summary>
-        public class TexturedBox : HudElement
+        public class TexturedBox : ResizableElementBase
         {
-            public Vector2D ScaledSize { get; private set; }
-            public Vector2I Size { get { return size; } set { size = Utils.Math.Abs(value); } }
-            public int Height { get { return Size.Y; } set { Size = new Vector2I(value, Size.Y); } }
-            public int Width { get { return Size.X; } set { Size = new Vector2I(Size.X, value); ; } }
-            public MyStringId material;
-            public Color color;
-
-            private static MyStringId square;
-            private Vector2I size;
-
-            static TexturedBox()
+            public override double Scale
             {
-                square = MyStringId.GetOrCompute("Square");
+                get => base.Scale;
+                set
+                {
+                    if (value != base.Scale)
+                    {
+                        base.Scale = value;
+                        scaleSqrt = Math.Sqrt(value);
+                    }
+                }
             }
 
-            public TexturedBox(HudElement Parent = null, Color color = default(Color), MyStringId material = default(MyStringId))
+            public MyStringId material;
+            public Color color;
+            private double scaleSqrt;
+            private static readonly MyStringId square = MyStringId.GetOrCompute("Square");
+
+            public TexturedBox(HudElementBase parent = null, OffsetAlignment offsetAlignment = OffsetAlignment.Center, Color color = default(Color), MyStringId material = default(MyStringId), bool ignoreParentScale = false)
+                : base(parent, offsetAlignment, ignoreParentScale)
             {
                 this.color = color;
-                this.Parent = Parent;
 
                 if (material == default(MyStringId))
                     this.material = square;
@@ -512,21 +442,18 @@ namespace DarkHelmet.UI
 
             protected override void Draw()
             {
-                if (Visible && color.A > 0)
+                if (color.A > 0)
                 {
                     MatrixD cameraMatrix;
                     Quaternion rotquad;
                     Vector3D boardPos;
                     Vector2D boardOrigin, boardSize;
 
-                    ScaledSize = Instance.GetScaledSize(Size, Scale);
-                    ScaledPos = Instance.GetScaledPos(Origin + Offset);
+                    boardSize = ScaledSize * Instance.fovScale * scaleSqrt / 2d;
+                    boardSize.X *= Instance.aspectRatio;
 
-                    boardSize = ScaledSize * Instance.fovScale * 16d;
-
-                    boardOrigin = ScaledPos;
-                    boardOrigin.X *= Instance.fovScale * Instance.aspectRatio;
-                    boardOrigin.Y *= Instance.fovScale;
+                    boardOrigin = GetScaledVector(Origin + Offset) * Instance.fovScale;
+                    boardOrigin.X *= Instance.aspectRatio;
 
                     cameraMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
                     boardPos = Vector3D.Transform(new Vector3D(boardOrigin.X, boardOrigin.Y, -0.1), cameraMatrix);
@@ -562,54 +489,30 @@ namespace DarkHelmet.UI
         }
 
         /// <summary>
-        /// Converts text Hud API sizing scale to pixels
-        /// </summary>
-        public Vector2I GetPixelSize(Vector2D scaledSize, double scale = 1d)
-        {
-            return new Vector2I
-            (
-                (int)(scaledSize.X * screenHeight * 16d / Math.Sqrt(scale)),
-                (int)(scaledSize.Y * screenHeight * 16d / Math.Sqrt(scale))
-            );
-        }
-
-        /// <summary>
-        /// Converts from a size given in pixels to the scale used by the textured box
-        /// </summary>
-        public Vector2D GetScaledSize(Vector2I pixelSize, double scale = 1d)
-        {
-            return new Vector2D
-            (
-                pixelSize.X,
-                pixelSize.Y
-            ) * (Math.Sqrt(scale) / screenHeight / 16d);
-        }
-
-        /// <summary>
         /// Converts from a coordinate in the scaled coordinate system to a concrete coordinate in pixels.
         /// </summary>
-        private Vector2I GetPixelPos(Vector2D scaledPos)
+        public static Vector2I GetPixelVector(Vector2D scaledVec)
         {
-            scaledPos /= 2d;
+            scaledVec /= 2d;
 
             return new Vector2I
             (
-                (int)(scaledPos.X * screenWidth),
-                (int)(scaledPos.Y * screenHeight)
+                (int)(scaledVec.X * Instance.screenWidth),
+                (int)(scaledVec.Y * Instance.screenHeight)
             );
         }
 
         /// <summary>
         /// Converts from a coordinate given in pixels to the API's scaled coordinate system.
         /// </summary>
-        private Vector2D GetScaledPos(Vector2I pixelPos)
+        public static Vector2D GetScaledVector(Vector2I pixelVec)
         {
-            pixelPos *= 2;
+            pixelVec *= 2;
 
             return new Vector2D
             (
-                pixelPos.X / screenWidth,
-                pixelPos.Y / screenHeight
+                pixelVec.X / Instance.screenWidth,
+                pixelVec.Y / Instance.screenHeight
             );
         }
 
@@ -630,59 +533,68 @@ namespace DarkHelmet.UI
                     new TexturedBox() // red
                     {
                         color = new Color(255, 0, 0, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(300, 0)
                     },
                     new TexturedBox() // green
                     {
                         color = new Color(0, 255, 0, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(-300, 0)
                     },
                     new TexturedBox() // blue
                     {
                         color = new Color(0, 0, 255, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(0, 300)
                     },
                     new TexturedBox() // purple
                     {
                         color = new Color(170, 0, 210, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(0, -300)
                     },
                     new TexturedBox() // yellow
                     {
                         color = new Color(210, 190, 0, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(0, 0)
                     },
                     // sqrt(50) x sqrt(50)
                     new TexturedBox() // green
                     {
                         color = new Color(0, 255, 0, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(-200, -200),
                         Scale = .5d
                     },
                     new TexturedBox() // blue
                     {
                         color = new Color(0, 0, 255, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(-200, 200),
                         Scale = .5d
                     },
                     new TexturedBox() // purple
                     {
                         color = new Color(170, 0, 210, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(200, 200),
                         Scale = .5d
                     },
                     new TexturedBox() // yellow
                     {
                         color = new Color(210, 190, 0, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(200, -200),
                         Scale = .5d
                     },
@@ -690,28 +602,32 @@ namespace DarkHelmet.UI
                     new TexturedBox() // green
                     {
                         color = new Color(0, 255, 0, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(-400, -400),
                         Scale = .25d
                     },
                     new TexturedBox() // blue
                     {
                         color = new Color(0, 0, 255, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(-400, 400),
                         Scale = .25d
                     },
                     new TexturedBox() // purple
                     {
                         color = new Color(170, 0, 210, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(400, 400),
                         Scale = .25d
                     },
                     new TexturedBox() // yellow
                     {
                         color = new Color(210, 190, 0, 255),
-                        Size = new Vector2I(100, 100),
+                        Height = 100,
+                        Width = 100,
                         Origin = new Vector2I(400, -400),
                         Scale = .25d
                     },
