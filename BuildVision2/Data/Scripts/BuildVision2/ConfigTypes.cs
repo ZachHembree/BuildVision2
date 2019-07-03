@@ -35,7 +35,7 @@ namespace DarkHelmet.BuildVision2
         public override void Validate()
         {
             if (VersionID < 6)
-                menu.apiHudConfig = ApiHudConfig.Defaults;
+                menu = PropMenuConfig.Defaults;
 
             if (VersionID < 5)
                 block = PropBlockConfig.Defaults;

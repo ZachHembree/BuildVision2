@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BuildVision2.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\BaseHudElements.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudElements.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\KeyBinds.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\ChatCommands.cs" />

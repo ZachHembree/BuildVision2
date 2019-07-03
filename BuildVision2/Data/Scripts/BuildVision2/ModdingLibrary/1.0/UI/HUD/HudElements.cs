@@ -1,21 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
 using VRageMath;
-using HudElementBase = DarkHelmet.UI.HudUtilities.HudElementBase;
-using TextBoxBase = DarkHelmet.UI.HudUtilities.TextBoxBase;
-using TextHudMessage = DarkHelmet.UI.HudUtilities.TextHudMessage;
-using TexturedBox = DarkHelmet.UI.HudUtilities.TexturedBox;
+using ElementBase = DarkHelmet.UI.HudUtilities.ElementBase;
 
 namespace DarkHelmet.UI
 {
+    /// <summary>
+    /// A text box with a list of text fields instead of one.
+    /// </summary>
     public class ListBox : TextBoxBase
     {
-        public readonly TexturedBox background;
-        public readonly TextList list;
+        public Color BgColor { get { return background.color; } set { background.color = value; } }
+        public override double UnscaledWidth { get { return background.UnscaledWidth; } set { background.UnscaledWidth = value; } }
+        public override double UnscaledHeight { get { return background.UnscaledHeight; } set { background.UnscaledHeight = value; } }
+        public TextAlignment TextAlignment
+        {
+            get => list.TextAlignment;
+            set
+            {
+                if (value == TextAlignment.Left)
+                    list.parentAlignment = ParentAlignment.Left;
+                else if (value == TextAlignment.Right)
+                    list.parentAlignment = ParentAlignment.Right;
+                else
+                    list.parentAlignment = ParentAlignment.Center;
 
-        public override int Width { get { return background.Width; } set { background.Width = Math.Abs(value); } }
-        public override int Height { get { return background.Height; } set { background.Height = Math.Abs(value); } }
-        public override Vector2I TextSize { get { return list.Size; } }
+                list.TextAlignment = value;
+            }
+        }
+        public override Vector2D TextSize => list.Size;
         public override double TextScale
         {
             get => base.TextScale;
@@ -31,20 +44,31 @@ namespace DarkHelmet.UI
         public int Count => list.Count;
         public TextHudMessage this[int index] => list[index];
 
-        public ListBox(HudElementBase parent, int maxListLength, Vector2I padding = default(Vector2I), OffsetAlignment offsetAlignment = OffsetAlignment.Center,
-            TextAlignment alignment = TextAlignment.Center, Color bgColor = default(Color), bool ignoreParentScale = false) : base(parent, padding, offsetAlignment, ignoreParentScale)
+        private readonly TexturedBox background;
+        public readonly TextList list;
+
+        public ListBox(int maxListLength)
         {
-            background = new TexturedBox(this, OffsetAlignment.Center, bgColor, ignoreParentScale: true);
-            list = new TextList(this, maxListLength, OffsetAlignment.Center, alignment) { Scale = TextScale };
+            background = new TexturedBox() { parent = this };
+            list = new TextList(maxListLength) { parent = this };
+        }
+
+        protected override void Draw()
+        {
+            if (TextAlignment == TextAlignment.Left)
+                list.Offset = new Vector2D(list.Size.X + Padding.X / 2, 0);
+            else if (TextAlignment == TextAlignment.Right)
+                list.Offset = new Vector2D(-list.Size.X - Padding.X / 2, 0);
+            else
+                list.Offset = Vector2D.Zero;
         }
     }
 
-    public class TextList : HudElementBase
+    /// <summary>
+    /// A list of text fields that all share the same alignment and text size.
+    /// </summary>
+    public class TextList : ElementBase
     {
-        public readonly List<TextHudMessage> list;
-        private string[] listText;
-        private TextAlignment alignment;
-
         public string[] ListText
         {
             get { return listText; }
@@ -53,19 +77,19 @@ namespace DarkHelmet.UI
                 listText = value;
 
                 while (list.Count < listText.Length)
-                    list.Add(new TextHudMessage(this, Alignment, ignoreParentScale: true));
+                    list.Add(new TextHudMessage() { parent = this, textAlignment = TextAlignment });
 
                 for (int n = 0; n < listText.Length; n++)
                     list[n].Text = listText[n];
             }
         }
-        public TextAlignment Alignment
+        public TextAlignment TextAlignment
         {
             get { return alignment; }
             set
             {
                 for (int n = 0; n < list.Count; n++)
-                    list[n].alignment = value;
+                    list[n].textAlignment = value;
 
                 alignment = value;
             }
@@ -73,18 +97,20 @@ namespace DarkHelmet.UI
         public int Count => (listText != null) ? listText.Length : 0;
         public TextHudMessage this[int index] => list[index];
 
-        public TextList(HudElementBase parent, int maxListLength, OffsetAlignment offsetAlignment = OffsetAlignment.Center, TextAlignment alignment = TextAlignment.Left, 
-            bool ignoreParentScale = false) : base(parent, offsetAlignment, ignoreParentScale)
+        public readonly List<TextHudMessage> list;
+        private string[] listText;
+        private TextAlignment alignment;
+
+        public TextList(int maxListLength)
         {
             list = new List<TextHudMessage>(maxListLength);
-            Alignment = alignment;
         }
 
         public void UpdateSize()
         {
-            Vector2I listSize, lineSize;
-            int maxLineWidth = 0;
-            listSize = Vector2I.Zero;
+            Vector2D listSize, lineSize;
+            double maxLineWidth = 0;
+            listSize = Vector2D.Zero;
 
             for (int n = 0; n < Count; n++)
             {
@@ -105,19 +131,18 @@ namespace DarkHelmet.UI
             {
                 UpdateSize();
 
-                Vector2I textOffset = Size / 2, pos;
-                int textCenter = 0;
+                Vector2D textOffset = Size / 2, pos;
+                double textCenter = 0;
 
                 if (alignment == TextAlignment.Left)
                     textCenter = -textOffset.X;
                 else if (alignment == TextAlignment.Right)
                     textCenter = textOffset.X;
 
-                pos = new Vector2I(textCenter, textOffset.Y - list[0].Size.Y / 2);
+                pos = new Vector2D(textCenter, textOffset.Y - list[0].Size.Y / 2);
 
                 for (int n = 0; n < Count; n++)
                 {
-                    list[n].Scale = Scale;
                     list[n].Visible = true;
                     list[n].Offset = pos;
                     pos.Y -= list[n].Size.Y;
@@ -129,14 +154,15 @@ namespace DarkHelmet.UI
         }
     }
 
+    /// <summary>
+    /// A text box with a text field on the left and another on the right.
+    /// </summary>
     public class DoubleTextBox : TextBoxBase
     {
-        public readonly TexturedBox background;
-        public readonly TextHudMessage left, right;
-
-        public override int Width { get { return background.Width; } set { background.Width = Math.Abs(value); } }
-        public override int Height { get { return background.Height; } set { background.Height = Math.Abs(value); } }
-        public override Vector2I TextSize { get { return new Vector2I((left.Size.X + right.Size.X + Padding.X), Math.Max(left.Size.Y, right.Size.Y)); } }
+        public Color BgColor { get { return background.color; } set { background.color = value; } }
+        public override double UnscaledWidth { get { return background.UnscaledWidth; } set { background.UnscaledWidth = value; } }
+        public override double UnscaledHeight { get { return background.UnscaledHeight; } set { background.UnscaledHeight = value; } }
+        public override Vector2D TextSize { get { return new Vector2D((left.Size.X + right.Size.X + Padding.X), Math.Max(left.Size.Y, right.Size.Y)); } }
         public override double TextScale
         {
             get => base.TextScale;
@@ -151,30 +177,36 @@ namespace DarkHelmet.UI
                 }
             }
         }
+        public string LeftText { get { return left.Text; } set { left.Text = value; } }
+        public string RightText { get { return right.Text; } set { right.Text = value; } }
 
-        public DoubleTextBox(HudElementBase parent, Vector2I padding = default(Vector2I), OffsetAlignment offsetAlignment = OffsetAlignment.Center, Color bgColor = default(Color), 
-            bool ignoreParentScale = false) : base(parent, padding, offsetAlignment, ignoreParentScale)
+        private readonly TexturedBox background;
+        private readonly TextHudMessage left, right;
+
+        public DoubleTextBox()
         {
-            background = new TexturedBox(this, OffsetAlignment.Center, bgColor, ignoreParentScale: true);
-            left = new TextHudMessage(this, TextAlignment.Left, OffsetAlignment.Left) { Scale = TextScale };
-            right = new TextHudMessage(this, TextAlignment.Right, OffsetAlignment.Right) { Scale = TextScale };
+            background = new TexturedBox() { parent = this };
+            left = new TextHudMessage() { parent = this, textAlignment = TextAlignment.Left, parentAlignment = ParentAlignment.Left };
+            right = new TextHudMessage() { parent = this, textAlignment = TextAlignment.Right, parentAlignment = ParentAlignment.Right };
         }
 
         protected override void Draw()
         {
-            left.Offset = new Vector2I((left.Size.X + Padding.X) / 2, 0);
-            right.Offset = new Vector2I((-right.Size.X - Padding.X) / 2, 0);
+            left.Offset = new Vector2D((left.Size.X + Padding.X) / 2d, 0);
+            right.Offset = new Vector2D((-right.Size.X - Padding.X) / 2d, 0);
         }
     }
 
+    /// <summary>
+    /// A box with a text field and a colored background.
+    /// </summary>
     public class TextBox : TextBoxBase
     {
-        public readonly TexturedBox background;
-        public readonly TextHudMessage message;
-
-        public override int Width { get { return background.Width; } set { background.Width = Math.Abs(value); } }
-        public override int Height { get { return background.Height; } set { background.Height = Math.Abs(value); } }
-        public override Vector2I TextSize { get { return message.Size; } }
+        public Color BgColor { get { return background.color; } set { background.color = value; } }
+        public override double UnscaledWidth { get { return background.UnscaledWidth; } set { background.UnscaledWidth = value; } }
+        public override double UnscaledHeight { get { return background.UnscaledHeight; } set { background.UnscaledHeight = value; } }
+        public TextAlignment TextAlignment { get { return message.textAlignment; } set { message.textAlignment = value; } }
+        public override Vector2D TextSize => message.Size;
         public override double TextScale
         {
             get => base.TextScale;
@@ -188,11 +220,13 @@ namespace DarkHelmet.UI
         }
         public string Text { get { return message.Text; } set { message.Text = value; } }
 
-        public TextBox(HudElementBase parent, Vector2I padding = default(Vector2I), OffsetAlignment offsetAlignment = OffsetAlignment.Center, TextAlignment alignment = TextAlignment.Center, 
-            Color bgColor = default(Color), bool ignoreParentScale = false) : base(parent, padding, offsetAlignment, ignoreParentScale)
+        private readonly TexturedBox background;
+        private readonly TextHudMessage message;
+
+        public TextBox()
         {
-            background = new TexturedBox(this, OffsetAlignment.Center, bgColor, ignoreParentScale: true);
-            message = new TextHudMessage(this, alignment) { Scale = TextScale };
+            background = new TexturedBox() { parent = this };
+            message = new TextHudMessage() { parent = this };
         }
     }
 }

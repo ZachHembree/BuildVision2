@@ -1,9 +1,6 @@
 ﻿using DarkHelmet.UI;
 using System;
 using VRageMath;
-using HudElementBase = DarkHelmet.UI.HudUtilities.HudElementBase;
-using TextBoxBase = DarkHelmet.UI.HudUtilities.TextBoxBase;
-using TexturedBox = DarkHelmet.UI.HudUtilities.TexturedBox;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -23,12 +20,12 @@ namespace DarkHelmet.BuildVision2
             get { return selectionIndex; }
             set { selectionIndex = Utils.Math.Clamp(value, 0, (list.ListText != null ? list.Count - 1 : 0)); }
         }
-        public override Vector2I TextSize
+        public override Vector2D TextSize
         {
             get
             {
-                Vector2I headerSize = header.MinimumSize, listSize = list.MinimumSize,
-                    footerSize = footer.MinimumSize, newSize = Vector2I.Zero;
+                Vector2D headerSize = header.MinimumSize, listSize = list.MinimumSize,
+                    footerSize = footer.MinimumSize, newSize = Vector2D.Zero;
 
                 newSize.X = Math.Max(headerSize.X, listSize.X);
                 newSize.X = Math.Max(newSize.X, footerSize.X);
@@ -53,27 +50,35 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        public BvScrollMenu(int maxListLength, HudElementBase parent, Vector2I padding = default(Vector2I), OffsetAlignment offsetAlignment = OffsetAlignment.Center, 
-            bool ignoreParentScale = false) : base(parent, padding, offsetAlignment, ignoreParentScale)
+        public BvScrollMenu(int maxListLength)
         {
-            list = new ListBox(this, maxListLength, new Vector2I(48, 16), OffsetAlignment.Center, TextAlignment.Left) { TextScale = TextScale };
-            header = new TextBox(list, new Vector2I(48, 14), OffsetAlignment.Top, TextAlignment.Center) { TextScale = TextScale * 1.1 };
-            footer = new DoubleTextBox(list, new Vector2I(48, 10), OffsetAlignment.Bottom) { TextScale = TextScale };
-            selectionBox = new TexturedBox(list);
-            tab = new TexturedBox(selectionBox, OffsetAlignment.Left, new Color(225, 225, 240, 255)) { Offset = new Vector2I(2, 0), Width = 3 };
+            list = new ListBox(maxListLength)
+            { parent = this, Padding = new Vector2D(48d, 16d), TextAlignment = TextAlignment.Left, autoResize = false };
+
+            header = new TextBox()
+            { parent = list, Padding = new Vector2D(48d, 14d), parentAlignment = ParentAlignment.Top, autoResize = false };
+
+            footer = new DoubleTextBox()
+            { parent = list, Padding = new Vector2D(48d, 8d), parentAlignment = ParentAlignment.Bottom, autoResize = false };
+
+            selectionBox = new TexturedBox()
+            { parent = list };
+
+            tab = new TexturedBox()
+            { parent = selectionBox, Width = 3d, Offset = new Vector2D(2d, 0d), color = new Color(225, 225, 240, 255), parentAlignment = ParentAlignment.Left };
         }
 
         protected override void Draw()
         {
-            Size = TextSize + Padding;
-            header.SetSize(new Vector2I(Width, header.TextSize.Y));
-            list.SetSize(new Vector2I(Width, list.TextSize.Y));
-            footer.SetSize(new Vector2I(Width, footer.TextSize.Y));
+            Offset = new Vector2D(0d, -(header.Height - footer.Height) / 2d);
+            header.SetSize(new Vector2D(Width, header.MinimumSize.Y));
+            list.SetSize(new Vector2D(Width, list.MinimumSize.Y));
+            footer.SetSize(new Vector2D(Width, footer.MinimumSize.Y));
 
             if (list.Count > 0)
             {
-                selectionBox.SetSize(new Vector2I(list.TextSize.X + 16, list[SelectionIndex].Size.Y + 1));
-                selectionBox.Offset = new Vector2I(0, list[SelectionIndex].Offset.Y);
+                selectionBox.SetSize(new Vector2D(Width - (32d * selectionBox.Scale), list[SelectionIndex].Size.Y));
+                selectionBox.Offset = new Vector2D(0d, list[SelectionIndex].Offset.Y);
                 tab.Height = selectionBox.Height;
             }
         }

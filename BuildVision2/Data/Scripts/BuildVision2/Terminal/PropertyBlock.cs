@@ -309,7 +309,7 @@ namespace DarkHelmet.BuildVision2
             public static void GetWarheadActions(IMyWarhead warhead, List<IBlockAction> actions)
             {
                 actions.Add(new BlockAction(
-                    () => "Start Countdown",
+                    () => "Start Countdown" + (warhead.IsCountingDown ? $"({ Math.Truncate(warhead.DetonationTime) })" : ""),
                     () => warhead.StartCountdown()));
                 actions.Add(new BlockAction(
                     () => "Stop Countdown",

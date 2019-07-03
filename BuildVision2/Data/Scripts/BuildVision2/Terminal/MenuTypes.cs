@@ -104,7 +104,7 @@ namespace DarkHelmet.BuildVision2
 
             public ApiHud()
             {
-                menu = new BvScrollMenu(20, null);
+                menu = new BvScrollMenu(20) { Visible = false, TextScale = .85 }; // .85, .92
                 propertyList = new List<string>(20);
             }
 
@@ -120,11 +120,10 @@ namespace DarkHelmet.BuildVision2
                     headerText = ModBase.ModName;
 
                     maxVisible = ApiHudCfg.maxVisible;
-                    menu.list.background.color = ApiHudCfg.colors.listBgColor;
-                    menu.header.background.color = ApiHudCfg.colors.headerColor;
-                    menu.footer.background.color = ApiHudCfg.colors.headerColor;
+                    menu.list.BgColor = ApiHudCfg.colors.listBgColor;
+                    menu.header.BgColor = ApiHudCfg.colors.headerColor;
+                    menu.footer.BgColor = ApiHudCfg.colors.headerColor;
                     menu.selectionBox.color = ApiHudCfg.colors.selectionBoxColor;
-                    menu.TextScale = .85;
                     menu.Visible = true;
 
                     if (ApiHudCfg.resolutionScaling)
@@ -155,22 +154,21 @@ namespace DarkHelmet.BuildVision2
             private void UpdatePos()
             {
                 Vector3D targetPos, worldPos;
-                Vector2D screenPos, screenBounds;
+                Vector2D screenPos, screenBounds = Vector2D.One;
 
                 if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !ApiHudCfg.useCustomPos)
                 {
+                    menu.originAlignment = OriginAlignment.Center;
                     targetPos = Target.GetPosition();
                     worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
                     screenPos = new Vector2D(worldPos.X, worldPos.Y);
+                    screenBounds -= menu.RelativeSize / 2d;
                 }
                 else
                 {
+                    menu.originAlignment = OriginAlignment.Auto;
                     screenPos = ApiHudCfg.hudPos;
-                    screenPos.X += (screenPos.X < 0) ? menu.ScaledSize.X / 2d : -menu.ScaledSize.X / 2d;
-                    screenPos.Y += (screenPos.Y < 0) ? menu.ScaledSize.Y / 2d : -menu.ScaledSize.Y / 2d;
                 }
-
-                screenBounds = Vector2D.One - menu.ScaledSize / 2d;
 
                 if (ApiHudCfg.clampHudPos)
                 {
@@ -197,7 +195,10 @@ namespace DarkHelmet.BuildVision2
                     action = i - Target.Properties.Count;
 
                     if (i == selection)
+                    {
                         colorCode = $"<color={ApiHudCfg.colors.selectedText}>";
+                        menu.SelectionIndex = propertyList.Count;
+                    }
                     else if (i == index)
                     {
                         colorCode = $"<color={ApiHudCfg.colors.highlightText}>";
@@ -218,14 +219,14 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 menu.list.ListText = propertyList.ToArray();
-                menu.footer.left.Text = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visStart + visCount} of {Target.EnabledElementCount}]";
+                menu.footer.LeftText = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visStart + visCount} of {Target.EnabledElementCount}]";
 
                 if (Target.IsWorking)
-                    menu.footer.right.Text = $"<color={ApiHudCfg.colors.headerText}>[Working]";
+                    menu.footer.RightText = $"<color={ApiHudCfg.colors.headerText}>[Working]";
                 else if (Target.IsFunctional)
-                    menu.footer.right.Text = $"<color={ApiHudCfg.colors.headerText}>[Functional]";
+                    menu.footer.RightText = $"<color={ApiHudCfg.colors.headerText}>[Functional]";
                 else
-                    menu.footer.right.Text = $"<color={ApiHudCfg.colors.blockIncText}>[Incomplete]";
+                    menu.footer.RightText = $"<color={ApiHudCfg.colors.blockIncText}>[Incomplete]";
             }
         }
 

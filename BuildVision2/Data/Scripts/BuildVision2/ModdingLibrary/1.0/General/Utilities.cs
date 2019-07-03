@@ -266,7 +266,17 @@ namespace DarkHelmet
             /// <summary>
             /// Rounds <see cref="Vector2D"/> elements to a specified number of digits.
             /// </summary>
-            public static Vector2D Round(Vector2D value, int digits)
+            public static Vector2D Truncate(Vector2D value)
+            {
+                value.X = System.Math.Truncate(value.X);
+                value.Y = System.Math.Truncate(value.Y);
+                return value;
+            }
+
+            /// <summary>
+            /// Rounds <see cref="Vector2D"/> elements to a specified number of digits.
+            /// </summary>
+            public static Vector2D Round(Vector2D value, int digits = 0)
             {
                 value.X = System.Math.Round(value.X, digits);
                 value.Y = System.Math.Round(value.Y, digits);
@@ -276,7 +286,7 @@ namespace DarkHelmet
             /// <summary>
             /// Rounds <see cref="Vector3D"/> elements to a specified number of digits.
             /// </summary>
-            public static Vector3D Round(Vector3D value, int digits)
+            public static Vector3D Round(Vector3D value, int digits = 0)
             {
                 value.X = System.Math.Round(value.X, digits);
                 value.Y = System.Math.Round(value.Y, digits);

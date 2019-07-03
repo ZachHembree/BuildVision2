@@ -35,7 +35,7 @@ namespace DarkHelmet.BuildVision2
                         () => PropertiesMenu.ApiHudCfg.resolutionScaling = !PropertiesMenu.ApiHudCfg.resolutionScaling),
                     new MenuUtilities.MenuSliderInput(
                         () => $"Hud Scale: {Math.Round(PropertiesMenu.ApiHudCfg.hudScale, 2)}",
-                        "Hud Scale", 0.5f, 2f,
+                        "Hud Scale", 0.75f, 2f,
                         () => PropertiesMenu.ApiHudCfg.hudScale,
                         x => PropertiesMenu.ApiHudCfg.hudScale = x),
                     // Opacity

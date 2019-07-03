@@ -126,7 +126,9 @@ namespace DarkHelmet.UI
                 Init();
                 this.GetName = GetName;
                 Parent = parent;
-                menuUpdateActions.Add(Update);
+
+                if (CanAddElements)
+                    menuUpdateActions.Add(Update);
             }
 
             public MenuElement(string name, IMenuCategory parent = null) : this(() => name, parent)
