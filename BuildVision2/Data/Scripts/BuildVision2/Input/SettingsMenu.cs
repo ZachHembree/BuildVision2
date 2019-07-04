@@ -79,7 +79,7 @@ namespace DarkHelmet.BuildVision2
                 }),
                 
                 // Bind Settings
-                new MenuUtilities.MenuCategory("Bind Settings", "Key Binds", GetBindSettings()),
+                //new MenuUtilities.MenuCategory("Bind Settings", "Key Binds", GetBindSettings()),
 
                 // Property Settings
                 new MenuUtilities.MenuCategory("Property Settings", "Property Settings", new List<MenuUtilities.IMenuElement>()
