@@ -30,6 +30,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" />
     <Reference Include="Sandbox.Common">
       <HintPath>F:\Steam\SteamApps\common\SpaceEngineers\Bin64\Sandbox.Common.dll</HintPath>
     </Reference>
@@ -71,22 +72,31 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BuildVision2.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ChatCommands.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\IO\ConfigIO.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\IO\LocalFileIO.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\KeyBinds.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\UI\MenuUtilities.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\UI\SettingsMenu.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\UI\HudAPIv2.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\LocalPlayer.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\IO\LogIO.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\UI\MenuTypes.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\UI\PropertiesMenu.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\TaskPool.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\UI\HudUtilities.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Utilities.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\BaseHudElements.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudElements.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\KeyBinds.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\ChatCommands.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\Game\ModBase.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\Extensions.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\CmdManager.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\IO\ConfigIO.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\IO\LocalFileIO.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\BindManager.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\MenuUtilities.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\SettingsMenu.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudAPIv2.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\Game\LocalPlayer.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\IO\LogIO.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\GenericSingleton.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BvScrollMenu.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\MenuTypes.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\PropertiesMenu.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\TaskPool.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudUtilities.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\Utilities.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ConfigTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\UI\PropertyBlock.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\PropertyBlock.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,58 +1,36 @@
-﻿using System;
+﻿using DarkHelmet.Game;
+using System;
 using System.Collections.Generic;
 
-namespace DarkHelmet.BuildVision2
+namespace DarkHelmet.IO
 {
     /// <summary>
-    /// Handles logging; singleton
+    /// Handles logging
     /// </summary>
-    internal sealed class LogIO
+    public sealed class LogIO : ModBase.ParallelComponentBase
     {
         public bool Accessible { get; private set; }
-        public static LogIO Instance { get; private set; }
-
-        private static BvMain Main { get { return BvMain.Instance; } }
         private readonly LocalFileIO logFile;
-        private readonly TaskPool taskPool;
 
-        private LogIO(string fileName)
+        public LogIO(string fileName)
         {
             Accessible = true;
             logFile = new LocalFileIO(fileName);
-            taskPool = new TaskPool(1, ErrorCallback);
         }
 
-        public static void Init(string fileName)
-        {
-            if (Instance == null)
-                Instance = new LogIO(fileName);
-        }
-
-        /// <summary>
-        /// Updates internal task queue. Parallel methods will not work properly if this isn't being
-        /// updated regularly.
-        /// </summary>
-        public void Update() =>
-            taskPool.Update();
-
-        private void ErrorCallback(List<BvException> known, BvAggregateException unknown)
+        protected override void ErrorCallback(List<KnownException> known, AggregateException unknown)
         {
             if ((known != null && known.Count > 0) || unknown != null)
             {
-                TryWriteToLogFinish(false);
+                WriteToLogFinish(false);
 
                 if (known != null && known.Count > 0)
                     foreach (Exception e in known)
-                        Main.SendChatMessage(e.Message);
+                        ModBase.SendChatMessage(e.Message);
 
                 if (unknown != null)
                     throw unknown;
             }
-        }
-
-        public void Close()
-        {
-            Instance = null;
         }
 
         /// <summary>
@@ -63,17 +41,17 @@ namespace DarkHelmet.BuildVision2
             if (Accessible)
             {
                 message = $"[{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss:ms")}] {message}";
-                BvException exception = logFile.TryAppend(message);
+                KnownException exception = logFile.TryAppend(message);
 
                 if (exception != null)
                 {
-                    Main.SendChatMessage("Unable to update log; please check your file access permissions.");
+                    ModBase.SendChatMessage("Unable to update log; please check your file access permissions.");
                     Accessible = false;
                     throw exception;
                 }
                 else
                 {
-                    Main.SendChatMessage("Log updated.");
+                    ModBase.SendChatMessage("Log updated.");
                     Accessible = true;
                     return true;
                 }
@@ -85,43 +63,43 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Attempts to update log in parallel with message and adds a time stamp.
         /// </summary>
-        public void TryWriteToLogStart(string message)
+        public void WriteToLogStart(string message)
         {
             if (Accessible)
             {
                 message = $"[{DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss:ms")}] {message}";
 
-                taskPool.EnqueueTask(() =>
+                EnqueueTask(() =>
                 {
-                    BvException exception = logFile.TryAppend(message);
+                    KnownException exception = logFile.TryAppend(message);
 
                     if (exception != null)
                     {
-                        taskPool.EnqueueAction(() => TryWriteToLogFinish(false));
+                        EnqueueAction(() => WriteToLogFinish(false));
                         throw exception;
                     }
                     else
-                        taskPool.EnqueueAction(() => TryWriteToLogFinish(true));
+                        EnqueueAction(() => WriteToLogFinish(true));
                 });
             }
         }
 
-        private void TryWriteToLogFinish(bool success)
+        private void WriteToLogFinish(bool success)
         {
             if (!success)
             {
                 if (Accessible)
-                    Main.SendChatMessage("Unable to update log; please check your file access permissions.");
+                    ModBase.SendChatMessage("Unable to update log; please check your file access permissions.");
 
                 Accessible = false;
             }
             else
             {
                 if (Accessible)
-                    Main.SendChatMessage("Log updated.");
+                    ModBase.SendChatMessage("Log updated.");
 
                 Accessible = true;
             }
-        }               
+        }
     }
 }

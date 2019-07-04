@@ -3,17 +3,17 @@ using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
 
-namespace DarkHelmet.BuildVision2
+namespace DarkHelmet.Game
 {
     /// <summary>
     /// Wrapper for various local player related fields and methods.
     /// </summary>
-    internal static class LocalPlayer
+    public static class LocalPlayer
     {
-        public static IMyCharacter LocalPly { get { return MyAPIGateway.Session.ControlledObject as IMyCharacter; } }
-        public static MyObjectBuilder_Character CharEnt { get { return LocalPly?.GetObjectBuilder() as MyObjectBuilder_Character; } }
-        public static MatrixD HeadTransform { get { return LocalPly != null ? LocalPly.GetHeadMatrix(true) : MatrixD.Zero; } }
-        public static Vector3D Position { get { return LocalPly != null ? LocalPly.GetPosition() : Vector3D.Zero; } }
+        public static IMyCharacter PlyEnt { get { return MyAPIGateway.Session.ControlledObject as IMyCharacter; } }
+        public static MyObjectBuilder_Character CharEnt { get { return PlyEnt?.GetObjectBuilder() as MyObjectBuilder_Character; } }
+        public static MatrixD HeadTransform { get { return PlyEnt != null ? PlyEnt.GetHeadMatrix(true) : MatrixD.Zero; } }
+        public static Vector3D Position { get { return PlyEnt != null ? PlyEnt.GetPosition() : Vector3D.Zero; } }
         public static bool HasEmptyHands { get { return CharEnt?.HandWeapon == null; } }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Determines whether or not the target block is within a 180 degree arc in front of the camera.
         /// </summary>
-        public static bool IsLookingInBlockDir(IMyTerminalBlock block) 
+        public static bool IsLookingInBlockDir(IMyTerminalBlock block)
         {
             if (block != null)
             {
@@ -43,14 +43,14 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static bool TryGetTargetedBlock(double maxDist, out IMyCubeBlock fatBlock)
         {
-            IMyCubeGrid grid; 
-            IMySlimBlock slimBlock; 
+            IMyCubeGrid grid;
+            IMySlimBlock slimBlock;
             LineD line = new LineD(HeadTransform.Translation, HeadTransform.Translation + HeadTransform.Forward * maxDist);
             double dist;
             fatBlock = null;
-            
+
             if (TryGetTargetedGrid(line, out grid))
-            {                
+            {
                 grid.GetLineIntersectionExactAll(ref line, out dist, out slimBlock);
                 fatBlock = slimBlock?.FatBlock;
             }
@@ -65,7 +65,7 @@ namespace DarkHelmet.BuildVision2
         {
             IHitInfo rayInfo;
 
-            if (LocalPly != null)
+            if (PlyEnt != null)
             {
                 MyAPIGateway.Physics.CastRay(line.From, line.To, out rayInfo);
                 grid = rayInfo?.HitEntity as IMyCubeGrid;
@@ -87,7 +87,7 @@ namespace DarkHelmet.BuildVision2
             Vector3D start, end;
             IHitInfo rayInfo;
 
-            if (LocalPly != null)
+            if (PlyEnt != null)
             {
                 start = HeadTransform.Translation;
                 end = start + HeadTransform.Forward * maxDist;
