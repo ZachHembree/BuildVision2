@@ -58,19 +58,28 @@ namespace DarkHelmet.BuildVision2
         private static string GetHelpMessage()
         {
             string helpMessage =
-                $"To open Build Vision press [{KeyBinds.Open.BindString}] while aiming at a block; to close the menu, press " +
-                $"[{KeyBinds.Hide.BindString}] or press the open bind again but without pointing at a valid block (like armor). " +
+                $"Usage:\n" +
+                $"To open Build Vision, press [{KeyBinds.Open.BindString}] while aiming at a block; to close the menu, press " +
+                $"[{KeyBinds.Hide.BindString}] or press the open bind again but without pointing at a valid block (like armor).\n\n" +
                 $"The [{KeyBinds.ScrollUp.BindString}] and [{KeyBinds.ScrollDown.BindString}] binds can be used to scroll up and down " +
                 $"in the menu and to change the terminal settings of the selected block. To select a setting in the menu press " +
                 $"[{KeyBinds.Select.BindString}]. Pressing the select bind on an action will trigger it (a setting without a number " +
-                $"or On/Off value). If you move more than 10 meters (4 large blocks) from your target block, the menu will " +
+                $"or On/Off value).\n\n" +
+                $"If you move more than 10 meters (4 large blocks) from your target block, the menu will " +
                 $"automatically close. The rate at which a selected terminal value changes with each tick of the scroll wheel can " +
                 $"be changed using the multiplier binds listed below.\n\n" +
-                $"Key binds can be changed using the /bv2 bind chat command or through the F2 mod menu. Enter /bv2 bindHelp in chat " +
-                $"for more information. Chat command are not case sensitive and , ; | or spaces can be used to separate arguments. " +
-                $"For information on chat command see the Build Vision 2 mod page on the Steam Workshop.\n";
+                $"Chat Commands:\n" +
+                $"Chat commands are not case sensitive and , ; | or spaces can be used to separate arguments.\n\n" +
+                $"help -- You are here.\n" +
+                $"bindHelp -- Help menu for changing keybinds\n" +
+                $"printBinds -- Prints current key bind configuration to chat.\n" +
+                $"bind [bindName] [control1] [control2] [control3] (see bindHelp for more info)\n" +
+                $"save -– Saves the current configuration\n" +
+                $"load -- Loads configuration from the config file\n" +
+                $"resetConfig -- Resets all settings to default\n" +
+                $"resetBinds -- Resets all keybinds\n\n" +
+                $"For more information on chat commands, see the Build Vision workshop page.";
 
-            helpMessage += GetPrintBindsMessage();
             return helpMessage;
         }
 
