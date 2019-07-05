@@ -9,14 +9,6 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public class BvScrollMenu : HudUtilities.ElementBase
     {
-        public readonly TextBox header;
-        public readonly ListBox list;
-        public readonly DoubleTextBox footer;
-        public readonly TexturedBox selectionBox, tab;
-        private readonly TextBoxChain chain;
-        private int selectionIndex = 0;
-        private double textScale;
-
         public override Vector2D UnscaledSize => chain.UnscaledSize;
         public double TextScale
         {
@@ -38,6 +30,14 @@ namespace DarkHelmet.BuildVision2
             get { return selectionIndex; }
             set { selectionIndex = Utils.Math.Clamp(value, 0, (list.ListText != null ? list.Count - 1 : 0)); }
         }
+
+        public readonly TextBox header;
+        public readonly ListBox list;
+        public readonly DoubleTextBox footer;
+        public readonly TexturedBox selectionBox, tab;
+        private readonly TextBoxChain chain;
+        private int selectionIndex = 0;
+        private double textScale;
 
         public BvScrollMenu(int maxListLength)
         {

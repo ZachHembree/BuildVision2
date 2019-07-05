@@ -7,7 +7,7 @@ namespace DarkHelmet.UI
 {
     /// <summary>
     /// Aligns a group of <see cref="TextBoxBase"/>s, either vertically or horizontally, and matches their
-    /// width along their axis of alignment.
+    /// width or height along their axis of alignment.
     /// </summary>
     public class TextBoxChain : ElementBase
     {
@@ -103,21 +103,7 @@ namespace DarkHelmet.UI
     /// </summary>
     public class ListBox : TextBoxBase
     {
-        public TextAlignment TextAlignment
-        {
-            get => list.TextAlignment;
-            set
-            {
-                if (value == TextAlignment.Left)
-                    list.parentAlignment = ParentAlignment.Left;
-                else if (value == TextAlignment.Right)
-                    list.parentAlignment = ParentAlignment.Right;
-                else
-                    list.parentAlignment = ParentAlignment.Center;
-
-                list.TextAlignment = value;
-            }
-        }
+        public TextAlignment TextAlignment { get => list.TextAlignment; set =>list.TextAlignment = value; }
         public override Vector2D TextSize => list.Size;
         public override double TextScale
         {
@@ -130,7 +116,7 @@ namespace DarkHelmet.UI
                     list.Scale = value;
             }
         }
-        public string[] ListText { get { return list.ListText; } set { list.ListText = value; } }
+        public IList<string> ListText { get { return list.ListText; } set { list.ListText = value; } }
         public int Count => list.Count;
         public TextHudMessage this[int index] => list[index];
 
@@ -157,17 +143,19 @@ namespace DarkHelmet.UI
     /// </summary>
     public class TextList : ElementBase
     {
-        public string[] ListText
+        public const string LineBreak = "\n";
+
+        public IList<string> ListText
         {
             get { return listText; }
             set
             {
                 listText = value;
 
-                while (list.Count < listText.Length)
+                while (list.Count < listText.Count)
                     list.Add(new TextHudMessage() { parent = this, textAlignment = TextAlignment });
 
-                for (int n = 0; n < listText.Length; n++)
+                for (int n = 0; n < listText.Count; n++)
                     list[n].Text = listText[n];
             }
         }
@@ -176,17 +164,24 @@ namespace DarkHelmet.UI
             get { return alignment; }
             set
             {
+                if (value == TextAlignment.Left)
+                    parentAlignment = ParentAlignment.Left;
+                else if (value == TextAlignment.Right)
+                    parentAlignment = ParentAlignment.Right;
+                else
+                    parentAlignment = ParentAlignment.Center;
+
                 for (int n = 0; n < list.Count; n++)
                     list[n].textAlignment = value;
 
                 alignment = value;
             }
         }
-        public int Count => (listText != null) ? listText.Length : 0;
+        public int Count => (listText != null) ? listText.Count : 0;
         public TextHudMessage this[int index] => list[index];
 
         public readonly List<TextHudMessage> list;
-        private string[] listText;
+        private IList<string> listText;
         private TextAlignment alignment;
 
         public TextList(int maxListLength)
@@ -202,11 +197,16 @@ namespace DarkHelmet.UI
 
             for (int n = 0; n < Count; n++)
             {
-                lineSize = list[n].Size;
-                listSize.Y += lineSize.Y;
+                if (list[n].Text != LineBreak)
+                {
+                    lineSize = list[n].Size;
+                    listSize.Y += lineSize.Y;
 
-                if (lineSize.X > maxLineWidth)
-                    maxLineWidth = lineSize.X;
+                    if (lineSize.X > maxLineWidth)
+                        maxLineWidth = lineSize.X;
+                }
+                else
+                    listSize.Y += 20d * Scale;
             }
 
             listSize.X = maxLineWidth;
@@ -220,7 +220,7 @@ namespace DarkHelmet.UI
                 UpdateSize();
 
                 Vector2D textOffset = Size / 2, pos;
-                double textCenter = 0;
+                double textCenter = 0d;
 
                 if (alignment == TextAlignment.Left)
                     textCenter = -textOffset.X;
@@ -231,9 +231,14 @@ namespace DarkHelmet.UI
 
                 for (int n = 0; n < Count; n++)
                 {
-                    list[n].Visible = true;
-                    list[n].Offset = pos;
-                    pos.Y -= list[n].Size.Y;
+                    if (list[n].Text != LineBreak)
+                    {
+                        list[n].Visible = true;
+                        list[n].Offset = pos;
+                        pos.Y -= list[n].Size.Y;
+                    }
+                    else
+                        pos.Y -= 20d * Scale;
                 }
 
                 for (int n = Count; n < list.Count; n++)

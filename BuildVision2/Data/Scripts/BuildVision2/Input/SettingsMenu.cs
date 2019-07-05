@@ -79,7 +79,7 @@ namespace DarkHelmet.BuildVision2
                 }),
                 
                 // Bind Settings
-                //new MenuUtilities.MenuCategory("Bind Settings", "Key Binds", GetBindSettings()),
+                new MenuUtilities.MenuCategory("Bind Settings", "Key Binds", GetBindSettings()),
 
                 // Property Settings
                 new MenuUtilities.MenuCategory("Property Settings", "Property Settings", new List<MenuUtilities.IMenuElement>()
@@ -159,16 +159,16 @@ namespace DarkHelmet.BuildVision2
 
                 // General Settings Pt.2
                 new MenuUtilities.MenuButton(
-                        () => "Open Help Menu",
+                        "Open Help Menu",
                         () => ModBase.ShowMessageScreen("Help", GetHelpMessage())),
                 new MenuUtilities.MenuButton(
-                        () => "Reset Config",
+                        "Reset Config",
                         () => BvConfig.ResetConfig()),
                 new MenuUtilities.MenuButton(
-                        () => "Save Config",
+                        "Save Config",
                         () => BvConfig.SaveStart()),
                 new MenuUtilities.MenuButton(
-                        () => "Load Config",
+                        "Load Config",
                         () => BvConfig.LoadStart()),
             };
         }
@@ -185,25 +185,19 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = 0; n < KeyBinds.BindGroup.Count; n++)
             {
-                bindSettings.Add(new MenuUtilities.MenuTextInput(
-                    KeyBinds.BindGroup[n].Name,
-                    "Enter Control Names",
-                    (string input) =>
-                    {
-                        string[] args;
-                        input = input.ToLower();
+                string bindName = KeyBinds.BindGroup[n].Name;
 
-                        if (CmdManager.TryParseCommand($"{KeyBinds.BindGroup[n].Name} {input}", out args))
-                            KeyBinds.BindGroup.TryUpdateBind(KeyBinds.BindGroup[n].Name, args);
-                    }));
+                bindSettings.Add(new MenuUtilities.MenuButton(
+                    bindName, 
+                    () => RebindMenu.UpdateBind(KeyBinds.BindGroup, bindName)));
             }
 
             bindSettings.Add(new MenuUtilities.MenuButton(
-                () => "Open Bind Help Menu",
+                "Open Bind Help Menu",
                 () => ModBase.ShowMessageScreen("Bind Help", GetBindHelpMessage())));
 
             bindSettings.Add(new MenuUtilities.MenuButton(
-                () => "Reset Binds",
+                "Reset Binds",
                 () => KeyBinds.Cfg = BindsConfig.Defaults));
 
             return bindSettings;

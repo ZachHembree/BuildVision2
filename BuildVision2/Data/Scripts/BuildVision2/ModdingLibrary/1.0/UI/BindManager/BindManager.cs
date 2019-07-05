@@ -95,24 +95,38 @@ namespace DarkHelmet.UI
     /// </summary>
     public sealed class BindManager : ModBase.ComponentBase
     {
+        public static readonly IControl[] controls;
+        public const int maxBindLength = 3;
+
         private static BindManager Instance
         {
             get { Init(); return instance; }
             set { instance = value; }
         }
         private static BindManager instance;
-        private static readonly Dictionary<string, Control> controls;
-        private static readonly List<Control> controlList;
-        private const int maxBindLength = 3;
+        private static readonly Dictionary<string, Control> controlDictionary;
+        private static List<MyKeys> blacklist;
         private const long holdTime = TimeSpan.TicksPerMillisecond * 500;
 
         private readonly List<Group> bindGroups;
 
         static BindManager()
         {
-            controlList = new List<Control>(220);
-            controls = new Dictionary<string, Control>();
-            GetControls();
+            blacklist = new List<MyKeys>()
+            {
+                MyKeys.LeftAlt,
+                MyKeys.RightAlt,
+                MyKeys.LeftShift,
+                MyKeys.RightShift,
+                MyKeys.LeftControl,
+                MyKeys.RightControl,
+                MyKeys.LeftWindows,
+                MyKeys.RightWindows,
+                MyKeys.CapsLock
+            };
+
+            controlDictionary = new Dictionary<string, Control>();
+            controls = GetControls();
         }
 
         private BindManager()
@@ -140,6 +154,9 @@ namespace DarkHelmet.UI
             Instance = null;
         }
 
+        public static IControl GetControlByName(string name) =>
+            controlDictionary[name];
+
         /// <summary>
         /// Retrieves a copy of the list of all registered groups.
         /// </summary>
@@ -165,27 +182,34 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Builds dictionary of controls from the set of MyKeys enums and a couple custom controls for the mouse wheel.
         /// </summary>
-        private static void GetControls()
+        private static Control[] GetControls()
         {
+            List<Control> controlList = new List<Control>(220);
+
             controlList.Add(new Control("MousewheelUp",
                 () => MyAPIGateway.Input.DeltaMouseScrollWheelValue() > 0, true));
             controlList.Add(new Control("MousewheelDown",
                 () => MyAPIGateway.Input.DeltaMouseScrollWheelValue() < 0, true));
 
-            controls.Add("mousewheelup", controlList[0]);
-            controls.Add("mousewheeldown", controlList[1]);
+            controlDictionary.Add("mousewheelup", controlList[0]);
+            controlDictionary.Add("mousewheeldown", controlList[1]);
 
             foreach (MyKeys seKey in Enum.GetValues(typeof(MyKeys)))
             {
-                Control con = new Control(seKey);
-                string name = con.Name.ToLower();
-
-                if (!controls.ContainsKey(name))
+                if (!blacklist.Contains(seKey))
                 {
-                    controls.Add(name, con);
-                    controlList.Add(con);
+                    Control con = new Control(seKey);
+                    string name = con.Name.ToLower();
+
+                    if (!controlDictionary.ContainsKey(name))
+                    {
+                        controlDictionary.Add(name, con);
+                        controlList.Add(con);
+                    }
                 }
             }
+
+            return controlList.ToArray();
         }
 
         /// <summary>
@@ -195,7 +219,7 @@ namespace DarkHelmet.UI
         {
             StringBuilder sb = new StringBuilder();
 
-            foreach (KeyValuePair<string, Control> pair in controls)
+            foreach (KeyValuePair<string, Control> pair in controlDictionary)
                 sb.AppendLine(pair.Key);
 
             return sb.ToString();
@@ -220,15 +244,15 @@ namespace DarkHelmet.UI
             private int[] bindHits;
             private readonly int index;
 
-            public Group(string name)
+            public Group(string name, int capacity = 10)
             {
                 this.name = name;
-                keyBinds = new List<Bind>();
+                keyBinds = new List<Bind>(capacity);
 
                 index = Instance.bindGroups.Count;
                 Instance.bindGroups.Add(this);
 
-                foreach (Control con in controlList)
+                foreach (Control con in controls)
                 {
                     while (con.usedIndex.Count <= index)
                     {
@@ -559,7 +583,7 @@ namespace DarkHelmet.UI
                 newCombo = new Control[controlNames.Count];
 
                 for (int n = 0; n < controlNames.Count; n++)
-                    if (controls.TryGetValue(controlNames[n].ToLower(), out con))
+                    if (controlDictionary.TryGetValue(controlNames[n].ToLower(), out con))
                         newCombo[n] = con;
                     else
                         return false;
@@ -575,7 +599,7 @@ namespace DarkHelmet.UI
                 int count = 0;
                 usedControls = new List<Control>(11);
 
-                foreach (Control con in controlList)
+                foreach (Control con in controls)
                     if (con.usedCount[index] > 0)
                     {
                         usedControls.Add(con);
@@ -664,12 +688,12 @@ namespace DarkHelmet.UI
             /// <summary>
             /// Determines if given combo is equivalent to any existing binds.
             /// </summary>
-            private bool DoesComboConflict(IControl[] newCombo, IKeyBind exception = null)
+            public bool DoesComboConflict(IList<IControl> newCombo, IKeyBind exception = null)
             {
                 int matchCount;
 
                 for (int n = 0; n < keyBinds.Count; n++)
-                    if (keyBinds[n] != exception && keyBinds[n].Count == newCombo.Length)
+                    if (keyBinds[n] != exception && keyBinds[n].Count == newCombo.Count)
                     {
                         matchCount = 0;
 
@@ -679,7 +703,7 @@ namespace DarkHelmet.UI
                             else
                                 break;
 
-                        if (matchCount == newCombo.Length)
+                        if (matchCount == newCombo.Count)
                             return true;
                     }
 

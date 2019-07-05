@@ -22,6 +22,8 @@ namespace DarkHelmet.BuildVision2
                     () => SendChatMessage(GetPrintBindsMessage())),
                 new CmdManager.Command ("bind",
                     (string[] args) => KeyBinds.BindGroup.TryUpdateBind(args[0], args.GetSubarray(1))),
+                new CmdManager.Command("rebind", 
+                    (string[] args) => RebindMenu.UpdateBind(KeyBinds.BindGroup, KeyBinds.BindGroup[args[0]])),
                 new CmdManager.Command("resetBinds",
                     () => KeyBinds.Cfg = BindsConfig.Defaults),
                 new CmdManager.Command ("save",
@@ -58,7 +60,6 @@ namespace DarkHelmet.BuildVision2
         private static string GetHelpMessage()
         {
             string helpMessage =
-                $"Usage:\n" +
                 $"To open Build Vision, press [{KeyBinds.Open.BindString}] while aiming at a block; to close the menu, press " +
                 $"[{KeyBinds.Hide.BindString}] or press the open bind again but without pointing at a valid block (like armor).\n\n" +
                 $"The [{KeyBinds.ScrollUp.BindString}] and [{KeyBinds.ScrollDown.BindString}] binds can be used to scroll up and down " +
@@ -73,6 +74,7 @@ namespace DarkHelmet.BuildVision2
                 $"help -- You are here.\n" +
                 $"bindHelp -- Help menu for changing keybinds\n" +
                 $"printBinds -- Prints current key bind configuration to chat.\n" +
+                $"rebind [bindName] -- Opens the rebind menu\n" +
                 $"bind [bindName] [control1] [control2] [control3] (see bindHelp for more info)\n" +
                 $"save -– Saves the current configuration\n" +
                 $"load -- Loads configuration from the config file\n" +
@@ -86,11 +88,15 @@ namespace DarkHelmet.BuildVision2
         private static string GetBindHelpMessage()
         {
             string helpMessage =
-                $"The syntax of the /bv2 bind command is as follows (without brackets): /bv2 bind [bindName] [control1] " +
-                $"[control2] [control3]. To see your current bind settings use the command /bv2 printBinds. No more than three controls " +
+                $"Key binds can be changed using either the rebind menu or the /bv2 bind chat command. The rebind menu can be accessed either " +
+                $"through the mod menu or the /bv2 rebind command.\n\n" +
+                $"To see your current bind settings use /bv2 printBinds. No more than three controls " +
                 $"can be used for any one bind.\n\n" +
+                $"Syntax:\n" +
+                $"rebind: /bv2 rebind [bindName]\n" +
+                $"bind: /bv2 bind [bindName] [control1] [control2] [control3].\n\n " +
                 $"Examples:\n" +
-                $"/bv2 bind open control alt\n" +
+                $"/bv2 rebind open\n" +
                 $"/bv2 bind scrollup pageup\n" +
                 $"/bv2 bind scrolldown pagedown\n\n" +
                 $"To reset your binds to the default settings type /bv2 resetBinds in chat.\n" +

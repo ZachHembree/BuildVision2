@@ -198,6 +198,13 @@ namespace DarkHelmet.UI
                 needsArgs = true;
             }
 
+            public Command(string cmdName, Action<string[]> argAction)
+            {
+                this.cmdName = cmdName.ToLower();
+                action = (string[] args) => { argAction(args); return true; };
+                needsArgs = true;
+            }
+
             public Command(string cmdName, Action action)
             {
                 this.cmdName = cmdName.ToLower();
