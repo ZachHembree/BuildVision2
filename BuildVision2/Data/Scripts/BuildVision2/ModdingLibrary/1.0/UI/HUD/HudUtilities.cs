@@ -241,7 +241,7 @@ namespace DarkHelmet.UI
             /// <summary>
             /// Determines location of the HUD element relative to the origin.
             /// </summary>
-            public Vector2D Offset { get; set; }
+            public virtual Vector2D Offset { get; set; }
             /// <summary>
             /// Position using scale based on screen resolution. 
             /// </summary>

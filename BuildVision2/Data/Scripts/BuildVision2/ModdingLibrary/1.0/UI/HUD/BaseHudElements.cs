@@ -13,7 +13,7 @@ namespace DarkHelmet.UI
     /// </summary>
     public abstract class ResizableElementBase : HudUtilities.ElementBase
     {
-        public sealed override Vector2D UnscaledSize
+        public override Vector2D UnscaledSize
         {
             get { return new Vector2D(UnscaledWidth, UnscaledHeight); }
             protected set { UnscaledWidth = value.X; UnscaledHeight = value.Y; }
@@ -49,8 +49,11 @@ namespace DarkHelmet.UI
     /// </summary>
     public abstract class TextBoxBase : ResizableElementBase
     {
+        public Color BgColor { get { return background.color; } set { background.color = value; } }
+        public override double UnscaledWidth { get { return background.UnscaledWidth; } set { background.UnscaledWidth = value; } }
+        public override double UnscaledHeight { get { return background.UnscaledHeight; } set { background.UnscaledHeight = value; } }
         /// <summary>
-        /// The smallest size the background is allowed to be set to. (TextSize + Padding * Scale)
+        /// The smallest size the background is allowed to be set to. (TextSize + Padding)
         /// </summary>
         public Vector2D MinimumSize => TextSize + Padding;
         public Vector2D Padding { get { return padding * Scale; } set { padding = Utils.Math.Abs(value / Scale); } }
@@ -59,11 +62,13 @@ namespace DarkHelmet.UI
 
         public bool autoResize;
         private Vector2D padding;
+        protected readonly TexturedBox background;
 
         public TextBoxBase()
         {
             autoResize = true;
             TextScale = 1d;
+            background = new TexturedBox() { parent = this };
         }
 
         protected override void BeforeDraw()
