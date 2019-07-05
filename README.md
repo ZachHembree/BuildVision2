@@ -1,9 +1,9 @@
 ## Description:
-Build Vision 2 is a recreation and improvement upon the [original Build Vision by Jimmacle](https://steamcommunity.com/sharedfiles/filedetails/?id=756792814). For the uninitiated among you, Build Vision adds a text-based control panel for (almost) all functional blocks and can be accessed by simply walking up to a block and clicking on it. Whether you’re trying to add a piston head, open a hangar door or change a light's color, all you need to do is aim at the block, click and do it. No fumbling about in the terminal required.
+Build Vision 2 is a recreation and improvement upon the [original Build Vision by Jimmacle](https://steamcommunity.com/sharedfiles/filedetails/?id=756792814). For the uninitiated among you, Build Vision adds a custom block terminal that can be accessed by simply walking up to a block and clicking on it. Whether you’re trying to add a piston head, open a hangar door or change a light's color, all you need to do is aim at the block, click and do it. No fumbling about in the terminal required.
 
-As of writing this, all vanilla terminal blocks (anything with terminal settings) work with this mod, save the Space Ball (much to my chagrin), and probably a fair number of modded blocks considering they derive from the same interfaces. I’ve also taken the liberty of adding a number of actions to the menu for doing things like detonating warheads, attaching wheels, adding rotor heads and changing battery charge modes. I’d make a full list of all the little differences between this mod and the original, but frankly, I’m not sure I can recall what all is in this thing.
+All vanilla terminal blocks (anything with terminal settings) work with this mod, save the Space Ball (much to my chagrin), and probably a fair number of modded blocks considering they derive from the same interfaces. I’ve also taken the liberty of adding a number of actions to the menu for doing things like detonating warheads, attaching wheels, adding rotor heads and changing battery charge modes. I’d make a full list of all the little differences between this mod and the original, but frankly, I’m not sure I can recall what all is in this thing.
 
-Like the original, this depends on Draygo's Text Hud API to function properly. There is a fallback GUI using the built-in notifications system, but I don't like it all that much.
+Like the original, this depends on the Text Hud API to function properly. There is a fallback GUI using the built-in notifications system, but I don't like it all that much.
 
 This mod can be found on the Steam Workshop [here](https://steamcommunity.com/sharedfiles/filedetails/?id=1697184408).
 
@@ -22,11 +22,8 @@ Build Vision 2 uses seven key binds for its controls, all of which are user conf
 
 The “Mult” binds or multiplier binds are used to increase the speed a selected property will change with each tick of the scroll wheel, ten times normal, **1/10th** normal, **5** times, **10** times, etc. The base rate is proportional to the maximum value of the selected property. If you have a thruster override selected (probably with a max value in the millions) that’s going to change in much larger increments than the targeting range of a turret (with a max around 800 meters, usually).
 
-#### Note: 
-Some properties use fairly aggressive rounding/clamping for their values, so some settings may not change at all unless you use the multipliers; projectors, in particular, suffer from this problem. 
-
 ## Settings Menu:
-Build Vision now makes use of the Text Hud API's Mod Menu. The Mod Menu is an in-game settings menu through which you can configure text and background colors, UI size, change your property multipliers, set key binds as well as a few other settings. Fair warning, the shading on the settings menu can make it hard to see in daylight, so I'd try to only use it indoors if I were you.
+Build Vision now makes use of the Text Hud API's Mod Menu. The Mod Menu is an in-game settings menu through which you can configure HUD opacity, size and change your property multipliers. Fair warning, the shading on the settings menu can make it hard to see in daylight, so I'd try to only use it indoors if I were you.
 
 ## Chat Commands:
 All chat commands must begin with “/bv2” and are not case-sensitive. The arguments following “/bv2” can be separated either by whitespace, a comma, semicolon or pipe character. Whatever floats your boat, just make sure there’s something between them.
