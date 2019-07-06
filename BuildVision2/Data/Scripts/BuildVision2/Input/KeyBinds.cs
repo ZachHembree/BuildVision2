@@ -18,14 +18,14 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        public static IKeyBind Open { get { return Instance.bvBinds[0]; } }
-        public static IKeyBind Hide { get { return Instance.bvBinds[1]; } }
-        public static IKeyBind Select { get { return Instance.bvBinds[2]; } }
-        public static IKeyBind ScrollUp { get { return Instance.bvBinds[3]; } }
-        public static IKeyBind ScrollDown { get { return Instance.bvBinds[4]; } }
-        public static IKeyBind MultX { get { return Instance.bvBinds[5]; } }
-        public static IKeyBind MultY { get { return Instance.bvBinds[6]; } }
-        public static IKeyBind MultZ { get { return Instance.bvBinds[7]; } }
+        public static IBind Open { get { return Instance.bvBinds[0]; } }
+        public static IBind Hide { get { return Instance.bvBinds[1]; } }
+        public static IBind Select { get { return Instance.bvBinds[2]; } }
+        public static IBind ScrollUp { get { return Instance.bvBinds[3]; } }
+        public static IBind ScrollDown { get { return Instance.bvBinds[4]; } }
+        public static IBind MultX { get { return Instance.bvBinds[5]; } }
+        public static IBind MultY { get { return Instance.bvBinds[6]; } }
+        public static IBind MultZ { get { return Instance.bvBinds[7]; } }
 
         public static BindManager.Group BindGroup { get { return Instance.bindGroup; } }
         private static KeyBinds Instance
@@ -35,9 +35,9 @@ namespace DarkHelmet.BuildVision2
         }
         private static KeyBinds instance;
 
-        private static readonly string[] bindNames = new string[] { "open", "close", "select", "scrollup", "scrolldown", "multx", "multy", "multz" };
+        private static readonly string[] bindNames = new string[] { "Open", "Close", "Select", "ScrollUp", "ScrollDown", "MultX", "MultY", "MultZ" };
         private readonly BindManager.Group bindGroup;
-        private IKeyBind[] bvBinds;
+        private IBind[] bvBinds;
 
         private KeyBinds()
         {
@@ -72,7 +72,7 @@ namespace DarkHelmet.BuildVision2
 
         private void UpdateBindReferences()
         {
-            bvBinds = new IKeyBind[bindNames.Length];
+            bvBinds = new IBind[bindNames.Length];
 
             for (int n = 0; n < bvBinds.Length; n++)
                 bvBinds[n] = bindGroup.GetBindByName(bindNames[n]);

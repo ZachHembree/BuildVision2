@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Text;
+﻿using DarkHelmet.Game;
+using System.Collections.Generic;
 using VRageMath;
-using DarkHelmet.Game;
 
 namespace DarkHelmet.UI
 {
@@ -16,15 +15,17 @@ namespace DarkHelmet.UI
             set { instance = value; }
         }
         private static RebindMenu instance;
-        private static List<IControl> blacklist;
+        private static readonly List<IControl> blacklist;
+        private static readonly IControl[] controls;
         private const long inputWaitTime = 100;
 
-        private List<IControl> newControls;
-        private RebindHud menu;
-        private bool open;
+        private readonly List<IControl> newControls;
+        private readonly RebindHud menu;
+        private readonly Utils.Stopwatch stopwatch;
+        private readonly List<string> bodyText;
         private BindManager.Group group;
-        private IKeyBind bind;
-        private Utils.Stopwatch stopwatch;
+        private IBind bind;
+        private bool open;
 
         static RebindMenu()
         {
@@ -34,13 +35,17 @@ namespace DarkHelmet.UI
                 BindManager.GetControlByName("delete"),
                 BindManager.GetControlByName("escape"),
             };
+
+            controls = BindManager.GetControls();
         }
 
         private RebindMenu()
         {
             newControls = new List<IControl>();
             stopwatch = new Utils.Stopwatch();
+            bodyText = new List<string>();
             menu = new RebindHud();
+
             menu.footer.LeftText = "<color=210,235,245>[Enter] = Accept";
             menu.footer.RightText = "<color=210,235,245>[Delete] = Remove";
 
@@ -55,7 +60,13 @@ namespace DarkHelmet.UI
                 instance = new RebindMenu();
         }
 
-        public static void UpdateBind(BindManager.Group group, IKeyBind bind)
+        public override void Close()
+        {
+            Exit();
+            instance = null;
+        }
+
+        public static void UpdateBind(BindManager.Group group, IBind bind)
         {
             Instance.stopwatch.Start();
             Instance.newControls.Clear();
@@ -79,13 +90,13 @@ namespace DarkHelmet.UI
 
             if ((stopwatch.ElapsedMilliseconds > inputWaitTime) && group != null && bind.Name != null)
             {
-                for (int n = 0; (n < BindManager.controls.Length && newControls.Count < BindManager.maxBindLength); n++)
+                for (int n = 0; (n < controls.Length && newControls.Count < BindManager.maxBindLength); n++)
                 {
-                    if (BindManager.controls[n].IsPressed)
+                    if (controls[n].IsPressed)
                     {
-                        if (!blacklist.Contains(BindManager.controls[n]) && !newControls.Contains(BindManager.controls[n]))
+                        if (!blacklist.Contains(controls[n]) && !newControls.Contains(controls[n]))
                         {
-                            newControls.Add(BindManager.controls[n]);
+                            newControls.Add(controls[n]);
                             UpdateBodyText();
                         }
                     }
@@ -93,13 +104,17 @@ namespace DarkHelmet.UI
             }
         }
 
+        /// <summary>
+        /// Updates the body text with the names of the currently selected controls and informs
+        /// the user if the combination conflicts with any other binds in the same group.
+        /// </summary>
         private void UpdateBodyText()
         {
-            List<string> bodyText = new List<string>(4);
             string bindString = "New Bind: ";
 
+            bodyText.Clear();
             bodyText.Add("<color=210,235,245>Press a key to add it to the bind.");
-            bodyText.Add(TextList.LineBreak);
+            bodyText.Add(HudUtilities.LineBreak);
 
             for (int n = 0; n < newControls.Count; n++)
             {
@@ -113,7 +128,7 @@ namespace DarkHelmet.UI
 
             if (group.DoesComboConflict(newControls, bind))
             {
-                bodyText.Add(TextList.LineBreak);
+                bodyText.Add(HudUtilities.LineBreak);
                 bodyText.Add("<color=180,20,20>Warning: Current key combination");
                 bodyText.Add("<color=180,20,20>conflicts with another bind.");
             }
@@ -121,6 +136,10 @@ namespace DarkHelmet.UI
             menu.body.ListText = bodyText;
         }
 
+        /// <summary>
+        /// Removes the last entry in the new control list and updates the body text accordingly.
+        /// If there are no controls in the list, it will close the menu instead.
+        /// </summary>
         private void RemoveLast()
         {
             if (open)
@@ -135,6 +154,9 @@ namespace DarkHelmet.UI
             }
         }
 
+        /// <summary>
+        /// Clears the control list and closes the menu.
+        /// </summary>
         private void Exit()
         {
             if (open)
@@ -144,6 +166,10 @@ namespace DarkHelmet.UI
             }
         }
 
+        /// <summary>
+        /// Attempts to update a given bind using its name and the names of the controls
+        /// in the new combo and closes the menu.
+        /// </summary>
         private void Confirm()
         {
             if (open && newControls.Count > 0)
@@ -158,6 +184,9 @@ namespace DarkHelmet.UI
             }
         }
 
+        /// <summary>
+        /// Generates the UI for the <see cref="RebindMenu"/>
+        /// </summary>
         private class RebindHud : HudUtilities.ElementBase
         {
             public override bool Visible => Instance.open;
@@ -172,7 +201,7 @@ namespace DarkHelmet.UI
             public RebindHud()
             {
                 header = new TextBox()
-                { TextScale = .935, Padding = new Vector2D(48d, 14d), BgColor = new Color(41, 54, 62, 229) };
+                { TextScale = .935, Padding = new Vector2D(48d, 18d), BgColor = new Color(41, 54, 62, 229) };
 
                 body = new ListBox(10)
                 { TextAlignment = TextAlignment.Center, TextScale = .85, Padding = new Vector2D(48d, 16d), BgColor = new Color(70, 78, 86, 204) };

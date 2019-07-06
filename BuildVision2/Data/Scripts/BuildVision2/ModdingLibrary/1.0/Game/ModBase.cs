@@ -10,9 +10,9 @@ using VRage.Game.ModAPI;
 namespace DarkHelmet.Game
 {
     /// <summary>
-    /// Extends <see cref="MySessionComponentBase"/> to include built-in exception handling / logging and to better allow 
-    /// for types that need to be associated with and updated alongside mods deriving from this type by inheriting from 
-    /// <see cref="ComponentBase"/>. Only one instance of <see cref="ModBase"/> can exist at a given time.
+    /// Extends <see cref="MySessionComponentBase"/> to include built-in exception handling / logging and to allow 
+    /// for types that need to be associated with and updated alongside the mod deriving from this type but without
+    /// being a session component. Only one instance of <see cref="ModBase"/> can exist at a given time.
     /// </summary>
     public abstract class ModBase : MySessionComponentBase
     {

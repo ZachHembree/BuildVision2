@@ -75,7 +75,7 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\BindManager\RebindMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\BaseHudElements.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudElements.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\KeyBinds.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\KeyBinds.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\ChatCommands.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\Game\ModBase.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\Extensions.cs" />
@@ -98,9 +98,6 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ConfigTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\PropertyBlock.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

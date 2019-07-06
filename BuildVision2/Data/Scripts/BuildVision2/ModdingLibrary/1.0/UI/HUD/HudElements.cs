@@ -143,8 +143,6 @@ namespace DarkHelmet.UI
     /// </summary>
     public class TextList : ElementBase
     {
-        public const string LineBreak = "\n";
-
         public IList<string> ListText
         {
             get { return listText; }
@@ -156,7 +154,10 @@ namespace DarkHelmet.UI
                     list.Add(new TextHudMessage() { parent = this, textAlignment = TextAlignment });
 
                 for (int n = 0; n < listText.Count; n++)
-                    list[n].Text = listText[n];
+                {
+                    if (listText[n] != HudUtilities.LineBreak)
+                        list[n].Text = listText[n];
+                }
             }
         }
         public TextAlignment TextAlignment
@@ -197,7 +198,7 @@ namespace DarkHelmet.UI
 
             for (int n = 0; n < Count; n++)
             {
-                if (list[n].Text != LineBreak)
+                if (listText[n] != HudUtilities.LineBreak)
                 {
                     lineSize = list[n].Size;
                     listSize.Y += lineSize.Y;
@@ -206,7 +207,7 @@ namespace DarkHelmet.UI
                         maxLineWidth = lineSize.X;
                 }
                 else
-                    listSize.Y += 20d * Scale;
+                    listSize.Y += HudUtilities.LineSpacing * Scale;
             }
 
             listSize.X = maxLineWidth;
@@ -231,14 +232,17 @@ namespace DarkHelmet.UI
 
                 for (int n = 0; n < Count; n++)
                 {
-                    if (list[n].Text != LineBreak)
+                    if (listText[n] != HudUtilities.LineBreak)
                     {
                         list[n].Visible = true;
                         list[n].Offset = pos;
                         pos.Y -= list[n].Size.Y;
                     }
                     else
-                        pos.Y -= 20d * Scale;
+                    {
+                        list[n].Visible = false;
+                        pos.Y -= HudUtilities.LineSpacing * Scale;
+                    }
                 }
 
                 for (int n = Count; n < list.Count; n++)

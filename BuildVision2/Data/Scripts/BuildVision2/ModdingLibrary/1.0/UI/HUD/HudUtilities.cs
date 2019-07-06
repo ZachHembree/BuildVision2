@@ -48,6 +48,9 @@ namespace DarkHelmet.UI
     /// </summary>
     public sealed class HudUtilities : ModBase.ComponentBase
     {
+        public const string LineBreak = null;
+        public const double LineSpacing = 20d;
+
         public static double ResScale { get; private set; }
         public static UiTestPattern TestPattern { get; private set; }
         public static double ScreenWidth => Instance.screenWidth;
@@ -87,7 +90,7 @@ namespace DarkHelmet.UI
                 TestPattern = new UiTestPattern();
                 TestPattern.Hide();
 
-                Instance.sharedBinds.RegisterBinds(new KeyBindData[] 
+                SharedBinds.RegisterBinds(new KeyBindData[]
                 {
                     new KeyBindData("enter", new string[] { "enter" }),
                     new KeyBindData("back", new string[] { "back" }),
@@ -153,7 +156,7 @@ namespace DarkHelmet.UI
             private static TextInput instance;
             private readonly StringBuilder currentText;
 
-            private IKeyBind backspace;
+            private readonly IBind backspace;
 
             private TextInput()
             {
