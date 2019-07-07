@@ -48,14 +48,14 @@ namespace DarkHelmet.UI
         /// Adds a <see cref="Group"/> with a given prefix and returns it. If a group already exists with the same prefix
         /// that group will be returned instead.
         /// </summary>
-        public static Group AddOrGetCmdGroup(string prefix, IEnumerable<Command> commands = null)
+        public static Group AddOrGetCmdGroup(string prefix, List<Command> commands = null)
         {
             prefix = prefix.ToLower();
             Group group = GetCmdGroup(prefix);
 
             if (group == null)
             {
-                group = new Group(prefix, new List<Command>(commands));
+                group = new Group(prefix, commands);
                 Instance.commandGroups.Add(group);
             }
             else if (commands != null)

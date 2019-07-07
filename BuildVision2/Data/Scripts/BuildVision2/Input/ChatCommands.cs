@@ -9,11 +9,11 @@ namespace DarkHelmet.BuildVision2
     {
         private static string controlList;
 
-        private CmdManager.Command[] GetChatCommands()
+        private List<CmdManager.Command> GetChatCommands()
         {
             controlList = BindManager.GetControlListString();
 
-            return new CmdManager.Command[]
+            return new List <CmdManager.Command>
             {
                 new CmdManager.Command ("help",
                     () => ShowMessageScreen("Help", GetHelpMessage())),

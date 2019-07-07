@@ -230,7 +230,7 @@ namespace DarkHelmet.UI
                 protected set { unscaledSize = Utils.Math.Abs(value); }
             }
             /// <summary>
-            /// Hud element size using scale based on screen resolution. 
+            /// Hud element size using scale based on screen resolution without element scaling applied. 
             /// </summary>
             public Vector2D RelativeSize
             {

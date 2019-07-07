@@ -1,5 +1,6 @@
 ﻿using Sandbox.ModAPI;
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using VRageMath;
 
@@ -7,6 +8,22 @@ namespace DarkHelmet
 {
     public static partial class Utils
     {
+        /// <summary>
+        /// Read only wrapper for types of <see cref="IList{T}"/> in lieu of the one in System.Collections.ObjectModel. 
+        /// The indexer doesn't allow modification of the collection, but if the underlying collection is modified, this will reflect that.
+        /// </summary>
+        public class ReadOnlyCollection<T>
+        {
+            public T this[int index] => collection[index];
+            public int Count => collection.Count;
+
+            private readonly IList<T> collection;
+            public ReadOnlyCollection(IList<T> collection)
+            {
+                this.collection = collection;
+            }
+        }
+
         /// <summary>
         /// Simple stopwatch class in lieu of <see cref="System.Diagnostics.Stopwatch"/>.
         /// </summary>

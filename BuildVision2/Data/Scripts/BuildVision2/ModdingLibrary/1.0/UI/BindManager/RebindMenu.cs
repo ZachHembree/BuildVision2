@@ -16,7 +16,6 @@ namespace DarkHelmet.UI
         }
         private static RebindMenu instance;
         private static readonly List<IControl> blacklist;
-        private static readonly IControl[] controls;
         private const long inputWaitTime = 100;
 
         private readonly List<IControl> newControls;
@@ -35,8 +34,6 @@ namespace DarkHelmet.UI
                 BindManager.GetControlByName("delete"),
                 BindManager.GetControlByName("escape"),
             };
-
-            controls = BindManager.GetControls();
         }
 
         private RebindMenu()
@@ -90,13 +87,13 @@ namespace DarkHelmet.UI
 
             if ((stopwatch.ElapsedMilliseconds > inputWaitTime) && group != null && bind.Name != null)
             {
-                for (int n = 0; (n < controls.Length && newControls.Count < BindManager.maxBindLength); n++)
+                for (int n = 0; (n < BindManager.Controls.Count && newControls.Count < BindManager.maxBindLength); n++)
                 {
-                    if (controls[n].IsPressed)
+                    if (BindManager.Controls[n].IsPressed)
                     {
-                        if (!blacklist.Contains(controls[n]) && !newControls.Contains(controls[n]))
+                        if (!blacklist.Contains(BindManager.Controls[n]) && !newControls.Contains(BindManager.Controls[n]))
                         {
-                            newControls.Add(controls[n]);
+                            newControls.Add(BindManager.Controls[n]);
                             UpdateBodyText();
                         }
                     }

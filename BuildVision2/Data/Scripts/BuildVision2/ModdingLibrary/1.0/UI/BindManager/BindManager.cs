@@ -81,6 +81,7 @@ namespace DarkHelmet.UI
     public sealed class BindManager : ModBase.ComponentBase
     {
         public const int maxBindLength = 3;
+        public static Utils.ReadOnlyCollection<IControl> Controls { get; }
 
         private static BindManager Instance
         {
@@ -112,6 +113,7 @@ namespace DarkHelmet.UI
 
             controlDictionary = new Dictionary<string, Control>();
             controls = GenerateControls();
+            Controls = new Utils.ReadOnlyCollection<IControl>(controls as IControl[]);
         }
 
         private BindManager()
@@ -276,8 +278,8 @@ namespace DarkHelmet.UI
                     if (bindsPressed > 1)
                         DisambiguatePresses();
 
-                    for (int n = 0; n < keyBinds.Count; n++)
-                        keyBinds[n].UpdatePress(keyBinds[n].bindHits == keyBinds[n].length);
+                    foreach (Bind bind in keyBinds)
+                        bind.UpdatePress(bind.bindHits == bind.length && !bind.beingReleased);
                 }
             }
 
@@ -308,8 +310,6 @@ namespace DarkHelmet.UI
                         bind.bindHits = bind.length;
                         bind.beingReleased = true;
                     }
-                    else if (bind.beingReleased && bind.bindHits == bind.length)
-                        bind.bindHits = 0;
 
                     if (bind.bindHits == bind.length)
                         bindsPressed++;
@@ -731,7 +731,8 @@ namespace DarkHelmet.UI
             public readonly List<List<Bind>> registeredBinds;
             private readonly Func<bool> isPressedFunc;
 
-            public Control(MyKeys seKey, bool Analog = false) : this(seKey.ToString(), () => MyAPIGateway.Input.IsKeyPress(seKey), Analog)
+            public Control(MyKeys seKey, bool Analog = false) 
+                : this(seKey.ToString(), () => MyAPIGateway.Input.IsKeyPress(seKey), Analog)
             { }
 
             public Control(string name, Func<bool> IsPressed, bool Analog = false)
@@ -803,7 +804,7 @@ namespace DarkHelmet.UI
                     lastTime = DateTime.Now.Ticks;
                 }
 
-                if (IsReleased && !beingReleased)
+                if (IsReleased)
                     OnRelease?.Invoke();
 
                 if (IsPressedAndHeld)
