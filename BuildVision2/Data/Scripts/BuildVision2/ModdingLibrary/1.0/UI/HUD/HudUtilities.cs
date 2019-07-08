@@ -90,12 +90,12 @@ namespace DarkHelmet.UI
                 TestPattern = new UiTestPattern();
                 TestPattern.Hide();
 
-                SharedBinds.RegisterBinds(new KeyBindData[]
+                SharedBinds.RegisterBinds(new BindData[]
                 {
-                    new KeyBindData("enter", new string[] { "enter" }),
-                    new KeyBindData("back", new string[] { "back" }),
-                    new KeyBindData("delete", new string[] { "delete" }),
-                    new KeyBindData("escape", new string[] { "escape" }),
+                    new BindData("enter", new string[] { "enter" }),
+                    new BindData("back", new string[] { "back" }),
+                    new BindData("delete", new string[] { "delete" }),
+                    new BindData("escape", new string[] { "escape" }),
                 });
             }
         }

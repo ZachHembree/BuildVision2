@@ -12,7 +12,7 @@ namespace DarkHelmet.UI
     /// Stores data for serializing individual key binds to XML.
     /// </summary>
     [XmlType(TypeName = "Bind")]
-    public struct KeyBindData
+    public struct BindData
     {
         [XmlAttribute]
         public string name;
@@ -20,7 +20,7 @@ namespace DarkHelmet.UI
         [XmlArray("Controls")]
         public string[] controlNames;
 
-        public KeyBindData(string name, string[] controlNames)
+        public BindData(string name, string[] controlNames)
         {
             this.name = name;
             this.controlNames = controlNames;
@@ -271,9 +271,7 @@ namespace DarkHelmet.UI
             {
                 if (keyBinds.Count > 0)
                 {
-                    int bindsPressed;
-
-                    bindsPressed = GetPressedBinds();
+                    int bindsPressed = GetPressedBinds();
 
                     if (bindsPressed > 1)
                         DisambiguatePresses();
@@ -293,11 +291,11 @@ namespace DarkHelmet.UI
                 foreach (Bind bind in keyBinds)
                     bind.bindHits = 0;
 
-                for (int x = 0; x < usedControls.Count; x++)
+                foreach (Control con in usedControls)
                 {
-                    if (usedControls[x].IsPressed)
+                    if (con.IsPressed)
                     {
-                        foreach (Bind bind in usedControls[x].registeredBinds[groupIndex])
+                        foreach (Bind bind in con.registeredBinds[groupIndex])
                             bind.bindHits++;
                     }
                 }
@@ -305,19 +303,21 @@ namespace DarkHelmet.UI
                 // Partial presses on previously pressed binds count as full presses.
                 foreach (Bind bind in keyBinds)
                 {
-                    if ((bind.bindHits > 0 && bind.bindHits < bind.length) && bind.IsPressed)
+                    if (bind.IsPressed || bind.beingReleased)
                     {
-                        bind.bindHits = bind.length;
-                        bind.beingReleased = true;
+                        if (bind.bindHits > 0 && bind.bindHits < bind.length)
+                        {
+                            bind.bindHits = bind.length;
+                            bind.beingReleased = true;
+                        }
+                        else if (bind.beingReleased)
+                            bind.beingReleased = false;
                     }
 
                     if (bind.bindHits == bind.length)
                         bindsPressed++;
                     else
-                    {
                         bind.bindHits = 0;
-                        bind.beingReleased = false;
-                    }
                 }
 
                 return bindsPressed;
@@ -328,21 +328,21 @@ namespace DarkHelmet.UI
             /// </summary>
             private void DisambiguatePresses()
             {
-                Bind first;
-                int controlHits, longest;
+                Bind first, longest;
+                int controlHits;
 
                 // If more than one pressed bind shares the same control, the longest
                 // binds take precedence. Any binds shorter than the longest will not
                 // be counted as being pressed.
-                for (int x = 0; x < usedControls.Count; x++)
+                foreach (Control con in usedControls)
                 {
                     first = null;
                     controlHits = 0;
-                    longest = GetLongestBindPressForControl(usedControls[x]);
+                    longest = GetLongestBindPressForControl(con);
 
-                    foreach (Bind bind in usedControls[x].registeredBinds[groupIndex])
+                    foreach (Bind bind in con.registeredBinds[groupIndex])
                     {
-                        if (bind.bindHits > 0 && (bind.length < longest))
+                        if (bind.bindHits > 0 && (bind != longest))
                         {
                             if (controlHits > 0)
                                 bind.bindHits--;
@@ -361,14 +361,14 @@ namespace DarkHelmet.UI
             /// <summary>
             /// Determines the length of the longest bind pressed for a given control on the bind map.
             /// </summary>
-            private int GetLongestBindPressForControl(Control con)
+            private Bind GetLongestBindPressForControl(Control con)
             {
-                int longest = 0;
+                Bind longest = null;
 
                 foreach (Bind bind in con.registeredBinds[groupIndex])
                 {
-                    if (bind.bindHits > 0 && bind.length > longest)
-                        longest = bind.length;
+                    if (bind.bindHits > 0 && (longest == null || bind.length > longest.length))
+                        longest = bind;
                 }
 
                 return longest;
@@ -409,11 +409,11 @@ namespace DarkHelmet.UI
             /// <summary>
             /// Attempts to create a set of key binds given the name of the bind and the controls names for that bind.
             /// </summary>
-            public void RegisterBinds(KeyBindData[] binds, bool silent = false)
+            public void RegisterBinds(BindData[] binds, bool silent = false)
             {
                 bool areAnyDuplicated = false;
 
-                foreach (KeyBindData bind in binds)
+                foreach (BindData bind in binds)
                     if (!TryRegisterBind(bind, true))
                         areAnyDuplicated = true;
 
@@ -422,9 +422,9 @@ namespace DarkHelmet.UI
             }
 
             /// <summary>
-            /// Attempts to create a new <see cref="IBind"/> from <see cref="KeyBindData"/> and add it to the bind list.
+            /// Attempts to create a new <see cref="IBind"/> from <see cref="BindData"/> and add it to the bind list.
             /// </summary>
-            public bool TryRegisterBind(KeyBindData bind, bool silent = false)
+            public bool TryRegisterBind(BindData bind, bool silent = false)
             {
                 if (!DoesBindExist(bind.name))
                 {
@@ -444,7 +444,7 @@ namespace DarkHelmet.UI
             /// <summary>
             /// Replaces current keybind configuration with a new one based on the given KeyBindData. Will not register new binds.
             /// </summary>
-            public bool TryUpdateBinds(KeyBindData[] bindData)
+            public bool TryUpdateBinds(BindData[] bindData)
             {
                 List<Control> oldUsedControls;
                 List<List<Bind>> oldBindMap;
@@ -459,7 +459,7 @@ namespace DarkHelmet.UI
                     usedControls = new List<Control>(bindData.Length);
                     bindMap = new List<List<Bind>>(bindData.Length);
 
-                    foreach (KeyBindData bind in bindData)
+                    foreach (BindData bind in bindData)
                         if (!TryUpdateBind(bind.name, bind.controlNames, true))
                         {
                             bindError = true;
@@ -673,16 +673,16 @@ namespace DarkHelmet.UI
             /// <summary>
             /// Retrieves the set of key binds as an array of KeyBindData
             /// </summary>
-            public KeyBindData[] GetBindData()
+            public BindData[] GetBindData()
             {
-                KeyBindData[] bindData = new KeyBindData[keyBinds.Count];
+                BindData[] bindData = new BindData[keyBinds.Count];
                 List<string>[] combos = new List<string>[keyBinds.Count];
 
                 for (int n = 0; n < keyBinds.Count; n++)
                     combos[n] = GetBindControlNames(keyBinds[n]);
 
                 for (int n = 0; n < keyBinds.Count; n++)
-                    bindData[n] = new KeyBindData(keyBinds[n].Name, combos[n].ToArray());
+                    bindData[n] = new BindData(keyBinds[n].Name, combos[n].ToArray());
 
                 return bindData;
             }
