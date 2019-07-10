@@ -23,7 +23,7 @@ namespace DarkHelmet.UI
 
         static CmdManager()
         {
-            cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)(\w+))+");
+            cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)((\w+)|("".+"")))+");
         }
 
         private CmdManager()
@@ -158,7 +158,12 @@ namespace DarkHelmet.UI
             matches = new string[captures.Count];
 
             for (int n = 0; n < captures.Count; n++)
+            {
                 matches[n] = captures[n].Value;
+
+                if (matches[n][0] == '"' && matches[n][matches[n].Length - 1] == '"')
+                    matches[n] = matches[n].Substring(1, matches[n].Length - 2);
+            }
 
             return matches.Length > 0;
         }

@@ -2,6 +2,7 @@
 using DarkHelmet.UI;
 using System;
 using System.Collections.Generic;
+using Sandbox.ModAPI;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -52,7 +53,9 @@ namespace DarkHelmet.BuildVision2
                 new CmdManager.Command("crash", 
                     Crash),
                 new CmdManager.Command("printControlsToLog",
-                    () => ModBase.WriteToLogStart($"Control List:\n{BindManager.GetControlListString()}"))
+                    () => ModBase.WriteToLogStart($"Control List:\n{BindManager.GetControlListString()}")),
+                new CmdManager.Command("repeatMe", 
+                    (string[] args) => MyAPIGateway.Utilities.ShowMessage(LocalPlayer.CharEnt?.DisplayName, args[0]))
             };
         }
 
