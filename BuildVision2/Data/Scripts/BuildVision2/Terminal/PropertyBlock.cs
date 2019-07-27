@@ -103,7 +103,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Retrieves a Block Property's Terminal Name. Filters out any characters that aren't numbers, letters or spaces.
+        /// Retrieves a Block Property's Terminal Name.
         /// </summary>
         private static string GetTooltipName(ITerminalProperty prop)
         {
@@ -151,7 +151,6 @@ namespace DarkHelmet.BuildVision2
         {
             List<ITerminalProperty> properties = new List<ITerminalProperty>(12);
             string name, nameField = MyTexts.TrySubstitute("Name");
-
             TBlock.GetProperties(properties);
 
             foreach (ITerminalProperty prop in properties)
@@ -251,14 +250,13 @@ namespace DarkHelmet.BuildVision2
             public static void GetMechActions(IMyMechanicalConnectionBlock mechBlock, List<IBlockAction> actions)
             {
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
-                string prefix = MyTexts.TrySubstitute("Add") + " ";
                 mechBlock.GetActions(terminalActions);
 
                 foreach (IMyTerminalAction tAction in terminalActions)
                 {
                     string tActionName = tAction.Name.ToString();
 
-                    if (tAction.Name.ToString().StartsWith(prefix))
+                    if (tAction.Id.StartsWith("Add"))
                         actions.Add(new BlockAction(
                             () => tActionName,
                             () => tAction.Apply(mechBlock)));
@@ -604,7 +602,7 @@ namespace DarkHelmet.BuildVision2
                 minValue = this.property.GetMinimum(block);
                 maxValue = this.property.GetMaximum(block);
 
-                if (Name == "Pitch" || Name == "Yaw" || Name == "Roll")
+                if (property.Id.StartsWith("Rot"))
                     incr0 = 90f;
                 else
                 {
