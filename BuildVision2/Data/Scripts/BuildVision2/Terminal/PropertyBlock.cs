@@ -118,7 +118,7 @@ namespace DarkHelmet.BuildVision2
 
                 for (int n = 0; n < name.Length - trailingSpaceLength; n++)
                 {
-                    if ((name[n] >= '0' && name[n] <= '9') || (name[n] >= 'A' && name[n] <= 'z') || name[n] == ' ')
+                    if (name[n] > 31)
                         cleanedName.Append(name[n]);
                 }
 
@@ -137,7 +137,7 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = 0; n < text.Length; n++)
             {
-                if (text[n] >= ' ' && text[n] <= '~')
+                if (text[n] > 31)
                     cleanedText.Append(text[n]);
             }
 
@@ -150,10 +150,9 @@ namespace DarkHelmet.BuildVision2
         private void GetScrollableProps()
         {
             List<ITerminalProperty> properties = new List<ITerminalProperty>(12);
-            string name;
+            string name, nameField = MyTexts.TrySubstitute("Name");
 
             TBlock.GetProperties(properties);
-            Properties.Add(null);
 
             foreach (ITerminalProperty prop in properties)
             {
@@ -165,14 +164,18 @@ namespace DarkHelmet.BuildVision2
                     {
                         if (prop is ITerminalProperty<StringBuilder> textProp)
                         {
-                            if (name == "Name")
-                                Properties[0] = new TextProperty(name, textProp, control, TBlock);
+                            if (name == nameField)
+                                Properties.Insert(0, new TextProperty(name, textProp, control, TBlock));
                             else
                                 Properties.Add(new TextProperty(name, textProp, control, TBlock));
                         }
-                        if (prop is IMyTerminalControlCombobox comboBox && !name.StartsWith("Assign"))
+                        if (prop is IMyTerminalControlCombobox comboBox) // fields having to do with camera assignments seem to give me trouble here
                         {
-                            Properties.Add(new ComboBoxProperty(name, comboBox, control, TBlock));
+                            try
+                            {
+                                Properties.Add(new ComboBoxProperty(name, comboBox, control, TBlock));
+                            }
+                            catch { }
                         }
                         else if (prop is ITerminalProperty<bool> boolProp)
                         {
@@ -248,13 +251,14 @@ namespace DarkHelmet.BuildVision2
             public static void GetMechActions(IMyMechanicalConnectionBlock mechBlock, List<IBlockAction> actions)
             {
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
+                string prefix = MyTexts.TrySubstitute("Add") + " ";
                 mechBlock.GetActions(terminalActions);
 
                 foreach (IMyTerminalAction tAction in terminalActions)
                 {
                     string tActionName = tAction.Name.ToString();
 
-                    if (tAction.Name.ToString().StartsWith("Add "))
+                    if (tAction.Name.ToString().StartsWith(prefix))
                         actions.Add(new BlockAction(
                             () => tActionName,
                             () => tAction.Apply(mechBlock)));
@@ -501,7 +505,7 @@ namespace DarkHelmet.BuildVision2
             {
                 List<MyTerminalControlComboBoxItem> content = new List<MyTerminalControlComboBoxItem>();
                 comboBox.ComboBoxContent(content);
-
+                
                 keys = new List<long>(content.Count);
                 names = new List<string>(content.Count);
 
