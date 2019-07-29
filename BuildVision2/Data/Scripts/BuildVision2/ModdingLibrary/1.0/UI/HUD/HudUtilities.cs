@@ -48,6 +48,9 @@ namespace DarkHelmet.UI
     /// </summary>
     public sealed class HudUtilities : ModBase.ComponentBase
     {
+        public const string LineBreak = null;
+        public const double LineSpacing = 20d;
+
         public static double ResScale { get; private set; }
         public static UiTestPattern TestPattern { get; private set; }
         public static double ScreenWidth => Instance.screenWidth;
@@ -56,6 +59,7 @@ namespace DarkHelmet.UI
         public static double InvTextApiScale => Instance.invTextApiScale;
         public static double Fov => Instance.fov;
         public static double FovScale => Instance.fovScale;
+        public static BindManager.Group SharedBinds => Instance.sharedBinds;
 
         private static HudUtilities Instance
         {
@@ -65,8 +69,7 @@ namespace DarkHelmet.UI
         private static HudUtilities instance;
 
         private readonly List<Action> hudElementsDraw;
-        private readonly BindManager.Group hudBinds;
-        private IKeyBind backspace;
+        private readonly BindManager.Group sharedBinds;
         private double screenWidth, screenHeight, aspectRatio, invTextApiScale, fov, fovScale;
 
         private HudUtilities()
@@ -75,7 +78,7 @@ namespace DarkHelmet.UI
             GetFovScaling();
 
             hudElementsDraw = new List<Action>();
-            hudBinds = new BindManager.Group("HudUtilities");
+            sharedBinds = new BindManager.Group("HudUtilities");
         }
 
         private static void Init()
@@ -87,8 +90,13 @@ namespace DarkHelmet.UI
                 TestPattern = new UiTestPattern();
                 TestPattern.Hide();
 
-                if (Instance.hudBinds.TryRegisterBind(new KeyBindData("backspace", new string[] { "back" })))
-                    Instance.backspace = Instance.hudBinds.GetBindByName("backspace");
+                SharedBinds.RegisterBinds(new BindData[]
+                {
+                    new BindData("enter", new string[] { "enter" }),
+                    new BindData("back", new string[] { "back" }),
+                    new BindData("delete", new string[] { "delete" }),
+                    new BindData("escape", new string[] { "escape" }),
+                });
             }
         }
 
@@ -148,10 +156,13 @@ namespace DarkHelmet.UI
             private static TextInput instance;
             private readonly StringBuilder currentText;
 
+            private readonly IBind backspace;
+
             private TextInput()
             {
                 currentText = new StringBuilder(50);
-                HudUtilities.Instance.backspace.OnPressAndHold += Backspace;
+                backspace = SharedBinds["back"];
+                backspace.OnPressAndHold += Backspace;
             }
 
             private static void Init()
@@ -197,7 +208,7 @@ namespace DarkHelmet.UI
             /// <summary>
             /// If set to true, the hud element will be visible. Parented elements will be hidden if the parent is not visible.
             /// </summary>
-            public bool Visible
+            public virtual bool Visible
             {
                 get { return parent == null ? visible : parent.Visible && visible; }
                 set { visible = value; }
@@ -219,7 +230,7 @@ namespace DarkHelmet.UI
                 protected set { unscaledSize = Utils.Math.Abs(value); }
             }
             /// <summary>
-            /// Hud element size using scale based on screen resolution. 
+            /// Hud element size using scale based on screen resolution without element scaling applied. 
             /// </summary>
             public Vector2D RelativeSize
             {
@@ -229,7 +240,7 @@ namespace DarkHelmet.UI
             /// <summary>
             /// Scales the area covered by the hud element or each dimension by Sqrt(Scale)
             /// </summary>
-            public double Scale
+            public virtual double Scale
             {
                 get { return (parent == null || ignoreParentScale) ? scale : scale * parent.Scale; }
                 set { scale = value; }
@@ -241,7 +252,7 @@ namespace DarkHelmet.UI
             /// <summary>
             /// Determines location of the HUD element relative to the origin.
             /// </summary>
-            public Vector2D Offset { get; set; }
+            public virtual Vector2D Offset { get; set; }
             /// <summary>
             /// Position using scale based on screen resolution. 
             /// </summary>
@@ -252,7 +263,7 @@ namespace DarkHelmet.UI
             /// </summary>
             public ElementBase parent;
             /// <summary>
-            /// If true, the hud element's scale will be decoupled from that of the parent.
+            /// If true, the hud element's scale will vary indepentently of the parent's scale.
             /// </summary>
             public bool ignoreParentScale;
             /// <summary>

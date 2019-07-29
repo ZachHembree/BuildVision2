@@ -348,11 +348,11 @@ namespace DarkHelmet.BuildVision2
     public class BindsConfig : Config<BindsConfig>
     {
         [XmlIgnore]
-        public static KeyBindData[] DefaultBinds
+        public static BindData[] DefaultBinds
         {
             get
             {
-                KeyBindData[] copy = new KeyBindData[defaultBinds.Length];
+                BindData[] copy = new BindData[defaultBinds.Length];
 
                 for (int n = 0; n < defaultBinds.Length; n++)
                     copy[n] = defaultBinds[n];
@@ -361,20 +361,20 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private static readonly KeyBindData[] defaultBinds = new KeyBindData[]
+        private static readonly BindData[] defaultBinds = new BindData[]
         {
-            new KeyBindData("open", new string[] { "control", "middlebutton" }),
-            new KeyBindData("close", new string[] { "shift", "middlebutton" }),
-            new KeyBindData("select", new string[] { "middlebutton" }),
-            new KeyBindData("scrollup", new string[] { "mousewheelup" }),
-            new KeyBindData("scrolldown", new string[] { "mousewheeldown" }),
-            new KeyBindData("multx", new string[] { "control" }),
-            new KeyBindData("multy", new string[] { "shift" }),
-            new KeyBindData("multz", new string[] { "control", "shift" })
+            new BindData("open", new string[] { "control", "middlebutton" }),
+            new BindData("close", new string[] { "shift", "middlebutton" }),
+            new BindData("select", new string[] { "middlebutton" }),
+            new BindData("scrollup", new string[] { "mousewheelup" }),
+            new BindData("scrolldown", new string[] { "mousewheeldown" }),
+            new BindData("multx", new string[] { "control" }),
+            new BindData("multy", new string[] { "shift" }),
+            new BindData("multz", new string[] { "control", "shift" })
         };
 
         [XmlArray("KeyBinds")]
-        public KeyBindData[] bindData;
+        public BindData[] bindData;
 
         protected override BindsConfig GetDefaults()
         {

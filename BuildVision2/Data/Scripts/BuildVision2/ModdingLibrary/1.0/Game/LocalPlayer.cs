@@ -1,4 +1,6 @@
-﻿using Sandbox.ModAPI;
+﻿using Sandbox.Definitions;
+using Sandbox.Game.Entities;
+using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
@@ -8,10 +10,11 @@ namespace DarkHelmet.Game
     /// <summary>
     /// Wrapper for various local player related fields and methods.
     /// </summary>
-    public static class LocalPlayer
+    public static partial class LocalPlayer
     {
         public static IMyCharacter PlyEnt { get { return MyAPIGateway.Session.ControlledObject as IMyCharacter; } }
         public static MyObjectBuilder_Character CharEnt { get { return PlyEnt?.GetObjectBuilder() as MyObjectBuilder_Character; } }
+        public static MyCubeBlockDefinition CurrentBuilderBlock { get { return MyCubeBuilder.Static?.CubeBuilderState?.CurrentBlockDefinition; } }
         public static MatrixD HeadTransform { get { return PlyEnt != null ? PlyEnt.GetHeadMatrix(true) : MatrixD.Zero; } }
         public static Vector3D Position { get { return PlyEnt != null ? PlyEnt.GetPosition() : Vector3D.Zero; } }
         public static bool HasEmptyHands { get { return CharEnt?.HandWeapon == null; } }

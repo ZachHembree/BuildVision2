@@ -23,7 +23,7 @@ namespace DarkHelmet.UI
 
         static CmdManager()
         {
-            cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)(\w+))+");
+            cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)((\w+)|("".+"")))+");
         }
 
         private CmdManager()
@@ -48,14 +48,14 @@ namespace DarkHelmet.UI
         /// Adds a <see cref="Group"/> with a given prefix and returns it. If a group already exists with the same prefix
         /// that group will be returned instead.
         /// </summary>
-        public static Group AddOrGetCmdGroup(string prefix, IEnumerable<Command> commands = null)
+        public static Group AddOrGetCmdGroup(string prefix, List<Command> commands = null)
         {
             prefix = prefix.ToLower();
             Group group = GetCmdGroup(prefix);
 
             if (group == null)
             {
-                group = new Group(prefix, new List<Command>(commands));
+                group = new Group(prefix, commands);
                 Instance.commandGroups.Add(group);
             }
             else if (commands != null)
@@ -158,7 +158,12 @@ namespace DarkHelmet.UI
             matches = new string[captures.Count];
 
             for (int n = 0; n < captures.Count; n++)
+            {
                 matches[n] = captures[n].Value;
+
+                if (matches[n][0] == '"' && matches[n][matches[n].Length - 1] == '"')
+                    matches[n] = matches[n].Substring(1, matches[n].Length - 2);
+            }
 
             return matches.Length > 0;
         }
@@ -195,6 +200,13 @@ namespace DarkHelmet.UI
             {
                 this.cmdName = cmdName.ToLower();
                 action = argAction;
+                needsArgs = true;
+            }
+
+            public Command(string cmdName, Action<string[]> argAction)
+            {
+                this.cmdName = cmdName.ToLower();
+                action = (string[] args) => { argAction(args); return true; };
                 needsArgs = true;
             }
 

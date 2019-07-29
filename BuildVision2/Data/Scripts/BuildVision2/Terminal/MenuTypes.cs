@@ -162,7 +162,7 @@ namespace DarkHelmet.BuildVision2
                     targetPos = Target.GetPosition();
                     worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
                     screenPos = new Vector2D(worldPos.X, worldPos.Y);
-                    screenBounds -= menu.RelativeSize / 2d;
+                    screenBounds -= menu.RelativeSize * menu.Scale / 2d;
                 }
                 else
                 {

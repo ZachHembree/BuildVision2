@@ -50,6 +50,7 @@ namespace DarkHelmet.BuildVision2
 
                 KeyBinds.Open.OnNewPress += TryOpenMenu;
                 KeyBinds.Hide.OnNewPress += TryCloseMenu;
+                HudUtilities.SharedBinds["escape"].OnNewPress += TryCloseMenu;
 
                 SendChatMessage($"Type {bvCommands.prefix} help for help. Settings are available through the mod menu.");
             }

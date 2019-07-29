@@ -1,6 +1,8 @@
 ﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
 using System;
+using System.Collections.Generic;
+using Sandbox.ModAPI;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -8,11 +10,11 @@ namespace DarkHelmet.BuildVision2
     {
         private static string controlList;
 
-        private CmdManager.Command[] GetChatCommands()
+        private List<CmdManager.Command> GetChatCommands()
         {
             controlList = BindManager.GetControlListString();
 
-            return new CmdManager.Command[]
+            return new List <CmdManager.Command>
             {
                 new CmdManager.Command ("help",
                     () => ShowMessageScreen("Help", GetHelpMessage())),
@@ -22,6 +24,8 @@ namespace DarkHelmet.BuildVision2
                     () => SendChatMessage(GetPrintBindsMessage())),
                 new CmdManager.Command ("bind",
                     (string[] args) => KeyBinds.BindGroup.TryUpdateBind(args[0], args.GetSubarray(1))),
+                new CmdManager.Command("rebind",
+                    (string[] args) => RebindMenu.UpdateBind(KeyBinds.BindGroup, KeyBinds.BindGroup[args[0]])),
                 new CmdManager.Command("resetBinds",
                     () => KeyBinds.Cfg = BindsConfig.Defaults),
                 new CmdManager.Command ("save",
@@ -46,42 +50,76 @@ namespace DarkHelmet.BuildVision2
                     () => HudUtilities.TestPattern.Toggle()),
                 new CmdManager.Command ("reload",
                     () => Instance.Close()),
-                new CmdManager.Command("crash", Crash)
+                new CmdManager.Command("crash", 
+                    Crash),
+                new CmdManager.Command("printControlsToLog",
+                    () => ModBase.WriteToLogStart($"Control List:\n{BindManager.GetControlListString()}")),
+                new CmdManager.Command("repeatMe", 
+                    (string[] args) => MyAPIGateway.Utilities.ShowMessage(LocalPlayer.CharEnt?.DisplayName, args[0]))
             };
         }
 
         private static void Crash()
         {
-            throw new Exception("/bv2 crash was called.");
+            throw new Exception($"Crash chat command was called.");
+        }
+
+        private static string GetBindString(IBind bind)
+        {
+            List<string> controlNames = KeyBinds.BindGroup.GetBindControlNames(bind);
+            string bindString = "";
+
+            for (int n = 0; n < controlNames.Count; n++)
+            {
+                if (n != controlNames.Count - 1)
+                    bindString += controlNames[n] + " + ";
+                else
+                    bindString += controlNames[n];
+            }
+
+            return bindString;
         }
 
         private static string GetHelpMessage()
         {
             string helpMessage =
-                $"To open Build Vision press [{KeyBinds.Open.BindString}] while aiming at a block; to close the menu, press " +
-                $"[{KeyBinds.Hide.BindString}] or press the open bind again but without pointing at a valid block (like armor). " +
-                $"The [{KeyBinds.ScrollUp.BindString}] and [{KeyBinds.ScrollDown.BindString}] binds can be used to scroll up and down " +
+                $"To open Build Vision, press [{GetBindString(KeyBinds.Open)}] while aiming at a block; to close the menu, press " +
+                $"[{GetBindString(KeyBinds.Hide)}] or press the open bind again but without pointing at a valid block (like armor).\n\n" +
+                $"The [{GetBindString(KeyBinds.ScrollUp)}] and [{GetBindString(KeyBinds.ScrollDown)}] binds can be used to scroll up and down " +
                 $"in the menu and to change the terminal settings of the selected block. To select a setting in the menu press " +
-                $"[{KeyBinds.Select.BindString}]. Pressing the select bind on an action will trigger it (a setting without a number " +
-                $"or On/Off value). If you move more than 10 meters (4 large blocks) from your target block, the menu will " +
+                $"[{GetBindString(KeyBinds.Select)}]. Pressing the select bind on an action will trigger it (a setting without a number " +
+                $"or On/Off value).\n\n" +
+                $"If you move more than 10 meters (4 large blocks) from your target block, the menu will " +
                 $"automatically close. The rate at which a selected terminal value changes with each tick of the scroll wheel can " +
                 $"be changed using the multiplier binds listed below.\n\n" +
-                $"Key binds can be changed using the /bv2 bind chat command or through the F2 mod menu. Enter /bv2 bindHelp in chat " +
-                $"for more information. Chat command are not case sensitive and , ; | or spaces can be used to separate arguments. " +
-                $"For information on chat command see the Build Vision 2 mod page on the Steam Workshop.\n";
+                $"Chat Commands:\n" +
+                $"Chat commands are not case sensitive and , ; | or spaces can be used to separate arguments.\n\n" +
+                $"help -- You are here.\n" +
+                $"bindHelp -- Help menu for changing keybinds\n" +
+                $"printBinds -- Prints current key bind configuration to chat.\n" +
+                $"rebind [bindName] -- Opens the rebind menu\n" +
+                $"bind [bindName] [control1] [control2] [control3] (see bindHelp for more info)\n" +
+                $"save -– Saves the current configuration\n" +
+                $"load -- Loads configuration from the config file\n" +
+                $"resetConfig -- Resets all settings to default\n" +
+                $"resetBinds -- Resets all keybinds\n\n" +
+                $"For more information on chat commands, see the Build Vision workshop page.";
 
-            helpMessage += GetPrintBindsMessage();
             return helpMessage;
         }
 
         private static string GetBindHelpMessage()
         {
             string helpMessage =
-                $"The syntax of the /bv2 bind command is as follows (without brackets): /bv2 bind [bindName] [control1] " +
-                $"[control2] [control3]. To see your current bind settings use the command /bv2 printBinds. No more than three controls " +
+                $"Key binds can be changed using either the rebind menu or the /bv2 bind chat command. The rebind menu can be accessed either " +
+                $"through the mod menu or the /bv2 rebind command.\n\n" +
+                $"To see your current bind settings use /bv2 printBinds. No more than three controls " +
                 $"can be used for any one bind.\n\n" +
+                $"Syntax:\n" +
+                $"rebind: /bv2 rebind [bindName]\n" +
+                $"bind: /bv2 bind [bindName] [control1] [control2] [control3].\n\n " +
                 $"Examples:\n" +
-                $"/bv2 bind open control alt\n" +
+                $"/bv2 rebind open\n" +
                 $"/bv2 bind scrollup pageup\n" +
                 $"/bv2 bind scrolldown pagedown\n\n" +
                 $"To reset your binds to the default settings type /bv2 resetBinds in chat.\n" +
@@ -97,15 +135,15 @@ namespace DarkHelmet.BuildVision2
         {
             string bindHelp =
                 "\n---Build Vision 2 Binds---\n" +
-                $"Open: [{KeyBinds.Open.BindString}]\n" +
-                $"Close: [{KeyBinds.Hide.BindString}]\n" +
-                $"Select [{KeyBinds.Select.BindString}]\n" +
-                $"Scroll Up: [{KeyBinds.ScrollUp.BindString}]\n" +
-                $"Scroll Down: [{KeyBinds.ScrollDown.BindString}]]\n" +
+                $"Open: [{GetBindString(KeyBinds.Open)}]\n" +
+                $"Close: [{GetBindString(KeyBinds.Hide)}]\n" +
+                $"Select [{GetBindString(KeyBinds.Select)}]\n" +
+                $"Scroll Up: [{GetBindString(KeyBinds.ScrollUp)}]\n" +
+                $"Scroll Down: [{GetBindString(KeyBinds.ScrollDown)}]]\n" +
                 "---Multipliers---\n" +
-                $"MultX: [{KeyBinds.MultX.BindString}]\n" +
-                $"MultY: [{KeyBinds.MultY.BindString}]\n" +
-                $"MultZ: [{KeyBinds.MultZ.BindString}]";
+                $"MultX: [{GetBindString(KeyBinds.MultX)}]\n" +
+                $"MultY: [{GetBindString(KeyBinds.MultY)}]\n" +
+                $"MultZ: [{GetBindString(KeyBinds.MultZ)}]";
 
             return bindHelp;
         }
