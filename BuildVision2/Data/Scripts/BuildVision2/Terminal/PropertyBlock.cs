@@ -1,5 +1,6 @@
 using DarkHelmet.UI;
 using Sandbox.Game.Localization;
+using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
@@ -38,6 +39,12 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         string Name { get; }
 
+        bool IsTextfield { get; }
+        /// <summary>
+        /// If true, properties are immediately released when selected.
+        /// </summary>
+        bool AutoRelease { get; }
+
         void OnSelect();
 
         void OnDeselect();
@@ -62,6 +69,7 @@ namespace DarkHelmet.BuildVision2
     internal class PropertyBlock
     {
         public IMyTerminalBlock TBlock { get; private set; }
+        public IMyBlockGroup Group { get; private set; }
         public List<IBlockProperty> Properties { get; private set; }
         public List<IBlockAction> Actions { get; private set; }
         public int ElementCount { get { return Properties.Count + Actions.Count; } }
@@ -107,8 +115,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private static string GetTooltipName(ITerminalProperty prop)
         {
-            if (prop is IMyTerminalControlTitleTooltip tooltip)
+            if (prop is IMyTerminalControlTitleTooltip)
             {
+                IMyTerminalControlTitleTooltip tooltip = (IMyTerminalControlTitleTooltip)prop;
                 int trailingSpaceLength = 0;
                 StringBuilder name = MyTexts.Get(tooltip.Title),
                     cleanedName = new StringBuilder(name.Length);
@@ -155,38 +164,41 @@ namespace DarkHelmet.BuildVision2
 
             foreach (ITerminalProperty prop in properties)
             {
-                if (prop is IMyTerminalControl control)
+                if (prop is IMyTerminalControl)
                 {
+                    IMyTerminalControl control = (IMyTerminalControl)prop;
                     name = GetTooltipName(prop);
 
                     if (name.Length > 0)
                     {
-                        if (prop is ITerminalProperty<StringBuilder> textProp)
+                        if (prop is ITerminalProperty<StringBuilder>)
                         {
+                            ITerminalProperty<StringBuilder> textProp = (ITerminalProperty<StringBuilder>)prop;
+
                             if (name == nameField)
                                 Properties.Insert(0, new TextProperty(name, textProp, control, TBlock));
                             else
                                 Properties.Add(new TextProperty(name, textProp, control, TBlock));
                         }
-                        if (prop is IMyTerminalControlCombobox comboBox) // fields having to do with camera assignments seem to give me trouble here
+                        if (prop is IMyTerminalControlCombobox) // fields having to do with camera assignments seem to give me trouble here
                         {
                             try
                             {
-                                Properties.Add(new ComboBoxProperty(name, comboBox, control, TBlock));
+                                Properties.Add(new ComboBoxProperty(name, (IMyTerminalControlCombobox)prop, control, TBlock));
                             }
                             catch { }
                         }
-                        else if (prop is ITerminalProperty<bool> boolProp)
+                        else if (prop is ITerminalProperty<bool>)
                         {
-                            Properties.Add(new BoolProperty(name, boolProp, control, TBlock));
+                            Properties.Add(new BoolProperty(name, (ITerminalProperty<bool>)prop, control, TBlock));
                         }
-                        else if (prop is ITerminalProperty<float> floatProp)
+                        else if (prop is ITerminalProperty<float>)
                         {
-                            Properties.Add(new FloatProperty(name, floatProp, control, TBlock));
+                            Properties.Add(new FloatProperty(name, (ITerminalProperty<float>)prop, control, TBlock));
                         }
-                        else if (prop is ITerminalProperty<Color> colorProp)
+                        else if (prop is ITerminalProperty<Color>)
                         {
-                            Properties.AddRange(ColorProperty.GetColorProperties(name, colorProp, control, TBlock));
+                            Properties.AddRange(ColorProperty.GetColorProperties(name, (ITerminalProperty<Color>)prop, control, TBlock));
                         }
                     }
                 }
@@ -198,29 +210,29 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void GetScrollableActions()
         {
-            if (TBlock is IMyMechanicalConnectionBlock mechBlock)
+            if (TBlock is IMyMechanicalConnectionBlock)
             {
-                BlockAction.GetMechActions(mechBlock, Actions);
+                BlockAction.GetMechActions((IMyMechanicalConnectionBlock)TBlock, Actions);
             }
-            else if (TBlock is IMyDoor door)
+            else if (TBlock is IMyDoor)
             {
-                BlockAction.GetDoorActions(door, Actions);
+                BlockAction.GetDoorActions((IMyDoor)TBlock, Actions);
             }
-            else if (TBlock is IMyWarhead warhead)
+            else if (TBlock is IMyWarhead)
             {
-                BlockAction.GetWarheadActions(warhead, Actions);
+                BlockAction.GetWarheadActions((IMyWarhead)TBlock, Actions);
             }
-            else if (TBlock is IMyLandingGear landingGear)
+            else if (TBlock is IMyLandingGear)
             {
-                BlockAction.GetGearActions(landingGear, Actions);
+                BlockAction.GetGearActions((IMyLandingGear)TBlock, Actions);
             }
-            else if (TBlock is IMyShipConnector connector)
+            else if (TBlock is IMyShipConnector)
             {
-                BlockAction.GetConnectorActions(connector, Actions);
+                BlockAction.GetConnectorActions((IMyShipConnector)TBlock, Actions);
             }
-            else if (TBlock is IMyParachute chute)
+            else if (TBlock is IMyParachute)
             {
-                BlockAction.GetChuteActions(chute, Actions);
+                BlockAction.GetChuteActions((IMyParachute)TBlock, Actions);
             }
         }
 
@@ -281,14 +293,18 @@ namespace DarkHelmet.BuildVision2
                         () => mechBlock.Detach()));
                 }
 
-                if (mechBlock is IMyPistonBase piston)
+                if (mechBlock is IMyPistonBase)
                 {
+                    IMyPistonBase piston = (IMyPistonBase)mechBlock;
+
                     actions.Add(new BlockAction(
                         () => "Reverse",
                         () => piston.Reverse()));
                 }
-                else if (mechBlock is IMyMotorStator rotor)
+                else if (mechBlock is IMyMotorStator)
                 {
+                    IMyMotorStator rotor = (IMyMotorStator)mechBlock;
+
                     actions.Add(new BlockAction(
                             () => "Reverse",
                             () => rotor.TargetVelocityRad = -rotor.TargetVelocityRad));
@@ -384,6 +400,8 @@ namespace DarkHelmet.BuildVision2
             public virtual string Name { get; protected set; }
             public abstract string Value { get; }
             public virtual bool Enabled { get { return control.Enabled(block) && control.Visible(block); } }
+            public virtual bool IsTextfield { get; protected set; }
+            public virtual bool AutoRelease { get; protected set; }
 
             protected readonly T property;
             protected readonly IMyTerminalControl control;
@@ -392,6 +410,9 @@ namespace DarkHelmet.BuildVision2
             protected BvTerminalProperty(string name, T property, IMyTerminalControl control, IMyTerminalBlock block)
             {
                 Name = name;
+                IsTextfield = false;
+                AutoRelease = false;
+
                 this.property = property;
                 this.control = control;
                 this.block = block;
@@ -417,6 +438,7 @@ namespace DarkHelmet.BuildVision2
 
             public TextProperty(string name, ITerminalProperty<StringBuilder> textProp, IMyTerminalControl control, IMyTerminalBlock block) : base(name, textProp, control, block)
             {
+                IsTextfield = true;
                 lastTime = long.MinValue;
             }
 
@@ -468,6 +490,50 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
+        /// Block Terminal Property of a Boolean
+        /// </summary>
+        private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>>
+        {
+            public override string Value { get { return GetPropStateText(); } }
+
+            private readonly MyStringId OnText, OffText;
+
+            public BoolProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
+            {
+                AutoRelease = true;
+
+                if (property is IMyTerminalControlOnOffSwitch)
+                {
+                    IMyTerminalControlOnOffSwitch onOffSwitch = (IMyTerminalControlOnOffSwitch)property;
+
+                    OnText = onOffSwitch.OnText;
+                    OffText = onOffSwitch.OffText;
+                }
+                else
+                {
+                    OnText = MySpaceTexts.SwitchText_On;
+                    OffText = MySpaceTexts.SwitchText_Off;
+                }
+            }
+
+            public override void OnSelect()
+            {
+                property.SetValue(block, !property.GetValue(block));
+            }
+
+            /// <summary>
+            /// Retrieves the on/off state of given property of a given block as a string.
+            /// </summary>
+            private string GetPropStateText()
+            {
+                if (property.GetValue(block))
+                    return MyTexts.Get(OnText).ToString();
+                else
+                    return MyTexts.Get(OffText).ToString();
+            }
+        }
+
+        /// <summary>
         /// Base for block properties that use scrolling for input.
         /// </summary>
         private abstract class ScrollablePropBase<T> : BvTerminalProperty<T> where T : ITerminalProperty
@@ -503,7 +569,7 @@ namespace DarkHelmet.BuildVision2
             {
                 List<MyTerminalControlComboBoxItem> content = new List<MyTerminalControlComboBoxItem>();
                 comboBox.ComboBoxContent(content);
-                
+
                 keys = new List<long>(content.Count);
                 names = new List<string>(content.Count);
 
@@ -538,53 +604,6 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 return 0;
-            }
-        }
-
-        /// <summary>
-        /// Block Terminal Property of a Boolean
-        /// </summary>
-        private class BoolProperty : ScrollablePropBase<ITerminalProperty<bool>>
-        {
-            public override string Value { get { return GetPropStateText(); } }
-
-            private readonly MyStringId OnText, OffText;
-
-            public BoolProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
-            {
-                if (property is IMyTerminalControlOnOffSwitch onOffSwitch)
-                {
-                    OnText = onOffSwitch.OnText;
-                    OffText = onOffSwitch.OffText;
-                }
-                else
-                {
-                    OnText = MySpaceTexts.SwitchText_On;
-                    OffText = MySpaceTexts.SwitchText_Off;
-                }
-            }
-
-            protected override void ScrollDown()
-            {
-                if (property.GetValue(block) == true)
-                    property.SetValue(block, false);
-            }
-
-            protected override void ScrollUp()
-            {
-                if (property.GetValue(block) == false)
-                    property.SetValue(block, true);
-            }
-
-            /// <summary>
-            /// Retrieves the on/off state of given property of a given block as a string.
-            /// </summary>
-            private string GetPropStateText()
-            {
-                if (property.GetValue(block))
-                    return MyTexts.Get(OnText).ToString();
-                else
-                    return MyTexts.Get(OffText).ToString();
             }
         }
 

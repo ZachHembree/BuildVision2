@@ -13,8 +13,8 @@ namespace DarkHelmet.UI
     {
         public override Vector2D Offset
         {
-            get => base.Offset + (alignVertical ? new Vector2D(0d, Size.Y) : new Vector2D(Size.X, 0d));
-            set => base.Offset = value;
+            get { return base.Offset + (alignVertical ? new Vector2D(0d, Size.Y) : new Vector2D(Size.X, 0d)); }
+            set { base.Offset = value; }
         }
 
         public List<TextBoxBase> elements;
@@ -103,11 +103,11 @@ namespace DarkHelmet.UI
     /// </summary>
     public class ListBox : TextBoxBase
     {
-        public TextAlignment TextAlignment { get => list.TextAlignment; set =>list.TextAlignment = value; }
+        public TextAlignment TextAlignment { get { return list.TextAlignment; } set { list.TextAlignment = value; } }
         public override Vector2D TextSize => list.Size;
         public override double TextScale
         {
-            get => base.TextScale;
+            get { return base.TextScale; }
             set
             {
                 base.TextScale = value;
@@ -259,7 +259,7 @@ namespace DarkHelmet.UI
         public override Vector2D TextSize { get { return new Vector2D((left.Size.X + right.Size.X + Padding.X), Math.Max(left.Size.Y, right.Size.Y)); } }
         public override double TextScale
         {
-            get => base.TextScale;
+            get { return base.TextScale; }
             set
             {
                 base.TextScale = value;
@@ -298,7 +298,7 @@ namespace DarkHelmet.UI
         public override Vector2D TextSize => message.Size;
         public override double TextScale
         {
-            get => base.TextScale;
+            get { return base.TextScale; }
             set
             {
                 base.TextScale = value;
