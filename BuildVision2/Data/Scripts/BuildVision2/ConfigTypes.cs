@@ -2,6 +2,7 @@
 using DarkHelmet.UI;
 using System.Xml.Serialization;
 using VRageMath;
+using System;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -73,13 +74,34 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "CanOpenIfHandsNotEmpty")]
         public bool canOpenIfHolding;
 
+        [XmlElement(ElementName = "maxOpenRange")]
+        public double maxOpenRange;
+
+        [XmlElement(ElementName = "maxControlRange")]
+        public double maxControlRange;
+
         protected override GeneralConfig GetDefaults()
         {
             return new GeneralConfig
             {
                 closeIfNotInView = true,
-                canOpenIfHolding = true
+                canOpenIfHolding = true,
+                maxOpenRange = 10d,
+                maxControlRange = 10d
             };
+        }
+
+        public override void Validate()
+        {
+            if (maxOpenRange == 0d)
+                maxOpenRange = Defaults.maxOpenRange;
+            else
+                maxOpenRange = Utils.Math.Clamp(maxOpenRange, 2.5d, 20d);
+
+            if (maxControlRange == 0d)
+                maxControlRange = Defaults.maxControlRange;
+            else
+                maxControlRange = Utils.Math.Clamp(maxControlRange, maxOpenRange, 60d);
         }
     }
 

@@ -12,7 +12,7 @@ namespace DarkHelmet.BuildVision2
         public override Vector2D UnscaledSize => chain.UnscaledSize;
         public double TextScale
         {
-            get => textScale;
+            get { return textScale; }
             set
             {
                 textScale = value;

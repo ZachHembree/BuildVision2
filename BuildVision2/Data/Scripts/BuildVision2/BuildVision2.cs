@@ -13,7 +13,6 @@ namespace DarkHelmet.BuildVision2
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation, 1)]
     internal sealed partial class BvMain : ModBase
     {
-        private const double maxDist = 10d, maxDistSquared = maxDist * maxDist;
         public static BvConfig Cfg { get { return BvConfig.Current; } }
 
         private PropertyBlock target;
@@ -117,7 +116,7 @@ namespace DarkHelmet.BuildVision2
             IMyCubeBlock block;
             IMyTerminalBlock termBlock;
 
-            if ((Cfg.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(maxDist, out block))
+            if ((Cfg.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(Cfg.general.maxOpenRange, out block))
             {
                 termBlock = block as IMyTerminalBlock;
 
@@ -149,7 +148,7 @@ namespace DarkHelmet.BuildVision2
             if (target != null)
                 dist = (LocalPlayer.Position - target.GetPosition()).LengthSquared();
 
-            return dist < maxDistSquared;
+            return dist < (Cfg.general.maxControlRange * Cfg.general.maxControlRange);
         }
     }
 }

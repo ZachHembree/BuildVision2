@@ -2,7 +2,6 @@
 using DarkHelmet.UI;
 using System;
 using System.Collections.Generic;
-using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -25,7 +24,17 @@ namespace DarkHelmet.BuildVision2
                 new MenuUtilities.MenuButton(
                         () => $"Can Open While Holding Tools: {Cfg.general.canOpenIfHolding}",
                         () => Cfg.general.canOpenIfHolding = !Cfg.general.canOpenIfHolding),
-                
+                new MenuUtilities.MenuSliderInput(
+                        () => $"Max Open Range: {Math.Round(Cfg.general.maxOpenRange, 1)}",
+                        "Max Open Range", 2.5f, 20f,
+                        () => (float)Cfg.general.maxOpenRange,
+                        x => Cfg.general.maxOpenRange = x),
+                new MenuUtilities.MenuSliderInput(
+                        () => $"Max Control Range: {Math.Round(Cfg.general.maxControlRange, 1)}",
+                        "Max Control Range", 2.5f, 60f,
+                        () => (float)Cfg.general.maxControlRange,
+                        x => Cfg.general.maxControlRange = x),
+
                 // GUI Settings
                 new MenuUtilities.MenuCategory("GUI Settings", "GUI Settings", new List<MenuUtilities.IMenuElement>()
                 {
@@ -52,7 +61,7 @@ namespace DarkHelmet.BuildVision2
                         () => $"List Bg Opacity: {AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.listBgColor.A)}",
                         "List Bg Opacity", 0, 100,
                         () => AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.listBgColor.A),
-                        x => 
+                        x =>
                         {
                             PropertiesMenu.ApiHudCfg.colors.listBgColor.A = (byte)(x * 2.55f);
                             PropertiesMenu.ApiHudCfg.colors.listBgColorData = Utils.Color.GetColorString(PropertiesMenu.ApiHudCfg.colors.listBgColor);
@@ -188,7 +197,7 @@ namespace DarkHelmet.BuildVision2
                 string bindName = KeyBinds.BindGroup[n].Name;
 
                 bindSettings.Add(new MenuUtilities.MenuButton(
-                    bindName, 
+                    bindName,
                     () => RebindMenu.UpdateBind(KeyBinds.BindGroup, bindName)));
             }
 

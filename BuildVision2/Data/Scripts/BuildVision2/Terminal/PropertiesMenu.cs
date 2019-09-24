@@ -1,6 +1,7 @@
 ﻿using DarkHelmet.Game;
 using DarkHelmet.UI.TextHudApi;
 using Sandbox.ModAPI;
+using DarkHelmet.UI;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -55,6 +56,8 @@ namespace DarkHelmet.BuildVision2
             MyAPIGateway.Utilities.MessageEntered += MessageHandler;
 
             KeyBinds.Select.OnNewPress += Select;
+            HudUtilities.SharedBinds["Enter"].OnNewPress += ToggleTextBox;
+
             KeyBinds.ScrollUp.OnPressAndHold += ScrollUp;
             KeyBinds.ScrollDown.OnPressAndHold += ScrollDown;
         }
@@ -118,6 +121,20 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        private void ToggleTextBox()
+        {
+            if (open && index < target.Properties.Count && target.Properties[index].IsTextfield)
+            {
+                if (selection == -1 && !MyAPIGateway.Gui.ChatEntryVisible)
+                {
+                    target.Properties[index].OnSelect();
+                    selection = index;
+                }
+                else if (MyAPIGateway.Gui.ChatEntryVisible)
+                    Deselect();
+            }
+        }
+
         private void Select()
         {
             if (open)
@@ -132,6 +149,9 @@ namespace DarkHelmet.BuildVision2
                     {
                         target.Properties[index].OnSelect();
                         selection = index;
+
+                        if (target.Properties[index].AutoRelease)
+                            Deselect();
                     }
                     else
                         Deselect();
