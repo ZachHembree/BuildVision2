@@ -56,7 +56,7 @@ namespace DarkHelmet.BuildVision2
             MyAPIGateway.Utilities.MessageEntered += MessageHandler;
 
             KeyBinds.Select.OnNewPress += Select;
-            HudUtilities.SharedBinds["Enter"].OnNewPress += ToggleTextBox;
+            SharedBinds.Enter.OnNewPress += ToggleTextBox;
 
             KeyBinds.ScrollUp.OnPressAndHold += ScrollUp;
             KeyBinds.ScrollDown.OnPressAndHold += ScrollDown;

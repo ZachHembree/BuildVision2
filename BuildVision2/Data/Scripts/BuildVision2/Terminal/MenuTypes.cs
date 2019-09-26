@@ -100,12 +100,10 @@ namespace DarkHelmet.BuildVision2
         private class ApiHud : PropertyList
         {
             private readonly BvScrollMenu menu;
-            private readonly List<string> propertyList;
 
             public ApiHud()
             {
-                menu = new BvScrollMenu(20) { Visible = false, TextScale = .85 }; // .85, .92
-                propertyList = new List<string>(20);
+                menu = new BvScrollMenu(20) { Visible = false, TextScale = .85f }; // .85, .92
             }
 
             /// <summary>
@@ -120,14 +118,14 @@ namespace DarkHelmet.BuildVision2
                     headerText = ModBase.ModName;
 
                     maxVisible = ApiHudCfg.maxVisible;
-                    menu.list.BgColor = ApiHudCfg.colors.listBgColor;
-                    menu.header.BgColor = ApiHudCfg.colors.headerColor;
-                    menu.footer.BgColor = ApiHudCfg.colors.headerColor;
-                    menu.selectionBox.color = ApiHudCfg.colors.selectionBoxColor;
+                    menu.list.BgColor = ApiHudCfg.colors.listBg.color;
+                    menu.header.BgColor = ApiHudCfg.colors.header.color;
+                    menu.footer.BgColor = ApiHudCfg.colors.header.color;
+                    menu.selectionBox.Color = ApiHudCfg.colors.selectionBox.color;
                     menu.Visible = true;
 
                     if (ApiHudCfg.resolutionScaling)
-                        menu.Scale = ApiHudCfg.hudScale * HudUtilities.ResScale;
+                        menu.Scale = ApiHudCfg.hudScale * HudMain.ResScale;
                     else
                         menu.Scale = ApiHudCfg.hudScale;
 
@@ -154,19 +152,19 @@ namespace DarkHelmet.BuildVision2
             private void UpdatePos()
             {
                 Vector3D targetPos, worldPos;
-                Vector2D screenPos, screenBounds = Vector2D.One;
+                Vector2 screenPos, screenBounds = Vector2.One;
 
                 if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !ApiHudCfg.useCustomPos)
                 {
-                    menu.originAlignment = OriginAlignment.Center;
+                    menu.OriginAlignment = OriginAlignment.Center;
                     targetPos = Target.GetPosition();
                     worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
-                    screenPos = new Vector2D(worldPos.X, worldPos.Y);
-                    screenBounds -= menu.RelativeSize * menu.Scale / 2d;
+                    screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
+                    screenBounds -= menu.NativeSize * menu.Scale / 2f;
                 }
                 else
                 {
-                    menu.originAlignment = OriginAlignment.Auto;
+                    menu.OriginAlignment = OriginAlignment.Auto;
                     screenPos = ApiHudCfg.hudPos;
                 }
 
@@ -176,7 +174,7 @@ namespace DarkHelmet.BuildVision2
                     screenPos.Y = Utils.Math.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
                 }
 
-                menu.ScaledOrigin = screenPos;
+                menu.NativeOrigin = screenPos;
             }
 
             /// <summary>
@@ -185,10 +183,15 @@ namespace DarkHelmet.BuildVision2
             private void UpdateText()
             {
                 int i = start, action;
-                string colorCode;
+                RichText currentText;
+                GlyphFormat currentFormat,
+                    headerFormat = new GlyphFormat(ApiHudCfg.colors.headerText.color),
+                    bodyFormat = new GlyphFormat(ApiHudCfg.colors.bodyText.color),
+                    selectionFormat = new GlyphFormat(ApiHudCfg.colors.selectedText.color),
+                    highlightFormat = new GlyphFormat(ApiHudCfg.colors.highlightText.color);
 
-                propertyList.Clear();
-                menu.header.Text = $"<color={ApiHudCfg.colors.headerText}>{headerText}";
+                menu.list.Clear();
+                menu.header.Text += new RichText(headerText, headerFormat);
 
                 for (int n = 0; (n < visCount && i < Target.ElementCount); n++)
                 {
@@ -196,37 +199,42 @@ namespace DarkHelmet.BuildVision2
 
                     if (i == selection)
                     {
-                        colorCode = $"<color={ApiHudCfg.colors.selectedText}>";
-                        menu.SelectionIndex = propertyList.Count;
+                        currentFormat = selectionFormat;
+                        menu.SelectionIndex = menu.list.Count;
                     }
                     else if (i == index)
                     {
-                        colorCode = $"<color={ApiHudCfg.colors.highlightText}>";
-                        menu.SelectionIndex = propertyList.Count;
+                        currentFormat = highlightFormat;
+                        menu.SelectionIndex = menu.list.Count;
                     }
                     else
-                        colorCode = $"<color={ApiHudCfg.colors.bodyText}>";
+                        currentFormat = bodyFormat;
+
+                    currentText = new RichText();
 
                     if (i >= Target.Properties.Count)
-                        propertyList.Add(colorCode + Target.Actions[action].Value);
+                        currentText += new RichText(Target.Actions[action].Value, currentFormat);
                     else
-                        propertyList.Add($"<color={ApiHudCfg.colors.bodyText}>{Target.Properties[i].Name}: {colorCode}{Target.Properties[i].Value}");
+                    {
+                        currentText += new RichText($"{Target.Properties[i].Name}: ", bodyFormat);
+                        currentText += new RichText(Target.Properties[i].Value, currentFormat);
+                    }
 
+                    menu.list.Add(currentText);
                     i++;
 
                     while (i < Target.ElementCount && !IsElementEnabled(i))
                         i++;
                 }
 
-                menu.list.ListText = propertyList.ToArray();
-                menu.footer.LeftText = $"<color={ApiHudCfg.colors.headerText}>[{visStart + 1} - {visStart + visCount} of {Target.EnabledElementCount}]";
+                menu.footer.LeftText += new RichText($"[{visStart + 1} - {visStart + visCount} of {Target.EnabledElementCount}]", headerFormat);
 
                 if (Target.IsWorking)
-                    menu.footer.RightText = $"<color={ApiHudCfg.colors.headerText}>[Working]";
+                    menu.footer.RightText += new RichText("[Working]", headerFormat);
                 else if (Target.IsFunctional)
-                    menu.footer.RightText = $"<color={ApiHudCfg.colors.headerText}>[Functional]";
+                    menu.footer.RightText += new RichText("[Functional]", headerFormat);
                 else
-                    menu.footer.RightText = $"<color={ApiHudCfg.colors.blockIncText}>[Incomplete]";
+                    menu.footer.RightText += new RichText("[Incomplete]", new GlyphFormat(ApiHudCfg.colors.blockIncText.color));
             }
         }
 

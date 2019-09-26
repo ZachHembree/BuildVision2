@@ -15,19 +15,22 @@ namespace DarkHelmet.UI
             set { instance = value; }
         }
         private static RebindMenu instance;
+        private static readonly GlyphFormat defaultFormat, errorFormat;
         private static readonly List<IControl> blacklist;
         private const long inputWaitTime = 100;
 
         private readonly List<IControl> newControls;
         private readonly RebindHud menu;
         private readonly Utils.Stopwatch stopwatch;
-        private readonly List<string> bodyText;
         private BindManager.Group group;
         private IBind bind;
         private bool open;
 
         static RebindMenu()
         {
+            defaultFormat = new GlyphFormat(color: new Color(210, 235, 245));
+            errorFormat = new GlyphFormat(color: new Color(180, 20, 20));
+
             blacklist = new List<IControl>
             {
                 BindManager.GetControlByName("enter"),
@@ -40,15 +43,14 @@ namespace DarkHelmet.UI
         {
             newControls = new List<IControl>();
             stopwatch = new Utils.Stopwatch();
-            bodyText = new List<string>();
             menu = new RebindHud();
 
-            menu.footer.LeftText = "<color=210,235,245>[Enter] = Accept";
-            menu.footer.RightText = "<color=210,235,245>[Delete] = Remove";
+            menu.footer.LeftText.SetText(new RichString("[Enter] = Accept", defaultFormat));
+            menu.footer.RightText.SetText(new RichString("[Delete] = Remove", defaultFormat));
 
-            HudUtilities.SharedBinds["enter"].OnNewPress += Confirm;
-            HudUtilities.SharedBinds["delete"].OnNewPress += RemoveLast;
-            HudUtilities.SharedBinds["escape"].OnNewPress += Exit;
+            SharedBinds.Enter.OnNewPress += Confirm;
+            SharedBinds.Delete.OnNewPress += RemoveLast;
+            SharedBinds.Escape.OnNewPress += Exit;
         }
 
         private static void Init()
@@ -72,7 +74,7 @@ namespace DarkHelmet.UI
             Instance.group = group;
             Instance.bind = bind;
             Instance.UpdateBodyText();
-            Instance.menu.header.Text = $"<color=210,235,245>Bind Manager: {bind.Name}";
+            Instance.menu.header.Text.SetText($"Bind Manager: {bind.Name}");
         }
 
         public static void UpdateBind(BindManager.Group group, string bindName)
@@ -107,11 +109,12 @@ namespace DarkHelmet.UI
         /// </summary>
         private void UpdateBodyText()
         {
-            string bindString = "New Bind: ";
+            RichText bindString = new RichText(defaultFormat);
+            bindString += "New Bind: ";
 
-            bodyText.Clear();
-            bodyText.Add("<color=210,235,245>Press a key to add it to the bind.");
-            bodyText.Add(HudUtilities.LineBreak);
+            menu.body.Clear();
+            menu.body.Add(new RichText("Press a key to add it to the bind.\n", defaultFormat));
+            //bodyText.Add(HudMain.LineBreak);
 
             for (int n = 0; n < newControls.Count; n++)
             {
@@ -121,16 +124,13 @@ namespace DarkHelmet.UI
                     bindString += newControls[n].Name;
             }
 
-            bodyText.Add($"<color=210,235,245>{bindString}");
+            menu.body.Add(bindString);
 
             if (group.DoesComboConflict(newControls, bind))
             {
-                bodyText.Add(HudUtilities.LineBreak);
-                bodyText.Add("<color=180,20,20>Warning: Current key combination");
-                bodyText.Add("<color=180,20,20>conflicts with another bind.");
+                menu.body.Add(new RichText("\nWarning: Current key combination", errorFormat));
+                menu.body.Add(new RichText("conflicts with another bind.", errorFormat));
             }
-
-            menu.body.ListText = bodyText;
         }
 
         /// <summary>
@@ -184,30 +184,29 @@ namespace DarkHelmet.UI
         /// <summary>
         /// Generates the UI for the <see cref="RebindMenu"/>
         /// </summary>
-        private class RebindHud : HudUtilities.ElementBase
+        private class RebindHud : HudElementBase
         {
             public override bool Visible => Instance.open;
-            public override double Scale => HudUtilities.ResScale;
-            public override Vector2D UnscaledSize => chain.UnscaledSize;
+            public override Vector2 Size => chain.Size;
+            public override float Scale { get { return chain.Scale; } set { chain.Scale = value; } }
 
             public readonly TextBox header;
             public readonly ListBox body;
             public readonly DoubleTextBox footer;
-            private readonly TextBoxChain chain;
+            private readonly BoxChain chain;
 
-            public RebindHud()
+            public RebindHud() : base(HudMain.Root)
             {
                 header = new TextBox()
-                { TextScale = .935, Padding = new Vector2D(48d, 18d), BgColor = new Color(41, 54, 62, 229) };
+                { TextScale = .935f, Padding = new Vector2(48f, 18f), BgColor = new Color(41, 54, 62, 229), DefaultFormat = new GlyphFormat(color: new Color(210, 235, 245)) };
 
                 body = new ListBox(10)
-                { TextAlignment = TextAlignment.Center, TextScale = .85, Padding = new Vector2D(48d, 16d), BgColor = new Color(70, 78, 86, 204) };
+                { TextAlignment = TextAlignment.Center, TextScale = .85f, Padding = new Vector2(48f, 16f), BgColor = new Color(70, 78, 86, 204) };
 
                 footer = new DoubleTextBox()
-                { TextScale = .85, Padding = new Vector2D(48d, 8d), BgColor = new Color(41, 54, 62, 229) };
+                { TextScale = .85f, Padding = new Vector2(48f, 8f), BgColor = new Color(41, 54, 62, 229) };
 
-                chain = new TextBoxChain(new List<TextBoxBase>() { header, body, footer })
-                { parent = this };
+                chain = new BoxChain(new List<ResizableElementBase>() { header, body, footer }, this);
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using VRageMath;
 
 namespace DarkHelmet
 {
@@ -36,7 +37,7 @@ namespace DarkHelmet
         /// <summary>
         /// Returns an array containing only unique entries from the collection.
         /// </summary>
-        public static T[] GetUnique<T>(this ICollection<T> original)
+        public static T[] GetUnique<T>(this System.Collections.Generic.ICollection<T> original)
         {
             List<T> unique = new List<T>(original.Count);
 
@@ -48,5 +49,20 @@ namespace DarkHelmet
 
             return unique.ToArray();
         }
+    }
+
+    public static class VectorExtensions
+    {
+        /// <summary>
+        /// Converts a <see cref="Vector2"/> to a <see cref="Vector2D"/>
+        /// </summary>
+        public static Vector2D ToDouble(this Vector2 vec) =>
+            new Vector2D(vec.X, vec.Y);
+
+        /// <summary>
+        /// Converts a <see cref="Vector2D"/> to a <see cref="Vector2"/>
+        /// </summary>
+        public static Vector2 ToSingle(this Vector2D vec) =>
+            new Vector2((float)vec.X, (float)vec.Y);
     }
 }

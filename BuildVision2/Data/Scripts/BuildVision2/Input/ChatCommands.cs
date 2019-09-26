@@ -47,7 +47,7 @@ namespace DarkHelmet.BuildVision2
                 new CmdManager.Command ("close",
                     () => TryCloseMenu()),
                 new CmdManager.Command ("toggleTestPattern",
-                    () => HudUtilities.TestPattern.Toggle()),
+                    () => HudMain.TestPattern.Toggle()),
                 new CmdManager.Command ("reload",
                     () => Instance.Close()),
                 new CmdManager.Command("crash", 

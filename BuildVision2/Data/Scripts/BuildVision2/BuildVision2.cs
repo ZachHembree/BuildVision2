@@ -4,6 +4,8 @@ using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
+using DarkHelmet.UI.Rendering;
+using DarkHelmet.UI.FontData;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -29,6 +31,11 @@ namespace DarkHelmet.BuildVision2
 
         protected override void AfterInit()
         {
+            FontManager.TryAddFont(SeFont.font);
+            FontManager.TryAddFont(SeFontShadowed.font);
+            FontManager.TryAddFont(Monospace.font);
+            FontManager.TryAddFont(TimesNewRoman.font);
+
             LoadStarted = true;
             LoadFinished = false;
             BvConfig.LoadStart(InitFinish, true);
@@ -49,7 +56,7 @@ namespace DarkHelmet.BuildVision2
 
                 KeyBinds.Open.OnNewPress += TryOpenMenu;
                 KeyBinds.Hide.OnNewPress += TryCloseMenu;
-                HudUtilities.SharedBinds["escape"].OnNewPress += TryCloseMenu;
+                SharedBinds.Escape.OnNewPress += TryCloseMenu;
 
                 SendChatMessage($"Type {bvCommands.prefix} help for help. Settings are available through the mod menu.");
             }

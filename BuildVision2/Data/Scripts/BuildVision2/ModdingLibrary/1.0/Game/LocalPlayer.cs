@@ -42,7 +42,7 @@ namespace DarkHelmet.Game
         }
 
         /// <summary>
-        /// Tries to retrieve targeted <see cref="IMyCubeBlock"/> on a grid within a given distance.
+        /// Tries to retrieve targeted fat block on a grid within a given distance.
         /// </summary>
         public static bool TryGetTargetedBlock(double maxDist, out IMyCubeBlock fatBlock)
         {

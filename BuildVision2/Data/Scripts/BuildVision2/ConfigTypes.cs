@@ -2,7 +2,6 @@
 using DarkHelmet.UI;
 using System.Xml.Serialization;
 using VRageMath;
-using System;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -161,7 +160,7 @@ namespace DarkHelmet.BuildVision2
         public bool useCustomPos;
 
         [XmlElement(ElementName = "HudPosition")]
-        public Vector2D hudPos;
+        public Vector2 hudPos;
 
         [XmlElement(ElementName = "ColorsRGB")]
         public Colors colors;
@@ -171,45 +170,42 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public class Colors : Config<Colors>
         {
-            [XmlIgnore]
-            public Color listBgColor, selectionBoxColor, headerColor;
-
             [XmlElement(ElementName = "BodyText")]
-            public string bodyText;
+            public ColorData bodyText;
 
             [XmlElement(ElementName = "HeaderText")]
-            public string headerText;
+            public ColorData headerText;
 
             [XmlElement(ElementName = "BlockIncompleteText")]
-            public string blockIncText;
+            public ColorData blockIncText;
 
             [XmlElement(ElementName = "HighlightText")]
-            public string highlightText;
+            public ColorData highlightText;
 
             [XmlElement(ElementName = "SelectedText")]
-            public string selectedText;
+            public ColorData selectedText;
 
             [XmlElement(ElementName = "ListBg")]
-            public string listBgColorData;
+            public ColorData listBg;
 
             [XmlElement(ElementName = "SelectionBg")]
-            public string selectionBoxColorData;
+            public ColorData selectionBox;
 
             [XmlElement(ElementName = "HeaderBg")]
-            public string headerColorData;
+            public ColorData header;
 
             protected override Colors GetDefaults()
             {
                 return new Colors
                 {
-                    bodyText = "210,235,245",
-                    headerText = "210,235,245",
-                    blockIncText = "200,15,15",
-                    highlightText = "200,170,0",
-                    selectedText = "30,200,30",
-                    listBgColor = new Color(70, 78, 86, 204),
-                    selectionBoxColor = new Color(41, 54, 62, 255),
-                    headerColor = new Color(41, 54, 62, 230)
+                    bodyText = new ColorData(210, 235, 245),
+                    headerText = new ColorData(210, 235, 245),
+                    blockIncText = new ColorData(200, 35, 35),
+                    highlightText = new ColorData(220, 190, 20),
+                    selectedText = new ColorData(50, 200, 50),
+                    listBg = new ColorData(70, 78, 86, 204),
+                    selectionBox = new ColorData(41, 54, 62, 255),
+                    header = new ColorData(41, 54, 62, 230)
                 };
             }
 
@@ -218,35 +214,49 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public override void Validate()
             {
-                if (bodyText == null || !Utils.Color.CanParseColor(bodyText))
-                    bodyText = Defaults.bodyText;
+                bodyText.Validate(Defaults.bodyText);
+                headerText.Validate(Defaults.headerText);
+                blockIncText.Validate(Defaults.blockIncText);
+                highlightText.Validate(Defaults.highlightText);
+                selectedText.Validate(Defaults.selectedText);
+                listBg.Validate(Defaults.listBg);
+                selectionBox.Validate(Defaults.selectionBox);
+                header.Validate(Defaults.header);
+            }
 
-                if (blockIncText == null || !Utils.Color.CanParseColor(blockIncText))
-                    blockIncText = Defaults.blockIncText;
+            public class ColorData
+            {
+                [XmlIgnore]
+                public string data;
+                [XmlIgnore]
+                public Color color;
 
-                if (highlightText == null || !Utils.Color.CanParseColor(highlightText))
-                    highlightText = Defaults.highlightText;
+                public ColorData()
+                { }
 
-                if (selectedText == null || !Utils.Color.CanParseColor(selectedText))
-                    selectedText = Defaults.selectedText;
-
-                if (listBgColorData == null || !Utils.Color.TryParseColor(listBgColorData, out listBgColor))
+                public ColorData(int r, int g, int b)
                 {
-                    listBgColor = Defaults.listBgColor;
-                    listBgColorData = Utils.Color.GetColorString(listBgColor);
+                    color = new Color(r, g, b);
+                    data = Utils.Color.GetColorString(color, false);
                 }
 
-                if (selectionBoxColorData == null || !Utils.Color.TryParseColor(selectionBoxColorData, out selectionBoxColor))
+                public ColorData(int r, int g, int b, int a)
                 {
-                    selectionBoxColor = Defaults.selectionBoxColor;
-                    selectionBoxColorData = Utils.Color.GetColorString(selectionBoxColor);
+                    color = new Color(r, g, b, a);
+                    data = Utils.Color.GetColorString(color);
                 }
 
-                if (headerColorData == null || !Utils.Color.TryParseColor(headerColorData, out headerColor))
+                public void Validate(ColorData def)
                 {
-                    headerColor = Defaults.headerColor;
-                    headerColorData = Utils.Color.GetColorString(headerColor);
+                    if (data == null || !Utils.Color.TryParseColor(data, out color))
+                    {
+                        color = def.color;
+                        data = def.data;
+                    }
                 }
+
+                public override string ToString() =>
+                    Utils.Color.GetColorString(color);
             }
         }
 
@@ -259,7 +269,7 @@ namespace DarkHelmet.BuildVision2
                 maxVisible = 14,
                 clampHudPos = true,
                 useCustomPos = false,
-                hudPos = new Vector2D(-0.97083337604999542, 0.95370364189147949),
+                hudPos = new Vector2(-0.97083337604999542f, 0.95370364189147949f),
                 colors = Colors.Defaults
             };
         }

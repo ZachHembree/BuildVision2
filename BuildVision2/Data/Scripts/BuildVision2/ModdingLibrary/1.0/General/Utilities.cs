@@ -1,6 +1,5 @@
 ﻿using Sandbox.ModAPI;
 using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using VRageMath;
 
@@ -8,22 +7,6 @@ namespace DarkHelmet
 {
     public static partial class Utils
     {
-        /// <summary>
-        /// Read only wrapper for types of <see cref="IList{T}"/> in lieu of the one in System.Collections.ObjectModel. 
-        /// The indexer doesn't allow modification of the collection, but if the underlying collection is modified, this will reflect that.
-        /// </summary>
-        public class ReadOnlyCollection<T>
-        {
-            public T this[int index] => collection[index];
-            public int Count => collection.Count;
-
-            private readonly IList<T> collection;
-            public ReadOnlyCollection(IList<T> collection)
-            {
-                this.collection = collection;
-            }
-        }
-
         /// <summary>
         /// Simple stopwatch class in lieu of <see cref="System.Diagnostics.Stopwatch"/>.
         /// </summary>
@@ -192,9 +175,9 @@ namespace DarkHelmet
 
         public static class Debug
         {
-            public static void AssertNotNull<T>(T obj)
+            public static void AssertNotNull<T>(T obj, string message = "")
             {
-                Assert(obj != null, $"Object of type {typeof(T).ToString()} is null.");
+                Assert(obj != null, $"Object of type {typeof(T).ToString()} is null. " + message);
             }
 
             public static void Assert(bool condition, string message = "")
@@ -211,7 +194,7 @@ namespace DarkHelmet
             /// </summary>
             public static double Clamp(double value, double min, double max)
             {
-                if (value < min)
+                if (value <= min)
                     return min;
                 else if (value > max)
                     return max;
@@ -224,7 +207,7 @@ namespace DarkHelmet
             /// </summary>
             public static float Clamp(float value, float min, float max)
             {
-                if (value < min)
+                if (value <= min)
                     return min;
                 else if (value > max)
                     return max;
@@ -237,7 +220,7 @@ namespace DarkHelmet
             /// </summary>
             public static int Clamp(int value, int min, int max)
             {
-                if (value < min)
+                if (value <= min)
                     return min;
                 else if (value > max)
                     return max;
@@ -250,7 +233,7 @@ namespace DarkHelmet
             /// </summary>
             public static long Clamp(long value, long min, long max)
             {
-                if (value < min)
+                if (value <= min)
                     return min;
                 else if (value > max)
                     return max;
@@ -273,6 +256,17 @@ namespace DarkHelmet
             /// Clamps a <see cref="Vector2D"/> members between two values.
             /// </summary>
             public static Vector2D Clamp(Vector2D value, double min, double max)
+            {
+                value.X = Clamp(value.X, min, max);
+                value.Y = Clamp(value.Y, min, max);
+
+                return value;
+            }
+
+            /// <summary>
+            /// Clamps a <see cref="Vector2"/> members between two values.
+            /// </summary>
+            public static Vector2 Clamp(Vector2 value, float min, float max)
             {
                 value.X = Clamp(value.X, min, max);
                 value.Y = Clamp(value.Y, min, max);
@@ -315,6 +309,16 @@ namespace DarkHelmet
             /// Finds the absolute value of the components of a <see cref="Vector2I"/>.
             /// </summary>
             public static Vector2I Abs(Vector2I value)
+            {
+                value.X = System.Math.Abs(value.X);
+                value.Y = System.Math.Abs(value.Y);
+                return value;
+            }
+
+            /// <summary>
+            /// Finds the absolute value of the components of a <see cref="Vector2"/>.
+            /// </summary>
+            public static Vector2 Abs(Vector2 value)
             {
                 value.X = System.Math.Abs(value.X);
                 value.Y = System.Math.Abs(value.Y);

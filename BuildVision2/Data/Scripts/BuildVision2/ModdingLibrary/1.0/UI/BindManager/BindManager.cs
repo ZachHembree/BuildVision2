@@ -81,7 +81,7 @@ namespace DarkHelmet.UI
     public sealed class BindManager : ModBase.ComponentBase
     {
         public const int maxBindLength = 3;
-        public static Utils.ReadOnlyCollection<IControl> Controls { get; }
+        public static ReadOnlyCollection<IControl> Controls { get; }
 
         private static BindManager Instance
         {
@@ -111,9 +111,9 @@ namespace DarkHelmet.UI
                 MyKeys.CapsLock
             };
 
-            controlDictionary = new Dictionary<string, Control>();
+            controlDictionary = new Dictionary<string, Control>(200);
             controls = GenerateControls();
-            Controls = new Utils.ReadOnlyCollection<IControl>(controls as IControl[]);
+            Controls = new ReadOnlyCollection<IControl>(controls as IControl[]);
         }
 
         private BindManager()
@@ -183,7 +183,7 @@ namespace DarkHelmet.UI
         /// </summary>
         private static Control[] GenerateControls()
         {
-            List<Control> controlList = new List<Control>(220);
+            List<Control> controlList = new List<Control>(200);
 
             controlList.Add(new Control("MousewheelUp",
                 () => MyAPIGateway.Input.DeltaMouseScrollWheelValue() > 0, true));
@@ -228,7 +228,7 @@ namespace DarkHelmet.UI
         /// Contains a set of keybinds independent of other groups and determines when/if those binds can be pressed. 
         /// While a group's own binds cannot conflict with oneanother, binds in other groups may.
         /// </summary>
-        public class Group
+        public class Group : IIndexedCollection<IBind>
         {
             public readonly string name;
 

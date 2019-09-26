@@ -444,21 +444,21 @@ namespace DarkHelmet.BuildVision2
 
             public override void OnSelect()
             {
-                HudUtilities.TextInput.CurrentText = CleanText(property.GetValue(block));
+                TextInput.CurrentText = CleanText(property.GetValue(block));
                 lastTime = DateTime.Now.Ticks;
                 selected = true;
             }
 
             public override void OnDeselect()
             {
-                HudUtilities.TextInput.Open = false;
-                property.SetValue(block, new StringBuilder(HudUtilities.TextInput.CurrentText));
+                TextInput.Open = false;
+                property.SetValue(block, new StringBuilder(TextInput.CurrentText));
                 selected = false;
             }
 
             public override void HandleInput()
             {
-                HudUtilities.TextInput.Open = selected && MyAPIGateway.Gui.ChatEntryVisible;
+                TextInput.Open = selected && MyAPIGateway.Gui.ChatEntryVisible;
 
                 if (DateTime.Now.Ticks >= lastTime + blinkInterval)
                 {
@@ -477,9 +477,9 @@ namespace DarkHelmet.BuildVision2
                     if (MyAPIGateway.Gui.ChatEntryVisible)
                     {
                         if (blink)
-                            return HudUtilities.TextInput.CurrentText + '|';
+                            return TextInput.CurrentText + '|';
                         else
-                            return HudUtilities.TextInput.CurrentText;
+                            return TextInput.CurrentText;
                     }
                     else
                         return "Open Chat to Continue";
