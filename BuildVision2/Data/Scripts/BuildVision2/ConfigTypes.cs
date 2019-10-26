@@ -24,7 +24,7 @@ namespace DarkHelmet.BuildVision2
         {
             return new BvConfig
             {
-                VersionID = 6,
+                VersionID = 7,
                 general = GeneralConfig.Defaults,
                 menu = PropMenuConfig.Defaults,
                 block = PropBlockConfig.Defaults,
@@ -34,6 +34,9 @@ namespace DarkHelmet.BuildVision2
 
         public override void Validate()
         {
+            if (VersionID < 7)
+                menu.apiHudConfig.hudOpacity = ApiHudConfig.Defaults.hudOpacity;
+
             if (VersionID < 6)
                 menu = PropMenuConfig.Defaults;
 
@@ -150,6 +153,9 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "HudScale")]
         public float hudScale;
 
+        [XmlElement(ElementName = "HudOpacity")]
+        public float hudOpacity;
+
         [XmlElement(ElementName = "MaxVisibleItems")]
         public int maxVisible;
 
@@ -162,115 +168,17 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "HudPosition")]
         public Vector2 hudPos;
 
-        [XmlElement(ElementName = "ColorsRGB")]
-        public Colors colors;
-
-        /// <summary>
-        /// Stores configurable text and background colors for Text HUD based menu.
-        /// </summary>
-        public class Colors : Config<Colors>
-        {
-            [XmlElement(ElementName = "BodyText")]
-            public ColorData bodyText;
-
-            [XmlElement(ElementName = "HeaderText")]
-            public ColorData headerText;
-
-            [XmlElement(ElementName = "BlockIncompleteText")]
-            public ColorData blockIncText;
-
-            [XmlElement(ElementName = "HighlightText")]
-            public ColorData highlightText;
-
-            [XmlElement(ElementName = "SelectedText")]
-            public ColorData selectedText;
-
-            [XmlElement(ElementName = "ListBg")]
-            public ColorData listBg;
-
-            [XmlElement(ElementName = "SelectionBg")]
-            public ColorData selectionBox;
-
-            [XmlElement(ElementName = "HeaderBg")]
-            public ColorData header;
-
-            protected override Colors GetDefaults()
-            {
-                return new Colors
-                {
-                    bodyText = new ColorData(210, 235, 245),
-                    headerText = new ColorData(210, 235, 245),
-                    blockIncText = new ColorData(200, 35, 35),
-                    highlightText = new ColorData(220, 190, 20),
-                    selectedText = new ColorData(50, 200, 50),
-                    listBg = new ColorData(70, 78, 86, 204),
-                    selectionBox = new ColorData(41, 54, 62, 255),
-                    header = new ColorData(41, 54, 62, 230)
-                };
-            }
-
-            /// <summary>
-            /// Checks any if fields have invalid values and resets them to the default if necessary.
-            /// </summary>
-            public override void Validate()
-            {
-                bodyText.Validate(Defaults.bodyText);
-                headerText.Validate(Defaults.headerText);
-                blockIncText.Validate(Defaults.blockIncText);
-                highlightText.Validate(Defaults.highlightText);
-                selectedText.Validate(Defaults.selectedText);
-                listBg.Validate(Defaults.listBg);
-                selectionBox.Validate(Defaults.selectionBox);
-                header.Validate(Defaults.header);
-            }
-
-            public class ColorData
-            {
-                [XmlIgnore]
-                public string data;
-                [XmlIgnore]
-                public Color color;
-
-                public ColorData()
-                { }
-
-                public ColorData(int r, int g, int b)
-                {
-                    color = new Color(r, g, b);
-                    data = Utils.Color.GetColorString(color, false);
-                }
-
-                public ColorData(int r, int g, int b, int a)
-                {
-                    color = new Color(r, g, b, a);
-                    data = Utils.Color.GetColorString(color);
-                }
-
-                public void Validate(ColorData def)
-                {
-                    if (data == null || !Utils.Color.TryParseColor(data, out color))
-                    {
-                        color = def.color;
-                        data = def.data;
-                    }
-                }
-
-                public override string ToString() =>
-                    Utils.Color.GetColorString(color);
-            }
-        }
-
         protected override ApiHudConfig GetDefaults()
         {
             return new ApiHudConfig
             {
                 resolutionScaling = true,
                 hudScale = 1f,
+                hudOpacity = 0.9f,
                 maxVisible = 14,
                 clampHudPos = true,
                 useCustomPos = false,
-                hudPos = new Vector2(-0.97083337604999542f, 0.95370364189147949f),
-                colors = Colors.Defaults
+                hudPos = new Vector2(-0.97083337604999542f, 0.95370364189147949f)
             };
         }
 
@@ -285,10 +193,8 @@ namespace DarkHelmet.BuildVision2
             if (hudScale == default(float))
                 hudScale = Defaults.hudScale;
 
-            if (colors != null)
-                colors.Validate();
-            else
-                colors = Defaults.colors;
+            if (hudOpacity == default(float))
+                hudOpacity = Defaults.hudOpacity;
         }
     }
 
@@ -380,11 +286,11 @@ namespace DarkHelmet.BuildVision2
     public class BindsConfig : Config<BindsConfig>
     {
         [XmlIgnore]
-        public static BindData[] DefaultBinds
+        public static BindDefinition[] DefaultBinds
         {
             get
             {
-                BindData[] copy = new BindData[defaultBinds.Length];
+                BindDefinition[] copy = new BindDefinition[defaultBinds.Length];
 
                 for (int n = 0; n < defaultBinds.Length; n++)
                     copy[n] = defaultBinds[n];
@@ -393,20 +299,20 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private static readonly BindData[] defaultBinds = new BindData[]
+        private static readonly BindDefinition[] defaultBinds = new BindDefinition[]
         {
-            new BindData("open", new string[] { "control", "middlebutton" }),
-            new BindData("close", new string[] { "shift", "middlebutton" }),
-            new BindData("select", new string[] { "middlebutton" }),
-            new BindData("scrollup", new string[] { "mousewheelup" }),
-            new BindData("scrolldown", new string[] { "mousewheeldown" }),
-            new BindData("multx", new string[] { "control" }),
-            new BindData("multy", new string[] { "shift" }),
-            new BindData("multz", new string[] { "control", "shift" })
+            new BindDefinition("open", new string[] { "control", "middlebutton" }),
+            new BindDefinition("close", new string[] { "shift", "middlebutton" }),
+            new BindDefinition("select", new string[] { "middlebutton" }),
+            new BindDefinition("scrollup", new string[] { "mousewheelup" }),
+            new BindDefinition("scrolldown", new string[] { "mousewheeldown" }),
+            new BindDefinition("multx", new string[] { "control" }),
+            new BindDefinition("multy", new string[] { "shift" }),
+            new BindDefinition("multz", new string[] { "control", "shift" })
         };
 
         [XmlArray("KeyBinds")]
-        public BindData[] bindData;
+        public BindDefinition[] bindData;
 
         protected override BindsConfig GetDefaults()
         {

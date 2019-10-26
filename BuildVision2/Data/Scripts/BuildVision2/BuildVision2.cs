@@ -5,15 +5,16 @@ using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using DarkHelmet.UI.Rendering;
-using DarkHelmet.UI.FontData;
 
 namespace DarkHelmet.BuildVision2
 {
+    using BismiteClient;
+
     /// <summary>
     /// Build vision main class
     /// </summary>
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation, 1)]
-    internal sealed partial class BvMain : ModBase
+    internal sealed partial class BvMain : BismiteClient
     {
         public static BvConfig Cfg { get { return BvConfig.Current; } }
 
@@ -29,13 +30,11 @@ namespace DarkHelmet.BuildVision2
             TaskPool.MaxTasksRunning = 2;
         }
 
-        protected override void AfterInit()
-        {
-            FontManager.TryAddFont(SeFont.font);
-            FontManager.TryAddFont(SeFontShadowed.font);
-            FontManager.TryAddFont(Monospace.font);
-            FontManager.TryAddFont(TimesNewRoman.font);
+        public BvMain()
+        { }
 
+        protected override void HudInit()
+        {
             LoadStarted = true;
             LoadFinished = false;
             BvConfig.LoadStart(InitFinish, true);
@@ -62,7 +61,7 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        protected override void BeforeClose()
+        protected override void HudClose()
         {
             if (LoadFinished)
             {

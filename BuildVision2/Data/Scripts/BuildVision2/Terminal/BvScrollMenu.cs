@@ -21,6 +21,17 @@ namespace DarkHelmet.BuildVision2
                 footer.TextScale = value;
             }
         }
+        public float BgOpacity
+        {
+            get { return bgOpacity; }
+            set
+            {
+                header.BgColor = header.BgColor.SetAlpha((byte)(255f * bgOpacity));
+                list.BgColor = list.BgColor.SetAlpha((byte)(255f * bgOpacity * .887f));
+                footer.BgColor = footer.BgColor.SetAlpha((byte)(255f * bgOpacity));
+                bgOpacity = value;
+            }
+        }
         public int SelectionIndex
         {
             get { return selectionIndex; }
@@ -31,13 +42,15 @@ namespace DarkHelmet.BuildVision2
         public readonly ListBox list;
         public readonly DoubleTextBox footer;
         public readonly TexturedBox selectionBox, tab;
+
         private readonly BoxChain chain;
         private int selectionIndex = 0;
-        private float textScale;
+        private float textScale, bgOpacity;
 
         public BvScrollMenu(int maxListLength) : base(HudMain.Root)
         {
             textScale = 1f;
+            bgOpacity = 0.9f;
 
             header = new TextBox()
             { Padding = new Vector2(48f, 14f) };
@@ -50,7 +63,7 @@ namespace DarkHelmet.BuildVision2
 
             chain = new BoxChain(new List<ResizableElementBase>() { header, list, footer }, this);
 
-            selectionBox = new TexturedBox((HudNodeBase)list.Background);
+            selectionBox = new TexturedBox(list.Background);
 
             tab = new TexturedBox(selectionBox)
             { Width = 3f, Offset = new Vector2(2f, 0f), Color = new Color(225, 225, 240, 255), ParentAlignment = ParentAlignment.Left };

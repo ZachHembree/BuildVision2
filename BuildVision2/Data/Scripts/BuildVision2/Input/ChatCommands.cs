@@ -3,6 +3,7 @@ using DarkHelmet.UI;
 using System;
 using System.Collections.Generic;
 using Sandbox.ModAPI;
+using System.Text;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -12,7 +13,7 @@ namespace DarkHelmet.BuildVision2
 
         private List<CmdManager.Command> GetChatCommands()
         {
-            controlList = BindManager.GetControlListString();
+            controlList = GetControlList();
 
             return new List <CmdManager.Command>
             {
@@ -23,9 +24,9 @@ namespace DarkHelmet.BuildVision2
                 new CmdManager.Command ("printBinds",
                     () => SendChatMessage(GetPrintBindsMessage())),
                 new CmdManager.Command ("bind",
-                    (string[] args) => KeyBinds.BindGroup.TryUpdateBind(args[0], args.GetSubarray(1))),
+                    (string[] args) => UpdateBind(args[0], args.GetSubarray(1))),
                 new CmdManager.Command("rebind",
-                    (string[] args) => RebindMenu.UpdateBind(KeyBinds.BindGroup, KeyBinds.BindGroup[args[0]])),
+                    (string[] args) => RebindMenu.UpdateBind(KeyBinds.BindGroup, KeyBinds.BindGroup.GetBind(args[0]))),
                 new CmdManager.Command("resetBinds",
                     () => KeyBinds.Cfg = BindsConfig.Defaults),
                 new CmdManager.Command ("save",
@@ -46,16 +47,12 @@ namespace DarkHelmet.BuildVision2
                     () => TryOpenMenu()),
                 new CmdManager.Command ("close",
                     () => TryCloseMenu()),
-                new CmdManager.Command ("toggleTestPattern",
-                    () => HudMain.TestPattern.Toggle()),
                 new CmdManager.Command ("reload",
                     () => Instance.Close()),
                 new CmdManager.Command("crash", 
                     Crash),
                 new CmdManager.Command("printControlsToLog",
-                    () => ModBase.WriteToLogStart($"Control List:\n{BindManager.GetControlListString()}")),
-                new CmdManager.Command("repeatMe", 
-                    (string[] args) => MyAPIGateway.Utilities.ShowMessage(LocalPlayer.CharEnt?.DisplayName, args[0]))
+                    () => WriteToLogStart($"Control List:\n{GetControlList()}"))
             };
         }
 
@@ -64,17 +61,33 @@ namespace DarkHelmet.BuildVision2
             throw new Exception($"Crash chat command was called.");
         }
 
+        private static void UpdateBind(string bindName, string[] controls)
+        {
+            IBind bind = KeyBinds.BindGroup.GetBind(bindName);
+            bind.TrySetCombo(controls);
+        }
+
+        private static string GetControlList()
+        {
+            StringBuilder text = new StringBuilder(BindManager.Controls.Count * 10);
+
+            foreach (IControl control in BindManager.Controls)
+                text.AppendLine(control.Name);
+
+            return text.ToString();
+        }
+
         private static string GetBindString(IBind bind)
         {
-            List<string> controlNames = KeyBinds.BindGroup.GetBindControlNames(bind);
+            IList<IControl> combo = bind.GetCombo();
             string bindString = "";
 
-            for (int n = 0; n < controlNames.Count; n++)
+            for (int n = 0; n < combo.Count; n++)
             {
-                if (n != controlNames.Count - 1)
-                    bindString += controlNames[n] + " + ";
+                if (n != combo.Count - 1)
+                    bindString += combo[n].Name + " + ";
                 else
-                    bindString += controlNames[n];
+                    bindString += combo[n].Name;
             }
 
             return bindString;

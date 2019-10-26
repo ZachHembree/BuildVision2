@@ -49,23 +49,10 @@ namespace DarkHelmet.BuildVision2
                         x => PropertiesMenu.ApiHudCfg.hudScale = x),
                     // Opacity
                     new MenuUtilities.MenuSliderInput(
-                        () => $"Header Bg Opacity: {AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.header.color.A)}",
+                        () => $"Menu Opacity: {FloatToPercent(PropertiesMenu.ApiHudCfg.hudOpacity)}",
                         "Header Bg Opacity", 0, 100,
-                        () => AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.header.color.A),
-                        x =>
-                        {
-                            PropertiesMenu.ApiHudCfg.colors.header.color.A = (byte)(x * 2.55f);
-                            PropertiesMenu.ApiHudCfg.colors.header.data = Utils.Color.GetColorString(PropertiesMenu.ApiHudCfg.colors.header.color);
-                        }),
-                    new MenuUtilities.MenuSliderInput(
-                        () => $"List Bg Opacity: {AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.listBg.color.A)}",
-                        "List Bg Opacity", 0, 100,
-                        () => AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.listBg.color.A),
-                        x =>
-                        {
-                            PropertiesMenu.ApiHudCfg.colors.listBg.color.A = (byte)(x * 2.55f);
-                            PropertiesMenu.ApiHudCfg.colors.listBg.data = Utils.Color.GetColorString(PropertiesMenu.ApiHudCfg.colors.listBg.color);
-                        }),
+                        () => FloatToPercent(PropertiesMenu.ApiHudCfg.hudOpacity),
+                        x => PropertiesMenu.ApiHudCfg.hudOpacity = x / 100f),
                     // Misc
                     new MenuUtilities.MenuSliderInput(
                         () => $"Max Visible Properties: {PropertiesMenu.ApiHudCfg.maxVisible}",
@@ -182,8 +169,8 @@ namespace DarkHelmet.BuildVision2
             };
         }
 
-        private static int AlphaToPercent(byte alpha) =>
-            (int)Math.Round((alpha * 100d) / 255d);
+        private static int FloatToPercent(float value) =>
+            (int)Math.Round(value * 100d);
 
         /// <summary>
         /// Creates list of settings for configuring keybinds via the Text HUD API's Mod Menu

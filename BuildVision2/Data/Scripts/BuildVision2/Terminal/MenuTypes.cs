@@ -52,7 +52,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             protected virtual void GetVisibleProperties()
             {
-                int totalEnabled = Target.EnabledElementCount, visIndex = GetVisIndex();
+                int totalEnabled = Target.EnabledMembers, visIndex = GetVisIndex();
                 visCount = (maxVisible > totalEnabled) ? totalEnabled : maxVisible;
 
                 if (index < start)
@@ -71,7 +71,7 @@ namespace DarkHelmet.BuildVision2
                     {
                         start--;
 
-                        if (IsElementEnabled(start))
+                        if (Target.BlockMembers[start].Enabled)
                             n++;
                     }
                 }
@@ -86,7 +86,7 @@ namespace DarkHelmet.BuildVision2
 
                 for (int n = 0; n < index; n++)
                 {
-                    if (IsElementEnabled(n))
+                    if (Target.BlockMembers[n].Enabled)
                         visIndex++;
                 }
 
@@ -100,10 +100,24 @@ namespace DarkHelmet.BuildVision2
         private class ApiHud : PropertyList
         {
             private readonly BvScrollMenu menu;
+            private static readonly Color
+                bodyTextColor = new Color(210, 235, 245),
+                headerTextColor = new Color(210, 235, 245),
+                blockIncTextColor = new Color(200, 35, 35),
+                highlightTextColor = new Color(220, 190, 20),
+                selectedTextColor = new Color(50, 200, 50),
+                headerColor = new Color(41, 54, 62),
+                listBgColor = new Color(70, 78, 86),
+                selectionBoxColor = new Color(41, 54, 62);
 
             public ApiHud()
             {
-                menu = new BvScrollMenu(20) { Visible = false, TextScale = .85f }; // .85, .92
+                menu = new BvScrollMenu(20) { Visible = false, TextScale = .885f };
+
+                menu.list.BgColor = listBgColor;
+                menu.header.BgColor = headerColor;
+                menu.footer.BgColor = headerColor;
+                menu.selectionBox.Color = selectionBoxColor;
             }
 
             /// <summary>
@@ -118,10 +132,7 @@ namespace DarkHelmet.BuildVision2
                     headerText = ModBase.ModName;
 
                     maxVisible = ApiHudCfg.maxVisible;
-                    menu.list.BgColor = ApiHudCfg.colors.listBg.color;
-                    menu.header.BgColor = ApiHudCfg.colors.header.color;
-                    menu.footer.BgColor = ApiHudCfg.colors.header.color;
-                    menu.selectionBox.Color = ApiHudCfg.colors.selectionBox.color;
+                    menu.BgOpacity = ApiHudCfg.hudOpacity;
                     menu.Visible = true;
 
                     if (ApiHudCfg.resolutionScaling)
@@ -182,20 +193,20 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void UpdateText()
             {
-                int i = start, action;
+                int i = start;
                 RichText currentText;
                 GlyphFormat currentFormat,
-                    headerFormat = new GlyphFormat(ApiHudCfg.colors.headerText.color),
-                    bodyFormat = new GlyphFormat(ApiHudCfg.colors.bodyText.color),
-                    selectionFormat = new GlyphFormat(ApiHudCfg.colors.selectedText.color),
-                    highlightFormat = new GlyphFormat(ApiHudCfg.colors.highlightText.color);
+                    headerFormat = new GlyphFormat(headerTextColor),
+                    bodyFormat = new GlyphFormat(bodyTextColor),
+                    selectionFormat = new GlyphFormat(selectedTextColor),
+                    highlightFormat = new GlyphFormat(highlightTextColor);
 
                 menu.list.Clear();
-                menu.header.Text += new RichText(headerText, headerFormat);
+                menu.header.Text.Append(new RichText(headerText, headerFormat));
 
-                for (int n = 0; (n < visCount && i < Target.ElementCount); n++)
+                for (int n = 0; (n < visCount && i < Target.BlockMembers.Count); n++)
                 {
-                    action = i - Target.Properties.Count;
+                    currentText = new RichText();
 
                     if (i == selection)
                     {
@@ -210,31 +221,26 @@ namespace DarkHelmet.BuildVision2
                     else
                         currentFormat = bodyFormat;
 
-                    currentText = new RichText();
+                    if (Target.BlockMembers[i].Name.Length > 0)
+                        currentText += new RichText($"{Target.BlockMembers[i].Name}: ", bodyFormat);
 
-                    if (i >= Target.Properties.Count)
-                        currentText += new RichText(Target.Actions[action].Value, currentFormat);
-                    else
-                    {
-                        currentText += new RichText($"{Target.Properties[i].Name}: ", bodyFormat);
-                        currentText += new RichText(Target.Properties[i].Value, currentFormat);
-                    }
+                    currentText += new RichText(Target.BlockMembers[i].Value, currentFormat);
 
                     menu.list.Add(currentText);
                     i++;
 
-                    while (i < Target.ElementCount && !IsElementEnabled(i))
+                    while (i < Target.BlockMembers.Count && !Target.BlockMembers[i].Enabled)
                         i++;
                 }
 
-                menu.footer.LeftText += new RichText($"[{visStart + 1} - {visStart + visCount} of {Target.EnabledElementCount}]", headerFormat);
+                menu.footer.LeftText.Append(new RichText($"[{visStart + 1} - {visStart + visCount} of {Target.EnabledMembers}]", headerFormat));
 
                 if (Target.IsWorking)
-                    menu.footer.RightText += new RichText("[Working]", headerFormat);
+                    menu.footer.RightText.Append(new RichText("[Working]", headerFormat));
                 else if (Target.IsFunctional)
-                    menu.footer.RightText += new RichText("[Functional]", headerFormat);
+                    menu.footer.RightText.Append(new RichText("[Functional]", headerFormat));
                 else
-                    menu.footer.RightText += new RichText("[Incomplete]", new GlyphFormat(ApiHudCfg.colors.blockIncText.color));
+                    menu.footer.RightText.Append(new RichText("[Incomplete]", new GlyphFormat(blockIncTextColor)));
             }
         }
 
@@ -293,28 +299,26 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void UpdateText()
             {
-                int i = start, action;
+                int i = start;
 
                 header.Show();
                 header.AliveTime = int.MaxValue;
-                header.Text = $"{headerText} ({visStart + 1} - {visStart + visCount} of {Target.EnabledElementCount})";
+                header.Text = $"{headerText} ({visStart + 1} - {visStart + visCount} of {Target.EnabledMembers})";
 
-                for (int n = 0; (i < Target.ElementCount && n < visCount); n++)
+                for (int n = 0; (i < Target.BlockMembers.Count && n < visCount); n++)
                 {
                     if (list[n] == null)
                         list[n] = MyAPIGateway.Utilities.CreateNotification("");
-
-                    action = i - Target.Properties.Count;
 
                     // make sure its still being shown
                     list[n].Show();
                     list[n].AliveTime = int.MaxValue;
 
                     // get name
-                    if (i >= Target.Properties.Count)
-                        list[n].Text = Target.Actions[action].Value;
+                    if (Target.BlockMembers[i].Name.Length > 0)
+                        list[n].Text = Target.BlockMembers[i].Value;
                     else
-                        list[n].Text = $"{Target.Properties[i].Name}: {Target.Properties[i].Value}";
+                        list[n].Text = $"{Target.BlockMembers[i].Name}: {Target.BlockMembers[i].Value}";
 
                     // get color
                     if (i == selection)
@@ -326,7 +330,7 @@ namespace DarkHelmet.BuildVision2
 
                     i++;
 
-                    while (i < Target.ElementCount && !IsElementEnabled(i))
+                    while (i < Target.BlockMembers.Count && !Target.BlockMembers[i].Enabled)
                         i++;
                 }
 

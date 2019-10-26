@@ -43,7 +43,7 @@ namespace DarkHelmet.BuildVision2
         private readonly NotifHud fallbackHud;
         private int index, selection;
 
-        private PropertiesMenu()
+        private PropertiesMenu() : base(false, true)
         {
             apiHud = new ApiHud();
             fallbackHud = new NotifHud();
@@ -80,12 +80,6 @@ namespace DarkHelmet.BuildVision2
                 sendToOthers = false;
         }
 
-        private static bool IsElementEnabled(int index)
-        {
-            int a = index - Target.Properties.Count;
-            return (index < Target.Properties.Count && Target.Properties[index].Enabled) || (a >= 0 && Target.Actions[a].Enabled);
-        }
-
         private void ScrollDown()
         {
             if (open)
@@ -108,11 +102,16 @@ namespace DarkHelmet.BuildVision2
                 int newIndex = index;
                 bool scrollDown = scrolllDir > 0;
 
-                while ((scrollDown && newIndex < target.ElementCount - 1) || (!scrollDown && newIndex > 0))
+                for (int n = 0; n < target.BlockMembers.Count; n++)
                 {
                     newIndex += scrolllDir;
 
-                    if (IsElementEnabled(newIndex))
+                    if (newIndex < 0)
+                        newIndex = target.BlockMembers.Count - 1;
+                    else if (newIndex >= target.BlockMembers.Count)
+                        newIndex = 0;
+
+                    if (target.BlockMembers[newIndex].Enabled)
                     {
                         index = newIndex;
                         break;
@@ -123,13 +122,10 @@ namespace DarkHelmet.BuildVision2
 
         private void ToggleTextBox()
         {
-            if (open && index < target.Properties.Count && target.Properties[index].IsTextfield)
+            if (open && target.BlockMembers[index].InputType.HasFlag(BlockInputType.Text))
             {
                 if (selection == -1 && !MyAPIGateway.Gui.ChatEntryVisible)
-                {
-                    target.Properties[index].OnSelect();
-                    selection = index;
-                }
+                    Select();
                 else if (MyAPIGateway.Gui.ChatEntryVisible)
                     Deselect();
             }
@@ -139,31 +135,24 @@ namespace DarkHelmet.BuildVision2
         {
             if (open)
             {
-                int action = index - target.Properties.Count;
-
-                if (index >= target.Properties.Count)
-                    target.Actions[action].Action();
-                else
+                if (selection == -1)
                 {
-                    if (selection == -1)
-                    {
-                        target.Properties[index].OnSelect();
-                        selection = index;
+                    target.BlockMembers[index].OnSelect();
+                    selection = index;
 
-                        if (target.Properties[index].AutoRelease)
-                            Deselect();
-                    }
-                    else
+                    if (target.BlockMembers[index].InputType == BlockInputType.None)
                         Deselect();
                 }
+                else
+                    Deselect();
             }
         }
 
         private void Deselect()
         {
-            if (index < target.Properties.Count && selection != -1)
+            if (selection != -1)
             {
-                target.Properties[selection].OnDeselect();
+                target.BlockMembers[selection].OnDeselect();
                 selection = -1;
             }
         }
@@ -175,9 +164,9 @@ namespace DarkHelmet.BuildVision2
         {
             index = 0;
 
-            for (int n = 0; n < target.ElementCount; n++)
+            for (int n = 0; n < target.BlockMembers.Count; n++)
             {
-                if (IsElementEnabled(n))
+                if (target.BlockMembers[n].Enabled)
                 {
                     index = n;
                     break;
@@ -188,7 +177,7 @@ namespace DarkHelmet.BuildVision2
         public override void HandleInput()
         {
             if (selection != -1)
-                target.Properties[selection].HandleInput();
+                target.BlockMembers[selection].HandleInput();
         }
 
         /// <summary>
@@ -200,7 +189,7 @@ namespace DarkHelmet.BuildVision2
             {
                 if (open)
                 {
-                    if (HudAPIv2.Heartbeat && !Cfg.forceFallbackHud)
+                    if (!Cfg.forceFallbackHud)
                     {
                         if (fallbackHud.Open)
                             fallbackHud.Hide();

@@ -72,43 +72,42 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Client\BismiteClient.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Client\UI\BindManager\BindManager.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Client\UI\BindManager\RebindMenu.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Client\UI\HUD\HudMain.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Client\UI\HUD\Rendering\TextBoard.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Client\UI\HUD\RichText.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Client\UI\MenuUtilities.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\Game\LocalPlayer.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\Game\ModBase.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\General\Collections.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\General\Extensions.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\General\GenericSingleton.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\General\TaskPool.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\General\Utilities.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\IO\ConfigIO.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\IO\LocalFileIO.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\IO\LogIO.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\MsgEnums.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\BindManager\BindDefinition.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\BindManager\BindInterfaces.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\CmdManager.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\HudAPIv2.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\HUD\ClickableHudElements.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\HUD\HudElementData.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\HUD\HudElementInterfaces.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\HUD\HudElements.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\HUD\HudElementsBase.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\HUD\ICursor.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\HUD\Rendering\DocInterfaces.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\HUD\Rendering\HudBoard.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\SharedBinds.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BismiteAPI\Shared\UI\TextInput.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\BuildVision2.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\FontData\Monospace.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\FontData\SpaceEngineers.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\FontData\SpaceEngineersShadowed.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\FontData\TimesNewRoman.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\KeyBinds.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\ChatCommands.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Input\SettingsMenu.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\Game\LocalPlayer.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\Game\ModBase.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\Collections.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\Extensions.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\GenericSingleton.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\TaskPool.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\General\Utilities.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\IO\ConfigIO.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\IO\LocalFileIO.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\IO\LogIO.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\BindManager\BindManager.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\BindManager\RebindMenu.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\CmdManager.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\ClickableHudElements.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudAPIv2.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudElementInterfaces.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudElements.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudElementsBase.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\HudMain.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\Rendering\FontManager.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\Rendering\FormattedText\FormattedTextBase.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\Rendering\FormattedText\HudDocument.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\Rendering\FormattedText\LinedText.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\Rendering\FormattedText\WrappedText.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\Rendering\HudBoards.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\RichText.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\HUD\UiTestPattern.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\MenuUtilities.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ModdingLibrary\1.0\UI\SharedBinds.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BvScrollMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\MenuTypes.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\PropertiesMenu.cs" />
@@ -117,13 +116,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="BuildVision2\Data\Scripts\FontResources\Monospace.sbc" />
-    <None Include="BuildVision2\Data\Scripts\FontResources\SpaceEngineers.sbc" />
-    <None Include="BuildVision2\Data\Scripts\FontResources\SpaceEngineersShadowed.sbc" />
-    <None Include="BuildVision2\Data\Scripts\FontResources\TimesNewRoman.sbc" />
-    <None Include="BuildVision2\Data\Scripts\hudLibMats.sbc" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
