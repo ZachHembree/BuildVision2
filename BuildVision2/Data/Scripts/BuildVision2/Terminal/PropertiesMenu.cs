@@ -1,7 +1,6 @@
 ﻿using DarkHelmet.Game;
-using DarkHelmet.UI.TextHudApi;
-using Sandbox.ModAPI;
 using DarkHelmet.UI;
+using Sandbox.ModAPI;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -41,6 +40,7 @@ namespace DarkHelmet.BuildVision2
 
         private readonly ApiHud apiHud;
         private readonly NotifHud fallbackHud;
+        private readonly Utils.Stopwatch listWrapTimer;
         private int index, selection;
 
         private PropertiesMenu() : base(false, true)
@@ -52,6 +52,7 @@ namespace DarkHelmet.BuildVision2
             index = 0;
             selection = -1;
             open = false;
+            listWrapTimer = new Utils.Stopwatch();
 
             MyAPIGateway.Utilities.MessageEntered += MessageHandler;
 
@@ -99,17 +100,22 @@ namespace DarkHelmet.BuildVision2
         {
             if (selection == -1)
             {
-                int newIndex = index;
+                int newIndex = index, max = target.BlockMembers.Count - 1;
                 bool scrollDown = scrolllDir > 0;
 
                 for (int n = 0; n < target.BlockMembers.Count; n++)
                 {
                     newIndex += scrolllDir;
 
-                    if (newIndex < 0)
-                        newIndex = target.BlockMembers.Count - 1;
-                    else if (newIndex >= target.BlockMembers.Count)
-                        newIndex = 0;
+                    if (listWrapTimer.ElapsedMilliseconds > 300)
+                    {
+                        if (newIndex < 0)
+                            newIndex = max;
+                        else if (newIndex >= target.BlockMembers.Count)
+                            newIndex = 0;
+                    }
+                    else
+                        newIndex = Utils.Math.Clamp(newIndex, 0, max);
 
                     if (target.BlockMembers[newIndex].Enabled)
                     {
@@ -117,6 +123,8 @@ namespace DarkHelmet.BuildVision2
                         break;
                     }
                 }
+
+                listWrapTimer.Start();
             }
         }
 
@@ -218,6 +226,12 @@ namespace DarkHelmet.BuildVision2
                     ResetIndex();
                 }
             }
+        }
+
+        public override void Draw()
+        {
+            if (target != null && open && apiHud.Open)
+                apiHud.Draw();
         }
 
         /// <summary>

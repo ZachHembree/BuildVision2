@@ -61,20 +61,21 @@ namespace DarkHelmet.Game
                 grid.GetLineIntersectionExactAll(ref line, out dist, out slimBlockA);
                 slimBlockB = grid.GetCubeBlock(grid.WorldToGridInteger(hitPos + forward * .1));
 
-                //MyCubeBlockDefinition def = slimBlockA?.BlockDefinition as MyCubeBlockDefinition;
                 IMyCubeBlock blockA = slimBlockA?.FatBlock,
                     blockB = slimBlockB?.FatBlock;
 
-                /*if (def != null)
+                if (blockA != null)
                 {
-                    Vector3I gridDir = blockB.Position - blockA.Position;
-                    //def.MountPoints[0].
-                }*/
-
-                if (blockB != null)
+                    BoundingBoxD bb;
+                    slimBlockA.GetWorldBoundingBox(out bb);
+                    
+                    if (blockB != null && bb.Distance(hitPos) > 0d)
+                        fatBlock = blockB;
+                    else
+                        fatBlock = blockA;
+                }
+                else
                     fatBlock = blockB;
-                else if (blockA != null)
-                    fatBlock = blockA;
             }
 
             return fatBlock != null;

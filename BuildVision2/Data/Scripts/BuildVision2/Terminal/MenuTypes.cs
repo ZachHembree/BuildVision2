@@ -38,6 +38,8 @@ namespace DarkHelmet.BuildVision2
 
             public abstract void Update(int index, int selection);
 
+            public virtual void Draw() { }
+
             public virtual void Hide()
             {
                 Open = false;
@@ -142,7 +144,6 @@ namespace DarkHelmet.BuildVision2
 
                     GetVisibleProperties();
                     UpdateText();
-                    UpdatePos();
                 }
             }
 
@@ -160,7 +161,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Updates position of menu on screen.
             /// </summary>
-            private void UpdatePos()
+            public override void Draw()
             {
                 Vector3D targetPos, worldPos;
                 Vector2 screenPos, screenBounds = Vector2.One;
@@ -168,7 +169,7 @@ namespace DarkHelmet.BuildVision2
                 if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !ApiHudCfg.useCustomPos)
                 {
                     menu.OriginAlignment = OriginAlignment.Center;
-                    targetPos = Target.GetPosition();
+                    targetPos = Target.GetPosition() + Target.modelOffset * .75;
                     worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
                     screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
                     screenBounds -= menu.NativeSize * menu.Scale / 2f;
@@ -315,7 +316,7 @@ namespace DarkHelmet.BuildVision2
                     list[n].AliveTime = int.MaxValue;
 
                     // get name
-                    if (Target.BlockMembers[i].Name.Length > 0)
+                    if (Target.BlockMembers[i].Name.Length == 0)
                         list[n].Text = Target.BlockMembers[i].Value;
                     else
                         list[n].Text = $"{Target.BlockMembers[i].Name}: {Target.BlockMembers[i].Value}";

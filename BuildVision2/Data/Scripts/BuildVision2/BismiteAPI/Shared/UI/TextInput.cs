@@ -7,7 +7,8 @@ using System;
 namespace DarkHelmet.UI
 {
     /// <summary>
-    /// Captures text input and allows for backspacing. Special characters are ignored.
+    /// Captures text input and allows for backspacing. Special characters are ignored. This type's input isn't updated internally;
+    /// HandleInput must be called for it to function.
     /// </summary>
     public class TextInput
     {
@@ -19,13 +20,11 @@ namespace DarkHelmet.UI
         public bool Open { get; set; }
 
         private readonly StringBuilder currentText;
-        private readonly Utils.Stopwatch stopwatch;
         private readonly Func<char, bool> IsFilteredFunc;
 
         public TextInput(Func<char, bool> IsFilteredFunc = null)
         {
             currentText = new StringBuilder(50);
-            stopwatch = new Utils.Stopwatch();
             this.IsFilteredFunc = IsFilteredFunc;
         }
 

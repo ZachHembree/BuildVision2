@@ -12,6 +12,10 @@ using VRage;
 using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
+using VRage.Game;
+using VRage.Game.Components;
+using VRage.Game.ModAPI;
+
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
 using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
@@ -68,6 +72,7 @@ namespace DarkHelmet.BuildVision2
         public bool IsFunctional { get { return TBlock.IsFunctional; } }
         public bool IsWorking { get { return TBlock.IsWorking; } }
         public bool CanLocalPlayerAccess { get { return TBlock.HasLocalPlayerAccess(); } }
+        public readonly Vector3D modelOffset;
         public static PropBlockConfig Cfg { get { return BvConfig.Current.block; } set { BvConfig.Current.block = value; } }
 
         private readonly List<IBlockMember> blockMembers;
@@ -80,6 +85,10 @@ namespace DarkHelmet.BuildVision2
 
             GetScrollableProps();
             GetScrollableActions();
+
+            BoundingBoxD bb;
+            tBlock.SlimBlock.GetWorldBoundingBox(out bb);
+            modelOffset = bb.Center - tBlock.GetPosition();
         }
 
         /// <summary>
@@ -148,7 +157,7 @@ namespace DarkHelmet.BuildVision2
         private void GetScrollableProps()
         {
             List<ITerminalProperty> properties = new List<ITerminalProperty>(12);
-            string name, nameField = MyTexts.TrySubstitute("Name");
+            string name;
             TBlock.GetProperties(properties);
 
             foreach (ITerminalProperty prop in properties)
@@ -164,7 +173,7 @@ namespace DarkHelmet.BuildVision2
                         {
                             ITerminalProperty<StringBuilder> textProp = (ITerminalProperty<StringBuilder>)prop;
 
-                            if (name == nameField)
+                            if (prop.Id == "Name")
                                 blockMembers.Insert(0, new TextProperty(name, textProp, control, TBlock));
                             else
                                 blockMembers.Add(new TextProperty(name, textProp, control, TBlock));
@@ -295,9 +304,9 @@ namespace DarkHelmet.BuildVision2
                 if (mechBlock is IMyPistonBase)
                 {
                     IMyPistonBase piston = (IMyPistonBase)mechBlock;
-
+                    
                     members.Add(new BlockAction(
-                        () => $"Reverse ({Math.Round(piston.CurrentPosition, 1)}m)",
+                        () => "Reverse",
                         () => piston.Reverse()));
                 }
                 else if (mechBlock is IMyMotorStator)
@@ -305,7 +314,7 @@ namespace DarkHelmet.BuildVision2
                     IMyMotorStator rotor = (IMyMotorStator)mechBlock;
 
                     members.Add(new BlockAction(
-                            () => $"Reverse ({Math.Round(Utils.Math.Clamp(rotor.Angle.RadiansToDegrees(), 0, 359.99))})",
+                            () => "Reverse",
                             () => rotor.TargetVelocityRad = -rotor.TargetVelocityRad));
                 }
             }
@@ -401,6 +410,7 @@ namespace DarkHelmet.BuildVision2
             public virtual bool Enabled { get { return control.Enabled(block) && control.Visible(block); } }
             public BlockInputType InputType { get; protected set; }
 
+            protected readonly Func<string> NameFunc;
             protected readonly T property;
             protected readonly IMyTerminalControl control;
             protected readonly IMyTerminalBlock block;
@@ -491,12 +501,28 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>>
         {
-            public override string Value { get { return GetPropStateText(); } }
+            public override string Value => GetValueFunc();
 
+            private readonly Func<string> GetValueFunc;
             private readonly MyStringId OnText, OffText;
 
             public BoolProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
             {
+                if (property.Id == "OnOff" && (block.ResourceSink != null || block is IMyPowerProducer)) // Insert power draw / output info
+                {
+                    MyDefinitionId definitionId = MyDefinitionId.FromContent(block.SlimBlock.GetObjectBuilder());
+                    var sink = block.ResourceSink;
+                    var producer = block as IMyPowerProducer;
+
+                    GetValueFunc = () => $"{GetPropStateText()} ({GetBlockPowerInfo(sink, producer, definitionId)})";
+                }
+                else if (property.Id == "Stockpile" && block is IMyGasTank) // Insert gas tank info
+                {
+                    GetValueFunc = () => $"{GetPropStateText()} ({GetGasTankFillPercent((IMyGasTank)block)})";
+                }
+                else
+                    GetValueFunc = GetPropStateText;
+
                 if (property is IMyTerminalControlOnOffSwitch)
                 {
                     IMyTerminalControlOnOffSwitch onOffSwitch = (IMyTerminalControlOnOffSwitch)property;
@@ -509,6 +535,53 @@ namespace DarkHelmet.BuildVision2
                     OnText = MySpaceTexts.SwitchText_On;
                     OffText = MySpaceTexts.SwitchText_Off;
                 }
+            }
+
+            private static string GetBlockPowerInfo(MyResourceSinkComponentBase sink, IMyPowerProducer producer, MyDefinitionId definitionId)
+            {
+                string disp = "", suffix;
+                float powerDraw = sink != null ? sink.CurrentInputByType(definitionId) : 0f, 
+                    powerOut = producer != null ? producer.CurrentOutput  : 0f, 
+                    total = (powerDraw + powerOut), scale;
+                
+                if (total >= 1000f)
+                {
+                    scale = .001f;
+                    suffix = "GW";
+                }
+                else if (total >= 1f)
+                {
+                    scale = 1f;
+                    suffix = "MW";
+                }
+                else if (total >= .001f)
+                {
+                    scale = 1000f;
+                    suffix = "KW";
+                }
+                else
+                {
+                    scale = 1000000f;
+                    suffix = "W";
+                }
+
+                if (sink != null)
+                    disp += Math.Round(powerDraw * scale, 1);
+
+                if (producer != null)
+                {
+                    if (sink != null)
+                        disp += " / ";
+
+                    disp += "+" + Math.Round(powerOut * scale, 1);
+                }
+
+                return $"{disp} {suffix}";
+            }
+
+            private static string GetGasTankFillPercent(IMyGasTank gasTank)
+            {
+                return $"{Math.Round(gasTank.FilledRatio * 100d, 1)}%";
             }
 
             public override void OnSelect()
@@ -557,10 +630,11 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ComboBoxProperty : ScrollablePropBase<IMyTerminalControlCombobox>
         {
-            public override string Value { get { return names[GetCurrentIndex()]; } }
+            public override string Value => GetValueFunc();
 
             private readonly List<long> keys;
             private readonly List<string> names;
+            private readonly Func<string> GetValueFunc;
 
             public ComboBoxProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, IMyTerminalBlock block) : base(name, comboBox, control, block)
             {
@@ -576,6 +650,14 @@ namespace DarkHelmet.BuildVision2
                     keys.Add(item.Key);
                     names.Add(itemName);
                 }
+
+                if (control.Id == "ChargeMode" && block is IMyBatteryBlock) // Insert bat charge info
+                {
+                    var bat = (IMyBatteryBlock)block;
+                    GetValueFunc = () => $"{names[GetCurrentIndex()]} ({Math.Round((bat.CurrentStoredPower / bat.MaxStoredPower) * 100f, 1)}%)";
+                }
+                else
+                    GetValueFunc = () => names[GetCurrentIndex()];
             }
 
             protected override void ScrollUp() =>
@@ -616,7 +698,7 @@ namespace DarkHelmet.BuildVision2
             {
                 InputType |= BlockInputType.Text;
                 timer = new Utils.Stopwatch();
-                textInput = new TextInput(x => (x >= '0' && x <= '9') || (x == '.' || x == '-' || x == '+'));
+                textInput = new TextInput(x => (x >= '0' && x <= '9') || (x == '.' || x == 'E' || x == 'e' || x == '-' || x == '+'));
             }
 
             public override void OnSelect()
@@ -628,11 +710,14 @@ namespace DarkHelmet.BuildVision2
 
             public override void OnDeselect()
             {
-                T newValue;
-                textInput.Open = false;
+                if (textInput.Open)
+                {
+                    T newValue;
+                    textInput.Open = false;
 
-                if (TryParseValue(textInput.CurrentText, out newValue))
-                    property.SetValue(block, newValue);
+                    if (TryParseValue(textInput.CurrentText, out newValue))
+                        property.SetValue(block, newValue);
+                }
 
                 selected = false;
                 timer.Stop();
@@ -667,8 +752,7 @@ namespace DarkHelmet.BuildVision2
                 return GetValue();
             }
 
-            protected virtual string GetValue() =>
-                property.GetValue(block).ToString();
+            protected abstract string GetValue();
         }
 
         /// <summary>
@@ -677,13 +761,14 @@ namespace DarkHelmet.BuildVision2
         private class FloatProperty : NumericPropertyBase<float>
         {
             private readonly float minValue, maxValue, incrX, incrY, incrZ, incr0;
+            private readonly Func<string> GetSuffixFunc;
 
             public FloatProperty(string name, ITerminalProperty<float> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
             {
-                minValue = this.property.GetMinimum(block);
-                maxValue = this.property.GetMaximum(block);
-
-                if (property.Id.StartsWith("Rot"))
+                minValue = property.GetMinimum(block);
+                maxValue = property.GetMaximum(block);
+                
+                if (property.Id.StartsWith("Rot")) // Increment exception for projectors
                     incr0 = 90f;
                 else
                 {
@@ -708,6 +793,24 @@ namespace DarkHelmet.BuildVision2
                 incrZ = incr0 * Cfg.floatMult.Z; // x10
                 incrY = incr0 * Cfg.floatMult.Y; // x5
                 incrX = incr0 * Cfg.floatMult.X; // x0.1
+
+                if (property.Id == "UpperLimit")
+                {
+                    if (block is IMyPistonBase)
+                    {
+                        var piston = (IMyPistonBase)block;
+                        GetSuffixFunc = () => $"({Math.Round(piston.CurrentPosition, 1)}m)";
+                    }
+                    else if (block is IMyMotorStator)
+                    {
+                        var rotor = (IMyMotorStator)block;
+                        GetSuffixFunc = () => $"({Math.Round(Utils.Math.Clamp(rotor.Angle.RadiansToDegrees(), 0, 360))})";
+                    }
+                    else
+                        GetSuffixFunc = () => "";
+                }
+                else
+                    GetSuffixFunc = () => "";
             }
 
             protected override void ScrollDown() =>
@@ -745,6 +848,19 @@ namespace DarkHelmet.BuildVision2
                     return incrX;
                 else
                     return incr0;
+            }
+
+            protected override string GetDisplay() =>
+                $"{base.GetDisplay()} {GetSuffixFunc()}";
+
+            protected override string GetValue()
+            {
+                float value = property.GetValue(block);
+
+                if ((value.Abs() >= 1000000f || value.Abs() <= .0000001f) && value != 0f)
+                    return value.ToString("0.##E+0");
+                else
+                    return value.ToString("0.##");
             }
         }
 
@@ -811,7 +927,7 @@ namespace DarkHelmet.BuildVision2
                 int value = current.GetChannel(channel),
                     mult = increment ? GetIncrement() : -GetIncrement();
 
-                current = current.SetChannel(channel, (byte)(value + mult));
+                current = current.SetChannel(channel, (byte)Utils.Math.Clamp(value + mult, 0, 255));
                 property.SetValue(block, current);
             }
 
