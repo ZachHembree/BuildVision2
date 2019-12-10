@@ -1,5 +1,6 @@
 ﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
+using DarkHelmet.UI.Client;
 using System;
 using System.Collections.Generic;
 
@@ -15,9 +16,6 @@ namespace DarkHelmet.BuildVision2
             return new List<MenuUtilities.IMenuElement>()
             {
                 // General Settings Pt.1
-                new MenuUtilities.MenuButton(
-                        () => $"Force Fallback Hud: {PropertiesMenu.Cfg.forceFallbackHud}",
-                        () => PropertiesMenu.Cfg.forceFallbackHud = !PropertiesMenu.Cfg.forceFallbackHud),
                 new MenuUtilities.MenuButton(
                         () => $"Close If Not In View: {Cfg.general.closeIfNotInView}",
                         () => Cfg.general.closeIfNotInView = !Cfg.general.closeIfNotInView),
@@ -40,38 +38,38 @@ namespace DarkHelmet.BuildVision2
                 {
                     // Scaling
                     new MenuUtilities.MenuButton(
-                        () => $"Enable Resolution Scaling: {PropertiesMenu.ApiHudCfg.resolutionScaling}",
-                        () => PropertiesMenu.ApiHudCfg.resolutionScaling = !PropertiesMenu.ApiHudCfg.resolutionScaling),
+                        () => $"Enable Resolution Scaling: {PropertiesMenu.Cfg.resolutionScaling}",
+                        () => PropertiesMenu.Cfg.resolutionScaling = !PropertiesMenu.Cfg.resolutionScaling),
                     new MenuUtilities.MenuSliderInput(
-                        () => $"Hud Scale: {Math.Round(PropertiesMenu.ApiHudCfg.hudScale, 2)}",
+                        () => $"Hud Scale: {Math.Round(PropertiesMenu.Cfg.hudScale, 2)}",
                         "Hud Scale", 0.75f, 2f,
-                        () => PropertiesMenu.ApiHudCfg.hudScale,
-                        x => PropertiesMenu.ApiHudCfg.hudScale = x),
+                        () => PropertiesMenu.Cfg.hudScale,
+                        x => PropertiesMenu.Cfg.hudScale = x),
                     // Opacity
                     new MenuUtilities.MenuSliderInput(
-                        () => $"Menu Opacity: {FloatToPercent(PropertiesMenu.ApiHudCfg.hudOpacity)}",
+                        () => $"Menu Opacity: {FloatToPercent(PropertiesMenu.Cfg.hudOpacity)}",
                         "Header Bg Opacity", 0, 100,
-                        () => FloatToPercent(PropertiesMenu.ApiHudCfg.hudOpacity),
-                        x => PropertiesMenu.ApiHudCfg.hudOpacity = x / 100f),
+                        () => FloatToPercent(PropertiesMenu.Cfg.hudOpacity),
+                        x => PropertiesMenu.Cfg.hudOpacity = x / 100f),
                     // Misc
                     new MenuUtilities.MenuSliderInput(
-                        () => $"Max Visible Properties: {PropertiesMenu.ApiHudCfg.maxVisible}",
+                        () => $"Max Visible Properties: {PropertiesMenu.Cfg.maxVisible}",
                         "Max Visible Properties", 6, 20,
-                        () => PropertiesMenu.ApiHudCfg.maxVisible,
-                        x => PropertiesMenu.ApiHudCfg.maxVisible = x),
+                        () => PropertiesMenu.Cfg.maxVisible,
+                        x => PropertiesMenu.Cfg.maxVisible = x),
                     new MenuUtilities.MenuButton(
-                        () => $"Clamp To Screen Edges: {PropertiesMenu.ApiHudCfg.clampHudPos}",
-                        () => PropertiesMenu.ApiHudCfg.clampHudPos = !PropertiesMenu.ApiHudCfg.clampHudPos),
+                        () => $"Clamp To Screen Edges: {PropertiesMenu.Cfg.clampHudPos}",
+                        () => PropertiesMenu.Cfg.clampHudPos = !PropertiesMenu.Cfg.clampHudPos),
                     new MenuUtilities.MenuButton(
-                        () => $"Use Custom Position: {PropertiesMenu.ApiHudCfg.useCustomPos}",
-                        () => PropertiesMenu.ApiHudCfg.useCustomPos = !PropertiesMenu.ApiHudCfg.useCustomPos),
+                        () => $"Use Custom Position: {PropertiesMenu.Cfg.useCustomPos}",
+                        () => PropertiesMenu.Cfg.useCustomPos = !PropertiesMenu.Cfg.useCustomPos),
                     new MenuUtilities.MenuPositionInput(
                         "Set Hud Position", "",
-                        () => PropertiesMenu.ApiHudCfg.hudPos.ToDouble(),
-                        x => PropertiesMenu.ApiHudCfg.hudPos = x.ToSingle()),
+                        () => PropertiesMenu.Cfg.hudPos.ToDouble(),
+                        x => PropertiesMenu.Cfg.hudPos = x.ToSingle()),
                     new MenuUtilities.MenuButton(
                         "Reset Settings",
-                        () => PropertiesMenu.ApiHudCfg = ApiHudConfig.Defaults),
+                        () => PropertiesMenu.Cfg = HudConfig.Defaults),
                 }),
                 
                 // Bind Settings
@@ -177,15 +175,15 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private static List<MenuUtilities.IMenuElement> GetBindSettings()
         {
-            List<MenuUtilities.IMenuElement> bindSettings = new List<MenuUtilities.IMenuElement>(KeyBinds.BindGroup.Count + 2);
+            List<MenuUtilities.IMenuElement> bindSettings = new List<MenuUtilities.IMenuElement>(BvBinds.BindGroup.Count + 2);
 
-            for (int n = 0; n < KeyBinds.BindGroup.Count; n++)
+            for (int n = 0; n < BvBinds.BindGroup.Count; n++)
             {
-                string bindName = KeyBinds.BindGroup[n].Name;
+                string bindName = BvBinds.BindGroup[n].Name;
 
                 bindSettings.Add(new MenuUtilities.MenuButton(
                     bindName,
-                    () => RebindMenu.UpdateBind(KeyBinds.BindGroup, bindName)));
+                    () => RebindMenu.UpdateBind(BvBinds.BindGroup, bindName)));
             }
 
             bindSettings.Add(new MenuUtilities.MenuButton(
@@ -194,7 +192,7 @@ namespace DarkHelmet.BuildVision2
 
             bindSettings.Add(new MenuUtilities.MenuButton(
                 "Reset Binds",
-                () => KeyBinds.Cfg = BindsConfig.Defaults));
+                () => BvBinds.Cfg = BindsConfig.Defaults));
 
             return bindSettings;
         }

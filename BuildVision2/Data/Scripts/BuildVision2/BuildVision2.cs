@@ -8,13 +8,13 @@ using DarkHelmet.UI.Rendering;
 
 namespace DarkHelmet.BuildVision2
 {
-    using BismiteClient;
+    using RichHudClient;
 
     /// <summary>
     /// Build vision main class
     /// </summary>
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation, 1)]
-    internal sealed partial class BvMain : BismiteClient
+    internal sealed partial class BvMain : RichHudClient
     {
         public static BvConfig Cfg { get { return BvConfig.Current; } }
 
@@ -53,8 +53,8 @@ namespace DarkHelmet.BuildVision2
                 if (MenuUtilities.CanAddElements)
                     MenuUtilities.AddMenuElements(GetSettingsMenuElements());
 
-                KeyBinds.Open.OnNewPress += TryOpenMenu;
-                KeyBinds.Hide.OnNewPress += TryCloseMenu;
+                BvBinds.Open.OnNewPress += TryOpenMenu;
+                BvBinds.Hide.OnNewPress += TryCloseMenu;
                 SharedBinds.Escape.OnNewPress += TryCloseMenu;
 
                 SendChatMessage($"Type {bvCommands.prefix} help for help. Settings are available through the mod menu.");

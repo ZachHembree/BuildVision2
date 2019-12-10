@@ -1,5 +1,6 @@
 ﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
+using DarkHelmet.UI.Client;
 using System;
 using System.Collections.Generic;
 using Sandbox.ModAPI;
@@ -26,17 +27,15 @@ namespace DarkHelmet.BuildVision2
                 new CmdManager.Command ("bind",
                     (string[] args) => UpdateBind(args[0], args.GetSubarray(1))),
                 new CmdManager.Command("rebind",
-                    (string[] args) => RebindMenu.UpdateBind(KeyBinds.BindGroup, KeyBinds.BindGroup.GetBind(args[0]))),
+                    (string[] args) => RebindMenu.UpdateBind(BvBinds.BindGroup, BvBinds.BindGroup.GetBind(args[0]))),
                 new CmdManager.Command("resetBinds",
-                    () => KeyBinds.Cfg = BindsConfig.Defaults),
+                    () => BvBinds.Cfg = BindsConfig.Defaults),
                 new CmdManager.Command ("save",
                     () => BvConfig.SaveStart()),
                 new CmdManager.Command ("load",
                     () => BvConfig.LoadStart()),
                 new CmdManager.Command("resetConfig",
                     () => BvConfig.ResetConfig()),
-                new CmdManager.Command ("toggleApi",
-                    () => PropertiesMenu.Cfg.forceFallbackHud = !PropertiesMenu.Cfg.forceFallbackHud),
                 new CmdManager.Command ("toggleAutoclose",
                     () => Cfg.general.closeIfNotInView = !Cfg.general.closeIfNotInView),
                 new CmdManager.Command ("toggleOpenWhileHolding",
@@ -63,7 +62,7 @@ namespace DarkHelmet.BuildVision2
 
         private static void UpdateBind(string bindName, string[] controls)
         {
-            IBind bind = KeyBinds.BindGroup.GetBind(bindName);
+            IBind bind = BvBinds.BindGroup.GetBind(bindName);
             bind.TrySetCombo(controls);
         }
 
@@ -96,11 +95,11 @@ namespace DarkHelmet.BuildVision2
         private static string GetHelpMessage()
         {
             string helpMessage =
-                $"To open Build Vision, press [{GetBindString(KeyBinds.Open)}] while aiming at a block; to close the menu, press " +
-                $"[{GetBindString(KeyBinds.Hide)}] or press the open bind again but without pointing at a valid block (like armor).\n\n" +
-                $"The [{GetBindString(KeyBinds.ScrollUp)}] and [{GetBindString(KeyBinds.ScrollDown)}] binds can be used to scroll up and down " +
+                $"To open Build Vision, press [{GetBindString(BvBinds.Open)}] while aiming at a block; to close the menu, press " +
+                $"[{GetBindString(BvBinds.Hide)}] or press the open bind again but without pointing at a valid block (like armor).\n\n" +
+                $"The [{GetBindString(BvBinds.ScrollUp)}] and [{GetBindString(BvBinds.ScrollDown)}] binds can be used to scroll up and down " +
                 $"in the menu and to change the terminal settings of the selected block. To select a setting in the menu press " +
-                $"[{GetBindString(KeyBinds.Select)}]. Pressing the select bind on an action will trigger it (a setting without a number " +
+                $"[{GetBindString(BvBinds.Select)}]. Pressing the select bind on an action will trigger it (a setting without a number " +
                 $"or On/Off value).\n\n" +
                 $"If you move more than 10 meters (4 large blocks) from your target block, the menu will " +
                 $"automatically close. The rate at which a selected terminal value changes with each tick of the scroll wheel can " +
@@ -148,15 +147,15 @@ namespace DarkHelmet.BuildVision2
         {
             string bindHelp =
                 "\n---Build Vision 2 Binds---\n" +
-                $"Open: [{GetBindString(KeyBinds.Open)}]\n" +
-                $"Close: [{GetBindString(KeyBinds.Hide)}]\n" +
-                $"Select [{GetBindString(KeyBinds.Select)}]\n" +
-                $"Scroll Up: [{GetBindString(KeyBinds.ScrollUp)}]\n" +
-                $"Scroll Down: [{GetBindString(KeyBinds.ScrollDown)}]]\n" +
+                $"Open: [{GetBindString(BvBinds.Open)}]\n" +
+                $"Close: [{GetBindString(BvBinds.Hide)}]\n" +
+                $"Select [{GetBindString(BvBinds.Select)}]\n" +
+                $"Scroll Up: [{GetBindString(BvBinds.ScrollUp)}]\n" +
+                $"Scroll Down: [{GetBindString(BvBinds.ScrollDown)}]]\n" +
                 "---Multipliers---\n" +
-                $"MultX: [{GetBindString(KeyBinds.MultX)}]\n" +
-                $"MultY: [{GetBindString(KeyBinds.MultY)}]\n" +
-                $"MultZ: [{GetBindString(KeyBinds.MultZ)}]";
+                $"MultX: [{GetBindString(BvBinds.MultX)}]\n" +
+                $"MultY: [{GetBindString(BvBinds.MultY)}]\n" +
+                $"MultZ: [{GetBindString(BvBinds.MultZ)}]";
 
             return bindHelp;
         }

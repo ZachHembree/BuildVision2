@@ -35,7 +35,7 @@ namespace DarkHelmet.BuildVision2
         public override void Validate()
         {
             if (VersionID < 7)
-                menu.apiHudConfig.hudOpacity = ApiHudConfig.Defaults.hudOpacity;
+                menu.hudConfig.hudOpacity = HudConfig.Defaults.hudOpacity;
 
             if (VersionID < 6)
                 menu = PropMenuConfig.Defaults;
@@ -109,43 +109,30 @@ namespace DarkHelmet.BuildVision2
 
     public class PropMenuConfig : Config<PropMenuConfig>
     {
-        [XmlElement(ElementName = "ForceFallabckHud")]
-        public bool forceFallbackHud;
-
         [XmlElement(ElementName = "ApiHudSettings")]
-        public ApiHudConfig apiHudConfig;
-
-        [XmlElement(ElementName = "FallbackHudSettings")]
-        public NotifHudConfig fallbackHudConfig;
+        public HudConfig hudConfig;
 
         protected override PropMenuConfig GetDefaults()
         {
             return new PropMenuConfig
             {
-                forceFallbackHud = false,
-                apiHudConfig = ApiHudConfig.Defaults,
-                fallbackHudConfig = NotifHudConfig.Defaults
+                hudConfig = HudConfig.Defaults,
             };
         }
 
         public override void Validate()
         {
-            if (apiHudConfig != null)
-                apiHudConfig.Validate();
+            if (hudConfig != null)
+                hudConfig.Validate();
             else
-                apiHudConfig = ApiHudConfig.Defaults;
-
-            if (fallbackHudConfig != null)
-                fallbackHudConfig.Validate();
-            else
-                fallbackHudConfig = NotifHudConfig.Defaults;
+                hudConfig = HudConfig.Defaults;
         }
     }
 
     /// <summary>
     /// Stores config information for the Text HUD based menu
     /// </summary>
-    public class ApiHudConfig : Config<ApiHudConfig>
+    public class HudConfig : Config<HudConfig>
     {
         [XmlElement(ElementName = "EnableResolutionScaling")]
         public bool resolutionScaling;
@@ -168,9 +155,9 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "HudPosition")]
         public Vector2 hudPos;
 
-        protected override ApiHudConfig GetDefaults()
+        protected override HudConfig GetDefaults()
         {
-            return new ApiHudConfig
+            return new HudConfig
             {
                 resolutionScaling = true,
                 hudScale = 1f,
@@ -195,32 +182,6 @@ namespace DarkHelmet.BuildVision2
 
             if (hudOpacity == default(float))
                 hudOpacity = Defaults.hudOpacity;
-        }
-    }
-
-    /// <summary>
-    /// Stores config information for the built in Notifications based menu
-    /// </summary>
-    public class NotifHudConfig : Config<NotifHudConfig>
-    {
-        [XmlElement(ElementName = "MaxVisibleItems")]
-        public int maxVisible;
-
-        protected override NotifHudConfig GetDefaults()
-        {
-            return new NotifHudConfig
-            {
-                maxVisible = 7
-            };
-        }
-
-        /// <summary>
-        /// Checks any if fields have invalid values and resets them to the default if necessary.
-        /// </summary>
-        public override void Validate()
-        {
-            if (maxVisible == default(int))
-                maxVisible = Defaults.maxVisible;
         }
     }
 

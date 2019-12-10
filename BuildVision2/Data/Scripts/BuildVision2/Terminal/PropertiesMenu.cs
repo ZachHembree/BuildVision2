@@ -1,17 +1,14 @@
 ﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
 using Sandbox.ModAPI;
+using DarkHelmet.UI.Client;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    /// <summary>
-    /// Renders menu of block terminal properties given a target block; singleton.
-    /// </summary>
     internal sealed partial class PropertiesMenu : ModBase.ComponentBase
     {
-        public static PropMenuConfig Cfg { get { return BvConfig.Current.menu; } set { BvConfig.Current.menu = value; } }
-        public static ApiHudConfig ApiHudCfg { get { return Cfg.apiHudConfig; } set { Cfg.apiHudConfig = value; } }
-        public static NotifHudConfig NotifHudCfg { get { return Cfg.fallbackHudConfig; } set { Cfg.fallbackHudConfig = value; } }
+        public static HudConfig Cfg { get { return BvConfig.Current.menu.hudConfig; } set { BvConfig.Current.menu.hudConfig = value; } }
         public static PropertyBlock Target
         {
             get { return Instance.target; }
@@ -19,17 +16,14 @@ namespace DarkHelmet.BuildVision2
             {
                 if (Instance.target != null)
                 {
-                    Instance.Deselect();
-                    Instance.ResetIndex();
+                    Instance.scrollMenu.Clear();
+                    Instance.scrollMenu.SetTarget(value);
                 }
 
                 Instance.target = value;
             }
         }
-        private PropertyBlock target;
-
-        public static bool Open { get { return Instance.open; } set { Instance.open = value; } }
-        private bool open;
+        public static bool Open { get { return Instance.scrollMenu.Visible; } set { Instance.scrollMenu.Visible = value; } }
 
         private static PropertiesMenu Instance
         {
@@ -38,29 +32,16 @@ namespace DarkHelmet.BuildVision2
         }
         private static PropertiesMenu instance;
 
-        private readonly ApiHud apiHud;
-        private readonly NotifHud fallbackHud;
+        private readonly BvScrollMenu scrollMenu;
         private readonly Utils.Stopwatch listWrapTimer;
-        private int index, selection;
+        private PropertyBlock target;
 
         private PropertiesMenu() : base(false, true)
         {
-            apiHud = new ApiHud();
-            fallbackHud = new NotifHud();
+            scrollMenu = new BvScrollMenu() { Visible = false };
             target = null;
 
-            index = 0;
-            selection = -1;
-            open = false;
             listWrapTimer = new Utils.Stopwatch();
-
-            MyAPIGateway.Utilities.MessageEntered += MessageHandler;
-
-            KeyBinds.Select.OnNewPress += Select;
-            SharedBinds.Enter.OnNewPress += ToggleTextBox;
-
-            KeyBinds.ScrollUp.OnPressAndHold += ScrollUp;
-            KeyBinds.ScrollDown.OnPressAndHold += ScrollDown;
         }
 
         private static void Init()
@@ -77,115 +58,8 @@ namespace DarkHelmet.BuildVision2
 
         private void MessageHandler(string message, ref bool sendToOthers)
         {
-            if (open)
+            if (scrollMenu.Visible && scrollMenu.PropOpen)
                 sendToOthers = false;
-        }
-
-        private void ScrollDown()
-        {
-            if (open)
-                UpdateIndex(1);
-        }
-
-        private void ScrollUp()
-        {
-            if (open)
-                UpdateIndex(-1);
-        }
-
-        /// <summary>
-        /// Updates scrollable index, range of visible scrollables and input for selected property.
-        /// </summary>
-        private void UpdateIndex(int scrolllDir)
-        {
-            if (selection == -1)
-            {
-                int newIndex = index, max = target.BlockMembers.Count - 1;
-                bool scrollDown = scrolllDir > 0;
-
-                for (int n = 0; n < target.BlockMembers.Count; n++)
-                {
-                    newIndex += scrolllDir;
-
-                    if (listWrapTimer.ElapsedMilliseconds > 300)
-                    {
-                        if (newIndex < 0)
-                            newIndex = max;
-                        else if (newIndex >= target.BlockMembers.Count)
-                            newIndex = 0;
-                    }
-                    else
-                        newIndex = Utils.Math.Clamp(newIndex, 0, max);
-
-                    if (target.BlockMembers[newIndex].Enabled)
-                    {
-                        index = newIndex;
-                        break;
-                    }
-                }
-
-                listWrapTimer.Start();
-            }
-        }
-
-        private void ToggleTextBox()
-        {
-            if (open && target.BlockMembers[index].InputType.HasFlag(BlockInputType.Text))
-            {
-                if (selection == -1 && !MyAPIGateway.Gui.ChatEntryVisible)
-                    Select();
-                else if (MyAPIGateway.Gui.ChatEntryVisible)
-                    Deselect();
-            }
-        }
-
-        private void Select()
-        {
-            if (open)
-            {
-                if (selection == -1)
-                {
-                    target.BlockMembers[index].OnSelect();
-                    selection = index;
-
-                    if (target.BlockMembers[index].InputType == BlockInputType.None)
-                        Deselect();
-                }
-                else
-                    Deselect();
-            }
-        }
-
-        private void Deselect()
-        {
-            if (selection != -1)
-            {
-                target.BlockMembers[selection].OnDeselect();
-                selection = -1;
-            }
-        }
-
-        /// <summary>
-        /// Resets index to the first visible element.
-        /// </summary>
-        private void ResetIndex()
-        {
-            index = 0;
-
-            for (int n = 0; n < target.BlockMembers.Count; n++)
-            {
-                if (target.BlockMembers[n].Enabled)
-                {
-                    index = n;
-                    break;
-                }
-            }
-        }
-
-        public override void HandleInput()
-        {
-            if (selection != -1)
-                target.BlockMembers[selection].HandleInput();
         }
 
         /// <summary>
@@ -193,45 +67,42 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public override void Update()
         {
-            if (target != null)
+            if (target != null && Open)
             {
-                if (open)
-                {
-                    if (!Cfg.forceFallbackHud)
-                    {
-                        if (fallbackHud.Open)
-                            fallbackHud.Hide();
-
-                        if (!apiHud.Open)
-                            apiHud.Show();
-
-                        apiHud.Update(index, selection);
-                    }
-                    else
-                    {
-                        if (apiHud.Open)
-                            apiHud.Hide();
-
-                        if (!fallbackHud.Open)
-                            fallbackHud.Show();
-
-                        fallbackHud.Update(index, selection);
-                    }
-                }
-                else
-                {
-                    apiHud.Hide();
-                    fallbackHud.Hide();
-                    Deselect();
-                    ResetIndex();
-                }
+                scrollMenu.UpdateText();
             }
         }
 
         public override void Draw()
         {
-            if (target != null && open && apiHud.Open)
-                apiHud.Draw();
+            if (target != null && Open)
+            {
+                Vector3D targetPos, worldPos;
+                Vector2 screenPos, screenBounds = Vector2.One;
+
+                if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !Cfg.useCustomPos)
+                {
+                    scrollMenu.OriginAlignment = OriginAlignment.Center;
+                    targetPos = Target.GetPosition() + Target.modelOffset * .75;
+                    worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
+                    screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
+                    screenBounds -= scrollMenu.NativeSize * scrollMenu.Scale / 2f;
+                }
+                else
+                {
+                    scrollMenu.OriginAlignment = OriginAlignment.Auto;
+                    screenPos = Cfg.hudPos;
+                }
+
+                if (Cfg.clampHudPos)
+                {
+                    screenPos.X = Utils.Math.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
+                    screenPos.Y = Utils.Math.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
+                }
+
+                scrollMenu.Offset += HudMain.GetPixelVector(Utils.Math.Round(screenPos, 3));
+                scrollMenu.Offset /= 2f;
+            }
         }
 
         /// <summary>
@@ -239,7 +110,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static void Show()
         {
-            Instance.open = true;
+            Open = true;
         }
 
         /// <summary>
@@ -247,7 +118,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static void Hide()
         {
-            Instance.open = false;
+            Open = false;
         }
     }
 }

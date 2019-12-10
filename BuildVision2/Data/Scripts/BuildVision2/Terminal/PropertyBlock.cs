@@ -23,14 +23,6 @@ using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
 
 namespace DarkHelmet.BuildVision2
 {
-    [Flags]
-    internal enum BlockInputType : byte
-    {
-        None = 0,
-        Scroll = 1,
-        Text = 2
-    }
-
     internal interface IBlockMember
     {
         /// <summary>
@@ -44,20 +36,32 @@ namespace DarkHelmet.BuildVision2
         string Value { get; }
 
         /// <summary>
+        /// Additional information following the value of the member.
+        /// </summary>
+        string Postfix { get; }
+
+        /// <summary>
         /// Indicates whether or not a given <see cref="IBlockMember"/> should be shown in the terminal.
         /// </summary>
         bool Enabled { get; }
+    }
 
-        BlockInputType InputType { get; }
+    internal interface IBlockAction : IBlockMember
+    {
+        void Action();
+    }
 
-        void OnSelect();
+    internal interface IBlockTextMember : IBlockMember
+    {
+        Func<char, bool> CharFilterFunc { get; }
+        void SetValueText(string text);
+    }
 
-        void OnDeselect();
+    internal interface IBlockScrollable : IBlockMember
+    {
+        void ScrollUp();
 
-        /// <summary>
-        /// Updates input of the property.
-        /// </summary>
-        void HandleInput();
+        void ScrollDown();
     }
 
     /// <summary>
@@ -66,7 +70,6 @@ namespace DarkHelmet.BuildVision2
     internal class PropertyBlock
     {
         public IMyTerminalBlock TBlock { get; private set; }
-        public IMyBlockGroup Group { get; private set; }
         public ReadOnlyCollection<IBlockMember> BlockMembers { get; private set; }
         public int EnabledMembers => GetEnabledElementCount();
         public bool IsFunctional { get { return TBlock.IsFunctional; } }
@@ -76,11 +79,13 @@ namespace DarkHelmet.BuildVision2
         public static PropBlockConfig Cfg { get { return BvConfig.Current.block; } set { BvConfig.Current.block = value; } }
 
         private readonly List<IBlockMember> blockMembers;
+        private readonly List<BvTerminalPropertyBase> blockProperties;
 
         public PropertyBlock(IMyTerminalBlock tBlock)
         {
             TBlock = tBlock;
             blockMembers = new List<IBlockMember>();
+            blockProperties = new List<BvTerminalPropertyBase>();
             BlockMembers = new ReadOnlyCollection<IBlockMember>(blockMembers);
 
             GetScrollableProps();
@@ -96,6 +101,17 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public Vector3D GetPosition() =>
             TBlock.GetPosition();
+
+        public void CopySettings(PropertyBlock src)
+        {
+            for (int n = 0; n < src.blockProperties.Count; n++)
+            {
+                BvTerminalPropertyBase dest = blockProperties.Find(x => x.Id == src.blockProperties[n].Id);
+
+                if (dest != null)
+                    dest.TryCopyProperty(src.blockProperties[n]);
+            }
+        }
 
         private int GetEnabledElementCount()
         {
@@ -174,33 +190,35 @@ namespace DarkHelmet.BuildVision2
                             ITerminalProperty<StringBuilder> textProp = (ITerminalProperty<StringBuilder>)prop;
 
                             if (prop.Id == "Name")
-                                blockMembers.Insert(0, new TextProperty(name, textProp, control, TBlock));
+                                blockProperties.Insert(0, new TextProperty(name, textProp, control, TBlock));
                             else
-                                blockMembers.Add(new TextProperty(name, textProp, control, TBlock));
+                                blockProperties.Add(new TextProperty(name, textProp, control, TBlock));
                         }
                         if (prop is IMyTerminalControlCombobox) // fields having to do with camera assignments seem to give me trouble here
                         {
                             try
                             {
-                                blockMembers.Add(new ComboBoxProperty(name, (IMyTerminalControlCombobox)prop, control, TBlock));
+                                blockProperties.Add(new ComboBoxProperty(name, (IMyTerminalControlCombobox)prop, control, TBlock));
                             }
                             catch { }
                         }
                         else if (prop is ITerminalProperty<bool>)
                         {
-                            blockMembers.Add(new BoolProperty(name, (ITerminalProperty<bool>)prop, control, TBlock));
+                            blockProperties.Add(new BoolProperty(name, (ITerminalProperty<bool>)prop, control, TBlock));
                         }
                         else if (prop is ITerminalProperty<float>)
                         {
-                            blockMembers.Add(new FloatProperty(name, (ITerminalProperty<float>)prop, control, TBlock));
+                            blockProperties.Add(new FloatProperty(name, (ITerminalProperty<float>)prop, control, TBlock));
                         }
                         else if (prop is ITerminalProperty<Color>)
                         {
-                            blockMembers.AddRange(ColorProperty.GetColorProperties(name, (ITerminalProperty<Color>)prop, control, TBlock));
+                            blockProperties.AddRange(ColorProperty.GetColorProperties(name, (ITerminalProperty<Color>)prop, control, TBlock));
                         }
                     }
                 }
             }
+
+            blockMembers.AddRange(blockProperties);
         }
 
         /// <summary>
@@ -234,35 +252,41 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        private abstract class BlockMemberBase : IBlockMember
+        {
+            public virtual string Name { get; protected set; }
+            public abstract string Value { get; }
+            public virtual string Postfix => "";
+            public virtual bool Enabled { get; protected set; }
+        }
+
         /// <summary>
         /// Custom block actions
         /// </summary>
-        private class BlockAction : IBlockMember
+        private class BlockAction : BlockMemberBase, IBlockAction
         {
-            public string Name { get;  }
-            public string Value { get { return GetDisplayFunc(); } }
-            public bool Enabled { get; }
-            public BlockInputType InputType { get; }
-            private Action Action { get; set; }
-            private Func<string> GetDisplayFunc { get; set; }
+            public override string Value => GetValueFunc();
+            public override string Postfix => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
-            public BlockAction(Func<string> GetDisplayFunc, Action Action)
+            private Func<string> GetValueFunc { get; set; }
+            private Func<string> GetPostfixFunc { get; set; }
+            private readonly Action action;
+
+            public BlockAction(Func<string> GetValueFunc, Func<string> GetPostfixFunc, Action Action)
             {
                 Name = "";
                 Enabled = true;
-                InputType = BlockInputType.None;
-                this.GetDisplayFunc = GetDisplayFunc;
-                this.Action = Action;
+
+                this.GetValueFunc = GetValueFunc;
+                this.GetPostfixFunc = GetPostfixFunc;
+                action = Action;
             }
 
-            public void OnSelect() =>
-                Action();
+            public BlockAction(string value, Func<string> GetPostfixFunc, Action Action)
+                : this(() => value, GetPostfixFunc, Action) { }
 
-            public void OnDeselect()
-            { }
-
-            public void HandleInput()
-            { }
+            public void Action() =>
+                action();
 
             /// <summary>
             /// Gets actions for blocks implementing IMyMechanicalConnectionBlock.
@@ -272,33 +296,37 @@ namespace DarkHelmet.BuildVision2
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
                 mechBlock.GetActions(terminalActions);
 
+                if (mechBlock is IMyMotorSuspension)
+                {
+                    members.Add(new BlockAction(
+                        "Attach Wheel",
+                        () => mechBlock.IsAttached ? "Attached" : null,
+                        mechBlock.Attach));
+                    members.Add(new BlockAction(
+                        "Detach Wheel", null,
+                        mechBlock.Detach));
+                }
+                else
+                {
+                    members.Add(new BlockAction(
+                        "Attach Head",
+                        () => mechBlock.IsAttached ? "(Attached)" : null,
+                        mechBlock.Attach));
+                    members.Add(new BlockAction(
+                        "Detach Head", null,
+                        mechBlock.Detach));
+                }
+
                 foreach (IMyTerminalAction tAction in terminalActions)
                 {
                     string tActionName = tAction.Name.ToString();
 
                     if (tAction.Id.StartsWith("Add"))
+                    {
                         members.Add(new BlockAction(
-                            () => tActionName,
+                            tActionName, null,
                             () => tAction.Apply(mechBlock)));
-                }
-
-                if (mechBlock is IMyMotorSuspension)
-                {
-                    members.Add(new BlockAction(
-                        () => mechBlock.IsAttached ? "Attach Wheel (Attached)" : "Attach Wheel",
-                        () => mechBlock.Attach()));
-                    members.Add(new BlockAction(
-                        () => "Detach Wheel",
-                        () => mechBlock.Detach()));
-                }
-                else
-                {
-                    members.Add(new BlockAction(
-                        () => mechBlock.IsAttached ? "Attach Head (Attached)" : "Attach Head",
-                        () => mechBlock.Attach()));
-                    members.Add(new BlockAction(
-                        () => "Detach Head",
-                        () => mechBlock.Detach()));
+                    }
                 }
 
                 if (mechBlock is IMyPistonBase)
@@ -306,15 +334,15 @@ namespace DarkHelmet.BuildVision2
                     IMyPistonBase piston = (IMyPistonBase)mechBlock;
                     
                     members.Add(new BlockAction(
-                        () => "Reverse",
-                        () => piston.Reverse()));
+                        "Reverse", null,
+                         piston.Reverse));
                 }
                 else if (mechBlock is IMyMotorStator)
                 {
                     IMyMotorStator rotor = (IMyMotorStator)mechBlock;
 
                     members.Add(new BlockAction(
-                            () => "Reverse",
+                            "Reverse", null,
                             () => rotor.TargetVelocityRad = -rotor.TargetVelocityRad));
                 }
             }
@@ -325,8 +353,8 @@ namespace DarkHelmet.BuildVision2
             public static void GetDoorActions(IMyDoor doorBlock, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
-                    () => "Open/Close",
-                    () => doorBlock.ToggleDoor()));
+                    "Open/Close", null,
+                    doorBlock.ToggleDoor));
             }
 
             /// <summary>
@@ -335,14 +363,15 @@ namespace DarkHelmet.BuildVision2
             public static void GetWarheadActions(IMyWarhead warhead, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
-                    () => "Start Countdown" + (warhead.IsCountingDown ? $" ({ Math.Truncate(warhead.DetonationTime) })" : ""),
+                    "Start Countdown",
+                    () => $"{ Math.Truncate(warhead.DetonationTime) }",
                     () => warhead.StartCountdown()));
                 members.Add(new BlockAction(
-                    () => "Stop Countdown",
+                    "Stop Countdown", null,
                     () => warhead.StopCountdown()));
                 members.Add(new BlockAction(
-                    () => "Detonate",
-                    () => warhead.Detonate()));
+                    "Detonate", null,
+                    warhead.Detonate));
             }
 
             /// <summary>
@@ -351,6 +380,7 @@ namespace DarkHelmet.BuildVision2
             public static void GetGearActions(IMyLandingGear landingGear, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
+                    "Lock/Unlock",
                     () =>
                     {
                         string status = "";
@@ -362,9 +392,9 @@ namespace DarkHelmet.BuildVision2
                         else if (landingGear.LockMode == LandingGearMode.Unlocked)
                             status = "Unlocked";
 
-                        return $"Lock/Unlock ({status})";
+                        return status;
                     },
-                    () => landingGear.ToggleLock()));
+                    landingGear.ToggleLock));
             }
 
             /// <summary>
@@ -373,6 +403,7 @@ namespace DarkHelmet.BuildVision2
             public static void GetConnectorActions(IMyShipConnector connector, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
+                    "Lock/Unlock",
                     () =>
                     {
                         string status = "";
@@ -384,9 +415,9 @@ namespace DarkHelmet.BuildVision2
                         else if (connector.Status == ConnectorStatus.Unconnected)
                             status = "Unlocked";
 
-                        return $"Lock/Unlock ({status})";
+                        return status;
                     },
-                    () => connector.ToggleConnect()));
+                    connector.ToggleConnect));
             }
 
             /// <summary>
@@ -395,22 +426,27 @@ namespace DarkHelmet.BuildVision2
             public static void GetChuteActions(IMyParachute parachute, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
-                    () => $"Open/Close ({parachute.Status.ToString()})",
-                    () => parachute.ToggleDoor()));
+                    "Open/Close",
+                    parachute.Status.ToString,
+                    parachute.ToggleDoor));
             }
+        }
+
+        private abstract class BvTerminalPropertyBase : BlockMemberBase
+        {
+            public abstract string Id { get; }
+
+            public abstract bool TryCopyProperty(BvTerminalPropertyBase prop);
         }
 
         /// <summary>
         /// Base class for all Build Vision terminal properties that make use of SE's <see cref="ITerminalProperty"/>
         /// </summary>
-        private abstract class BvTerminalProperty<T> : IBlockMember where T : ITerminalProperty
+        private abstract class BvTerminalProperty<T> : BvTerminalPropertyBase where T : ITerminalProperty
         {
-            public virtual string Name { get; protected set; }
-            public abstract string Value { get; }
-            public virtual bool Enabled { get { return control.Enabled(block) && control.Visible(block); } }
-            public BlockInputType InputType { get; protected set; }
+            public override string Id => property.Id;
+            public override bool Enabled { get { return control.Enabled(block) && control.Visible(block); } }
 
-            protected readonly Func<string> NameFunc;
             protected readonly T property;
             protected readonly IMyTerminalControl control;
             protected readonly IMyTerminalBlock block;
@@ -418,92 +454,55 @@ namespace DarkHelmet.BuildVision2
             protected BvTerminalProperty(string name, T property, IMyTerminalControl control, IMyTerminalBlock block)
             {
                 Name = name;
-
+                
                 this.property = property;
                 this.control = control;
                 this.block = block;
             }
-
-            public virtual void HandleInput() { }
-
-            public virtual void OnSelect() { }
-
-            public virtual void OnDeselect() { }
         }
 
         /// <summary>
         /// Field for changing block property text. 
         /// </summary>
-        private class TextProperty : BvTerminalProperty<ITerminalProperty<StringBuilder>>
+        private class TextProperty : BvTerminalProperty<ITerminalProperty<StringBuilder>>, IBlockTextMember
         {
-            public override string Value { get { return GetCurrentValue(); } }
-
-            private const long blinkInterval = 500;
-            private readonly Utils.Stopwatch timer;
-            private readonly TextInput textInput;
-            private bool selected, blink;
+            public override string Value => CleanText(property.GetValue(block));
+            public Func<char, bool> CharFilterFunc { get; protected set; }
 
             public TextProperty(string name, ITerminalProperty<StringBuilder> textProp, IMyTerminalControl control, IMyTerminalBlock block) : base(name, textProp, control, block)
             {
-                InputType |= BlockInputType.Text;
-                timer = new Utils.Stopwatch();
-                textInput = new TextInput();
+                CharFilterFunc = x => (x >= ' ');
             }
 
-            public override void OnSelect()
+            public void SetValueText(string text)
             {
-                textInput.CurrentText = CleanText(property.GetValue(block));
-                selected = true;
-                timer.Start();
+                property.SetValue(block, new StringBuilder(text));
             }
 
-            public override void OnDeselect()
+            public override bool TryCopyProperty(BvTerminalPropertyBase prop)
             {
-                textInput.Open = false;
-                property.SetValue(block, new StringBuilder(textInput.CurrentText));
-                selected = false;
-                timer.Stop();
-            }
+                var x = prop as TextProperty;
 
-            public override void HandleInput()
-            {
-                textInput.HandleInput();
-                textInput.Open = selected && MyAPIGateway.Gui.ChatEntryVisible;
-
-                if (timer.ElapsedMilliseconds > blinkInterval)
+                if (x != null)
                 {
-                    blink = !blink;
-                    timer.Reset();
-                }
-            }
+                    property.SetValue(block, x.property.GetValue(block));
 
-            private string GetCurrentValue()
-            {
-                if (selected)
-                {
-                    if (MyAPIGateway.Gui.ChatEntryVisible)
-                    {
-                        if (blink)
-                            return textInput.CurrentText + '|';
-                        else
-                            return textInput.CurrentText;
-                    }
-                    else
-                        return "Open Chat to Continue";
+                    return true;
                 }
                 else
-                    return CleanText(property.GetValue(block));
+                    return false;
             }
         }
 
         /// <summary>
         /// Block Terminal Property of a Boolean
         /// </summary>
-        private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>>
+        private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>>, IBlockAction
         {
-            public override string Value => GetValueFunc();
+            public override string Value => GetPropStateText();
+            public override string Postfix => GetSuffixFunc != null ? GetSuffixFunc() : null;
 
-            private readonly Func<string> GetValueFunc;
+            private readonly Func<string> GetSuffixFunc;
             private readonly MyStringId OnText, OffText;
 
             public BoolProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
@@ -514,14 +513,12 @@ namespace DarkHelmet.BuildVision2
                     var sink = block.ResourceSink;
                     var producer = block as IMyPowerProducer;
 
-                    GetValueFunc = () => $"{GetPropStateText()} ({GetBlockPowerInfo(sink, producer, definitionId)})";
+                    GetSuffixFunc = () => GetBlockPowerInfo(sink, producer, definitionId);
                 }
                 else if (property.Id == "Stockpile" && block is IMyGasTank) // Insert gas tank info
                 {
-                    GetValueFunc = () => $"{GetPropStateText()} ({GetGasTankFillPercent((IMyGasTank)block)})";
+                    GetSuffixFunc = () => GetGasTankFillPercent((IMyGasTank)block);
                 }
-                else
-                    GetValueFunc = GetPropStateText;
 
                 if (property is IMyTerminalControlOnOffSwitch)
                 {
@@ -584,9 +581,22 @@ namespace DarkHelmet.BuildVision2
                 return $"{Math.Round(gasTank.FilledRatio * 100d, 1)}%";
             }
 
-            public override void OnSelect()
+            public void Action()
             {
                 property.SetValue(block, !property.GetValue(block));
+            }
+
+            public override bool TryCopyProperty(BvTerminalPropertyBase prop)
+            {
+                if (prop.GetType() == this.GetType())
+                {
+                    var x = prop as BoolProperty;
+                    property.SetValue(block, x.property.GetValue(block));
+
+                    return true;
+                }
+                else
+                    return false;
             }
 
             /// <summary>
@@ -604,25 +614,14 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Base for block properties that use scrolling for input.
         /// </summary>
-        private abstract class ScrollablePropBase<T> : BvTerminalProperty<T> where T : ITerminalProperty
+        private abstract class ScrollablePropBase<T> : BvTerminalProperty<T>, IBlockScrollable where T : ITerminalProperty
         {
             protected ScrollablePropBase(string name, T property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
-            {
-                InputType |= BlockInputType.Scroll;
-            }
+            { }
 
-            public override void HandleInput()
-            {
-                if (KeyBinds.ScrollUp.IsPressedAndHeld)
-                    ScrollUp();
+            public abstract void ScrollUp();
 
-                if (KeyBinds.ScrollDown.IsPressedAndHeld)
-                    ScrollDown();
-            }
-
-            protected abstract void ScrollUp();
-
-            protected abstract void ScrollDown();
+            public abstract void ScrollDown();
         }
 
         /// <summary>
@@ -660,10 +659,10 @@ namespace DarkHelmet.BuildVision2
                     GetValueFunc = () => names[GetCurrentIndex()];
             }
 
-            protected override void ScrollUp() =>
+            public override void ScrollUp() =>
                 ChangePropValue(1);
 
-            protected override void ScrollDown() =>
+            public override void ScrollDown() =>
                 ChangePropValue(-1);
 
             private void ChangePropValue(int delta)
@@ -684,75 +683,54 @@ namespace DarkHelmet.BuildVision2
 
                 return 0;
             }
+
+            public override bool TryCopyProperty(BvTerminalPropertyBase prop)
+            {
+                var x = prop as ComboBoxProperty;
+
+                if (x != null)
+                {
+                    property.Setter(block, x.property.Getter(block));
+
+                    return true;
+                }
+                else
+                    return false;
+            }
         }
 
-        private abstract class NumericPropertyBase<T> : ScrollablePropBase<ITerminalProperty<T>>
+        private abstract class NumericPropertyBase<T> : ScrollablePropBase<ITerminalProperty<T>>, IBlockTextMember
         {
-            public sealed override string Value => GetDisplay();
-
-            protected readonly Utils.Stopwatch timer;
-            protected readonly TextInput textInput;
-            protected bool selected, blink;
+            public Func<char, bool> CharFilterFunc { get; protected set; }
 
             public NumericPropertyBase(string name, ITerminalProperty<T> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
             {
-                InputType |= BlockInputType.Text;
-                timer = new Utils.Stopwatch();
-                textInput = new TextInput(x => (x >= '0' && x <= '9') || (x == '.' || x == 'E' || x == 'e' || x == '-' || x == '+'));
+                CharFilterFunc = x => (x >= '0' && x <= '9') || x == '.';
             }
 
-            public override void OnSelect()
+            public void SetValueText(string value)
             {
-                textInput.CurrentText = GetValue();
-                selected = true;
-                timer.Start();
-            }
+                T newValue;
 
-            public override void OnDeselect()
-            {
-                if (textInput.Open)
-                {
-                    T newValue;
-                    textInput.Open = false;
-
-                    if (TryParseValue(textInput.CurrentText, out newValue))
-                        property.SetValue(block, newValue);
-                }
-
-                selected = false;
-                timer.Stop();
+                if (TryParseValue(value, out newValue))
+                    property.SetValue(block, newValue);
             }
 
             protected abstract bool TryParseValue(string text, out T value);
 
-            public override void HandleInput()
+            public override bool TryCopyProperty(BvTerminalPropertyBase prop)
             {
-                base.HandleInput();
+                var x = prop as NumericPropertyBase<T>;
 
-                textInput.HandleInput();
-                textInput.Open = selected && MyAPIGateway.Gui.ChatEntryVisible;
-
-                if (timer.ElapsedMilliseconds > 500)
+                if (x != null)
                 {
-                    blink = !blink;
-                    timer.Reset();
+                    property.SetValue(block, x.property.GetValue(block));
+
+                    return true;
                 }
+                else
+                    return false;
             }
-
-            protected virtual string GetDisplay()
-            {
-                if (selected && MyAPIGateway.Gui.ChatEntryVisible)
-                {
-                    if (blink)
-                        return textInput.CurrentText + '|';
-                    else
-                        return textInput.CurrentText;
-                }
-
-                return GetValue();
-            }
-
-            protected abstract string GetValue();
         }
 
         /// <summary>
@@ -760,6 +738,20 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class FloatProperty : NumericPropertyBase<float>
         {
+            public override string Value
+            {
+                get
+                {
+                    float value = property.GetValue(block);
+
+                    if ((value.Abs() >= 1000000f || value.Abs() <= .0000001f) && value != 0f)
+                        return value.ToString("0.##E+0");
+                    else
+                        return value.ToString("0.##");
+                }
+            }
+            public override string Postfix => GetSuffixFunc();
+
             private readonly float minValue, maxValue, incrX, incrY, incrZ, incr0;
             private readonly Func<string> GetSuffixFunc;
 
@@ -813,10 +805,10 @@ namespace DarkHelmet.BuildVision2
                     GetSuffixFunc = () => "";
             }
 
-            protected override void ScrollDown() =>
+            public override void ScrollDown() =>
                 ChangePropValue(-GetIncrement());
 
-            protected override void ScrollUp() =>
+            public override void ScrollUp() =>
                 ChangePropValue(+GetIncrement());
 
             protected override bool TryParseValue(string text, out float value) =>
@@ -840,27 +832,14 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private float GetIncrement()
             {
-                if (KeyBinds.MultZ.IsPressed)
+                if (BvBinds.MultZ.IsPressed)
                     return incrZ;
-                else if (KeyBinds.MultY.IsPressed)
+                else if (BvBinds.MultY.IsPressed)
                     return incrY;
-                else if (KeyBinds.MultX.IsPressed)
+                else if (BvBinds.MultX.IsPressed)
                     return incrX;
                 else
                     return incr0;
-            }
-
-            protected override string GetDisplay() =>
-                $"{base.GetDisplay()} {GetSuffixFunc()}";
-
-            protected override string GetValue()
-            {
-                float value = property.GetValue(block);
-
-                if ((value.Abs() >= 1000000f || value.Abs() <= .0000001f) && value != 0f)
-                    return value.ToString("0.##E+0");
-                else
-                    return value.ToString("0.##");
             }
         }
 
@@ -869,14 +848,14 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ColorProperty : NumericPropertyBase<Color>
         {
+            public override string Value => property.GetValue(block).GetChannel(channel).ToString();
+
             private readonly int channel;
             private static int incrX, incrY, incrZ, incr0;
 
             public ColorProperty(string name, ITerminalProperty<Color> property, IMyTerminalControl control, IMyTerminalBlock block, int channel)
                 : base(name, property, control, block)
             {
-                InputType |= BlockInputType.Text;
-
                 incr0 = 1;
                 incrZ = (incr0 * Cfg.colorMult.Z); // x64
                 incrY = (incr0 * Cfg.colorMult.Y); // x16
@@ -898,10 +877,10 @@ namespace DarkHelmet.BuildVision2
                 };
             }
 
-            protected override void ScrollDown() =>
+            public override void ScrollDown() =>
                 SetPropValue(false);
 
-            protected override void ScrollUp() =>
+            public override void ScrollUp() =>
                 SetPropValue(true);
 
             protected override bool TryParseValue(string text, out Color value)
@@ -936,18 +915,15 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private int GetIncrement()
             {
-                if (KeyBinds.MultZ.IsPressed)
+                if (BvBinds.MultZ.IsPressed)
                     return incrZ;
-                else if (KeyBinds.MultY.IsPressed)
+                else if (BvBinds.MultY.IsPressed)
                     return incrY;
-                else if (KeyBinds.MultX.IsPressed)
+                else if (BvBinds.MultX.IsPressed)
                     return incrX;
                 else
                     return incr0;
             }
-
-            protected override string GetValue() =>
-                property.GetValue(block).GetChannel(channel).ToString();
         }
     }
 }

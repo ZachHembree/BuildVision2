@@ -1,12 +1,13 @@
 ﻿using DarkHelmet.Game;
 using DarkHelmet.UI;
+using DarkHelmet.UI.Client;
 
 namespace DarkHelmet.BuildVision2
 {
     /// <summary>
     /// Wrapper used to provide easy access to Build Vision key binds.
     /// </summary>
-    internal sealed class KeyBinds : ModBase.ComponentBase
+    internal sealed class BvBinds : ModBase.ComponentBase
     {
         public static BindsConfig Cfg
         {
@@ -24,17 +25,17 @@ namespace DarkHelmet.BuildVision2
         public static IBind MultZ { get { return BindGroup[7]; } }
         public static IBindGroup BindGroup { get { return Instance.bindGroup; } }
 
-        private static KeyBinds Instance
+        private static BvBinds Instance
         {
             get { Init(); return instance; }
             set { instance = value; }
         }
-        private static KeyBinds instance;
+        private static BvBinds instance;
         private static readonly string[] bindNames = new string[] { "Open", "Close", "Select", "ScrollUp", "ScrollDown", "MultX", "MultY", "MultZ" };
 
         private readonly IBindGroup bindGroup;
 
-        private KeyBinds() : base(false, true)
+        private BvBinds() : base(false, true)
         {
             bindGroup = BindManager.GetOrCreateGroup("BuildVision");
             bindGroup.RegisterBinds(bindNames);
@@ -44,7 +45,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (instance == null)
             {
-                instance = new KeyBinds();
+                instance = new BvBinds();
                 Cfg = BvConfig.Current.binds;
 
                 BvConfig.OnConfigSave += instance.UpdateConfig;
