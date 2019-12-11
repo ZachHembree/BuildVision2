@@ -12,8 +12,8 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     internal class BvScrollMenu : HudElementBase
     {
-        public override float Width { get { return chain.Width; } set { chain.Width = value; } }
-        public override float Height { get { return chain.Height; } set { chain.Height = value; } }
+        public override float Width { get { return main.Width; } set { main.Width = value; } }
+        public override float Height { get { return main.Height; } set { main.Height = value; } }
 
         public float BgOpacity
         {
@@ -37,7 +37,8 @@ namespace DarkHelmet.BuildVision2
         public readonly TexturedBox selectionBox, tab;
 
         private readonly ScrollBox<BvPropertyBox> body;
-        private readonly HudChain<HudElementBase> chain;
+        private readonly HudChain<HudElementBase> main;
+        private readonly Utils.Stopwatch listWrapTimer;
 
         private int index;
         private float bgOpacity;
@@ -83,6 +84,7 @@ namespace DarkHelmet.BuildVision2
                 Color = bodyColor,
                 Padding = new Vector2(48f, 16f),
                 Height = 200f,
+                MinimumWidth = 300f,
             };
 
             body.scrollBar.Width = 14f;
@@ -111,7 +113,7 @@ namespace DarkHelmet.BuildVision2
                 Color = headerColor,
             };
 
-            chain = new HudChain<HudElementBase>(this)
+            main = new HudChain<HudElementBase>(this)
             {
                 AutoResize = true,
                 AlignVertical = true,
@@ -126,8 +128,14 @@ namespace DarkHelmet.BuildVision2
             bgOpacity = 0.9f;
             BgOpacity = 0.9f;
             Count = 0;
+
+            listWrapTimer = new Utils.Stopwatch();
+            listWrapTimer.Start();
         }
 
+        /// <summary>
+        /// Updates property text.
+        /// </summary>
         public void UpdateText()
         {
             if (target != null)
@@ -140,7 +148,8 @@ namespace DarkHelmet.BuildVision2
                         body.ChainElements[n].UpdateText(false, false);
                 }
 
-                footer.LeftText.SetText(new RichText($"[{body.scrollBar.Current} - {body.scrollBar.Max} of {body.ChainElements.Count}]", footerTextLeft));
+                //footer.LeftText.SetText(new RichText($"[{body.VisStart} - {body.VisStart + body.VisCount - 1} of {body.EnabledCount}]", footerTextLeft));
+                footer.LeftText.SetText(new RichText($"[{body.Start}/{index}/{body.End}; {GetFirstIndex()}/{GetLastIndex()}]", footerTextLeft));
 
                 if (target.IsWorking)
                     footer.RightText.SetText(new RichText("[Working]", footerTextRight));
@@ -151,14 +160,16 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        protected override void Draw()
+        public override void BeforeDraw()
         {
-            Width = Math.Max(250f, body.Width);
+            base.BeforeDraw();
+
+            main.Width = body.Width;
 
             if (Selection != null)
             {
-                selectionBox.Size = new Vector2(Width, Selection.Size.Y + (2f * Scale));
-                selectionBox.Offset = new Vector2(0f, Selection.Offset.Y);
+                selectionBox.Size = new Vector2(body.Width - body.divider.Width - body.scrollBar.Width, Selection.Size.Y + (2f * Scale));
+                selectionBox.Offset = new Vector2(0f, Selection.Offset.Y - (1f * Scale));
                 tab.Height = selectionBox.Height;
             }
         }
@@ -177,9 +188,40 @@ namespace DarkHelmet.BuildVision2
                 ToggleTextBox();
         }
 
-        private void UpdateIndex(int dir)
+        /// <summary>
+        /// Interprets scrolling input. If a property is currently opened, scrolling will change the
+        /// current property value, if applicable. Otherwise, it will change the current property selection.
+        /// </summary>
+        private void Scroll(int dir)
         {
-            for (int n = index + dir; (n < Count && n >= 0); n += dir)
+            if (!PropOpen)
+            {
+                UpdateIndex(BvBinds.MultX.IsPressed ? dir * 5 : dir);
+                listWrapTimer.Reset();
+            }
+            else
+            {
+                var scrollable = Selection.BlockMember as IBlockScrollable;
+
+                if (scrollable != null)
+                {
+                    if (dir < 0)
+                        scrollable.ScrollUp();
+                    else if (dir > 0)
+                        scrollable.ScrollDown();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates the selection index.
+        /// </summary>
+        private void UpdateIndex(int offset)
+        {
+            int min = GetFirstIndex(), max = GetLastIndex();
+            index += offset;
+
+            for (int n = index; (n <= max && n >= min); n += offset)
             {
                 if (body.ChainElements[n].BlockMember.Enabled)
                 {
@@ -188,18 +230,33 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            index = Utils.Math.Clamp(index, 0, Count - 1);
-
-            if (index < body.VisStart)
+            if (listWrapTimer.ElapsedMilliseconds > 400 && (index > max || index < min))
             {
-                body.scrollBar.Current = index;
+                if (index < min)
+                {
+                    index = max;
+                    body.End = index;
+                }
+                else
+                {
+                    index = min;
+                    body.Start = index;
+                }
             }
-            else if (index > body.VisEnd)
+            else
             {
-                body.VisStart++;
+                index = Utils.Math.Clamp(index, min, max);
+
+                if (index < body.Start)
+                    body.Start = index;
+                else if (index > body.End)
+                    body.End = index;
             }
         }
 
+        /// <summary>
+        /// Toggles property selection.
+        /// </summary>
         private void ToggleSelect()
         {
             if (!PropOpen)
@@ -208,6 +265,9 @@ namespace DarkHelmet.BuildVision2
                 CloseProp();
         }
 
+        /// <summary>
+        /// Opens the currently highlighted property.
+        /// </summary>
         private void OpenProp()
         {
             var blockAction = Selection.BlockMember as IBlockAction;
@@ -222,6 +282,9 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        /// <summary>
+        /// Closes the currently selected property.
+        /// </summary>
         private void CloseProp()
         {
             if (Selection != null)
@@ -230,14 +293,19 @@ namespace DarkHelmet.BuildVision2
 
                 if (textMember != null)
                 {
-                    textMember.SetValueText(Selection.value.Text.GetText().ToString());
-                    Selection.value.InputOpen = false;
+                    textMember.SetValueText(Selection.value.Text.GetText().ToString());              
                 }
+
+                Selection.value.InputOpen = false;
             }
 
             PropOpen = false;
         }
 
+        /// <summary>
+        /// Toggles the textbox of the selected property open/closed if the property supports text
+        /// input.
+        /// </summary>
         private void ToggleTextBox()
         {
             if (Selection.BlockMember is IBlockTextMember)
@@ -265,26 +333,12 @@ namespace DarkHelmet.BuildVision2
             Selection.value.Text.SetFormatting(selectedText);
         }
 
-        private void Scroll(int dir)
-        {
-            if (!PropOpen)
-                UpdateIndex(dir);
-            else
-            {
-                var scrollable = Selection.BlockMember as IBlockScrollable;
-
-                if (scrollable != null)
-                {
-                    if (dir < 0)
-                        scrollable.ScrollUp();
-                    else if (dir > 0)
-                        scrollable.ScrollDown();
-                }
-            }
-        }
-
+        /// <summary>
+        /// Sets the target block to the one given.
+        /// </summary>
         public void SetTarget(PropertyBlock target)
         {
+            Clear();
             this.target = target;
 
             for (int n = 0; n < body.ChainElements.Count; n++)
@@ -294,8 +348,53 @@ namespace DarkHelmet.BuildVision2
             {
                 AddMember(target.BlockMembers[n]);
             }
+
+            index = GetFirstIndex();
         }
 
+        /// <summary>
+        /// Returns the index of the first enabled property.
+        /// </summary>
+        /// <returns></returns>
+        private int GetFirstIndex()
+        {
+            int first = 0;
+
+            for (int n = 0; n < Count; n++)
+            {
+                if (body.ChainElements[n].Enabled)
+                {
+                    first = n;
+                    break;
+                }
+            }
+
+            return first;
+        }
+
+        /// <summary>
+        /// Retrieves the index of the last enabled property.
+        /// </summary>
+        /// <returns></returns>
+        private int GetLastIndex()
+        {
+            int last = 0;
+
+            for (int n = Count - 1; n >= 0; n--)
+            {
+                if (body.ChainElements[n].Enabled)
+                {
+                    last = n;
+                    break;
+                }
+            }
+
+            return last;
+        }
+
+        /// <summary>
+        /// Adds the given block member to the list of <see cref="BvPropertyBox"/>es.
+        /// </summary>
         private void AddMember(IBlockMember blockMember)
         {
             if (body.ChainElements.Count <= Count)
@@ -312,6 +411,9 @@ namespace DarkHelmet.BuildVision2
             Count++;
         }
 
+        /// <summary>
+        /// Clears block data from the menu and resets the count.
+        /// </summary>
         public void Clear()
         {
             CloseProp();
@@ -322,6 +424,7 @@ namespace DarkHelmet.BuildVision2
             target = null;
             PropOpen = false;
             index = 0;
+            body.Start = 0;
             Count = 0;
         }
 

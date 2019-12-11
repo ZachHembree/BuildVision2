@@ -33,15 +33,12 @@ namespace DarkHelmet.BuildVision2
         private static PropertiesMenu instance;
 
         private readonly BvScrollMenu scrollMenu;
-        private readonly Utils.Stopwatch listWrapTimer;
         private PropertyBlock target;
 
         private PropertiesMenu() : base(false, true)
         {
             scrollMenu = new BvScrollMenu() { Visible = false };
             target = null;
-
-            listWrapTimer = new Utils.Stopwatch();
         }
 
         private static void Init()

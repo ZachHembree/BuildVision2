@@ -137,7 +137,7 @@ namespace DarkHelmet
             /// If visible == true, it will update the input of the element before updating 
             /// the input of its child elements.
             /// </summary>
-            public sealed override void BeforeInput()
+            public override void BeforeInput()
             {
                 if (Visible)
                 {
@@ -167,7 +167,7 @@ namespace DarkHelmet
             /// If visible == true, the element will draw itself before updating its child
             /// elements.
             /// </summary>
-            public sealed override void BeforeDraw()
+            public override void BeforeDraw()
             {
                 base.BeforeDraw();
 

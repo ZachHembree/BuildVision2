@@ -56,7 +56,7 @@ namespace DarkHelmet.UI
             {
                 min = value;
 
-                if (max > min)
+                if (max - min != 0)
                     Percent = (current - min) / (max - min);
             }
         }
@@ -71,7 +71,7 @@ namespace DarkHelmet.UI
             {
                 max = value;
 
-                if (max > min)
+                if (max - min != 0)
                     Percent = (current - min) / (max - min);
             }
         }
@@ -84,7 +84,7 @@ namespace DarkHelmet.UI
             get { return current; }
             set
             {
-                if (max > min)
+                if (max - min != 0)
                     Percent = (value - min) / (max - min);
             }
         }
