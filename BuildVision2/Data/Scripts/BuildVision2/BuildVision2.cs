@@ -1,14 +1,14 @@
-﻿using DarkHelmet.Game;
-using DarkHelmet.UI;
+﻿using RichHudFramework.Game;
+using RichHudFramework.UI;
 using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
-using DarkHelmet.UI.Rendering;
 
 namespace DarkHelmet.BuildVision2
 {
-    using RichHudClient;
+    using RichHudFramework;
+    using RichHudFramework.RichHudClient;
 
     /// <summary>
     /// Build vision main class
@@ -49,6 +49,7 @@ namespace DarkHelmet.BuildVision2
             {
                 LoadFinished = true;
                 bvCommands = CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
+                InitSettingsMenu();
 
                 if (MenuUtilities.CanAddElements)
                     MenuUtilities.AddMenuElements(GetSettingsMenuElements());
@@ -122,7 +123,7 @@ namespace DarkHelmet.BuildVision2
             IMyCubeBlock block;
             IMyTerminalBlock termBlock;
 
-            if ((Cfg.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(Cfg.general.maxOpenRange, out block))
+            if ((Cfg.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(Cfg.general.maxOpenRange, out block, 2))
             {
                 termBlock = block as IMyTerminalBlock;
 

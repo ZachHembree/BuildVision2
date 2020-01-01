@@ -6,7 +6,7 @@ using VRage.Utils;
 using AtlasMembers = VRage.MyTuple<string, VRageMath.Vector2>;
 using GlyphMembers = VRage.MyTuple<int, VRageMath.Vector2, VRageMath.Vector2, float, float>;
 
-namespace DarkHelmet
+namespace RichHudFramework
 {
     using FontMembers = MyTuple<
         string, // Name

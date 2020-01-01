@@ -1,5 +1,6 @@
-﻿using DarkHelmet.IO;
-using DarkHelmet.UI;
+﻿using RichHudFramework;
+using RichHudFramework.IO;
+using RichHudFramework.UI;
 using System.Xml.Serialization;
 using VRageMath;
 

@@ -1,17 +1,17 @@
-﻿using DarkHelmet.Game;
-using DarkHelmet.UI;
+﻿using RichHudFramework.Game;
+using RichHudFramework.UI;
+using RichHudFramework.UI.Rendering;
 using Sandbox.ModAPI;
 using System;
 using VRage;
-using DarkHelmet.UI.Rendering;
-using VRage.Game.ModAPI;
 using VRage.Game.Components;
+using VRage.Game.ModAPI;
 using VRageMath;
 
-namespace DarkHelmet.RichHudClient
+namespace RichHudFramework.RichHudClient
 {
-    using ServerData = MyTuple<Action, Func<int, object>>;
     using ClientData = MyTuple<string, Action<int, object>, Action>;
+    using ServerData = MyTuple<Action, Func<int, object>>;
 
     public abstract class RichHudClient : ModBase
     {
@@ -19,8 +19,9 @@ namespace DarkHelmet.RichHudClient
         private static new RichHudClient Instance;
         public static bool Registered => Instance.registered;
 
-        private bool regFail, registered;
         private ClientData regMessage;
+        private bool regFail, registered;
+
         private Action UnregisterAction;
         private Func<int, object> GetApiDataFunc;
 

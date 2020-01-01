@@ -1,4 +1,4 @@
-﻿using DarkHelmet.RichHudClient;
+﻿using RichHudFramework.RichHudClient;
 using System;
 using System.Collections.Generic;
 using VRage;
@@ -7,7 +7,7 @@ using FloatProp = VRage.MyTuple<System.Func<float>, System.Action<float>>;
 using RichStringMembers = VRage.MyTuple<System.Text.StringBuilder, VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>>;
 using Vec2Prop = VRage.MyTuple<System.Func<VRageMath.Vector2>, System.Action<VRageMath.Vector2>>;
 
-namespace DarkHelmet
+namespace RichHudFramework
 {
     using CursorMembers = MyTuple<
         Func<bool>, // Visible
@@ -62,7 +62,7 @@ namespace DarkHelmet
                 Func<float>, // Fov
                 Func<float>, // FovScale
                 MyTuple<Func<IList<RichStringMembers>>, Action<IList<RichStringMembers>>>,
-                Func<bool, TextBoardMembers> // GetNewTextBoard
+                Func<TextBoardMembers> // GetNewTextBoard
             >
         >;
 
@@ -72,8 +72,8 @@ namespace DarkHelmet
             public static ICursor Cursor => Instance.cursor;
             public static RichText ClipBoard
             {
-                get { return new RichText(Instance.GetClipBoardFunc()); }
-                set { Instance.SetClipBoardAction(value.GetApiData()); }
+                get { return new RichText(Instance.ClipboardPropWrapper.Getter()); }
+                set { Instance.ClipboardPropWrapper.Setter(value.GetApiData()); }
             }
             public static float ResScale => Instance.ResScaleFunc();
             public static float ScreenWidth => Instance.ScreenWidthFunc();
@@ -97,9 +97,8 @@ namespace DarkHelmet
             private readonly Func<float> ResScaleFunc;
             private readonly Func<float> FovFunc;
             private readonly Func<float> FovScaleFunc;
-            private readonly Func<IList<RichStringMembers>> GetClipBoardFunc;
-            private readonly Action<IList<RichStringMembers>> SetClipBoardAction;
-            private readonly Func<bool, TextBoardMembers> GetTextBoardDataFunc;
+            private readonly PropWrapper<IList<RichStringMembers>> ClipboardPropWrapper;
+            private readonly Func<TextBoardMembers> GetTextBoardDataFunc;
 
             private HudMain() : base(ApiComponentTypes.HudMain, false, true)
             {
@@ -116,6 +115,7 @@ namespace DarkHelmet
                 ResScaleFunc = data2.Item1;
                 FovFunc = data2.Item2;
                 FovScaleFunc = data2.Item3;
+                ClipboardPropWrapper = new PropWrapper<IList<RichStringMembers>>(data2.Item4.Item1, data2.Item4.Item2);
                 GetTextBoardDataFunc = data2.Item5;
             }
 
@@ -133,8 +133,8 @@ namespace DarkHelmet
                 Instance = null;
             }
 
-            public static TextBoardMembers GetTextBoardData(bool wordWrapping) =>
-                Instance.GetTextBoardDataFunc(wordWrapping);
+            public static TextBoardMembers GetTextBoardData() =>
+                Instance.GetTextBoardDataFunc();
 
             /// <summary>
             /// Converts from a coordinate in the scaled coordinate system to a concrete coordinate in pixels.

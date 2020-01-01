@@ -2,27 +2,41 @@
 using VRage;
 using VRageMath;
 
-namespace DarkHelmet
+namespace RichHudFramework
 {
     namespace UI
     {
         [Flags]
-        [Obsolete]
-        public enum OriginAlignment : int
+        public enum DimAlignments : int
         {
-            Center = 0,
-            Left = 1,
-            Right = 2,
-            Top = 4,
-            Bottom = 8,
-            Auto = 16
+            None = 0,
+
+            /// <summary>
+            /// Match parent width
+            /// </summary>
+            Width = 1,
+
+            /// <summary>
+            /// Match parent height
+            /// </summary>
+            Height = 2,
+
+            /// <summary>
+            /// Match parent size
+            /// </summary>
+            Both = 3,
+
+            /// <summary>
+            /// Matches parent size less padding
+            /// </summary>
+            IgnorePadding = 4,
         }
 
         /// <summary>
         /// Used to determine the default position of an element relative to its parent.
         /// </summary>
         [Flags]
-        public enum ParentAlignment : int
+        public enum ParentAlignments : int
         {
             /// <summary>
             /// The element's origin is at the center of its parent.

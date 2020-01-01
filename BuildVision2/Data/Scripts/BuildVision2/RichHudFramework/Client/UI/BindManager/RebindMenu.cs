@@ -1,8 +1,8 @@
-﻿using DarkHelmet.Game;
+﻿using RichHudFramework.Game;
 using System.Collections.Generic;
 using VRageMath;
 
-namespace DarkHelmet.UI.Client
+namespace RichHudFramework.UI.Client
 {
     /// <summary>
     /// GUI used to change binds in <see cref="BindManager.Group"/>s.
@@ -47,8 +47,8 @@ namespace DarkHelmet.UI.Client
             stopwatch = new Utils.Stopwatch();
             menu = new RebindHud();
 
-            menu.footer.LeftText.SetText(new RichString("[Enter] = Accept", defaultFormat));
-            menu.footer.RightText.SetText(new RichString("[Delete] = Remove", defaultFormat));
+            menu.footer.LeftTextBoard.SetText(new RichString("[Enter] = Accept", defaultFormat));
+            menu.footer.RightTextBoard.SetText(new RichString("[Delete] = Remove", defaultFormat));
 
             SharedBinds.Enter.OnNewPress += Confirm;
             SharedBinds.Delete.OnNewPress += RemoveLast;
@@ -76,7 +76,7 @@ namespace DarkHelmet.UI.Client
             Instance.group = group;
             Instance.bind = bind;
             Instance.UpdateCombo();
-            Instance.menu.header.Text.SetText($"Bind Manager: {bind.Name}");
+            Instance.menu.header.Text = $"Bind Manager: {bind.Name}";
         }
 
         public static void UpdateBind(IBindGroup group, string bindName)
@@ -117,7 +117,7 @@ namespace DarkHelmet.UI.Client
             newCombo.AddRange(BindManager.GetCombo(controlIndices));
             bindString += "New Bind: ";
 
-            menu.body.Text.SetText(new RichText("Press a key to add it to the bind.\n", defaultFormat));
+            menu.body.Text = new RichText("Press a key to add it to the bind.\n", defaultFormat);
 
             for (int n = 0; n < newCombo.Count; n++)
             {
@@ -127,12 +127,12 @@ namespace DarkHelmet.UI.Client
                     bindString += newCombo[n].Name;
             }
 
-            menu.body.Text.Append(bindString);
+            menu.body.TextBoard.Append(bindString);
 
             if (group.DoesComboConflict(newCombo, bind))
             {
-                menu.body.Text.Append(new RichText("\nWarning: Current key combination", errorFormat));
-                menu.body.Text.Append(new RichText("conflicts with another bind.", errorFormat));
+                menu.body.TextBoard.Append(new RichText("\nWarning: Current key combination", errorFormat));
+                menu.body.TextBoard.Append(new RichText("conflicts with another bind.", errorFormat));
             }
         }
 

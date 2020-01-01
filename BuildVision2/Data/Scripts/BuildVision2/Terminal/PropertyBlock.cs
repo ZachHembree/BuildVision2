@@ -1,6 +1,5 @@
-using DarkHelmet.UI;
+using RichHudFramework;
 using Sandbox.Game.Localization;
-using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
@@ -9,13 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using VRage;
+using VRage.Game;
+using VRage.Game.Components;
 using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
-using VRage.Game;
-using VRage.Game.Components;
-using VRage.Game.ModAPI;
-
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
 using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
@@ -256,7 +253,7 @@ namespace DarkHelmet.BuildVision2
         {
             public virtual string Name { get; protected set; }
             public abstract string Value { get; }
-            public virtual string Postfix => "";
+            public abstract string Postfix { get; }
             public virtual bool Enabled { get; protected set; }
         }
 
@@ -274,7 +271,7 @@ namespace DarkHelmet.BuildVision2
 
             public BlockAction(Func<string> GetValueFunc, Func<string> GetPostfixFunc, Action Action)
             {
-                Name = "";
+                Name = null;
                 Enabled = true;
 
                 this.GetValueFunc = GetValueFunc;
@@ -300,7 +297,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     members.Add(new BlockAction(
                         "Attach Wheel",
-                        () => mechBlock.IsAttached ? "Attached" : null,
+                        () => mechBlock.IsAttached ? "(Attached)" : null,
                         mechBlock.Attach));
                     members.Add(new BlockAction(
                         "Detach Wheel", null,
@@ -332,7 +329,7 @@ namespace DarkHelmet.BuildVision2
                 if (mechBlock is IMyPistonBase)
                 {
                     IMyPistonBase piston = (IMyPistonBase)mechBlock;
-                    
+
                     members.Add(new BlockAction(
                         "Reverse", null,
                          piston.Reverse));
@@ -364,7 +361,7 @@ namespace DarkHelmet.BuildVision2
             {
                 members.Add(new BlockAction(
                     "Start Countdown",
-                    () => $"{ Math.Truncate(warhead.DetonationTime) }",
+                    () => $"({ Math.Truncate(warhead.DetonationTime) })",
                     () => warhead.StartCountdown()));
                 members.Add(new BlockAction(
                     "Stop Countdown", null,
@@ -386,11 +383,11 @@ namespace DarkHelmet.BuildVision2
                         string status = "";
 
                         if (landingGear.LockMode == LandingGearMode.Locked)
-                            status = "Locked";
+                            status = "(Locked)";
                         else if (landingGear.LockMode == LandingGearMode.ReadyToLock)
-                            status = "Ready";
+                            status = "(Ready)";
                         else if (landingGear.LockMode == LandingGearMode.Unlocked)
-                            status = "Unlocked";
+                            status = "(Unlocked)";
 
                         return status;
                     },
@@ -409,11 +406,11 @@ namespace DarkHelmet.BuildVision2
                         string status = "";
 
                         if (connector.Status == ConnectorStatus.Connected)
-                            status = "Locked";
+                            status = "(Locked)";
                         else if (connector.Status == ConnectorStatus.Connectable)
-                            status = "Ready";
+                            status = "(Ready)";
                         else if (connector.Status == ConnectorStatus.Unconnected)
-                            status = "Unlocked";
+                            status = "(Unlocked)";
 
                         return status;
                     },
@@ -427,7 +424,7 @@ namespace DarkHelmet.BuildVision2
             {
                 members.Add(new BlockAction(
                     "Open/Close",
-                    parachute.Status.ToString,
+                    () => $"({parachute.Status.ToString()})",
                     parachute.ToggleDoor));
             }
         }
@@ -454,7 +451,7 @@ namespace DarkHelmet.BuildVision2
             protected BvTerminalProperty(string name, T property, IMyTerminalControl control, IMyTerminalBlock block)
             {
                 Name = name;
-                
+
                 this.property = property;
                 this.control = control;
                 this.block = block;
@@ -467,6 +464,7 @@ namespace DarkHelmet.BuildVision2
         private class TextProperty : BvTerminalProperty<ITerminalProperty<StringBuilder>>, IBlockTextMember
         {
             public override string Value => CleanText(property.GetValue(block));
+            public override string Postfix => null;
             public Func<char, bool> CharFilterFunc { get; protected set; }
 
             public TextProperty(string name, ITerminalProperty<StringBuilder> textProp, IMyTerminalControl control, IMyTerminalBlock block) : base(name, textProp, control, block)
@@ -500,9 +498,9 @@ namespace DarkHelmet.BuildVision2
         private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>>, IBlockAction
         {
             public override string Value => GetPropStateText();
-            public override string Postfix => GetSuffixFunc != null ? GetSuffixFunc() : null;
+            public override string Postfix => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
-            private readonly Func<string> GetSuffixFunc;
+            private readonly Func<string> GetPostfixFunc;
             private readonly MyStringId OnText, OffText;
 
             public BoolProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
@@ -513,11 +511,11 @@ namespace DarkHelmet.BuildVision2
                     var sink = block.ResourceSink;
                     var producer = block as IMyPowerProducer;
 
-                    GetSuffixFunc = () => GetBlockPowerInfo(sink, producer, definitionId);
+                    GetPostfixFunc = () => GetBlockPowerInfo(sink, producer, definitionId);
                 }
                 else if (property.Id == "Stockpile" && block is IMyGasTank) // Insert gas tank info
                 {
-                    GetSuffixFunc = () => GetGasTankFillPercent((IMyGasTank)block);
+                    GetPostfixFunc = () => GetGasTankFillPercent((IMyGasTank)block);
                 }
 
                 if (property is IMyTerminalControlOnOffSwitch)
@@ -537,10 +535,10 @@ namespace DarkHelmet.BuildVision2
             private static string GetBlockPowerInfo(MyResourceSinkComponentBase sink, IMyPowerProducer producer, MyDefinitionId definitionId)
             {
                 string disp = "", suffix;
-                float powerDraw = sink != null ? sink.CurrentInputByType(definitionId) : 0f, 
-                    powerOut = producer != null ? producer.CurrentOutput  : 0f, 
+                float powerDraw = sink != null ? sink.CurrentInputByType(definitionId) : 0f,
+                    powerOut = producer != null ? producer.CurrentOutput : 0f,
                     total = (powerDraw + powerOut), scale;
-                
+
                 if (total >= 1000f)
                 {
                     scale = .001f;
@@ -573,12 +571,12 @@ namespace DarkHelmet.BuildVision2
                     disp += "+" + Math.Round(powerOut * scale, 1);
                 }
 
-                return $"{disp} {suffix}";
+                return $"({disp} {suffix})";
             }
 
             private static string GetGasTankFillPercent(IMyGasTank gasTank)
             {
-                return $"{Math.Round(gasTank.FilledRatio * 100d, 1)}%";
+                return $"({Math.Round(gasTank.FilledRatio * 100d, 1)}%)";
             }
 
             public void Action()
@@ -630,10 +628,11 @@ namespace DarkHelmet.BuildVision2
         private class ComboBoxProperty : ScrollablePropBase<IMyTerminalControlCombobox>
         {
             public override string Value => GetValueFunc();
+            public override string Postfix => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
             private readonly List<long> keys;
             private readonly List<string> names;
-            private readonly Func<string> GetValueFunc;
+            private readonly Func<string> GetValueFunc, GetPostfixFunc;
 
             public ComboBoxProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, IMyTerminalBlock block) : base(name, comboBox, control, block)
             {
@@ -653,10 +652,10 @@ namespace DarkHelmet.BuildVision2
                 if (control.Id == "ChargeMode" && block is IMyBatteryBlock) // Insert bat charge info
                 {
                     var bat = (IMyBatteryBlock)block;
-                    GetValueFunc = () => $"{names[GetCurrentIndex()]} ({Math.Round((bat.CurrentStoredPower / bat.MaxStoredPower) * 100f, 1)}%)";
+                    GetPostfixFunc = () => $"({Math.Round((bat.CurrentStoredPower / bat.MaxStoredPower) * 100f, 1)}%)";
                 }
-                else
-                    GetValueFunc = () => names[GetCurrentIndex()];
+
+                GetValueFunc = () => names[GetCurrentIndex()];
             }
 
             public override void ScrollUp() =>
@@ -705,7 +704,7 @@ namespace DarkHelmet.BuildVision2
 
             public NumericPropertyBase(string name, ITerminalProperty<T> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
             {
-                CharFilterFunc = x => (x >= '0' && x <= '9') || x == '.';
+                CharFilterFunc = x => (x >= '0' && x <= '9') || x == '.' || x == '-' || x == '+';
             }
 
             public void SetValueText(string value)
@@ -750,16 +749,16 @@ namespace DarkHelmet.BuildVision2
                         return value.ToString("0.##");
                 }
             }
-            public override string Postfix => GetSuffixFunc();
+            public override string Postfix => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
             private readonly float minValue, maxValue, incrX, incrY, incrZ, incr0;
-            private readonly Func<string> GetSuffixFunc;
+            private readonly Func<string> GetPostfixFunc;
 
             public FloatProperty(string name, ITerminalProperty<float> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
             {
                 minValue = property.GetMinimum(block);
                 maxValue = property.GetMaximum(block);
-                
+
                 if (property.Id.StartsWith("Rot")) // Increment exception for projectors
                     incr0 = 90f;
                 else
@@ -791,18 +790,14 @@ namespace DarkHelmet.BuildVision2
                     if (block is IMyPistonBase)
                     {
                         var piston = (IMyPistonBase)block;
-                        GetSuffixFunc = () => $"({Math.Round(piston.CurrentPosition, 1)}m)";
+                        GetPostfixFunc = () => $"({Math.Round(piston.CurrentPosition, 1)}m)";
                     }
                     else if (block is IMyMotorStator)
                     {
                         var rotor = (IMyMotorStator)block;
-                        GetSuffixFunc = () => $"({Math.Round(Utils.Math.Clamp(rotor.Angle.RadiansToDegrees(), 0, 360))})";
+                        GetPostfixFunc = () => $"({Math.Round(Utils.Math.Clamp(rotor.Angle.RadiansToDegrees(), 0, 360))})";
                     }
-                    else
-                        GetSuffixFunc = () => "";
                 }
-                else
-                    GetSuffixFunc = () => "";
             }
 
             public override void ScrollDown() =>
@@ -849,6 +844,7 @@ namespace DarkHelmet.BuildVision2
         private class ColorProperty : NumericPropertyBase<Color>
         {
             public override string Value => property.GetValue(block).GetChannel(channel).ToString();
+            public override string Postfix => null;
 
             private readonly int channel;
             private static int incrX, incrY, incrZ, incr0;

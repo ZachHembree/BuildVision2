@@ -1,7 +1,8 @@
-﻿using DarkHelmet.Game;
-using DarkHelmet.UI;
+﻿using RichHudFramework.Game;
+using RichHudFramework.UI;
+using RichHudFramework;
 using Sandbox.ModAPI;
-using DarkHelmet.UI.Client;
+using RichHudFramework.UI.Client;
 using VRageMath;
 
 namespace DarkHelmet.BuildVision2
@@ -14,9 +15,8 @@ namespace DarkHelmet.BuildVision2
             get { return Instance.target; }
             set
             {
-                if (Instance.target != null)
+                if (value != null)
                 {
-                    Instance.scrollMenu.Clear();
                     Instance.scrollMenu.SetTarget(value);
                 }
 
@@ -72,6 +72,14 @@ namespace DarkHelmet.BuildVision2
 
         public override void Draw()
         {
+            if (Cfg.resolutionScaling)
+                scrollMenu.Scale = Cfg.hudScale * HudMain.ResScale;
+            else
+                scrollMenu.Scale = Cfg.hudScale;
+
+            scrollMenu.BgOpacity = Cfg.hudOpacity;
+            scrollMenu.MaxVisible = Cfg.maxVisible;
+
             if (target != null && Open)
             {
                 Vector3D targetPos, worldPos;
@@ -79,7 +87,6 @@ namespace DarkHelmet.BuildVision2
 
                 if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !Cfg.useCustomPos)
                 {
-                    scrollMenu.OriginAlignment = OriginAlignment.Center;
                     targetPos = Target.GetPosition() + Target.modelOffset * .75;
                     worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
                     screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
@@ -87,7 +94,6 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    scrollMenu.OriginAlignment = OriginAlignment.Auto;
                     screenPos = Cfg.hudPos;
                 }
 
@@ -97,8 +103,7 @@ namespace DarkHelmet.BuildVision2
                     screenPos.Y = Utils.Math.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
                 }
 
-                scrollMenu.Offset += HudMain.GetPixelVector(Utils.Math.Round(screenPos, 3));
-                scrollMenu.Offset /= 2f;
+                scrollMenu.Offset = HudMain.GetPixelVector(Utils.Math.Round(screenPos, 3));
             }
         }
 

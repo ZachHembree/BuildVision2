@@ -5,7 +5,7 @@ using VRage;
 using VRageMath;
 using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
 
-namespace DarkHelmet
+namespace RichHudFramework
 {
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
     using Vec2Prop = MyTuple<Func<Vector2>, Action<Vector2>>;
@@ -26,20 +26,29 @@ namespace DarkHelmet
             Action // Clear
         >;
 
-        namespace Rendering
+        namespace Rendering.Client
         {
             public abstract class TextBuilder : ITextBuilder
             {
                 public IRichChar this[Vector2I index] => new RichCharData(this, index);
                 public ILine this[int index] => new LineData(this, index);
                 public int Count => GetCountFunc();
-                public GlyphFormat Format { get; set; }
+                public GlyphFormat Format
+                {
+                    get { return new GlyphFormat((GlyphFormatMembers)GetOrSetMemberFunc(null, (int)TextBuilderAccessors.Format)); }
+                    set { GetOrSetMemberFunc(value.data, (int)TextBuilderAccessors.Format); }
+                }
+
                 public float LineWrapWidth
                 {
                     get { return (float)GetOrSetMemberFunc(null, (int)TextBuilderAccessors.LineWrapWidth); }
                     set { GetOrSetMemberFunc(value, (int)TextBuilderAccessors.LineWrapWidth); }
                 } 
-                public bool WordWrapping => (bool)GetOrSetMemberFunc(null, (int)TextBuilderAccessors.WordWrapping);
+                public TextBuilderModes BuilderMode
+                {
+                    get { return (TextBuilderModes)GetOrSetMemberFunc(null, (int)TextBuilderAccessors.BuilderMode); }
+                    set { GetOrSetMemberFunc(value, (int)TextBuilderAccessors.BuilderMode); }
+                }
 
                 protected readonly Func<object, int, object> GetOrSetMemberFunc;
                 private readonly Func<int, int, object> GetLineMemberFunc;

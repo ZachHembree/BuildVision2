@@ -1,4 +1,4 @@
-﻿using DarkHelmet.RichHudClient;
+﻿using RichHudFramework.RichHudClient;
 using System;
 using System.Collections.Generic;
 using VRage;
@@ -12,7 +12,7 @@ using BindMembers = VRage.MyTuple<
 >;
 using ControlMembers = VRage.MyTuple<string, int, System.Func<bool>, bool>;
 
-namespace DarkHelmet
+namespace RichHudFramework
 {
     using BindGroupMembers = MyTuple<
         string, // Name                   

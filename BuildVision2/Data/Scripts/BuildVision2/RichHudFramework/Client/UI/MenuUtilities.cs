@@ -1,12 +1,12 @@
-﻿using DarkHelmet.Game;
-using DarkHelmet.UI.TextHudApi;
+﻿using RichHudFramework.Game;
+using RichHudFramework.UI.TextHudApi;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using VRageMath;
-using MenuFlag = DarkHelmet.UI.TextHudApi.HudAPIv2.MenuRootCategory.MenuFlag;
+using MenuFlag = RichHudFramework.UI.TextHudApi.HudAPIv2.MenuRootCategory.MenuFlag;
 
-namespace DarkHelmet.UI
+namespace RichHudFramework.UI
 {
     /// <summary>
     /// Collection of wrapper types and utilities used to simplify the creation of settings menu elements in the Text HUD API Mod Menu

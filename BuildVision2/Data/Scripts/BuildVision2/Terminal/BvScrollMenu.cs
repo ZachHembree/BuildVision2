@@ -1,5 +1,7 @@
-﻿using DarkHelmet.UI;
-using DarkHelmet.UI.Client;
+﻿using RichHudFramework;
+using RichHudFramework.Game;
+using RichHudFramework.UI;
+using RichHudFramework.UI.Client;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -12,8 +14,8 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     internal class BvScrollMenu : HudElementBase
     {
-        public override float Width { get { return main.Width; } set { main.Width = value; } }
-        public override float Height { get { return main.Height; } set { main.Height = value; } }
+        public override float Width { get { return layout.Width; } set { layout.Width = value; } }
+        public override float Height { get { return layout.Height; } set { layout.Height = value; } }
 
         public float BgOpacity
         {
@@ -27,17 +29,17 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        public int MaxVisible { get; set; }
+        public int MaxVisible { get { return body.MinimumVisCount; } set { body.MinimumVisCount = value; } }
         public int Count { get; private set; }
         public bool PropOpen { get; private set; }
-        private BvPropertyBox Selection => (index < body.ChainElements.Count) ? body.ChainElements[index] : null;
+        private BvPropertyBox Selection => (index < body.List.Count) ? body.List[index] : null;
 
         public readonly LabelBox header;
         public readonly DoubleLabelBox footer;
         public readonly TexturedBox selectionBox, tab;
 
         private readonly ScrollBox<BvPropertyBox> body;
-        private readonly HudChain<HudElementBase> main;
+        private readonly HudChain<HudElementBase> layout;
         private readonly Utils.Stopwatch listWrapTimer;
 
         private int index;
@@ -45,7 +47,7 @@ namespace DarkHelmet.BuildVision2
         private PropertyBlock target;
 
         private static readonly Color headerColor, bodyColor, selectionBoxColor;
-        private static readonly GlyphFormat headerText, bodyText, 
+        private static readonly GlyphFormat headerText, bodyText,
             footerTextLeft, footerTextRight,
             highlightText, selectedText, blockIncText;
 
@@ -71,30 +73,35 @@ namespace DarkHelmet.BuildVision2
             CaptureCursor = true;
             ShareCursor = false; // temporary
 
-            header = new LabelBox("Build Vision", headerText)
+            header = new LabelBox()
             {
+                Format = headerText,
+                Text = "Build Vision",
                 AutoResize = false,
                 Height = 34f,
                 Color = headerColor,
             };
 
+            header.BuilderMode = TextBuilderModes.Unlined;
+
             body = new ScrollBox<BvPropertyBox>()
             {
-                AutoResize = false,
+                AlignVertical = true,
+                FitToChain = true,
                 Color = bodyColor,
                 Padding = new Vector2(48f, 16f),
-                Height = 200f,
-                MinimumWidth = 300f,
+                MinimumVisCount = 10,
+                MinimumSize = new Vector2(300f, 0f)
             };
 
-            body.scrollBar.Width = 14f;
-            body.scrollBar.slide.bar.Color = new Color(0, 0, 0, 0); // temporary
+            body.scrollBar.Padding = new Vector2(12f, 16f);
+            body.scrollBar.Width = 4f;
 
             selectionBox = new TexturedBox(body.background)
             {
                 Color = selectionBoxColor,
                 Padding = new Vector2(30f, 0f),
-                ParentAlignment = ParentAlignment.Left | ParentAlignment.InnerH
+                ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH
             };
 
             tab = new TexturedBox(selectionBox)
@@ -102,26 +109,29 @@ namespace DarkHelmet.BuildVision2
                 Width = 3f,
                 Offset = new Vector2(15f, 0f),
                 Color = new Color(225, 225, 240, 255),
-                ParentAlignment = ParentAlignment.Left | ParentAlignment.InnerH
+                ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH
             };
 
             footer = new DoubleLabelBox()
             {
                 AutoResize = false,
-                Padding = new Vector2(48f, 0f),
+                TextPadding = new Vector2(48f, 0f),
                 Height = 24f,
                 Color = headerColor,
             };
 
-            main = new HudChain<HudElementBase>(this)
+            footer.LeftTextBoard.Format = footerTextLeft;
+            footer.BuilderMode = TextBuilderModes.Unlined;
+
+            layout = new HudChain<HudElementBase>(this)
             {
                 AutoResize = true,
                 AlignVertical = true,
                 ChildContainer =
                 {
-                    { header, true },
-                    { body, true },
-                    { footer, true }
+                    header,
+                    body, 
+                    footer
                 }
             };
 
@@ -143,28 +153,31 @@ namespace DarkHelmet.BuildVision2
                 for (int n = 0; n < Count; n++)
                 {
                     if (n == index)
-                        body.ChainElements[n].UpdateText(true, PropOpen);
+                        body.List[n].UpdateText(true, PropOpen);
                     else
-                        body.ChainElements[n].UpdateText(false, false);
+                        body.List[n].UpdateText(false, false);
                 }
 
-                //footer.LeftText.SetText(new RichText($"[{body.VisStart} - {body.VisStart + body.VisCount - 1} of {body.EnabledCount}]", footerTextLeft));
-                footer.LeftText.SetText(new RichText($"[{body.Start}/{index}/{body.End}; {GetFirstIndex()}/{GetLastIndex()}]", footerTextLeft));
+                footer.LeftText = $"[{body.VisStart + 1} - {body.VisStart + body.VisCount} of {body.EnabledCount}]";
 
                 if (target.IsWorking)
-                    footer.RightText.SetText(new RichText("[Working]", footerTextRight));
+                    footer.RightText = new RichText("[Working]", footerTextRight);
                 else if (target.IsFunctional)
-                    footer.RightText.SetText(new RichText("[Functional]", footerTextRight));
+                    footer.RightText = new RichText("[Functional]", footerTextRight);
                 else
-                    footer.RightText.SetText(new RichText("[Incomplete]", blockIncText));
+                    footer.RightText = new RichText("[Incomplete]", blockIncText);
             }
+            else
+                footer.RightText = new RichText("[Target is null]", blockIncText);
+
+            //footer.LeftText.SetText(new RichText($"[{body.Start}/{index}/{body.End}; {body.scrollBar.Min}/{body.scrollBar.Max}]", footerTextLeft));
         }
 
         public override void BeforeDraw()
         {
             base.BeforeDraw();
 
-            main.Width = body.Width;
+            layout.Width = body.Width;
 
             if (Selection != null)
             {
@@ -223,14 +236,14 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = index; (n <= max && n >= min); n += offset)
             {
-                if (body.ChainElements[n].BlockMember.Enabled)
+                if (body.List[n].BlockMember.Enabled)
                 {
                     index = n;
                     break;
                 }
             }
 
-            if (listWrapTimer.ElapsedMilliseconds > 400 && (index > max || index < min))
+            if (listWrapTimer.ElapsedMilliseconds > 400 && (index > max || index < min) && !BvBinds.MultX.IsPressed)
             {
                 if (index < min)
                 {
@@ -293,7 +306,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (textMember != null)
                 {
-                    textMember.SetValueText(Selection.value.Text.GetText().ToString());              
+                    textMember.SetValueText(Selection.value.Text.ToString());
                 }
 
                 Selection.value.InputOpen = false;
@@ -330,19 +343,16 @@ namespace DarkHelmet.BuildVision2
         private void OpenTextInput()
         {
             Selection.value.InputOpen = true;
-            Selection.value.Text.SetFormatting(selectedText);
+            Selection.value.TextBoard.SetFormatting(selectedText);
         }
 
         /// <summary>
         /// Sets the target block to the one given.
         /// </summary>
-        public void SetTarget(PropertyBlock target)
+        public void SetTarget(PropertyBlock newTarget)
         {
             Clear();
-            this.target = target;
-
-            for (int n = 0; n < body.ChainElements.Count; n++)
-                body.ChainElements[n].BlockMember = null;
+            target = newTarget;
 
             for (int n = 0; n < target.BlockMembers.Count; n++)
             {
@@ -350,6 +360,7 @@ namespace DarkHelmet.BuildVision2
             }
 
             index = GetFirstIndex();
+            body.Start = 0;
         }
 
         /// <summary>
@@ -362,7 +373,7 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = 0; n < Count; n++)
             {
-                if (body.ChainElements[n].Enabled)
+                if (body.List[n].Enabled)
                 {
                     first = n;
                     break;
@@ -382,7 +393,7 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = Count - 1; n >= 0; n--)
             {
-                if (body.ChainElements[n].Enabled)
+                if (body.List[n].Enabled)
                 {
                     last = n;
                     break;
@@ -397,17 +408,17 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void AddMember(IBlockMember blockMember)
         {
-            if (body.ChainElements.Count <= Count)
+            if (body.List.Count <= Count)
             {
                 BvPropertyBox propBox = new BvPropertyBox(Count)
                 {
-                    ParentAlignment = ParentAlignment.Left | ParentAlignment.InnerH
+                    ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH
                 };
 
                 body.AddToList(propBox);
             }
 
-            body.ChainElements[Count].BlockMember = blockMember;
+            body.List[Count].BlockMember = blockMember;
             Count++;
         }
 
@@ -418,17 +429,16 @@ namespace DarkHelmet.BuildVision2
         {
             CloseProp();
 
-            for (int n = 0; n < body.ChainElements.Count; n++)
-                body.ChainElements[n].BlockMember = null;
+            for (int n = 0; n < body.List.Count; n++)
+                body.List[n].BlockMember = null;
 
             target = null;
-            PropOpen = false;
             index = 0;
             body.Start = 0;
             Count = 0;
         }
 
-        private class BvPropertyBox : HudElementBase, IScrollBoxMember
+        private class BvPropertyBox : HudElementBase, IListBoxEntry
         {
             public override bool Visible => base.Visible && Enabled;
             public bool Enabled => (BlockMember != null && BlockMember.Enabled);
@@ -473,38 +483,42 @@ namespace DarkHelmet.BuildVision2
             {
                 this.index = index;
 
-                name = new Label(this) { ParentAlignment = ParentAlignment.Left | ParentAlignment.InnerH };
-                value = new TextBox(name) { ParentAlignment = ParentAlignment.Right };
-                postfix = new Label(postfix) { ParentAlignment = ParentAlignment.Right };
+                name = new Label(this) { ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH };
+                value = new TextBox(name) { ParentAlignment = ParentAlignments.Right, UseMouseInput = false };
+                postfix = new Label(value) { ParentAlignment = ParentAlignments.Right };
+
+                name.BuilderMode = TextBuilderModes.Unlined;
+                value.BuilderMode = TextBuilderModes.Unlined;
+                postfix.BuilderMode = TextBuilderModes.Unlined;
             }
 
             public void UpdateText(bool highlighted, bool selected)
             {
-                name.Text.Format = bodyText;
-                postfix.Text.Format = bodyText;
+                name.Format = bodyText;
+                postfix.Format = bodyText;
 
                 if (BlockMember.Name != null && BlockMember.Name.Length > 0)
-                    name.Text.SetText($"{BlockMember.Name}: ");
+                    name.Text = $"{BlockMember.Name}: ";
                 else
-                    name.Text.Clear();
-
-                if (BlockMember.Postfix != null && BlockMember.Postfix.Length > 0)
-                    postfix.Text.SetText($" ({BlockMember.Postfix})");
-                else
-                    postfix.Text.Clear();
+                    name.TextBoard.Clear();
 
                 if (highlighted)
                 {
                     if (selected)
-                        value.Text.Format = selectedText;                       
+                        value.Format = selectedText;
                     else
-                        value.Text.Format = highlightText;
+                        value.Format = highlightText;
                 }
                 else
-                    value.Text.Format = bodyText;
+                    value.Format = bodyText;
 
                 if (!value.InputOpen)
-                    value.Text.SetText(BlockMember.Value);
+                    value.Text = BlockMember.Value;
+
+                if (BlockMember.Postfix != null && BlockMember.Postfix.Length > 0)
+                    postfix.Text = $" {BlockMember.Postfix}";
+                else
+                    postfix.TextBoard.Clear();
             }
         }
     }

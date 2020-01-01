@@ -2,7 +2,7 @@
 using VRage;
 using VRageMath;
 
-namespace DarkHelmet
+namespace RichHudFramework
 {
     namespace UI
     {
@@ -47,12 +47,10 @@ namespace DarkHelmet
             /// </summary>
             Vector2 Offset { get; set; }
 
-            OriginAlignment OriginAlignment { get; }
-
             /// <summary>
             /// Determines the starting position of the hud element relative to its parent.
             /// </summary>
-            ParentAlignment ParentAlignment { get; set; }
+            ParentAlignments ParentAlignment { get; set; }
 
             /// <summary>
             /// If set to true the hud element will be allowed to capture the cursor.

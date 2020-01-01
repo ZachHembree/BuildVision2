@@ -5,7 +5,7 @@ using VRage;
 using VRageMath;
 using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
 
-namespace DarkHelmet
+namespace RichHudFramework
 {
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
     using Vec2Prop = MyTuple<Func<Vector2>, Action<Vector2>>;
@@ -59,7 +59,7 @@ namespace DarkHelmet
                 private readonly PropWrapper<Vector2> FixedSizeProp;
                 private readonly Action<Vector2> DrawAction;
 
-                public TextBoard(bool wordWrapping) : this(HudMain.GetTextBoardData(wordWrapping))
+                public TextBoard() : this(HudMain.GetTextBoardData())
                 { }
 
                 private TextBoard(TextBoardMembers members) : base(members.Item1)

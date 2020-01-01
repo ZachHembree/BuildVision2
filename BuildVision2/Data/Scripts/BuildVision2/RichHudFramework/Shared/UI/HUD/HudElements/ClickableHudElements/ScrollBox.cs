@@ -1,63 +1,97 @@
 ﻿using VRageMath;
 using System;
 
-namespace DarkHelmet.UI
+namespace RichHudFramework.UI
 {
-    public interface IScrollBoxMember : IHudElement
+    public class ScrollBox<T> : HudElementBase, IListBoxEntry where T : IListBoxEntry
     {
-        bool Enabled { get; }
-    }
-
-    public class ScrollBox<T> : PaddedElementBase where T : IScrollBoxMember
-    {
-        public HudChain<T> Chain { get; }
-        public ReadOnlyCollection<T> ChainElements => Chain.ChainElements;
+        public HudChain<T> Members { get; }
+        public ReadOnlyCollection<T> List => Members.List;
 
         public override float Width
         {
-            get { return background.Width; }
-            set { background.Width = value; }
+            set
+            {
+                base.Width = value;
+
+                if (value > Padding.X)
+                    value -= Padding.X;
+
+                maxSize.X = value;
+            }
         }
+
         public override float Height
         {
-            get { return background.Height; }
             set
             {
-                background.Height = value;
-                MaximumHeight = value;
+                base.Height = value;
+
+                if (value > Padding.Y)
+                    value -= Padding.Y;
+
+                maxSize.Y = value;
             }
         }
 
         /// <summary>
-        /// Maximum allowable height of the list. Only applicable if AutoResize == true.
+        /// Minimum allowable size of the list.
         /// </summary>
-        public float MaximumHeight { get; set; }
+        public Vector2 MinimumSize { get; set; }
 
         /// <summary>
-        /// Minimum allowable width of the list. Only applicable if AutoResize == true.
+        /// If set to true, the element will automatically resize to match the size of the chain.
         /// </summary>
-        public float MinimumWidth { get; set; }
+        public bool FitToChain { get; set; }
 
-        public override Vector2 Padding
+        public bool Enabled { get; set; }
+
+        public bool AlignVertical
         {
-            get { return Chain.Padding; }
+            get { return Members.AlignVertical; }
             set
             {
-                Chain.Padding = value;
-                //scrollBar.Padding = value;
+                Members.AlignVertical = value;
+                scrollBar.Vertical = value;
+
+                if (AlignVertical)
+                {
+                    Members.ParentAlignment = ParentAlignments.Top | ParentAlignments.Left | ParentAlignments.Inner;
+                    scrollBar.ParentAlignment = ParentAlignments.Right | ParentAlignments.InnerH;
+                    divider.ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH;
+
+                    divider.Padding = new Vector2(2f, 0f);
+                    divider.Width = 1f;
+
+                    scrollBar.Padding = new Vector2(30f, 8f);
+                    scrollBar.Width = 45f;
+                }
+                else
+                {
+                    Members.ParentAlignment = ParentAlignments.Top | ParentAlignments.Left | ParentAlignments.Inner;
+                    scrollBar.ParentAlignment = ParentAlignments.Bottom | ParentAlignments.InnerV;
+                    divider.ParentAlignment = ParentAlignments.Bottom | ParentAlignments.InnerV;
+
+                    divider.Padding = new Vector2(16f, 2f);
+                    divider.Height = 1f;
+
+                    scrollBar.Padding = new Vector2(16f);
+                    scrollBar.Height = 24f;
+                }
             }
         }
-
-        /// <summary>
-        /// Determines whether or not chain elements will be resized to match the
-        /// size of the element along the axis of alignment.
-        /// </summary>
-        public bool AutoResize { get { return Chain.AutoResize; } set { Chain.AutoResize = value; } }
 
         /// <summary>
         /// Distance between the chain elements.
         /// </summary>
-        public float Spacing { get { return Chain.Spacing; } set { Chain.Spacing = value; } }
+        public float Spacing { get { return Members.Spacing; } set { Members.Spacing = value; } }
+
+        /// <summary>
+        /// Minimum number of visible elements allowed. Supercedes maximum size. If the number of elements that
+        /// can fit within the maximum size is less than this value, then this element will expand beyond its maximum
+        /// size.
+        /// </summary>
+        public int MinimumVisCount { get; set; }
 
         /// <summary>
         /// Index of the first element in the visible range in the chain.
@@ -76,8 +110,8 @@ namespace DarkHelmet.UI
             get { return end; }
             set
             {
-                end = Utils.Math.Clamp(value, 0, ChainElements.Count - 1);
-                Start = GetStartMax(end);
+                end = Utils.Math.Clamp(value, 0, List.Count - 1);
+                Start = GetMaxStart(end);
             }
         }
 
@@ -105,195 +139,325 @@ namespace DarkHelmet.UI
         public readonly TexturedBox background;
         public readonly TexturedBox divider;
 
+        private Vector2 maxSize, chainSize;
+        private float totalSize;
         private int end;
 
         public ScrollBox(IHudParent parent = null) : base(parent)
         {
             background = new TexturedBox(this)
-            { Color = new Color(41, 54, 62), MatchParentSize = true };
-
-            Chain = new HudChain<T>(this)
             {
-                AlignVertical = true,
-                ParentAlignment = ParentAlignment.Left | ParentAlignment.InnerH
+                Color = new Color(41, 54, 62),
+                DimAlignment = DimAlignments.Both,
             };
 
             scrollBar = new ScrollBar(this)
             {
-                ParentAlignment = ParentAlignment.Right | ParentAlignment.InnerH,
-                //Padding = new Vector2(30f, 8f),
-                Width = 45f,
-                Min = 0
+                Min = 0,
             };
 
             divider = new TexturedBox(scrollBar)
             {
-                ParentAlignment = ParentAlignment.Left,
-                Padding = new Vector2(2f, 2f),
                 Color = new Color(53, 66, 75),
-                Width = 3f
+            };
+
+            Members = new HudChain<T>(this)
+            {
+                AutoResize = true,
             };
 
             CaptureCursor = true;
-            AutoResize = true;
-            Padding = new Vector2(16f, 16f);
-            Size = new Vector2(355f, 223f);
+            AlignVertical = true;
+            Enabled = true;
+            MinimumVisCount = 1;
         }
 
-        public void AddToList(T element)
-        {
-            Chain.Add(element, true);
-        }
+        public void AddToList(T element) =>
+            Members.Add(element);
 
-        public void RemoveFromList(T member)
-        {
-            Chain.Remove(member);
-        }
+        public T Find(Func<T, bool> predicate) =>
+            Members.Find(x => predicate(x));
 
-        public virtual void RemoveFromList(Func<T, bool> predicate)
-        {
-            Chain.Remove(predicate);
-        }
+        public int FindIndex(Func<T, bool> predicate) =>
+            Members.FindIndex(x => predicate(x));
+
+        public void RemoveFromList(T member) =>
+            Members.Remove(member);
+
+        public void RemoveFromList(Func<T, bool> predicate) =>
+            Members.Remove(predicate);
 
         protected override void HandleInput()
         {
+            if (scrollBar.IsMousedOver)
+                ShareCursor = false;
+            else
+                ShareCursor = true;
+
             if (IsMousedOver)
             {
-                if (SharedBinds.MousewheelUp.IsNewPressed)
+                if (SharedBinds.MousewheelUp.IsPressed)
                 {
+                    ShareCursor = scrollBar.Current == scrollBar.Min;
                     scrollBar.Current = Start - 1;
                 }
-
-                if (SharedBinds.MousewheelDown.IsNewPressed)
+                else if (SharedBinds.MousewheelDown.IsPressed)
                 {
+                    ShareCursor = scrollBar.Current == scrollBar.Max;
                     scrollBar.Current = Start + 1;
                 }
+                else
+                    ShareCursor = true;
             }
+            else
+                ShareCursor = true;
         }
 
         protected override void Draw()
         {
-            // The scroll bar automatically clamps the current value to the set min and max
-            scrollBar.Min = GetFirstMember();
-            scrollBar.Max = GetStartMax(ChainElements.Count - 1);
+            scrollBar.Max = GetMaxStart(List.Count - 1);
+            scrollBar.Min = GetFirstEnabled();
+            EnabledCount = GetEnabledCount();
 
-            UpdateVisibleRange();
+            UpdateVisible();
 
-            background.Height = Chain.Height;
-            scrollBar.Height = Height;
-            divider.Height = Height;
+            Vector2 minSize = chainSize + Padding, newSize = Size;
 
-            background.Width = Math.Max(MinimumWidth, Chain.Width + divider.Width + scrollBar.Width);
+            Members.Size = chainSize;
+            Members.Offset = new Vector2(Padding.X, -Padding.Y) * .5f;
+
+            if (AlignVertical)
+                minSize.X += scrollBar.Width;
+            else
+                minSize.Y += scrollBar.Height;
+
+            if (FitToChain)
+            {
+                newSize = Utils.Math.Max(minSize, MinimumSize);
+            }
+            else
+            {
+                minSize = Utils.Math.Max(minSize, MinimumSize);
+                newSize = Utils.Math.Clamp(Size, minSize, maxSize);
+            }
+
+            base.Width = newSize.X;
+            base.Height = newSize.Y;
         }
 
-        /// <summary>
-        /// Continually updates the range of elements to be rendered as well as the height of the scroll
-        /// bar.
-        /// </summary>
-        private void UpdateVisibleRange()
+        protected override void ScaleChanged(float change)
         {
-            int newStart = -1;
+            base.ScaleChanged(change);
+            MinimumSize *= change;
+            maxSize *= change;
+            Offset *= change;
+        }
 
-            EnabledCount = 0;
-            VisCount = 0;
-            VisStart = 0;
-
-            // Reset the visibility of every element, count the number of
-            // enabled elements, and find visStart
-            for (int n = 0; n < ChainElements.Count; n++)
+        private int GetFirstEnabled()
+        {
+            for (int n = 0; n < List.Count; n++)
             {
-                ChainElements[n].Visible = false;
-
-                if (ChainElements[n].Enabled)
-                {
-                    EnabledCount++;
-
-                    if (newStart == -1)
-                        newStart = n;
-
-                    if (n <= Start)
-                        VisStart++;
-                }
+                if (List[n].Enabled)
+                    return n;
             }
 
-            float height = MaximumHeight - Padding.Y;
-            scrollBar.Min = newStart;
+            return 0;
+        }
 
-            // Set the elements in the visible range to be rendered and
-            // update the ending index
-            for (int n = Start; n < ChainElements.Count; n++)
+        private int GetMaxStart(int end)
+        {
+            int start = 0;
+            int visCount = 0;
+            float size;
+
+            if (AlignVertical)
             {
-                if (ChainElements[n].Enabled)
-                {
-                    height -= ChainElements[n].Height;
+                size = maxSize.Y;
 
-                    if (height >= 0f)
+                for (int n = end; n >= 0; n--)
+                {
+                    if (List[n].Enabled)
                     {
-                        ChainElements[n].Visible = true;
-                        end = n;
-                        VisCount++;
+                        if (size >= List[n].Height || visCount < MinimumVisCount)
+                        {
+                            start = n;
+                            size -= List[n].Height;
+                            visCount++;
+                        }
+                        else
+                            break;
+
+                        size -= Spacing;
                     }
-                    else
-                        break;
+                }
+            }
+            else
+            {
+                size = maxSize.X;
+
+                for (int n = end; n >= 0; n--)
+                {
+                    if (List[n].Enabled)
+                    {
+                        if (size >= List[n].Width || visCount < MinimumVisCount)
+                        {
+                            start = n;
+                            size -= List[n].Width;
+                            visCount++;
+                        }
+                        else
+                            break;
+
+                        size -= Spacing;
+                    }
                 }
             }
 
-            UpdateScrollBarHeight();
+            return start;
+        }
+
+        private void UpdateVisible()
+        {
+            if (AlignVertical)
+            {
+                UpdateVisibleVert();
+            }
+            else
+            {
+                UpdateVisibleHorz();
+            }
+        }
+
+        private void UpdateVisibleVert()
+        {
+            int visCount = 0, visStart = 0;
+            int newEnd = 0;
+            float size = maxSize.Y;
+            chainSize = new Vector2();
+
+            for (int n = 0; n < List.Count; n++)
+            {
+                if (List[n].Enabled)
+                {
+                    if (n < Start)
+                        visStart++;
+                    else
+                    {
+                        if (size >= List[n].Height || visCount < MinimumVisCount)
+                        {
+                            List[n].Visible = true;
+                            size -= List[n].Height;
+
+                            chainSize.Y += List[n].Height;
+
+                            if (List[n].Width > chainSize.X)
+                                chainSize.X = List[n].Width;
+
+                            visCount++;
+                            newEnd = n;
+                        }
+                        else
+                            break;
+
+                        chainSize.Y += Spacing;
+                        size -= Spacing;
+                    }
+                }
+            }
+
+            end = newEnd;
+            VisStart = visStart;
+            VisCount = visCount;
+            UpdateScrollBarSize();
+        }
+
+        private void UpdateVisibleHorz()
+        {
+            int visCount = 0, visStart = 0;
+            int newEnd = 0;
+            float size = maxSize.X;
+            chainSize = new Vector2();
+
+            for (int n = 0; n < List.Count; n++)
+            {
+                if (List[n].Enabled)
+                {
+                    if (n < Start)
+                        visStart++;
+                    else
+                    {
+                        if (size >= List[n].Width || visCount < MinimumVisCount)
+                        {
+                            List[n].Visible = true;
+                            size -= List[n].Width;
+
+                            chainSize.X += List[n].Width;
+
+                            if (List[n].Height > chainSize.Y)
+                                chainSize.Y = List[n].Height;
+
+                            visCount++;
+                            newEnd = n;
+                        }
+                        else
+                            break;
+
+                        chainSize.X += Spacing;
+                        size -= Spacing;
+                    }
+                }
+            }
+
+            end = newEnd;
+            VisStart = visStart;
+            VisCount = visCount;
+            UpdateScrollBarSize();
         }
 
         /// <summary>
         /// Recalculates and updates the height of the scroll bar.
         /// </summary>
-        private void UpdateScrollBarHeight()
+        private void UpdateScrollBarSize()
         {
-            if (EnabledCount > VisCount && EnabledCount > 1)
+            if (AlignVertical)
             {
-                scrollBar.slide.button.Height = (VisCount / (float)(EnabledCount)) * scrollBar.Height;
-                scrollBar.slide.button.Visible = scrollBar.slide.button.Height < scrollBar.Height;
+                scrollBar.Height = Height;
+                divider.Height = scrollBar.Height;
+
+                scrollBar.slide.button.Height = (scrollBar.Height / totalSize) * scrollBar.Height;
+                scrollBar.slide.button.Visible = scrollBar.slide.button.Height < scrollBar.slide.bar.Height;
             }
             else
-                scrollBar.slide.button.Visible = false;
-        }
-
-        private int GetFirstMember()
-        {
-            int index = 0;
-
-            for (int n = 0; n < ChainElements.Count; n++)
             {
-                if (ChainElements[n].Enabled)
-                {
-                    index = n;
-                    break;
-                }
+                scrollBar.Width = Width;
+                divider.Width = scrollBar.Width;
+
+                scrollBar.slide.button.Width = (scrollBar.Width / totalSize) * scrollBar.Width;
+                scrollBar.slide.button.Visible = scrollBar.slide.button.Width < scrollBar.slide.bar.Width;
             }
-
-            return index;
         }
 
-        /// <summary>
-        /// Returns the maximum start value S.T. the list will always display the
-        /// maximum number of elements.
-        /// </summary>
-        private int GetStartMax(int end)
+        private int GetEnabledCount()
         {
-            int max = 0;
-            float height = MaximumHeight - Padding.Y;
+            int count = 0;
+            totalSize = 0f;
 
-            for (int n = end; n >= 0; n--)
+            for (int n = 0; n < List.Count; n++)
             {
-                if (ChainElements[n].Enabled)
-                {
-                    height -= ChainElements[n].Height;
+                List[n].Visible = false;
 
-                    if (height > 0f)
-                        max = n;
+                if (List[n].Enabled)
+                {
+                    if (AlignVertical)
+                        totalSize += List[n].Height;
                     else
-                        break;
+                        totalSize += List[n].Width;
+
+                    count++;
                 }
             }
 
-            return max;
+            return count;
         }
     }
 }

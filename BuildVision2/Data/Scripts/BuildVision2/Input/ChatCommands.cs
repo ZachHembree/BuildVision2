@@ -1,9 +1,8 @@
-﻿using DarkHelmet.Game;
-using DarkHelmet.UI;
-using DarkHelmet.UI.Client;
+﻿using RichHudFramework;
+using RichHudFramework.UI;
+using RichHudFramework.UI.Client;
 using System;
 using System.Collections.Generic;
-using Sandbox.ModAPI;
 using System.Text;
 
 namespace DarkHelmet.BuildVision2

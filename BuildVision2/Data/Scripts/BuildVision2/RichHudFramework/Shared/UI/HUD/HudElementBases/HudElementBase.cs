@@ -2,7 +2,7 @@
 using VRage;
 using VRageMath;
 
-namespace DarkHelmet
+namespace RichHudFramework
 {
     namespace UI
     {
@@ -49,12 +49,34 @@ namespace DarkHelmet
             /// <summary>
             /// With of the hud element in pixels.
             /// </summary>
-            public virtual float Width { get; set; }
+            public virtual float Width
+            {
+                get { return width + Padding.X; }
+                set
+                {
+                    if (Padding.X < value)
+                        width = value - Padding.X;
+                    else
+                        width = value;
+                }
+            }
 
             /// <summary>
             /// Height of the hud element in pixels.
             /// </summary>
-            public virtual float Height { get; set; }
+            public virtual float Height
+            {
+                get { return height + Padding.Y; }
+                set
+                {
+                    if (Padding.Y < value)
+                        height = value - Padding.Y;
+                    else
+                        height = value;
+                }
+            }
+
+            public virtual Vector2 Padding { get; set; }
 
             public Vector2 NativeSize
             {
@@ -67,7 +89,7 @@ namespace DarkHelmet
             /// </summary>
             public virtual Vector2 Origin
             {
-                get { return GetAlignedOrigin(); }
+                get { return GetOriginWithOffset(); }
                 protected set { origin = value; }
             }
 
@@ -82,18 +104,12 @@ namespace DarkHelmet
             /// </summary>
             public virtual Vector2 Offset { get; set; }
 
-            [Obsolete]
-            public OriginAlignment OriginAlignment { get; set; }
-
             /// <summary>
             /// Determines the starting position of the hud element relative to its parent.
             /// </summary>
-            public ParentAlignment ParentAlignment { get; set; }
+            public ParentAlignments ParentAlignment { get; set; }
 
-            /// <summary>
-            /// If set to true, the element's size will be set to match that of its parent.
-            /// </summary>
-            public bool MatchParentSize { get; set; }
+            public DimAlignments DimAlignment { get; set; }
 
             /// <summary>
             /// If set to true the hud element will be allowed to capture the cursor.
@@ -114,7 +130,7 @@ namespace DarkHelmet
             public bool ignoreParentScale;
 
             private const float minMouseBounds = 8f;
-            private float lastScale;
+            private float lastScale, width, height;
             private bool isMousedOver;
             private Vector2 origin;
 
@@ -127,8 +143,8 @@ namespace DarkHelmet
             public HudElementBase(IHudParent parent) : base(parent)
             {
                 ShareCursor = true;
-                OriginAlignment = OriginAlignment.Center;
-                ParentAlignment = ParentAlignment.Center;
+                DimAlignment = DimAlignments.None;
+                ParentAlignment = ParentAlignments.Center;
                 localScale = 1f;
                 lastScale = 1f;
             }
@@ -177,12 +193,30 @@ namespace DarkHelmet
                     lastScale = Scale;
                 }
 
-                if (MatchParentSize && parent != null && Size != parent.Size)
-                    Size = parent.Size;
+                if (parent != null && Size != parent.Size)
+                {
+                    if (DimAlignment.HasFlag(DimAlignments.IgnorePadding))
+                    {
+                        if (DimAlignment.HasFlag(DimAlignments.Width))
+                            Width = parent.Width - parent.Padding.X;
+
+                        if (DimAlignment.HasFlag(DimAlignments.Height))
+                            Height = parent.Height - parent.Padding.Y;
+                    }
+                    else
+                    {
+                        if (DimAlignment.HasFlag(DimAlignments.Width))
+                            Width = parent.Width;
+
+                        if (DimAlignment.HasFlag(DimAlignments.Height))
+                            Height = parent.Height;
+                    }
+                }
             }
 
             protected virtual void ScaleChanged(float change)
             {
+                Padding *= change;
                 Size *= change;
             }
 
@@ -233,31 +267,6 @@ namespace DarkHelmet
             private Vector2 GetOriginWithOffset() =>
                     (parent == null) ? origin : (origin + parent.Origin + parent.Offset + GetParentAlignment());
 
-            private Vector2 GetAlignedOrigin()
-            {
-                Vector2 origin = GetOriginWithOffset(), alignment = Vector2.Zero;
-
-                if (OriginAlignment.HasFlag(OriginAlignment.Auto))
-                {
-                    alignment.X = origin.X < 0 ? Size.X / 2f : -Size.X / 2f;
-                    alignment.Y = origin.Y < 0 ? Size.Y / 2f : -Size.Y / 2f;
-                }
-                else 
-                {
-                    if (OriginAlignment.HasFlag(OriginAlignment.Top))
-                        alignment.Y = -Size.Y / 2f;
-                    else if (OriginAlignment.HasFlag(OriginAlignment.Bottom))
-                        alignment.Y = Size.Y / 2f;
-
-                    if (OriginAlignment.HasFlag(OriginAlignment.Left))
-                        alignment.X = Size.X / 2f;
-                    else if (OriginAlignment.HasFlag(OriginAlignment.Right))
-                        alignment.X = -Size.X / 2f;
-                }
-
-                return origin + alignment;
-            }
-
             /// <summary>
             /// Calculates the offset necessary to achieve the alignment specified by the
             /// ParentAlignment property.
@@ -266,31 +275,31 @@ namespace DarkHelmet
             {
                 Vector2 alignment = Vector2.Zero;
 
-                if (ParentAlignment.HasFlag(ParentAlignment.Bottom))
+                if (ParentAlignment.HasFlag(ParentAlignments.Bottom))
                 {
-                    if (ParentAlignment.HasFlag(ParentAlignment.InnerV))
+                    if (ParentAlignment.HasFlag(ParentAlignments.InnerV))
                         alignment.Y = -(parent.Size.Y - Size.Y) / 2f;
                     else
                         alignment.Y = -(parent.Size.Y + Size.Y) / 2f;
                 }
-                else if (ParentAlignment.HasFlag(ParentAlignment.Top))
+                else if (ParentAlignment.HasFlag(ParentAlignments.Top))
                 {
-                    if (ParentAlignment.HasFlag(ParentAlignment.InnerV))
+                    if (ParentAlignment.HasFlag(ParentAlignments.InnerV))
                         alignment.Y = (parent.Size.Y - Size.Y) / 2f;
                     else
                         alignment.Y = (parent.Size.Y + Size.Y) / 2f;
                 }
 
-                if (ParentAlignment.HasFlag(ParentAlignment.Left))
+                if (ParentAlignment.HasFlag(ParentAlignments.Left))
                 {
-                    if (ParentAlignment.HasFlag(ParentAlignment.InnerH))
+                    if (ParentAlignment.HasFlag(ParentAlignments.InnerH))
                         alignment.X = -(parent.Size.X - Size.X) / 2f;
                     else
                         alignment.X = -(parent.Size.X + Size.X) / 2f;
                 }
-                else if (ParentAlignment.HasFlag(ParentAlignment.Right))
+                else if (ParentAlignment.HasFlag(ParentAlignments.Right))
                 {
-                    if (ParentAlignment.HasFlag(ParentAlignment.InnerH))
+                    if (ParentAlignment.HasFlag(ParentAlignments.InnerH))
                         alignment.X = (parent.Size.X - Size.X) / 2f;
                     else
                         alignment.X = (parent.Size.X + Size.X) / 2f;
