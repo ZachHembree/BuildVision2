@@ -26,8 +26,8 @@ namespace RichHudFramework.UI
         /// </summary>
         public float Spacing { get { return spacing * Scale; } set { spacing = value / Scale; } }
 
-        protected readonly List<T> elements;
-        protected float spacing;
+        private readonly List<T> elements;
+        private float spacing;
 
         public HudChain(IHudParent parent = null) : base(parent)
         {
@@ -111,7 +111,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected virtual Vector2 GetSize()
+        private Vector2 GetSize()
         {
             float width = 0f, height = 0f;
 
@@ -135,7 +135,7 @@ namespace RichHudFramework.UI
                             width = elements[n].Width;
 
                         if (n != elements.Count - 1)
-                            height += Spacing * Scale;
+                            height += Spacing;
                     }
                     else
                     {
@@ -145,7 +145,7 @@ namespace RichHudFramework.UI
                             height = elements[n].Height;
 
                         if (n != elements.Count - 1)
-                            width += Spacing * Scale;
+                            width += Spacing;
                     }
                 }
             }
@@ -153,7 +153,7 @@ namespace RichHudFramework.UI
             return new Vector2(width, height);
         }
 
-        protected void UpdateOffsets(Vector2 offset, Vector2 memberArea)
+        private void UpdateOffsets(Vector2 offset, Vector2 memberArea)
         {
             for (int n = 0; n < elements.Count; n++)
             {
@@ -174,7 +174,7 @@ namespace RichHudFramework.UI
                         offset.Y -= elements[n].Height;
 
                         if (n != elements.Count - 1)
-                            offset.Y -= Spacing * Scale;
+                            offset.Y -= Spacing;
                     }
                     else
                     {
@@ -191,7 +191,7 @@ namespace RichHudFramework.UI
                         offset.X += elements[n].Width;
 
                         if (n != elements.Count - 1)
-                            offset.X += Spacing * Scale;
+                            offset.X += Spacing;
                     }
                 }
             }

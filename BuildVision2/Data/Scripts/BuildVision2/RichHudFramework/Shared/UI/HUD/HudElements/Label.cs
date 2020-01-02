@@ -16,22 +16,24 @@ namespace RichHudFramework.UI
         public override float Width
         {
             get { return (AutoResize ? textBoard.Size.X : textBoard.FixedSize.X) + Padding.X; }
-            set { textBoard.FixedSize = new Vector2(value - Padding.X, textBoard.FixedSize.Y); }
+            set
+            {
+                if (value > Padding.X)
+                    value -= Padding.X;
+
+                textBoard.FixedSize = new Vector2(value, textBoard.FixedSize.Y);
+            }
         }
 
         public override float Height
         {
             get { return (AutoResize ? textBoard.Size.Y : textBoard.FixedSize.Y) + Padding.Y; }
-            set { textBoard.FixedSize = new Vector2(textBoard.FixedSize.X, value - Padding.Y); }
-        }
-
-        public override Vector2 Padding
-        {
-            get { return base.Padding; }
             set
             {
-                textBoard.FixedSize += base.Padding - value;
-                base.Padding = value;
+                if (value > Padding.Y)
+                    value -= Padding.Y;
+
+                textBoard.FixedSize = new Vector2(textBoard.FixedSize.X, value);
             }
         }
 
@@ -56,10 +58,12 @@ namespace RichHudFramework.UI
 
         protected override void Draw()
         {
+            if (textBoard.Scale != Scale)
+            {
+                textBoard.Scale = Scale;
+            }
+
             textBoard.Draw(Origin + Offset);
         }
-
-        protected override void ScaleChanged(float change) =>
-            textBoard.Scale = Scale;
     }
 }

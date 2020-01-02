@@ -55,12 +55,6 @@ namespace RichHudFramework
                     DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
                 };
             }
-
-            protected override void ScaleChanged(float change)
-            {
-                base.ScaleChanged(change);
-                Padding *= change;
-            }
         }
     }
 }

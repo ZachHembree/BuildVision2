@@ -71,7 +71,7 @@ namespace DarkHelmet.BuildVision2
         public BvScrollMenu() : base(HudMain.Root)
         {
             CaptureCursor = true;
-            ShareCursor = false; // temporary
+            ShareCursor = false;
 
             header = new LabelBox()
             {
@@ -81,8 +81,6 @@ namespace DarkHelmet.BuildVision2
                 Height = 34f,
                 Color = headerColor,
             };
-
-            header.BuilderMode = TextBuilderModes.Unlined;
 
             body = new ScrollBox<BvPropertyBox>()
             {
@@ -209,7 +207,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (!PropOpen)
             {
-                UpdateIndex(BvBinds.MultX.IsPressed ? dir * 5 : dir);
+                UpdateIndex(BvBinds.MultX.IsPressed ? dir * 4 : dir);
                 listWrapTimer.Reset();
             }
             else
@@ -231,15 +229,20 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void UpdateIndex(int offset)
         {
-            int min = GetFirstIndex(), max = GetLastIndex();
-            index += offset;
+            int min = GetFirstIndex(), max = GetLastIndex(), dir = (offset > 0) ? 1 : -1;
+            offset = Math.Abs(offset);
 
-            for (int n = index; (n <= max && n >= min); n += offset)
+            for (int x = 1; x <= offset; x++)
             {
-                if (body.List[n].BlockMember.Enabled)
+                index += dir;
+
+                for (int y = index; (y <= max && y >= min); y += dir)
                 {
-                    index = n;
-                    break;
+                    if (body.List[y].BlockMember.Enabled)
+                    {
+                        index = y;
+                        break;
+                    }
                 }
             }
 
@@ -279,6 +282,24 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
+        /// Toggles the textbox of the selected property open/closed if the property supports text
+        /// input.
+        /// </summary>
+        private void ToggleTextBox()
+        {
+            if (Selection.BlockMember is IBlockTextMember)
+            {
+                if (!PropOpen || !MyAPIGateway.Gui.ChatEntryVisible)
+                {
+                    PropOpen = true;
+                    OpenTextInput();
+                }
+                else
+                    CloseProp();
+            }
+        }
+
+        /// <summary>
         /// Opens the currently highlighted property.
         /// </summary>
         private void OpenProp()
@@ -288,11 +309,23 @@ namespace DarkHelmet.BuildVision2
             if (blockAction == null)
             {
                 PropOpen = true;
+
+                if (Selection.BlockMember is IBlockTextMember)
+                {
+                    if (MyAPIGateway.Gui.ChatEntryVisible)
+                        OpenTextInput();
+                }
             }
             else
             {
                 blockAction.Action();
             }
+        }
+
+        private void OpenTextInput()
+        {
+            Selection.value.OpenInput();
+            Selection.value.TextBoard.SetFormatting(selectedText);
         }
 
         /// <summary>
@@ -309,41 +342,10 @@ namespace DarkHelmet.BuildVision2
                     textMember.SetValueText(Selection.value.Text.ToString());
                 }
 
-                Selection.value.InputOpen = false;
+                Selection.value.CloseInput();
             }
 
             PropOpen = false;
-        }
-
-        /// <summary>
-        /// Toggles the textbox of the selected property open/closed if the property supports text
-        /// input.
-        /// </summary>
-        private void ToggleTextBox()
-        {
-            if (Selection.BlockMember is IBlockTextMember)
-            {
-                if (!PropOpen)
-                {
-                    OpenProp();
-                    OpenTextInput();
-                }
-                else
-                {
-                    if (!MyAPIGateway.Gui.ChatEntryVisible)
-                    {
-                        OpenTextInput();
-                    }
-                    else
-                        CloseProp();
-                }
-            }
-        }
-
-        private void OpenTextInput()
-        {
-            Selection.value.InputOpen = true;
-            Selection.value.TextBoard.SetFormatting(selectedText);
         }
 
         /// <summary>
@@ -427,12 +429,14 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void Clear()
         {
-            CloseProp();
-
             for (int n = 0; n < body.List.Count; n++)
+            {
+                body.List[n].value.CloseInput();
                 body.List[n].BlockMember = null;
+            }
 
             target = null;
+            PropOpen = false;
             index = 0;
             body.Start = 0;
             Count = 0;
@@ -486,10 +490,6 @@ namespace DarkHelmet.BuildVision2
                 name = new Label(this) { ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH };
                 value = new TextBox(name) { ParentAlignment = ParentAlignments.Right, UseMouseInput = false };
                 postfix = new Label(value) { ParentAlignment = ParentAlignments.Right };
-
-                name.BuilderMode = TextBuilderModes.Unlined;
-                value.BuilderMode = TextBuilderModes.Unlined;
-                postfix.BuilderMode = TextBuilderModes.Unlined;
             }
 
             public void UpdateText(bool highlighted, bool selected)

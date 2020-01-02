@@ -145,7 +145,6 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\HudElements\LabelBox.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\HudElements\LabelListBox.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\HudElements\ScrollBar.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\HudElements\TextHudMessage.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\HudElements\TextList.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\HudElements\TexturedBox.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\ICursor.cs" />

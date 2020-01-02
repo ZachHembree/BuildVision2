@@ -52,6 +52,8 @@ namespace RichHudFramework
             /// </summary>
             ParentAlignments ParentAlignment { get; set; }
 
+            DimAlignments DimAlignment { get; set; }
+
             /// <summary>
             /// If set to true the hud element will be allowed to capture the cursor.
             /// </summary>

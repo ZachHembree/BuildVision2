@@ -49,7 +49,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Minimum allowable size for the window.
         /// </summary>
-        public Vector2 MinimumSize { get; set; }
+        public Vector2 MinimumSize { get { return minimumSize * Scale; } set { minimumSize = value / Scale; } }
 
         public IHudElement Header => header;
         public IHudElement Background => body;
@@ -64,7 +64,7 @@ namespace RichHudFramework.UI
         private const float cornerSize = 8f;
         private bool canMoveWindow, canResize;
         private int resizeDir;
-        private Vector2 cursorOffset;
+        private Vector2 cursorOffset, minimumSize;
 
         public WindowBase(IHudParent parent = null) : base(parent)
         {

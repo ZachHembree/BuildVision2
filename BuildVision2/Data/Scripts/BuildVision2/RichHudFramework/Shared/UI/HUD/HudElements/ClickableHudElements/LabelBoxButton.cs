@@ -14,6 +14,7 @@ namespace RichHudFramework.UI
                 mouseInput.Width = value;
             }
         }
+
         public override float Height
         {
             get { return TextSize.Y + Padding.Y; }

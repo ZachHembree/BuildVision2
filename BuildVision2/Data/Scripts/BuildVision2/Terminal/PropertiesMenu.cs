@@ -38,7 +38,7 @@ namespace DarkHelmet.BuildVision2
         private PropertiesMenu() : base(false, true)
         {
             scrollMenu = new BvScrollMenu() { Visible = false };
-            target = null;
+            MyAPIGateway.Utilities.MessageEntered += MessageHandler;
         }
 
         private static void Init()

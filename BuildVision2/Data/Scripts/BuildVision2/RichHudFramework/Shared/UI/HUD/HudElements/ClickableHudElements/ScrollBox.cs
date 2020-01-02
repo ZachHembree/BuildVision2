@@ -17,7 +17,7 @@ namespace RichHudFramework.UI
                 if (value > Padding.X)
                     value -= Padding.X;
 
-                maxSize.X = value;
+                maxSize.X = value / Scale;
             }
         }
 
@@ -30,14 +30,14 @@ namespace RichHudFramework.UI
                 if (value > Padding.Y)
                     value -= Padding.Y;
 
-                maxSize.Y = value;
+                maxSize.Y = value / Scale;
             }
         }
 
         /// <summary>
         /// Minimum allowable size of the list.
         /// </summary>
-        public Vector2 MinimumSize { get; set; }
+        public Vector2 MinimumSize { get { return minSize * Scale; } set { minSize = value / Scale; } }
 
         /// <summary>
         /// If set to true, the element will automatically resize to match the size of the chain.
@@ -135,11 +135,13 @@ namespace RichHudFramework.UI
         /// </summary>
         public Color Color { get { return background.Color; } set { background.Color = value; } }
 
+        private Vector2 MaximumSize { get { return maxSize * Scale; } set { maxSize = value / Scale; } }
+
         public readonly ScrollBar scrollBar;
         public readonly TexturedBox background;
         public readonly TexturedBox divider;
 
-        private Vector2 maxSize, chainSize;
+        private Vector2 maxSize, minSize, chainSize;
         private float totalSize;
         private int end;
 
@@ -238,19 +240,11 @@ namespace RichHudFramework.UI
             else
             {
                 minSize = Utils.Math.Max(minSize, MinimumSize);
-                newSize = Utils.Math.Clamp(Size, minSize, maxSize);
+                newSize = Utils.Math.Clamp(newSize, minSize, MaximumSize);
             }
 
             base.Width = newSize.X;
             base.Height = newSize.Y;
-        }
-
-        protected override void ScaleChanged(float change)
-        {
-            base.ScaleChanged(change);
-            MinimumSize *= change;
-            maxSize *= change;
-            Offset *= change;
         }
 
         private int GetFirstEnabled()
@@ -272,7 +266,7 @@ namespace RichHudFramework.UI
 
             if (AlignVertical)
             {
-                size = maxSize.Y;
+                size = MaximumSize.Y;
 
                 for (int n = end; n >= 0; n--)
                 {
@@ -293,7 +287,7 @@ namespace RichHudFramework.UI
             }
             else
             {
-                size = maxSize.X;
+                size = MaximumSize.X;
 
                 for (int n = end; n >= 0; n--)
                 {
@@ -332,7 +326,7 @@ namespace RichHudFramework.UI
         {
             int visCount = 0, visStart = 0;
             int newEnd = 0;
-            float size = maxSize.Y;
+            float size = MaximumSize.Y;
             chainSize = new Vector2();
 
             for (int n = 0; n < List.Count; n++)
@@ -375,7 +369,7 @@ namespace RichHudFramework.UI
         {
             int visCount = 0, visStart = 0;
             int newEnd = 0;
-            float size = maxSize.X;
+            float size = MaximumSize.X;
             chainSize = new Vector2();
 
             for (int n = 0; n < List.Count; n++)

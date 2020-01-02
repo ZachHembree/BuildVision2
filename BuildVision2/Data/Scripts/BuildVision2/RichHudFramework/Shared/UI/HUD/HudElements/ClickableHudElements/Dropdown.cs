@@ -20,7 +20,7 @@ namespace RichHudFramework.UI
                 list.Width = value;
 
                 foreach (ListBoxEntry<T> member in list.Members)
-                    member.Width = display.Width;
+                    member.Width = value;
             }
         }
 
@@ -32,7 +32,7 @@ namespace RichHudFramework.UI
                 display.Height = value;
 
                 foreach (ListBoxEntry<T> member in list.Members)
-                    member.Height = display.Height;
+                    member.Height = value;
             }
         }
 
@@ -171,7 +171,7 @@ namespace RichHudFramework.UI
                 set
                 {
                     base.Padding = value;
-                    textElement.Offset = new Vector2(Padding.X, 0f);
+                    textElement.Offset = new Vector2(value.X, 0f);
                 }
             }
 

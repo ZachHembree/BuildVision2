@@ -67,6 +67,17 @@ namespace RichHudFramework.UI
             selectionBox = new SelectionBox(caret, this) { Color = new Color(255, 255, 255, 140), Visible = false };
         }
 
+        public void OpenInput()
+        {
+            InputOpen = true;
+            caret.Move(new Vector2I(100000), true);
+        }
+
+        public void CloseInput()
+        {
+            InputOpen = false;
+        }
+
         /// <summary>
         /// Determines whether or not the given character is within the accepted range for input.
         /// </summary>

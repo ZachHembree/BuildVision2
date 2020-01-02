@@ -8,8 +8,9 @@ namespace RichHudFramework.UI
         public Material Material { get { return hudBoard.Material; } set { hudBoard.Material = value; } }
         public MaterialAlignment MatAlignment { get { return hudBoard.MatAlignment; } set { hudBoard.MatAlignment = value; } }
         public Color Color { get { return hudBoard.Color; } set { hudBoard.Color = value; } }
-        public float Thickness { get; set; }
+        public float Thickness { get { return thickness * Scale; } set { thickness = value / Scale; } }
 
+        private float thickness;
         protected readonly MatBoard hudBoard;
 
         public BorderBox(IHudParent parent = null) : base(parent)

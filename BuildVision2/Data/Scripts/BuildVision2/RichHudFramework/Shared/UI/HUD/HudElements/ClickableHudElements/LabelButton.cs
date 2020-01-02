@@ -10,6 +10,7 @@
                 mouseInput.Width = value;
             }
         }
+
         public override float Height
         {
             set

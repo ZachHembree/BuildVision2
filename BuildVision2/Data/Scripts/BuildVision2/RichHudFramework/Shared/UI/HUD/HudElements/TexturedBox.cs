@@ -38,15 +38,24 @@ namespace RichHudFramework.UI
 
         public override Vector2 Offset { get { return hudBoard.offset; } set { hudBoard.offset = value; } }
 
+        private float lastScale;
         protected readonly MatBoard hudBoard;
 
         public TexturedBox(IHudParent parent = null) : base(parent)
         {
             hudBoard = new MatBoard();
+            lastScale = Scale;
         }
 
         protected override void Draw()
         {
+            if (Scale != lastScale)
+            {
+                hudBoard.Size *= Scale / lastScale;
+                Offset *= Scale / lastScale;
+                lastScale = Scale;
+            }
+
             if (Color.A > 0)
             {
                 hudBoard.Draw(Origin);
