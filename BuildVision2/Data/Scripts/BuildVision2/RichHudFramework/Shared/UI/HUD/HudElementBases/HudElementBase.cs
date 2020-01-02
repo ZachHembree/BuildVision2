@@ -55,7 +55,7 @@ namespace RichHudFramework
                 set
                 {
                     if (Padding.X < value)
-                        width = (value / Scale) - Padding.X;
+                        width = (value - Padding.X) / Scale;
                     else
                         width = (value / Scale);
                 }
@@ -70,7 +70,7 @@ namespace RichHudFramework
                 set
                 {
                     if (Padding.Y < value)
-                        height = (value / Scale) - Padding.Y;
+                        height = (value - Padding.Y) / Scale;
                     else
                         height = (value / Scale);
                 }
@@ -78,21 +78,10 @@ namespace RichHudFramework
 
             public virtual Vector2 Padding { get { return padding * Scale; } set { padding = value / Scale; } }
 
-            public Vector2 NativeSize
-            {
-                get { return HudMain.GetNativeVector(Size); }
-                set { Size = HudMain.GetPixelVector(value); }
-            }
-
             /// <summary>
             /// Starting position of the hud element on the screen in pixels.
             /// </summary>
             public virtual Vector2 Origin => (parent == null) ? Vector2.Zero : (parent.Origin + parent.Offset + GetParentAlignment());
-
-            public Vector2 NativeOrigin
-            {
-                get { return HudMain.GetNativeVector(Origin); }
-            }
 
             /// <summary>
             /// Position of the element relative to its origin.

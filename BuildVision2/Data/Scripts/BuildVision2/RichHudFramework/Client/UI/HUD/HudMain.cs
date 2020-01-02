@@ -153,7 +153,7 @@ namespace RichHudFramework
             /// <summary>
             /// Converts from a coordinate given in pixels to a scaled system based on the screen resolution.
             /// </summary>
-            public static Vector2 GetNativeVector(Vector2 pixelVec)
+            public static Vector2 GetRelativeVector(Vector2 pixelVec)
             {
                 pixelVec *= 2f;
 

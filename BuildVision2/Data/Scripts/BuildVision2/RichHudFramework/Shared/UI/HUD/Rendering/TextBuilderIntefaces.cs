@@ -14,19 +14,19 @@ namespace RichHudFramework
             /// In this mode, all text in the <see cref="Rendering.ITextBuilder"/> will all be on the same line.
             /// Line breaks are ignored and filtered from the text.
             /// </summary>
-            Unlined = 0,
+            Unlined = 1,
 
             /// <summary>
             /// In this mode, <see cref="Rendering.ITextBuilder"/> text can be separated into multiple lines with line
             /// breaks ('\n').
             /// </summary>
-            Lined = 1,
+            Lined = 2,
 
             /// <summary>
             /// In this mode, <see cref="Rendering.ITextBuilder"/> text will be split into multiple lines as needed to
             /// ensure proper wrapping (in addition to manual line breaks).
             /// </summary>
-            Wrapped = 2
+            Wrapped = 3
         }
 
         namespace Rendering

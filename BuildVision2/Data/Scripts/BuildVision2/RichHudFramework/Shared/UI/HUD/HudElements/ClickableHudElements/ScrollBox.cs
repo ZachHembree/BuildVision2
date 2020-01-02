@@ -223,24 +223,24 @@ namespace RichHudFramework.UI
 
             UpdateVisible();
 
-            Vector2 minSize = chainSize + Padding, newSize = Size;
+            Vector2 min = chainSize + Padding, newSize = Size;
 
             Members.Size = chainSize;
             Members.Offset = new Vector2(Padding.X, -Padding.Y) * .5f;
 
             if (AlignVertical)
-                minSize.X += scrollBar.Width;
+                min.X += scrollBar.Width;
             else
-                minSize.Y += scrollBar.Height;
+                min.Y += scrollBar.Height;
 
             if (FitToChain)
             {
-                newSize = Utils.Math.Max(minSize, MinimumSize);
+                newSize = Utils.Math.Max(min, MinimumSize);
             }
             else
             {
-                minSize = Utils.Math.Max(minSize, MinimumSize);
-                newSize = Utils.Math.Clamp(newSize, minSize, MaximumSize);
+                min = Utils.Math.Max(min, MinimumSize);
+                newSize = Utils.Math.Clamp(newSize, min, MaximumSize);
             }
 
             base.Width = newSize.X;

@@ -246,10 +246,10 @@ namespace RichHudFramework
                         updateMatFit = false;
                     }
                     
-                    boardSize = HudMain.GetNativeVector(Size) * HudMain.FovScale / 2f;
+                    boardSize = HudMain.GetRelativeVector(Size) * HudMain.FovScale / 2f;
                     boardSize.X *= HudMain.AspectRatio;
 
-                    screenPos = HudMain.GetNativeVector(origin + offset) * HudMain.FovScale;
+                    screenPos = HudMain.GetRelativeVector(origin + offset) * HudMain.FovScale;
                     screenPos.X *= HudMain.AspectRatio;
 
                     cameraMatrix = MyAPIGateway.Session.Camera.WorldMatrix;

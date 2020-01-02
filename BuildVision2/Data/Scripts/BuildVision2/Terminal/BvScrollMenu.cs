@@ -95,7 +95,7 @@ namespace DarkHelmet.BuildVision2
             body.scrollBar.Padding = new Vector2(12f, 16f);
             body.scrollBar.Width = 4f;
 
-            selectionBox = new TexturedBox(body.background)
+            selectionBox = new TexturedBox(body.Members)
             {
                 Color = selectionBoxColor,
                 Padding = new Vector2(30f, 0f),
@@ -180,7 +180,7 @@ namespace DarkHelmet.BuildVision2
             if (Selection != null)
             {
                 selectionBox.Size = new Vector2(body.Width - body.divider.Width - body.scrollBar.Width, Selection.Size.Y + (2f * Scale));
-                selectionBox.Offset = new Vector2(0f, Selection.Offset.Y - (1f * Scale));
+                selectionBox.Offset = new Vector2((-22f * Scale), Selection.Offset.Y - (1f * Scale));
                 tab.Height = selectionBox.Height;
             }
         }

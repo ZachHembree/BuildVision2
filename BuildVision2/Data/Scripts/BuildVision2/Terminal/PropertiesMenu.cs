@@ -89,8 +89,9 @@ namespace DarkHelmet.BuildVision2
                 {
                     targetPos = Target.GetPosition() + Target.modelOffset * .75;
                     worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
+
                     screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
-                    screenBounds -= scrollMenu.NativeSize * scrollMenu.Scale / 2f;
+                    screenBounds -= HudMain.GetRelativeVector(scrollMenu.Size / 2f);
                 }
                 else
                 {

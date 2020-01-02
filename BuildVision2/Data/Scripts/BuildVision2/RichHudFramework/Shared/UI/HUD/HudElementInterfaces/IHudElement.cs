@@ -38,11 +38,6 @@ namespace RichHudFramework
             Vector2 Origin { get; }
 
             /// <summary>
-            /// Starting position of the hud element on the screen in meters?
-            /// </summary>
-            Vector2 NativeOrigin { get; }
-
-            /// <summary>
             /// Position of the hud element relative to its origin.
             /// </summary>
             Vector2 Offset { get; set; }
