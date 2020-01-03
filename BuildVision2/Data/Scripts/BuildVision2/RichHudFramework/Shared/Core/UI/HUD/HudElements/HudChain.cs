@@ -95,7 +95,7 @@ namespace RichHudFramework.UI
             elements.RemoveAt(index);
         }
 
-        protected override void Draw()
+        public override void Draw()
         {
             if (elements != null && elements.Count > 0)
             {
@@ -109,6 +109,8 @@ namespace RichHudFramework.UI
                 UpdateOffsets(offset, size);
                 Size = size + Padding;
             }
+
+            base.Draw();
         }
 
         private Vector2 GetSize()

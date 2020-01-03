@@ -23,8 +23,10 @@ namespace RichHudFramework.UI
             HasFocus = false;
         }
 
-        protected override void HandleInput()
+        public override void HandleInput()
         {
+            base.HandleInput();
+
             if (IsMousedOver)
             {
                 if (!mouseCursorEntered)

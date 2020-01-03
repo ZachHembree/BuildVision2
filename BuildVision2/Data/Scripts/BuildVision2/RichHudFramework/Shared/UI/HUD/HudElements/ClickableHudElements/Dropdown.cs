@@ -145,7 +145,7 @@ namespace RichHudFramework.UI
         public void SetSelection(ListBoxEntry<T> member) =>
             list.SetSelection(member);
 
-        public object GetOrSetMember(object data, int memberEnum) =>
+        public new object GetOrSetMember(object data, int memberEnum) =>
             list.GetOrSetMember(data, memberEnum);
 
         private class DropdownDisplay : TextBoxButton

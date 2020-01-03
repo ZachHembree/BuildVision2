@@ -1,30 +1,27 @@
 ﻿using System;
 using VRage;
+using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
-    using HudParentMembers = MyTuple<
+    using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        object, // Add (Action<HudNodeMembers>)
-        Action, // BeforeDraw
-        Action, // BeforeInput
-        MyTuple<
-            Action<object>, // RemoveChild
-            Action<object> // SetFocus
-        >
+        Action, // Draw
+        Action, // HandleInput
+        ApiMemberAccessor // GetOrSetMembers
     >;
 
     namespace UI
     {
-        using HudNodeMembers = MyTuple<
-            HudParentMembers, // Base members
-            Func<object>, // GetParentID
-            object, // GetParentData (Func<HudParentMembers>)
-            Action, // GetFocus
-            Action<object>, // Register
-            Action // Unregister
-        >;
+        internal enum HudNodeAccessors : int
+        {
+            GetParentID = 10,
+            GetParentData = 11,
+            GetFocus = 12,
+            Register = 13,
+            Unregister = 14
+        }
 
         /// <summary>
         /// Base class for hud elements that can serve as child and/or parent nodes. Derives from <see cref="HudParentBase"/>
@@ -70,9 +67,6 @@ namespace RichHudFramework
                 }
             }
 
-            private void Register(object parentData) =>
-                Register(new HudNodeData((HudNodeMembers)parentData));
-
             /// <summary>
             /// Unregisters the element from its parent, if it has one.
             /// </summary>
@@ -87,22 +81,33 @@ namespace RichHudFramework
                 }
             }
 
-            /// <summary>
-            /// Retrieves the information necessary to access the <see cref="IHudNode"/> through the API.
-            /// </summary>
-            public new HudNodeMembers GetApiData()
+            protected override object GetOrSetMember(object data, int memberEnum)
             {
-                var apiData = new HudNodeMembers
+                if (memberEnum < 10)
                 {
-                    Item1 = base.GetApiData(),
-                    Item2 = () => Parent,
-                    Item3 = (Func<HudParentMembers>)Parent.GetApiData,
-                    Item4 = GetFocus,
-                    Item5 = Register,
-                    Item6 = Unregister
-                };
+                    base.GetOrSetMember(data, memberEnum);
+                }
+                else
+                {
+                    switch ((HudNodeAccessors)memberEnum)
+                    {
+                        case HudNodeAccessors.GetFocus:
+                            GetFocus();
+                            break;
+                        case HudNodeAccessors.GetParentData:
+                            return Parent.GetApiData();
+                        case HudNodeAccessors.GetParentID:
+                            return Parent.ID;
+                        case HudNodeAccessors.Register:
+                            Register(new HudNodeData((HudElementMembers)data));
+                            break;
+                        case HudNodeAccessors.Unregister:
+                            Unregister();
+                            break;
+                    }
+                }
 
-                return apiData;
+                return null;
             }
         }
     }

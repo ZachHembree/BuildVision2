@@ -24,7 +24,7 @@ namespace RichHudFramework
 
     namespace UI.Client
     {
-        using RichHudClient;
+        using RichHudFramework.Client;
         using SettingsMenuMembers = MyTuple<
             ApiMemberAccessor, // GetOrSetMembers
             ControlContainerMembers, // MenuRoot
@@ -32,7 +32,7 @@ namespace RichHudFramework
             Func<int, ControlContainerMembers> // GetNewContainer
         >;
 
-        public sealed class ModMenu : RichHudClient.ApiComponentBase
+        public sealed class ModMenu : RichHudClient.ApiModule<SettingsMenuMembers>
         {
             public static IModControlRoot Root => Instance.menuRoot;
 
@@ -48,9 +48,9 @@ namespace RichHudFramework
             private readonly Func<int, ControlMembers> GetNewControlFunc;
             private readonly Func<int, ControlContainerMembers> GetNewContainerFunc;
 
-            private ModMenu() : base(ApiComponentTypes.SettingsMenu, false, true)
+            private ModMenu() : base(ApiModuleTypes.SettingsMenu, false, true)
             {
-                var data = (SettingsMenuMembers)GetApiData();
+                var data = GetApiData();
 
                 GetOrSetMembersFunc = data.Item1;
                 GetNewControlFunc = data.Item3;

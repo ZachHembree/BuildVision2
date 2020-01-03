@@ -17,6 +17,7 @@ namespace RichHudFramework.UI.Rendering
     public interface IFontMin
     {
         string Name { get; }
+
         int Index { get; }
 
         /// <summary>

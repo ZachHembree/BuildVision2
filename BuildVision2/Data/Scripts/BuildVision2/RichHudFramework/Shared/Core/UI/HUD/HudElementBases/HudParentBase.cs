@@ -2,33 +2,22 @@
 using System.Collections.Generic;
 using VRage;
 using RichHudFramework.Game;
+using ApiMemberAccessor = System.Func<object, int, object>;
+using EventAccessor = VRage.MyTuple<bool, System.Action>;
+using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
 
 namespace RichHudFramework
 {
-    using HudParentMembers = MyTuple<
+    using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        object, // Add (Action<HudNodeMembers>)
-        Action, // BeforeDraw
-        Action, // BeforeInput
-        MyTuple<
-            Action<object>, // RemoveChild
-            Action<object> // SetFocus
-        >
+        Action, // Draw
+        Action, // HandleInput
+        ApiMemberAccessor // GetOrSetMembers
     >;
 
     namespace UI
     {
-        using System.Collections;
-        using HudNodeMembers = MyTuple<
-            HudParentMembers, // Base members
-            Func<object>, // GetParentID
-            object, // GetParentData (Func<HudParentMembers>)
-            Action, // GetFocus
-            Action<object>, // Register
-            Action // Unregister
-        >;
-
         /// <summary>
         /// Base for all hud elements that serve as parents of other HUD elements. Types deriving from this class cannot be
         /// parented to other elements; only types of <see cref="IHudNode"/> can be parented.
@@ -56,53 +45,23 @@ namespace RichHudFramework
                 children = new List<IHudNode>();
             }
 
-            /// <summary>
-            /// If visible == true, it will update the input of the element before updating 
-            /// the input of its child elements.
-            /// </summary>
-            public virtual void BeforeInput()
+            public virtual void HandleInput()
             {
-                if (Visible)
+                for (int n = children.Count - 1; n >= 0; n--)
                 {
-                    HandleInput();
-
-                    for (int n = children.Count - 1; n >= 0; n--)
-                    {
-                        if (children[n].Visible)
-                            children[n].BeforeInput();
-                    }
+                    if (children[n].Visible)
+                        children[n].HandleInput();
                 }
             }
 
-            /// <summary>
-            /// Used to internally update the input of any deriving types. Will not be called
-            /// if visible != true.
-            /// </summary>
-            protected virtual void HandleInput() { }
-
-            /// <summary>
-            /// If visible == true, the element will draw itself before updating its child
-            /// elements.
-            /// </summary>
-            public virtual void BeforeDraw()
+            public virtual void Draw()
             {
-                if (Visible)
+                foreach (IHudNode child in children)
                 {
-                    Draw();
-
-                    foreach (IHudNode child in children)
-                    {
-                        if (child.Visible)
-                            child.BeforeDraw();
-                    }
+                    if (child.Visible)
+                        child.Draw();
                 }
             }
-
-            /// <summary>
-            /// Used to internally draw any deriving types. Will not be called
-            /// if visible != true.
-            /// </summary>
-            protected virtual void Draw() { }
 
             /// <summary>
             /// Moves the specified child element to the end of the update list in
@@ -130,13 +89,9 @@ namespace RichHudFramework
                     children.Add(child);
             }
 
-            private void RegisterChild(HudNodeMembers childData) =>
-                RegisterChild(new HudNodeData(childData));
-
             /// <summary>
             /// Registers a collection of child nodes to the object.
             /// </summary>
-            /// <param name="newChildren"></param>
             public void RegisterChildren(IEnumerable<IHudNode> newChildren)
             {
                 foreach (IHudNode child in newChildren)
@@ -146,7 +101,6 @@ namespace RichHudFramework
             /// <summary>
             /// Unregisters the specified node from the parent.
             /// </summary>
-            /// <param name="child"></param>
             public void RemoveChild(IHudNode child)
             {
                 if (child.Parent != null && child.Parent.ID == ID)
@@ -161,23 +115,36 @@ namespace RichHudFramework
             private void RemoveChild(object childID) =>
                 RemoveChild(children.Find(x => x.ID == childID));
 
+            protected virtual object GetOrSetMember(object data, int memberEnum)
+            {
+                switch ((HudParentAccessors)memberEnum)
+                {
+                    case HudParentAccessors.Add:
+                        RegisterChild(new HudNodeData((HudElementMembers)data));
+                        break;
+                    case HudParentAccessors.RemoveChild:
+                        RemoveChild(data);
+                        break;
+                    case HudParentAccessors.SetFocus:
+                        SetFocus(data);
+                        break;
+                }
+
+                return null;
+            }
+
             /// <summary>
             /// Retrieves the information necessary to access the <see cref="IHudParent"/> through the API.
             /// </summary>
-            public HudParentMembers GetApiData()
+            public HudElementMembers GetApiData()
             {
-                return new HudParentMembers()
+                return new HudElementMembers()
                 {
                     Item1 = () => Visible,
                     Item2 = this,
-                    Item3 = (Action<HudNodeMembers>)RegisterChild,
-                    Item4 = () => ModBase.RunSafeAction(BeforeDraw),
-                    Item5 = BeforeInput,
-                    Item6 = new MyTuple<Action<object>, Action<object>>()
-                    {
-                        Item1 = RemoveChild,
-                        Item2 = SetFocus
-                    }
+                    Item3 = Draw,
+                    Item4 = HandleInput,
+                    Item5 = GetOrSetMember
                 };
             }           
         }

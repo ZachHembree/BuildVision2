@@ -171,10 +171,8 @@ namespace DarkHelmet.BuildVision2
             //footer.LeftText.SetText(new RichText($"[{body.Start}/{index}/{body.End}; {body.scrollBar.Min}/{body.scrollBar.Max}]", footerTextLeft));
         }
 
-        public override void BeforeDraw()
+        public override void Draw()
         {
-            base.BeforeDraw();
-
             layout.Width = body.Width;
 
             if (Selection != null)
@@ -183,10 +181,14 @@ namespace DarkHelmet.BuildVision2
                 selectionBox.Offset = new Vector2((-22f * Scale), Selection.Offset.Y - (1f * Scale));
                 tab.Height = selectionBox.Height;
             }
+
+            base.Draw();
         }
 
-        protected override void HandleInput()
+        public override void HandleInput()
         {
+            base.HandleInput();
+
             if (BvBinds.ScrollUp.IsNewPressed)
                 Scroll(-1);
             else if (BvBinds.ScrollDown.IsNewPressed)
@@ -289,13 +291,21 @@ namespace DarkHelmet.BuildVision2
         {
             if (Selection.BlockMember is IBlockTextMember)
             {
-                if (!PropOpen || !MyAPIGateway.Gui.ChatEntryVisible)
+                if (!PropOpen)
                 {
-                    PropOpen = true;
-                    OpenTextInput();
+                    if (!MyAPIGateway.Gui.ChatEntryVisible)
+                    {
+                        PropOpen = true;
+                        OpenTextInput();
+                    }
                 }
                 else
-                    CloseProp();
+                {
+                    if (!MyAPIGateway.Gui.ChatEntryVisible)
+                        OpenTextInput();
+                    else
+                        CloseProp();
+                }
             }
         }
 

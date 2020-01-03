@@ -59,7 +59,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected override void Draw()
+        public override void Draw()
         {
             if (background.Width != Width)
             {
@@ -72,6 +72,8 @@ namespace RichHudFramework.UI
                 background.Height = Height;
                 mouseInput.Height = Height;
             }
+
+            base.Draw();
         }
     }
 }

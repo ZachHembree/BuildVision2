@@ -1,11 +1,14 @@
-﻿using RichHudFramework.RichHudClient;
+﻿using RichHudFramework.Game;
+using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using VRage;
+using VRage.Game.ModAPI;
 using VRageMath;
 using FloatProp = VRage.MyTuple<System.Func<float>, System.Action<float>>;
 using RichStringMembers = VRage.MyTuple<System.Text.StringBuilder, VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>>;
 using Vec2Prop = VRage.MyTuple<System.Func<VRageMath.Vector2>, System.Action<VRageMath.Vector2>>;
+using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
@@ -17,26 +20,23 @@ namespace RichHudFramework
         Func<object, bool>, // IsCapturing
         MyTuple<
             Func<object, bool>, // TryCapture
-            Func<object, bool> // TryRelease
+            Func<object, bool>, // TryRelease
+            ApiMemberAccessor
         >
     >;
-    using HudParentMembers = MyTuple<
+    using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        object, // Add (Action<HudNodeMembers>)
-        Action, // BeforeDraw
-        Action, // BeforeInput
-        MyTuple<
-            Action<object>, // RemoveChild
-            Action<object> // SetFocus
-        >
+        Action, // Draw
+        Action, // HandleInput
+        ApiMemberAccessor // GetOrSetMembers
     >;
     using TextBoardMembers = MyTuple<
         // TextBuilderMembers
         MyTuple<
             MyTuple<Func<int, int, object>, Func<int>>, // GetLineMember, GetLineCount
             Func<Vector2I, int, object>, // GetCharMember
-            Func<object, int, object>, // GetOrSetMember
+            ApiMemberAccessor, // GetOrSetMember
             Action<IList<RichStringMembers>, Vector2I>, // Insert
             Action<RichStringMembers, Vector2I>, // Insert
             Action // Clear
@@ -50,9 +50,9 @@ namespace RichHudFramework
 
     namespace UI.Client
     {
-        using RichHudClient;
+        using RichHudFramework.Client;
         using HudMainMembers = MyTuple<
-            HudParentMembers,
+            HudElementMembers,
             CursorMembers,
             Func<float>, // ScreenWidth
             Func<float>, // ScreenHeight
@@ -62,11 +62,12 @@ namespace RichHudFramework
                 Func<float>, // Fov
                 Func<float>, // FovScale
                 MyTuple<Func<IList<RichStringMembers>>, Action<IList<RichStringMembers>>>,
-                Func<TextBoardMembers> // GetNewTextBoard
+                Func<TextBoardMembers>, // GetNewTextBoard
+                ApiMemberAccessor
             >
         >;
 
-        public sealed class HudMain : RichHudClient.ApiComponentBase
+        public sealed class HudMain : RichHudClient.ApiModule<HudMainMembers>
         {
             public static HudParentData Root => Instance.root;
             public static ICursor Cursor => Instance.cursor;
@@ -100,9 +101,9 @@ namespace RichHudFramework
             private readonly PropWrapper<IList<RichStringMembers>> ClipboardPropWrapper;
             private readonly Func<TextBoardMembers> GetTextBoardDataFunc;
 
-            private HudMain() : base(ApiComponentTypes.HudMain, false, true)
+            private HudMain() : base(ApiModuleTypes.HudMain, false, true)
             {
-                var members = (HudMainMembers)GetApiData();
+                var members = GetApiData();
 
                 root = new HudParentData(members.Item1);
                 cursor = new CursorData(members.Item2);
@@ -212,7 +213,7 @@ namespace RichHudFramework
                         Item3 = GetOriginFunc,
                         Item4 = CaptureFunc,
                         Item5 = IsCapturingFunc,
-                        Item6 = new MyTuple<Func<object, bool>, Func<object, bool>>()
+                        Item6 = new MyTuple<Func<object, bool>, Func<object, bool>, ApiMemberAccessor>()
                         {
                             Item1 = TryCaptureFunc,
                             Item2 = TryReleaseFunc

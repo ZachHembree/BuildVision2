@@ -10,25 +10,80 @@ using BindMembers = VRage.MyTuple<
     System.Func<bool> // IsReleased
 >;
 using ControlMembers = VRage.MyTuple<string, int, System.Func<bool>, bool>;
+using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
     using BindGroupMembers = MyTuple<
-        string, // Name                   
-        BindMembers[],// Binds
-        Func<IList<int>, int, bool>, // DoesComboConflict
-        Func<string, int[], bool, BindMembers?>, // TryRegisterBind
-        Func<IList<BindDefinitionData>, BindMembers[]>, // TryLoadBindData
-        MyTuple<
-            Func<string, string[], bool, BindMembers?>, // TryRegisterBind2
-            Func<BindDefinitionData[]>, // GetBindData
-            Action, // HandleInput
-            Action // ClearSubscribers
-        >
+        string, // Name                
+        BindMembers[], // Binds
+        Action, // HandleInput
+        ApiMemberAccessor // GetOrSetMember
     >;
 
     namespace UI
     {
+        internal enum BindClientAccessors : int
+        {
+            /// <summary>
+            /// In: IList{string}, Out: int[]
+            /// </summary>
+            GetComboIndices = 1,
+
+            /// <summary>
+            /// In: string, Out: Controlmembers
+            /// </summary>
+            GetControlByName = 2,
+
+            /// <summary>
+            /// In: string, Out: BindGroupMembers
+            /// </summary>
+            GetOrCreateGroup = 3,
+
+            /// <summary>
+            /// Out: BindGroupMembers[]
+            /// </summary>
+            GetGroupData = 4,
+
+            /// <summary>
+            /// void
+            /// </summary>
+            Unload = 5,
+        }
+
+        internal enum BindGroupAccessors : int
+        {
+            /// <summary>
+            /// In: MyTuple{IList{int}, int}, Out: bool
+            /// </summary>
+            DoesComboConflict = 1,
+
+            /// <summary>
+            /// In: MyTuple{string, int[], bool}, Out: BindMembers?
+            /// </summary>
+            TryRegisterBind,
+
+            /// <summary>
+            /// In: IList{BindDefinitionData}, Out: BindMembers[]
+            /// </summary>
+            TryLoadBindData,
+
+            /// <summary>
+            /// In: MyTuple{string, string[], bool}, Out: BindMembers?
+            /// </summary>
+            TryRegisterBind2,
+
+            /// <summary>
+            /// Out: BindDefinitionData[]
+            /// </summary>
+            GetBindData,
+
+            /// <summary>
+            /// Void
+            /// </summary>
+            ClearSubscribers
+        }
+
         public interface IBindGroup : IIndexedCollection<IBind>
         {
             string Name { get; }

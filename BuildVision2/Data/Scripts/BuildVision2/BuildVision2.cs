@@ -8,7 +8,7 @@ using VRage.Game.ModAPI;
 namespace DarkHelmet.BuildVision2
 {
     using RichHudFramework;
-    using RichHudFramework.RichHudClient;
+    using RichHudFramework.Client;
 
     /// <summary>
     /// Build vision main class
@@ -76,6 +76,8 @@ namespace DarkHelmet.BuildVision2
 
         protected override void Update()
         {
+            base.Update();
+
             if (LoadFinished)
             {
                 if (PropertiesMenu.Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))

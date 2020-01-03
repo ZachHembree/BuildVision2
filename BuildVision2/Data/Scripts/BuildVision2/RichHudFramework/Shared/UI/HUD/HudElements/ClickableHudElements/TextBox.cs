@@ -89,8 +89,9 @@ namespace RichHudFramework.UI
                 return IsCharAllowedFunc(ch) && (ch >= ' ' || ch == '\n');
         }
 
-        protected override void HandleInput()
+        public override void HandleInput()
         {
+            base.HandleInput();
             acceptInput = (UseMouseInput && mouseInput.HasFocus && HudMain.Cursor.Visible) || InputOpen;
 
             if (acceptInput)
@@ -125,10 +126,8 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected override void Draw()
+        public override void Draw()
         {
-            base.Draw();
-
             if (acceptInput)
             {
                 caret.Visible = true;
@@ -139,6 +138,8 @@ namespace RichHudFramework.UI
                 caret.Visible = false;
                 selectionBox.Visible = false;
             }
+
+            base.Draw();
         }
 
         /// <summary>
@@ -255,7 +256,7 @@ namespace RichHudFramework.UI
                 blinkTimer.Reset();
             }
 
-            protected override void Draw()
+            public override void Draw()
             {
                 if (blink)
                     base.Draw();
@@ -291,7 +292,7 @@ namespace RichHudFramework.UI
                 }
                 else
                 {
-                    offset.Y = (textElement.Size.Y - Height) / 2f - 1f;
+                    //offset.Y = (textElement.Size.Y - Height) / 2f - 1f;
 
                     if (text.Format.Alignment == TextAlignment.Left)
                         offset.X = -textElement.Size.X / 2f + 2f;
@@ -305,8 +306,10 @@ namespace RichHudFramework.UI
             /// <summary>
             /// Handles input for moving the caret.
             /// </summary>
-            protected override void HandleInput()
+            public override void HandleInput()
             {
+                base.HandleInput();
+
                 if (SharedBinds.DownArrow.IsPressedAndHeld)
                     Move(new Vector2I(1, 0));
 
@@ -454,8 +457,10 @@ namespace RichHudFramework.UI
                 End = -Vector2I.One;
             }
 
-            protected override void HandleInput()
+            public override void HandleInput()
             {
+                base.HandleInput();
+
                 if (text.Count > 0 && text[text.Count - 1].Count > 0)
                 {
                     if (SharedBinds.LeftButton.IsNewPressed)
@@ -589,7 +594,7 @@ namespace RichHudFramework.UI
                 return box;
             }
 
-            protected override void Draw()
+            public override void Draw()
             {
                 if (!Empty)
                 {
@@ -601,6 +606,8 @@ namespace RichHudFramework.UI
                     if (bottom != null)
                         bottom.Draw(highlightBoard, Origin);
                 }
+
+                base.Draw();
             }
 
             private class HighlightBox

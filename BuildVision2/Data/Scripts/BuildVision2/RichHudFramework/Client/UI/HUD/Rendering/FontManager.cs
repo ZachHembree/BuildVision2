@@ -5,6 +5,7 @@ using VRage;
 using VRage.Utils;
 using AtlasMembers = VRage.MyTuple<string, VRageMath.Vector2>;
 using GlyphMembers = VRage.MyTuple<int, VRageMath.Vector2, VRageMath.Vector2, float, float>;
+using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
@@ -13,7 +14,8 @@ namespace RichHudFramework
         int, // Index
         float, // PtSize
         float, // BaseScale
-        Func<int, bool> // IsStyleDefined
+        Func<int, bool>, // IsStyleDefined
+        ApiMemberAccessor
     >;
     using FontStyleDefinition = MyTuple<
         int, // styleID
@@ -34,14 +36,15 @@ namespace RichHudFramework
 
         namespace Rendering.Client
         {
-            using RichHudClient;
+            using RichHudFramework.Client;
             using FontManagerMembers = MyTuple<
                 MyTuple<Func<int, FontMembers>, Func<int>>, // Font List
                 Func<FontDefinition, FontMembers?>, // TryAddFont
-                Func<string, FontMembers?> // GetFont
+                Func<string, FontMembers?>, // GetFont
+                ApiMemberAccessor
             >;
 
-            public sealed class FontManager : RichHudClient.ApiComponentBase
+            public sealed class FontManager : RichHudClient.ApiModule<FontManagerMembers>
             {
                 public static Vector2 Default => Vector2.Zero;
                 public static IReadOnlyCollection<IFontMin> Fonts => Instance.fonts;
@@ -56,17 +59,15 @@ namespace RichHudFramework
                 private readonly Func<FontDefinition, FontMembers?> TryAddFontFunc;
                 private readonly Func<string, FontMembers?> GetFontFunc;
 
-                private FontManager() : base(ApiComponentTypes.FontManager, false, true)
+                private FontManager() : base(ApiModuleTypes.FontManager, false, true)
                 {
-                    var members = (FontManagerMembers)GetApiData();
+                    var members = GetApiData();
 
                     Func<int, IFontMin> fontGetter = x => new FontData(members.Item1.Item1(x));
                     fonts = new ReadOnlyCollectionData<IFontMin>(fontGetter, members.Item1.Item2);
 
                     TryAddFontFunc = members.Item2;
                     GetFontFunc = members.Item3;
-
-                    Game.ModBase.SendChatMessage($"Font Client Init.");
                 }
 
                 private static void Init()
@@ -108,6 +109,12 @@ namespace RichHudFramework
                         font = new FontData(members.Value);
 
                     return font;
+                }
+
+                public static Vector2I GetStyleIndex(string name, FontStyleEnum style = FontStyleEnum.Regular)
+                {
+                    IFontMin font = GetFont(name);
+                    return new Vector2I(font.Index, (int)style);
                 }
 
                 private class FontData : IFontMin

@@ -1,23 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using VRage;
+using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
-    using HudParentMembers = MyTuple<
+    using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        object, // Add (Action<HudNodeMembers>)
-        Action, // BeforeDraw
-        Action, // BeforeInput
-        MyTuple<
-            Action<object>, // RemoveChild
-            Action<object> // SetFocus
-        >
+        Action, // Draw
+        Action, // HandleInput
+        ApiMemberAccessor // GetOrSetMembers
     >;
 
     namespace UI
     {
+        internal enum HudParentAccessors : int
+        {
+            Add = 1,
+            RemoveChild = 2,
+            SetFocus = 3,
+        }
+
         /// <summary>
         /// Interface for all types capable of serving as parent objects to <see cref="IHudNode"/>s.
         /// </summary>
@@ -55,13 +59,16 @@ namespace RichHudFramework
             /// </summary>
             void SetFocus(IHudNode child);
 
-            void BeforeInput();
-            void BeforeDraw();
+            void HandleInput();
+
+            //void Update();
+
+            void Draw();
 
             /// <summary>
             /// Retrieves the information necessary to access the <see cref="IHudParent"/> through the API.
             /// </summary>
-            HudParentMembers GetApiData();
+            HudElementMembers GetApiData();
         }
     }
 }

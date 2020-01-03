@@ -189,8 +189,10 @@ namespace RichHudFramework.UI
         public void RemoveFromList(Func<T, bool> predicate) =>
             Members.Remove(predicate);
 
-        protected override void HandleInput()
+        public override void HandleInput()
         {
+            base.HandleInput();
+
             if (scrollBar.IsMousedOver)
                 ShareCursor = false;
             else
@@ -215,7 +217,7 @@ namespace RichHudFramework.UI
                 ShareCursor = true;
         }
 
-        protected override void Draw()
+        public override void Draw()
         {
             scrollBar.Max = GetMaxStart(List.Count - 1);
             scrollBar.Min = GetFirstEnabled();
@@ -245,6 +247,8 @@ namespace RichHudFramework.UI
 
             base.Width = newSize.X;
             base.Height = newSize.Y;
+
+            base.Draw();
         }
 
         private int GetFirstEnabled()
@@ -418,7 +422,7 @@ namespace RichHudFramework.UI
                 scrollBar.Height = Height;
                 divider.Height = scrollBar.Height;
 
-                scrollBar.slide.button.Height = (scrollBar.Height / totalSize) * scrollBar.Height;
+                scrollBar.slide.button.Height = ((Height - Padding.Y) / totalSize) * scrollBar.Height;
                 scrollBar.slide.button.Visible = scrollBar.slide.button.Height < scrollBar.slide.bar.Height;
             }
             else
@@ -426,7 +430,7 @@ namespace RichHudFramework.UI
                 scrollBar.Width = Width;
                 divider.Width = scrollBar.Width;
 
-                scrollBar.slide.button.Width = (scrollBar.Width / totalSize) * scrollBar.Width;
+                scrollBar.slide.button.Width = ((Width - Padding.X) / totalSize) * scrollBar.Width;
                 scrollBar.slide.button.Visible = scrollBar.slide.button.Width < scrollBar.slide.bar.Width;
             }
         }

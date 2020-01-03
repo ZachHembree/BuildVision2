@@ -102,8 +102,10 @@ namespace RichHudFramework.UI
             resizeRight.OnLeftClick += ResizeClicked;
         }
 
-        protected override void Draw()
+        public override void Draw()
         {
+            base.Draw();
+
             header.Width = Width;
 
             resizeBottom.Width = Width;
@@ -119,8 +121,10 @@ namespace RichHudFramework.UI
                 Resize();
         }
 
-        protected override void HandleInput()
+        public override void HandleInput()
         {
+            base.HandleInput();
+
             if (IsMousedOver)
             {
                 if (SharedBinds.LeftButton.IsNewPressed)

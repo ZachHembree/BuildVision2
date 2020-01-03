@@ -8,11 +8,14 @@ using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRageMath;
 
-namespace RichHudFramework.RichHudClient
+namespace RichHudFramework.Client
 {
     using ClientData = MyTuple<string, Action<int, object>, Action>;
     using ServerData = MyTuple<Action, Func<int, object>>;
 
+    /// <summary>
+    /// Base class for mods making use of the Rich HUD Framework
+    /// </summary>
     public abstract class RichHudClient : ModBase
     {
         private const long modID = 0112358132134, queueID = 1314086443;
@@ -20,7 +23,7 @@ namespace RichHudFramework.RichHudClient
         public static bool Registered => Instance.registered;
 
         private ClientData regMessage;
-        private bool regFail, registered;
+        private bool regFail, registered, inQueue;
 
         private Action UnregisterAction;
         private Func<int, object> GetApiDataFunc;
@@ -33,32 +36,42 @@ namespace RichHudFramework.RichHudClient
         protected sealed override void AfterInit()
         {
             Instance = this;
-            SendChatMessage($"Sending registration request...");
-            MyAPIUtilities.Static.SendModMessage(modID, regMessage);
-            SendChatMessage($"No response. Entering queue...");
+            RequestRegistration();
 
             if (!Registered && !regFail)
-                MyAPIUtilities.Static.RegisterMessageHandler(queueID, QueueHandler);
+                EnterQueue();
         }
 
-        protected virtual void HudInit()
-        { }
+        /// <summary>
+        /// Attempts to register the client with the API
+        /// </summary>
+        private void RequestRegistration() =>
+            MyAPIUtilities.Static.SendModMessage(modID, regMessage);
 
+        /// <summary>
+        /// Enters queue to await client registration.
+        /// </summary>
+        private void EnterQueue() =>
+            MyAPIUtilities.Static.RegisterMessageHandler(queueID, QueueHandler);
+
+        private void ExitQueue() =>
+            MyAPIUtilities.Static.UnregisterMessageHandler(queueID, QueueHandler);
+
+        /// <summary>
+        /// Resend registration request on queue invocation.
+        /// </summary>
         private void QueueHandler(object message)
         {
-            if (!(registered || regFail) && message is long)
+            if (!(registered || regFail))
             {
-                long ID = (long)message;
-
-                if (ID == modID)
-                {
-                    SendChatMessage($"Queue handler invoked. Resending registration request...");
-                    //MyAPIUtilities.Static.UnregisterMessageHandler(queueID, QueueHandler);
-                    MyAPIUtilities.Static.SendModMessage(modID, regMessage);
-                }
+                inQueue = true;
+                RequestRegistration();
             }
         }
 
+        /// <summary>
+        /// Handles registration response.
+        /// </summary>
         private void MessageHandler(int typeValue, object message)
         {
             if (!Registered && !regFail)
@@ -73,18 +86,37 @@ namespace RichHudFramework.RichHudClient
 
                     registered = true;
                     HudInit();
-
-                    SendChatMessage($"Client registered.");
                 }
                 else if (msgType == MsgTypes.RegistrationFailed)
                 {
-                    WriteToLogStart($"Registration Failed.");
-                    SendChatMessage($"Registration failed.");
+                    if (message is string)
+                        WriteToLogStart($"Rich HUD API registration failed. Message: {message as string}");
+                    else
+                        WriteToLogStart($"Rich HUD API registration failed.");
+
                     regFail = true;
                 }
             }
         }
 
+        /// <summary>
+        /// Called immediately after the client registers with the API.
+        /// </summary>
+        protected virtual void HudInit()
+        { }
+
+        protected override void Update()
+        {
+            if (registered && inQueue)
+            {
+                ExitQueue();
+                inQueue = false;
+            }
+        }
+
+        /// <summary>
+        /// Unregisters client from API
+        /// </summary>
         private void Unregister()
         {
             if (registered)
@@ -96,25 +128,32 @@ namespace RichHudFramework.RichHudClient
 
         protected sealed override void BeforeClose()
         {
-            MyAPIUtilities.Static.UnregisterMessageHandler(queueID, QueueHandler);
+            HudClose();
+            ExitQueue();
             Unregister();
             Instance = null;
         }
 
+        /// <summary>
+        /// Called immediately before mod close and before the client unregisters from the API.
+        /// </summary>
         protected virtual void HudClose()
         { }
 
-        public abstract class ApiComponentBase : ComponentBase
+        /// <summary>
+        /// Base class for types acting as modules for the API
+        /// </summary>
+        public abstract class ApiModule<T> : ComponentBase
         {
-            protected readonly ApiComponentTypes componentType;
+            protected readonly ApiModuleTypes componentType;
 
-            public ApiComponentBase(ApiComponentTypes componentType, bool runOnServer, bool runOnClient) : base(runOnServer, runOnClient)
+            public ApiModule(ApiModuleTypes componentType, bool runOnServer, bool runOnClient) : base(runOnServer, runOnClient)
             {
                 this.componentType = componentType;
             }
 
-            protected object GetApiData() =>
-                Instance.GetApiDataFunc((int)componentType);
+            protected T GetApiData() =>
+                (T)Instance.GetApiDataFunc((int)componentType);
         }
     }
 }

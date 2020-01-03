@@ -1,6 +1,12 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using VRage;
+using VRage.Utils;
 using VRageMath;
+using System;
+using FloatProp = VRage.MyTuple<System.Func<float>, System.Action<float>>;
+using RichStringMembers = VRage.MyTuple<System.Text.StringBuilder, VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>>;
+using Vec2Prop = VRage.MyTuple<System.Func<VRageMath.Vector2>, System.Action<VRageMath.Vector2>>;
+using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
@@ -12,7 +18,8 @@ namespace RichHudFramework
         Func<object, bool>, // IsCapturing
         MyTuple<
             Func<object, bool>, // TryCapture
-            Func<object, bool> // TryRelease
+            Func<object, bool>, // TryRelease
+            ApiMemberAccessor // GetOrSetMember
         >
     >;
 

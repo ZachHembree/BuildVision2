@@ -1,32 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using VRage;
+using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
-    using HudParentMembers = MyTuple<
+    using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        object, // Add (Action<HudNodeMembers>)
-        Action, // BeforeDraw
-        Action, // BeforeInput
-        MyTuple<
-            Action<object>, // RemoveChild
-            Action<object> // SetFocus
-        >
+        Action, // Draw
+        Action, // HandleInput
+        ApiMemberAccessor // GetOrSetMembers
     >;
 
     namespace UI
     {
-        using HudNodeMembers = MyTuple<
-            HudParentMembers, // Base members
-            Func<object>, // GetParentID
-            object, // GetParentData (Func<HudParentMembers>)
-            Action, // GetFocus
-            Action<object>, // Register
-            Action // Unregister
-        >;
-
         /// <summary>
         /// Wrapper used to access types of <see cref="IHudParent"/> via the API.
         /// </summary>
@@ -38,27 +26,21 @@ namespace RichHudFramework
             public object ID { get; }
 
             private readonly List<object> localChildren;
+
             private readonly Func<bool> VisFunc;
-            private readonly Action<HudNodeMembers> AddFunc;
             private readonly Action DrawAction;
             private readonly Action InputAction;
-            private readonly Action<object> RemoveChildAction;
-            private readonly Action<object> SetFocusAction;
+            protected readonly ApiMemberAccessor GetOrSetMemberFunc;
 
-            public HudParentData(HudParentMembers members)
+            public HudParentData(HudElementMembers members)
             {
                 localChildren = new List<object>();
 
                 VisFunc = members.Item1;
                 ID = members.Item2;
-                AddFunc = members.Item3 as Action<HudNodeMembers>;
-                DrawAction = members.Item4;
-                InputAction = members.Item5;
-
-                var data2 = members.Item6;
-
-                RemoveChildAction = data2.Item1;
-                SetFocusAction = data2.Item2;
+                DrawAction = members.Item3;
+                InputAction = members.Item4;
+                GetOrSetMemberFunc = members.Item5;
             }
 
             private HudParentData()
@@ -69,13 +51,13 @@ namespace RichHudFramework
             public void RegisterChild(IHudNode child)
             {
                 localChildren.Add(child.ID);
-                AddFunc(child.GetApiData());
+                GetOrSetMemberFunc(child.GetApiData(), (int)HudParentAccessors.Add);
             }
 
-            public void BeforeDraw() =>
+            public void Draw() =>
                 DrawAction();
 
-            public void BeforeInput() =>
+            public void HandleInput() =>
                 InputAction();
 
             public void RegisterChildren(IEnumerable<IHudNode> newChildren)
@@ -87,34 +69,29 @@ namespace RichHudFramework
             public void RemoveChild(IHudNode child)
             {
                 localChildren.Remove(child.ID);
-                RemoveChildAction(child.ID);
+                GetOrSetMemberFunc(child.ID, (int)HudParentAccessors.RemoveChild);
             }
 
             public void SetFocus(IHudNode child) =>
-                SetFocusAction(child.ID);
+                GetOrSetMemberFunc(child.ID, (int)HudParentAccessors.SetFocus);
 
             public void ClearLocalChildren()
             {
                 for (int n = localChildren.Count - 1; n >= 0; n--)
-                    RemoveChildAction(localChildren[n]);
+                    GetOrSetMemberFunc(localChildren[n], (int)HudParentAccessors.RemoveChild);
 
                 localChildren.Clear();
             }
 
-            public HudParentMembers GetApiData()
+            public HudElementMembers GetApiData()
             {
-                return new HudParentMembers()
+                return new HudElementMembers()
                 {
                     Item1 = VisFunc,
                     Item2 = ID,
-                    Item3 = AddFunc,
-                    Item4 = DrawAction,
-                    Item5 = InputAction,
-                    Item6 = new MyTuple<Action<object>, Action<object>>()
-                    {
-                        Item1 = RemoveChildAction,
-                        Item2 = SetFocusAction
-                    }
+                    Item3 = DrawAction,
+                    Item4 = InputAction,
+                    Item5 = GetOrSetMemberFunc
                 };
             }
         }

@@ -133,16 +133,12 @@ namespace RichHudFramework
                 parentScale = 1f;
             }
 
-            /// <summary>
-            /// If visible == true, it will update the input of the element before updating 
-            /// the input of its child elements.
-            /// </summary>
-            public override void BeforeInput()
+            public override void HandleInput()
             {
                 if (Visible)
                 {
                     if (!ShareCursor)
-                        HandleChildInput();
+                        base.HandleInput();
 
                     if (CaptureCursor && HudMain.Cursor.Visible && !HudMain.Cursor.IsCaptured)
                     {
@@ -154,7 +150,7 @@ namespace RichHudFramework
                     else
                         isMousedOver = false;
 
-                    HandleInput();
+                    //HandleInput();
 
                     if (ShareCursor)
                         ShareInput();
@@ -163,13 +159,9 @@ namespace RichHudFramework
                     isMousedOver = false;
             }
 
-            /// <summary>
-            /// If visible == true, the element will draw itself before updating its child
-            /// elements.
-            /// </summary>
-            public override void BeforeDraw()
+            public override void Draw()
             {
-                base.BeforeDraw();
+                base.Draw();
 
                 if (parent != null && parentScale != parent.Scale)
                     parentScale = parent.Scale;
@@ -196,28 +188,17 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// Temporarily releases the cursor and shares it with its child elements.
+            /// Temporarily releases the cursor and shares it with its child elements then attempts
+            /// to recapture it.
             /// </summary>
             private void ShareInput()
             {
                 bool wasCapturing = isMousedOver && HudMain.Cursor.IsCapturing(ID);
                 HudMain.Cursor.TryRelease(ID);
-                HandleChildInput();
+                base.HandleInput();
 
                 if (!HudMain.Cursor.IsCaptured && wasCapturing)
                     HudMain.Cursor.Capture(ID);
-            }
-
-            /// <summary>
-            /// Updates child element input.
-            /// </summary>
-            private void HandleChildInput()
-            {
-                for (int n = children.Count - 1; n >= 0; n--)
-                {
-                    if (children[n].Visible)
-                        children[n].BeforeInput();
-                }
             }
 
             /// <summary>

@@ -43,8 +43,10 @@ namespace RichHudFramework.UI
         public void Clear() =>
             listText.Clear();
 
-        protected override void Draw()
+        public override void Draw()
         {
+            base.Draw();
+
             if (Count > 0)
             {
                 for (int n = 0; n < Count; n++)

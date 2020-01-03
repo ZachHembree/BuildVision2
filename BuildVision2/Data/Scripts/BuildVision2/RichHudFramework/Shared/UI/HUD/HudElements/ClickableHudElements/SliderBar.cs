@@ -142,7 +142,7 @@ namespace RichHudFramework.UI
             canMoveSlider = true;
         }
 
-        protected override void Draw()
+        public override void Draw()
         {
             if (canMoveSlider)
             {
@@ -168,6 +168,7 @@ namespace RichHudFramework.UI
             }
 
             UpdateButtonOffset();
+            base.Draw();
         }
 
         private void UpdateButtonOffset()
@@ -188,8 +189,10 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected override void HandleInput()
+        public override void HandleInput()
         {
+            base.HandleInput();
+
             if (canMoveSlider && !SharedBinds.LeftButton.IsPressed)
             {
                 canMoveSlider = false;

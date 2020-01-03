@@ -7,7 +7,7 @@
         RegistrationFailed = 3
     }
 
-    public enum ApiComponentTypes : int
+    public enum ApiModuleTypes : int
     {
         BindManager = 1,
         HudMain = 2,

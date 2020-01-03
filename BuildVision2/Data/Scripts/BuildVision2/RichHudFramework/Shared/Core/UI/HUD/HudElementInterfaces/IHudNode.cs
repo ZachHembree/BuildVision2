@@ -1,31 +1,20 @@
 ﻿using System;
 using VRage;
+using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
-    using HudParentMembers = MyTuple<
+    using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        object, // Add (Action<HudNodeMembers>)
         Action, // BeforeDraw
-        Action, // BeforeInput
-        MyTuple<
-            Action<object>, // RemoveChild
-            Action<object> // SetFocus
-        >
+        Action, // Draw
+        Action, // HandleInput
+        ApiMemberAccessor // GetOrSetMembers
     >;
 
     namespace UI
     {
-        using HudNodeMembers = MyTuple<
-            HudParentMembers, // Base members
-            Func<object>, // GetParentID
-            object, // GetParentData (Func<HudParentMembers?>)
-            Action, // GetFocus
-            Action<object>, // Register
-            Action // Unregister
-        >;
-
         /// <summary>
         /// Interface for all hud elements that can be parented to another element.
         /// </summary>
@@ -51,11 +40,6 @@ namespace RichHudFramework
             /// that it's drawn/updated last.
             /// </summary>
             void GetFocus();
-
-            /// <summary>
-            /// Retrieves the information necessary to access the <see cref="IHudNode"/> through the API.
-            /// </summary>
-            new HudNodeMembers GetApiData();
         }
     }
 }

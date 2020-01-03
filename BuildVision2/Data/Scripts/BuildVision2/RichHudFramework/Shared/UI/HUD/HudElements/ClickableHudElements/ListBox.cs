@@ -217,7 +217,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected override void Draw()
+        public override void Draw()
         {
             if (Selection != null)
             {
@@ -228,10 +228,13 @@ namespace RichHudFramework.UI
             }
             else
                 selectionBox.Visible = false;
+
+            base.Draw();
         }
 
-        protected override void HandleInput()
+        public override void HandleInput()
         {
+            base.HandleInput();
             highlight.Visible = false;
 
             foreach (ListBoxEntry<T> button in scrollBox.List)
@@ -245,7 +248,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        public object GetOrSetMember(object data, int memberEnum)
+        public new object GetOrSetMember(object data, int memberEnum)
         {
             var member = (ListBoxAccessors)memberEnum;
 
@@ -353,7 +356,7 @@ namespace RichHudFramework.UI
             OnMemberSelected?.Invoke(this);
         }
 
-        public object GetOrSetMember(object data, int memberEnum)
+        public new object GetOrSetMember(object data, int memberEnum)
         {
             var member = (ListBoxEntryAccessors)memberEnum;
 
