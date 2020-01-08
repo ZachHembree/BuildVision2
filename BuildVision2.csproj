@@ -82,16 +82,15 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\BindManager\BindGroup.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\BindManager\BindManager.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\BindManager\Control.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\BindManager\RebindMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\HUD\HudMain.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\HUD\Rendering\FontManager.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\HUD\Rendering\TextBoard.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\HUD\Rendering\TextBuilder.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\MenuUtilities.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\ControlCategory.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\ControlPage.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\Controls\Checkbox.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\Controls\ColorPicker.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\Controls\DragBox.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\Controls\DropdownControl.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\Controls\ListControl.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\Controls\OnOffButton.cs" />
@@ -101,6 +100,9 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\Controls\TextField.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\ControlTile.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\ListBoxData.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\Pages\ControlPage.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\Pages\RebindPage.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\Pages\TerminalPageBase.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\SettingsMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\Core\General\ApiContainers.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\Core\General\Collections.cs" />

@@ -32,7 +32,7 @@ namespace RichHudFramework.UI.Client
         ValueText = 19,
     }
 
-    public class SliderSetting : TerminalValue<float>
+    public class SliderSetting : TerminalValue<float, SliderSetting>
     {
         public float Min
         {

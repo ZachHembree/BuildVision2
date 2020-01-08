@@ -47,7 +47,7 @@ namespace RichHudFramework.UI
             lastScale = Scale;
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
             if (Scale != lastScale)
             {
@@ -60,8 +60,6 @@ namespace RichHudFramework.UI
             {
                 hudBoard.Draw(Origin);
             }
-
-            base.Draw();
         }
     }
 }

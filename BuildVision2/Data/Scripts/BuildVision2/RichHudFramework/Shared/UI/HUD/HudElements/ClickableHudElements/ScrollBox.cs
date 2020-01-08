@@ -158,6 +158,8 @@ namespace RichHudFramework.UI
                 Min = 0,
             };
 
+            scrollBar.slide.button.highlightColor = new Color(137, 140, 149);
+
             divider = new TexturedBox(scrollBar)
             {
                 Color = new Color(53, 66, 75),
@@ -169,6 +171,8 @@ namespace RichHudFramework.UI
             };
 
             CaptureCursor = true;
+            ShareCursor = true;
+
             AlignVertical = true;
             Enabled = true;
             MinimumVisCount = 1;
@@ -189,25 +193,18 @@ namespace RichHudFramework.UI
         public void RemoveFromList(Func<T, bool> predicate) =>
             Members.Remove(predicate);
 
-        public override void HandleInput()
+        protected override void HandleInput()
         {
-            base.HandleInput();
-
-            if (scrollBar.IsMousedOver)
-                ShareCursor = false;
-            else
-                ShareCursor = true;
-
             if (IsMousedOver)
             {
                 if (SharedBinds.MousewheelUp.IsPressed)
                 {
-                    ShareCursor = scrollBar.Current == scrollBar.Min;
+                    ShareCursor = false;
                     scrollBar.Current = Start - 1;
                 }
                 else if (SharedBinds.MousewheelDown.IsPressed)
                 {
-                    ShareCursor = scrollBar.Current == scrollBar.Max;
+                    ShareCursor = false;
                     scrollBar.Current = Start + 1;
                 }
                 else
@@ -217,7 +214,7 @@ namespace RichHudFramework.UI
                 ShareCursor = true;
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
             scrollBar.Max = GetMaxStart(List.Count - 1);
             scrollBar.Min = GetFirstEnabled();
@@ -247,8 +244,6 @@ namespace RichHudFramework.UI
 
             base.Width = newSize.X;
             base.Height = newSize.Y;
-
-            base.Draw();
         }
 
         private int GetFirstEnabled()

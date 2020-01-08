@@ -4,28 +4,6 @@ namespace RichHudFramework.UI
 {
     public class TextBoxButton : LabelBox
     {
-        public override float Width
-        {
-            get { return TextSize.X + Padding.X; }
-            set
-            {
-                TextSize = new Vector2(value - Padding.X, TextSize.Y);
-                background.Width = value;
-                mouseInput.Width = value;
-            }
-        }
-
-        public override float Height
-        {
-            get { return TextSize.Y + Padding.Y; }
-            set
-            {
-                TextSize = new Vector2(TextSize.X, value - Padding.Y);
-                background.Height = value;
-                mouseInput.Height = value;
-            }
-        }
-
         public virtual Color HighlightColor { get; set; }
         public virtual bool HighlightEnabled { get; set; }
         public override bool IsMousedOver => mouseInput.IsMousedOver;
@@ -37,7 +15,7 @@ namespace RichHudFramework.UI
 
         public TextBoxButton(IHudParent parent = null) : base(parent)
         {
-            mouseInput = new ClickableElement(this);
+            mouseInput = new ClickableElement(this) { DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding };
             mouseInput.OnCursorEnter += CursorEntered;
             mouseInput.OnCursorExit += CursorExited;
         }
@@ -57,23 +35,6 @@ namespace RichHudFramework.UI
             {
                 Color = oldColor;
             }
-        }
-
-        public override void Draw()
-        {
-            if (background.Width != Width)
-            {
-                background.Width = Width;
-                mouseInput.Width = Width;
-            }
-
-            if (background.Height != Height)
-            {
-                background.Height = Height;
-                mouseInput.Height = Height;
-            }
-
-            base.Draw();
         }
     }
 }

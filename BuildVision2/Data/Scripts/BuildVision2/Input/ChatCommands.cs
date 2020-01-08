@@ -25,8 +25,6 @@ namespace DarkHelmet.BuildVision2
                     () => SendChatMessage(GetPrintBindsMessage())),
                 new CmdManager.Command ("bind",
                     (string[] args) => UpdateBind(args[0], args.GetSubarray(1))),
-                new CmdManager.Command("rebind",
-                    (string[] args) => RebindMenu.UpdateBind(BvBinds.BindGroup, BvBinds.BindGroup.GetBind(args[0]))),
                 new CmdManager.Command("resetBinds",
                     () => BvBinds.Cfg = BindsConfig.Defaults),
                 new CmdManager.Command ("save",
@@ -62,7 +60,11 @@ namespace DarkHelmet.BuildVision2
         private static void UpdateBind(string bindName, string[] controls)
         {
             IBind bind = BvBinds.BindGroup.GetBind(bindName);
-            bind.TrySetCombo(controls);
+
+            if (bind == null)
+                SendChatMessage("Error: The bind specified could not be found.");
+            else
+                bind.TrySetCombo(controls);
         }
 
         private static string GetControlList()
@@ -70,8 +72,12 @@ namespace DarkHelmet.BuildVision2
             StringBuilder text = new StringBuilder(BindManager.Controls.Count * 10);
 
             foreach (IControl control in BindManager.Controls)
-                text.AppendLine(control.Name);
-
+            {
+                if (control.DisplayName != control.Name)
+                    text.AppendLine($"{control.DisplayName} ({control.Name})");
+                else
+                    text.AppendLine(control.Name);
+            }
             return text.ToString();
         }
 
@@ -83,9 +89,9 @@ namespace DarkHelmet.BuildVision2
             for (int n = 0; n < combo.Count; n++)
             {
                 if (n != combo.Count - 1)
-                    bindString += combo[n].Name + " + ";
+                    bindString += combo[n].DisplayName + " + ";
                 else
-                    bindString += combo[n].Name;
+                    bindString += combo[n].DisplayName;
             }
 
             return bindString;

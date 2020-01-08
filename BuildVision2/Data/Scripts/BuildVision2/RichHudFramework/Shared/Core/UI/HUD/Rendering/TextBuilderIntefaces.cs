@@ -171,11 +171,18 @@ namespace RichHudFramework
                 AutoResize = 129,
                 VertAlign = 130,
                 MoveToChar = 131,
-                GetCharAtOffset = 132
+                GetCharAtOffset = 132,
+
+                /// <summary>
+                /// Action event
+                /// </summary>
+                OnTextChanged = 133,
             }
 
             public interface ITextBoard : ITextBuilder
             {
+                event Action OnTextChanged;
+
                 /// <summary>
                 /// Text size
                 /// </summary>

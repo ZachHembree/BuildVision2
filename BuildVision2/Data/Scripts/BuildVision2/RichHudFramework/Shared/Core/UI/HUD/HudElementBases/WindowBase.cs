@@ -51,14 +51,12 @@ namespace RichHudFramework.UI
         /// </summary>
         public Vector2 MinimumSize { get { return minimumSize * Scale; } set { minimumSize = value / Scale; } }
 
-        public IHudElement Header => header;
-        public IHudElement Background => body;
         public bool AllowResizing { get; set; }
         public bool CanDrag { get; set; }
 
-        protected readonly TextBoxButton header;
-        protected readonly TexturedBox body;
-        protected readonly BorderBox border;
+        public readonly TextBoxButton header;
+        public readonly TexturedBox body;
+        public readonly BorderBox border;
 
         private readonly ClickableElement resizeLeft, resizeTop, resizeRight, resizeBottom;
         private const float cornerSize = 8f;
@@ -102,9 +100,13 @@ namespace RichHudFramework.UI
             resizeRight.OnLeftClick += ResizeClicked;
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
-            base.Draw();
+            if (canMoveWindow)
+                Offset = HudMain.Cursor.Origin + cursorOffset - Origin;
+
+            if (canResize)
+                Resize();
 
             header.Width = Width;
 
@@ -113,18 +115,10 @@ namespace RichHudFramework.UI
 
             resizeLeft.Height = Height;
             resizeRight.Height = Height;
-
-            if (canMoveWindow)
-                Offset = HudMain.Cursor.Origin + cursorOffset - Origin;
-
-            if (canResize)
-                Resize();
         }
 
-        public override void HandleInput()
+        protected override void HandleInput()
         {
-            base.HandleInput();
-
             if (IsMousedOver)
             {
                 if (SharedBinds.LeftButton.IsNewPressed)

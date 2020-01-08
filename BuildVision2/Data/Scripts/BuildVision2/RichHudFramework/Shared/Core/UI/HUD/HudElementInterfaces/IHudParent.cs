@@ -59,11 +59,9 @@ namespace RichHudFramework
             /// </summary>
             void SetFocus(IHudNode child);
 
-            void HandleInput();
+            void BeforeInput();
 
-            //void Update();
-
-            void Draw();
+            void BeforeDraw();
 
             /// <summary>
             /// Retrieves the information necessary to access the <see cref="IHudParent"/> through the API.

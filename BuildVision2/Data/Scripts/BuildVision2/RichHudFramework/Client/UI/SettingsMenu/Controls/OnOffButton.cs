@@ -9,7 +9,7 @@ namespace RichHudFramework.UI.Client
 {
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
 
-    public class OnOffButton : TerminalValue<bool>
+    public class OnOffButton : TerminalValue<bool, OnOffButton>
     {
         public OnOffButton() : base(MenuControls.OnOffButton)
         { }

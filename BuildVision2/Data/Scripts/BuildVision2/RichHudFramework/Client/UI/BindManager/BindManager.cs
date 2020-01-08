@@ -10,11 +10,11 @@ using BindMembers = VRage.MyTuple<
     System.Func<bool>, // IsNewPressed
     System.Func<bool> // IsReleased
 >;
-using ControlMembers = VRage.MyTuple<string, int, System.Func<bool>, bool>;
 using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
+    using ControlMembers = MyTuple<string, string, int, Func<bool>, bool, ApiMemberAccessor>;
     using BindGroupMembers = MyTuple<
         string, // Name                
         BindMembers[], // Binds
@@ -95,8 +95,7 @@ namespace RichHudFramework
 
             public static IBindGroup GetOrCreateGroup(string name)
             {
-                name = name.ToLower();
-                IBindGroup group = Instance.bindGroups.Find(x => (x.Name == name));
+                IBindGroup group = Instance.bindGroups.Find(x => (x.Name.ToLower() == name.ToLower()));
 
                 if (group == null)
                 {

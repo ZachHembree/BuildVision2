@@ -217,7 +217,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
             if (Selection != null)
             {
@@ -228,13 +228,10 @@ namespace RichHudFramework.UI
             }
             else
                 selectionBox.Visible = false;
-
-            base.Draw();
         }
 
-        public override void HandleInput()
+        protected override void HandleInput()
         {
-            base.HandleInput();
             highlight.Visible = false;
 
             foreach (ListBoxEntry<T> button in scrollBox.List)

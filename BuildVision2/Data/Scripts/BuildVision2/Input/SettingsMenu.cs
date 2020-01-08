@@ -178,15 +178,6 @@ namespace DarkHelmet.BuildVision2
         {
             List<MenuUtilities.IMenuElement> bindSettings = new List<MenuUtilities.IMenuElement>(BvBinds.BindGroup.Count + 2);
 
-            for (int n = 0; n < BvBinds.BindGroup.Count; n++)
-            {
-                string bindName = BvBinds.BindGroup[n].Name;
-
-                bindSettings.Add(new MenuUtilities.MenuButton(
-                    bindName,
-                    () => RebindMenu.UpdateBind(BvBinds.BindGroup, bindName)));
-            }
-
             bindSettings.Add(new MenuUtilities.MenuButton(
                 "Open Bind Help Menu",
                 () => ModBase.ShowMessageScreen("Bind Help", GetBindHelpMessage())));

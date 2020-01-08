@@ -61,10 +61,8 @@ namespace RichHudFramework.UI
             Size = new Vector2(317f, 47f);
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
-            base.Draw();
-
             if (Vertical)
             {
                 slide.button.Width = slide.bar.Width;

@@ -87,7 +87,13 @@ namespace RichHudFramework
             /// InnerH + InnerV. If this flag is set then the element will be aligned to the interior of
             /// its parent.
             /// </summary>
-            Inner = 48
+            Inner = 48,
+
+            /// <summary>
+            /// If set, this flag will cause the element's alignment to be calculated taking the
+            /// parent's padding into account.
+            /// </summary>
+            UsePadding = 64,
         }
 
         /// <summary>

@@ -81,7 +81,7 @@ namespace RichHudFramework
             /// <summary>
             /// Starting position of the hud element on the screen in pixels.
             /// </summary>
-            public virtual Vector2 Origin => (parent == null) ? Vector2.Zero : (parent.Origin + parent.Offset + GetParentAlignment());
+            public virtual Vector2 Origin => (parent == null) ? Vector2.Zero : (parent.Origin + parent.Offset + offsetAlignment);
 
             /// <summary>
             /// Position of the element relative to its origin.
@@ -116,7 +116,7 @@ namespace RichHudFramework
             private const float minMouseBounds = 8f;
             private float parentScale, localScale, width, height;
             private bool isMousedOver;
-            private Vector2 offset, padding;
+            private Vector2 offset, padding, offsetAlignment;
 
             protected HudElementBase parent;
 
@@ -133,13 +133,10 @@ namespace RichHudFramework
                 parentScale = 1f;
             }
 
-            public override void HandleInput()
+            public sealed override void BeforeInput()
             {
                 if (Visible)
                 {
-                    if (!ShareCursor)
-                        base.HandleInput();
-
                     if (CaptureCursor && HudMain.Cursor.Visible && !HudMain.Cursor.IsCaptured)
                     {
                         isMousedOver = IsMouseInBounds();
@@ -150,41 +147,15 @@ namespace RichHudFramework
                     else
                         isMousedOver = false;
 
-                    //HandleInput();
-
                     if (ShareCursor)
                         ShareInput();
+                    else
+                        HandleChildInput();
+
+                    HandleInput();
                 }
                 else
                     isMousedOver = false;
-            }
-
-            public override void Draw()
-            {
-                base.Draw();
-
-                if (parent != null && parentScale != parent.Scale)
-                    parentScale = parent.Scale;
-
-                if (parent != null && Size != parent.Size)
-                {
-                    if (DimAlignment.HasFlag(DimAlignments.IgnorePadding))
-                    {
-                        if (DimAlignment.HasFlag(DimAlignments.Width))
-                            Width = parent.Width - parent.Padding.X;
-
-                        if (DimAlignment.HasFlag(DimAlignments.Height))
-                            Height = parent.Height - parent.Padding.Y;
-                    }
-                    else
-                    {
-                        if (DimAlignment.HasFlag(DimAlignments.Width))
-                            Width = parent.Width;
-
-                        if (DimAlignment.HasFlag(DimAlignments.Height))
-                            Height = parent.Height;
-                    }
-                }
             }
 
             /// <summary>
@@ -195,10 +166,19 @@ namespace RichHudFramework
             {
                 bool wasCapturing = isMousedOver && HudMain.Cursor.IsCapturing(ID);
                 HudMain.Cursor.TryRelease(ID);
-                base.HandleInput();
+                HandleChildInput();
 
                 if (!HudMain.Cursor.IsCaptured && wasCapturing)
                     HudMain.Cursor.Capture(ID);
+            }
+
+            private void HandleChildInput()
+            {
+                for (int n = children.Count - 1; n >= 0; n--)
+                {
+                    if (children[n].Visible)
+                        children[n].BeforeInput();
+                }
             }
 
             /// <summary>
@@ -220,6 +200,49 @@ namespace RichHudFramework
                     (cursorPos.Y >= lowerBound && cursorPos.Y < upperBound);
             }
 
+            public sealed override void BeforeDraw()
+            {
+                if (parent != null)
+                {
+                    if (parentScale != parent.Scale)
+                        parentScale = parent.Scale;
+
+                    GetDimAlignment();
+                    offsetAlignment = GetParentAlignment();
+                }
+
+                Draw();
+
+                for (int n = 0; n < children.Count; n++)
+                {
+                    if (children[n].Visible)
+                        children[n].BeforeDraw();
+                }                
+            }
+
+            private void GetDimAlignment()
+            {
+                if (Size != parent.Size)
+                {
+                    if (DimAlignment.HasFlag(DimAlignments.IgnorePadding))
+                    {
+                        if (DimAlignment.HasFlag(DimAlignments.Width))
+                            Width = parent.Width - parent.Padding.X;
+
+                        if (DimAlignment.HasFlag(DimAlignments.Height))
+                            Height = parent.Height - parent.Padding.Y;
+                    }
+                    else
+                    {
+                        if (DimAlignment.HasFlag(DimAlignments.Width))
+                            Width = parent.Width;
+
+                        if (DimAlignment.HasFlag(DimAlignments.Height))
+                            Height = parent.Height;
+                    }
+                }
+            }
+
             /// <summary>
             /// Calculates the offset necessary to achieve the alignment specified by the
             /// ParentAlignment property.
@@ -227,36 +250,35 @@ namespace RichHudFramework
             private Vector2 GetParentAlignment()
             {
                 Vector2 alignment = Vector2.Zero;
+                Vector2 max = (parent.Size + Size) / 2f, min = -max;
+
+                if (ParentAlignment.HasFlag(ParentAlignments.UsePadding))
+                {
+                    min += parent.Padding / 2f;
+                    max -= parent.padding / 2f;
+                }
+
+                if (ParentAlignment.HasFlag(ParentAlignments.InnerV))
+                {
+                    min.Y += Size.Y;
+                    max.Y -= Size.Y;
+                }
+
+                if (ParentAlignment.HasFlag(ParentAlignments.InnerH))
+                {
+                    min.X += Size.X;
+                    max.X -= Size.X;
+                }
 
                 if (ParentAlignment.HasFlag(ParentAlignments.Bottom))
-                {
-                    if (ParentAlignment.HasFlag(ParentAlignments.InnerV))
-                        alignment.Y = -(parent.Size.Y - Size.Y) / 2f;
-                    else
-                        alignment.Y = -(parent.Size.Y + Size.Y) / 2f;
-                }
+                    alignment.Y = min.Y;
                 else if (ParentAlignment.HasFlag(ParentAlignments.Top))
-                {
-                    if (ParentAlignment.HasFlag(ParentAlignments.InnerV))
-                        alignment.Y = (parent.Size.Y - Size.Y) / 2f;
-                    else
-                        alignment.Y = (parent.Size.Y + Size.Y) / 2f;
-                }
+                    alignment.Y = max.Y;
 
                 if (ParentAlignment.HasFlag(ParentAlignments.Left))
-                {
-                    if (ParentAlignment.HasFlag(ParentAlignments.InnerH))
-                        alignment.X = -(parent.Size.X - Size.X) / 2f;
-                    else
-                        alignment.X = -(parent.Size.X + Size.X) / 2f;
-                }
+                    alignment.X = min.X;
                 else if (ParentAlignment.HasFlag(ParentAlignments.Right))
-                {
-                    if (ParentAlignment.HasFlag(ParentAlignments.InnerH))
-                        alignment.X = (parent.Size.X - Size.X) / 2f;
-                    else
-                        alignment.X = (parent.Size.X + Size.X) / 2f;
-                }
+                    alignment.X = max.X;
 
                 return alignment;
             }

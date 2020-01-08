@@ -27,7 +27,7 @@ namespace RichHudFramework.UI
             textAlignment = TextAlignment.Center;
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
             if (HudAPIv2.Heartbeat)
             {
@@ -52,8 +52,6 @@ namespace RichHudFramework.UI
                 hudMessage.Origin = new Vector2D(pos.X, pos.Y);
                 hudMessage.Draw();
             }
-
-            base.Draw();
         }
 
         private void UpdateMessage()

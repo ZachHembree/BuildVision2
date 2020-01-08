@@ -23,40 +23,19 @@ namespace RichHudFramework
 
     namespace UI.Client
     {
-        public class ControlPage : IControlPage
+        public class ControlPage : TerminalPageBase, IControlPage
         {
-            public RichText Name
-            {
-                get { return new RichText((RichStringMembers[])GetOrSetMemberFunc(null, (int)ControlPageAccessors.Name)); }
-                set { GetOrSetMemberFunc(value.GetApiData(), (int)ControlPageAccessors.Name); }
-            }
-
             public IReadOnlyCollection<IControlCategory> Categories { get; }
 
             public IControlPage CategoryContainer => this;
 
-            public object ID => data.Item3;
-
-            public bool Enabled
+            public ControlPage() : base(ModPages.ControlPage)
             {
-                get { return (bool)GetOrSetMemberFunc(null, (int)ControlPageAccessors.Enabled); }
-                set { GetOrSetMemberFunc(value, (int)ControlPageAccessors.Enabled); }
-            }
+                var catData = (MyTuple<object, Func<int>>)GetOrSetMemberFunc(null, (int)ControlPageAccessors.CategoryData);
+                var GetCatDataFunc = catData.Item1 as Func<int, ControlContainerMembers>;
 
-            private ApiMemberAccessor GetOrSetMemberFunc => data.Item1;
-            private readonly ControlContainerMembers data;
-
-            public ControlPage() : this(ModMenu.GetNewMenuPage())
-            { }
-
-            internal ControlPage(ControlContainerMembers data)
-            {
-                this.data = data;
-
-                var GetCatDataFunc = data.Item2.Item1 as Func<int, ControlContainerMembers>;
                 Func<int, ControlCategory> GetCatFunc = (x => new ControlCategory(GetCatDataFunc(x)));
-
-                Categories = new ReadOnlyCollectionData<IControlCategory>(GetCatFunc, data.Item2.Item2);
+                Categories = new ReadOnlyCollectionData<IControlCategory>(GetCatFunc, catData.Item2);
             }
 
             IEnumerator<IControlCategory> IEnumerable<IControlCategory>.GetEnumerator() =>
@@ -67,9 +46,6 @@ namespace RichHudFramework
 
             public void Add(ControlCategory category) =>
                 GetOrSetMemberFunc(category.ID, (int)ControlPageAccessors.AddCategory);
-
-            public ControlContainerMembers GetApiData() =>
-                data;
         }
     }
 }

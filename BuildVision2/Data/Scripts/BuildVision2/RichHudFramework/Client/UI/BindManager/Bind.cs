@@ -64,11 +64,11 @@ namespace RichHudFramework
                     public IList<IControl> GetCombo() =>
                         BindManager.GetCombo((IList<int>)GetOrSetMemberFunc(null, (int)BindAccesssors.GetCombo));
 
-                    public bool TrySetCombo(IList<string> combo, bool silent = false) =>
-                        (bool)GetOrSetMemberFunc(new MyTuple<IList<int>, bool>(GetComboIndices(combo), silent), (int)BindAccesssors.SetCombo);
+                    public bool TrySetCombo(IList<string> combo, bool strict = true, bool silent = false) =>
+                        (bool)GetOrSetMemberFunc(new MyTuple<IList<int>, bool, bool>(GetComboIndices(combo), strict, silent), (int)BindAccesssors.SetCombo);
 
-                    public bool TrySetCombo(IControl[] combo, bool silent = false) =>
-                        (bool)GetOrSetMemberFunc(new MyTuple<IList<int>, bool>(GetComboIndices(combo), silent), (int)BindAccesssors.SetCombo);
+                    public bool TrySetCombo(IControl[] combo, bool strict = true, bool silent = false) =>
+                        (bool)GetOrSetMemberFunc(new MyTuple<IList<int>, bool, bool>(GetComboIndices(combo), strict, silent), (int)BindAccesssors.SetCombo);
 
                     public void ClearCombo() =>
                         GetOrSetMemberFunc(null, (int)BindAccesssors.ClearCombo);

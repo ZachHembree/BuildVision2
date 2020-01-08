@@ -54,10 +54,10 @@ namespace RichHudFramework
                 GetOrSetMemberFunc(child.GetApiData(), (int)HudParentAccessors.Add);
             }
 
-            public void Draw() =>
+            public void BeforeDraw() =>
                 DrawAction();
 
-            public void HandleInput() =>
+            public void BeforeInput() =>
                 InputAction();
 
             public void RegisterChildren(IEnumerable<IHudNode> newChildren)

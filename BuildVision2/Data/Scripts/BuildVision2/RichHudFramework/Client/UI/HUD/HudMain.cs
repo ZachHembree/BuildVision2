@@ -138,7 +138,7 @@ namespace RichHudFramework
                 Instance.GetTextBoardDataFunc();
 
             /// <summary>
-            /// Converts from a coordinate in the scaled coordinate system to a concrete coordinate in pixels.
+            /// Converts from a value in the relative coordinate system to a concrete value in pixels.
             /// </summary>
             public static Vector2 GetPixelVector(Vector2 scaledVec)
             {
@@ -152,7 +152,7 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// Converts from a coordinate given in pixels to a scaled system based on the screen resolution.
+            /// Converts from a coordinate given in pixels to a scaled system independent of screen resolution.
             /// </summary>
             public static Vector2 GetRelativeVector(Vector2 pixelVec)
             {

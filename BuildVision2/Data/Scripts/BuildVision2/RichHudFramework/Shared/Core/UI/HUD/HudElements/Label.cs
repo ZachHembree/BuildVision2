@@ -56,7 +56,7 @@ namespace RichHudFramework.UI
             textBoard = new TextBoard();
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
             if (textBoard.Scale != Scale)
             {
@@ -64,7 +64,6 @@ namespace RichHudFramework.UI
             }
 
             textBoard.Draw(Origin + Offset);
-            base.Draw();
         }
     }
 }

@@ -19,7 +19,7 @@ namespace RichHudFramework.UI
             Thickness = 1f;
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
             if (Color.A > 0)
             {
@@ -35,8 +35,6 @@ namespace RichHudFramework.UI
                 hudBoard.Size = new Vector2(Width, Thickness);
                 hudBoard.Draw(Origin + Offset + new Vector2(0f, -Height / 2f));
             }
-
-            base.Draw();
         }
     }
 }

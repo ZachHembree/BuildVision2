@@ -62,6 +62,8 @@ namespace RichHudFramework.UI
 
                 if (max - min != 0)
                     Percent = (current - min) / (max - min);
+                else
+                    Percent = 0;
             }
         }
 
@@ -77,6 +79,8 @@ namespace RichHudFramework.UI
 
                 if (max - min != 0)
                     Percent = (current - min) / (max - min);
+                else
+                    Percent = 0;
             }
         }
 
@@ -90,6 +94,8 @@ namespace RichHudFramework.UI
             {
                 if (max - min != 0)
                     Percent = (value - min) / (max - min);
+                else
+                    Percent = 0;
             }
         }
 
@@ -103,7 +109,7 @@ namespace RichHudFramework.UI
             set
             {
                 percent = Utils.Math.Clamp(value, 0f, 1f);
-                current = percent * (Max - Min);
+                current = percent * (Max - Min) + Min;
 
                 UpdateButtonOffset();
             }
@@ -142,7 +148,7 @@ namespace RichHudFramework.UI
             canMoveSlider = true;
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
             if (canMoveSlider)
             {
@@ -168,7 +174,6 @@ namespace RichHudFramework.UI
             }
 
             UpdateButtonOffset();
-            base.Draw();
         }
 
         private void UpdateButtonOffset()
@@ -189,10 +194,8 @@ namespace RichHudFramework.UI
             }
         }
 
-        public override void HandleInput()
+        protected override void HandleInput()
         {
-            base.HandleInput();
-
             if (canMoveSlider && !SharedBinds.LeftButton.IsPressed)
             {
                 canMoveSlider = false;

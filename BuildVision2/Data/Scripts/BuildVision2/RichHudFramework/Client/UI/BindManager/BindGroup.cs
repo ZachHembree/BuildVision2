@@ -31,6 +31,7 @@ namespace RichHudFramework
                 public string Name { get; }
                 public IBind this[int index] => binds[index];
                 public int Count => binds.Count;
+                public object ID => GetOrSetMemberFunc(null, (int)BindGroupAccessors.ID);
 
                 private readonly List<IBind> binds;
                 private readonly Action HandleInputAction;
@@ -58,7 +59,7 @@ namespace RichHudFramework
                 public IBind GetBind(string name)
                 {
                     name = name.ToLower();
-                    return binds.Find(x => x.Name == name);
+                    return binds.Find(x => x.Name.ToLower() == name);
                 }
 
                 public bool DoesBindExist(string name) =>

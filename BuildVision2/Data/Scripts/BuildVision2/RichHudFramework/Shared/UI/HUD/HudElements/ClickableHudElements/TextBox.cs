@@ -14,26 +14,6 @@ namespace RichHudFramework.UI
     /// </summary>
     public class TextBox : Label
     {
-        public override float Width
-        {
-            get { return base.Width; }
-            set
-            {
-                base.Width = value;
-                mouseInput.Width = value;
-            }
-        }
-
-        public override float Height
-        {
-            get { return base.Height; }
-            set
-            {
-                base.Height = value;
-                mouseInput.Height = value;
-            }
-        }
-
         /// <summary>
         /// Determines whether or not this element will accept input from the mouse.
         /// </summary>
@@ -47,7 +27,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Used to restrict the range of characters allowed for input.
         /// </summary>
-        public Func<char, bool> IsCharAllowedFunc { get; set; }
+        public Func<char, bool> CharFilterFunc { get; set; }
         public readonly ClickableElement mouseInput;
 
         private bool acceptInput;
@@ -60,7 +40,7 @@ namespace RichHudFramework.UI
             CaptureCursor = true;
             ShareCursor = true;
 
-            mouseInput = new ClickableElement(this);
+            mouseInput = new ClickableElement(this) { DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding };
             textInput = new TextInput(AddChar, RemoveLastChar, TextInputFilter);
 
             caret = new TextCaret(this) { Visible = false };
@@ -83,15 +63,14 @@ namespace RichHudFramework.UI
         /// </summary>
         private bool TextInputFilter(char ch)
         {
-            if (IsCharAllowedFunc == null)
+            if (CharFilterFunc == null)
                 return ch >= ' ' || ch == '\n';
             else
-                return IsCharAllowedFunc(ch) && (ch >= ' ' || ch == '\n');
+                return CharFilterFunc(ch) && (ch >= ' ' || ch == '\n');
         }
 
-        public override void HandleInput()
+        protected override void HandleInput()
         {
-            base.HandleInput();
             acceptInput = (UseMouseInput && mouseInput.HasFocus && HudMain.Cursor.Visible) || InputOpen;
 
             if (acceptInput)
@@ -126,7 +105,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
             if (acceptInput)
             {
@@ -256,7 +235,7 @@ namespace RichHudFramework.UI
                 blinkTimer.Reset();
             }
 
-            public override void Draw()
+            protected override void Draw()
             {
                 if (blink)
                     base.Draw();
@@ -292,12 +271,12 @@ namespace RichHudFramework.UI
                 }
                 else
                 {
-                    //offset.Y = (textElement.Size.Y - Height) / 2f - 1f;
-
                     if (text.Format.Alignment == TextAlignment.Left)
                         offset.X = -textElement.Size.X / 2f + 2f;
                     else if (text.Format.Alignment == TextAlignment.Right)
                         offset.X = textElement.Size.X / 2f - 2f;
+
+                    offset.X += Padding.X / 2f;
                 }
 
                 Offset = offset;
@@ -306,10 +285,8 @@ namespace RichHudFramework.UI
             /// <summary>
             /// Handles input for moving the caret.
             /// </summary>
-            public override void HandleInput()
+            protected override void HandleInput()
             {
-                base.HandleInput();
-
                 if (SharedBinds.DownArrow.IsPressedAndHeld)
                     Move(new Vector2I(1, 0));
 
@@ -457,10 +434,8 @@ namespace RichHudFramework.UI
                 End = -Vector2I.One;
             }
 
-            public override void HandleInput()
+            protected override void HandleInput()
             {
-                base.HandleInput();
-
                 if (text.Count > 0 && text[text.Count - 1].Count > 0)
                 {
                     if (SharedBinds.LeftButton.IsNewPressed)
@@ -594,7 +569,7 @@ namespace RichHudFramework.UI
                 return box;
             }
 
-            public override void Draw()
+            protected override void Draw()
             {
                 if (!Empty)
                 {
@@ -606,8 +581,6 @@ namespace RichHudFramework.UI
                     if (bottom != null)
                         bottom.Draw(highlightBoard, Origin);
                 }
-
-                base.Draw();
             }
 
             private class HighlightBox

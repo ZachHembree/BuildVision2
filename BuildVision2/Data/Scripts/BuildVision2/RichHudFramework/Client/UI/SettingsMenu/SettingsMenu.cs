@@ -10,7 +10,6 @@ using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Colo
 
 namespace RichHudFramework
 {
-    using UI;
     using ControlContainerMembers = MyTuple<
         ApiMemberAccessor, // GetOrSetMember,
         MyTuple<object, Func<int>>, // Member List
@@ -29,7 +28,8 @@ namespace RichHudFramework
             ApiMemberAccessor, // GetOrSetMembers
             ControlContainerMembers, // MenuRoot
             Func<int, ControlMembers>, // GetNewControl
-            Func<int, ControlContainerMembers> // GetNewContainer
+            Func<int, ControlContainerMembers>, // GetNewContainer
+            Func<int, ControlMembers> // GetNewModPage
         >;
 
         public sealed class ModMenu : RichHudClient.ApiModule<SettingsMenuMembers>
@@ -47,6 +47,7 @@ namespace RichHudFramework
             private readonly ApiMemberAccessor GetOrSetMembersFunc;
             private readonly Func<int, ControlMembers> GetNewControlFunc;
             private readonly Func<int, ControlContainerMembers> GetNewContainerFunc;
+            private readonly Func<int, ControlMembers> GetNewPageFunc;
 
             private ModMenu() : base(ApiModuleTypes.SettingsMenu, false, true)
             {
@@ -55,6 +56,7 @@ namespace RichHudFramework
                 GetOrSetMembersFunc = data.Item1;
                 GetNewControlFunc = data.Item3;
                 GetNewContainerFunc = data.Item4;
+                GetNewPageFunc = data.Item5;
 
                 menuRoot = new ModControlRoot(data.Item2);
             }
@@ -76,8 +78,8 @@ namespace RichHudFramework
             internal static ControlContainerMembers GetNewMenuCategory() =>
                 Instance.GetNewContainerFunc((int)ControlContainers.Category);
 
-            internal static ControlContainerMembers GetNewMenuPage() =>
-                Instance.GetNewContainerFunc((int)ControlContainers.Page);
+            internal static ControlMembers GetNewMenuPage(ModPages pageEnum) =>
+                Instance.GetNewPageFunc((int)pageEnum);
 
             private class ModControlRoot : IModControlRoot
             {
@@ -87,15 +89,15 @@ namespace RichHudFramework
                     set { GetOrSetMemberFunc(value.GetApiData(), (int)ModControlRootAccessors.Name); }
                 }
 
-                public IReadOnlyCollection<IControlPage> Pages { get; }
+                public IReadOnlyCollection<ITerminalPage> Pages { get; }
 
                 public IModControlRoot PageContainer => this;
 
                 public object ID => data.Item3;
 
-                public IControlPage Selection
+                public ITerminalPage Selection
                 {
-                    get { return new ControlPage((ControlContainerMembers)GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Selection)); }
+                    get { return new TerminalPage((ControlMembers)GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Selection)); }
                 }
 
                 public bool Enabled
@@ -117,23 +119,29 @@ namespace RichHudFramework
                 {
                     this.data = data;
 
-                    var GetPageDataFunc = data.Item2.Item1 as Func<int, ControlContainerMembers>;
-                    Func<int, ControlPage> GetPageFunc = (x => new ControlPage(GetPageDataFunc(x)));
+                    var GetPageDataFunc = data.Item2.Item1 as Func<int, ControlMembers>;
+                    Func<int, ITerminalPage> GetPageFunc = (x => new TerminalPage(GetPageDataFunc(x)));
 
-                    Pages = new ReadOnlyCollectionData<IControlPage>(GetPageFunc, data.Item2.Item2);
+                    Pages = new ReadOnlyCollectionData<ITerminalPage>(GetPageFunc, data.Item2.Item2);
                 }
 
-                IEnumerator<IControlPage> IEnumerable<IControlPage>.GetEnumerator() =>
+                IEnumerator<ITerminalPage> IEnumerable<ITerminalPage>.GetEnumerator() =>
                     Pages.GetEnumerator();
 
                 IEnumerator IEnumerable.GetEnumerator() =>
                     Pages.GetEnumerator();
 
-                public void Add(ControlPage page) =>
+                public void Add(TerminalPageBase page) =>
                     GetOrSetMemberFunc(page.ID, (int)ModControlRootAccessors.AddPage);
 
                 public ControlContainerMembers GetApiData() =>
                     data;
+
+                private class TerminalPage : TerminalPageBase
+                {
+                    public TerminalPage(ControlMembers data) : base(data)
+                    { }
+                }
             }
         }
     }

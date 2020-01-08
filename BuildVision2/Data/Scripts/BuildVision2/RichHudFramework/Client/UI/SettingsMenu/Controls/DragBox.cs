@@ -10,9 +10,20 @@ namespace RichHudFramework.UI.Client
 {
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
 
-    public class ColorPicker : TerminalValue<Color, ColorPicker>
+    internal enum DragBoxAccessors : int
     {
-        public ColorPicker() : base(MenuControls.ColorPicker)
+        BoxSize = 16,
+    }
+
+    public class DragBox : TerminalValue<Vector2, DragBox>
+    {
+        public Vector2 BoxSize
+        {
+            get { return (Vector2)GetOrSetMember(null, (int)DragBoxAccessors.BoxSize); }
+            set { GetOrSetMember(value, (int)DragBoxAccessors.BoxSize); }
+        }
+
+        public DragBox() : base(MenuControls.DragBox)
         { }
     }
 }

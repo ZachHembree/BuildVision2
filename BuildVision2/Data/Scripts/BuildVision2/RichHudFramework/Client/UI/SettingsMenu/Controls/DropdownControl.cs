@@ -10,7 +10,7 @@ namespace RichHudFramework.UI.Client
 {
     using CollectionData = MyTuple<Func<int, ApiMemberAccessor>, Func<int>>;
 
-    public class DropdownControl<T> : TerminalValue<EntryData<T>>
+    public class DropdownControl<T> : TerminalValue<EntryData<T>, DropdownControl<T>>
     {
         public override EntryData<T> Value
         {

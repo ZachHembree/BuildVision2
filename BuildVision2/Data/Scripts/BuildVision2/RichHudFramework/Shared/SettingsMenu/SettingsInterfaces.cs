@@ -39,13 +39,19 @@ namespace RichHudFramework
             TextField = 6,
             DropdownControl = 7,
             ListControl = 8,
+            DragBox = 9,
         }
 
         internal enum ControlContainers : int
         {
             Tile = 1,
             Category = 2,
-            Page = 3,
+        }
+
+        internal enum ModPages : int
+        {
+            ControlPage = 1,
+            RebindPage = 2,
         }
 
         internal enum TerminalControlAccessors : int
@@ -66,9 +72,19 @@ namespace RichHudFramework
             Enabled = 3,
 
             /// <summary>
-            /// object
+            /// T
             /// </summary>
             Value = 8,
+
+            /// <summary>
+            /// Func{T}
+            /// </summary>
+            ValueGetter = 9,
+
+            /// <summary>
+            /// Action{T}
+            /// </summary>
+            ValueSetter = 10,
         }
 
         /// <summary>
@@ -102,12 +118,24 @@ namespace RichHudFramework
             ControlMembers GetApiData();
         }
 
-        public interface ITerminalValue<T> : ITerminalControl
+        /// <summary>
+        /// Clickable control used in conjunction with the settings menu
+        /// </summary>
+        public interface ITerminalControl<T> : ITerminalControl where T : ITerminalControl<T>
+        {
+            Action<T> ControlChangedAction { get; set; }
+        }
+
+        public interface ITerminalValue<TValue, TCon> : ITerminalControl<TCon> where TCon : ITerminalControl<TCon>
         {
             /// <summary>
             /// Current value of the control
             /// </summary>
-            T Value { get; set; }
+            TValue Value { get; set; }
+
+            Func<TValue> CustomValueGetter { get; set; }
+
+            Action<TValue> CustomValueSetter { get; set; }
         }
 
         internal enum ControlTileAccessors : int
@@ -224,7 +252,7 @@ namespace RichHudFramework
             ControlContainerMembers GetApiData();
         }
 
-        internal enum ControlPageAccessors : int
+        internal enum TerminalPageAccessors : int
         {
             /// <summary>
             /// RichStringMembers[]
@@ -235,32 +263,17 @@ namespace RichHudFramework
             /// bool
             /// </summary>
             Enabled = 2,
-
-            /// <summary>
-            /// MemberAccessor
-            /// </summary>
-            AddCategory = 3,
         }
 
-        /// <summary>
-        /// Vertically scrolling collection of control categories.
-        /// </summary>
-        public interface IControlPage : IEnumerable<IControlCategory>
+        public interface ITerminalPage
         {
             /// <summary>
-            /// Name of the <see cref="IControlPage"/> as it appears in the dropdown of the <see cref="IModControlRoot"/>.
+            /// Name of the <see cref="ITerminalPage"/> as it appears in the dropdown of the <see cref="IModControlRoot"/>.
             /// </summary>
             RichText Name { get; set; }
 
             /// <summary>
-            /// Read only collection of <see cref="IControlCategory"/>s assigned to this object.
-            /// </summary>
-            IReadOnlyCollection<IControlCategory> Categories { get; }
-
-            IControlPage CategoryContainer { get; }
-
-            /// <summary>
-            /// Determines whether or not the <see cref="IControlPage"/> will be drawn.
+            /// Determines whether or not the <see cref="ITerminalPage"/> will be drawn.
             /// </summary>
             bool Enabled { get; set; }
 
@@ -270,14 +283,54 @@ namespace RichHudFramework
             object ID { get; }
 
             /// <summary>
+            /// Retrieves information used by the Framework API
+            /// </summary>
+            ControlMembers GetApiData();
+        }
+
+        public interface ITextPage : ITerminalPage
+        {
+            RichText Text { get; set; }
+        }
+
+        internal enum RebindPageAccessors : int
+        {
+            Add = 10,
+        }
+
+        public interface IRebindPage : ITerminalPage, IEnumerable<IBindGroup>
+        {
+            IReadOnlyCollection<IBindGroup> BindGroups { get; }
+
+            void Add(IBindGroup bindGroup);
+        }
+
+        internal enum ControlPageAccessors : int
+        {
+            /// <summary>
+            /// MemberAccessor
+            /// </summary>
+            AddCategory = 10,
+
+            CategoryData = 11,
+        }
+
+        /// <summary>
+        /// Vertically scrolling collection of control categories.
+        /// </summary>
+        public interface IControlPage : ITerminalPage, IEnumerable<IControlCategory>
+        {
+            /// <summary>
+            /// Read only collection of <see cref="IControlCategory"/>s assigned to this object.
+            /// </summary>
+            IReadOnlyCollection<IControlCategory> Categories { get; }
+
+            IControlPage CategoryContainer { get; }
+
+            /// <summary>
             /// Adds a given <see cref="IControlCategory"/> to the page
             /// </summary>
             void Add(ControlCategory category);
-
-            /// <summary>
-            /// Retrieves information used by the Framework API
-            /// </summary>
-            ControlContainerMembers GetApiData();
         }
 
         internal enum ModControlRootAccessors : int
@@ -308,7 +361,7 @@ namespace RichHudFramework
             AddPage = 5,
         }
 
-        public interface IModControlRoot : IEnumerable<IControlPage>
+        public interface IModControlRoot : IEnumerable<ITerminalPage>
         {
             /// <summary>
             /// Raised when a new page is selected
@@ -321,16 +374,16 @@ namespace RichHudFramework
             RichText Name { get; set; }
 
             /// <summary>
-            /// Read only collection of <see cref="IControlPage"/>s assigned to this object.
+            /// Read only collection of <see cref="ITerminalPage"/>s assigned to this object.
             /// </summary>
-            IReadOnlyCollection<IControlPage> Pages { get; }
+            IReadOnlyCollection<ITerminalPage> Pages { get; }
 
             IModControlRoot PageContainer { get; }
 
             /// <summary>
-            /// The currently selected <see cref="IControlPage"/>.
+            /// The currently selected <see cref="ITerminalPage"/>.
             /// </summary>
-            IControlPage Selection { get; }
+            ITerminalPage Selection { get; }
 
             /// <summary>
             /// Determines whether or not the element will appear in the list.
@@ -339,9 +392,9 @@ namespace RichHudFramework
             bool Enabled { get; set; }
 
             /// <summary>
-            /// Adds the given <see cref="ControlPage"/> to the object.
+            /// Adds the given <see cref="TerminalPageBase"/> to the object.
             /// </summary>
-            void Add(ControlPage page);
+            void Add(TerminalPageBase page);
 
             /// <summary>
             /// Retrieves data used by the Framework API

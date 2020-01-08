@@ -207,7 +207,7 @@ namespace RichHudFramework.UI
             Count = 0;
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
             foreach (ListBoxEntry<T> member in chain.List)
                 member.Height = display.Height;
@@ -220,13 +220,10 @@ namespace RichHudFramework.UI
             }
             else
                 selectionBox.Visible = false;
-
-            base.Draw();
         }
 
-        public override void HandleInput()
+        protected override void HandleInput()
         {
-            base.HandleInput();
             highlight.Visible = false;
 
             foreach (ListBoxEntry<T> button in Members)

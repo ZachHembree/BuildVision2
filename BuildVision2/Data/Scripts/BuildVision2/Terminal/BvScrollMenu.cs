@@ -94,6 +94,7 @@ namespace DarkHelmet.BuildVision2
 
             body.scrollBar.Padding = new Vector2(12f, 16f);
             body.scrollBar.Width = 4f;
+            body.Members.AutoResize = false;
 
             selectionBox = new TexturedBox(body.Members)
             {
@@ -156,7 +157,7 @@ namespace DarkHelmet.BuildVision2
                         body.List[n].UpdateText(false, false);
                 }
 
-                footer.LeftText = $"[{body.VisStart + 1} - {body.VisStart + body.VisCount} of {body.EnabledCount}]";
+                //footer.LeftText = $"[{body.VisStart + 1} - {body.VisStart + body.VisCount} of {body.EnabledCount}]";
 
                 if (target.IsWorking)
                     footer.RightText = new RichText("[Working]", footerTextRight);
@@ -168,10 +169,10 @@ namespace DarkHelmet.BuildVision2
             else
                 footer.RightText = new RichText("[Target is null]", blockIncText);
 
-            //footer.LeftText.SetText(new RichText($"[{body.Start}/{index}/{body.End}; {body.scrollBar.Min}/{body.scrollBar.Max}]", footerTextLeft));
+            footer.LeftText = $"[{body.Start}/{index}/{body.End}; {body.scrollBar.Min}/{body.scrollBar.Max}]";
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
             layout.Width = body.Width;
 
@@ -180,15 +181,11 @@ namespace DarkHelmet.BuildVision2
                 selectionBox.Size = new Vector2(body.Width - body.divider.Width - body.scrollBar.Width, Selection.Size.Y + (2f * Scale));
                 selectionBox.Offset = new Vector2((-22f * Scale), Selection.Offset.Y - (1f * Scale));
                 tab.Height = selectionBox.Height;
-            }
-
-            base.Draw();
+            };
         }
 
-        public override void HandleInput()
+        protected override void HandleInput()
         {
-            base.HandleInput();
-
             if (BvBinds.ScrollUp.IsNewPressed)
                 Scroll(-1);
             else if (BvBinds.ScrollDown.IsNewPressed)
@@ -430,6 +427,7 @@ namespace DarkHelmet.BuildVision2
                 body.AddToList(propBox);
             }
 
+            body.List[Count].Enabled = true;
             body.List[Count].BlockMember = blockMember;
             Count++;
         }
@@ -442,6 +440,7 @@ namespace DarkHelmet.BuildVision2
             for (int n = 0; n < body.List.Count; n++)
             {
                 body.List[n].value.CloseInput();
+                body.List[n].Enabled = false;
                 body.List[n].BlockMember = null;
             }
 
@@ -455,18 +454,7 @@ namespace DarkHelmet.BuildVision2
         private class BvPropertyBox : HudElementBase, IListBoxEntry
         {
             public override bool Visible => base.Visible && Enabled;
-            public bool Enabled => (BlockMember != null && BlockMember.Enabled);
-
-            public override float Width
-            {
-                get { return name.Width + value.Width + postfix.Width; }
-                set { base.Width = value; }
-            }
-            public override float Height
-            {
-                get { return Math.Max(name.Height, Math.Max(value.Height, postfix.Height)); }
-                set { base.Height = value; }
-            }
+            public bool Enabled { get { return enabled && (BlockMember!= null && BlockMember.Enabled); } set { enabled = value; } }
 
             public IBlockMember BlockMember
             {
@@ -480,9 +468,9 @@ namespace DarkHelmet.BuildVision2
                         var textMember = blockMember as IBlockTextMember;
 
                         if (textMember != null)
-                            this.value.IsCharAllowedFunc = textMember.CharFilterFunc;
+                            this.value.CharFilterFunc = textMember.CharFilterFunc;
                         else
-                            this.value.IsCharAllowedFunc = null;
+                            this.value.CharFilterFunc = null;
                     }
                 }
             }
@@ -492,14 +480,26 @@ namespace DarkHelmet.BuildVision2
             public readonly TextBox value;
 
             private IBlockMember blockMember;
+            private bool enabled;
 
             public BvPropertyBox(int index, IHudParent parent = null) : base(parent)
             {
                 this.index = index;
 
-                name = new Label(this) { ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH };
-                value = new TextBox(name) { ParentAlignment = ParentAlignments.Right, UseMouseInput = false };
-                postfix = new Label(value) { ParentAlignment = ParentAlignments.Right };
+                name = new Label(this)
+                { ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH };
+
+                value = new TextBox(name)
+                { ParentAlignment = ParentAlignments.Right, UseMouseInput = false };
+
+                postfix = new Label(value)
+                { ParentAlignment = ParentAlignments.Right };
+            }
+
+            protected override void Draw()
+            {
+                Width = name.Width + value.Width + postfix.Width;
+                Height = Math.Max(name.Height, Math.Max(value.Height, postfix.Height));
             }
 
             public void UpdateText(bool highlighted, bool selected)

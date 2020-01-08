@@ -12,7 +12,7 @@ namespace RichHudFramework.UI.Client
     /// <summary>
     /// Creates a named checkbox designed to mimic the appearance of checkboxes in the SE terminal.
     /// </summary>
-    public class Checkbox : TerminalValue<bool>
+    public class Checkbox : TerminalValue<bool, Checkbox>
     {
         public Checkbox() : base(MenuControls.Checkbox)
         { }

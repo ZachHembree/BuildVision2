@@ -45,23 +45,31 @@ namespace RichHudFramework
                 children = new List<IHudNode>();
             }
 
-            public virtual void HandleInput()
+            public virtual void BeforeInput()
             {
                 for (int n = children.Count - 1; n >= 0; n--)
                 {
                     if (children[n].Visible)
-                        children[n].HandleInput();
+                        children[n].BeforeInput();
+                }
+
+                HandleInput();
+            }
+
+            protected virtual void HandleInput() { }
+
+            public virtual void BeforeDraw()
+            {
+                Draw();
+
+                for (int n = 0; n < children.Count; n++)
+                {
+                    if (children[n].Visible)
+                        children[n].BeforeDraw();
                 }
             }
 
-            public virtual void Draw()
-            {
-                foreach (IHudNode child in children)
-                {
-                    if (child.Visible)
-                        child.Draw();
-                }
-            }
+            protected virtual void Draw() { }
 
             /// <summary>
             /// Moves the specified child element to the end of the update list in
@@ -142,8 +150,8 @@ namespace RichHudFramework
                 {
                     Item1 = () => Visible,
                     Item2 = this,
-                    Item3 = Draw,
-                    Item4 = HandleInput,
+                    Item3 = BeforeDraw,
+                    Item4 = BeforeInput,
                     Item5 = GetOrSetMember
                 };
             }           

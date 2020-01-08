@@ -15,7 +15,7 @@ namespace RichHudFramework.UI.Client
         ListAccessors = 16,
     }
 
-    public class ListControl<T> : TerminalValue<EntryData<T>>
+    public class ListControl<T> : TerminalValue<EntryData<T>, ListControl<T>>
     {
         public override EntryData<T> Value
         {

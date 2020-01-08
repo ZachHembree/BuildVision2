@@ -38,6 +38,20 @@ namespace RichHudFramework
 
             public class TextBoard : TextBuilder, ITextBoard
             {
+                public event Action OnTextChanged
+                {
+                    add
+                    {
+                        var args = new MyTuple<bool, Action>(true, value);
+                        GetOrSetMemberFunc(args, (int)TextBoardAccessors.OnTextChanged);
+                    }
+                    remove
+                    {
+                        var args = new MyTuple<bool, Action>(false, value);
+                        GetOrSetMemberFunc(args, (int)TextBoardAccessors.OnTextChanged);
+                    }
+                }
+
                 public float Scale { get { return ScaleProp.Getter(); } set { ScaleProp.Setter(value); } }
                 public Vector2 Size => GetSizeFunc();
                 public Vector2 TextSize => GetTextSizeFunc();

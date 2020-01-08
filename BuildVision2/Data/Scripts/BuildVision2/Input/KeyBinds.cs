@@ -37,7 +37,7 @@ namespace DarkHelmet.BuildVision2
 
         private BvBinds() : base(false, true)
         {
-            bindGroup = BindManager.GetOrCreateGroup("BuildVision");
+            bindGroup = BindManager.GetOrCreateGroup("BvMain");
             bindGroup.RegisterBinds(bindNames);
         }
 

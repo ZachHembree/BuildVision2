@@ -49,7 +49,7 @@ namespace RichHudFramework.UI
             { Color = new Color(41, 54, 62) };
 
             border = new BorderBox(background)
-            { Color = new Color(53, 66, 75), Thickness = 2f, DimAlignment = DimAlignments.Both, };
+            { Color = new Color(53, 66, 75), Thickness = 1f, DimAlignment = DimAlignments.Both, };
 
             slide = new SliderBar(background);
 

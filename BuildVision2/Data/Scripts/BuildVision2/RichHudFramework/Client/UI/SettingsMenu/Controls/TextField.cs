@@ -9,8 +9,19 @@ namespace RichHudFramework.UI.Client
 {
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
 
-    public class TextField : TerminalValue<string>
+    internal enum TextFieldAccessors : int
     {
+        CharFilterFunc = 16,
+    }
+
+    public class TextField : TerminalValue<string, TextField>
+    {
+        public Func<char, bool> CharFilterFunc
+        {
+            get { return GetOrSetMember(null, (int)TextFieldAccessors.CharFilterFunc) as Func<char, bool>; }
+            set { GetOrSetMember(value, (int)TextFieldAccessors.CharFilterFunc); }
+        }
+
         public TextField() : base(MenuControls.TextField)
         { }
     }

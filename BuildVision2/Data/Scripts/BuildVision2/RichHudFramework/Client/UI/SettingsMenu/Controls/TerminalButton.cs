@@ -9,7 +9,7 @@ namespace RichHudFramework.UI.Client
 {
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
 
-    public class TerminalButton : TerminalControlBase
+    public class TerminalButton : TerminalControlBase<TerminalButton>
     {
         public TerminalButton() : base(MenuControls.TerminalButton)
         { }
