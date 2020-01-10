@@ -11,7 +11,8 @@ namespace RichHudFramework
     using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        Action, // Draw
+        Action, // BeforeDrawStart
+        Action, // DrawStart
         Action, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
@@ -45,12 +46,12 @@ namespace RichHudFramework
                 children = new List<IHudNode>();
             }
 
-            public virtual void BeforeInput()
+            public virtual void HandleInputStart()
             {
                 for (int n = children.Count - 1; n >= 0; n--)
                 {
                     if (children[n].Visible)
-                        children[n].BeforeInput();
+                        children[n].HandleInputStart();
                 }
 
                 HandleInput();
@@ -58,14 +59,27 @@ namespace RichHudFramework
 
             protected virtual void HandleInput() { }
 
-            public virtual void BeforeDraw()
+            public virtual void BeforeDrawStart()
+            {
+                BeforeDraw();
+
+                for (int n = 0; n < children.Count; n++)
+                {
+                    if (children[n].Visible)
+                        children[n].BeforeDrawStart();
+                }
+            }
+
+            protected virtual void BeforeDraw() { }
+
+            public virtual void DrawStart()
             {
                 Draw();
 
                 for (int n = 0; n < children.Count; n++)
                 {
                     if (children[n].Visible)
-                        children[n].BeforeDraw();
+                        children[n].DrawStart();
                 }
             }
 
@@ -89,12 +103,12 @@ namespace RichHudFramework
             /// <summary>
             /// Registers a child node to the object.
             /// </summary>
-            public void RegisterChild(IHudNode child)
+            public virtual void RegisterChild(IHudNode child)
             {
-                if (child.Parent == null)
-                    child.Register(this);
-                else if (child.Parent.ID == ID)
+                if (child.Parent?.ID == ID)
                     children.Add(child);
+                else
+                    child.Register(this);
             }
 
             /// <summary>
@@ -109,19 +123,19 @@ namespace RichHudFramework
             /// <summary>
             /// Unregisters the specified node from the parent.
             /// </summary>
-            public void RemoveChild(IHudNode child)
+            public virtual void RemoveChild(IHudNode child)
             {
-                if (child.Parent != null && child.Parent.ID == ID)
+                if (child.Parent?.ID == ID)
                     child.Unregister();
-                else
-                {
-                    int childIndex = children.FindIndex(x => x.ID == child.ID);
-                    children.RemoveAt(childIndex);
-                }
+                else if (child.Parent == null)
+                    children.Remove(child);
             }
 
-            private void RemoveChild(object childID) =>
-                RemoveChild(children.Find(x => x.ID == childID));
+            private void RemoveChild(object childID)
+            {
+                IHudNode node = children.Find(x => x.ID == childID);
+                RemoveChild(node);
+            }
 
             protected virtual object GetOrSetMember(object data, int memberEnum)
             {
@@ -150,9 +164,10 @@ namespace RichHudFramework
                 {
                     Item1 = () => Visible,
                     Item2 = this,
-                    Item3 = BeforeDraw,
-                    Item4 = BeforeInput,
-                    Item5 = GetOrSetMember
+                    Item3 = () => ModBase.RunSafeAction(BeforeDrawStart),
+                    Item4 = () => ModBase.RunSafeAction(DrawStart),
+                    Item5 = () => ModBase.RunSafeAction(HandleInputStart),
+                    Item6 = GetOrSetMember
                 };
             }           
         }

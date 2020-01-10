@@ -7,7 +7,8 @@ namespace RichHudFramework
     using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        Action, // Draw
+        Action, // BeforeDrawStart
+        Action, // DrawStart
         Action, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
@@ -25,12 +26,19 @@ namespace RichHudFramework
                 {
                     var id = GetOrSetMemberFunc(null, (int)HudNodeAccessors.GetParentID);
 
-                    if (parent.ID != id)
+                    if (parent?.ID != id)
                     {
                         if (id != null)
-                            parent = new HudParentData((HudElementMembers)GetOrSetMemberFunc(null, (int)HudNodeAccessors.GetParentData));
+                        {
+                            var localParent = id as HudParentBase;
+
+                            if (localParent != null)
+                                parent = localParent;
+                            else
+                                parent = new HudParentData((HudElementMembers)GetOrSetMemberFunc(null, (int)HudNodeAccessors.GetParentData));
+                        }
                         else
-                            parent = HudParentData.Default;
+                            parent = null;
                     }
 
                     return parent;
@@ -40,9 +48,7 @@ namespace RichHudFramework
             private IHudParent parent;
 
             public HudNodeData(HudElementMembers apiData) : base(apiData)
-            {
-                parent = Default;
-            }
+            { }
 
             public void Register(IHudParent parent) =>
                 GetOrSetMemberFunc(parent.GetApiData(), (int)HudNodeAccessors.Register);

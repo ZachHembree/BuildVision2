@@ -33,7 +33,7 @@ namespace RichHudFramework
                 Func<Vector2>, // Size
                 Func<Vector2>, // TextSize
                 Vec2Prop, // FixedSize
-                Action<Vector2> // Draw 
+                MyTuple<Action, Action<Vector2>> // UpdateText, Draw 
             >;
 
             public class TextBoard : TextBuilder, ITextBoard
@@ -71,6 +71,7 @@ namespace RichHudFramework
                 private readonly Func<Vector2> GetSizeFunc;
                 private readonly Func<Vector2> GetTextSizeFunc;
                 private readonly PropWrapper<Vector2> FixedSizeProp;
+                private readonly Action UpdateTextAction;
                 private readonly Action<Vector2> DrawAction;
 
                 public TextBoard() : this(HudMain.GetTextBoardData())
@@ -83,8 +84,13 @@ namespace RichHudFramework
                     GetSizeFunc = members.Item3;
                     GetTextSizeFunc = members.Item4;
                     FixedSizeProp = new PropWrapper<Vector2>(members.Item5);
-                    DrawAction = members.Item6;
+
+                    UpdateTextAction = members.Item6.Item1;
+                    DrawAction = members.Item6.Item2;
                 }
+
+                public void UpdateText() =>
+                    UpdateTextAction();
 
                 public void Draw(Vector2 origin) =>
                     DrawAction(origin);

@@ -103,24 +103,23 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Recieves chat commands and attempts to execute them.
         /// </summary>
-        private static void MessageHandler(string message, ref bool sendToOthers)
+        private void MessageHandler(string message, ref bool sendToOthers)
         {
-            string cmdName;
-            string[] matches;
             bool cmdFound = false;
             message = message.ToLower();
 
-            foreach (Group group in instance.commandGroups)
+            foreach (Group group in commandGroups)
             {
                 if (message.StartsWith(group.prefix))
                 {
+                    string[] matches;
                     sendToOthers = false;
 
                     ModBase.RunSafeAction(() =>
                     {
                         if (TryParseCommand(message, out matches))
                         {
-                            cmdName = matches[0];
+                            string cmdName = matches[0];
 
                             foreach (Command cmd in group.commands)
                                 if (cmd.cmdName == cmdName)
@@ -143,7 +142,7 @@ namespace RichHudFramework.UI
 
                         if (!cmdFound)
                             ModBase.SendChatMessage("Command not recognised.");
-                    });
+                    });                 
                 }
             }
         }
@@ -206,14 +205,14 @@ namespace RichHudFramework.UI
             public Command(string cmdName, Action<string[]> argAction)
             {
                 this.cmdName = cmdName.ToLower();
-                action = (string[] args) => { argAction(args); return true; };
+                action = args => { argAction(args); return true; };
                 needsArgs = true;
             }
 
             public Command(string cmdName, Action action)
             {
                 this.cmdName = cmdName.ToLower();
-                this.action = (string[] args) => { action(); return true; };
+                this.action = args => { action(); return true; };
                 needsArgs = false;
             }
         }

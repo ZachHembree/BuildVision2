@@ -5,7 +5,7 @@ using System.Collections;
 
 namespace RichHudFramework.UI
 {
-    public class HudChain<T> : HudElementBase, IEnumerable<T> where T : IHudElement
+    public class HudChain<T> : HudElementBase, IEnumerable<T> where T : class, IHudElement
     {
         public HudChain<T> ChildContainer => this;
         public ReadOnlyCollection<T> List { get; }
@@ -68,32 +68,18 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Removes types of <see cref="HudElementBase"/> from the chain.
         /// </summary>
-        public void Remove(T element)
+        public override void RemoveChild(IHudNode element)
         {
-            int index = elements.FindIndex(x => x.Equals(element));
+            var member = element as T;
 
-            if (index != -1)
-            {
-                elements[index].Unregister();
-                elements.RemoveAt(index);
-            }
+            if (member != null)
+                elements.Remove(member);
+
+            base.RemoveChild(element);
         }
 
-        public void Remove(Func<T, bool> predicate)
-        {
-            int index = elements.FindIndex(x => predicate(x));
-
-            if (index != -1)
-            {
-                elements[index].Unregister();
-                elements.RemoveAt(index);
-            }
-        }
-
-        public void RemoveAt(int index)
-        {
-            elements.RemoveAt(index);
-        }
+        public void Remove(Func<T, bool> predicate) =>
+            RemoveChild(elements.Find(x => predicate(x)));
 
         protected override void Draw()
         {

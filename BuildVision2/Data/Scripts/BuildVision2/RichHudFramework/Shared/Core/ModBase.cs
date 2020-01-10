@@ -34,6 +34,7 @@ namespace RichHudFramework.Game
         public static bool IsClient => !IsDedicated;
         public static bool IsDedicated { get; private set; }
         public static bool Unloading { get; private set; }
+        public static bool NormalExit { get; protected set; }
 
         protected static ModBase Instance { get; private set; }
         protected MyObjectBuilder_SessionComponent SessionComponent { get; private set; }
@@ -43,10 +44,10 @@ namespace RichHudFramework.Game
         protected static int exceptionLimit = 10, recoveryLimit = 1, recoveryAttempts;
 
         private readonly List<ComponentBase> clientComponents, serverComponents;
-        private readonly List<Exception> exceptions;
+        private readonly List<string> exceptionMessages;
         private readonly Utils.Stopwatch errorTimer;
         private readonly Queue<Action> missionScreenQueue;
-        private LogIO log;
+        protected LogIO log;
         private bool canUpdate;
 
         static ModBase()
@@ -67,7 +68,7 @@ namespace RichHudFramework.Game
             RunOnServer = runOnServer;
             RunOnClient = runOnClient;
 
-            exceptions = new List<Exception>();
+            exceptionMessages = new List<string>();
             errorTimer = new Utils.Stopwatch();
             missionScreenQueue = new Queue<Action>();
         }
@@ -78,6 +79,7 @@ namespace RichHudFramework.Game
             {
                 Instance = this;
                 SessionComponent = sessionComponent;
+                NormalExit = false;
                 Unloading = false;
                 log = new LogIO(LogFileName);
                 
@@ -149,10 +151,10 @@ namespace RichHudFramework.Game
             if (canUpdate)
                 Update();
 
-            if (exceptions.Count > 0 && errorTimer.ElapsedMilliseconds > errorLoopThreshold)
+            if (exceptionMessages.Count > 0 && errorTimer.ElapsedMilliseconds > errorLoopThreshold)
             {
                 TryWriteToLog(ModName + " encountered an unhandled exception.\n" + GetExceptionMessages());
-                exceptions.Clear();
+                exceptionMessages.Clear();
             }
 
             // This is a workaround. If you try to create a mission screen while the chat is open, 
@@ -186,7 +188,7 @@ namespace RichHudFramework.Game
         }
 
         /// <summary>
-        /// Reports a given <see cref="Exception"/> to the user as a popup and writes the details to the log.
+        /// Attempts to report and log a given <see cref="Exception"/>.
         /// </summary>
         public static void ReportException(Exception e)
         {
@@ -195,10 +197,14 @@ namespace RichHudFramework.Game
 
         private void HandleException(Exception e)
         {
-            exceptions.Add(e);
+            string message = e.ToString();
+
+            if (!exceptionMessages.Contains(message))
+                exceptionMessages.Add(message);
+
             errorTimer.Start();
 
-            if (!Unloading && (errorTimer.ElapsedMilliseconds < errorLoopThreshold & exceptions.Count > exceptionLimit))
+            if (!Unloading && (errorTimer.ElapsedMilliseconds < errorLoopThreshold & exceptionMessages.Count > exceptionLimit))
             {
                 string exceptionText = GetExceptionMessages();
 
@@ -206,9 +212,9 @@ namespace RichHudFramework.Game
                     ShowErrorPrompt(exceptionText, promptForReload && recoveryAttempts <= recoveryLimit);
 
                 TryWriteToLog(ModName + " encountered an unhandled exception.\n" + exceptionText);
-                exceptions.Clear();
+                exceptionMessages.Clear();
 
-                UnloadData();
+                Close();
                 recoveryAttempts++;
             }          
         }
@@ -248,11 +254,11 @@ namespace RichHudFramework.Game
         {
             StringBuilder errorMessage = new StringBuilder();
 
-            if (exceptions.Count > 1 && errorTimer.ElapsedMilliseconds < errorLoopThreshold)
-                errorMessage.AppendLine($"[Exception Loop Detected] {exceptions.Count} exceptions were reported within a span of {errorTimer.ElapsedMilliseconds}ms.");
+            if (exceptionMessages.Count > 1 && errorTimer.ElapsedMilliseconds < errorLoopThreshold)
+                errorMessage.AppendLine($"[Exception Loop Detected] {exceptionMessages.Count} exceptions were reported within a span of {errorTimer.ElapsedMilliseconds}ms.");
 
-            foreach (Exception e in exceptions)
-                errorMessage.Append(e.ToString());
+            foreach (string msg in exceptionMessages)
+                errorMessage.Append(msg);
 
             errorMessage.Replace("--->", "\n   --->");
             return errorMessage.ToString();
@@ -310,8 +316,16 @@ namespace RichHudFramework.Game
 
         protected override void UnloadData()
         {
+            NormalExit = true;
             Close();
             Unloading = true;
+        }
+
+        public void Reload()
+        {
+            NormalExit = true;
+            Close();
+            Unloading = false;
         }
 
         protected virtual void BeforeClose() { }

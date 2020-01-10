@@ -133,7 +133,7 @@ namespace RichHudFramework
                 parentScale = 1f;
             }
 
-            public sealed override void BeforeInput()
+            public sealed override void HandleInputStart()
             {
                 if (Visible)
                 {
@@ -177,7 +177,7 @@ namespace RichHudFramework
                 for (int n = children.Count - 1; n >= 0; n--)
                 {
                     if (children[n].Visible)
-                        children[n].BeforeInput();
+                        children[n].HandleInputStart();
                 }
             }
 
@@ -200,8 +200,10 @@ namespace RichHudFramework
                     (cursorPos.Y >= lowerBound && cursorPos.Y < upperBound);
             }
 
-            public sealed override void BeforeDraw()
-            {
+            public override void BeforeDrawStart()
+            {               
+                base.BeforeDrawStart();
+
                 if (parent != null)
                 {
                     if (parentScale != parent.Scale)
@@ -210,14 +212,6 @@ namespace RichHudFramework
                     GetDimAlignment();
                     offsetAlignment = GetParentAlignment();
                 }
-
-                Draw();
-
-                for (int n = 0; n < children.Count; n++)
-                {
-                    if (children[n].Visible)
-                        children[n].BeforeDraw();
-                }                
             }
 
             private void GetDimAlignment()

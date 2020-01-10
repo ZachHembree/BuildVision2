@@ -69,6 +69,11 @@ namespace RichHudFramework
                 }
             }
 
+            public override void Close()
+            {
+                instance = null;
+            }
+
             internal static ControlMembers GetNewMenuControl(MenuControls controlEnum) =>
                 Instance.GetNewControlFunc((int)controlEnum);
 

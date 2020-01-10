@@ -8,7 +8,8 @@ namespace RichHudFramework
     using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        Action, // Draw
+        Action, // BeforeDrawStart
+        Action, // DrawStart
         Action, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
@@ -20,15 +21,13 @@ namespace RichHudFramework
         /// </summary>
         public class HudParentData : IHudParent
         {
-            protected static HudParentData Default = new HudParentData();
-
             public bool Visible { get { return VisFunc(); } set { } }
             public object ID { get; }
 
             private readonly List<object> localChildren;
 
             private readonly Func<bool> VisFunc;
-            private readonly Action DrawAction;
+            private readonly Action BeforeDrawAction, DrawAction;
             private readonly Action InputAction;
             protected readonly ApiMemberAccessor GetOrSetMemberFunc;
 
@@ -38,14 +37,10 @@ namespace RichHudFramework
 
                 VisFunc = members.Item1;
                 ID = members.Item2;
-                DrawAction = members.Item3;
-                InputAction = members.Item4;
-                GetOrSetMemberFunc = members.Item5;
-            }
-
-            private HudParentData()
-            {
-                ID = null;
+                BeforeDrawAction = members.Item3;
+                DrawAction = members.Item4;
+                InputAction = members.Item5;
+                GetOrSetMemberFunc = members.Item6;
             }
 
             public void RegisterChild(IHudNode child)
@@ -54,10 +49,13 @@ namespace RichHudFramework
                 GetOrSetMemberFunc(child.GetApiData(), (int)HudParentAccessors.Add);
             }
 
-            public void BeforeDraw() =>
+            public void BeforeDrawStart() =>
+                BeforeDrawAction();
+
+            public void DrawStart() =>
                 DrawAction();
 
-            public void BeforeInput() =>
+            public void HandleInputStart() =>
                 InputAction();
 
             public void RegisterChildren(IEnumerable<IHudNode> newChildren)
@@ -77,7 +75,7 @@ namespace RichHudFramework
 
             public void ClearLocalChildren()
             {
-                for (int n = localChildren.Count - 1; n >= 0; n--)
+                for (int n = 0; n < localChildren.Count; n++)
                     GetOrSetMemberFunc(localChildren[n], (int)HudParentAccessors.RemoveChild);
 
                 localChildren.Clear();
@@ -89,9 +87,10 @@ namespace RichHudFramework
                 {
                     Item1 = VisFunc,
                     Item2 = ID,
-                    Item3 = DrawAction,
-                    Item4 = InputAction,
-                    Item5 = GetOrSetMemberFunc
+                    Item3 = BeforeDrawAction,
+                    Item4 = DrawAction,
+                    Item5 = InputAction,
+                    Item6 = GetOrSetMemberFunc
                 };
             }
         }

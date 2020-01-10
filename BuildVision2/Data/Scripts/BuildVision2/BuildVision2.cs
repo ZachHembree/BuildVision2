@@ -66,11 +66,11 @@ namespace DarkHelmet.BuildVision2
         {
             if (LoadFinished)
             {
-                LoadStarted = false;
-                LoadFinished = false;
-
                 BvConfig.Save();
                 TryCloseMenu();
+
+                LoadStarted = false;
+                LoadFinished = false;
             }
         }
 

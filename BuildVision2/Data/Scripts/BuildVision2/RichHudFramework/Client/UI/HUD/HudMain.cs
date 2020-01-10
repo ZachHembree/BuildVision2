@@ -27,7 +27,8 @@ namespace RichHudFramework
     using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        Action, // Draw
+        Action, // BeforeDrawStart
+        Action, // DrawStart
         Action, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
@@ -45,7 +46,7 @@ namespace RichHudFramework
         Func<Vector2>, // Size
         Func<Vector2>, // TextSize
         Vec2Prop, // FixedSize
-        Action<Vector2> // Draw 
+        MyTuple<Action, Action<Vector2>> // Draw 
     >;
 
     namespace UI.Client
@@ -130,7 +131,9 @@ namespace RichHudFramework
 
             public override void Close()
             {
-                root.ClearLocalChildren();
+                if (!ModBase.NormalExit)
+                    root.ClearLocalChildren();
+
                 Instance = null;
             }
 

@@ -157,7 +157,7 @@ namespace DarkHelmet.BuildVision2
                         body.List[n].UpdateText(false, false);
                 }
 
-                //footer.LeftText = $"[{body.VisStart + 1} - {body.VisStart + body.VisCount} of {body.EnabledCount}]";
+                footer.LeftText = $"[{body.VisStart + 1} - {body.VisStart + body.VisCount} of {body.EnabledCount}]";
 
                 if (target.IsWorking)
                     footer.RightText = new RichText("[Working]", footerTextRight);
@@ -169,7 +169,7 @@ namespace DarkHelmet.BuildVision2
             else
                 footer.RightText = new RichText("[Target is null]", blockIncText);
 
-            footer.LeftText = $"[{body.Start}/{index}/{body.End}; {body.scrollBar.Min}/{body.scrollBar.Max}]";
+            //footer.LeftText = $"[{body.Start}/{index}/{body.End}; {body.scrollBar.Min}/{body.scrollBar.Max}]";
         }
 
         protected override void Draw()

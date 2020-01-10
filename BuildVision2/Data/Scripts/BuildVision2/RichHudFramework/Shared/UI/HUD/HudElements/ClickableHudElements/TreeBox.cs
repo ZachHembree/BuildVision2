@@ -193,7 +193,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public void Remove(ListBoxEntry<T> member)
         {
-            chain.Remove(member);
+            chain.RemoveChild(member);
         }
 
         /// <summary>

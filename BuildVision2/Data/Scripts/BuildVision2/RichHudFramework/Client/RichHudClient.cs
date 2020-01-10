@@ -30,7 +30,7 @@ namespace RichHudFramework.Client
 
         public RichHudClient() : base(false, true)
         {
-            regMessage = new ClientData(ModName, MessageHandler, Close);
+            regMessage = new ClientData(ModName, MessageHandler, () => RunSafeAction(Reload));
         }
 
         protected sealed override void AfterInit()
@@ -85,7 +85,7 @@ namespace RichHudFramework.Client
                     GetApiDataFunc = data.Item2;
 
                     registered = true;
-                    HudInit();
+                    RunSafeAction(HudInit);
                 }
                 else if (msgType == MsgTypes.RegistrationFailed)
                 {
@@ -114,6 +114,14 @@ namespace RichHudFramework.Client
             }
         }
 
+        protected sealed override void BeforeClose()
+        {
+            ExitQueue();
+            HudClose();
+            Unregister();
+            Instance = null;
+        }
+
         /// <summary>
         /// Unregisters client from API
         /// </summary>
@@ -124,14 +132,6 @@ namespace RichHudFramework.Client
                 registered = false;
                 UnregisterAction();
             }
-        }
-
-        protected sealed override void BeforeClose()
-        {
-            HudClose();
-            ExitQueue();
-            Unregister();
-            Instance = null;
         }
 
         /// <summary>

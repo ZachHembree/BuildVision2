@@ -3,7 +3,7 @@ using System;
 
 namespace RichHudFramework.UI
 {
-    public class ScrollBox<T> : HudElementBase, IListBoxEntry where T : IListBoxEntry
+    public class ScrollBox<T> : HudElementBase,IListBoxEntry where T : class, IListBoxEntry
     {
         public HudChain<T> Members { get; }
         public ReadOnlyCollection<T> List => Members.List;
@@ -188,7 +188,7 @@ namespace RichHudFramework.UI
             Members.FindIndex(x => predicate(x));
 
         public void RemoveFromList(T member) =>
-            Members.Remove(member);
+            Members.RemoveChild(member);
 
         public void RemoveFromList(Func<T, bool> predicate) =>
             Members.Remove(predicate);
