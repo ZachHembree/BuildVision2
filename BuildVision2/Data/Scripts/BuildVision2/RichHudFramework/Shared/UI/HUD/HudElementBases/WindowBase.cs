@@ -100,7 +100,7 @@ namespace RichHudFramework.UI
             resizeRight.OnLeftClick += ResizeClicked;
         }
 
-        protected override void Draw()
+        protected override void BeforeDraw()
         {
             if (canMoveWindow)
                 Offset = HudMain.Cursor.Origin + cursorOffset - Origin;

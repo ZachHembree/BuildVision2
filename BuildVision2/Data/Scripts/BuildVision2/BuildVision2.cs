@@ -51,9 +51,6 @@ namespace DarkHelmet.BuildVision2
                 bvCommands = CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
                 InitSettingsMenu();
 
-                if (MenuUtilities.CanAddElements)
-                    MenuUtilities.AddMenuElements(GetSettingsMenuElements());
-
                 BvBinds.Open.OnNewPress += TryOpenMenu;
                 BvBinds.Hide.OnNewPress += TryCloseMenu;
                 SharedBinds.Escape.OnNewPress += TryCloseMenu;

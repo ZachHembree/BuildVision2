@@ -46,7 +46,7 @@ namespace RichHudFramework
         Func<Vector2>, // Size
         Func<Vector2>, // TextSize
         Vec2Prop, // FixedSize
-        MyTuple<Action, Action<Vector2>> // Draw 
+        Action<Vector2> // Draw 
     >;
 
     namespace UI.Client
