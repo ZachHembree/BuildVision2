@@ -18,7 +18,7 @@ namespace RichHudFramework.Client
     /// </summary>
     public abstract class RichHudClient : ModBase
     {
-        private const long modID = 0112358132134, queueID = 1314086443;
+        private const long modID = 1965654081, queueID = 1314086443;
         private static new RichHudClient Instance;
         public static bool Registered => Instance.registered;
 
