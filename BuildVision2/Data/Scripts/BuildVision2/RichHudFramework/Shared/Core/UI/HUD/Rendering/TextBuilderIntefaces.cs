@@ -68,7 +68,7 @@ namespace RichHudFramework
                 Format = 6,
             }
 
-            public interface ITextBuilder : IReadOnlyCollection<ILine>
+            public interface ITextBuilder : IIndexedCollection<ILine>
             {
                 IRichChar this[Vector2I index] { get; }
 

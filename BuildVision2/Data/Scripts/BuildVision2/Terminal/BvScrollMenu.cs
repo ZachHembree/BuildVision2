@@ -33,6 +33,7 @@ namespace DarkHelmet.BuildVision2
         public int Count { get; private set; }
         public bool PropOpen { get; private set; }
         private BvPropertyBox Selection => (index < body.List.Count) ? body.List[index] : null;
+        private bool updateSelection;
 
         public readonly LabelBox header;
         public readonly DoubleLabelBox footer;
@@ -152,12 +153,15 @@ namespace DarkHelmet.BuildVision2
                 for (int n = 0; n < Count; n++)
                 {
                     if (n == index)
-                        body.List[n].UpdateText(true, PropOpen);
+                    {
+                        if ((!PropOpen || updateSelection) && !body.List[n].value.InputOpen)
+                            body.List[n].UpdateText(true, PropOpen);
+                    }
                     else
                         body.List[n].UpdateText(false, false);
                 }
 
-                footer.LeftText = $"[{body.VisStart + 1} - {body.VisStart + body.VisCount} of {body.EnabledCount}]";
+                //footer.LeftText = $"[{body.VisStart + 1} - {body.VisStart + body.VisCount} of {body.EnabledCount}]";
 
                 if (target.IsWorking)
                     footer.RightText = new RichText("[Working]", footerTextRight);
@@ -169,7 +173,7 @@ namespace DarkHelmet.BuildVision2
             else
                 footer.RightText = new RichText("[Target is null]", blockIncText);
 
-            //footer.LeftText = $"[{body.Start}/{index}/{body.End}; {body.scrollBar.Min}/{body.scrollBar.Max}]";
+            footer.LeftText = $"[{body.Start}/{index}/{body.End}; {body.scrollBar.Min}/{body.scrollBar.Max}]";
         }
 
         protected override void Draw()
@@ -321,7 +325,17 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (MyAPIGateway.Gui.ChatEntryVisible)
                         OpenTextInput();
+                    else if (!(Selection.BlockMember is IBlockScrollable))
+                    {
+                        Selection.value.TextBoard.Format = selectedText;
+                        Selection.value.Text = "Open chat to continue";
+                        updateSelection = false;
+                    }
+                    else
+                        updateSelection = true;
                 }
+                else
+                    updateSelection = true;
             }
             else
             {
@@ -331,8 +345,10 @@ namespace DarkHelmet.BuildVision2
 
         private void OpenTextInput()
         {
+            updateSelection = false;
             Selection.value.OpenInput();
-            Selection.value.TextBoard.SetFormatting(selectedText);
+            Selection.value.TextBoard.Format = selectedText;
+            Selection.value.Text = Selection.BlockMember.Value;
         }
 
         /// <summary>
@@ -344,10 +360,8 @@ namespace DarkHelmet.BuildVision2
             {
                 var textMember = Selection.BlockMember as IBlockTextMember;
 
-                if (textMember != null)
-                {
+                if (textMember != null && Selection.value.InputOpen)
                     textMember.SetValueText(Selection.value.Text.ToString());
-                }
 
                 Selection.value.CloseInput();
             }
@@ -522,8 +536,7 @@ namespace DarkHelmet.BuildVision2
                 else
                     value.Format = bodyText;
 
-                if (!value.InputOpen)
-                    value.Text = BlockMember.Value;
+                value.Text = BlockMember.Value;
 
                 if (BlockMember.Postfix != null && BlockMember.Postfix.Length > 0)
                     postfix.Text = $" {BlockMember.Postfix}";

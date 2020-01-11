@@ -70,12 +70,6 @@ namespace RichHudFramework
                     ClearAction = data.Item6;
                 }
 
-                public IEnumerator<ILine> GetEnumerator() =>
-                    new CollectionDataEnumerator<ILine>(x => new LineData(this, x), GetCountFunc);
-
-                IEnumerator IEnumerable.GetEnumerator() =>
-                    GetEnumerator();
-
                 public void SetText(string text)
                 {
                     ClearAction();

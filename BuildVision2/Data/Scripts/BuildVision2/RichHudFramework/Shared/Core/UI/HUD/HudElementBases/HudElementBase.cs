@@ -201,7 +201,7 @@ namespace RichHudFramework
             }
 
             public override void BeforeDrawStart()
-            {               
+            {
                 base.BeforeDrawStart();
 
                 if (parent != null)

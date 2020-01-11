@@ -231,11 +231,16 @@ namespace DarkHelmet.BuildVision2
                 Name = "Float Divider",
                 Value = PropertyBlock.Cfg.floatDiv.ToString(),
                 CharFilterFunc = NumFilterFunc,
-                CustomValueGetter = PropertyBlock.Cfg.floatDiv.ToString,
+                CustomValueGetter = () => PropertyBlock.Cfg.floatDiv.ToString(),
                 CustomValueSetter = x =>
                 {
-                    double.TryParse(x, out PropertyBlock.Cfg.floatDiv);
-                    PropertyBlock.Cfg.Validate();
+                    double value;
+
+                    if (double.TryParse(x, out value))
+                    {
+                        PropertyBlock.Cfg.floatDiv = value;
+                        PropertyBlock.Cfg.Validate();
+                    }
                 }
             };
 
@@ -257,7 +262,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Float Mult X",
                 Value = PropertyBlock.Cfg.floatMult.X.ToString(),
                 CharFilterFunc = NumFilterFunc,
-                CustomValueGetter = PropertyBlock.Cfg.floatMult.X.ToString,
+                CustomValueGetter = () => PropertyBlock.Cfg.floatMult.X.ToString(),
                 CustomValueSetter = x =>
                 {
                     float.TryParse(x, out PropertyBlock.Cfg.floatMult.X);
@@ -271,7 +276,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Float Mult Y",
                 Value = PropertyBlock.Cfg.floatMult.Y.ToString(),
                 CharFilterFunc = NumFilterFunc,
-                CustomValueGetter = PropertyBlock.Cfg.floatMult.Y.ToString,
+                CustomValueGetter = () => PropertyBlock.Cfg.floatMult.Y.ToString(),
                 CustomValueSetter = x =>
                 {
                     float.TryParse(x, out PropertyBlock.Cfg.floatMult.Y);
@@ -285,7 +290,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Float Mult Z",
                 Value = PropertyBlock.Cfg.floatMult.Z.ToString(),
                 CharFilterFunc = NumFilterFunc,
-                CustomValueGetter = PropertyBlock.Cfg.floatMult.Z.ToString,
+                CustomValueGetter = () => PropertyBlock.Cfg.floatMult.Z.ToString(),
                 CustomValueSetter = x =>
                 {
                     float.TryParse(x, out PropertyBlock.Cfg.floatMult.Z);
@@ -306,7 +311,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Color Mult X",
                 Value = PropertyBlock.Cfg.colorMult.X.ToString(),
                 CharFilterFunc = NumFilterFunc,
-                CustomValueGetter = PropertyBlock.Cfg.colorMult.X.ToString,
+                CustomValueGetter = () => PropertyBlock.Cfg.colorMult.X.ToString(),
                 CustomValueSetter = x =>
                 {
                     int.TryParse(x, out PropertyBlock.Cfg.colorMult.X);
@@ -320,7 +325,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Color Mult Y",
                 Value = PropertyBlock.Cfg.colorMult.Y.ToString(),
                 CharFilterFunc = NumFilterFunc,
-                CustomValueGetter = PropertyBlock.Cfg.colorMult.Y.ToString,
+                CustomValueGetter = () => PropertyBlock.Cfg.colorMult.Y.ToString(),
                 CustomValueSetter = x =>
                 {
                     int.TryParse(x, out PropertyBlock.Cfg.colorMult.Y);
@@ -334,7 +339,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Color Mult X",
                 Value = PropertyBlock.Cfg.colorMult.X.ToString(),
                 CharFilterFunc = NumFilterFunc,
-                CustomValueGetter = PropertyBlock.Cfg.colorMult.Z.ToString,
+                CustomValueGetter = () => PropertyBlock.Cfg.colorMult.Z.ToString(),
                 CustomValueSetter = x =>
                 {
                     int.TryParse(x, out PropertyBlock.Cfg.colorMult.Z);

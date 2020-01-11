@@ -116,39 +116,45 @@ namespace RichHudFramework
 
             public class MatBoard
             {
-                public Color Color { get { return color; } set { color = value; bbColor = GetBillboardColor(value); } }
+                public Color Color
+                {
+                    get { return color; }
+                    set { color = value; minBoard.bbColor = GetBillboardColor(value); }
+                }
+
                 public Vector2 Size
                 {
-                    get { return new Vector2(width, height); }
+                    get { return minBoard.size; }
                     set
                     {
-                        if (value != Size)
+                        if (value != minBoard.size)
                             updateMatFit = true;
 
-                        width = value.X; height = value.Y;
+                        minBoard.size = value;
                     }
                 }
 
                 public float Width
                 {
-                    get { return width; }
+                    get { return minBoard.size.X; }
                     set
                     {
-                        if (value != width)
+                        if (value != minBoard.size.X)
                             updateMatFit = true;
 
-                        width = value;
+                        minBoard.size.X = value;
                     }
                 }
+
                 public float Height
                 {
-                    get { return height; }
+                    get { return minBoard.size.Y; }
                     set
                     {
-                        if (value != height)
+                        if (value != minBoard.size.Y)
                             updateMatFit = true;
 
-                        height = value;
+                        minBoard.size.Y = value;
                     }
                 }
 
@@ -163,6 +169,7 @@ namespace RichHudFramework
                         matOffset = value;
                     }
                 }
+
                 public float MatScale
                 {
                     get { return matScale; }
@@ -174,6 +181,7 @@ namespace RichHudFramework
                         matScale = value;
                     }
                 }
+
                 public Material Material
                 {
                     get { return material; }
@@ -183,8 +191,10 @@ namespace RichHudFramework
                             updateMatFit = true;
 
                         material = value;
+                        minBoard.textureID = material.TextureID;
                     }
                 }
+
                 public MaterialAlignment MatAlignment
                 {
                     get { return matAlignment; }
@@ -200,66 +210,34 @@ namespace RichHudFramework
                 public Vector2 offset;
 
                 private Color color;
-                private Vector4 bbColor;
-                private float width, height, matScale;
+                private float matScale;
                 private Vector2 matOffset;
                 private Material material;
                 private MaterialAlignment matAlignment;
-                private FlatQuad matFit;
                 private bool updateMatFit;
+
+                private QuadBoard minBoard;
 
                 public MatBoard()
                 {
+                    minBoard = new QuadBoard();
+
                     Material = Material.Default;
                     MatAlignment = MaterialAlignment.StretchToFit;
                     Color = Color.White;
-                    updateMatFit = true;
                     MatScale = 1f;
-                }
-
-                public void Draw(Vector3D origin, MatrixD matrix)
-                {
-                    if (updateMatFit)
-                    {
-                        matFit = GetMaterialAlignment();
-                        updateMatFit = false;
-                    }
-
-                    Vector3D worldPos = Vector3D.Transform(origin + new Vector3D(offset.X, offset.Y, 0d), matrix);
-
-                    MyQuadD quad;
-                    Vector3 normal = MyAPIGateway.Session.Camera.ViewMatrix.Forward;
-                    MyUtils.GenerateQuad(out quad, ref worldPos, Size.X, Size.Y, ref matrix);
-
-                    RenderUtils.AddBillboard(worldPos, quad, normal, Material.TextureID, matFit, bbColor);
+                    updateMatFit = true;
                 }
 
                 public void Draw(Vector2 origin)
                 {
-                    MatrixD cameraMatrix;
-                    Vector3D worldPos;
-                    Vector2 screenPos, boardSize;
-
                     if (updateMatFit)
                     {
-                        matFit = GetMaterialAlignment();
+                        minBoard.matFit = GetMaterialAlignment();
                         updateMatFit = false;
                     }
-                    
-                    boardSize = HudMain.GetRelativeVector(Size) * HudMain.FovScale / 2f;
-                    boardSize.X *= HudMain.AspectRatio;
 
-                    screenPos = HudMain.GetRelativeVector(origin + offset) * HudMain.FovScale;
-                    screenPos.X *= HudMain.AspectRatio;
-
-                    cameraMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
-                    worldPos = Vector3D.Transform(new Vector3D(screenPos.X, screenPos.Y, -0.1), cameraMatrix);
-
-                    MyQuadD quad;
-                    Vector3 normal = MyAPIGateway.Session.Camera.ViewMatrix.Forward;
-                    MyUtils.GenerateQuad(out quad, ref worldPos, boardSize.X, boardSize.Y, ref cameraMatrix);
-
-                    RenderUtils.AddBillboard(worldPos, quad, normal, Material.TextureID, matFit, bbColor);
+                    minBoard.Draw(origin + offset);
                 }
 
                 private FlatQuad GetMaterialAlignment()
@@ -319,12 +297,39 @@ namespace RichHudFramework
                     color.B = (byte)(color.B * opacity);
 
                     return ((Vector4)color).ToLinearRGB();
-                }
+                }                
             }
 
-            public static class RenderUtils
+            internal struct QuadBoard
             {
-                public static void AddBillboard(Vector3D pos, MyQuadD quad, Vector3 normal, MyStringId matID, FlatQuad matFit, Vector4 color)
+                public Vector2 size;
+                public MyStringId textureID;
+                public FlatQuad matFit;
+                public Vector4 bbColor;
+
+                public void Draw(Vector2 origin)
+                {
+                    MatrixD cameraMatrix;
+                    Vector3D worldPos;
+                    Vector2 screenPos, boardSize;
+
+                    boardSize = HudMain.GetRelativeVector(size) * HudMain.FovScale / 2f;
+                    boardSize.X *= HudMain.AspectRatio;
+
+                    screenPos = HudMain.GetRelativeVector(origin) * HudMain.FovScale;
+                    screenPos.X *= HudMain.AspectRatio;
+
+                    cameraMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
+                    worldPos = Vector3D.Transform(new Vector3D(screenPos.X, screenPos.Y, -0.1), cameraMatrix);
+
+                    MyQuadD quad;
+                    Vector3 normal = MyAPIGateway.Session.Camera.ViewMatrix.Forward;
+                    MyUtils.GenerateQuad(out quad, ref worldPos, boardSize.X, boardSize.Y, ref cameraMatrix);
+
+                    AddBillboard(worldPos, quad, normal, textureID, matFit, bbColor);
+                }
+
+                private static void AddBillboard(Vector3D pos, MyQuadD quad, Vector3 normal, MyStringId matID, FlatQuad matFit, Vector4 color)
                 {
                     MyTransparentGeometry.AddTriangleBillboard
                     (
