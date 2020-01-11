@@ -122,7 +122,7 @@ namespace DarkHelmet.BuildVision2
             IMyCubeBlock block;
             IMyTerminalBlock termBlock;
 
-            if ((Cfg.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(Cfg.general.maxOpenRange, out block, 2))
+            if ((Cfg.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(Cfg.general.maxOpenRange, out block))
             {
                 termBlock = block as IMyTerminalBlock;
 

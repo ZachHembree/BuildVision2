@@ -46,40 +46,42 @@ namespace RichHudFramework.Game
         /// <summary>
         /// Tries to retrieve targeted <see cref="IMyCubeBlock"/> on a grid within a given distance.
         /// </summary>
-        public static bool TryGetTargetedBlock(double maxDist, out IMyCubeBlock fatBlock, int rayLimit = 1)
+        public static bool TryGetTargetedBlock(double maxDist, out IMyCubeBlock fatBlock)
         {
             IMyCubeGrid grid;
-            Vector3D hitPos, headPos = HeadTransform.Translation, forward = HeadTransform.Forward;
-            LineD line = new LineD(HeadTransform.Translation, headPos + forward * maxDist);
+            IHitInfo rayInfo;
+            Vector3D headPos = HeadTransform.Translation, forward = HeadTransform.Forward;
+            LineD lineA = new LineD(headPos, headPos + forward * maxDist);
 
             double dist;
-            int count = 0;
             fatBlock = null;
 
-            while (TryGetTargetedGrid(line, out grid, out hitPos) && count < rayLimit)
+            if (TryGetTargetedGrid(lineA, out grid, out rayInfo))
             {
-                IMySlimBlock slimBlock;
-                grid.GetLineIntersectionExactAll(ref line, out dist, out slimBlock);
+                IMySlimBlock blockA, blockB;
+                LineD lineB = new LineD(rayInfo.Position - (rayInfo.Normal * .3f), rayInfo.Position);
 
-                if (slimBlock?.FatBlock != null)
+                grid.GetLineIntersectionExactAll(ref lineA, out dist, out blockA);
+                grid.GetLineIntersectionExactAll(ref lineB, out dist, out blockB);
+
+                IMyCubeBlock fatA = blockA?.FatBlock, fatB = blockB?.FatBlock;
+
+                if (fatA != null && fatB != null)
                 {
-                    if (fatBlock == null)
-                        fatBlock = slimBlock.FatBlock;
+                    BoundingBoxD boundA, boundB;
 
-                    BoundingBoxD bb;
-                    slimBlock.GetWorldBoundingBox(out bb);
+                    blockA.GetWorldBoundingBox(out boundA);
+                    blockB.GetWorldBoundingBox(out boundB);
 
-                    if (bb.Distance(hitPos) <= 0d)
-                    {
-                        if (slimBlock?.FatBlock != null)
-                            fatBlock = slimBlock.FatBlock;
-
-                        break;
-                    }
+                    if (boundB.Distance(rayInfo.Position) < boundA.Distance(rayInfo.Position))
+                        fatBlock = fatB;
+                    else
+                        fatBlock = fatA;
                 }
-
-                line.From = hitPos;
-                count++;
+                else if (fatA != null)
+                    fatBlock = fatA;
+                else
+                    fatBlock = fatB;
             }
 
             return fatBlock != null;
@@ -88,11 +90,31 @@ namespace RichHudFramework.Game
         /// <summary>
         /// Tries to find a targeted grid within a given distance.
         /// </summary>
-        public static bool TryGetTargetedGrid(LineD line, out IMyCubeGrid grid, out Vector3D hitPos)
+        public static bool TryGetTargetedGrid(LineD line, out IMyCubeGrid grid)
         {
             IHitInfo rayInfo;
+
+            if (PlyEnt != null)
+            {
+                MyAPIGateway.Physics.CastRay(line.From, line.To, out rayInfo);
+                grid = rayInfo?.HitEntity as IMyCubeGrid;
+            }
+            else
+            {
+                rayInfo = null;
+                grid = null;
+            }
+
+            return grid != null;
+        }
+
+        /// <summary>
+        /// Tries to find a targeted grid within a given distance.
+        /// </summary>
+        public static bool TryGetTargetedGrid(LineD line, out IMyCubeGrid grid, out IHitInfo rayInfo)
+        {
             grid = null;
-            hitPos = new Vector3D();
+            rayInfo = null;
 
             if (PlyEnt != null)
             {
@@ -101,7 +123,6 @@ namespace RichHudFramework.Game
                 if (rayInfo != null)
                 {
                     grid = rayInfo.HitEntity as IMyCubeGrid;
-                    hitPos = rayInfo.Position;
                 }
             }
 
