@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using VRage;
+using VRage.Input;
 using BindDefinitionData = VRage.MyTuple<string, string[]>;
 using BindMembers = VRage.MyTuple<
     System.Func<object, int, object>, // GetOrSetMember
@@ -26,7 +27,7 @@ namespace RichHudFramework
     {
         using RichHudFramework.Client;
         using BindClientMembers = MyTuple<
-            MyTuple<Func<int, ControlMembers>, Func<int>>, // Control List
+            MyTuple<Func<int, ControlMembers?>, Func<int>>, // Control List
             Action, // HandleInput
             ApiMemberAccessor, // GetOrSetMember
             Action // Unload
@@ -50,15 +51,16 @@ namespace RichHudFramework
             private readonly List<IBindGroup> bindGroups;
             private readonly ApiMemberAccessor GetOrSetMemberFunc;
             private readonly Action HandleInputAction, UnloadAction;
+            private readonly int seKeyMax;
 
             private BindManager() : base(ApiModuleTypes.BindManager, false, true)
             {
                 var clientData = GetApiData();
 
-                Func<int, ControlMembers> conData = clientData.Item1.Item1;
+                Func<int, ControlMembers?> conData = clientData.Item1.Item1;
                 Func<int> ConCount = clientData.Item1.Item2;
 
-                Func<int, IControl> ControlGetter = x => new Control(conData(x));
+                Func<int, IControl> ControlGetter = (x => (conData(x) != null) ? new Control(conData(x).Value) : null);
                 controls = new ReadOnlyCollectionData<IControl>(ControlGetter, ConCount);
 
                 HandleInputAction = clientData.Item2;
@@ -72,6 +74,8 @@ namespace RichHudFramework
 
                 foreach (BindGroupMembers group in groups)
                     AddGroupData(group);
+
+                seKeyMax = (int)GetOrSetMemberFunc(null, (int)BindClientAccessors.SeKeyMax);
             }
 
             private static void Init()
@@ -93,6 +97,10 @@ namespace RichHudFramework
                 instance = null;
             }
 
+            /// <summary>
+            /// Returns the bind group with the given name and/or creates one with the name given
+            /// if one doesn't exist.
+            /// </summary>
             public static IBindGroup GetOrCreateGroup(string name)
             {
                 IBindGroup group = Instance.bindGroups.Find(x => (x.Name.ToLower() == name.ToLower()));
@@ -106,6 +114,9 @@ namespace RichHudFramework
                 return group;
             }
 
+            /// <summary>
+            /// Adds a new group wrapper
+            /// </summary>
             private IBindGroup AddGroupData(BindGroupMembers groupData)
             {
                 IBindGroup group = new BindGroup(groupData);
@@ -114,18 +125,39 @@ namespace RichHudFramework
                 return group;
             }
 
+            /// <summary>
+            /// Returns the control associated with the given name.
+            /// </summary>
             public static IControl GetControl(string name)
             {
                 var controlData = (ControlMembers)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetControlByName);
                 return new Control(controlData);
             }
 
+            /// <summary>
+            /// Returns the control associated with the given <see cref="MyKeys"/> enum.
+            /// </summary>
+            public static IControl GetControl(MyKeys seKey) =>
+                Controls[(int)seKey];
+
+            /// <summary>
+            /// Returns the control associated with the given custom <see cref="RichHudControls"/> enum.
+            /// </summary>
+            public static IControl GetControl(RichHudControls rhdKey) =>
+                Controls[Instance.seKeyMax + (int)rhdKey];
+
+            /// <summary>
+            /// Returns the bind group with the name igven.
+            /// </summary>
             public static IBindGroup GetBindGroup(string name)
             {
                 name = name.ToLower();
                 return Instance.bindGroups.Find(x => (x.Name == name));
             }
 
+            /// <summary>
+            /// Generates a list of controls from a list of control names.
+            /// </summary>
             public static IControl[] GetCombo(IList<string> names)
             {
                 IControl[] combo = new IControl[names.Count];
@@ -136,6 +168,9 @@ namespace RichHudFramework
                 return combo;
             }
 
+            /// <summary>
+            /// Generates a combo array using the corresponding control indices.
+            /// </summary>
             public static IControl[] GetCombo(IList<int> indices)
             {
                 IControl[] controls = new IControl[indices.Count];
@@ -146,9 +181,15 @@ namespace RichHudFramework
                 return controls;
             }
 
+            /// <summary>
+            /// Generates a list of control indices using a list of control names.
+            /// </summary>
             public static int[] GetComboIndices(IList<string> controlNames) =>
                 Instance.GetOrSetMemberFunc(controlNames, (int)BindClientAccessors.GetComboIndices) as int[];
 
+            /// <summary>
+            /// Generates a list of control indices from a list of controls.
+            /// </summary>
             public static int[] GetComboIndices(IList<IControl> controls)
             {
                 int[] indices = new int[controls.Count];

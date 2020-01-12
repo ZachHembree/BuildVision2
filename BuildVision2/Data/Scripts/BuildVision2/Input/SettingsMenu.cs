@@ -190,6 +190,7 @@ namespace DarkHelmet.BuildVision2
             var setPosition = new DragBox()
             {
                 Name = "Set custom position",
+                AlignToEdge = true,
                 Value = PropertiesMenu.Cfg.hudPos,
                 CustomValueGetter = () => PropertiesMenu.Cfg.hudPos,
                 CustomValueSetter = x => PropertiesMenu.Cfg.hudPos = x,

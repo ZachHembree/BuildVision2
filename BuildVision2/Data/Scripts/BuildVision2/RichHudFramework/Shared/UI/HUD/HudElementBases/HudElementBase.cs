@@ -89,6 +89,11 @@ namespace RichHudFramework
             public virtual Vector2 Offset { get { return offset * Scale; } set { offset = value / Scale; } }
 
             /// <summary>
+            /// Absolute position of the hud element. Origin + Offset.
+            /// </summary>
+            public Vector2 Position => Origin + Offset;
+
+            /// <summary>
             /// Determines the starting position of the hud element relative to its parent.
             /// </summary>
             public ParentAlignments ParentAlignment { get; set; }

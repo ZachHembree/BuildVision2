@@ -17,6 +17,17 @@ namespace DarkHelmet.BuildVision2
         public override float Width { get { return layout.Width; } set { layout.Width = value; } }
         public override float Height { get { return layout.Height; } set { layout.Height = value; } }
 
+        public override Vector2 Offset
+        {
+            get
+            {
+                if (AlignToEdge)
+                    return base.Offset + alignment;
+                else
+                    return base.Offset;
+            }
+        }
+
         public float BgOpacity
         {
             get { return bgOpacity; }
@@ -32,6 +43,7 @@ namespace DarkHelmet.BuildVision2
         public int MaxVisible { get { return body.MinimumVisCount; } set { body.MinimumVisCount = value; } }
         public int Count { get; private set; }
         public bool PropOpen { get; private set; }
+        public bool AlignToEdge { get; set; }
         private BvPropertyBox Selection => (index < body.List.Count) ? body.List[index] : null;
         private bool updateSelection;
 
@@ -46,6 +58,7 @@ namespace DarkHelmet.BuildVision2
         private int index;
         private float bgOpacity;
         private PropertyBlock target;
+        private Vector2 alignment;
 
         private static readonly Color headerColor, bodyColor, selectionBoxColor;
         private static readonly GlyphFormat headerText, bodyText,
@@ -174,6 +187,21 @@ namespace DarkHelmet.BuildVision2
                 footer.RightText = new RichText("[Target is null]", blockIncText);
 
             //footer.LeftText = $"[{body.Start}/{index}/{body.End}; {body.scrollBar.Min}/{body.scrollBar.Max}]";
+        }
+
+        protected override void BeforeDraw()
+        {
+            if (base.Offset.X < 0)
+                alignment.X = Width / 2f;
+            else
+                alignment.X = -Width / 2f;
+
+            if (base.Offset.Y < 0)
+                alignment.Y = Height / 2f;
+            else
+                alignment.Y = -Height / 2f;
+
+            base.BeforeDraw();
         }
 
         protected override void Draw()

@@ -92,10 +92,12 @@ namespace DarkHelmet.BuildVision2
 
                     screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
                     screenBounds -= HudMain.GetRelativeVector(scrollMenu.Size / 2f);
+                    scrollMenu.AlignToEdge = false;
                 }
                 else
                 {
                     screenPos = Cfg.hudPos;
+                    scrollMenu.AlignToEdge = true;
                 }
 
                 if (Cfg.clampHudPos)
@@ -106,6 +108,23 @@ namespace DarkHelmet.BuildVision2
 
                 scrollMenu.Offset = HudMain.GetPixelVector(Utils.Math.Round(screenPos, 3));
             }
+        }
+
+        private Vector2 GetPosAlignment()
+        {
+            Vector2 alignment = new Vector2();
+
+            if (scrollMenu.Position.X < 0)
+                alignment.X = scrollMenu.Width / 2f;
+            else
+                alignment.X = -scrollMenu.Width / 2f;
+
+            if (scrollMenu.Position.Y < 0)
+                alignment.Y = scrollMenu.Height / 2f;
+            else
+                alignment.Y = -scrollMenu.Height / 2f;
+
+            return alignment;
         }
 
         /// <summary>

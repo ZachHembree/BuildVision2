@@ -13,6 +13,7 @@ namespace RichHudFramework.UI.Client
     internal enum DragBoxAccessors : int
     {
         BoxSize = 16,
+        AlignToEdge = 17,
     }
 
     public class DragBox : TerminalValue<Vector2, DragBox>
@@ -21,6 +22,12 @@ namespace RichHudFramework.UI.Client
         {
             get { return (Vector2)GetOrSetMember(null, (int)DragBoxAccessors.BoxSize); }
             set { GetOrSetMember(value, (int)DragBoxAccessors.BoxSize); }
+        }
+
+        public bool AlignToEdge
+        {
+            get { return (bool)GetOrSetMember(null, (int)DragBoxAccessors.AlignToEdge); }
+            set { GetOrSetMember(value, (int)DragBoxAccessors.AlignToEdge); }
         }
 
         public DragBox() : base(MenuControls.DragBox)

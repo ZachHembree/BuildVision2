@@ -71,12 +71,17 @@ namespace DarkHelmet.BuildVision2
         {
             StringBuilder text = new StringBuilder(BindManager.Controls.Count * 10);
 
-            foreach (IControl control in BindManager.Controls)
+            for (int n = 0; n < BindManager.Controls.Count; n++)
             {
-                if (control.DisplayName != control.Name)
-                    text.AppendLine($"{control.DisplayName} ({control.Name})");
-                else
-                    text.AppendLine(control.Name);
+                var control = BindManager.Controls[n];
+
+                if (control != null)
+                {
+                    if (control.DisplayName != control.Name)
+                        text.AppendLine($"{control.DisplayName} ({control.Name})");
+                    else
+                        text.AppendLine(control.Name);
+                }
             }
             return text.ToString();
         }

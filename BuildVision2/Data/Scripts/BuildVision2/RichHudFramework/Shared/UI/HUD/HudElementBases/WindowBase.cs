@@ -59,10 +59,10 @@ namespace RichHudFramework.UI
         public readonly BorderBox border;
 
         private readonly ClickableElement resizeLeft, resizeTop, resizeRight, resizeBottom;
-        private const float cornerSize = 8f;
-        private bool canMoveWindow, canResize;
-        private int resizeDir;
-        private Vector2 cursorOffset, minimumSize;
+        protected float cornerSize = 8f;
+        protected bool canMoveWindow, canResize;
+        protected int resizeDir;
+        protected Vector2 cursorOffset, minimumSize;
 
         public WindowBase(IHudParent parent = null) : base(parent)
         {
@@ -135,7 +135,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        private void Resize()
+        protected void Resize()
         {
             Vector2 center = Origin + Offset, 
                 cursorPos = HudMain.Cursor.Origin, newOffset = Offset;
@@ -176,7 +176,7 @@ namespace RichHudFramework.UI
             Offset = newOffset;
         }
 
-        private void HeaderClicked()
+        protected virtual void HeaderClicked()
         {
             if (CanDrag)
             {
@@ -185,12 +185,12 @@ namespace RichHudFramework.UI
             }
         }
 
-        private void HeaderReleased()
+        protected virtual void HeaderReleased()
         {
             canMoveWindow = false;
         }
 
-        private void ResizeClicked()
+        protected virtual void ResizeClicked()
         {
             if (AllowResizing)
             {
@@ -206,7 +206,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        private void ResizeStopped()
+        protected virtual void ResizeStopped()
         {
             canResize = false;
         }

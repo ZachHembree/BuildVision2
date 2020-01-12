@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using VRage;
-using BindDefinitionData = VRage.MyTuple<string, string[]>;
 using BindMembers = VRage.MyTuple<
     System.Func<object, int, object>, // GetOrSetMember
     System.Func<bool>, // IsPressed
@@ -13,102 +12,9 @@ using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
-    using ControlMembers = MyTuple<string, string, int, Func<bool>, bool, ApiMemberAccessor>;
-    using BindGroupMembers = MyTuple<
-        string, // Name                
-        BindMembers[], // Binds
-        Action, // HandleInput
-        ApiMemberAccessor // GetOrSetMember
-    >;
-
     namespace UI
     {
-        internal enum BindClientAccessors : int
-        {
-            /// <summary>
-            /// In: IList{string}, Out: int[]
-            /// </summary>
-            GetComboIndices = 1,
-
-            /// <summary>
-            /// In: string, Out: Controlmembers
-            /// </summary>
-            GetControlByName = 2,
-
-            /// <summary>
-            /// In: string, Out: BindGroupMembers
-            /// </summary>
-            GetOrCreateGroup = 3,
-
-            /// <summary>
-            /// Out: BindGroupMembers[]
-            /// </summary>
-            GetGroupData = 4,
-
-            /// <summary>
-            /// void
-            /// </summary>
-            Unload = 5,
-        }
-
-        internal enum BindGroupAccessors : int
-        {
-            /// <summary>
-            /// In: MyTuple{IList{int}, int}, Out: bool
-            /// </summary>
-            DoesComboConflict = 1,
-
-            /// <summary>
-            /// In: MyTuple{string, int[], bool}, Out: BindMembers?
-            /// </summary>
-            TryRegisterBind = 2,
-
-            /// <summary>
-            /// In: IList{BindDefinitionData}, Out: BindMembers[]
-            /// </summary>
-            TryLoadBindData = 3,
-
-            /// <summary>
-            /// In: MyTuple{string, string[], bool}, Out: BindMembers?
-            /// </summary>
-            TryRegisterBind2 = 4,
-
-            /// <summary>
-            /// Out: BindDefinitionData[]
-            /// </summary>
-            GetBindData = 5,
-
-            /// <summary>
-            /// Void
-            /// </summary>
-            ClearSubscribers = 6,
-
-            /// <summary>
-            /// object
-            /// </summary>
-            ID = 7
-        }
-
-        public interface IBindGroup : IIndexedCollection<IBind>
-        {
-            string Name { get; }
-            object ID { get; }
-
-            void HandleInput();
-            bool DoesBindExist(string name);
-            bool DoesComboConflict(IList<IControl> newCombo, IBind exception = null);
-            bool TryLoadBindData(IList<BindDefinition> bindData);
-            void RegisterBinds(IList<string> bindNames);
-            void RegisterBinds(IList<BindDefinition> bindData);
-            IBind GetBind(string name);
-            bool TryRegisterBind(string bindName, out IBind bind, string[] combo = null, bool silent = false);
-            bool TryRegisterBind(string bindName, IControl[] combo, out IBind newBind, bool silent = false);
-            BindDefinition[] GetBindDefinitions();
-            void ClearSubscribers();
-            BindGroupMembers GetApiData();
-        }
-
-        public enum BindAccesssors : int
+        internal enum BindAccesssors : int
         {
             /// <summary>
             /// out: <see cref="string"/>
@@ -164,6 +70,7 @@ namespace RichHudFramework
         public interface IBind
         {
             string Name { get; }
+
             int Index { get; }
 
             /// <summary>
@@ -221,20 +128,8 @@ namespace RichHudFramework
             /// Clears all event subscibers for this bind.
             /// </summary>
             void ClearSubscribers();
-            BindMembers GetApiData();
-        }
 
-        /// <summary>
-        /// Interface for anything used as a control
-        /// </summary> 
-        public interface IControl
-        {
-            string Name { get; }
-            string DisplayName { get; }
-            int Index { get; }
-            bool IsPressed { get; }
-            bool Analog { get; }
-            ControlMembers GetApiData();
+            BindMembers GetApiData();
         }
     }
 }
