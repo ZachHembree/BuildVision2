@@ -181,7 +181,7 @@ namespace DarkHelmet.BuildVision2
             if (hudScale == default(float))
                 hudScale = Defaults.hudScale;
 
-            if (hudOpacity == default(float))
+            if (hudOpacity < 0f)
                 hudOpacity = Defaults.hudOpacity;
         }
     }

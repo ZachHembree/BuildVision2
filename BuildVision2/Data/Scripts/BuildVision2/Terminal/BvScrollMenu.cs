@@ -320,17 +320,14 @@ namespace DarkHelmet.BuildVision2
         {
             if (Selection.BlockMember is IBlockTextMember)
             {
-                if (!PropOpen)
+                if (!PropOpen && MyAPIGateway.Gui.ChatEntryVisible)
                 {
-                    if (!MyAPIGateway.Gui.ChatEntryVisible)
-                    {
-                        PropOpen = true;
-                        OpenTextInput();
-                    }
+                    PropOpen = true;
+                    OpenTextInput();
                 }
                 else
                 {
-                    if (!MyAPIGateway.Gui.ChatEntryVisible)
+                    if (MyAPIGateway.Gui.ChatEntryVisible)
                         OpenTextInput();
                     else
                         CloseProp();

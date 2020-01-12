@@ -56,6 +56,7 @@ namespace RichHudFramework.UI
         public void CloseInput()
         {
             InputOpen = false;
+            selectionBox.ClearSelection();
         }
 
         /// <summary>
