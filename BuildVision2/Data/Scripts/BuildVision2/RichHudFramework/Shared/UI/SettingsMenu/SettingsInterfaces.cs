@@ -369,7 +369,7 @@ namespace RichHudFramework
             event Action OnSelectionChanged;
 
             /// <summary>
-            /// Name of the mod as it appears in the <see cref="ModMenu"/> mod list
+            /// Name of the mod as it appears in the <see cref="RichHudTerminal"/> mod list
             /// </summary>
             RichText Name { get; set; }
 

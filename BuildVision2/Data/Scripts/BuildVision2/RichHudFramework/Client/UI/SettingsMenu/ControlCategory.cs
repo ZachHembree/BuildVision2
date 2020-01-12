@@ -52,7 +52,7 @@ namespace RichHudFramework
             private ApiMemberAccessor GetOrSetMemberFunc => data.Item1;
             private readonly ControlContainerMembers data;
 
-            public ControlCategory() : this(ModMenu.GetNewMenuCategory())
+            public ControlCategory() : this(RichHudTerminal.GetNewMenuCategory())
             { }
 
             internal ControlCategory(ControlContainerMembers data)

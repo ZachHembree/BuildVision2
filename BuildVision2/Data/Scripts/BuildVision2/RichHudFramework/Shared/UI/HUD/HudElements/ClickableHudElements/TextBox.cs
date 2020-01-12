@@ -532,7 +532,7 @@ namespace RichHudFramework.UI
 
                 box.size = new Vector2()
                 {
-                    X = Math.Min(rightBound - leftBound, text.Size.X),                    
+                    X = Math.Min(rightBound - leftBound, text.Size.X),
                     Y = text[Start.X].Size.Y
                 };
 

@@ -44,7 +44,7 @@ namespace RichHudFramework
 
             internal TerminalPageBase(ModPages pageEnum)
             {
-                data = ModMenu.GetNewMenuPage(pageEnum);
+                data = RichHudTerminal.GetNewMenuPage(pageEnum);
             }
 
             internal TerminalPageBase(ControlMembers data)

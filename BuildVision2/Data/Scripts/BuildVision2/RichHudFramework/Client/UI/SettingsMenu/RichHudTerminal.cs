@@ -32,16 +32,16 @@ namespace RichHudFramework
             Func<int, ControlMembers> // GetNewModPage
         >;
 
-        public sealed class ModMenu : RichHudClient.ApiModule<SettingsMenuMembers>
+        public sealed class RichHudTerminal : RichHudClient.ApiModule<SettingsMenuMembers>
         {
             public static IModControlRoot Root => Instance.menuRoot;
 
-            private static ModMenu Instance
+            private static RichHudTerminal Instance
             {
                 get { Init(); return instance; }
                 set { instance = value; }
             }
-            private static ModMenu instance;
+            private static RichHudTerminal instance;
 
             private readonly ModControlRoot menuRoot;
             private readonly ApiMemberAccessor GetOrSetMembersFunc;
@@ -49,7 +49,7 @@ namespace RichHudFramework
             private readonly Func<int, ControlContainerMembers> GetNewContainerFunc;
             private readonly Func<int, ControlMembers> GetNewPageFunc;
 
-            private ModMenu() : base(ApiModuleTypes.SettingsMenu, false, true)
+            private RichHudTerminal() : base(ApiModuleTypes.SettingsMenu, false, true)
             {
                 var data = GetApiData();
 
@@ -65,7 +65,7 @@ namespace RichHudFramework
             {
                 if (instance == null)
                 {
-                    instance = new ModMenu();
+                    instance = new RichHudTerminal();
                 }
             }
 

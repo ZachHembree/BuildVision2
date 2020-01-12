@@ -50,7 +50,7 @@ namespace RichHudFramework.UI.Client
 
         protected readonly ApiMemberAccessor GetOrSetMemberFunc;
 
-        internal TerminalControlBase(MenuControls controlEnum) : this(ModMenu.GetNewMenuControl(controlEnum))
+        internal TerminalControlBase(MenuControls controlEnum) : this(RichHudTerminal.GetNewMenuControl(controlEnum))
         { }
 
         internal TerminalControlBase(ControlMembers data)
@@ -79,7 +79,7 @@ namespace RichHudFramework.UI.Client
         /// </summary>
         public Action<T> ControlChangedAction { get; set; }
 
-        internal TerminalControlBase(MenuControls controlEnum) : this(ModMenu.GetNewMenuControl(controlEnum))
+        internal TerminalControlBase(MenuControls controlEnum) : this(RichHudTerminal.GetNewMenuControl(controlEnum))
         { }
 
         internal TerminalControlBase(ControlMembers data) : base(data)

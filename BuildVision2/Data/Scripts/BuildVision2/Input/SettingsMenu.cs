@@ -14,9 +14,9 @@ namespace DarkHelmet.BuildVision2
     {
         private void InitSettingsMenu()
         {
-            ModMenu.Root.Enabled = true;
+            RichHudTerminal.Root.Enabled = true;
 
-            ModMenu.Root.Add(new ControlPage()
+            RichHudTerminal.Root.Add(new ControlPage()
             { 
                 Name = "Settings",
                 CategoryContainer =
@@ -28,7 +28,7 @@ namespace DarkHelmet.BuildVision2
                 },
             });
 
-            ModMenu.Root.Add(new RebindPage()
+            RichHudTerminal.Root.Add(new RebindPage()
             {
                 Name = "Binds",
                 GroupContainer =

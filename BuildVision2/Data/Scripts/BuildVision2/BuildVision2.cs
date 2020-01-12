@@ -4,6 +4,7 @@ using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -119,20 +120,17 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private bool TryGetTarget()
         {
-            IMyCubeBlock block;
-            IMyTerminalBlock termBlock;
+            IMyTerminalBlock block;
 
-            if ((Cfg.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && LocalPlayer.TryGetTargetedBlock(Cfg.general.maxOpenRange, out block))
+            if ((Cfg.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && TryGetTargetedBlock(Cfg.general.maxOpenRange, out block))
             {
-                termBlock = block as IMyTerminalBlock;
-
-                if (termBlock != null)
+                if (block != null)
                 {
-                    if (termBlock.HasLocalPlayerAccess())
+                    if (block.HasLocalPlayerAccess())
                     {
-                        if (target == null || termBlock != target.TBlock)
+                        if (target == null || block != target.TBlock)
                         {
-                            target = new PropertyBlock(termBlock);
+                            target = new PropertyBlock(block);
                         }
                         return true;
                     }
@@ -142,6 +140,51 @@ namespace DarkHelmet.BuildVision2
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Tries to retrieve targeted <see cref="IMyTerminalBlock"/> on a grid within a given distance.
+        /// </summary>
+        private static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock tBlock)
+        {
+            IMyCubeGrid grid;
+            IHitInfo rayInfo;
+            Vector3D headPos = LocalPlayer.HeadTransform.Translation, forward = LocalPlayer.HeadTransform.Forward;
+            LineD lineA = new LineD(headPos, headPos + forward * maxDist);
+
+            double dist;
+            tBlock = null;
+
+            if (LocalPlayer.TryGetTargetedGrid(lineA, out grid, out rayInfo))
+            {
+                IMySlimBlock blockA, blockB;
+                LineD lineB = new LineD(rayInfo.Position - (rayInfo.Normal * .3f), rayInfo.Position);
+
+                grid.GetLineIntersectionExactAll(ref lineA, out dist, out blockA);
+                grid.GetLineIntersectionExactAll(ref lineB, out dist, out blockB);
+
+                var fatA = blockA?.FatBlock as IMyTerminalBlock;
+                var fatB = blockB?.FatBlock as IMyTerminalBlock;
+
+                if (fatA != null && fatB != null)
+                {
+                    BoundingBoxD boundA, boundB;
+
+                    blockA.GetWorldBoundingBox(out boundA);
+                    blockB.GetWorldBoundingBox(out boundB);
+
+                    if (boundB.Distance(rayInfo.Position) < boundA.Distance(rayInfo.Position))
+                        tBlock = fatB;
+                    else
+                        tBlock = fatA;
+                }
+                else if (fatA != null)
+                    tBlock = fatA;
+                else
+                    tBlock = fatB;
+            }
+
+            return tBlock != null;
         }
 
         /// <summary>

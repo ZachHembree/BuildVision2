@@ -49,39 +49,15 @@ namespace RichHudFramework.Game
         public static bool TryGetTargetedBlock(double maxDist, out IMyCubeBlock fatBlock)
         {
             IMyCubeGrid grid;
-            IHitInfo rayInfo;
-            Vector3D headPos = HeadTransform.Translation, forward = HeadTransform.Forward;
-            LineD lineA = new LineD(headPos, headPos + forward * maxDist);
-
+            IMySlimBlock slimBlock;
+            LineD line = new LineD(HeadTransform.Translation, HeadTransform.Translation + HeadTransform.Forward * maxDist);
             double dist;
             fatBlock = null;
 
-            if (TryGetTargetedGrid(lineA, out grid, out rayInfo))
+            if (TryGetTargetedGrid(line, out grid))
             {
-                IMySlimBlock blockA, blockB;
-                LineD lineB = new LineD(rayInfo.Position - (rayInfo.Normal * .3f), rayInfo.Position);
-
-                grid.GetLineIntersectionExactAll(ref lineA, out dist, out blockA);
-                grid.GetLineIntersectionExactAll(ref lineB, out dist, out blockB);
-
-                IMyCubeBlock fatA = blockA?.FatBlock, fatB = blockB?.FatBlock;
-
-                if (fatA != null && fatB != null)
-                {
-                    BoundingBoxD boundA, boundB;
-
-                    blockA.GetWorldBoundingBox(out boundA);
-                    blockB.GetWorldBoundingBox(out boundB);
-
-                    if (boundB.Distance(rayInfo.Position) < boundA.Distance(rayInfo.Position))
-                        fatBlock = fatB;
-                    else
-                        fatBlock = fatA;
-                }
-                else if (fatA != null)
-                    fatBlock = fatA;
-                else
-                    fatBlock = fatB;
+                grid.GetLineIntersectionExactAll(ref line, out dist, out slimBlock);
+                fatBlock = slimBlock?.FatBlock;
             }
 
             return fatBlock != null;

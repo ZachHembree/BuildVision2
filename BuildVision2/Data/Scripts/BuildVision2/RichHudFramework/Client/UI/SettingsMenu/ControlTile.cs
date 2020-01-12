@@ -38,7 +38,7 @@ namespace RichHudFramework.UI.Client
         private ApiMemberAccessor GetOrSetMemberFunc => tileMembers.Item1;
         private readonly ControlContainerMembers tileMembers;
 
-        public ControlTile() : this(ModMenu.GetNewMenuTile())
+        public ControlTile() : this(RichHudTerminal.GetNewMenuTile())
         { }
 
         internal ControlTile(ControlContainerMembers data)
