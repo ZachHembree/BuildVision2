@@ -146,6 +146,11 @@ namespace RichHudFramework.UI
             }
         }
 
+        public void ClearSelection()
+        {
+            Selection = null;
+        }
+
         /// <summary>
         /// Adds a new member to the list box with the given name and associated
         /// object.

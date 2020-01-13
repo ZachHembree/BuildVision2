@@ -83,7 +83,8 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\BindManager\Control.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\BindManager\RebindMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\HUD\HudMain.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\HUD\Rendering\FontManager.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\HUD\Rendering\FontManager\FontData.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\HUD\Rendering\FontManager\FontManager.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\HUD\Rendering\TextBoard.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\HUD\Rendering\TextBuilder.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\ControlCategory.cs" />

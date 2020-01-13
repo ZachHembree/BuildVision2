@@ -1,4 +1,5 @@
 ﻿using System;
+using VRageMath;
 
 namespace RichHudFramework.UI.Rendering
 {
@@ -16,7 +17,14 @@ namespace RichHudFramework.UI.Rendering
     /// </summary>
     public interface IFontMin
     {
+        /// <summary>
+        /// Font name
+        /// </summary>
         string Name { get; }
+
+        /// <summary>
+        /// Index of the font in the font manager
+        /// </summary>
         int Index { get; }
 
         /// <summary>
@@ -25,9 +33,29 @@ namespace RichHudFramework.UI.Rendering
         float PtSize { get; }
 
         /// <summary>
-        /// Default scaling applied to font.
+        /// Default scaling applied to font. Used to normalize font size.
         /// </summary>
         float BaseScale { get; }
+
+        /// <summary>
+        /// Returns the index for this font using regular styling
+        /// </summary>
+        Vector2I Regular { get; }
+
+        /// <summary>
+        /// Returns the index for the bolded version of this font
+        /// </summary>
+        Vector2I Bold { get; }
+
+        /// <summary>
+        /// Returns the index for the italicised version of this font
+        /// </summary>
+        Vector2I Italic { get; }
+
+        /// <summary>
+        /// Returns the index for the bold italic version of this font
+        /// </summary>
+        Vector2I BoldItalic { get; }
 
         /// <summary>
         /// Returns true if the font is defined for the given style.
@@ -38,5 +66,15 @@ namespace RichHudFramework.UI.Rendering
         /// Returns true if the font is defined for the given style.
         /// </summary>
         bool IsStyleDefined(int style);
+
+        /// <summary>
+        /// Retrieves the full index of the font style
+        /// </summary>
+        Vector2I GetStyleIndex(int style);
+
+        /// <summary>
+        /// Retrieves the full index of the font style
+        /// </summary>
+        Vector2I GetStyleIndex(FontStyleEnum style);
     }
 }

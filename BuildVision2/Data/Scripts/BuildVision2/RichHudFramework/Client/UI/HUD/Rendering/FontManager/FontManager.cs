@@ -44,10 +44,21 @@ namespace RichHudFramework
                 ApiMemberAccessor
             >;
 
-            public sealed class FontManager : RichHudClient.ApiModule<FontManagerMembers>
+            /// <summary>
+            /// Manages fonts used by the Rich Hud Framework
+            /// </summary>
+            public sealed partial class FontManager : RichHudClient.ApiModule<FontManagerMembers>
             {
+                /// <summary>
+                /// Retrieves default font for Space Engineers with regular styling.
+                /// </summary>
                 public static Vector2 Default => Vector2.Zero;
+
+                /// <summary>
+                /// Read-only collection of all registered fonts.
+                /// </summary>
                 public static IReadOnlyCollection<IFontMin> Fonts => Instance.fonts;
+
                 private static FontManager Instance
                 {
                     get { Init(); return instance; }
@@ -81,9 +92,15 @@ namespace RichHudFramework
                     instance = null;
                 }
 
+                /// <summary>
+                /// Attempts to register a new font using API data.
+                /// </summary>
                 public static bool TryAddFont(FontDefinition fontData) =>
                     Instance.TryAddFontFunc(fontData) != null;
 
+                /// <summary>
+                /// Attempts to register a new font using API data. Returns the font created.
+                /// </summary>
                 public static bool TryAddFont(FontDefinition fontData, out IFontMin font)
                 {
                     FontMembers? members = Instance.TryAddFontFunc(fontData);
@@ -100,6 +117,9 @@ namespace RichHudFramework
                     }
                 }
 
+                /// <summary>
+                /// Retrieves the font with the given name.
+                /// </summary>
                 public static IFontMin GetFont(string name)
                 {
                     FontMembers? members = Instance.GetFontFunc(name);
@@ -111,35 +131,13 @@ namespace RichHudFramework
                     return font;
                 }
 
+                /// <summary>
+                /// Retrieves the font style index of the font with the given name and style.
+                /// </summary>
                 public static Vector2I GetStyleIndex(string name, FontStyleEnum style = FontStyleEnum.Regular)
                 {
                     IFontMin font = GetFont(name);
                     return new Vector2I(font.Index, (int)style);
-                }
-
-                private class FontData : IFontMin
-                {
-                    public string Name { get; }
-                    public int Index { get; }
-                    public float PtSize { get; }
-                    public float BaseScale { get; }
-
-                    private readonly Func<int, bool> IsFontDefinedFunc;
-
-                    public FontData(FontMembers members)
-                    {
-                        Name = members.Item1;
-                        Index = members.Item2;
-                        PtSize = members.Item3;
-                        BaseScale = members.Item4;
-                        IsFontDefinedFunc = members.Item5;
-                    }
-
-                    public bool IsStyleDefined(FontStyleEnum styleEnum) =>
-                        IsFontDefinedFunc((int)styleEnum);
-
-                    public bool IsStyleDefined(int style) =>
-                        IsFontDefinedFunc(style);
                 }
             }
         }

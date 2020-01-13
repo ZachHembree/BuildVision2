@@ -214,7 +214,17 @@ namespace RichHudFramework.UI
                 ShareCursor = true;
         }
 
+        protected override void BeforeDraw()
+        {
+            Update();
+        }
+
         protected override void Draw()
+        {
+            Update();
+        }
+
+        private void Update()
         {
             scrollBar.Max = GetMaxStart(List.Count - 1);
             scrollBar.Min = GetFirstEnabled();

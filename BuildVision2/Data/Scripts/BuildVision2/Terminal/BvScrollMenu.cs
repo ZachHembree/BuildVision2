@@ -15,7 +15,7 @@ namespace DarkHelmet.BuildVision2
     internal class BvScrollMenu : HudElementBase
     {
         public override float Width { get { return layout.Width; } set { layout.Width = value; } }
-        public override float Height { get { return layout.Height; } set { layout.Height = value; } }
+        public override float Height { get { return header.Height + body.Height + footer.Height; } set { layout.Height = value; } }
 
         public override Vector2 Offset
         {
@@ -189,8 +189,10 @@ namespace DarkHelmet.BuildVision2
             //footer.LeftText = $"[{body.Start}/{index}/{body.End}; {body.scrollBar.Min}/{body.scrollBar.Max}]";
         }
 
-        protected override void BeforeDraw()
+        protected override void Draw()
         {
+            layout.Width = body.Width;
+
             if (base.Offset.X < 0)
                 alignment.X = Width / 2f;
             else
@@ -200,13 +202,6 @@ namespace DarkHelmet.BuildVision2
                 alignment.Y = Height / 2f;
             else
                 alignment.Y = -Height / 2f;
-
-            base.BeforeDraw();
-        }
-
-        protected override void Draw()
-        {
-            layout.Width = body.Width;
 
             if (Selection != null)
             {

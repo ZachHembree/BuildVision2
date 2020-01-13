@@ -12,7 +12,8 @@ namespace RichHudFramework.UI
     /// </summary>
     public abstract class WindowBase : HudElementBase
     {
-        public ITextBuilder Title { get { return header.TextBoard; } }
+        public RichText HeaderText { get { return Header.GetText(); } set { Header.SetText(value); } }
+        public ITextBuilder Header => header.TextBoard;
 
         /// <summary>
         /// Determines the color of both the header and the border.
@@ -40,7 +41,7 @@ namespace RichHudFramework.UI
                     newPos = value + Origin;
 
                 newPos.X = Utils.Math.Clamp(newPos.X, -bounds.X, bounds.X);
-                newPos.Y = Utils.Math.Clamp(newPos.Y, -bounds.Y, bounds.Y - Size.Y / 2);
+                newPos.Y = Utils.Math.Clamp(newPos.Y, -bounds.Y, bounds.Y);
 
                 base.Offset = newPos - Origin;
             }

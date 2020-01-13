@@ -76,6 +76,10 @@ namespace RichHudFramework.UI
 
             if (acceptInput)
             {
+                if (!selectionBox.Visible && !SharedBinds.LeftButton.IsPressed)
+                    selectionBox.Visible = true;
+
+                caret.Visible = true;
                 textInput.HandleInput();
 
                 if (SharedBinds.Copy.IsNewPressed && !selectionBox.Empty)
@@ -104,22 +108,11 @@ namespace RichHudFramework.UI
                     }
                 }
             }
-        }
-
-        protected override void Draw()
-        {
-            if (acceptInput)
-            {
-                caret.Visible = true;
-                selectionBox.Visible = true;
-            }
             else if (caret.Visible || selectionBox.Visible)
             {
                 caret.Visible = false;
                 selectionBox.Visible = false;
             }
-
-            base.Draw();
         }
 
         /// <summary>
@@ -129,7 +122,7 @@ namespace RichHudFramework.UI
         {
             DeleteSelection();
             TextBoard.Insert(ch.ToString(), caret.Index + new Vector2I(0, caret.Prepend ? 0 : 1));
-            caret.Move(new Vector2I(0, 1));
+            caret.Move(new Vector2I(0, 1), true);
         }
 
         /// <summary>
@@ -213,14 +206,14 @@ namespace RichHudFramework.UI
 
                     Prepend = prependNext;
                 }
-                else
+                else if (dir.X == 0)
                     Prepend = false;
 
                 int newOffset = Math.Max(caretOffset + dir.Y, 0);
                 Vector2I newIndex = GetIndexFromOffset(newOffset) + new Vector2I(dir.X, 0);
                 newIndex = ClampIndex(newIndex);
 
-                if (dir.X == 0 && dir.Y != 0 && newIndex.X != Index.X)
+                if (dir.X == 0 && dir.Y != 0 && newIndex.X != Index.X && !ignorePrepend)
                 {
                     if (newIndex.X < Index.X)
                         Prepend = false;
@@ -313,7 +306,7 @@ namespace RichHudFramework.UI
             {
                 if (HudMain.Cursor.Origin != lastCursorPos)
                 {
-                    Vector2 offset = HudMain.Cursor.Origin - textElement.Origin;
+                    Vector2 offset = HudMain.Cursor.Origin - textElement.Position;
                     Index = ClampIndex(text.GetCharAtOffset(offset));
                     caretOffset = GetOffsetFromIndex(Index);
 
