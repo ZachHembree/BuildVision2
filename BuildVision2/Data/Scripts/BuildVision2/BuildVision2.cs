@@ -28,7 +28,10 @@ namespace DarkHelmet.BuildVision2
             ModName = "Build Vision";
             LogFileName = "bvLog.txt";
             BvConfig.FileName = "BuildVision2Config.xml";
-            TaskPool.MaxTasksRunning = 2;
+
+            promptForReload = true;
+            exceptionLimit = 0;
+            recoveryLimit = 4;
         }
 
         public BvMain()
@@ -55,8 +58,6 @@ namespace DarkHelmet.BuildVision2
                 BvBinds.Open.OnNewPress += TryOpenMenu;
                 BvBinds.Hide.OnNewPress += TryCloseMenu;
                 SharedBinds.Escape.OnNewPress += TryCloseMenu;
-
-                SendChatMessage($"Type {bvCommands.prefix} help for help. Settings are available through the mod menu.");
             }
         }
 
