@@ -92,7 +92,7 @@ namespace DarkHelmet.BuildVision2
 
             return new ControlCategory()
             {
-                HeaderText = "General Settings",
+                HeaderText = "Targeting",
                 SubheaderText = "",
                 TileContainer =
                 {
@@ -357,7 +357,7 @@ namespace DarkHelmet.BuildVision2
 
             return new ControlCategory()
             {
-                HeaderText = "Property Settings",
+                HeaderText = "Properties",
                 SubheaderText = "Controls the rate at which scrolling changes property values.",
                 TileContainer = { tile1, tile2, tile3 }
             };

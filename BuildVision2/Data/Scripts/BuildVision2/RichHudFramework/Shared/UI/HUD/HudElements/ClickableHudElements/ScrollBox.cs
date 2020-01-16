@@ -3,7 +3,7 @@ using System;
 
 namespace RichHudFramework.UI
 {
-    public class ScrollBox<T> : HudElementBase,IListBoxEntry where T : class, IListBoxEntry
+    public class ScrollBox<T> : HudElementBase, IListBoxEntry where T : class, IListBoxEntry
     {
         public HudChain<T> Members { get; }
         public ReadOnlyCollection<T> List => Members.List;
@@ -172,6 +172,7 @@ namespace RichHudFramework.UI
 
             CaptureCursor = true;
             ShareCursor = true;
+            CedeCursor = true;
 
             AlignVertical = true;
             Enabled = true;
@@ -199,32 +200,22 @@ namespace RichHudFramework.UI
             {
                 if (SharedBinds.MousewheelUp.IsPressed)
                 {
-                    ShareCursor = false;
+                    CedeCursor = false;
                     scrollBar.Current = Start - 1;
                 }
                 else if (SharedBinds.MousewheelDown.IsPressed)
                 {
-                    ShareCursor = false;
+                    CedeCursor = false;
                     scrollBar.Current = Start + 1;
                 }
                 else
-                    ShareCursor = true;
+                    CedeCursor = true;
             }
             else
-                ShareCursor = true;
+                CedeCursor = true;
         }
 
         protected override void BeforeDraw()
-        {
-            Update();
-        }
-
-        protected override void Draw()
-        {
-            Update();
-        }
-
-        private void Update()
         {
             scrollBar.Max = GetMaxStart(List.Count - 1);
             scrollBar.Min = GetFirstEnabled();

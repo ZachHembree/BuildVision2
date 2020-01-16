@@ -405,7 +405,7 @@ namespace RichHudFramework.UI
             /// <summary>
             /// If true, then the current selection is empty.
             /// </summary>
-            public bool Empty => top == null || Start == End;
+            public bool Empty => top == null || (Start == -Vector2I.One || End == -Vector2I.One);
 
             private readonly TextCaret caret;
             private readonly ITextBoard text;
@@ -518,7 +518,7 @@ namespace RichHudFramework.UI
                 float leftBound = left.Offset.X,
                     rightBound = right.Offset.X + right.Size.X / 2f;
 
-                if (prepend)
+                if (prepend && left.Offset != right.Offset)
                     leftBound += left.Size.X / 2f;
                 else
                     leftBound -= left.Size.X / 2f;

@@ -111,6 +111,11 @@ namespace RichHudFramework
             public bool ShareCursor { get; set; }
 
             /// <summary>
+            /// If true, the hud element will cede cursor input to its children.
+            /// </summary>
+            public bool CedeCursor { get; set; }
+
+            /// <summary>
             /// Indicates whether or not the cursor is currently over the element. The element must
             /// be set to capture the cursor for this to work.
             /// </summary>
@@ -142,6 +147,9 @@ namespace RichHudFramework
             {
                 if (Visible)
                 {
+                    if (CedeCursor)
+                        HandleChildInput();
+
                     if (CaptureCursor && HudMain.Cursor.Visible && !HudMain.Cursor.IsCaptured)
                     {
                         isMousedOver = IsMouseInBounds();
@@ -152,10 +160,13 @@ namespace RichHudFramework
                     else
                         isMousedOver = false;
 
-                    if (ShareCursor)
-                        ShareInput();
-                    else
-                        HandleChildInput();
+                    if (!CedeCursor)
+                    {
+                        if (ShareCursor)
+                            ShareInput();
+                        else
+                            HandleChildInput();
+                    }
 
                     HandleInput();
                 }

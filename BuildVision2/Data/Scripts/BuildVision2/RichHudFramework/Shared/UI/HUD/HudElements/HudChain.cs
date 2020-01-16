@@ -83,16 +83,6 @@ namespace RichHudFramework.UI
 
         protected override void BeforeDraw()
         {
-            Update();
-        }
-
-        protected override void Draw()
-        {
-            Update();
-        }
-
-        private void Update()
-        {
             if (elements != null && elements.Count > 0)
             {
                 Vector2 offset = Vector2.Zero, size = GetSize();
@@ -156,7 +146,7 @@ namespace RichHudFramework.UI
                 if (elements[n].Visible)
                 {
                     if (AlignVertical)
-                    {                     
+                    {
                         elements[n].Offset = new Vector2(0f, -(elements[n].Height / 2f)) + offset;
 
                         if (elements[n].ParentAlignment.HasFlag(ParentAlignments.Left))

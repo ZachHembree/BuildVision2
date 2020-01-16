@@ -56,7 +56,7 @@ namespace RichHudFramework.UI
 
         public int Count { get; private set; }
 
-        public float IndentSize { get; set; }
+        public float IndentSize { get { return indent * Scale; } set { indent = value / Scale; } }
 
         /// <summary>
         /// Indicates whether or not the element will appear in the list
@@ -68,12 +68,14 @@ namespace RichHudFramework.UI
         private readonly TreeBoxDisplay display;
         private readonly HighlightBox highlight, selectionBox;
         private readonly HudChain<ListBoxEntry<T>> chain;
+        private float indent;
 
         public TreeBox(IHudParent parent = null) : base(parent)
         {
             display = new TreeBoxDisplay(this)
             {
-                Padding = new Vector2(10f, 0f),
+                Padding = new Vector2(6f, 0f),
+                Offset = new Vector2(3f, 0f),
                 ParentAlignment = ParentAlignments.Top | ParentAlignments.InnerV,
             };
 
@@ -82,7 +84,7 @@ namespace RichHudFramework.UI
                 Visible = false,
                 AutoResize = true,
                 AlignVertical = true,
-                ParentAlignment = ParentAlignments.Bottom | ParentAlignments.Right | ParentAlignments.InnerH,
+                ParentAlignment = ParentAlignments.Bottom | ParentAlignments.Right | ParentAlignments.InnerH | ParentAlignments.UsePadding,
             };
 
             selectionBox = new HighlightBox(chain)
@@ -275,16 +277,6 @@ namespace RichHudFramework.UI
                 set { base.Width = value - arrow.Width; }
             }
 
-            public override float Height
-            {
-                set
-                {
-                    base.Height = value;
-                    arrow.Height = value;
-                    verticalBar.Height = value;
-                }
-            }
-
             public bool Open
             {
                 get { return open; }
@@ -316,8 +308,8 @@ namespace RichHudFramework.UI
                 arrow = new TexturedBox(this)
                 {
                     Width = 20f,
-                    Offset = new Vector2(1f, 0f),
-                    ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH,
+                    ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH | ParentAlignments.UsePadding,
+                    DimAlignment = DimAlignments.Height,
                     MatAlignment = MaterialAlignment.FitHorizontal,
                     Color = new Color(227, 230, 233),
                     Material = rightArrow,
@@ -325,10 +317,12 @@ namespace RichHudFramework.UI
 
                 verticalBar = new TexturedBox(arrow)
                 {
+                    ParentAlignment = ParentAlignments.Right | ParentAlignments.UsePadding,
+                    DimAlignment = DimAlignments.Height,
+                    Offset = new Vector2(-2f, 0f),
                     Padding = new Vector2(0f, 6f),
                     Size = new Vector2(2f, 39f),
                     Color = new Color(104, 113, 120),
-                    ParentAlignment = ParentAlignments.Right
                 };
             }
         }

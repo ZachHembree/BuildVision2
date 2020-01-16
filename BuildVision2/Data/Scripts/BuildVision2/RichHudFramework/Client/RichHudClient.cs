@@ -10,8 +10,8 @@ using VRageMath;
 
 namespace RichHudFramework.Client
 {
-    using ClientData = MyTuple<string, Action<int, object>, Action>;
-    using ServerData = MyTuple<Action, Func<int, object>>;
+    using ClientData = MyTuple<string, Action<int, object>, Action, int>;
+    using ServerData = MyTuple<Action, Func<int, object>, int>;
 
     /// <summary>
     /// Base class for mods making use of the Rich HUD Framework
@@ -19,8 +19,10 @@ namespace RichHudFramework.Client
     public abstract class RichHudClient : ModBase
     {
         private const long modID = 1965654081, queueID = 1314086443;
-        private static new RichHudClient Instance;
+        private const int versionID = 1;
+
         public static bool Registered => Instance.registered;
+        private static new RichHudClient Instance;
 
         private ClientData regMessage;
         private bool regFail, registered, inQueue;
@@ -30,7 +32,7 @@ namespace RichHudFramework.Client
 
         public RichHudClient() : base(false, true)
         {
-            regMessage = new ClientData(ModName, MessageHandler, () => RunSafeAction(Reload));
+            regMessage = new ClientData(ModName, MessageHandler, () => RunSafeAction(Reload), versionID);
         }
 
         protected sealed override void AfterInit()
