@@ -1,215 +1,419 @@
-﻿using DarkHelmet.Game;
-using DarkHelmet.UI;
+﻿using RichHudFramework.Game;
+using RichHudFramework.UI;
+using RichHudFramework.UI.Client;
+using RichHudFramework;
 using System;
 using System.Collections.Generic;
+using System.Text;
+using VRage;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
     internal sealed partial class BvMain
     {
-        /// <summary>
-        /// Generates list of settings for configuring Build Vision via the Text HUD API's Mod Menu
-        /// </summary>
-        private List<MenuUtilities.IMenuElement> GetSettingsMenuElements()
+        private void InitSettingsMenu()
         {
-            return new List<MenuUtilities.IMenuElement>()
+            RichHudTerminal.Root.Enabled = true;
+
+            RichHudTerminal.Root.Add(new ControlPage()
+            { 
+                Name = "Settings",
+                CategoryContainer =
+                {
+                    GetGeneralSettings(),
+                    GetGuiSettings(),
+                    GetPropertySettings(),
+                    GetHelpSettings(),
+                },
+            });
+
+            RichHudTerminal.Root.Add(new RebindPage()
             {
-                // General Settings Pt.1
-                new MenuUtilities.MenuButton(
-                        () => $"Force Fallback Hud: {PropertiesMenu.Cfg.forceFallbackHud}",
-                        () => PropertiesMenu.Cfg.forceFallbackHud = !PropertiesMenu.Cfg.forceFallbackHud),
-                new MenuUtilities.MenuButton(
-                        () => $"Close If Not In View: {Cfg.general.closeIfNotInView}",
-                        () => Cfg.general.closeIfNotInView = !Cfg.general.closeIfNotInView),
-                new MenuUtilities.MenuButton(
-                        () => $"Can Open While Holding Tools: {Cfg.general.canOpenIfHolding}",
-                        () => Cfg.general.canOpenIfHolding = !Cfg.general.canOpenIfHolding),
-                new MenuUtilities.MenuSliderInput(
-                        () => $"Max Open Range: {Math.Round(Cfg.general.maxOpenRange, 1)}",
-                        "Max Open Range", 2.5f, 20f,
-                        () => (float)Cfg.general.maxOpenRange,
-                        x => Cfg.general.maxOpenRange = x),
-                new MenuUtilities.MenuSliderInput(
-                        () => $"Max Control Range: {Math.Round(Cfg.general.maxControlRange, 1)}",
-                        "Max Control Range", 2.5f, 60f,
-                        () => (float)Cfg.general.maxControlRange,
-                        x => Cfg.general.maxControlRange = x),
-
-                // GUI Settings
-                new MenuUtilities.MenuCategory("GUI Settings", "GUI Settings", new List<MenuUtilities.IMenuElement>()
+                Name = "Binds",
+                GroupContainer =
                 {
-                    // Scaling
-                    new MenuUtilities.MenuButton(
-                        () => $"Enable Resolution Scaling: {PropertiesMenu.ApiHudCfg.resolutionScaling}",
-                        () => PropertiesMenu.ApiHudCfg.resolutionScaling = !PropertiesMenu.ApiHudCfg.resolutionScaling),
-                    new MenuUtilities.MenuSliderInput(
-                        () => $"Hud Scale: {Math.Round(PropertiesMenu.ApiHudCfg.hudScale, 2)}",
-                        "Hud Scale", 0.75f, 2f,
-                        () => PropertiesMenu.ApiHudCfg.hudScale,
-                        x => PropertiesMenu.ApiHudCfg.hudScale = x),
-                    // Opacity
-                    new MenuUtilities.MenuSliderInput(
-                        () => $"Header Bg Opacity: {AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.headerColor.A)}",
-                        "Header Bg Opacity", 0, 100,
-                        () => AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.headerColor.A),
-                        x =>
-                        {
-                            PropertiesMenu.ApiHudCfg.colors.headerColor.A = (byte)(x * 2.55f);
-                            PropertiesMenu.ApiHudCfg.colors.headerColorData = Utils.Color.GetColorString(PropertiesMenu.ApiHudCfg.colors.headerColor);
-                        }),
-                    new MenuUtilities.MenuSliderInput(
-                        () => $"List Bg Opacity: {AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.listBgColor.A)}",
-                        "List Bg Opacity", 0, 100,
-                        () => AlphaToPercent(PropertiesMenu.ApiHudCfg.colors.listBgColor.A),
-                        x =>
-                        {
-                            PropertiesMenu.ApiHudCfg.colors.listBgColor.A = (byte)(x * 2.55f);
-                            PropertiesMenu.ApiHudCfg.colors.listBgColorData = Utils.Color.GetColorString(PropertiesMenu.ApiHudCfg.colors.listBgColor);
-                        }),
-                    // Misc
-                    new MenuUtilities.MenuSliderInput(
-                        () => $"Max Visible Properties: {PropertiesMenu.ApiHudCfg.maxVisible}",
-                        "Max Visible Properties", 6, 20,
-                        () => PropertiesMenu.ApiHudCfg.maxVisible,
-                        x => PropertiesMenu.ApiHudCfg.maxVisible = x),
-                    new MenuUtilities.MenuButton(
-                        () => $"Clamp To Screen Edges: {PropertiesMenu.ApiHudCfg.clampHudPos}",
-                        () => PropertiesMenu.ApiHudCfg.clampHudPos = !PropertiesMenu.ApiHudCfg.clampHudPos),
-                    new MenuUtilities.MenuButton(
-                        () => $"Use Custom Position: {PropertiesMenu.ApiHudCfg.useCustomPos}",
-                        () => PropertiesMenu.ApiHudCfg.useCustomPos = !PropertiesMenu.ApiHudCfg.useCustomPos),
-                    new MenuUtilities.MenuPositionInput(
-                        "Set Hud Position", "",
-                        () => PropertiesMenu.ApiHudCfg.hudPos,
-                        x => PropertiesMenu.ApiHudCfg.hudPos = x),
-                    new MenuUtilities.MenuButton(
-                        "Reset Settings",
-                        () => PropertiesMenu.ApiHudCfg = ApiHudConfig.Defaults),
-                }),
-                
-                // Bind Settings
-                new MenuUtilities.MenuCategory("Bind Settings", "Key Binds", GetBindSettings()),
+                    { BvBinds.BindGroup, BindsConfig.DefaultBinds },
+                }
+            });
+        }
 
-                // Property Settings
-                new MenuUtilities.MenuCategory("Property Settings", "Property Settings", new List<MenuUtilities.IMenuElement>()
+        private ControlCategory GetGeneralSettings()
+        {
+            // Close if not in view
+            var autoCloseBox = new Checkbox()
+            {
+                Name = "Close if target not in sight",
+                Value = Cfg.general.closeIfNotInView,
+                CustomValueGetter = () => Cfg.general.closeIfNotInView,
+                CustomValueSetter = (x => Cfg.general.closeIfNotInView = x),
+            };
+
+            // Can open while holding tools
+            var toolOpenBox = new Checkbox()
+            {
+                Name = "Can open while holding tools",
+                Value = Cfg.general.canOpenIfHolding,
+                CustomValueGetter = () => Cfg.general.canOpenIfHolding,
+                CustomValueSetter = (x => Cfg.general.canOpenIfHolding = x),
+            };
+
+            // Open range slider
+            var openRangeSlider = new SliderSetting()
+            {
+                Name = "Max open range",
+                Min = 2.5f,
+                Max = 20f,
+                ValueText = $"{Cfg.general.maxOpenRange.Round(1)}m",
+                Value = (float)Cfg.general.maxOpenRange,
+                CustomValueGetter = () => (float)Cfg.general.maxOpenRange,
+                CustomValueSetter = x => Cfg.general.maxOpenRange = x,
+                ControlChangedAction = x =>
                 {
-                    // Float Properties
-                    new MenuUtilities.MenuTextInput(
-                        () => $"Float Div: {PropertyBlock.Cfg.floatDiv}",
-                        "Float Property Base Divisor",
-                        (string input) =>
-                        {
-                            double.TryParse(input, out PropertyBlock.Cfg.floatDiv);
-                            PropertyBlock.Cfg.Validate();
-                        }),
+                    x.ValueText = $"{x.Value.Round(1)}m";
+                }
+            };
 
-                    new MenuUtilities.MenuCategory("Float Multipliers", "Float Multipliers", new List<MenuUtilities.IMenuElement>()
-                    {
-                        new MenuUtilities.MenuTextInput(
-                            () => $"X: {PropertyBlock.Cfg.floatMult.X}",
-                            "Float Multiplier X",
-                            (string input) =>
-                            {
-                                float.TryParse(input, out PropertyBlock.Cfg.floatMult.X);
-                                PropertyBlock.Cfg.Validate();
-                            }),
-                        new MenuUtilities.MenuTextInput(
-                            () => $"Y: {PropertyBlock.Cfg.floatMult.Y}",
-                            "Float Multiplier Y",
-                            (string input) =>
-                            {
-                                float.TryParse(input, out PropertyBlock.Cfg.floatMult.Y);
-                                PropertyBlock.Cfg.Validate();
-                            }),
-                        new MenuUtilities.MenuTextInput(
-                            () => $"Z: {PropertyBlock.Cfg.floatMult.Z}",
-                            "Float Multiplier Z",
-                            (string input) =>
-                            {
-                                float.TryParse(input, out PropertyBlock.Cfg.floatMult.Z);
-                                PropertyBlock.Cfg.Validate();
-                            }),
-                    }),
+            // Control range slider
+            var controlRangeSlider = new SliderSetting()
+            {
+                Name = "Max control range",
+                Min = 2.5f,
+                Max = 60f,
+                ValueText = $"{Cfg.general.maxControlRange.Round(1)}m",
+                Value = (float)Cfg.general.maxControlRange.Round(1),
+                CustomValueGetter = () => (float)Cfg.general.maxControlRange,
+                CustomValueSetter = x => Cfg.general.maxControlRange = x,
+                ControlChangedAction = x =>
+                {
+                    x.ValueText = $"{x.Value.Round(1)}m";
+                }
+            };
 
-                    // Color Properties
-                    new MenuUtilities.MenuCategory("Color Multipliers", "Color Multipliers", new List<MenuUtilities.IMenuElement>()
-                    {
-                        new MenuUtilities.MenuTextInput(
-                            () => $"X: {PropertyBlock.Cfg.colorMult.X}",
-                            "Color Multiplier X",
-                            (string input) =>
-                            {
-                                int.TryParse(input, out PropertyBlock.Cfg.colorMult.X);
-                                PropertyBlock.Cfg.Validate();
-                            }),
-                        new MenuUtilities.MenuTextInput(
-                            () => $"Y: {PropertyBlock.Cfg.colorMult.Y}",
-                            "Color Multiplier Y",
-                            (string input) =>
-                            {
-                                int.TryParse(input, out PropertyBlock.Cfg.colorMult.Y);
-                                PropertyBlock.Cfg.Validate();
-                            }),
-                        new MenuUtilities.MenuTextInput(
-                            () => $"Z: {PropertyBlock.Cfg.colorMult.Z}",
-                            "Color Multiplier Z",
-                            (string input) =>
-                            {
-                                int.TryParse(input, out PropertyBlock.Cfg.colorMult.Z);
-                                PropertyBlock.Cfg.Validate();
-                            }),
-                    }),
-
-                    new MenuUtilities.MenuButton(
-                        "Reset Settings",
-                        () => PropertyBlock.Cfg = PropBlockConfig.Defaults
-                    ),
-                }),
-
-                // General Settings Pt.2
-                new MenuUtilities.MenuButton(
-                        "Open Help Menu",
-                        () => ModBase.ShowMessageScreen("Help", GetHelpMessage())),
-                new MenuUtilities.MenuButton(
-                        "Reset Config",
-                        () => BvConfig.ResetConfig()),
-                new MenuUtilities.MenuButton(
-                        "Save Config",
-                        () => BvConfig.SaveStart()),
-                new MenuUtilities.MenuButton(
-                        "Load Config",
-                        () => BvConfig.LoadStart()),
+            return new ControlCategory()
+            {
+                HeaderText = "Targeting",
+                SubheaderText = "",
+                TileContainer =
+                {
+                    new ControlTile() { autoCloseBox, toolOpenBox, },
+                    new ControlTile() { openRangeSlider, controlRangeSlider, },
+                },
             };
         }
 
-        private static int AlphaToPercent(byte alpha) =>
-            (int)Math.Round((alpha * 100d) / 255d);
-
-        /// <summary>
-        /// Creates list of settings for configuring keybinds via the Text HUD API's Mod Menu
-        /// </summary>
-        private static List<MenuUtilities.IMenuElement> GetBindSettings()
+        private ControlCategory GetGuiSettings()
         {
-            List<MenuUtilities.IMenuElement> bindSettings = new List<MenuUtilities.IMenuElement>(KeyBinds.BindGroup.Count + 2);
-
-            for (int n = 0; n < KeyBinds.BindGroup.Count; n++)
+            // Resolution scale
+            var resScaling = new Checkbox()
             {
-                string bindName = KeyBinds.BindGroup[n].Name;
+                Name = "Resolution scaling",
+                Value = PropertiesMenu.Cfg.resolutionScaling,
+                CustomValueGetter = () => PropertiesMenu.Cfg.resolutionScaling,
+                CustomValueSetter = x => PropertiesMenu.Cfg.resolutionScaling = x,
+            };
 
-                bindSettings.Add(new MenuUtilities.MenuButton(
-                    bindName,
-                    () => RebindMenu.UpdateBind(KeyBinds.BindGroup, bindName)));
-            }
+            // Menu size
+            var menuScale = new SliderSetting()
+            {
+                Name = "Menu scale",
+                Min = .75f,
+                Max = 2f,
+                Value = PropertiesMenu.Cfg.hudScale,
+                ValueText = $"{(PropertiesMenu.Cfg.hudScale * 100f).Round()}%",
+                CustomValueGetter = () => PropertiesMenu.Cfg.hudScale,
+                CustomValueSetter = x => PropertiesMenu.Cfg.hudScale = x,
+                ControlChangedAction = x =>
+                {
+                    x.ValueText = $"{(x.Value * 100f).Round()}%";
+                }
+            };
 
-            bindSettings.Add(new MenuUtilities.MenuButton(
-                "Open Bind Help Menu",
-                () => ModBase.ShowMessageScreen("Bind Help", GetBindHelpMessage())));
+            // Menu opacity
+            var opacity = new SliderSetting()
+            {
+                Name = "Menu opacity",
+                Min = 0f,
+                Max = 1f,
+                Value = PropertiesMenu.Cfg.hudOpacity,
+                ValueText = $"{(PropertiesMenu.Cfg.hudOpacity * 100f).Round()}%",
+                CustomValueGetter = () => PropertiesMenu.Cfg.hudOpacity,
+                CustomValueSetter = x => PropertiesMenu.Cfg.hudOpacity = x,
+                ControlChangedAction = x =>
+                {
+                    x.ValueText = $"{(x.Value * 100f).Round()}%";
+                }
+            };
 
-            bindSettings.Add(new MenuUtilities.MenuButton(
-                "Reset Binds",
-                () => KeyBinds.Cfg = BindsConfig.Defaults));
+            var tile1 = new ControlTile()
+            {
+                resScaling,
+                menuScale,
+                opacity,
+            };
 
-            return bindSettings;
+            // Max visible properties
+            var maxVisible = new SliderSetting()
+            {
+                Name = "Max visible properties",
+                Min = 6,
+                Max = 40,
+                Value = PropertiesMenu.Cfg.maxVisible,
+                ValueText = $"{PropertiesMenu.Cfg.maxVisible}",
+                CustomValueGetter = () => PropertiesMenu.Cfg.maxVisible,
+                CustomValueSetter = x => PropertiesMenu.Cfg.maxVisible = (int)x,
+                ControlChangedAction = x =>
+                {
+                    x.ValueText = $"{(int)x.Value}";
+                }
+            };
+
+            // Clamp to screen edges
+            var clampToEdges = new Checkbox()
+            {
+                Name = "Clamp to screen edges",
+                Value = PropertiesMenu.Cfg.clampHudPos,
+                CustomValueGetter = () => PropertiesMenu.Cfg.clampHudPos,
+                CustomValueSetter = x => PropertiesMenu.Cfg.clampHudPos = x,
+            };
+
+            // Use custom position
+            var customPos = new Checkbox()
+            {
+                Name = "Use custom position",
+                Value = PropertiesMenu.Cfg.useCustomPos,
+                CustomValueGetter = () => PropertiesMenu.Cfg.useCustomPos,
+                CustomValueSetter = x => PropertiesMenu.Cfg.useCustomPos = x,
+            };
+
+            // Set custom position
+            var setPosition = new DragBox()
+            {
+                Name = "Set custom position",
+                AlignToEdge = true,
+                Value = PropertiesMenu.Cfg.hudPos,
+                CustomValueGetter = () => PropertiesMenu.Cfg.hudPos,
+                CustomValueSetter = x => PropertiesMenu.Cfg.hudPos = x,
+            };
+
+            var tile2 = new ControlTile()
+            {
+                clampToEdges,
+                customPos,
+                setPosition,
+            };
+
+            var resetGuiSettings = new TerminalButton()
+            {
+                Name = "Reset GUI settings",
+                ControlChangedAction = x => PropertiesMenu.Cfg = HudConfig.Defaults,
+            };
+
+            var tile3 = new ControlTile()
+            {
+                resetGuiSettings,
+            };
+
+            return new ControlCategory()
+            {
+                HeaderText = "GUI Settings",
+                SubheaderText = "",
+                TileContainer = { tile1, tile2, tile3 }
+            };
+        }
+
+        private ControlCategory GetPropertySettings()
+        {
+            Func<char, bool> NumFilterFunc = x => (x >= '0' && x <= '9') || x == '.';
+
+            // Float divider
+            var floatDiv = new TextField()
+            {
+                Name = "Float Divider",
+                Value = PropertyBlock.Cfg.floatDiv.ToString(),
+                CharFilterFunc = NumFilterFunc,
+                CustomValueGetter = () => PropertyBlock.Cfg.floatDiv.ToString(),
+                CustomValueSetter = x =>
+                {
+                    double value;
+
+                    if (double.TryParse(x, out value))
+                    {
+                        PropertyBlock.Cfg.floatDiv = value;
+                        PropertyBlock.Cfg.Validate();
+                    }
+                }
+            };
+
+            var resetProps = new TerminalButton()
+            {
+                Name = "Reset property settings",
+                ControlChangedAction = x => PropertyBlock.Cfg = PropBlockConfig.Defaults,
+            };
+
+            var tile1 = new ControlTile()
+            {
+                floatDiv,
+                resetProps
+            };
+
+            // X
+            var floatMultX = new TextField()
+            {
+                Name = "Float Mult X",
+                Value = PropertyBlock.Cfg.floatMult.X.ToString(),
+                CharFilterFunc = NumFilterFunc,
+                CustomValueGetter = () => PropertyBlock.Cfg.floatMult.X.ToString(),
+                CustomValueSetter = x =>
+                {
+                    float.TryParse(x, out PropertyBlock.Cfg.floatMult.X);
+                    PropertyBlock.Cfg.Validate();
+                }
+            };
+
+            // Y
+            var floatMultY = new TextField()
+            {
+                Name = "Float Mult Y",
+                Value = PropertyBlock.Cfg.floatMult.Y.ToString(),
+                CharFilterFunc = NumFilterFunc,
+                CustomValueGetter = () => PropertyBlock.Cfg.floatMult.Y.ToString(),
+                CustomValueSetter = x =>
+                {
+                    float.TryParse(x, out PropertyBlock.Cfg.floatMult.Y);
+                    PropertyBlock.Cfg.Validate();
+                },
+            };
+
+            // Z
+            var floatMultZ = new TextField()
+            {
+                Name = "Float Mult Z",
+                Value = PropertyBlock.Cfg.floatMult.Z.ToString(),
+                CharFilterFunc = NumFilterFunc,
+                CustomValueGetter = () => PropertyBlock.Cfg.floatMult.Z.ToString(),
+                CustomValueSetter = x =>
+                {
+                    float.TryParse(x, out PropertyBlock.Cfg.floatMult.Z);
+                    PropertyBlock.Cfg.Validate();
+                },
+            };
+            
+            var tile2 = new ControlTile()
+            {
+                floatMultX,
+                floatMultY,
+                floatMultZ
+            };
+
+            // Color - X
+            var colorMultX = new TextField()
+            {
+                Name = "Color Mult X",
+                Value = PropertyBlock.Cfg.colorMult.X.ToString(),
+                CharFilterFunc = NumFilterFunc,
+                CustomValueGetter = () => PropertyBlock.Cfg.colorMult.X.ToString(),
+                CustomValueSetter = x =>
+                {
+                    int.TryParse(x, out PropertyBlock.Cfg.colorMult.X);
+                    PropertyBlock.Cfg.Validate();
+                },
+            };
+
+            // Y
+            var colorMultY = new TextField()
+            {
+                Name = "Color Mult Y",
+                Value = PropertyBlock.Cfg.colorMult.Y.ToString(),
+                CharFilterFunc = NumFilterFunc,
+                CustomValueGetter = () => PropertyBlock.Cfg.colorMult.Y.ToString(),
+                CustomValueSetter = x =>
+                {
+                    int.TryParse(x, out PropertyBlock.Cfg.colorMult.Y);
+                    PropertyBlock.Cfg.Validate();
+                },
+            };
+
+            // Z
+            var colorMultZ = new TextField()
+            {
+                Name = "Color Mult X",
+                Value = PropertyBlock.Cfg.colorMult.X.ToString(),
+                CharFilterFunc = NumFilterFunc,
+                CustomValueGetter = () => PropertyBlock.Cfg.colorMult.Z.ToString(),
+                CustomValueSetter = x =>
+                {
+                    int.TryParse(x, out PropertyBlock.Cfg.colorMult.Z);
+                    PropertyBlock.Cfg.Validate();
+                },
+            };
+
+            var tile3 = new ControlTile()
+            {
+                colorMultX,
+                colorMultY,
+                colorMultZ
+            };
+
+            return new ControlCategory()
+            {
+                HeaderText = "Properties",
+                SubheaderText = "Controls the rate at which scrolling changes property values.",
+                TileContainer = { tile1, tile2, tile3 }
+            };
+        }
+
+        private ControlCategory GetHelpSettings()
+        {
+            var openHelp = new TerminalButton()
+            {
+                Name = "Open help menu",
+                ControlChangedAction = x => ShowMessageScreen("Help", GetHelpMessage())
+            };
+
+            var openBindHelp = new TerminalButton()
+            {
+                Name = "Open bind help",
+                ControlChangedAction = x => ShowMessageScreen("Bind Help", GetBindHelpMessage()),
+            };
+
+            var tile1 = new ControlTile()
+            {
+                openHelp,
+                openBindHelp,
+            };
+
+            var loadCfg = new TerminalButton()
+            {
+                Name = "Load config",
+                ControlChangedAction = x => BvConfig.LoadStart(),
+            };
+
+            var saveCfg = new TerminalButton()
+            {
+                Name = "Save config",
+                ControlChangedAction = x => BvConfig.SaveStart()
+            };
+
+            var resetCfg = new TerminalButton()
+            {
+                Name = "Reset config",
+                ControlChangedAction = x => BvConfig.ResetConfig(),
+            };
+
+            var tile2 = new ControlTile()
+            {
+                loadCfg,
+                saveCfg,
+                resetCfg
+            };
+
+            return new ControlCategory()
+            {
+                HeaderText = "Help",
+                SubheaderText = "Help text and config controls",
+                TileContainer = { tile1, tile2 }
+            };
         }
     }
 }

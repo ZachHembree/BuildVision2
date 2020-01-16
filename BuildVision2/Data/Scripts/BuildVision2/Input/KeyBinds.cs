@@ -1,47 +1,43 @@
-﻿using DarkHelmet.Game;
-using DarkHelmet.UI;
+﻿using RichHudFramework.Game;
+using RichHudFramework.UI;
+using RichHudFramework.UI.Client;
 
 namespace DarkHelmet.BuildVision2
 {
     /// <summary>
     /// Wrapper used to provide easy access to Build Vision key binds.
     /// </summary>
-    internal sealed class KeyBinds : ModBase.ComponentBase
+    internal sealed class BvBinds : ModBase.ComponentBase
     {
         public static BindsConfig Cfg
         {
-            get { return new BindsConfig { bindData = Instance.bindGroup.GetBindData() }; }
-            set
-            {
-                if (Instance.bindGroup.TryUpdateBinds(value.bindData))
-                    Instance.UpdateBindReferences();
-            }
+            get { return new BindsConfig { bindData = BindGroup.GetBindDefinitions() }; }
+            set { Instance.bindGroup.TryLoadBindData(value.bindData); }
         }
 
-        public static IBind Open { get { return Instance.bvBinds[0]; } }
-        public static IBind Hide { get { return Instance.bvBinds[1]; } }
-        public static IBind Select { get { return Instance.bvBinds[2]; } }
-        public static IBind ScrollUp { get { return Instance.bvBinds[3]; } }
-        public static IBind ScrollDown { get { return Instance.bvBinds[4]; } }
-        public static IBind MultX { get { return Instance.bvBinds[5]; } }
-        public static IBind MultY { get { return Instance.bvBinds[6]; } }
-        public static IBind MultZ { get { return Instance.bvBinds[7]; } }
+        public static IBind Open { get { return BindGroup[0]; } }
+        public static IBind Hide { get { return BindGroup[1]; } }
+        public static IBind Select { get { return BindGroup[2]; } }
+        public static IBind ScrollUp { get { return BindGroup[3]; } }
+        public static IBind ScrollDown { get { return BindGroup[4]; } }
+        public static IBind MultX { get { return BindGroup[5]; } }
+        public static IBind MultY { get { return BindGroup[6]; } }
+        public static IBind MultZ { get { return BindGroup[7]; } }
+        public static IBindGroup BindGroup { get { return Instance.bindGroup; } }
 
-        public static BindManager.Group BindGroup { get { return Instance.bindGroup; } }
-        private static KeyBinds Instance
+        private static BvBinds Instance
         {
             get { Init(); return instance; }
             set { instance = value; }
         }
-        private static KeyBinds instance;
-
+        private static BvBinds instance;
         private static readonly string[] bindNames = new string[] { "Open", "Close", "Select", "ScrollUp", "ScrollDown", "MultX", "MultY", "MultZ" };
-        private readonly BindManager.Group bindGroup;
-        private IBind[] bvBinds;
 
-        private KeyBinds()
+        private readonly IBindGroup bindGroup;
+
+        private BvBinds() : base(false, true)
         {
-            bindGroup = new BindManager.Group("BuildVision");
+            bindGroup = BindManager.GetOrCreateGroup("BvMain");
             bindGroup.RegisterBinds(bindNames);
         }
 
@@ -49,7 +45,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (instance == null)
             {
-                instance = new KeyBinds();
+                instance = new BvBinds();
                 Cfg = BvConfig.Current.binds;
 
                 BvConfig.OnConfigSave += instance.UpdateConfig;
@@ -69,13 +65,5 @@ namespace DarkHelmet.BuildVision2
 
         private void UpdateBinds() =>
             Cfg = BvConfig.Current.binds;
-
-        private void UpdateBindReferences()
-        {
-            bvBinds = new IBind[bindNames.Length];
-
-            for (int n = 0; n < bvBinds.Length; n++)
-                bvBinds[n] = bindGroup.GetBindByName(bindNames[n]);
-        }
     }
 }

@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B59E2A56-F99B-4D9B-AE1D-665A7182E37F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RichHudClient</RootNamespace>
+    <AssemblyName>RichHudClient</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" />
+    <Reference Include="Sandbox.Common">
+      <HintPath>F:\Steam\SteamApps\common\SpaceEngineers\Bin64\Sandbox.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Sandbox.Game">
+      <HintPath>F:\Steam\SteamApps\common\SpaceEngineers\Bin64\Sandbox.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="SpaceEngineers.Game">
+      <HintPath>F:\Steam\SteamApps\common\SpaceEngineers\Bin64\SpaceEngineers.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="SpaceEngineers.ObjectBuilders">
+      <HintPath>F:\Steam\SteamApps\common\SpaceEngineers\Bin64\SpaceEngineers.ObjectBuilders.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="VRage">
+      <HintPath>F:\Steam\SteamApps\common\SpaceEngineers\Bin64\VRage.dll</HintPath>
+    </Reference>
+    <Reference Include="VRage.Game">
+      <HintPath>F:\Steam\SteamApps\common\SpaceEngineers\Bin64\VRage.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="VRage.Input">
+      <HintPath>F:\Steam\SteamApps\common\SpaceEngineers\Bin64\VRage.Input.dll</HintPath>
+    </Reference>
+    <Reference Include="VRage.Library">
+      <HintPath>F:\Steam\SteamApps\common\SpaceEngineers\Bin64\VRage.Library.dll</HintPath>
+    </Reference>
+    <Reference Include="VRage.Math">
+      <HintPath>F:\Steam\SteamApps\common\SpaceEngineers\Bin64\VRage.Math.dll</HintPath>
+    </Reference>
+    <Reference Include="VRage.Render">
+      <HintPath>F:\Steam\SteamApps\common\SpaceEngineers\Bin64\VRage.Render.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Client\RichHudClient.cs" />
+    <Compile Include="Client\UI\BindManager\Bind.cs" />
+    <Compile Include="Client\UI\BindManager\BindGroup.cs" />
+    <Compile Include="Client\UI\BindManager\BindManager.cs" />
+    <Compile Include="Client\UI\BindManager\Control.cs" />
+    <Compile Include="Client\UI\BindManager\RebindMenu.cs" />
+    <Compile Include="Client\UI\HUD\HudMain.cs" />
+    <Compile Include="Client\UI\HUD\Rendering\FontManager\FontData.cs" />
+    <Compile Include="Client\UI\HUD\Rendering\FontManager\FontManager.cs" />
+    <Compile Include="Client\UI\HUD\Rendering\TextBoard.cs" />
+    <Compile Include="Client\UI\HUD\Rendering\TextBuilder.cs" />
+    <Compile Include="Client\UI\SettingsMenu\ControlCategory.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\Checkbox.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\ColorPicker.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\DragBox.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\DropdownControl.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\ListControl.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\OnOffButton.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\SliderSetting.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\TerminalButton.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\TerminalControlBase.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\TextField.cs" />
+    <Compile Include="Client\UI\SettingsMenu\ControlTile.cs" />
+    <Compile Include="Client\UI\SettingsMenu\ListBoxData.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Pages\ControlPage.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Pages\RebindPage.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Pages\TerminalPageBase.cs" />
+    <Compile Include="Client\UI\SettingsMenu\RichHudTerminal.cs" />
+    <Compile Include="Shared\General\ApiContainers.cs" />
+    <Compile Include="Shared\General\Collections.cs" />
+    <Compile Include="Shared\General\Extensions.cs" />
+    <Compile Include="Shared\General\LocalPlayer.cs" />
+    <Compile Include="Shared\General\TaskPool.cs" />
+    <Compile Include="Shared\General\Utilities.cs" />
+    <Compile Include="Shared\IO\ConfigIO.cs" />
+    <Compile Include="Shared\IO\LocalFileIO.cs" />
+    <Compile Include="Shared\IO\LogIO.cs" />
+    <Compile Include="Shared\ModBase.cs" />
+    <Compile Include="Shared\MsgEnums.cs" />
+    <Compile Include="Shared\UI\BindManager\BindDefinition.cs" />
+    <Compile Include="Shared\UI\BindManager\CustomControls.cs" />
+    <Compile Include="Shared\UI\BindManager\IBind.cs" />
+    <Compile Include="Shared\UI\BindManager\IBindClient.cs" />
+    <Compile Include="Shared\UI\BindManager\IBindGroup.cs" />
+    <Compile Include="Shared\UI\BindManager\IControl.cs" />
+    <Compile Include="Shared\UI\CmdManager.cs" />
+    <Compile Include="Shared\UI\HUD\ApiElementWrappers\HudNodeData.cs" />
+    <Compile Include="Shared\UI\HUD\ApiElementWrappers\HudParentData.cs" />
+    <Compile Include="Shared\UI\HUD\HudElementBases\HudElementBase.cs" />
+    <Compile Include="Shared\UI\HUD\HudElementBases\HudNodeBase.cs" />
+    <Compile Include="Shared\UI\HUD\HudElementBases\HudParentBase.cs" />
+    <Compile Include="Shared\UI\HUD\HudElementBases\LabelBoxBase.cs" />
+    <Compile Include="Shared\UI\HUD\HudElementBases\WindowBase.cs" />
+    <Compile Include="Shared\UI\HUD\HudElementEnums.cs" />
+    <Compile Include="Shared\UI\HUD\HudElementInterfaces\IClickableElement.cs" />
+    <Compile Include="Shared\UI\HUD\HudElementInterfaces\IHudElement.cs" />
+    <Compile Include="Shared\UI\HUD\HudElementInterfaces\IHudNode.cs" />
+    <Compile Include="Shared\UI\HUD\HudElementInterfaces\IHudParent.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\BorderBox.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\Button.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\ClickableElement.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\Dropdown.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\LabelBoxButton.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\LabelButton.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\ListBox.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\ScrollBox.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\SliderBar.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\SliderBox.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\TextBox.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\TreeBox.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\DoubleTextBox.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\HudChain.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\Label.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\LabelBox.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\LabelListBox.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ScrollBar.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\TextList.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\TexturedBox.cs" />
+    <Compile Include="Shared\UI\HUD\ICursor.cs" />
+    <Compile Include="Shared\UI\HUD\Rendering\IFontMin.cs" />
+    <Compile Include="Shared\UI\HUD\Rendering\MatBoard.cs" />
+    <Compile Include="Shared\UI\HUD\Rendering\TextBuilderIntefaces.cs" />
+    <Compile Include="Shared\UI\HUD\RichText\GlyphFormat.cs" />
+    <Compile Include="Shared\UI\HUD\RichText\RichString.cs" />
+    <Compile Include="Shared\UI\HUD\RichText\RichText.cs" />
+    <Compile Include="Shared\UI\SettingsMenu\SettingsInterfaces.cs" />
+    <Compile Include="Shared\UI\SharedBinds.cs" />
+    <Compile Include="Shared\UI\TextInput.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
+    <None Include="Shared\.gitrepo" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

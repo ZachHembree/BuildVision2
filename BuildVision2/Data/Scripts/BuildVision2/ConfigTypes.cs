@@ -1,8 +1,8 @@
-﻿using DarkHelmet.IO;
-using DarkHelmet.UI;
+﻿using RichHudFramework;
+using RichHudFramework.IO;
+using RichHudFramework.UI;
 using System.Xml.Serialization;
 using VRageMath;
-using System;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -25,7 +25,7 @@ namespace DarkHelmet.BuildVision2
         {
             return new BvConfig
             {
-                VersionID = 6,
+                VersionID = 7,
                 general = GeneralConfig.Defaults,
                 menu = PropMenuConfig.Defaults,
                 block = PropBlockConfig.Defaults,
@@ -35,6 +35,9 @@ namespace DarkHelmet.BuildVision2
 
         public override void Validate()
         {
+            if (VersionID < 7)
+                menu.hudConfig.hudOpacity = HudConfig.Defaults.hudOpacity;
+
             if (VersionID < 6)
                 menu = PropMenuConfig.Defaults;
 
@@ -107,49 +110,39 @@ namespace DarkHelmet.BuildVision2
 
     public class PropMenuConfig : Config<PropMenuConfig>
     {
-        [XmlElement(ElementName = "ForceFallabckHud")]
-        public bool forceFallbackHud;
-
         [XmlElement(ElementName = "ApiHudSettings")]
-        public ApiHudConfig apiHudConfig;
-
-        [XmlElement(ElementName = "FallbackHudSettings")]
-        public NotifHudConfig fallbackHudConfig;
+        public HudConfig hudConfig;
 
         protected override PropMenuConfig GetDefaults()
         {
             return new PropMenuConfig
             {
-                forceFallbackHud = false,
-                apiHudConfig = ApiHudConfig.Defaults,
-                fallbackHudConfig = NotifHudConfig.Defaults
+                hudConfig = HudConfig.Defaults,
             };
         }
 
         public override void Validate()
         {
-            if (apiHudConfig != null)
-                apiHudConfig.Validate();
+            if (hudConfig != null)
+                hudConfig.Validate();
             else
-                apiHudConfig = ApiHudConfig.Defaults;
-
-            if (fallbackHudConfig != null)
-                fallbackHudConfig.Validate();
-            else
-                fallbackHudConfig = NotifHudConfig.Defaults;
+                hudConfig = HudConfig.Defaults;
         }
     }
 
     /// <summary>
     /// Stores config information for the Text HUD based menu
     /// </summary>
-    public class ApiHudConfig : Config<ApiHudConfig>
+    public class HudConfig : Config<HudConfig>
     {
         [XmlElement(ElementName = "EnableResolutionScaling")]
         public bool resolutionScaling;
 
         [XmlElement(ElementName = "HudScale")]
         public float hudScale;
+
+        [XmlElement(ElementName = "HudOpacity")]
+        public float hudOpacity;
 
         [XmlElement(ElementName = "MaxVisibleItems")]
         public int maxVisible;
@@ -161,106 +154,19 @@ namespace DarkHelmet.BuildVision2
         public bool useCustomPos;
 
         [XmlElement(ElementName = "HudPosition")]
-        public Vector2D hudPos;
+        public Vector2 hudPos;
 
-        [XmlElement(ElementName = "ColorsRGB")]
-        public Colors colors;
-
-        /// <summary>
-        /// Stores configurable text and background colors for Text HUD based menu.
-        /// </summary>
-        public class Colors : Config<Colors>
+        protected override HudConfig GetDefaults()
         {
-            [XmlIgnore]
-            public Color listBgColor, selectionBoxColor, headerColor;
-
-            [XmlElement(ElementName = "BodyText")]
-            public string bodyText;
-
-            [XmlElement(ElementName = "HeaderText")]
-            public string headerText;
-
-            [XmlElement(ElementName = "BlockIncompleteText")]
-            public string blockIncText;
-
-            [XmlElement(ElementName = "HighlightText")]
-            public string highlightText;
-
-            [XmlElement(ElementName = "SelectedText")]
-            public string selectedText;
-
-            [XmlElement(ElementName = "ListBg")]
-            public string listBgColorData;
-
-            [XmlElement(ElementName = "SelectionBg")]
-            public string selectionBoxColorData;
-
-            [XmlElement(ElementName = "HeaderBg")]
-            public string headerColorData;
-
-            protected override Colors GetDefaults()
-            {
-                return new Colors
-                {
-                    bodyText = "210,235,245",
-                    headerText = "210,235,245",
-                    blockIncText = "200,15,15",
-                    highlightText = "200,170,0",
-                    selectedText = "30,200,30",
-                    listBgColor = new Color(70, 78, 86, 204),
-                    selectionBoxColor = new Color(41, 54, 62, 255),
-                    headerColor = new Color(41, 54, 62, 230)
-                };
-            }
-
-            /// <summary>
-            /// Checks any if fields have invalid values and resets them to the default if necessary.
-            /// </summary>
-            public override void Validate()
-            {
-                if (bodyText == null || !Utils.Color.CanParseColor(bodyText))
-                    bodyText = Defaults.bodyText;
-
-                if (blockIncText == null || !Utils.Color.CanParseColor(blockIncText))
-                    blockIncText = Defaults.blockIncText;
-
-                if (highlightText == null || !Utils.Color.CanParseColor(highlightText))
-                    highlightText = Defaults.highlightText;
-
-                if (selectedText == null || !Utils.Color.CanParseColor(selectedText))
-                    selectedText = Defaults.selectedText;
-
-                if (listBgColorData == null || !Utils.Color.TryParseColor(listBgColorData, out listBgColor))
-                {
-                    listBgColor = Defaults.listBgColor;
-                    listBgColorData = Utils.Color.GetColorString(listBgColor);
-                }
-
-                if (selectionBoxColorData == null || !Utils.Color.TryParseColor(selectionBoxColorData, out selectionBoxColor))
-                {
-                    selectionBoxColor = Defaults.selectionBoxColor;
-                    selectionBoxColorData = Utils.Color.GetColorString(selectionBoxColor);
-                }
-
-                if (headerColorData == null || !Utils.Color.TryParseColor(headerColorData, out headerColor))
-                {
-                    headerColor = Defaults.headerColor;
-                    headerColorData = Utils.Color.GetColorString(headerColor);
-                }
-            }
-        }
-
-        protected override ApiHudConfig GetDefaults()
-        {
-            return new ApiHudConfig
+            return new HudConfig
             {
                 resolutionScaling = true,
                 hudScale = 1f,
+                hudOpacity = 0.9f,
                 maxVisible = 14,
                 clampHudPos = true,
                 useCustomPos = false,
-                hudPos = new Vector2D(-0.97083337604999542, 0.95370364189147949),
-                colors = Colors.Defaults
+                hudPos = new Vector2(-0.97083337604999542f, 0.95370364189147949f)
             };
         }
 
@@ -275,36 +181,8 @@ namespace DarkHelmet.BuildVision2
             if (hudScale == default(float))
                 hudScale = Defaults.hudScale;
 
-            if (colors != null)
-                colors.Validate();
-            else
-                colors = Defaults.colors;
-        }
-    }
-
-    /// <summary>
-    /// Stores config information for the built in Notifications based menu
-    /// </summary>
-    public class NotifHudConfig : Config<NotifHudConfig>
-    {
-        [XmlElement(ElementName = "MaxVisibleItems")]
-        public int maxVisible;
-
-        protected override NotifHudConfig GetDefaults()
-        {
-            return new NotifHudConfig
-            {
-                maxVisible = 7
-            };
-        }
-
-        /// <summary>
-        /// Checks any if fields have invalid values and resets them to the default if necessary.
-        /// </summary>
-        public override void Validate()
-        {
-            if (maxVisible == default(int))
-                maxVisible = Defaults.maxVisible;
+            if (hudOpacity < 0f)
+                hudOpacity = Defaults.hudOpacity;
         }
     }
 
@@ -370,11 +248,11 @@ namespace DarkHelmet.BuildVision2
     public class BindsConfig : Config<BindsConfig>
     {
         [XmlIgnore]
-        public static BindData[] DefaultBinds
+        public static BindDefinition[] DefaultBinds
         {
             get
             {
-                BindData[] copy = new BindData[defaultBinds.Length];
+                BindDefinition[] copy = new BindDefinition[defaultBinds.Length];
 
                 for (int n = 0; n < defaultBinds.Length; n++)
                     copy[n] = defaultBinds[n];
@@ -383,20 +261,20 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private static readonly BindData[] defaultBinds = new BindData[]
+        private static readonly BindDefinition[] defaultBinds = new BindDefinition[]
         {
-            new BindData("open", new string[] { "control", "middlebutton" }),
-            new BindData("close", new string[] { "shift", "middlebutton" }),
-            new BindData("select", new string[] { "middlebutton" }),
-            new BindData("scrollup", new string[] { "mousewheelup" }),
-            new BindData("scrolldown", new string[] { "mousewheeldown" }),
-            new BindData("multx", new string[] { "control" }),
-            new BindData("multy", new string[] { "shift" }),
-            new BindData("multz", new string[] { "control", "shift" })
+            new BindDefinition("open", new string[] { "control", "middlebutton" }),
+            new BindDefinition("close", new string[] { "shift", "middlebutton" }),
+            new BindDefinition("select", new string[] { "middlebutton" }),
+            new BindDefinition("scrollup", new string[] { "mousewheelup" }),
+            new BindDefinition("scrolldown", new string[] { "mousewheeldown" }),
+            new BindDefinition("multx", new string[] { "control" }),
+            new BindDefinition("multy", new string[] { "shift" }),
+            new BindDefinition("multz", new string[] { "control", "shift" })
         };
 
         [XmlArray("KeyBinds")]
-        public BindData[] bindData;
+        public BindDefinition[] bindData;
 
         protected override BindsConfig GetDefaults()
         {

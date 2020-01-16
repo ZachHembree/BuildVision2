@@ -1,0 +1,1041 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="RichHudFramework.Client.RichHudClient" Collapsed="true">
+    <Position X="4.5" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAQAQEAAAACBAAAAEAAAgBABBUAAAACAwAAAAEAQFEA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\RichHudClient.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.BindManager" Collapsed="true">
+    <Position X="44.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAECARAAAAAGAAAgAAEAAQABAACAgQAAiAACACAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\BindManager\Bind.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.RebindMenu" Collapsed="true">
+    <Position X="50" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAIAACAAIAQAAAQACgAAQgEYIBAAAAAYAADAACAAEA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\BindManager\RebindMenu.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.HudMain" Collapsed="true">
+    <Position X="50" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAgAAAAUAAECEEAgEgACAAIABAJACAQAACAQOAACA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\HUD\HudMain.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.ControlCategory" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="51.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAEAAAAgIEAAAAAACAAAAAAAAIEBACQAAgAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\ControlCategory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.Checkbox" Collapsed="true">
+    <Position X="8" Y="13.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\Checkbox.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.ColorPicker" Collapsed="true">
+    <Position X="10.25" Y="13.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\ColorPicker.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.DragBox" Collapsed="true">
+    <Position X="12.5" Y="13.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\DragBox.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.DropdownControl&lt;T&gt;" Collapsed="true">
+    <Position X="17" Y="13.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAI=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\DropdownControl.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.ListControl&lt;T&gt;" Collapsed="true">
+    <Position X="19.25" Y="13.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAI=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\ListControl.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.OnOffButton" Collapsed="true">
+    <Position X="3.5" Y="13.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\OnOffButton.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.SliderSetting" Collapsed="true">
+    <Position X="5.75" Y="13.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAABAAAAAAEAAAAAAAAAAAAAAAAAAACAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\SliderSetting.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.TerminalButton" Collapsed="true">
+    <Position X="1.25" Y="12.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\TerminalButton.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.TerminalControlBase" Collapsed="true">
+    <Position X="10.25" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAgIEAAAAAACQAAAAAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\TerminalControlBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.TerminalControlBase&lt;T&gt;" Collapsed="true">
+    <Position X="10.25" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAEAAAAAAAAAAAAAAIAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\TerminalControlBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.TerminalValue&lt;TValue, TCon&gt;" Collapsed="true">
+    <Position X="11.5" Y="12.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\TerminalControlBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.TextField" Collapsed="true">
+    <Position X="14.75" Y="13.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\TextField.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.ControlTile" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="43" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAIAAAAAAAAIgIEAAAAAACAAAAAAAAAEAAAgAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\ControlTile.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.ControlPage" Collapsed="true">
+    <Position X="3.5" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAACAAAAAAEAAEAAAAAAAACAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Pages\ControlPage.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.RebindPage" Collapsed="true">
+    <Position X="5.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAABBAAAAgAAAAIAAAAAAAEAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Pages\RebindPage.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.TerminalPageBase" Collapsed="true">
+    <Position X="4.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgIEAAAAAACQAAAAAAAAAAAAQAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Pages\TerminalPageBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.Client.ModMenu" Collapsed="true">
+    <Position X="43" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAAAAAACAAEAAAAAAgAABAAgEQQAYCAACAABA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\SettingsMenu.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Rendering.Client.FontManager" Collapsed="true">
+    <Position X="46.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAEAAAAAAAAAAAAAACQIAAAAQhAAAAAQAACAACQAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\HUD\Rendering\FontManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Rendering.Client.TextBoard" Collapsed="true">
+    <Position X="13.5" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABDAAAAAAhAAggAAAAYAAAIAAAAAIAAAAABAQIAABAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\HUD\Rendering\TextBoard.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.Rendering.Client.TextBuilder" Collapsed="true">
+    <Position X="13.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQAEAAAAAQAAEICIIBgAQAggwIAYAACACAAIBAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\HUD\Rendering\TextBuilder.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.ListBoxData&lt;T&gt;" Collapsed="true">
+    <Position X="7.5" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAJAAAAAAAAAAAEAAAQAAAAAAAAAAAAAAAAAAAAAQAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\ListBoxData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.EntryData&lt;T&gt;" Collapsed="true">
+    <Position X="44.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgIEAAAAAAAAAAAAAAAAAAgAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\ListBoxData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.CmdManager" Collapsed="true">
+    <Position X="46.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAIBIAAACAAAQAAAAAQBAAABAQAADAACAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\CmdManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.HudNodeData" Collapsed="true">
+    <Position X="11.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAAABAAAAAQAAAAAABAAAAAAAAAAAAEAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\ApiElementWrappers\HudNodeData.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.HudParentData" Collapsed="true">
+    <Position X="11.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAACAACAAAAgAEAAgAAACAAAAIgYACIAAAAAIAAEAo=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\ApiElementWrappers\HudParentData.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.HudElementBase" Collapsed="true">
+    <Position X="21.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACCAAAAJgAEgARERAIQREAEAAABAACQCAIABAgCkAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementBases\HudElementBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.HudNodeBase" Collapsed="true">
+    <Position X="21.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAAAAAAAAAQAAAAAABAAAAAAAAAAAAEAg=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementBases\HudNodeBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.HudParentBase" Collapsed="true">
+    <Position X="21.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAACAAAAAggQAAgAAACAAAAogAACIAAAAAAAAEAg=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementBases\HudParentBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.LabelBoxBase" Collapsed="true">
+    <Position X="18" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAABAAAAAAAAAAAAEAABAAAIAAAAAAggAAAIAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementBases\LabelBoxBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.WindowBase" Collapsed="true">
+    <Position X="24.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABCAAISAAAAAAGIAACAAEABCCQoAAAAAAACggAEAgAI=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementBases\WindowBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.BorderBox" Collapsed="true">
+    <Position X="11.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAEAAAABAgAAAAAAABAAAAAAAAAAAAAAgAAgAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\BorderBox.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Button" Collapsed="true">
+    <Position X="9" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAEABAhBAAAAAEAQBAAEAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\Button.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.ClickableElement" Collapsed="true">
+    <Position X="27" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEQIAACEAAICAAAAQAAAAAQAAAAAAAAAAAQAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\ClickableElement.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.Dropdown&lt;T&gt;" Collapsed="true">
+    <Position X="29.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAIAEgAAhAAAAIAAAAQABUAAAAkAAAAAAAAFAABCQAg=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\Dropdown.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.TextBoxButton" Collapsed="true">
+    <Position X="20.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACIEABAABAAAAAEAQBAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\LabelBoxButton.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.LabelButton" Collapsed="true">
+    <Position X="38.25" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAAABBAAAAAEAAAAAEAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\LabelButton.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.ListBox&lt;T&gt;" Collapsed="true">
+    <Position X="40.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAKQAgCABAQAAoAAAAQABERCEAgAAAAAAABEgABCQAg=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\ListBox.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.ListBoxEntry&lt;T&gt;" Collapsed="true">
+    <Position X="38.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAEAAAAAAAAAAAAAAAAAgAAAgAAAg=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\ListBox.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.ScrollBox&lt;T&gt;" Collapsed="true">
+    <Position X="6.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AMKQQAiChCggAoAACFAAAGgAQgAKgAAABAAEgACALII=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\ScrollBox.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.SliderBar" Collapsed="true">
+    <Position X="13.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAGADABBAQAgAAEiCAAEIAhAAAAAAIAAACCAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\SliderBar.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.SliderBox" Collapsed="true">
+    <Position X="22.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAABBAAAAAAEACAAEBAAAAAAAAAAAAECAAAIAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\SliderBox.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.TextBox" Collapsed="true">
+    <Position X="36" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IgAAAgKAABAAAgACABAAAAQAAAAAAAAAAAoJAEAAAIA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\TextBox.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.TreeBox&lt;T&gt;" Collapsed="true">
+    <Position X="31.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAIAGgCAhAAAAoAAAAQABUQAAAkAAAAAAABEAARCQAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\TreeBox.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.DoubleLabelBox" Collapsed="true">
+    <Position X="18" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAAAAACAAAAAAAAAAAAhAAIIAAIQCIAAAAAgAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\DoubleTextBox.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.HudChain&lt;T&gt;" Collapsed="true">
+    <Position X="33.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABIAQAgAAAAAAhCAACAABAAAAAIIgAAEAAAAAQAAAEI=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\HudChain.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.Label" Collapsed="true">
+    <Position X="37.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAABAAAAgAAAAQAAEAAgAgAABAAAAAQCAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\Label.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.LabelBox" Collapsed="true">
+    <Position X="20.25" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAEAAAABAAAAAAAQAAAAAhAgAIAAAAAAQCAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\LabelBox.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.LabelListBox" Collapsed="true">
+    <Position X="15.75" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABIAAAAAAAAAAAAACAAAAAQABAAAIAAIAAAAAABAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\LabelListBox.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.ScrollBar" Collapsed="true">
+    <Position X="2.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAABBAAAgAAEACAAEIAAAAAAAAAAAAECAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ScrollBar.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.LabelList" Collapsed="true">
+    <Position X="4.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABIAggAABAAAAgAACAAAAEQAAAAAAAAAAAAAAABQAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\TextList.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.UI.TexturedBox" Collapsed="true">
+    <Position X="9" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAABAAAAgAAAAAAAFgAAAAAAAAAAAAAgAAggAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\TexturedBox.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.GlyphFormat" Collapsed="true">
+    <Position X="48.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQEAAAAAAAAAAAAgCZAAAAABAAEKIAQAAAQgAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\RichText\GlyphFormat.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.RichString" Collapsed="true">
+    <Position X="51.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAECAAACCBgAAAAAQAIAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\RichText\RichString.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.RichText" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="43" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAABAESAAAASQAAAAAAAAMABAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\RichText\RichText.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="RichHudFramework.UI.SharedBinds" Collapsed="true">
+    <Position X="44.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EQQABACQAKAACAhAAIAAAEABAgFEACBAQAACAACAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\SharedBinds.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.TextInput" Collapsed="true">
+    <Position X="48.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAAAAAAAAAAIAAAAAAQAAAAAAAACAACAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\TextInput.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.PropWrapper&lt;T&gt;" Collapsed="true">
+    <Position X="44.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAACAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\ApiContainers.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.ReadOnlyCollectionData&lt;T&gt;" Collapsed="true">
+    <Position X="7.5" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAAAAAABAACIAAAAQAAAAAAAgEAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\ApiContainers.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="RichHudFramework.CollectionDataEnumerator&lt;T&gt;" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="48.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAABAAAAICAAAAAAAAAAAgAoAAAAAABAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\ApiContainers.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="RichHudFramework.ReadOnlyDictionary&lt;TKey, TValue&gt;" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="48.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAABAACAAAAAQEAAAAAAAEAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\Collections.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="RichHudFramework.ReadOnlyCollection&lt;T&gt;" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="46.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAABAACEAAAAQAAAAAAAAEAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\Collections.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="RichHudFramework.MathExtensions" Collapsed="true">
+    <Position X="51.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAIAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAIAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\Extensions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.CollectionExtensions" Collapsed="true">
+    <Position X="50" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\Extensions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.VectorExtensions" Collapsed="true">
+    <Position X="51.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAEAAAAAACAAAAAAAAAAAAAAAAAAAhAAAAAAAAI=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\Extensions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.AggregateException" Collapsed="true">
+    <Position X="43" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\TaskPool.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.KnownException" Collapsed="true">
+    <Position X="51.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\TaskPool.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.TaskPool" Collapsed="true">
+    <Position X="46.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAQAAAAAAAEAACAAgAACAICAAAOIAAAAAAAAABCAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\TaskPool.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.Utils" Collapsed="true">
+    <Position X="50" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\Utilities.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.Game.LocalPlayer" Collapsed="true">
+    <Position X="44.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIEwAAAABAABAAAAEAAAAAAAAgAhAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\LocalPlayer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.Game.ModBase" Collapsed="true">
+    <Position X="4.5" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EgRA0ADAwEAAAgAAgQABiCEEgABIAIIAyIkCALDACAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\ModBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.IO.Config&lt;ConfigT&gt;" Collapsed="true">
+    <Position X="8.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAAAACAAAAAAAAAAAAAAAABAAAABAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\IO\ConfigIO.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.IO.ConfigRoot&lt;ConfigT&gt;" Collapsed="true">
+    <Position X="8.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgKAAIAAAAAAAAACAAACAgAAAAAQACEAAAABAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\IO\ConfigIO.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.IO.LocalFileIO" Collapsed="true">
+    <Position X="43" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACAAAAACABAAEQAAAABAAAAAABAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\IO\LocalFileIO.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.IO.LogIO" Collapsed="true">
+    <Position X="46.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gABAAAAAAAAAAAAAAAAAAAAEAAABgAAAAAAAAAAAACA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\IO\LogIO.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Rendering.Material" Collapsed="true">
+    <Position X="50" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAIAAIAQEEAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\MatBoard.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RichHudFramework.UI.Rendering.MatBoard" Collapsed="true">
+    <Position X="48.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AGCAACICJAACggAAAAAAAkAAAAAAAACAAEAAgABgAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\MatBoard.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="RichHudFramework.UI.BindDefinition" Collapsed="true">
+    <Position X="43" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAEAAAAAAAEAAAIAAQAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\BindManager\BindDefinition.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="RichHudFramework.UI.Rendering.FlatQuad" Collapsed="true">
+    <Position X="44.75" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\MatBoard.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="RichHudFramework.UI.Rendering.QuadBoard" Collapsed="true">
+    <Position X="46.5" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAAAAgAACIAAAAAAAAAAABIAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\MatBoard.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Interface Name="RichHudFramework.UI.ITerminalControl" Collapsed="true">
+    <Position X="0.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAgIAAAAAAACQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.ITerminalControl&lt;T&gt;" Collapsed="true">
+    <Position X="0.5" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.ITerminalValue&lt;TValue, TCon&gt;" Collapsed="true">
+    <Position X="0.5" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IControlTile" Collapsed="true">
+    <Position X="48.25" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAgIEAAAAAACAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IControlCategory" Collapsed="true">
+    <Position X="46.5" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAEAAAAgIAAAAAAACAAAAAAAAIAAACAAAgAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.ITerminalPage" Collapsed="true">
+    <Position X="3" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgIAAAAAAACQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.ITextPage" Collapsed="true">
+    <Position X="3" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IRebindPage" Collapsed="true">
+    <Position X="5.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IControlPage" Collapsed="true">
+    <Position X="0.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAACAAAAAAEAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IModControlRoot" Collapsed="true">
+    <Position X="43" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAIAgAAAAACQAAAAABAAAAAAAAAACQAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IBindGroup" Collapsed="true">
+    <Position X="3" Y="16.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAkAgAAAABAAACQCAABAAAAAAAIAAEAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\BindManager\BindInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IBind" Collapsed="true">
+    <Position X="43" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gIAAABAIAAAAAAAAAAAkICRAAAAAIAAgAAEAAEAAAAg=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\BindManager\BindInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IControl" Collapsed="true">
+    <Position X="44.75" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEBAAAAAAAAAAAAAAACQAAAAAAAAAAAEAAAAAAAg=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\BindManager\BindInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IClickableElement" Collapsed="true">
+    <Position X="12.75" Y="19.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEQAAAAAAAICAAAAQAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementInterfaces\IClickableElement.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IHudElement" Collapsed="true">
+    <Position X="11.75" Y="18.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAABgAEgAAEAAIAAEAAAAAAAAAQAAAABAgAgAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementInterfaces\IHudElement.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IHudNode" Collapsed="true">
+    <Position X="11.75" Y="16.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAAAAAAAAAQAAAAAABAAAAAAAAAAAAEAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementInterfaces\IHudNode.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IHudParent" Collapsed="true">
+    <Position X="11.75" Y="15.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAAAAAAAgAAAAgAAACAAAAIgAACIAAAAAAAAEAg=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementInterfaces\IHudParent.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.IListBoxEntry" Collapsed="true">
+    <Position X="10.5" Y="19.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\ListBox.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.ICursor" Collapsed="true">
+    <Position X="50" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAEAAQAAQAAACAAAAAAAAAIABAAAAgAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\ICursor.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.IIndexedCollection&lt;T&gt;" Collapsed="true">
+    <Position X="4" Y="15.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAACAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\Collections.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.IReadOnlyCollection&lt;T&gt;" Collapsed="true">
+    <Position X="0.75" Y="16.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\General\Collections.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.Rendering.IFontMin" Collapsed="true">
+    <Position X="51.75" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAgABAAAAAAAAAAAAQAAAAABAAAAAEAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\IFontMin.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.Rendering.IRichChar" Collapsed="true">
+    <Position X="44.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAgAAAAAgAAAAAAAgAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\TextBuilderIntefaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.Rendering.ILine" Collapsed="true">
+    <Position X="5.25" Y="16.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\TextBuilderIntefaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.Rendering.ITextBuilder" Collapsed="true">
+    <Position X="7.5" Y="16.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAQAAAICIIAAAAAgggAAQAACAAAAIBAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\TextBuilderIntefaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="RichHudFramework.UI.Rendering.ITextBoard" Collapsed="true">
+    <Position X="7.5" Y="18.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABDAAAAAAAAAgAAAAAYAAAIAAAAAIAAAAAAAAAAABAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\TextBuilderIntefaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="RichHudFramework.UI.Client.DragBoxAccessors" Collapsed="true">
+    <Position X="50" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\DragBox.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.Client.ListControlAccessors" Collapsed="true">
+    <Position X="51.75" Y="10.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\ListControl.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.Client.SliderSettingsAccessors" Collapsed="true">
+    <Position X="46.5" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAABAAAAAAEAAAAAAAAAAAAAAAAAAACAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\SliderSetting.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.Client.TextFieldAccessors" Collapsed="true">
+    <Position X="48.25" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Client\UI\SettingsMenu\Controls\TextField.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.MenuControls" Collapsed="true">
+    <Position X="44.75" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BUAAAAAAAAAAgAAAAACAAABAAAAAAAAAAEAAAgAAAAI=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.ControlContainers" Collapsed="true">
+    <Position X="51.75" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACQA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.ModPages" Collapsed="true">
+    <Position X="48.25" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAEAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.TerminalControlAccessors" Collapsed="true">
+    <Position X="48.25" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAAAIAAAQAAAAgAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.ControlTileAccessors" Collapsed="true">
+    <Position X="44.75" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAAAAAAAAAIAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.ControlCatAccessors" Collapsed="true">
+    <Position X="50" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAACAAAgAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.TerminalPageAccessors" Collapsed="true">
+    <Position X="50" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.RebindPageAccessors" Collapsed="true">
+    <Position X="43" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.ControlPageAccessors" Collapsed="true">
+    <Position X="43" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.ModControlRootAccessors" Collapsed="true">
+    <Position X="46.5" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAAAAAAAQAAAAAgAAAAAAAAAACQAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\SettingsMenu\SettingsInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.BindClientAccessors" Collapsed="true">
+    <Position X="46.5" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQKAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAACAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\BindManager\BindInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.BindGroupAccessors" Collapsed="true">
+    <Position X="48.25" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQCAAAAAkAgAAAAAAAAAAAAAAAAAAAAAIAAEAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\BindManager\BindInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.BindAccesssors" Collapsed="true">
+    <Position X="44.75" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABAIAAAAAAAAAAAkAARAAAAAAgAgAAEAAEAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\BindManager\BindInterfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.HudNodeAccessors" Collapsed="true">
+    <Position X="43" Y="10.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAQAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAIEAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementBases\HudNodeBase.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.DimAlignments" Collapsed="true">
+    <Position X="48.25" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAABAAAAAAAAgAAAEAAAAEAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementEnums.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.ParentAlignments" Collapsed="true">
+    <Position X="51.75" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAkAAAAAAAAAAAAAQAAAAAAAIAAAACACAAAAIAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementEnums.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.TextAlignment" Collapsed="true">
+    <Position X="51.75" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACACAAAAIAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementEnums.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.CoordinateSpace" Collapsed="true">
+    <Position X="46.5" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementEnums.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.HudParentAccessors" Collapsed="true">
+    <Position X="44.75" Y="10.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIIAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElementInterfaces\IHudParent.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.ListBoxAccessors" Collapsed="true">
+    <Position X="48.25" Y="10.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\ListBox.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.ListBoxEntryAccessors" Collapsed="true">
+    <Position X="50" Y="10.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgIAAAAAAAAQAAAAAAAAAAgAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\ListBox.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.TextBuilderModes" Collapsed="true">
+    <Position X="46.5" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAEAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\TextBuilderIntefaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.MsgTypes" Collapsed="true">
+    <Position X="50" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAAAAAIAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\MsgEnums.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.ApiModuleTypes" Collapsed="true">
+    <Position X="43" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAAAAAAAAAAAAAAAgAAAAAAAAAEQAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\MsgEnums.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.Rendering.FontStyleEnum" Collapsed="true">
+    <Position X="51.75" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAACAAAAAAAAAAEAAAAAAAAAAAAAAAAAE=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\IFontMin.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.Rendering.MaterialAlignment" Collapsed="true">
+    <Position X="43" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAAAAAAAAEAAAAAAAAAAAAgAAAABAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\MatBoard.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.Rendering.RichCharAccessors" Collapsed="true">
+    <Position X="44.75" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAgAAAAAgAAAAAAAgAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\TextBuilderIntefaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.Rendering.LineAccessors" Collapsed="true">
+    <Position X="46.5" Y="10.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\TextBuilderIntefaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.Rendering.TextBuilderAccessors" Collapsed="true">
+    <Position X="44.75" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAIAAAAAgggAAAAAAAgAAIAAAAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\TextBuilderIntefaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="RichHudFramework.UI.Rendering.TextBoardAccessors" Collapsed="true">
+    <Position X="43" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABBAAAAAAAAAAAAAAAAAAAIQAAAAAAAAAAAAAAAABAA=</HashCode>
+      <FileName>RichHudClient\Data\Scripts\RichHudFramework\Shared\UI\HUD\Rendering\TextBuilderIntefaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
