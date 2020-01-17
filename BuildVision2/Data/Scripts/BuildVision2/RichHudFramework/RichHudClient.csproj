@@ -163,7 +163,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram1.cd" />
-    <None Include="Shared\.gitrepo" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
