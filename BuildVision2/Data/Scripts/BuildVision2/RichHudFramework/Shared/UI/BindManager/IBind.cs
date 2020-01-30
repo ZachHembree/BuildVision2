@@ -69,8 +69,14 @@ namespace RichHudFramework
 
         public interface IBind
         {
+            /// <summary>
+            /// Name of the keybind
+            /// </summary>
             string Name { get; }
 
+            /// <summary>
+            /// Index of the bind within its group
+            /// </summary>
             int Index { get; }
 
             /// <summary>
@@ -89,7 +95,7 @@ namespace RichHudFramework
             bool IsPressed { get; }
 
             /// <summary>
-            /// True on new press and after being held for more than 500ms.
+            /// True after being held for more than 500ms.
             /// </summary>
             bool IsPressedAndHeld { get; }
 
@@ -99,20 +105,34 @@ namespace RichHudFramework
             bool IsReleased { get; }
 
             /// <summary>
-            /// Events triggered whenever their corresponding booleans are true.
+            /// Invoked when the bind is first pressed.
             /// </summary>
-            event Action OnNewPress, OnPressAndHold, OnRelease;
+            event Action OnNewPress;
+
+            /// <summary>
+            /// Invoked after the bind has been held and pressed for at least 500ms.
+            /// </summary>
+            event Action OnPressAndHold;
+
+            /// <summary>
+            /// Invoked after the bind has been released.
+            /// </summary>
+            event Action OnRelease;
 
             /// <summary>
             /// Returns a list of the current key combo for this bind.
             /// </summary>
-            /// <returns></returns>
             IList<IControl> GetCombo();
 
             /// <summary>
             /// Attempts to set the binds combo to the given controls. Returns true if successful.
             /// </summary>
-            bool TrySetCombo(IControl[] combo, bool strict = true, bool silent = false);
+            bool TrySetCombo(IList<IControl> combo, bool strict = true, bool silent = false);
+
+            /// <summary>
+            /// Attempts to set the binds combo to the given controls. Returns true if successful.
+            /// </summary>
+            bool TrySetCombo(IList<int> combo, bool strict = true, bool silent = false);
 
             /// <summary>
             /// Attempts to set the binds combo to the given controls. Returns true if successful.
@@ -129,6 +149,9 @@ namespace RichHudFramework
             /// </summary>
             void ClearSubscribers();
 
+            /// <summary>
+            /// Returns information needed to access the bind via the API.
+            /// </summary>
             BindMembers GetApiData();
         }
     }

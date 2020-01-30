@@ -13,35 +13,39 @@ namespace RichHudFramework.Client
     using ClientData = MyTuple<string, Action<int, object>, Action, int>;
     using ServerData = MyTuple<Action, Func<int, object>, int>;
 
-    /// <summary>
-    /// Base class for mods making use of the Rich HUD Framework
-    /// </summary>
-    public abstract class RichHudClient : ModBase
+    public sealed class RichHudClient : ModBase.ComponentBase
     {
         private const long modID = 1965654081, queueID = 1314086443;
         private const int versionID = 1;
 
-        public static bool Registered => Instance.registered;
-        private static new RichHudClient Instance;
+        public static bool Registered => Instance != null ? Instance.registered : false;
+        private static RichHudClient Instance { get; set; }
 
         private ClientData regMessage;
         private bool regFail, registered, inQueue;
-
         private Action UnregisterAction;
         private Func<int, object> GetApiDataFunc;
+        private readonly ModBase modInstance;
+        private readonly Action InitCallbackAction;
 
-        public RichHudClient() : base(false, true)
+        private RichHudClient(ModBase mod, Action InitCallback = null) : base(false, true)
         {
-            regMessage = new ClientData(ModName, MessageHandler, () => RunSafeAction(Reload), versionID);
+            InitCallbackAction = InitCallback;
+            modInstance = mod;
+
+            regMessage = new ClientData(ModBase.ModName, MessageHandler, () => ModBase.RunSafeAction(RemoteReload), versionID);
         }
 
-        protected sealed override void AfterInit()
+        public static void Init(ModBase mod, Action InitCallback = null)
         {
-            Instance = this;
-            RequestRegistration();
+            if (Instance == null)
+            {
+                Instance = new RichHudClient(mod, InitCallback);
+                Instance.RequestRegistration();
 
-            if (!Registered && !regFail)
-                EnterQueue();
+                if (!Registered && !Instance.regFail)
+                    Instance.EnterQueue();
+            }
         }
 
         /// <summary>
@@ -85,29 +89,24 @@ namespace RichHudFramework.Client
                     var data = (ServerData)message;
                     UnregisterAction = data.Item1;
                     GetApiDataFunc = data.Item2;
-
                     registered = true;
-                    RunSafeAction(HudInit);
+
+                    if (InitCallbackAction != null)
+                        ModBase.RunSafeAction(InitCallbackAction);
                 }
                 else if (msgType == MsgTypes.RegistrationFailed)
                 {
                     if (message is string)
-                        WriteToLogStart($"Rich HUD API registration failed. Message: {message as string}");
+                        ModBase.WriteToLogStart($"Rich HUD API registration failed. Message: {message as string}");
                     else
-                        WriteToLogStart($"Rich HUD API registration failed.");
+                        ModBase.WriteToLogStart($"Rich HUD API registration failed.");
 
                     regFail = true;
                 }
             }
         }
 
-        /// <summary>
-        /// Called immediately after the client registers with the API.
-        /// </summary>
-        protected virtual void HudInit()
-        { }
-
-        protected override void Update()
+        public override void Update()
         {
             if (registered && inQueue)
             {
@@ -116,12 +115,20 @@ namespace RichHudFramework.Client
             }
         }
 
-        protected sealed override void BeforeClose()
+        public override void Close()
         {
             ExitQueue();
-            HudClose();
             Unregister();
             Instance = null;
+        }
+
+        private void RemoteReload()
+        {
+            if (registered)
+            {
+                Unregister();
+                modInstance.Reload();
+            }
         }
 
         /// <summary>
@@ -137,20 +144,17 @@ namespace RichHudFramework.Client
         }
 
         /// <summary>
-        /// Called immediately before mod close and before the client unregisters from the API.
-        /// </summary>
-        protected virtual void HudClose()
-        { }
-
-        /// <summary>
         /// Base class for types acting as modules for the API
         /// </summary>
-        public abstract class ApiModule<T> : ComponentBase
+        public abstract class ApiModule<T> : ModBase.ComponentBase
         {
             protected readonly ApiModuleTypes componentType;
 
             public ApiModule(ApiModuleTypes componentType, bool runOnServer, bool runOnClient) : base(runOnServer, runOnClient)
             {
+                if (Instance == null)
+                    throw new Exception("Types of ApiModule cannot be instantiated before RichHudClient is initialized.");
+
                 this.componentType = componentType;
             }
 

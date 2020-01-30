@@ -119,7 +119,13 @@ namespace RichHudFramework
                 public Color Color
                 {
                     get { return color; }
-                    set { color = value; minBoard.bbColor = GetBillboardColor(value); }
+                    set 
+                    {
+                        if (value != color)
+                            minBoard.bbColor = GetBillboardColor(value);
+
+                        color = value;                         
+                    }
                 }
 
                 public Vector2 Size

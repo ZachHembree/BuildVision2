@@ -22,9 +22,9 @@ namespace RichHudFramework.UI.Client
 
         public DropdownControl() : base(MenuControls.DropdownControl)
         {
-            var listData = (ApiMemberAccessor)GetOrSetMemberFunc(null, (int)ListControlAccessors.ListAccessors);
+            var listData = GetOrSetMemberFunc(null, (int)ListControlAccessors.ListAccessors) as ApiMemberAccessor;
             
-            List = new ListBoxData<T>(GetOrSetMemberFunc);
+            List = new ListBoxData<T>(listData);
         }
     }
 }

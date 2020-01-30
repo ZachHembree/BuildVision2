@@ -213,9 +213,9 @@ namespace DarkHelmet.BuildVision2
 
         protected override void HandleInput()
         {
-            if (BvBinds.ScrollUp.IsNewPressed)
+            if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
                 Scroll(-1);
-            else if (BvBinds.ScrollDown.IsNewPressed)
+            else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
                 Scroll(1);
 
             if (BvBinds.Select.IsNewPressed)

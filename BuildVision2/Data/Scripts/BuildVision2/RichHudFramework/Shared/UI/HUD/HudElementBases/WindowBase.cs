@@ -65,33 +65,42 @@ namespace RichHudFramework.UI
         protected int resizeDir;
         protected Vector2 cursorOffset, minimumSize;
 
-        public WindowBase(IHudParent parent = null) : base(parent)
+        public WindowBase(IHudParent parent) : base(parent)
         {
             CaptureCursor = true;
             AllowResizing = true;
             CanDrag = true;
             MinimumSize = new Vector2(200f, 200f);
 
-            body = new TexturedBox(this)
-            {
-                DimAlignment = DimAlignments.Both,
-            };
-
-            border = new BorderBox(this)
-            { Thickness = 1f, DimAlignment = DimAlignments.Both, };
-
             header = new TextBoxButton(this)
             {
+                DimAlignment = DimAlignments.Width,
                 ParentAlignment = ParentAlignments.Top | ParentAlignments.Inner,
                 HighlightEnabled = false,
                 Height = 24f,
                 AutoResize = false
             };
 
-            resizeBottom = new ClickableElement(this) { Height = 1f, ParentAlignment = ParentAlignments.Bottom };
-            resizeTop = new ClickableElement(this) { Height = 1f, ParentAlignment = ParentAlignments.Top };
-            resizeLeft = new ClickableElement(this) { Width = 1f, ParentAlignment = ParentAlignments.Left };
-            resizeRight = new ClickableElement(this) { Width = 1f, ParentAlignment = ParentAlignments.Right };
+            body = new TexturedBox(header)
+            {
+                DimAlignment = DimAlignments.Width,
+                ParentAlignment = ParentAlignments.Bottom,
+            };
+
+            border = new BorderBox(this)
+            { Thickness = 1f, DimAlignment = DimAlignments.Both, };
+
+            resizeBottom = new ClickableElement(this) 
+            { Height = 1f, DimAlignment = DimAlignments.Width, ParentAlignment = ParentAlignments.Bottom };
+
+            resizeTop = new ClickableElement(this) 
+            { Height = 1f, DimAlignment = DimAlignments.Width, ParentAlignment = ParentAlignments.Top };
+
+            resizeLeft = new ClickableElement(this) 
+            { Width = 1f, DimAlignment = DimAlignments.Height, ParentAlignment = ParentAlignments.Left };
+
+            resizeRight = new ClickableElement(this) 
+            { Width = 1f, DimAlignment = DimAlignments.Height, ParentAlignment = ParentAlignments.Right };
 
             header.MouseInput.OnLeftClick += HeaderClicked;
 
@@ -109,13 +118,7 @@ namespace RichHudFramework.UI
             if (canResize)
                 Resize();
 
-            header.Width = Width;
-
-            resizeBottom.Width = Width;
-            resizeTop.Width = Width;
-
-            resizeLeft.Height = Height;
-            resizeRight.Height = Height;
+            body.Height = Height - header.Height;
         }
 
         protected override void HandleInput()

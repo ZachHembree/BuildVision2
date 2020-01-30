@@ -7,12 +7,50 @@ namespace RichHudFramework.UI
     /// </summary>
     public class ClickableElement : HudElementBase, IClickableElement
     {
-        public event Action OnLeftClick, OnRightClick, OnLeftRelease, OnRightRelease, OnCursorEnter, OnCursorExit;
+        /// <summary>
+        /// Invoked when the cursor enters the element's bounds
+        /// </summary>
+        public event Action OnCursorEnter;
+
+        /// <summary>
+        /// Invoked when the cursor leaves the element's bounds
+        /// </summary>
+        public event Action OnCursorExit;
+
+        /// <summary>
+        /// Invoked when the element is clicked with the left mouse button
+        /// </summary>
+        public event Action OnLeftClick;
+
+        /// <summary>
+        /// Invoked when the left click is released
+        /// </summary>
+        public event Action OnLeftRelease;
+
+        /// <summary>
+        /// Invoked when the element is clicked with the right mouse button
+        /// </summary>
+        public event Action OnRightClick;
+
+        /// <summary>
+        /// Invoked when the right click is released
+        /// </summary>
+        public event Action OnRightRelease;
 
         /// <summary>
         /// Indicates whether or not this element is currently selected.
         /// </summary>
         public bool HasFocus { get { return hasFocus && Visible; } private set { hasFocus = value; } }
+
+        /// <summary>
+        /// True if the element is being clicked with the left mouse button
+        /// </summary>
+        public bool IsLeftClicked { get; private set; }
+
+        /// <summary>
+        /// True if the element is being clicked with the right mouse button
+        /// </summary>
+        public bool IsRightClicked { get; private set; }
 
         private bool mouseCursorEntered;
         private bool hasFocus;
@@ -37,16 +75,15 @@ namespace RichHudFramework.UI
                 {
                     OnLeftClick?.Invoke();
                     HasFocus = true;
+                    IsLeftClicked = true;
                 }
-                else if (SharedBinds.RightButton.IsNewPressed)
+
+                if (SharedBinds.RightButton.IsNewPressed)
                 {
                     OnRightClick?.Invoke();
                     HasFocus = true;
-                }
-                else if (SharedBinds.LeftButton.IsReleased)
-                    OnLeftRelease?.Invoke();
-                else if (SharedBinds.RightButton.IsReleased)
-                    OnRightRelease?.Invoke();
+                    IsRightClicked = true;
+                }                
             }
             else
             {
@@ -54,17 +91,22 @@ namespace RichHudFramework.UI
                 {
                     mouseCursorEntered = false;
                     OnCursorExit?.Invoke();
-
-                    if (SharedBinds.LeftButton.IsPressed)
-                        OnLeftRelease?.Invoke();
-                    else if (SharedBinds.RightButton.IsPressed)
-                        OnRightRelease?.Invoke();
                 }
 
                 if (HasFocus && (SharedBinds.LeftButton.IsNewPressed || SharedBinds.RightButton.IsNewPressed))
-                {
                     HasFocus = false;
-                }
+            }
+
+            if (!SharedBinds.LeftButton.IsPressed && IsLeftClicked)
+            {
+                OnLeftRelease?.Invoke();
+                IsLeftClicked = false;
+            }
+
+            if (!SharedBinds.RightButton.IsPressed && IsRightClicked)
+            {
+                OnRightRelease?.Invoke();
+                IsRightClicked = false;
             }
         }
     }

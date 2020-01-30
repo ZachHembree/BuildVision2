@@ -7,12 +7,12 @@ using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Colo
 
 namespace RichHudFramework
 {
-    using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
-    using Vec2Prop = MyTuple<Func<Vector2>, Action<Vector2>>;
-    using FloatProp = MyTuple<Func<float>, Action<float>>;
     using BoolProp = MyTuple<Func<bool>, Action<bool>>;
+    using FloatProp = MyTuple<Func<float>, Action<float>>;
     using RangeData = MyTuple<Vector2I, Vector2I>;
     using RangeFormatData = MyTuple<Vector2I, Vector2I, GlyphFormatMembers>;
+    using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
+    using Vec2Prop = MyTuple<Func<Vector2>, Action<Vector2>>;
 
     namespace UI
     {
@@ -30,20 +30,43 @@ namespace RichHudFramework
         {
             public abstract class TextBuilder : ITextBuilder
             {
+                /// <summary>
+                /// Returns the character at the index specified.
+                /// </summary>
                 public IRichChar this[Vector2I index] => new RichCharData(this, index);
+
+                /// <summary>
+                /// Returns the line at the index given.
+                /// </summary>
                 public ILine this[int index] => new LineData(this, index);
+
+                /// <summary>
+                /// Returns the current number of lines.
+                /// </summary>
                 public int Count => GetCountFunc();
+
+                /// <summary>
+                /// Default text format. Applied to strings added without any other formatting specified.
+                /// </summary>
                 public GlyphFormat Format
                 {
                     get { return new GlyphFormat((GlyphFormatMembers)GetOrSetMemberFunc(null, (int)TextBuilderAccessors.Format)); }
                     set { GetOrSetMemberFunc(value.data, (int)TextBuilderAccessors.Format); }
                 }
 
+                /// <summary>
+                /// Gets or sets the maximum line width before text will wrap to the next line. Word wrapping must be enabled for
+                /// this to apply.
+                /// </summary>
                 public float LineWrapWidth
                 {
                     get { return (float)GetOrSetMemberFunc(null, (int)TextBuilderAccessors.LineWrapWidth); }
                     set { GetOrSetMemberFunc(value, (int)TextBuilderAccessors.LineWrapWidth); }
-                } 
+                }
+
+                /// <summary>
+                /// Determines the formatting mode of the text.
+                /// </summary>
                 public TextBuilderModes BuilderMode
                 {
                     get { return (TextBuilderModes)GetOrSetMemberFunc(null, (int)TextBuilderAccessors.BuilderMode); }
@@ -70,60 +93,108 @@ namespace RichHudFramework
                     ClearAction = data.Item6;
                 }
 
+                /// <summary>
+                /// Clears current text and appends the text given.
+                /// </summary>
                 public void SetText(string text)
                 {
                     ClearAction();
                     InsertStringAction(new RichStringMembers(new StringBuilder(text), Format.data), GetLastIndex());
                 }
 
+                /// <summary>
+                /// Clears current text and appends the text given.
+                /// </summary>
                 public void SetText(RichText text)
                 {
                     ClearAction();
                     Insert(text, GetLastIndex());
                 }
 
+                /// <summary>
+                /// Clears current text and appends the text given.
+                /// </summary>
                 public void SetText(RichString text)
                 {
                     ClearAction();
                     Insert(text, GetLastIndex());
                 }
 
+                /// <summary>
+                /// Appends the given <see cref="string"/> to the end of the text using the default <see cref="GlyphFormat"/>.
+                /// </summary>
                 public void Append(string text) =>
                     InsertStringAction(new RichStringMembers(new StringBuilder(text), Format.data), GetLastIndex());
 
+                /// <summary>
+                /// Appends the given text to the end of the text using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichText"/>.
+                /// </summary>
                 public void Append(RichText text) =>
                     Insert(text, GetLastIndex());
 
+                /// <summary>
+                /// Appends the given text to the end of the text using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichString"/>.
+                /// </summary>
                 public void Append(RichString text) =>
                     Insert(text, GetLastIndex());
 
+                /// <summary>
+                /// Inserts the given text to the end of the text at the specified starting index using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichText"/>.
+                /// </summary>
                 public void Insert(RichText text, Vector2I start) =>
                     InsertTextAction(text.GetApiData(), start);
 
+                /// <summary>
+                /// Inserts the given text to the end of the text at the specified starting index using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichString"/>.
+                /// </summary>
                 public void Insert(RichString text, Vector2I start) =>
                     InsertStringAction(text.GetApiData(), start);
 
+                /// <summary>
+                /// Inserts the given <see cref="string"/> at the given starting index using the default <see cref="GlyphFormat"/>.
+                /// </summary>
                 public void Insert(string text, Vector2I start) =>
                     InsertStringAction(new RichStringMembers(new StringBuilder(text), Format.data), start);
 
+                /// <summary>
+                /// Returns the contents of the text as <see cref="RichText"/>.
+                /// </summary>
                 public RichText GetText() =>
                     GetTextRange(Vector2I.Zero, GetLastIndex() - new Vector2I(0, 1));
 
+                /// <summary>
+                /// Returns the specified range of characters from the text as <see cref="RichText"/>.
+                /// </summary>
                 public RichText GetTextRange(Vector2I start, Vector2I end) =>
                     new RichText(GetOrSetMemberFunc(new RangeData(start, end), (int)TextBuilderAccessors.GetRange) as IList<RichStringMembers>);
 
+                /// <summary>
+                /// Changes the formatting for the whole text to the given format.
+                /// </summary>
                 public void SetFormatting(GlyphFormat format) =>
                     SetFormatting(Vector2I.Zero, GetLastIndex() - new Vector2I(0, 1), format);
 
+                /// <summary>
+                /// Changes the formatting for the text within the given range to the given format.
+                /// </summary>
                 public void SetFormatting(Vector2I start, Vector2I end, GlyphFormat format) =>
                     GetOrSetMemberFunc(new RangeFormatData(start, end, format.data), (int)TextBuilderAccessors.SetFormatting);
 
+                /// <summary>
+                /// Removes the character at the specified index.
+                /// </summary>
                 public void RemoveAt(Vector2I index) =>
                     RemoveRange(index, index);
 
+                /// <summary>
+                /// Removes all text within the specified range.
+                /// </summary>
                 public void RemoveRange(Vector2I start, Vector2I end) =>
                     GetOrSetMemberFunc(new RangeData(start, end), (int)TextBuilderAccessors.RemoveRange);
 
+                /// <summary>
+                /// Clears all existing text.
+                /// </summary>
                 public void Clear() =>
                     ClearAction();
 

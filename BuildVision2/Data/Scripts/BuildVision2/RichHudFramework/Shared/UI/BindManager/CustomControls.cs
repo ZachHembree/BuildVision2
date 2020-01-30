@@ -8,8 +8,8 @@ namespace RichHudFramework
     {
         public enum RichHudControls : int
         {
-            MousewheelUp = 1,
-            MousewheelDown = 2,
+            MousewheelUp = 256,
+            MousewheelDown = 257,
         }
     }
 }

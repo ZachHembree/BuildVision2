@@ -31,28 +31,19 @@ namespace RichHudFramework.UI
     public class ListBox<T> : HudElementBase, IListBoxEntry
     {
         public event Action OnSelectionChanged;
-        public ReadOnlyCollection<ListBoxEntry<T>> Members => scrollBox.List;
-
-        public override float Width
-        {
-            get { return scrollBox.Width; }
-            set { scrollBox.Width = value; }
-        }
-
-        public override float Height
-        {
-            get { return scrollBox.Height; }
-            set { scrollBox.Height = value; }
-        }
+        public ReadOnlyCollection<ListBoxEntry<T>> List => scrollBox.List;
 
         /// <summary>
         /// Background color
         /// </summary>
         public Color Color { get { return scrollBox.Color; } set { scrollBox.Color = value; } }
 
+        /// <summary>
+        /// Background color of the highlight box
+        /// </summary>
         public Color HighlightColor
         {
-            get { return selectionBox.TabColor; }
+            get { return selectionBox.Color; }
             set
             {
                 selectionBox.Color = value;
@@ -60,6 +51,9 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Color of the highlight box's tab
+        /// </summary>
         public Color TabColor
         {
             get { return selectionBox.TabColor; }
@@ -70,10 +64,17 @@ namespace RichHudFramework.UI
             }
         }
 
-        /// <summary>
-        /// Color of the border box
-        /// </summary>
-        public Color BorderColor { get { return border.Color; } set { border.Color = value; } }
+        public float LineHeight 
+        { 
+            get { return lineHeight; } 
+            set 
+            {
+                lineHeight = value;
+                
+                for (int n = 0; n < scrollBox.List.Count; n++)
+                    scrollBox.List[n].Height = value;
+            } 
+        }
 
         /// <summary>
         /// Default format for member text;
@@ -100,25 +101,26 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool Enabled { get; set; }
 
-        private readonly ScrollBox<ListBoxEntry<T>> scrollBox;
-        private readonly HighlightBox selectionBox, highlight;
-        private readonly BorderBox border;
+        public readonly ScrollBox<ListBoxEntry<T>> scrollBox;
+        protected readonly HighlightBox selectionBox, highlight;
+        protected readonly BorderBox border;
+        private float lineHeight;
 
         public ListBox(IHudParent parent = null) : base(parent)
         {
             scrollBox = new ScrollBox<ListBoxEntry<T>>(this)
             {
                 FitToChain = false,
+                ClampMembers = true,
                 AlignVertical = true,
-                Size = new Vector2(355f, 300f),
-                //ParentAlignment = ParentAlignments.Top | ParentAlignments.InnerV
+                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
             };
 
             border = new BorderBox(scrollBox)
             {
                 DimAlignment = DimAlignments.Both,
                 Color = new Color(58, 68, 77),
-                Thickness = 2f,
+                Thickness = 1f,
             };
 
             selectionBox = new HighlightBox(scrollBox.Members)
@@ -128,7 +130,10 @@ namespace RichHudFramework.UI
             { Color = new Color(34, 44, 53) };
 
             Size = new Vector2(355f, 223f);
+            lineHeight = 30f;
+
             Enabled = true;
+            CaptureCursor = true;
         }
 
         /// <summary>
@@ -157,8 +162,8 @@ namespace RichHudFramework.UI
             {
                 member = new ListBoxEntry<T>(assocMember)
                 {
-                    Size = new Vector2(310f, 30f),
-                    Padding = new Vector2(10f, 0f)
+                    Format = Format,
+                    Height = lineHeight,
                 };
 
                 member.OnMemberSelected += SetSelection;
@@ -252,7 +257,7 @@ namespace RichHudFramework.UI
             switch (member)
             {
                 case ListBoxAccessors.ListMembers:
-                    return new CollectionData(x => Members[x].GetOrSetMember, () => Members.Count);
+                    return new CollectionData(x => List[x].GetOrSetMember, () => List.Count);
                 case ListBoxAccessors.Add:
                     {
                         var entryData = (MyTuple<RichStringMembers[], T>)data;

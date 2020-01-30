@@ -1,4 +1,5 @@
 ﻿using RichHudFramework.Game;
+using VRage.Input;
 
 namespace RichHudFramework.UI
 {
@@ -45,30 +46,30 @@ namespace RichHudFramework.UI
         private SharedBinds() : base(false, true)
         {
             sharedBinds = BindManager.GetOrCreateGroup("SharedBinds");
-            sharedBinds.RegisterBinds(new BindDefinition[]
+            sharedBinds.RegisterBinds(new BindGroupData
             {
-                new BindDefinition("leftbutton", new string[] { "leftbutton" }),
-                new BindDefinition("rightbutton", new string[] { "rightbutton" }),
-                new BindDefinition("mousewheelup", new string[] { "mousewheelup" }),
-                new BindDefinition("mousewheeldown", new string[] { "mousewheeldown" }),
+                { "leftbutton", MyKeys.LeftButton },
+                { "rightbutton", MyKeys.RightButton },
+                { "mousewheelup", RichHudControls.MousewheelUp },
+                { "mousewheeldown", RichHudControls.MousewheelDown },
 
-                new BindDefinition("enter", new string[] { "enter" }),
-                new BindDefinition("back", new string[] { "back" }),
-                new BindDefinition("delete", new string[] { "delete" }),
-                new BindDefinition("escape", new string[] { "escape" }),
+                { "enter", MyKeys.Enter },
+                { "back", MyKeys.Back },
+                { "delete", MyKeys.Delete },
+                { "escape", MyKeys.Escape },
 
-                new BindDefinition("selectall", new string[] { "control", "a" }),
-                new BindDefinition("copy", new string[] { "control", "c" }),
-                new BindDefinition("cut", new string[] { "control", "x" }),
-                new BindDefinition("paste", new string[] { "control", "v" }),
-                    
-                new BindDefinition("uparrow", new string[] { "up" }),
-                new BindDefinition("downarrow", new string[] { "down" }),
-                new BindDefinition("leftarrow", new string[] { "left" }),
-                new BindDefinition("rightarrow", new string[] { "right" }),
+                { "selectall", MyKeys.Control, MyKeys.A },
+                { "copy", MyKeys.Control, MyKeys.C },
+                { "cut", MyKeys.Control, MyKeys.X },
+                { "paste", MyKeys.Control, MyKeys.V },
 
-                new BindDefinition("shift", new string[] { "shift" }),
-                new BindDefinition("tilde", new string[] { "oemtilde" }),
+                { "uparrow", MyKeys.Up },
+                { "downarrow", MyKeys.Down },
+                { "leftarrow", MyKeys.Left },
+                { "rightarrow", MyKeys.Right },
+
+                { "shift", MyKeys.Shift },
+                { "tilde", MyKeys.OemTilde },
             });
         }
 

@@ -21,7 +21,7 @@ namespace RichHudFramework
         MyTuple<
             Func<object, bool>, // TryCapture
             Func<object, bool>, // TryRelease
-            ApiMemberAccessor
+            ApiMemberAccessor // GetOrSetMembers
         >
     >;
     using HudElementMembers = MyTuple<
@@ -64,24 +64,61 @@ namespace RichHudFramework
                 Func<float>, // FovScale
                 MyTuple<Func<IList<RichStringMembers>>, Action<IList<RichStringMembers>>>,
                 Func<TextBoardMembers>, // GetNewTextBoard
-                ApiMemberAccessor
+                ApiMemberAccessor // GetOrSetMembers
             >
         >;
 
         public sealed class HudMain : RichHudClient.ApiModule<HudMainMembers>
         {
+            /// <summary>
+            /// Root parent for all HUD elements.
+            /// </summary>
             public static HudParentData Root => Instance.root;
+
+            /// <summary>
+            /// Cursor shared between mods.
+            /// </summary>
             public static ICursor Cursor => Instance.cursor;
+
+            /// <summary>
+            /// Shared clipboard.
+            /// </summary>
             public static RichText ClipBoard
             {
                 get { return new RichText(Instance.ClipboardPropWrapper.Getter()); }
                 set { Instance.ClipboardPropWrapper.Setter(value.GetApiData()); }
             }
+
+            /// <summary>
+            /// Resolution scale normalized to 1080p for resolutions over 1080p. Returns a scale of 1f
+            /// for lower resolutions.
+            /// </summary>
             public static float ResScale => Instance.ResScaleFunc();
+
+            /// <summary>
+            /// The current horizontal screen resolution in pixels.
+            /// </summary>
             public static float ScreenWidth => Instance.ScreenWidthFunc();
+
+            /// <summary>
+            /// The current vertical resolution in pixels.
+            /// </summary>
             public static float ScreenHeight => Instance.ScreenHeightFunc();
+
+            /// <summary>
+            /// The current aspect ratio (ScreenWidth/ScreenHeight).
+            /// </summary>
             public static float AspectRatio => Instance.AspectRatioFunc();
+
+            /// <summary>
+            /// The current field of view
+            /// </summary>
             public static float Fov => Instance.FovFunc();
+
+            /// <summary>
+            /// Scaling used by MatBoards to compensate for changes in apparent size and position as a result
+            /// of changes to Fov.
+            /// </summary>
             public static float FovScale => Instance.FovScaleFunc();
 
             private static HudMain Instance

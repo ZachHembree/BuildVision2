@@ -12,8 +12,8 @@ namespace RichHudFramework.UI
                 if (value > Padding.X)
                     value -= Padding.X;
 
-                slide.bar.Width = value;
-                slide.button.Width = value;
+                slide.BarWidth = value;
+                slide.SliderWidth = value;
             }
         }
 
@@ -25,8 +25,8 @@ namespace RichHudFramework.UI
                 if (value > Padding.Y)
                     value -= Padding.Y;
 
-                slide.bar.Height = value;
-                slide.button.Height = value;
+                slide.BarHeight = value;
+                slide.SliderHeight = value;
             }
         }
 
@@ -49,13 +49,18 @@ namespace RichHudFramework.UI
 
         public ScrollBar(IHudParent parent = null) : base(parent)
         {
-            slide = new SliderBar(this) { Reverse = true, Vertical = true };
-            slide.button.Width = 12f;
-            slide.button.Color = new Color(103, 109, 124);
+            slide = new SliderBar(this) 
+            { 
+                Reverse = true, 
+                Vertical = true,
+                SliderWidth = 12f,
+                BarWidth = 12f,
 
-            slide.bar.Width = 12f;
-            slide.bar.Color = new Color(41, 51, 61);
-            slide.bar.highlightEnabled = false;
+                SliderColor = new Color(103, 109, 124),
+                SliderHighlight = new Color(137, 140, 149),
+
+                BarColor = new Color(41, 51, 61),
+            };
 
             Padding = new Vector2(18f, 18f);
             Size = new Vector2(317f, 47f);
@@ -65,11 +70,13 @@ namespace RichHudFramework.UI
         {
             if (Vertical)
             {
-                slide.button.Width = slide.bar.Width;
+                slide.SliderWidth = slide.BarWidth;
+                slide.SliderVisible = slide.SliderHeight < slide.BarHeight;
             }
             else
             {
-                slide.bar.Height = slide.button.Height;
+                slide.BarHeight = slide.SliderHeight;
+                slide.SliderVisible = slide.SliderWidth < slide.BarWidth;
             }
         }
     }    

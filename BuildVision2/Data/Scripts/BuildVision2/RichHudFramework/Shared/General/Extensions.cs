@@ -87,6 +87,9 @@ namespace RichHudFramework
         public static Color SetAlpha(this Color color, byte alpha) =>
             new Color(color.R, color.G, color.B, alpha);
 
+        public static Color SetAlphaPct(this Color color, float alphaPercent) =>
+            new Color(color.R, color.G, color.B, (byte)(alphaPercent * 255f));
+
         /// <summary>
         /// Retrieves the channel of a given <see cref="Color"/> by its index. R = 0, G = 1, B = 2, A = 3.
         /// </summary>

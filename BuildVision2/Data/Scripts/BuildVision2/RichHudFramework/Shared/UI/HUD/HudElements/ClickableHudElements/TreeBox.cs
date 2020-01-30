@@ -11,16 +11,6 @@ namespace RichHudFramework.UI
         public event Action OnSelectionChanged;
         public ReadOnlyCollection<ListBoxEntry<T>> Members => chain.List;
 
-        public override float Width
-        {
-            get { return display.Width; }
-            set
-            {
-                display.Width = value;
-                chain.Width = value - IndentSize;
-            }
-        }
-
         public override float Height
         {
             get
@@ -42,12 +32,16 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Name of the element as rendered on the display
         /// </summary>
-        public RichText Name { get { return display.Text; } set { display.Text = value; } }
+        public RichText Name { get { return display.Name; } set { display.Name = value; } }
 
         /// <summary>
         /// Default format for member text;
         /// </summary>
         public GlyphFormat Format { get { return display.Format; } set { display.Format = value; } }
+
+        public Color HeaderColor { get { return display.Color; } set { display.Color = value; } }
+
+        public Color HighlightColor { get { return highlight.Color; } set { highlight.Color = value; selectionBox.Color = value; } }
 
         /// <summary>
         /// Current selection. Null if empty.
@@ -74,7 +68,7 @@ namespace RichHudFramework.UI
         {
             display = new TreeBoxDisplay(this)
             {
-                Padding = new Vector2(6f, 0f),
+                Size = new Vector2(200f, 32f),
                 Offset = new Vector2(3f, 0f),
                 ParentAlignment = ParentAlignments.Top | ParentAlignments.InnerV,
             };
@@ -97,7 +91,7 @@ namespace RichHudFramework.UI
             IndentSize = 40f;
 
             Format = GlyphFormat.Blueish;
-            display.Text = "NewTreeBox";
+            display.Name = "NewTreeBox";
 
             display.MouseInput.OnLeftClick += ToggleList;
         }
@@ -216,6 +210,8 @@ namespace RichHudFramework.UI
 
         protected override void Draw()
         {
+            chain.Width = Width - IndentSize;
+
             foreach (ListBoxEntry<T> member in chain.List)
                 member.Height = display.Height;
 
@@ -269,13 +265,33 @@ namespace RichHudFramework.UI
             }
         }
 
-        private class TreeBoxDisplay : TextBoxButton
+        private class TreeBoxDisplay : HudElementBase
         {
             public override float Width
             {
-                get { return base.Width + arrow.Width; }
-                set { base.Width = value - arrow.Width; }
+                get { return layout.Width; }
+                set 
+                {
+                    if (value > Padding.X)
+                        value -= Padding.X;
+
+                    name.Width = value - arrow.Width - divider.Width; 
+                }
             }
+
+            public override Vector2 Padding
+            {
+                get { return layout.Padding; }
+                set { layout.Padding = value; }
+            }
+
+            public RichText Name { get { return name.Text; } set { name.Text = value; } }
+
+            public GlyphFormat Format { get { return name.Format; } set { name.Format = value; } }
+
+            public Color Color { get { return background.Color; } set { background.Color = value; } }
+
+            public IClickableElement MouseInput => mouseInput;
 
             public bool Open
             {
@@ -292,37 +308,58 @@ namespace RichHudFramework.UI
             }
 
             private bool open;
-            private readonly TexturedBox arrow, verticalBar;
+
+            private readonly Label name;
+            private readonly TexturedBox arrow, divider, background;
+            private readonly HudChain<HudElementBase> layout;
+            private readonly ClickableElement mouseInput;
+
             private static readonly Material 
                 downArrow = new Material("RichHudDownArrow", new Vector2(64f, 64f)), 
                 rightArrow = new Material("RichHudRightArrow", new Vector2(64f, 64f));
 
             public TreeBoxDisplay(IHudParent parent = null) : base(parent)
             {
-                AutoResize = false;
-                Format = GlyphFormat.Blueish.WithSize(1.1f);
-                Color = new Color(41, 54, 62);
+                name = new Label()
+                {
+                    AutoResize = false,
+                    Format = GlyphFormat.Blueish.WithSize(1.1f),
+                };
 
-                textElement.ParentAlignment = ParentAlignments.Right | ParentAlignments.InnerH;
+                divider = new TexturedBox()
+                {
+                    DimAlignment = DimAlignments.Height,
+                    Padding = new Vector2(4f, 6f),
+                    Size = new Vector2(2f, 39f),
+                    Color = new Color(104, 113, 120),
+                };
 
-                arrow = new TexturedBox(this)
+                arrow = new TexturedBox()
                 {
                     Width = 20f,
-                    ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH | ParentAlignments.UsePadding,
                     DimAlignment = DimAlignments.Height,
                     MatAlignment = MaterialAlignment.FitHorizontal,
                     Color = new Color(227, 230, 233),
                     Material = rightArrow,
                 };
 
-                verticalBar = new TexturedBox(arrow)
+                background = new TexturedBox(this)
                 {
-                    ParentAlignment = ParentAlignments.Right | ParentAlignments.UsePadding,
+                    Color = new Color(41, 54, 62),
+                    DimAlignment = DimAlignments.Both,
+                };
+
+                layout = new HudChain<HudElementBase>(this)
+                {
+                    AlignVertical = false,
+                    AutoResize = true,
                     DimAlignment = DimAlignments.Height,
-                    Offset = new Vector2(-2f, 0f),
-                    Padding = new Vector2(0f, 6f),
-                    Size = new Vector2(2f, 39f),
-                    Color = new Color(104, 113, 120),
+                    ChildContainer = { arrow, divider, name }
+                };
+
+                mouseInput = new ClickableElement(this)
+                {
+                    DimAlignment = DimAlignments.Both
                 };
             }
         }

@@ -31,7 +31,7 @@ namespace RichHudFramework.UI
         {
             ListReader<char> input = MyAPIGateway.Input.TextInput;
 
-            if (SharedBinds.Back.IsPressedAndHeld)
+            if (SharedBinds.Back.IsPressedAndHeld || SharedBinds.Back.IsNewPressed)
                 Backspace();
 
             for (int n = 0; n < input.Count; n++)

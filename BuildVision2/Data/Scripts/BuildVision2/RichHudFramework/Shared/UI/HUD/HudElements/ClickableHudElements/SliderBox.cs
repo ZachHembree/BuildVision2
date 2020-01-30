@@ -7,57 +7,36 @@ namespace RichHudFramework.UI
     /// </summary>
     public class SliderBox : HudElementBase
     {
-        public override float Width
-        {
-            get { return background.Width; }
-            set
-            {
-                background.Width = value;
-
-                if (value > Padding.X)
-                    value -= Padding.X;
-
-                slide.Width = value;
-            }
-        }
-        public override float Height
-        {
-            get { return background.Height; }
-            set
-            {
-                background.Height = value;
-
-                if (value > Padding.Y)
-                    value -= Padding.Y;
-
-                slide.Height = value;
-            }
-        }
+        public override Vector2 Padding { get { return slide.Padding; } set { slide.Padding = value; } }
 
         public float Min { get { return slide.Min; } set { slide.Min = value; } }
         public float Max { get { return slide.Max; } set { slide.Max = value; } }
         public float Current { get { return slide.Current; } set { slide.Current = value; } }
         public float Percent { get { return slide.Percent; } set { slide.Percent = value; } }
 
-        private readonly TexturedBox background;
-        private readonly BorderBox border;
-        private readonly SliderBar slide;
+        public readonly TexturedBox background;
+        public readonly BorderBox border;
+        public readonly SliderBar slide;
 
         public SliderBox(IHudParent parent = null) : base(parent)
         {
             background = new TexturedBox(this)
-            { Color = new Color(41, 54, 62) };
+            { Color = new Color(41, 54, 62), DimAlignment = DimAlignments.Both };
 
             border = new BorderBox(background)
             { Color = new Color(53, 66, 75), Thickness = 1f, DimAlignment = DimAlignments.Both, };
 
-            slide = new SliderBar(background);
+            slide = new SliderBar(this) 
+            { 
+                DimAlignment = DimAlignments.Both,
+                SliderSize = new Vector2(14f, 28f),
+                BarHeight = 5f,
 
-            slide.button.Size = new Vector2(14f, 28f);
-            slide.button.Color = new Color(103, 109, 124);
-
-            slide.bar.Height = 5f;
-            slide.bar.Color = new Color(103, 109, 124);
+                SliderColor = new Color(103, 109, 124),
+                BarColor = new Color(103, 109, 124),
+                SliderHighlight = new Color(214, 213, 218),
+                BarHighlight = new Color(181, 185, 190),
+            };
 
             Padding = new Vector2(18f, 18f);
             Size = new Vector2(317f, 47f);

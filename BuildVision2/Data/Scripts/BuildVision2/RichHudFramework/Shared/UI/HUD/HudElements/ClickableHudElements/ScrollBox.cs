@@ -44,6 +44,11 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool FitToChain { get; set; }
 
+        /// <summary>
+        /// If true, the scrollbox will attempt to clamp the size of its members between the minimum and set size.
+        /// </summary>
+        public bool ClampMembers { get; set; }
+
         public bool Enabled { get; set; }
 
         public bool AlignVertical
@@ -157,8 +162,6 @@ namespace RichHudFramework.UI
             {
                 Min = 0,
             };
-
-            scrollBar.slide.button.highlightColor = new Color(137, 140, 149);
 
             divider = new TexturedBox(scrollBar)
             {
@@ -326,7 +329,10 @@ namespace RichHudFramework.UI
         {
             int visCount = 0, visStart = 0;
             int newEnd = 0;
-            float size = MaximumSize.Y;
+            float size = MaximumSize.Y,
+                min = MinimumSize.X - Padding.X - scrollBar.Width,
+                max = MaximumSize.X - Padding.X - scrollBar.Width;
+
             chainSize = new Vector2();
 
             for (int n = 0; n < List.Count; n++)
@@ -343,6 +349,9 @@ namespace RichHudFramework.UI
                             size -= List[n].Height;
 
                             chainSize.Y += List[n].Height;
+
+                            if (ClampMembers)
+                                List[n].Width = Utils.Math.Clamp(List[n].Width, min, max);
 
                             if (List[n].Width > chainSize.X)
                                 chainSize.X = List[n].Width;
@@ -369,7 +378,10 @@ namespace RichHudFramework.UI
         {
             int visCount = 0, visStart = 0;
             int newEnd = 0;
-            float size = MaximumSize.X;
+            float size = MaximumSize.X, 
+                min = MinimumSize.Y - Padding.Y - scrollBar.Height, 
+                max = MaximumSize.Y - Padding.Y - scrollBar.Height;
+
             chainSize = new Vector2();
 
             for (int n = 0; n < List.Count; n++)
@@ -386,6 +398,9 @@ namespace RichHudFramework.UI
                             size -= List[n].Width;
 
                             chainSize.X += List[n].Width;
+
+                            if (ClampMembers)
+                                List[n].Height = Utils.Math.Clamp(List[n].Height, min, max);
 
                             if (List[n].Height > chainSize.Y)
                                 chainSize.Y = List[n].Height;
@@ -418,16 +433,14 @@ namespace RichHudFramework.UI
                 scrollBar.Height = Height;
                 divider.Height = scrollBar.Height;
 
-                scrollBar.slide.button.Height = ((Height - Padding.Y) / totalSize) * scrollBar.Height;
-                scrollBar.slide.button.Visible = scrollBar.slide.button.Height < scrollBar.slide.bar.Height;
+                scrollBar.slide.SliderSize = new Vector2(scrollBar.slide.SliderSize.X, ((Height - Padding.Y) / totalSize) * scrollBar.Height);
             }
             else
             {
                 scrollBar.Width = Width;
                 divider.Width = scrollBar.Width;
 
-                scrollBar.slide.button.Width = ((Width - Padding.X) / totalSize) * scrollBar.Width;
-                scrollBar.slide.button.Visible = scrollBar.slide.button.Width < scrollBar.slide.bar.Width;
+                scrollBar.slide.SliderSize = new Vector2(((Width - Padding.X) / totalSize) * scrollBar.Width, scrollBar.slide.SliderSize.Y);
             }
         }
 

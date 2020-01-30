@@ -33,23 +33,61 @@ namespace RichHudFramework
         {
             internal enum RichCharAccessors : int
             {
+                /// <summary>
+                /// out: char
+                /// </summary>
                 Ch = 1,
+
+                /// <summary>
+                /// out: GlyphFormatMembers
+                /// </summary>
                 Format = 2,
+
+                /// <summary>
+                /// out: Vector2
+                /// </summary>
                 Size = 3,
+
+                /// <summary>
+                /// out: Vector2
+                /// </summary>
                 Offset = 4
             }
 
             public interface IRichChar
             {
+                /// <summary>
+                /// Character assocated with the glyph
+                /// </summary>
                 char Ch { get; }
+
+                /// <summary>
+                /// Text format used by the character
+                /// </summary>
                 GlyphFormat Format { get; }
+
+                /// <summary>
+                /// Size of the glyph as rendered
+                /// </summary>
                 Vector2 Size { get; }
+
+                /// <summary>
+                /// Position of the glyph relative to the center of its parent text element. Does not include the 
+                /// parent's TextOffset.
+                /// </summary>
                 Vector2 Offset { get; }
             }
 
             internal enum LineAccessors : int
             {
+                /// <summary>
+                /// out: int
+                /// </summary>
                 Count = 1,
+
+                /// <summary>
+                /// out: Vector2
+                /// </summary>
                 Size = 2
             }
 
@@ -60,16 +98,42 @@ namespace RichHudFramework
 
             internal enum TextBuilderAccessors : int
             {
-                LineWrapWidth = 1, // out: Bool
-                BuilderMode = 2, // out: Bool
-                GetRange = 3, // in: Vector2I, Vector2I, out: RichText
-                SetFormatting = 4, // in: GlyphFormat
-                RemoveRange = 5, // in: Vector2I, Vector2I
+                /// <summary>
+                /// in/out: float
+                /// </summary>
+                LineWrapWidth = 1,
+
+                /// <summary>
+                /// in/out: int (TextBuilderModes)
+                /// </summary>
+                BuilderMode = 2,
+
+                /// <summary>
+                /// in: Vector2I, Vector2I, out: List<RichStringMembers>
+                /// </summary>
+                GetRange = 3,
+
+                /// <summary>
+                /// int: GlyphFormatMembers
+                /// </summary>
+                SetFormatting = 4,
+
+                /// <summary>
+                /// in: Vector2I, Vector2I
+                /// </summary>
+                RemoveRange = 5,
+
+                /// <summary>
+                /// in/out: GlyphFormatMembers
+                /// </summary>
                 Format = 6,
             }
 
             public interface ITextBuilder : IIndexedCollection<ILine>
             {
+                /// <summary>
+                /// Returns the character at the index specified.
+                /// </summary>
                 IRichChar this[Vector2I index] { get; }
 
                 /// <summary>
@@ -153,6 +217,9 @@ namespace RichHudFramework
                 /// </summary>
                 RichText GetTextRange(Vector2I start, Vector2I end);
 
+                /// <summary>
+                /// Removes the character at the specified index.
+                /// </summary>
                 void RemoveAt(Vector2I index);
 
                 /// <summary>
@@ -168,23 +235,46 @@ namespace RichHudFramework
 
             internal enum TextBoardAccessors : int
             {
+                /// <summary>
+                /// in/out: bool
+                /// </summary>
                 AutoResize = 129,
+
+                /// <summary>
+                /// in/out: bool
+                /// </summary>
                 VertAlign = 130,
+
+                /// <summary>
+                /// in: Vector2I
+                /// </summary>
                 MoveToChar = 131,
+
+                /// <summary>
+                /// out: Vector2I
+                /// </summary>
                 GetCharAtOffset = 132,
 
                 /// <summary>
                 /// Action event
                 /// </summary>
                 OnTextChanged = 133,
+
+                /// <summary>
+                /// in/out: Vector2
+                /// </summary>
+                TextOffset = 134,
             }
 
             public interface ITextBoard : ITextBuilder
             {
+                /// <summary>
+                /// Invoked whenever a change is made to the text.
+                /// </summary>
                 event Action OnTextChanged;
 
                 /// <summary>
-                /// Text size
+                /// Scale of the text board. Applied after scaling specified in GlyphFormat.
                 /// </summary>
                 float Scale { get; set; }
 
@@ -194,9 +284,14 @@ namespace RichHudFramework
                 Vector2 Size { get; }
 
                 /// <summary>
-                /// Full text size beginning with the StartLine
+                /// Full text size including any text outside the visible range.
                 /// </summary>
                 Vector2 TextSize { get; }
+
+                /// <summary>
+                /// Used to change the position of the text within the text element. AutoResize must be disabled for this to work.
+                /// </summary>
+                Vector2 TextOffset { get; set; }
 
                 /// <summary>
                 /// Size of the text box when AutoResize is set to false. Does nothing otherwise.

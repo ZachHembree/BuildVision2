@@ -15,6 +15,7 @@ using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
+    using UI;
     using ControlMembers = MyTuple<string, string, int, Func<bool>, bool, ApiMemberAccessor>;
     using BindGroupMembers = MyTuple<
         string, // Name                
@@ -51,7 +52,6 @@ namespace RichHudFramework
             private readonly List<IBindGroup> bindGroups;
             private readonly ApiMemberAccessor GetOrSetMemberFunc;
             private readonly Action HandleInputAction, UnloadAction;
-            private readonly int seKeyMax;
 
             private BindManager() : base(ApiModuleTypes.BindManager, false, true)
             {
@@ -74,8 +74,6 @@ namespace RichHudFramework
 
                 foreach (BindGroupMembers group in groups)
                     AddGroupData(group);
-
-                seKeyMax = (int)GetOrSetMemberFunc(null, (int)BindClientAccessors.SeKeyMax);
             }
 
             private static void Init()
@@ -144,7 +142,7 @@ namespace RichHudFramework
             /// Returns the control associated with the given custom <see cref="RichHudControls"/> enum.
             /// </summary>
             public static IControl GetControl(RichHudControls rhdKey) =>
-                Controls[Instance.seKeyMax + (int)rhdKey];
+                Controls[(int)rhdKey];
 
             /// <summary>
             /// Returns the bind group with the name igven.
@@ -171,14 +169,37 @@ namespace RichHudFramework
             /// <summary>
             /// Generates a combo array using the corresponding control indices.
             /// </summary>
-            public static IControl[] GetCombo(IList<int> indices)
+            public static IControl[] GetCombo(IList<ControlData> indices)
             {
-                IControl[] controls = new IControl[indices.Count];
+                IControl[] combo = new IControl[indices.Count];
 
                 for (int n = 0; n < indices.Count; n++)
-                    controls[n] = Controls[indices[n]];
+                {
+                    int index = indices[n];
 
-                return controls;
+                    if (index < Controls.Count)
+                        combo[n] = Controls[index];
+                }
+
+                return combo;
+            }
+
+            /// <summary>
+            /// Generates a combo array using the corresponding control indices.
+            /// </summary>
+            public static IControl[] GetCombo(IList<int> indices)
+            {
+                IControl[] combo = new IControl[indices.Count];
+
+                for (int n = 0; n < indices.Count; n++)
+                {
+                    int index = indices[n];
+
+                    if (index < Controls.Count)
+                        combo[n] = Controls[index];
+                }
+
+                return combo;
             }
 
             /// <summary>
@@ -196,6 +217,19 @@ namespace RichHudFramework
 
                 for (int n = 0; n < controls.Count; n++)
                     indices[n] = controls[n].Index;
+
+                return indices;
+            }
+
+            /// <summary>
+            /// Generates a list of control indices from a list of controls.
+            /// </summary>
+            public static int[] GetComboIndices(IList<ControlData> controls)
+            {
+                int[] indices = new int[controls.Count];
+
+                for (int n = 0; n < controls.Count; n++)
+                    indices[n] = controls[n].index;
 
                 return indices;
             }

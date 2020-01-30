@@ -55,8 +55,6 @@ namespace RichHudFramework
             /// void
             /// </summary>
             Unload = 5,
-
-            SeKeyMax = 6,
         }
 
         public interface IBindClient

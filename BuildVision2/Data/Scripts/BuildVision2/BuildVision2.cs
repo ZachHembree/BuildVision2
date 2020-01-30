@@ -15,7 +15,7 @@ namespace DarkHelmet.BuildVision2
     /// Build vision main class
     /// </summary>
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation, 1)]
-    internal sealed partial class BvMain : RichHudClient
+    internal sealed partial class BvMain : ModBase
     {
         public static BvConfig Cfg { get { return BvConfig.Current; } }
 
@@ -30,14 +30,18 @@ namespace DarkHelmet.BuildVision2
             BvConfig.FileName = "BuildVision2Config.xml";
 
             promptForReload = true;
-            exceptionLimit = 0;
-            recoveryLimit = 4;
+            recoveryLimit = 2;
         }
 
-        public BvMain()
+        public BvMain() : base(false, true)
         { }
 
-        protected override void HudInit()
+        protected override void AfterInit()
+        {
+            RichHudClient.Init(this, HudInit);
+        }
+
+        private void HudInit()
         {
             LoadStarted = true;
             LoadFinished = false;
@@ -61,7 +65,7 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        protected override void HudClose()
+        protected override void BeforeClose()
         {
             if (LoadFinished)
             {

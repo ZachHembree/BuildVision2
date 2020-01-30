@@ -7,10 +7,10 @@ using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Colo
 
 namespace RichHudFramework
 {
+    using BoolProp = MyTuple<Func<bool>, Action<bool>>;
+    using FloatProp = MyTuple<Func<float>, Action<float>>;
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
     using Vec2Prop = MyTuple<Func<Vector2>, Action<Vector2>>;
-    using FloatProp = MyTuple<Func<float>, Action<float>>;
-    using BoolProp = MyTuple<Func<bool>, Action<bool>>;
 
     namespace UI
     {
@@ -38,6 +38,9 @@ namespace RichHudFramework
 
             public class TextBoard : TextBuilder, ITextBoard
             {
+                /// <summary>
+                /// Invoked whenever a change is made to the text.
+                /// </summary>
                 public event Action OnTextChanged
                 {
                     add
@@ -52,20 +55,52 @@ namespace RichHudFramework
                     }
                 }
 
+                /// <summary>
+                /// Scale of the text board. Applied after scaling specified in GlyphFormat.
+                /// </summary>
                 public float Scale { get { return ScaleProp.Getter(); } set { ScaleProp.Setter(value); } }
+
+                /// <summary>
+                /// Size of the text box as rendered
+                /// </summary>
                 public Vector2 Size => GetSizeFunc();
+
+                /// <summary>
+                /// Full text size including any text outside the visible range.
+                /// </summary>
                 public Vector2 TextSize => GetTextSizeFunc();
+
+                /// <summary>
+                /// Used to change the position of the text within the text element. AutoResize must be disabled for this to work.
+                /// </summary>
+                public Vector2 TextOffset
+                {
+                    get { return (Vector2)GetOrSetMemberFunc(null, (int)TextBoardAccessors.TextOffset); }
+                    set { GetOrSetMemberFunc(value, (int)TextBoardAccessors.TextOffset); }
+                }
+
+                /// <summary>
+                /// Size of the text box when AutoResize is set to false. Does nothing otherwise.
+                /// </summary>
                 public Vector2 FixedSize { get { return FixedSizeProp.Getter(); } set { FixedSizeProp.Setter(value); } }
+
+                /// <summary>
+                /// If true, the text board will automatically resize to fit the text.
+                /// </summary>
                 public bool AutoResize
                 {
                     get { return (bool)GetOrSetMemberFunc(null, (int)TextBoardAccessors.AutoResize); }
                     set { GetOrSetMemberFunc(value, (int)TextBoardAccessors.AutoResize); }
-                } 
+                }
+
+                /// <summary>
+                /// If true, the text will be vertically aligned to the center of the text board.
+                /// </summary>
                 public bool VertCenterText
                 {
                     get { return (bool)GetOrSetMemberFunc(null, (int)TextBoardAccessors.VertAlign); }
                     set { GetOrSetMemberFunc(value, (int)TextBoardAccessors.VertAlign); }
-                } 
+                }
 
                 private readonly PropWrapper<float> ScaleProp;
                 private readonly Func<Vector2> GetSizeFunc;
@@ -89,9 +124,16 @@ namespace RichHudFramework
                 public void Draw(Vector2 origin) =>
                     DrawAction(origin);
 
+                /// <summary>
+                /// Calculates and applies the minimum offset needed to ensure that the character at the specified index
+                /// is within the visible range.
+                /// </summary>
                 public void MoveToChar(Vector2I index) =>
                     GetOrSetMemberFunc(index, (int)TextBoardAccessors.MoveToChar);
 
+                /// <summary>
+                /// Returns the index of the character at the given offset.
+                /// </summary>
                 public Vector2I GetCharAtOffset(Vector2 offset) =>
                     (Vector2I)GetOrSetMemberFunc(offset, (int)TextBoardAccessors.GetCharAtOffset);
             }

@@ -112,6 +112,7 @@
     <Compile Include="Shared\ModBase.cs" />
     <Compile Include="Shared\MsgEnums.cs" />
     <Compile Include="Shared\UI\BindManager\BindDefinition.cs" />
+    <Compile Include="Shared\UI\BindManager\BindGroupData.cs" />
     <Compile Include="Shared\UI\BindManager\CustomControls.cs" />
     <Compile Include="Shared\UI\BindManager\IBind.cs" />
     <Compile Include="Shared\UI\BindManager\IBindClient.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\LabelBoxButton.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\LabelButton.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\ListBox.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\ScrollBar.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\ScrollBox.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\SliderBar.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\SliderBox.cs" />
@@ -147,7 +149,6 @@
     <Compile Include="Shared\UI\HUD\HudElements\Label.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\LabelBox.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\LabelListBox.cs" />
-    <Compile Include="Shared\UI\HUD\HudElements\ScrollBar.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\TextList.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\TexturedBox.cs" />
     <Compile Include="Shared\UI\HUD\ICursor.cs" />

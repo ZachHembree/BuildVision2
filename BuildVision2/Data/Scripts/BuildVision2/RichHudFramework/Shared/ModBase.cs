@@ -39,20 +39,31 @@ namespace RichHudFramework.Game
         protected static ModBase Instance { get; private set; }
         protected MyObjectBuilder_SessionComponent SessionComponent { get; private set; }
 
+        /// <summary>
+        /// If set to true, the user will be given the option to reload in the event of an
+        /// unhandled exception.
+        /// </summary>
         protected static bool promptForReload;
-        protected static long errorLoopThreshold = 50;
-        protected static int exceptionLimit = 10, recoveryLimit = 1, recoveryAttempts;
+
+        /// <summary>
+        /// The maximum number of times the mod will be allowed to reload as a result of an unhandled exception.
+        /// </summary>
+        protected static int recoveryLimit;
+
+        private static Action lastMissionScreen;
+        private static int recoveryAttempts, exceptionCount;
+        private const long errorLoopThreshold = 100, exceptionLimit = 10;
 
         private readonly List<ComponentBase> clientComponents, serverComponents;
         private readonly List<string> exceptionMessages;
         private readonly Utils.Stopwatch errorTimer;
-        private readonly Queue<Action> missionScreenQueue;
-        protected LogIO log;
         private bool canUpdate;
+        protected LogIO log;
 
         static ModBase()
         {
             LogFileName = "modLog.txt";
+            recoveryLimit = 1;
         }
 
         public ModBase(bool runOnServer, bool runOnClient)
@@ -70,7 +81,6 @@ namespace RichHudFramework.Game
 
             exceptionMessages = new List<string>();
             errorTimer = new Utils.Stopwatch();
-            missionScreenQueue = new Queue<Action>();
         }
 
         public sealed override void Init(MyObjectBuilder_SessionComponent sessionComponent)
@@ -79,10 +89,12 @@ namespace RichHudFramework.Game
             {
                 Instance = this;
                 SessionComponent = sessionComponent;
+
                 NormalExit = false;
                 Unloading = false;
+                exceptionCount = 0;
                 log = new LogIO(LogFileName);
-                
+
                 bool isServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
                 IsDedicated = (MyAPIGateway.Utilities.IsDedicated && isServer);
                 canUpdate = (RunOnClient && IsClient) || (RunOnServer && IsDedicated);
@@ -96,24 +108,18 @@ namespace RichHudFramework.Game
 
         public override void Draw()
         {
-            if (Instance == null && !Unloading)
-                Init(null);
-
             RunSafeAction(() =>
             {
                 for (int n = 0; n < serverComponents.Count; n++)
                     serverComponents[n].Draw();
 
                 for (int n = 0; n < clientComponents.Count; n++)
-                    clientComponents[n].Draw();               
+                    clientComponents[n].Draw();
             });
         }
 
         public override void HandleInput()
         {
-            if (Instance == null && !Unloading)
-                Init(null);
-
             RunSafeAction(() =>
             {
                 for (int n = 0; n < serverComponents.Count; n++)
@@ -125,13 +131,13 @@ namespace RichHudFramework.Game
         }
 
         public sealed override void UpdateBeforeSimulation() =>
-            RunSafeAction(BeforeUpdate);
+            BeforeUpdate();
 
         public sealed override void Simulate() =>
-            RunSafeAction(BeforeUpdate);
+            BeforeUpdate();
 
         public sealed override void UpdateAfterSimulation() =>
-            RunSafeAction(BeforeUpdate);
+            BeforeUpdate();
 
         /// <summary>
         /// The update function used (Before/Sim/After) is determined by the settings used by
@@ -142,6 +148,42 @@ namespace RichHudFramework.Game
             if (Instance == null && !Unloading)
                 Init(null);
 
+            RunSafeAction(UpdateComponents);
+
+            if (exceptionMessages.Count > 0 && errorTimer.ElapsedMilliseconds > errorLoopThreshold)
+            {
+                string exceptionText = GetExceptionMessages();
+
+                TryWriteToLog(ModName + " encountered an unhandled exception.\n" + exceptionText);
+                exceptionMessages.Clear();
+
+                Close();
+
+                if (!IsDedicated && promptForReload)
+                {
+                    if (recoveryAttempts < recoveryLimit)
+                    {
+                        ShowErrorPrompt(exceptionText, true);
+                        Unloading = true;
+                    }
+                    else
+                        ShowErrorPrompt(exceptionText, false);
+                }
+
+                recoveryAttempts++;
+            }
+
+            // This is a workaround. If you try to create a mission screen while the chat is open, 
+            // the UI will become unresponsive.
+            if (lastMissionScreen != null && !MyAPIGateway.Gui.ChatEntryVisible)
+            {
+                lastMissionScreen();
+                lastMissionScreen = null;
+            }
+        }
+
+        private void UpdateComponents()
+        {
             for (int n = 0; n < serverComponents.Count; n++)
                 serverComponents[n].Update();
 
@@ -150,20 +192,6 @@ namespace RichHudFramework.Game
 
             if (canUpdate)
                 Update();
-
-            if (exceptionMessages.Count > 0 && errorTimer.ElapsedMilliseconds > errorLoopThreshold)
-            {
-                TryWriteToLog(ModName + " encountered an unhandled exception.\n" + GetExceptionMessages());
-                exceptionMessages.Clear();
-            }
-
-            // This is a workaround. If you try to create a mission screen while the chat is open, 
-            // the UI will become unresponsive.
-            while (missionScreenQueue.Count > 0 && !MyAPIGateway.Gui.ChatEntryVisible)
-            {
-                Action screenAction = missionScreenQueue.Dequeue();
-                screenAction();
-            }
         }
 
         protected virtual void Update() { }
@@ -174,16 +202,13 @@ namespace RichHudFramework.Game
         /// </summary>
         public static void RunSafeAction(Action action)
         {
-            if (Instance != null)
+            try
             {
-                try
-                {
-                    action();
-                }
-                catch (Exception e)
-                {
-                    ReportException(e);                  
-                }
+                action();
+            }
+            catch (Exception e)
+            {
+                ReportException(e);
             }
         }
 
@@ -192,7 +217,8 @@ namespace RichHudFramework.Game
         /// </summary>
         public static void ReportException(Exception e)
         {
-            Instance.HandleException(e);
+            if (Instance != null && !Unloading)
+                Instance.HandleException(e);
         }
 
         private void HandleException(Exception e)
@@ -202,26 +228,13 @@ namespace RichHudFramework.Game
             if (!exceptionMessages.Contains(message))
                 exceptionMessages.Add(message);
 
+            exceptionCount++;
             errorTimer.Start();
-
-            if (!Unloading && (errorTimer.ElapsedMilliseconds < errorLoopThreshold & exceptionMessages.Count > exceptionLimit))
-            {
-                string exceptionText = GetExceptionMessages();
-
-                if (!IsDedicated)
-                    ShowErrorPrompt(exceptionText, promptForReload && recoveryAttempts <= recoveryLimit);
-
-                TryWriteToLog(ModName + " encountered an unhandled exception.\n" + exceptionText);
-                exceptionMessages.Clear();
-
-                Close();
-                recoveryAttempts++;
-            }          
         }
 
-        private void ShowErrorPrompt(string errorMessage, bool allowReload)
+        private void ShowErrorPrompt(string errorMessage, bool canReload)
         {
-            if (allowReload)
+            if (canReload)
             {
                 ShowMissionScreen
                 (
@@ -230,7 +243,7 @@ namespace RichHudFramework.Game
                     "to cancel.\n\n" +
                     "Error Details:\n" +
                     errorMessage,
-                    Instance.AllowReload,
+                    AllowReload,
                     "Reload"
                 );
             }
@@ -254,8 +267,8 @@ namespace RichHudFramework.Game
         {
             StringBuilder errorMessage = new StringBuilder();
 
-            if (exceptionMessages.Count > 1 && errorTimer.ElapsedMilliseconds < errorLoopThreshold)
-                errorMessage.AppendLine($"[Exception Loop Detected] {exceptionMessages.Count} exceptions were reported within a span of {errorTimer.ElapsedMilliseconds}ms.");
+            if (exceptionCount > exceptionLimit && errorTimer.ElapsedMilliseconds < errorLoopThreshold)
+                errorMessage.AppendLine($"[Exception Loop Detected] {exceptionCount} exceptions were reported within a span of {errorTimer.ElapsedMilliseconds}ms.");
 
             foreach (string msg in exceptionMessages)
                 errorMessage.Append(msg);
@@ -311,21 +324,26 @@ namespace RichHudFramework.Game
         private static void ShowMissionScreen(string subHeading = null, string message = null, Action<ResultEnum> callback = null, string okButtonCaption = null)
         {
             Action messageAction = () => MyAPIGateway.Utilities.ShowMissionScreen(ModName, subHeading, null, message, callback, okButtonCaption);
-            Instance?.missionScreenQueue.Enqueue(messageAction);
+            lastMissionScreen = messageAction;
         }
 
         protected override void UnloadData()
         {
-            NormalExit = true;
-            Close();
-            Unloading = true;
+            if (!Unloading)
+            {
+                NormalExit = true;
+                Close();
+                Unloading = true;
+            }
         }
 
         public void Reload()
         {
-            NormalExit = true;
-            Close();
-            Unloading = false;
+            if (!Unloading)
+            {
+                NormalExit = true;
+                Close();
+            }
         }
 
         protected virtual void BeforeClose() { }
@@ -337,19 +355,21 @@ namespace RichHudFramework.Game
                 Unloading = true;
 
                 if (canUpdate)
+                {
                     RunSafeAction(Instance.BeforeClose);
 
-                for (int n = 0; n < clientComponents.Count; n++)
-                    RunSafeAction(clientComponents[n].Close);
+                    for (int n = 0; n < clientComponents.Count; n++)
+                        RunSafeAction(clientComponents[n].Close);
 
-                for (int n = 0; n < serverComponents.Count; n++)
-                    RunSafeAction(serverComponents[n].Close);
+                    for (int n = 0; n < serverComponents.Count; n++)
+                        RunSafeAction(serverComponents[n].Close);
+                }
 
                 clientComponents.Clear();
                 serverComponents.Clear();
                 Instance = null;
 
-                if (recoveryAttempts <= recoveryLimit)
+                if (recoveryAttempts < recoveryLimit)
                     Unloading = false;
             }
         }
