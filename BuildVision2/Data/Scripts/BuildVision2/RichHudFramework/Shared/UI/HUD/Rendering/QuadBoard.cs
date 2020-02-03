@@ -8,6 +8,7 @@ namespace RichHudFramework
 {
     namespace UI
     {
+        using Client;
         using Server;
 
         namespace Rendering

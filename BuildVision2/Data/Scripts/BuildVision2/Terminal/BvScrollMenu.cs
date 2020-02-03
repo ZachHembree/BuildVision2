@@ -186,8 +186,6 @@ namespace DarkHelmet.BuildVision2
             }
             else
                 footer.RightText = new RichText("[Target is null]", blockIncText);
-
-            //footer.LeftText = $"[{body.Start}/{index}/{body.End}; {body.scrollBar.Min}/{body.scrollBar.Max}]";
         }
 
         protected override void Draw()
@@ -531,6 +529,13 @@ namespace DarkHelmet.BuildVision2
                             this.value.CharFilterFunc = textMember.CharFilterFunc;
                         else
                             this.value.CharFilterFunc = null;
+
+                        name.Format = bodyText;
+
+                        if (blockMember.Name != null && blockMember.Name.Length > 0)
+                            name.Text = $"{blockMember.Name}: ";
+                        else
+                            name.TextBoard.Clear();
                     }
                 }
             }
@@ -564,13 +569,7 @@ namespace DarkHelmet.BuildVision2
 
             public void UpdateText(bool highlighted, bool selected)
             {
-                name.Format = bodyText;
-                postfix.Format = bodyText;
-
-                if (BlockMember.Name != null && BlockMember.Name.Length > 0)
-                    name.Text = $"{BlockMember.Name}: ";
-                else
-                    name.TextBoard.Clear();
+                postfix.Format = bodyText;           
 
                 if (highlighted)
                 {
@@ -582,10 +581,10 @@ namespace DarkHelmet.BuildVision2
                 else
                     value.Format = bodyText;
 
-                value.Text = BlockMember.Value;
+                value.Text = blockMember.Value;
 
-                if (BlockMember.Postfix != null && BlockMember.Postfix.Length > 0)
-                    postfix.Text = $" {BlockMember.Postfix}";
+                if (blockMember.Postfix != null && blockMember.Postfix.Length > 0)
+                    postfix.Text = $" {blockMember.Postfix}";
                 else
                     postfix.TextBoard.Clear();
             }

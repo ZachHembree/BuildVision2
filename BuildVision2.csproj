@@ -158,6 +158,9 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\ICursor.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\Rendering\IFontMin.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\Rendering\MatBoard.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\Rendering\Material.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\Rendering\MaterialFrame.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\Rendering\QuadBoard.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\Rendering\TextBuilderIntefaces.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\RichText\GlyphFormat.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\HUD\RichText\RichString.cs" />
@@ -174,6 +177,12 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\.gitignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\.gitrepo" />
+    <None Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\ClassDiagram1.cd" />
+    <None Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\RichHudClient.csproj" />
     <None Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\.gitrepo" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
