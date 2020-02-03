@@ -44,7 +44,7 @@ namespace RichHudFramework
         {
             T[] trimmed;
 
-            end = Utils.Math.Clamp(end, 0, arr.Length);
+            end = MathHelper.Clamp(end, 0, arr.Length);
             trimmed = new T[end - start];
 
             for (int n = start; n < end; n++)

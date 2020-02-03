@@ -40,8 +40,8 @@ namespace RichHudFramework.UI
                 Vector2 bounds = new Vector2(HudMain.ScreenWidth, HudMain.ScreenHeight) / 2f,
                     newPos = value + Origin;
 
-                newPos.X = Utils.Math.Clamp(newPos.X, -bounds.X, bounds.X);
-                newPos.Y = Utils.Math.Clamp(newPos.Y, -bounds.Y, bounds.Y);
+                newPos.X = MathHelper.Clamp(newPos.X, -bounds.X, bounds.X);
+                newPos.Y = MathHelper.Clamp(newPos.Y, -bounds.Y, bounds.Y);
 
                 base.Offset = newPos - Origin;
             }

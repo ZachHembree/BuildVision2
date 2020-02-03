@@ -115,7 +115,7 @@ namespace RichHudFramework.UI
             get { return end; }
             set
             {
-                end = Utils.Math.Clamp(value, 0, List.Count - 1);
+                end = MathHelper.Clamp(value, 0, List.Count - 1);
                 Start = GetMaxStart(end);
             }
         }
@@ -238,12 +238,12 @@ namespace RichHudFramework.UI
 
             if (FitToChain)
             {
-                newSize = Utils.Math.Max(min, MinimumSize);
+                newSize = Vector2.Max(min, MinimumSize);
             }
             else
             {
-                min = Utils.Math.Max(min, MinimumSize);
-                newSize = Utils.Math.Clamp(newSize, min, MaximumSize);
+                min = Vector2.Max(min, MinimumSize);
+                newSize = Vector2.Clamp(newSize, min, MaximumSize);
             }
 
             base.Width = newSize.X;
@@ -351,7 +351,7 @@ namespace RichHudFramework.UI
                             chainSize.Y += List[n].Height;
 
                             if (ClampMembers)
-                                List[n].Width = Utils.Math.Clamp(List[n].Width, min, max);
+                                List[n].Width = MathHelper.Clamp(List[n].Width, min, max);
 
                             if (List[n].Width > chainSize.X)
                                 chainSize.X = List[n].Width;
@@ -400,7 +400,7 @@ namespace RichHudFramework.UI
                             chainSize.X += List[n].Width;
 
                             if (ClampMembers)
-                                List[n].Height = Utils.Math.Clamp(List[n].Height, min, max);
+                                List[n].Height = MathHelper.Clamp(List[n].Height, min, max);
 
                             if (List[n].Height > chainSize.Y)
                                 chainSize.Y = List[n].Height;

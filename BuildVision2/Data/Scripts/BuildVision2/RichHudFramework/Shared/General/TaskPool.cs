@@ -1,6 +1,7 @@
 ﻿using RichHudFramework.Game;
 using ParallelTasks;
 using Sandbox.ModAPI;
+using VRageMath;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -58,7 +59,7 @@ namespace RichHudFramework
         /// <summary>
         /// Sets the limit for the total number of tasks running in all <see cref="TaskPool"/>s.
         /// </summary>
-        public static int MaxTasksRunning { get { return maxTasksRunning; } set { maxTasksRunning = Utils.Math.Clamp(value, 1, 10); } }
+        public static int MaxTasksRunning { get { return maxTasksRunning; } set { maxTasksRunning = MathHelper.Clamp(value, 1, 10); } }
         private static int maxTasksRunning = 1, tasksRunningCount = 0;
 
         private readonly List<Task> tasksRunning;

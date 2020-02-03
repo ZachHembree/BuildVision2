@@ -108,7 +108,7 @@ namespace RichHudFramework.UI
             get { return percent; }
             set
             {
-                percent = Utils.Math.Clamp(value, 0f, 1f);
+                percent = MathHelper.Clamp(value, 0f, 1f);
                 current = percent * (Max - Min) + Min;
 
                 UpdateButtonOffset();
@@ -222,13 +222,13 @@ namespace RichHudFramework.UI
                 {
                     minOffset = -(bar.Height - slider.Height) / 2f;
                     maxOffset = -minOffset;
-                    pos = Utils.Math.Clamp(HudMain.Cursor.Origin.Y - Origin.Y, minOffset, maxOffset);
+                    pos = MathHelper.Clamp(HudMain.Cursor.Origin.Y - Origin.Y, minOffset, maxOffset);
                 }
                 else
                 {
                     minOffset = -(bar.Width - slider.Width) / 2f;
                     maxOffset = -minOffset;
-                    pos = Utils.Math.Clamp(HudMain.Cursor.Origin.X - Origin.X, minOffset, maxOffset);
+                    pos = MathHelper.Clamp(HudMain.Cursor.Origin.X - Origin.X, minOffset, maxOffset);
                 }
 
                 if (Reverse)

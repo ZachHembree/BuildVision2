@@ -232,24 +232,32 @@ namespace RichHudFramework
 
             private void GetDimAlignment()
             {
-                if (Size != parent.Size)
+                if (DimAlignment != DimAlignments.None)
                 {
+                    float width = Width, height = Height,
+                        parentWidth = parent.Width, parentHeight = parent.Height;
+
                     if (DimAlignment.HasFlag(DimAlignments.IgnorePadding))
                     {
+                        Vector2 parentPadding = parent.Padding;
+
                         if (DimAlignment.HasFlag(DimAlignments.Width))
-                            Width = parent.Width - parent.Padding.X;
+                            width = parentWidth - parentPadding.X;
 
                         if (DimAlignment.HasFlag(DimAlignments.Height))
-                            Height = parent.Height - parent.Padding.Y;
+                            height = parentHeight - parentPadding.Y;
                     }
                     else
                     {
                         if (DimAlignment.HasFlag(DimAlignments.Width))
-                            Width = parent.Width;
+                            width = parentWidth;
 
                         if (DimAlignment.HasFlag(DimAlignments.Height))
-                            Height = parent.Height;
+                            height = parentHeight;
                     }
+
+                    Width = width;
+                    Height = height;
                 }
             }
 
@@ -259,25 +267,29 @@ namespace RichHudFramework
             /// </summary>
             private Vector2 GetParentAlignment()
             {
-                Vector2 alignment = Vector2.Zero;
-                Vector2 max = (parent.Size + Size) / 2f, min = -max;
+                Vector2 size = new Vector2(Width, Height),
+                    alignment = Vector2.Zero,
+                    max = (parent.Size + Size) / 2f, 
+                    min = -max;
 
                 if (ParentAlignment.HasFlag(ParentAlignments.UsePadding))
                 {
-                    min += parent.Padding / 2f;
-                    max -= parent.padding / 2f;
+                    Vector2 parentPadding = parent.Padding;
+
+                    min += parentPadding / 2f;
+                    max -= parentPadding / 2f;
                 }
 
                 if (ParentAlignment.HasFlag(ParentAlignments.InnerV))
                 {
-                    min.Y += Size.Y;
-                    max.Y -= Size.Y;
+                    min.Y += size.Y;
+                    max.Y -= size.Y;
                 }
 
                 if (ParentAlignment.HasFlag(ParentAlignments.InnerH))
                 {
-                    min.X += Size.X;
-                    max.X -= Size.X;
+                    min.X += size.X;
+                    max.X -= size.X;
                 }
 
                 if (ParentAlignment.HasFlag(ParentAlignments.Bottom))

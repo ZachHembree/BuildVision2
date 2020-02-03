@@ -127,6 +127,11 @@ namespace RichHudFramework
                 /// in/out: GlyphFormatMembers
                 /// </summary>
                 Format = 6,
+
+                /// <summary>
+                /// out: string
+                /// </summary>
+                ToString = 7,
             }
 
             public interface ITextBuilder : IIndexedCollection<ILine>
