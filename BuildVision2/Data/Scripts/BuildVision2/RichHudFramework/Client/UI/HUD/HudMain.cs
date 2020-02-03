@@ -73,12 +73,30 @@ namespace RichHudFramework
             /// <summary>
             /// Root parent for all HUD elements.
             /// </summary>
-            public static HudParentData Root => Instance.root;
+            public static IHudParent Root
+            {
+                get
+                {
+                    if (instance == null)
+                        Init();
+
+                    return instance.root;
+                }
+            }
 
             /// <summary>
             /// Cursor shared between mods.
             /// </summary>
-            public static ICursor Cursor => Instance.cursor;
+            public static ICursor Cursor
+            {
+                get
+                {
+                    if (instance == null)
+                        Init();
+
+                    return instance.cursor;
+                }
+            }
 
             /// <summary>
             /// Shared clipboard.
@@ -93,33 +111,87 @@ namespace RichHudFramework
             /// Resolution scale normalized to 1080p for resolutions over 1080p. Returns a scale of 1f
             /// for lower resolutions.
             /// </summary>
-            public static float ResScale => Instance.ResScaleFunc();
+            public static float ResScale
+            {
+                get
+                {
+                    if (instance == null)
+                        Init();
+
+                    return instance.ResScaleFunc();
+                }
+            }
 
             /// <summary>
             /// The current horizontal screen resolution in pixels.
             /// </summary>
-            public static float ScreenWidth => Instance.ScreenWidthFunc();
+            public static float ScreenWidth
+            {
+                get
+                {
+                    if (instance == null)
+                        Init();
+
+                    return instance.ScreenWidthFunc();
+                }
+            }
 
             /// <summary>
             /// The current vertical resolution in pixels.
             /// </summary>
-            public static float ScreenHeight => Instance.ScreenHeightFunc();
+            public static float ScreenHeight
+            {
+                get
+                {
+                    if (instance == null)
+                        Init();
+
+                    return instance.ScreenHeightFunc();
+                }
+            }
 
             /// <summary>
             /// The current aspect ratio (ScreenWidth/ScreenHeight).
             /// </summary>
-            public static float AspectRatio => Instance.AspectRatioFunc();
+            public static float AspectRatio 
+            {
+                get
+                {
+                    if (instance == null)
+                        Init();
+
+                    return instance.AspectRatioFunc();
+                }
+            }
 
             /// <summary>
             /// The current field of view
             /// </summary>
-            public static float Fov => Instance.FovFunc();
+            public static float Fov
+            {
+                get
+                {
+                    if (instance == null)
+                        Init();
+
+                    return instance.FovFunc();
+                }
+            }
 
             /// <summary>
             /// Scaling used by MatBoards to compensate for changes in apparent size and position as a result
             /// of changes to Fov.
             /// </summary>
-            public static float FovScale => Instance.FovScaleFunc();
+            public static float FovScale
+            {
+                get
+                {
+                    if (instance == null)
+                        Init();
+
+                    return instance.FovScaleFunc();
+                }
+            }
 
             private static HudMain Instance
             {
@@ -182,12 +254,15 @@ namespace RichHudFramework
             /// </summary>
             public static Vector2 GetPixelVector(Vector2 scaledVec)
             {
+                if (instance == null)
+
+                    Init();
                 scaledVec /= 2f;
 
                 return new Vector2
                 (
-                    (int)(scaledVec.X * ScreenWidth),
-                    (int)(scaledVec.Y * ScreenHeight)
+                    (int)(scaledVec.X * instance.ScreenWidthFunc()),
+                    (int)(scaledVec.Y * instance.ScreenHeightFunc())
                 );
             }
 
@@ -196,12 +271,15 @@ namespace RichHudFramework
             /// </summary>
             public static Vector2 GetRelativeVector(Vector2 pixelVec)
             {
+                if (instance == null)
+                    Init();
+
                 pixelVec *= 2f;
 
                 return new Vector2
                 (
-                    pixelVec.X / ScreenWidth,
-                    pixelVec.Y / ScreenHeight
+                    pixelVec.X / instance.ScreenWidthFunc(),
+                    pixelVec.Y / instance.ScreenHeightFunc()
                 );
             }
 

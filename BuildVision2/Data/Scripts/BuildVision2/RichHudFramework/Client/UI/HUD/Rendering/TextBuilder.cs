@@ -198,6 +198,12 @@ namespace RichHudFramework
                 public void Clear() =>
                     ClearAction();
 
+                /// <summary>
+                /// Returns the contents of the <see cref="ITextBuilder"/> as an unformatted string.
+                /// </summary>
+                public override string ToString() =>
+                    GetOrSetMemberFunc(null, (int)TextBuilderAccessors.ToString) as string;
+
                 protected Vector2I GetLastIndex()
                 {
                     Vector2I start = new Vector2I(Math.Max(0, Count - 1), 0);
