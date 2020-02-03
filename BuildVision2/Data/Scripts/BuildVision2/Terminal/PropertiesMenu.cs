@@ -102,11 +102,11 @@ namespace DarkHelmet.BuildVision2
 
                 if (Cfg.clampHudPos)
                 {
-                    screenPos.X = Utils.Math.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
-                    screenPos.Y = Utils.Math.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
+                    screenPos.X = MathHelper.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
+                    screenPos.Y = MathHelper.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
                 }
 
-                scrollMenu.Offset = HudMain.GetPixelVector(Utils.Math.Round(screenPos, 3));
+                scrollMenu.Offset = HudMain.GetPixelVector(screenPos);
             }
         }
 

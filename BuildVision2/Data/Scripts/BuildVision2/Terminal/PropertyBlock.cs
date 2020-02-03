@@ -666,7 +666,7 @@ namespace DarkHelmet.BuildVision2
 
             private void ChangePropValue(int delta)
             {
-                int index = Utils.Math.Clamp((GetCurrentIndex() + delta), 0, keys.Count - 1);
+                int index = MathHelper.Clamp((GetCurrentIndex() + delta), 0, keys.Count - 1);
                 property.Setter(block, keys[index]);
             }
 
@@ -795,7 +795,7 @@ namespace DarkHelmet.BuildVision2
                     else if (block is IMyMotorStator)
                     {
                         var rotor = (IMyMotorStator)block;
-                        GetPostfixFunc = () => $"({Math.Round(Utils.Math.Clamp(rotor.Angle.RadiansToDegrees(), 0, 360))})";
+                        GetPostfixFunc = () => $"({Math.Round(MathHelper.Clamp(rotor.Angle.RadiansToDegrees(), 0, 360))})";
                     }
                 }
             }
@@ -819,7 +819,7 @@ namespace DarkHelmet.BuildVision2
                 if (float.IsInfinity(current))
                     current = 0f;
 
-                property.SetValue(block, (float)Math.Round(Utils.Math.Clamp((current + delta), minValue, maxValue), 3));
+                property.SetValue(block, (float)Math.Round(MathHelper.Clamp((current + delta), minValue, maxValue), 3));
             }
 
             /// <summary>
@@ -902,7 +902,7 @@ namespace DarkHelmet.BuildVision2
                 int value = current.GetChannel(channel),
                     mult = increment ? GetIncrement() : -GetIncrement();
 
-                current = current.SetChannel(channel, (byte)Utils.Math.Clamp(value + mult, 0, 255));
+                current = current.SetChannel(channel, (byte)MathHelper.Clamp(value + mult, 0, 255));
                 property.SetValue(block, current);
             }
 

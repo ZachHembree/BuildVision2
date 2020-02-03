@@ -99,12 +99,12 @@ namespace DarkHelmet.BuildVision2
             if (maxOpenRange == 0d)
                 maxOpenRange = Defaults.maxOpenRange;
             else
-                maxOpenRange = Utils.Math.Clamp(maxOpenRange, 2.5d, 20d);
+                maxOpenRange = MathHelper.Clamp(maxOpenRange, 2.5d, 20d);
 
             if (maxControlRange == 0d)
                 maxControlRange = Defaults.maxControlRange;
             else
-                maxControlRange = Utils.Math.Clamp(maxControlRange, maxOpenRange, 60d);
+                maxControlRange = MathHelper.Clamp(maxControlRange, maxOpenRange, 60d);
         }
     }
 

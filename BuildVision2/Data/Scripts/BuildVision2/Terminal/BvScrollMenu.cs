@@ -302,7 +302,7 @@ namespace DarkHelmet.BuildVision2
             }
             else
             {
-                index = Utils.Math.Clamp(index, min, max);
+                index = MathHelper.Clamp(index, min, max);
 
                 if (index < body.Start)
                     body.Start = index;
