@@ -44,7 +44,7 @@ namespace DarkHelmet.BuildVision2
                 new CmdManager.Command ("close",
                     () => TryCloseMenu()),
                 new CmdManager.Command ("reload",
-                    () => Instance.Close()),
+                    () => Instance.Reload()),
                 new CmdManager.Command("crash", 
                     Crash),
                 new CmdManager.Command("printControlsToLog",
