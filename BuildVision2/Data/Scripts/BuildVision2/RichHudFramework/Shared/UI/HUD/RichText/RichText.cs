@@ -2,8 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System;
 using VRage;
-using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
+using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
 namespace RichHudFramework
 {
@@ -15,29 +16,17 @@ namespace RichHudFramework
         /// A collection of rich strings. <see cref="RichString"/>s and <see cref="string"/>s can be implicitly
         /// cast to this type. Collection-initializer syntax can be used with this type.
         /// </summary>
-        public class RichText : IReadOnlyCollection<RichString>
+        public struct RichText : IEnumerable<RichString>
         {
-            public RichString this[int index] => text[index];
-            public int Count => text.Count;
-
             public GlyphFormat defaultFormat;
-            private readonly List<RichString> text;
-
-            /// <summary>
-            /// Creates a shallow copy of the given <see cref="RichText"/>
-            /// </summary>
-            public RichText(RichText original)
-            {
-                this.defaultFormat = original.defaultFormat;
-                this.text = original.text;
-            }
+            public List<RichStringMembers> ApiData { get; }
 
             /// <summary>
             /// Initializes a <see cref="RichText"/> object with the given default format.
             /// </summary>
             public RichText(GlyphFormat defaultFormat = null)
             {
-                text = new List<RichString>();
+                ApiData = new List<RichStringMembers>();
                 this.defaultFormat = defaultFormat;
             }
 
@@ -47,10 +36,8 @@ namespace RichHudFramework
             /// </summary>
             public RichText(IList<RichStringMembers> richStrings)
             {
-                text = new List<RichString>(richStrings.Count);
-
-                for (int n = 0; n < richStrings.Count; n++)
-                    text.Add(new RichString(richStrings[n]));
+                ApiData = new List<RichStringMembers>(richStrings);
+                defaultFormat = GlyphFormat.Empty;
             }
 
             /// <summary>
@@ -59,8 +46,8 @@ namespace RichHudFramework
             /// </summary>
             public RichText(RichString text)
             {
-                this.defaultFormat = text.format;
-                this.text = new List<RichString>();
+                this.defaultFormat = text.Format;
+                this.ApiData = new List<RichStringMembers>();
                 Add(text);
             }
 
@@ -74,12 +61,14 @@ namespace RichHudFramework
                 else
                     this.defaultFormat = GlyphFormat.Empty;
 
-                this.text = new List<RichString>();
+                ApiData = new List<RichStringMembers>();
                 Add(defaultFormat, text);
             }
 
-            public IEnumerator<RichString> GetEnumerator() =>
-                text.GetEnumerator();
+            public IEnumerator<RichString> GetEnumerator()
+            {
+                throw new Exception("Enumerator not implemented for RichText.");
+            }
 
             IEnumerator IEnumerable.GetEnumerator() =>
                 GetEnumerator();
@@ -88,32 +77,50 @@ namespace RichHudFramework
             /// Adds a <see cref="string"/> to the text using the default format.
             /// </summary>
             public void Add(string text) =>
-                this.text.Add(new RichString(text, defaultFormat));
+                ApiData.Add(new RichStringMembers(new StringBuilder(text), defaultFormat.data));
 
             /// <summary>
             /// Adds a <see cref="RichText"/> to the collection using the formatting specified in the <see cref="RichText"/>.
             /// </summary>
             public void Add(RichText text) =>
-                this.text.AddRange(text);
+                ApiData.AddRange(text.ApiData);
 
             /// <summary>
             /// Adds a <see cref="RichString"/> to the collection using the formatting specified in the <see cref="RichString"/>.
             /// </summary>
             /// <param name="text"></param>
             public void Add(RichString text) =>
-                this.text.Add(text);
+                ApiData.Add(text.ApiData);
 
             /// <summary>
             /// Adds a <see cref="string"/> using the given <see cref="GlyphFormat"/>.
             /// </summary>
             public void Add(GlyphFormat formatting, string text) =>
-                this.text.Add(new RichString(text, formatting));
+                ApiData.Add(new RichStringMembers(new StringBuilder(text), formatting.data));
 
             /// <summary>
             /// Adds a <see cref="string"/> using the given <see cref="GlyphFormat"/>.
             /// </summary>
             public void Add(string text, GlyphFormat formatting) =>
                 Add(formatting, text);
+
+            /// <summary>
+            /// Returns the contents of the <see cref="RichText"/> as an unformatted <see cref="string"/>.
+            /// </summary>
+            public override string ToString()
+            {
+                StringBuilder rawText = new StringBuilder();
+
+                for (int a = 0; a < ApiData.Count; a++)
+                {
+                    rawText.EnsureCapacity(rawText.Length + ApiData[a].Item1.Length);
+
+                    for (int b = 0; b < ApiData[a].Item1.Length; b++)
+                        rawText.Append(ApiData[a].Item1[b]);
+                }
+
+                return rawText.ToString();
+            }
 
             /// <summary>
             /// Adds a <see cref="string"/> to the text using the default format.
@@ -148,35 +155,6 @@ namespace RichHudFramework
 
             public static implicit operator RichText(RichString text) =>
                 new RichText(text);
-
-            /// <summary>
-            /// Returns the contents of the <see cref="RichText"/> as an unformatted <see cref="string"/>.
-            /// </summary>
-            public override string ToString()
-            {
-                StringBuilder rawText = new StringBuilder();
-
-                for (int a = 0; a < text.Count; a++)
-                {
-                    for (int b = 0; b < text[a].Length; b++)
-                        rawText.Append(text[a][b]);
-                }
-
-                return rawText.ToString();
-            }
-
-            /// <summary>
-            /// Returns data used to share data between mods using the Framework API.
-            /// </summary>
-            public RichStringMembers[] GetApiData()
-            {
-                RichStringMembers[] data = new RichStringMembers[text.Count];
-
-                for (int n = 0; n < data.Length; n++)
-                    data[n] = text[n].GetApiData();
-
-                return data;
-            }
         }
     }
 }

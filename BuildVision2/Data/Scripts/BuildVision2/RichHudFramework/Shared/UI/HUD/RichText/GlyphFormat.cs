@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using VRage;
 using VRageMath;
-using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
+using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
 namespace RichHudFramework
 {
@@ -18,22 +18,22 @@ namespace RichHudFramework
                 Blueish = new GlyphFormat(color: new Color(220, 235, 242)),
                 Empty = new GlyphFormat(default(GlyphFormatMembers));
 
-            public Vector2I StyleIndex => data.Item1;
-
             /// <summary>
             /// Determines the alignment (left, center, right) of a given piece of RichText.
             /// </summary>
-            public TextAlignment Alignment => (TextAlignment)data.Item2;
-
-            /// <summary>
-            /// Text color
-            /// </summary>
-            public Color Color => data.Item3;
+            public TextAlignment Alignment => (TextAlignment)data.Item1;
 
             /// <summary>
             /// Text size
             /// </summary>
-            public float TextSize => data.Item4;
+            public float TextSize => data.Item2;
+
+            public Vector2I StyleIndex => data.Item3;
+
+            /// <summary>
+            /// Text color
+            /// </summary>
+            public Color Color => data.Item4;
 
             public readonly GlyphFormatMembers data;
 
@@ -42,7 +42,7 @@ namespace RichHudFramework
                 if (color == default(Color))
                     color = Color.Black;
 
-                data = new GlyphFormatMembers(fontStyle, (int)alignment, color, textSize);
+                data = new GlyphFormatMembers((byte)alignment, textSize, fontStyle, color);
             }
 
             public GlyphFormat(GlyphFormatMembers data)

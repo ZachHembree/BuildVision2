@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using VRage;
 using VRageMath;
-using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
+using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
 namespace RichHudFramework
 {
@@ -22,7 +22,7 @@ namespace RichHudFramework
             Func<Vector2I, int, object>, // GetCharMember
             Func<object, int, object>, // GetOrSetMember
             Action<IList<RichStringMembers>, Vector2I>, // Insert
-            Action<RichStringMembers, Vector2I>, // Insert
+            Action<IList<RichStringMembers>>, // SetText
             Action // Clear
         >;
 
@@ -78,7 +78,7 @@ namespace RichHudFramework
                 private readonly Func<int> GetCountFunc;
                 private readonly Func<Vector2I, int, object> GetCharMemberFunc;
                 private readonly Action<IList<RichStringMembers>, Vector2I> InsertTextAction;
-                private readonly Action<RichStringMembers, Vector2I> InsertStringAction;
+                private readonly Action<IList<RichStringMembers>> SetTextAction;
                 private readonly Action ClearAction;
 
                 public TextBuilder(TextBuilderMembers data)
@@ -89,42 +89,15 @@ namespace RichHudFramework
                     GetCharMemberFunc = data.Item2;
                     GetOrSetMemberFunc = data.Item3;
                     InsertTextAction = data.Item4;
-                    InsertStringAction = data.Item5;
+                    SetTextAction = data.Item5;
                     ClearAction = data.Item6;
                 }
 
                 /// <summary>
                 /// Clears current text and appends the text given.
                 /// </summary>
-                public void SetText(string text)
-                {
-                    ClearAction();
-                    InsertStringAction(new RichStringMembers(new StringBuilder(text), Format.data), GetLastIndex());
-                }
-
-                /// <summary>
-                /// Clears current text and appends the text given.
-                /// </summary>
-                public void SetText(RichText text)
-                {
-                    ClearAction();
-                    Insert(text, GetLastIndex());
-                }
-
-                /// <summary>
-                /// Clears current text and appends the text given.
-                /// </summary>
-                public void SetText(RichString text)
-                {
-                    ClearAction();
-                    Insert(text, GetLastIndex());
-                }
-
-                /// <summary>
-                /// Appends the given <see cref="string"/> to the end of the text using the default <see cref="GlyphFormat"/>.
-                /// </summary>
-                public void Append(string text) =>
-                    InsertStringAction(new RichStringMembers(new StringBuilder(text), Format.data), GetLastIndex());
+                public void SetText(RichText text) =>
+                    SetTextAction(text.ApiData);
 
                 /// <summary>
                 /// Appends the given text to the end of the text using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichText"/>.
@@ -132,29 +105,10 @@ namespace RichHudFramework
                 public void Append(RichText text) =>
                     Insert(text, GetLastIndex());
 
-                /// <summary>
-                /// Appends the given text to the end of the text using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichString"/>.
-                /// </summary>
-                public void Append(RichString text) =>
-                    Insert(text, GetLastIndex());
-
-                /// <summary>
                 /// Inserts the given text to the end of the text at the specified starting index using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichText"/>.
                 /// </summary>
                 public void Insert(RichText text, Vector2I start) =>
-                    InsertTextAction(text.GetApiData(), start);
-
-                /// <summary>
-                /// Inserts the given text to the end of the text at the specified starting index using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichString"/>.
-                /// </summary>
-                public void Insert(RichString text, Vector2I start) =>
-                    InsertStringAction(text.GetApiData(), start);
-
-                /// <summary>
-                /// Inserts the given <see cref="string"/> at the given starting index using the default <see cref="GlyphFormat"/>.
-                /// </summary>
-                public void Insert(string text, Vector2I start) =>
-                    InsertStringAction(new RichStringMembers(new StringBuilder(text), Format.data), start);
+                    InsertTextAction(text.ApiData, start);
 
                 /// <summary>
                 /// Returns the contents of the text as <see cref="RichText"/>.

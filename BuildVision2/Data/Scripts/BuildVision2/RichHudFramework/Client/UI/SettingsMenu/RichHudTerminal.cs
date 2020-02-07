@@ -6,7 +6,7 @@ using System.Text;
 using VRage;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using EventAccessor = VRage.MyTuple<bool, System.Action>;
-using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
+using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
 namespace RichHudFramework
 {
@@ -90,8 +90,8 @@ namespace RichHudFramework
             {
                 public RichText Name
                 {
-                    get { return new RichText((RichStringMembers[])GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Name)); }
-                    set { GetOrSetMemberFunc(value.GetApiData(), (int)ModControlRootAccessors.Name); }
+                    get { return new RichText(GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Name) as IList<RichStringMembers>); }
+                    set { GetOrSetMemberFunc(value.ApiData, (int)ModControlRootAccessors.Name); }
                 }
 
                 public IReadOnlyCollection<ITerminalPage> Pages { get; }

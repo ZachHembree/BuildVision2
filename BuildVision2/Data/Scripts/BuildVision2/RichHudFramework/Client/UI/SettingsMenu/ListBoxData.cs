@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using VRage;
-using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
+using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework.UI
@@ -34,9 +35,9 @@ namespace RichHudFramework.UI
 
         public EntryData<T> Add(RichText text, T assocObject)
         {
-            var data = new MyTuple<RichStringMembers[], object>()
+            var data = new MyTuple<IList<RichStringMembers>, object>()
             {
-                Item1 = text.GetApiData(),
+                Item1 = text.ApiData,
                 Item2 = assocObject
             };
 

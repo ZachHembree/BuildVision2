@@ -154,6 +154,9 @@
     <Compile Include="Shared\UI\HUD\ICursor.cs" />
     <Compile Include="Shared\UI\HUD\Rendering\IFontMin.cs" />
     <Compile Include="Shared\UI\HUD\Rendering\MatBoard.cs" />
+    <Compile Include="Shared\UI\HUD\Rendering\Material.cs" />
+    <Compile Include="Shared\UI\HUD\Rendering\MaterialFrame.cs" />
+    <Compile Include="Shared\UI\HUD\Rendering\QuadBoard.cs" />
     <Compile Include="Shared\UI\HUD\Rendering\TextBuilderIntefaces.cs" />
     <Compile Include="Shared\UI\HUD\RichText\GlyphFormat.cs" />
     <Compile Include="Shared\UI\HUD\RichText\RichString.cs" />

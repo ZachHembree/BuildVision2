@@ -124,6 +124,12 @@ namespace RichHudFramework.IO
             OnConfigLoad?.Invoke();
         }
 
+        public static void ClearSubscribers()
+        {
+            OnConfigLoad = null;
+            OnConfigSave = null;
+        }
+
         /// <summary>
         /// Handles loading/saving configuration data
         /// </summary>

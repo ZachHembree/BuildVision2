@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using VRage;
 using VRageMath;
-using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
+using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
 namespace RichHudFramework
 {
@@ -21,7 +21,7 @@ namespace RichHudFramework
             Func<Vector2I, int, object>, // GetCharMember
             Func<object, int, object>, // GetOrSetMember
             Action<IList<RichStringMembers>, Vector2I>, // Insert
-            Action<RichStringMembers, Vector2I>, // Insert
+            Action<IList<RichStringMembers>>, // SetText
             Action // Clear
         >;
 

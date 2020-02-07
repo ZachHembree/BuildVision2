@@ -30,14 +30,40 @@ namespace RichHudFramework.Game
         /// Determines whether or not the main class will be allowed to run on a dedicated server.
         /// </summary>
         public static bool RunOnServer { get; protected set; }
+
+        /// <summary>
+        /// If true, then the mod will be allowed to run on a client.
+        /// </summary>
         public static bool RunOnClient { get; protected set; }
+
+        /// <summary>
+        /// If true, the mod is currently running on a client.
+        /// </summary>
         public static bool IsClient => !IsDedicated;
+
+        /// <summary>
+        /// If true, the mod is currently running on a dedicated server.
+        /// </summary>
         public static bool IsDedicated { get; private set; }
+
+        /// <summary>
+        /// If true, the mod is currently loaded.
+        /// </summary>
+        public new static bool Loaded { get; private set; }
+
+        public static bool CanLoad => !(Unloading || Reloading);
+
+        /// <summary>
+        /// If true, then the mod is currently in the process of unloading.
+        /// </summary>
         public static bool Unloading { get; private set; }
-        public static bool NormalExit { get; protected set; }
+
+        /// <summary>
+        /// If true, then themod is currently in the process of reloading.
+        /// </summary>
+        public static bool Reloading { get; private set; }
 
         protected static ModBase Instance { get; private set; }
-        protected MyObjectBuilder_SessionComponent SessionComponent { get; private set; }
 
         /// <summary>
         /// If set to true, the user will be given the option to reload in the event of an
@@ -50,7 +76,6 @@ namespace RichHudFramework.Game
         /// </summary>
         protected static int recoveryLimit;
 
-        private static Action lastMissionScreen;
         private static int recoveryAttempts, exceptionCount;
         private const long errorLoopThreshold = 100, exceptionLimit = 10;
 
@@ -58,6 +83,7 @@ namespace RichHudFramework.Game
         private readonly List<string> exceptionMessages;
         private readonly Utils.Stopwatch errorTimer;
         private bool canUpdate;
+        private Action lastMissionScreen;
         protected LogIO log;
 
         static ModBase()
@@ -85,12 +111,12 @@ namespace RichHudFramework.Game
 
         public sealed override void Init(MyObjectBuilder_SessionComponent sessionComponent)
         {
-            if (Instance == null)
+            if (!Loaded && CanLoad)
             {
                 Instance = this;
-                SessionComponent = sessionComponent;
+                Loaded = true;
 
-                NormalExit = false;
+                Reloading = false;
                 Unloading = false;
                 exceptionCount = 0;
                 log = new LogIO(LogFileName);
@@ -108,26 +134,32 @@ namespace RichHudFramework.Game
 
         public override void Draw()
         {
-            RunSafeAction(() =>
+            if (Loaded && canUpdate)
             {
-                for (int n = 0; n < serverComponents.Count; n++)
-                    serverComponents[n].Draw();
+                RunSafeAction(() =>
+                {
+                    for (int n = 0; n < serverComponents.Count; n++)
+                        serverComponents[n].Draw();
 
-                for (int n = 0; n < clientComponents.Count; n++)
-                    clientComponents[n].Draw();
-            });
+                    for (int n = 0; n < clientComponents.Count; n++)
+                        clientComponents[n].Draw();
+                });
+            }
         }
 
         public override void HandleInput()
         {
-            RunSafeAction(() =>
+            if (Loaded && canUpdate)
             {
-                for (int n = 0; n < serverComponents.Count; n++)
-                    serverComponents[n].HandleInput();
+                RunSafeAction(() =>
+                {
+                    for (int n = 0; n < serverComponents.Count; n++)
+                        serverComponents[n].HandleInput();
 
-                for (int n = 0; n < clientComponents.Count; n++)
-                    clientComponents[n].HandleInput();
-            });
+                    for (int n = 0; n < clientComponents.Count; n++)
+                        clientComponents[n].HandleInput();
+                });
+            }
         }
 
         public sealed override void UpdateBeforeSimulation() =>
@@ -145,10 +177,11 @@ namespace RichHudFramework.Game
         /// </summary>
         private void BeforeUpdate()
         {
-            if (Instance == null && !Unloading)
+            if (!Loaded && CanLoad)
                 Init(null);
 
-            RunSafeAction(UpdateComponents);
+            if (Loaded && canUpdate)
+                RunSafeAction(UpdateComponents);
 
             if (exceptionMessages.Count > 0 && errorTimer.ElapsedMilliseconds > errorLoopThreshold)
             {
@@ -157,19 +190,10 @@ namespace RichHudFramework.Game
                 TryWriteToLog(ModName + " encountered an unhandled exception.\n" + exceptionText);
                 exceptionMessages.Clear();
 
-                Close();
+                if (IsClient && promptForReload)
+                    ShowErrorPrompt(exceptionText, recoveryAttempts < recoveryLimit);
 
-                if (!IsDedicated && promptForReload)
-                {
-                    if (recoveryAttempts < recoveryLimit)
-                    {
-                        ShowErrorPrompt(exceptionText, true);
-                        Unloading = true;
-                    }
-                    else
-                        ShowErrorPrompt(exceptionText, false);
-                }
-
+                Reload();
                 recoveryAttempts++;
             }
 
@@ -182,6 +206,20 @@ namespace RichHudFramework.Game
             }
         }
 
+        private string GetExceptionMessages()
+        {
+            StringBuilder errorMessage = new StringBuilder();
+
+            if (exceptionCount > exceptionLimit && errorTimer.ElapsedMilliseconds < errorLoopThreshold)
+                errorMessage.AppendLine($"[Exception Loop Detected] {exceptionCount} exceptions were reported within a span of {errorTimer.ElapsedMilliseconds}ms.");
+
+            foreach (string msg in exceptionMessages)
+                errorMessage.Append(msg);
+
+            errorMessage.Replace("--->", "\n   --->");
+            return errorMessage.ToString();
+        }
+
         private void UpdateComponents()
         {
             for (int n = 0; n < serverComponents.Count; n++)
@@ -190,8 +228,7 @@ namespace RichHudFramework.Game
             for (int n = 0; n < clientComponents.Count; n++)
                 clientComponents[n].Update();
 
-            if (canUpdate)
-                Update();
+            Update();
         }
 
         protected virtual void Update() { }
@@ -217,7 +254,7 @@ namespace RichHudFramework.Game
         /// </summary>
         public static void ReportException(Exception e)
         {
-            if (Instance != null && !Unloading)
+            if (Instance != null && Loaded)
                 Instance.HandleException(e);
         }
 
@@ -263,26 +300,12 @@ namespace RichHudFramework.Game
             }
         }
 
-        private string GetExceptionMessages()
-        {
-            StringBuilder errorMessage = new StringBuilder();
-
-            if (exceptionCount > exceptionLimit && errorTimer.ElapsedMilliseconds < errorLoopThreshold)
-                errorMessage.AppendLine($"[Exception Loop Detected] {exceptionCount} exceptions were reported within a span of {errorTimer.ElapsedMilliseconds}ms.");
-
-            foreach (string msg in exceptionMessages)
-                errorMessage.Append(msg);
-
-            errorMessage.Replace("--->", "\n   --->");
-            return errorMessage.ToString();
-        }
-
         private void AllowReload(ResultEnum response)
         {
             if (response == ResultEnum.OK)
-                Unloading = false;
+                Reloading = false;
             else
-                Unloading = true;
+                Reloading = true;
         }
 
         /// <summary>
@@ -323,54 +346,65 @@ namespace RichHudFramework.Game
 
         private static void ShowMissionScreen(string subHeading = null, string message = null, Action<ResultEnum> callback = null, string okButtonCaption = null)
         {
-            Action messageAction = () => MyAPIGateway.Utilities.ShowMissionScreen(ModName, subHeading, null, message, callback, okButtonCaption);
-            lastMissionScreen = messageAction;
+            if (Instance != null)
+            {
+                Action messageAction = () => MyAPIGateway.Utilities.ShowMissionScreen(ModName, subHeading, null, message, callback, okButtonCaption);
+                Instance.lastMissionScreen = messageAction;
+            }
+        }
+
+        public void Reload()
+        {
+            if (Loaded)
+            {
+                if (recoveryAttempts <= recoveryLimit)
+                {
+                    Reloading = true;
+                    Close();
+                    Reloading = false;
+                }
+                else
+                    UnloadData();
+            }
         }
 
         protected override void UnloadData()
         {
             if (!Unloading)
             {
-                NormalExit = true;
-                Close();
                 Unloading = true;
-            }
-        }
-
-        public void Reload()
-        {
-            if (!Unloading)
-            {
-                NormalExit = true;
                 Close();
+                Instance = null;
             }
         }
 
         protected virtual void BeforeClose() { }
 
-        public void Close()
+        private void Close()
         {
-            if (Instance != null && !Unloading)
+            if (Loaded)
             {
-                Unloading = true;
+                Loaded = false;
 
                 if (canUpdate)
                 {
                     RunSafeAction(Instance.BeforeClose);
 
-                    for (int n = 0; n < clientComponents.Count; n++)
-                        RunSafeAction(clientComponents[n].Close);
+                    for (int n = clientComponents.Count - 1; n >= 0; n--)
+                    {
+                        RunSafeAction(() => clientComponents[n].Close());
+                        clientComponents[n].UnregisterComponent(n);
+                    }
 
-                    for (int n = 0; n < serverComponents.Count; n++)
-                        RunSafeAction(serverComponents[n].Close);
+                    for (int n = serverComponents.Count - 1; n >= 0; n--)
+                    {
+                        RunSafeAction(() => serverComponents[n].Close());
+                        serverComponents[n].UnregisterComponent(n);
+                    }
                 }
 
                 clientComponents.Clear();
                 serverComponents.Clear();
-                Instance = null;
-
-                if (recoveryAttempts < recoveryLimit)
-                    Unloading = false;
             }
         }
 
@@ -380,11 +414,12 @@ namespace RichHudFramework.Game
         /// </summary>
         public abstract class ComponentBase
         {
+            protected bool Registered { get; private set; }
+
             /// <summary>
             /// Determines whether or not this component will run on a dedicated server.
             /// </summary>
             public readonly bool runOnServer, runOnClient;
-            private readonly int index;
 
             protected ComponentBase(bool runOnServer, bool runOnClient)
             {
@@ -395,14 +430,23 @@ namespace RichHudFramework.Game
                 this.runOnClient = runOnClient;
 
                 if (!IsDedicated && runOnClient)
-                {
-                    index = Instance.clientComponents.Count;
                     Instance.clientComponents.Add(this);
-                }
                 else if (IsDedicated && runOnServer)
-                {
-                    index = Instance.serverComponents.Count;
                     Instance.serverComponents.Add(this);
+
+                Registered = true;
+            }
+
+            public void RegisterComponent()
+            {
+                if (!Registered)
+                {
+                    if (!IsDedicated && runOnClient)
+                        Instance.clientComponents.Add(this);
+                    else if (IsDedicated && runOnServer)
+                        Instance.serverComponents.Add(this);
+
+                    Registered = true;
                 }
             }
 
@@ -410,12 +454,38 @@ namespace RichHudFramework.Game
             /// Used to manually remove object from update queue. This should only be used for objects that
             /// need to be closed while the mod is running.
             /// </summary>
-            public virtual void UnregisterComponent()
+            public void UnregisterComponent()
             {
                 if (!IsDedicated && runOnClient)
-                    Instance.clientComponents.RemoveAt(index);
+                    Instance.clientComponents.Remove(this);
                 else if (IsDedicated && runOnServer)
-                    Instance.serverComponents.RemoveAt(index);
+                    Instance.serverComponents.Remove(this);
+
+                Registered = false;
+            }
+
+            /// <summary>
+            /// Used to manually remove object from update queue. This should only be used for objects that
+            /// need to be closed while the mod is running.
+            /// </summary>
+            public void UnregisterComponent(int index)
+            {
+                if (!IsDedicated && runOnClient)
+                {
+                    if (index < Instance.clientComponents.Count && Instance.clientComponents[index] == this)
+                    {
+                        Instance.clientComponents.RemoveAt(index);
+                        Registered = false;
+                    }
+                }
+                else if (IsDedicated && runOnServer)
+                {
+                    if (index < Instance.serverComponents.Count && Instance.serverComponents[index] == this)
+                    {
+                        Instance.serverComponents.RemoveAt(index);
+                        Registered = false;
+                    }
+                }
             }
 
             public virtual void Draw() { }

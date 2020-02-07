@@ -160,42 +160,12 @@ namespace RichHudFramework
                 /// <summary>
                 /// Clears current text and appends the text given.
                 /// </summary>
-                void SetText(string text);
-
-                /// <summary>
-                /// Clears current text and appends the text given.
-                /// </summary>
-                void SetText(RichString text);
-
-                /// <summary>
-                /// Clears current text and appends the text given.
-                /// </summary>
                 void SetText(RichText text);
-
-                /// <summary>
-                /// Appends the given <see cref="string"/> to the end of the text using the default <see cref="GlyphFormat"/>.
-                /// </summary>
-                void Append(string text);
-
-                /// <summary>
-                /// Appends the given text to the end of the text using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichString"/>.
-                /// </summary>
-                void Append(RichString text);
 
                 /// <summary>
                 /// Appends the given text to the end of the text using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichText"/>.
                 /// </summary>
                 void Append(RichText text);
-
-                /// <summary>
-                /// Inserts the given <see cref="string"/> at the given starting index using the default <see cref="GlyphFormat"/>.
-                /// </summary>
-                void Insert(string text, Vector2I start);
-
-                /// <summary>
-                /// Inserts the given text to the end of the text at the specified starting index using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichString"/>.
-                /// </summary>
-                void Insert(RichString text, Vector2I start);
 
                 /// <summary>
                 /// Inserts the given text to the end of the text at the specified starting index using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichText"/>.

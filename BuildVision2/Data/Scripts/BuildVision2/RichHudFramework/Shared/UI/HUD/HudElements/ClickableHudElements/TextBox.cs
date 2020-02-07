@@ -110,15 +110,15 @@ namespace RichHudFramework.UI
 
                 if (SharedBinds.Paste.IsNewPressed)
                 {
-                    if (HudMain.ClipBoard != null)
+                    if (!HudMain.ClipBoard.Equals(default(RichText)))
                     {
                         DeleteSelection();
                         TextBoard.Insert(HudMain.ClipBoard, caret.Index + new Vector2I(0, 1));
 
                         int count = 0;
 
-                        for (int n = 0; n < HudMain.ClipBoard.Count; n++)
-                            count += HudMain.ClipBoard[n].Length;
+                        for (int n = 0; n < HudMain.ClipBoard.ApiData.Count; n++)
+                            count += HudMain.ClipBoard.ApiData[n].Item1.Length;
 
                         caret.Move(new Vector2I(0, count));
                     }

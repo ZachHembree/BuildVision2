@@ -2,7 +2,8 @@
 using System.Text;
 using VRage;
 using VRageMath;
-using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
+using System.Collections.Generic;
+using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework.UI
@@ -18,7 +19,7 @@ namespace RichHudFramework.UI
         ListMembers = 1,
 
         /// <summary>
-        /// MyTuple<RichStringMembers[], T>
+        /// MyTuple<IList<RichStringMembers>, T>
         /// </summary>
         Add = 2,
 
@@ -260,7 +261,7 @@ namespace RichHudFramework.UI
                     return new CollectionData(x => List[x].GetOrSetMember, () => List.Count);
                 case ListBoxAccessors.Add:
                     {
-                        var entryData = (MyTuple<RichStringMembers[], T>)data;
+                        var entryData = (MyTuple<IList<RichStringMembers>, T>)data;
 
                         return (ApiMemberAccessor)Add(new RichText(entryData.Item1), entryData.Item2).GetOrSetMember;
                     }
@@ -315,7 +316,7 @@ namespace RichHudFramework.UI
     internal enum ListBoxEntryAccessors : int
     {
         /// <summary>
-        /// RichStringMembers[]
+        /// IList<RichStringMembers>
         /// </summary>
         Name = 1,
 
@@ -367,9 +368,9 @@ namespace RichHudFramework.UI
                 case ListBoxEntryAccessors.Name:
                     {
                         if (data == null)
-                            TextBoard.SetText(new RichText((RichStringMembers[])data));
+                            TextBoard.SetText(new RichText(data as IList<RichStringMembers>));
                         else
-                            return TextBoard.GetText().GetApiData();
+                            return TextBoard.GetText().ApiData;
 
                         break;
                     }

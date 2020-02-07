@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using VRage;
-using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
+using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using EventAccessor = VRage.MyTuple<bool, System.Action>;
 
@@ -27,14 +27,14 @@ namespace RichHudFramework
         {
             public RichText HeaderText
             {
-                get { return new RichText((RichStringMembers[])GetOrSetMemberFunc(null, (int)ControlCatAccessors.HeaderText)); }
-                set { GetOrSetMemberFunc(value.GetApiData(), (int)ControlCatAccessors.HeaderText); }
+                get { return new RichText(GetOrSetMemberFunc(null, (int)ControlCatAccessors.HeaderText) as IList<RichStringMembers>); }
+                set { GetOrSetMemberFunc(value.ApiData, (int)ControlCatAccessors.HeaderText); }
             }
 
             public RichText SubheaderText
             {
-                get { return new RichText((RichStringMembers[])GetOrSetMemberFunc(null, (int)ControlCatAccessors.SubheaderText)); }
-                set { GetOrSetMemberFunc(value.GetApiData(), (int)ControlCatAccessors.SubheaderText); }
+                get { return new RichText(GetOrSetMemberFunc(null, (int)ControlCatAccessors.SubheaderText) as IList<RichStringMembers>); }
+                set { GetOrSetMemberFunc(value.ApiData, (int)ControlCatAccessors.SubheaderText); }
             }
 
             public IReadOnlyCollection<IControlTile> Tiles { get; }

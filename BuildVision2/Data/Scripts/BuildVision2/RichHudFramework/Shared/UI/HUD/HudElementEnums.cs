@@ -99,7 +99,7 @@ namespace RichHudFramework
         /// <summary>
         /// Used to determine text alignment.
         /// </summary>
-        public enum TextAlignment : int
+        public enum TextAlignment : byte
         {
             Left = 0,
             Center = 1,

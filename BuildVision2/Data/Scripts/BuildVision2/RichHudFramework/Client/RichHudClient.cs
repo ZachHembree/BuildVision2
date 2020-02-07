@@ -16,7 +16,7 @@ namespace RichHudFramework.Client
     public sealed class RichHudClient : ModBase.ComponentBase
     {
         private const long modID = 1965654081, queueID = 1314086443;
-        private const int versionID = 1;
+        private const int versionID = 2;
 
         public static bool Registered => Instance != null ? Instance.registered : false;
         private static RichHudClient Instance { get; set; }
@@ -152,8 +152,8 @@ namespace RichHudFramework.Client
 
             public ApiModule(ApiModuleTypes componentType, bool runOnServer, bool runOnClient) : base(runOnServer, runOnClient)
             {
-                if (Instance == null)
-                    throw new Exception("Types of ApiModule cannot be instantiated before RichHudClient is initialized.");
+                if (!Registered)
+                    throw new Exception("Types of ApiModule cannot be instantiated before RichHudClient is registered.");
 
                 this.componentType = componentType;
             }

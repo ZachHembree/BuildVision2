@@ -5,7 +5,7 @@ using VRage;
 using VRageMath;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using EventAccessor = VRage.MyTuple<bool, System.Action>;
-using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
+using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
 namespace RichHudFramework
 {
@@ -62,7 +62,7 @@ namespace RichHudFramework
             OnSettingChanged = 1,
 
             /// <summary>
-            /// RichStringMembers[]
+            /// IList<RichStringMembers>
             /// </summary>
             Name = 2,
 
@@ -189,12 +189,12 @@ namespace RichHudFramework
         internal enum ControlCatAccessors : int
         {
             /// <summary>
-            /// RichStringMembers[]
+            /// IList<RichStringMembers>
             /// </summary>
             HeaderText = 1,
 
             /// <summary>
-            /// RichStringMembers[]
+            /// IList<RichStringMembers>
             /// </summary>
             SubheaderText = 2,
 
@@ -255,7 +255,7 @@ namespace RichHudFramework
         internal enum TerminalPageAccessors : int
         {
             /// <summary>
-            /// RichStringMembers[]
+            /// IList<RichStringMembers>
             /// </summary>
             Name = 1,
 
@@ -341,7 +341,7 @@ namespace RichHudFramework
             OnSelectionChanged = 1,
 
             /// <summary>
-            /// RichStringMembers[]
+            /// IList<RichStringMembers>
             /// </summary>
             Name = 2,
 

@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using VRage;
-using GlyphFormatMembers = VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>;
+using System.Collections.Generic;
+using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
 namespace RichHudFramework
 {
@@ -11,20 +12,24 @@ namespace RichHudFramework
         /// <summary>
         /// A <see cref="string"/> associated with a <see cref="GlyphFormat"/>. Implicitly castable to <see cref="RichText"/>.
         /// </summary>
-        public class RichString
+        public struct RichString
         {
-            public char this[int index] => text[index];
-            public int Length => text.Length;
+            public char this[int index] => ApiData.Item1[index];
 
-            public GlyphFormat format;
-            public readonly StringBuilder text;
+            public int Length => ApiData.Item1.Length;
+
+            public GlyphFormat Format { get { return new GlyphFormat(ApiData.Item2); } set { apiData.Item2 = value.data; } }
+
+            public RichStringMembers ApiData => apiData;
+
+            private RichStringMembers apiData;
 
             /// <summary>
             /// Initializes a <see cref="RichString"/> with the given capacity.
             /// </summary>
             public RichString(int capacity = 6)
             {
-                text = new StringBuilder(capacity);
+                apiData = new RichStringMembers(new StringBuilder(capacity), GlyphFormat.Empty.data);
             }
 
             /// <summary>
@@ -32,21 +37,7 @@ namespace RichHudFramework
             /// </summary>
             public RichString(RichStringMembers data)
             {
-                text = data.Item1;
-                format = new GlyphFormat(data.Item2);
-            }
-
-            /// <summary>
-            /// Initializes a <see cref="RichString"/> with the given string builder and formatting.
-            /// </summary>
-            public RichString(StringBuilder text, GlyphFormat format = null)
-            {
-                if (format != null)
-                    this.format = format;
-                else
-                    this.format = GlyphFormat.Empty;
-
-                this.text = text;
+                apiData = data;
             }
 
             /// <summary>
@@ -54,56 +45,41 @@ namespace RichHudFramework
             /// </summary>
             public RichString(string text, GlyphFormat format = null)
             {
-                if (format != null)
-                    this.format = format;
-                else
-                    this.format = GlyphFormat.Empty;
+                if (format == null)
+                    format = GlyphFormat.Empty;
 
-                this.text = new StringBuilder(text.Length);
-                this.text.Append(text);
-            }
+                var sb = new StringBuilder(text.Length);
+                sb.Append(text);
 
-            /// <summary>
-            /// Creates a shallow copy of the given <see cref="RichString"/>.
-            /// </summary>
-            public RichString(RichString original)
-            {
-                this.format = original.format;
-                this.text = original.text;
+                apiData = new RichStringMembers(sb, format.data);
             }
 
             /// <summary>
             /// Appends the contents of the given <see cref="StringBuilder"/> to the <see cref="RichString"/>.
             /// </summary>
             public void Append(StringBuilder text) =>
-                this.text.Append(text);
+                apiData.Item1.Append(text);
 
             /// <summary>
             /// Appends the string to the <see cref="RichString"/>.
             /// </summary>
             public void Append(string text) =>
-                this.text.Append(text);
+                apiData.Item1.Append(text);
 
             /// <summary>
             /// Appends the character to the <see cref="RichString"/>.
             /// </summary>
             public void Append(char ch) =>
-                text.Append(ch);
+                apiData.Item1.Append(ch);
 
-            public static implicit operator RichString(string text) =>
-                new RichString(text, null);
-
-            /// <summary>
-            /// Retrieves data used by the Framework API.
-            /// </summary>
-            public RichStringMembers GetApiData() =>
-                new RichStringMembers(text, format.data);
+            public void Clear() =>
+                apiData.Item1.Clear();
 
             /// <summary>
             /// Returns the contents of the <see cref="RichString"/> as an unformatted <see cref="string"/>.
             /// </summary>
             public override string ToString() =>
-                text.ToString();
+                apiData.Item1.ToString();
 
         }
     }

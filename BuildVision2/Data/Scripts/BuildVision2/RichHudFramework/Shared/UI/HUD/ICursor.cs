@@ -4,7 +4,7 @@ using VRage.Utils;
 using VRageMath;
 using System;
 using FloatProp = VRage.MyTuple<System.Func<float>, System.Action<float>>;
-using RichStringMembers = VRage.MyTuple<System.Text.StringBuilder, VRage.MyTuple<VRageMath.Vector2I, int, VRageMath.Color, float>>;
+using RichStringMembers = VRage.MyTuple<System.Text.StringBuilder, VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>>;
 using Vec2Prop = VRage.MyTuple<System.Func<VRageMath.Vector2>, System.Action<VRageMath.Vector2>>;
 using ApiMemberAccessor = System.Func<object, int, object>;
 

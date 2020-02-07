@@ -25,14 +25,14 @@ namespace RichHudFramework
                 public MyStringId textureID;
 
                 /// <summary>
-                /// Determines the scale and aspect ratio of the texture as rendered.
-                /// </summary>
-                public FlatQuad matFit;
-
-                /// <summary>
                 /// Color of the billboard using native formatting
                 /// </summary>
                 public Vector4 bbColor;
+
+                /// <summary>
+                /// Determines the scale and aspect ratio of the texture as rendered.
+                /// </summary>
+                public FlatQuad matFit;
 
                 public QuadBoard(MyStringId textureID, FlatQuad matFit, Vector4 bbColor)
                 {

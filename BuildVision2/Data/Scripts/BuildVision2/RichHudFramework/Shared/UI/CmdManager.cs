@@ -18,17 +18,13 @@ namespace RichHudFramework.UI
         }
 
         private static CmdManager instance;
-        private static readonly Regex cmdParser;
+        private readonly Regex cmdParser;
         private readonly List<Group> commandGroups;
-
-        static CmdManager()
-        {
-            cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)((\w+)|("".+"")))+");
-        }
 
         private CmdManager() : base(false, true)
         {
             commandGroups = new List<Group>();
+            cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)((\w+)|("".+"")))+");
             MyAPIGateway.Utilities.MessageEntered += MessageHandler;
         }
 
@@ -41,7 +37,7 @@ namespace RichHudFramework.UI
         public override void Close()
         {
             MyAPIGateway.Utilities.MessageEntered -= MessageHandler;
-            Instance = null;
+            instance = null;
         }
 
         /// <summary>
@@ -152,7 +148,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public static bool TryParseCommand(string cmd, out string[] matches)
         {
-            Match match = cmdParser.Match(cmd);
+            Match match = Instance.cmdParser.Match(cmd);
             CaptureCollection captures = match.Groups[3].Captures;
             matches = new string[captures.Count];
 
