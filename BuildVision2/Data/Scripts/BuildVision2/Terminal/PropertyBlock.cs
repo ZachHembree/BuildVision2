@@ -67,7 +67,7 @@ namespace DarkHelmet.BuildVision2
     internal class PropertyBlock
     {
         public IMyTerminalBlock TBlock { get; private set; }
-        public ReadOnlyCollection<IBlockMember> BlockMembers { get; private set; }
+        public ReadOnlyCollection<IBlockMember> BlockMembers { get; }
         public int EnabledMembers => GetEnabledElementCount();
         public bool IsFunctional { get { return TBlock.IsFunctional; } }
         public bool IsWorking { get { return TBlock.IsWorking; } }
@@ -153,15 +153,20 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private static string CleanText(StringBuilder text)
         {
-            StringBuilder cleanedText = new StringBuilder(text.Length);
-
-            for (int n = 0; n < text.Length; n++)
+            if (text != null)
             {
-                if (text[n] > 31)
-                    cleanedText.Append(text[n]);
-            }
+                StringBuilder cleanedText = new StringBuilder(text.Length);
 
-            return cleanedText.ToString();
+                for (int n = 0; n < text.Length; n++)
+                {
+                    if (text[n] > 31)
+                        cleanedText.Append(text[n]);
+                }
+
+                return cleanedText.ToString();
+            }
+            else
+                return "";
         }
 
         /// <summary>
@@ -262,19 +267,19 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BlockAction : BlockMemberBase, IBlockAction
         {
-            public override string Value => GetValueFunc();
+            public override string Value => GetSafeValueFunc();
             public override string Postfix => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
-            private Func<string> GetValueFunc { get; set; }
+            private Func<string> GetSafeValueFunc { get; set; }
             private Func<string> GetPostfixFunc { get; set; }
             private readonly Action action;
 
-            public BlockAction(Func<string> GetValueFunc, Func<string> GetPostfixFunc, Action Action)
+            public BlockAction(Func<string> GetSafeValueFunc, Func<string> GetPostfixFunc, Action Action)
             {
                 Name = null;
                 Enabled = true;
 
-                this.GetValueFunc = GetValueFunc;
+                this.GetSafeValueFunc = GetSafeValueFunc;
                 this.GetPostfixFunc = GetPostfixFunc;
                 action = Action;
             }
@@ -463,7 +468,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class TextProperty : BvTerminalProperty<ITerminalProperty<StringBuilder>>, IBlockTextMember
         {
-            public override string Value => CleanText(property.GetValue(block));
+            public override string Value => CleanText(property.GetSafeValue(block));
             public override string Postfix => null;
             public Func<char, bool> CharFilterFunc { get; protected set; }
 
@@ -474,7 +479,7 @@ namespace DarkHelmet.BuildVision2
 
             public void SetValueText(string text)
             {
-                property.SetValue(block, new StringBuilder(text));
+                property.SetSafeValue(block, new StringBuilder(text));
             }
 
             public override bool TryCopyProperty(BvTerminalPropertyBase prop)
@@ -483,7 +488,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (x != null)
                 {
-                    property.SetValue(block, x.property.GetValue(block));
+                    property.SetSafeValue(block, x.property.GetSafeValue(block));
 
                     return true;
                 }
@@ -581,7 +586,7 @@ namespace DarkHelmet.BuildVision2
 
             public void Action()
             {
-                property.SetValue(block, !property.GetValue(block));
+                property.SetSafeValue(block, !property.GetSafeValue(block));
             }
 
             public override bool TryCopyProperty(BvTerminalPropertyBase prop)
@@ -589,7 +594,7 @@ namespace DarkHelmet.BuildVision2
                 if (prop.GetType() == this.GetType())
                 {
                     var x = prop as BoolProperty;
-                    property.SetValue(block, x.property.GetValue(block));
+                    property.SetSafeValue(block, x.property.GetSafeValue(block));
 
                     return true;
                 }
@@ -602,7 +607,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private string GetPropStateText()
             {
-                if (property.GetValue(block))
+                if (property.GetSafeValue(block))
                     return MyTexts.Get(OnText).ToString();
                 else
                     return MyTexts.Get(OffText).ToString();
@@ -627,12 +632,12 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ComboBoxProperty : ScrollablePropBase<IMyTerminalControlCombobox>
         {
-            public override string Value => GetValueFunc();
+            public override string Value => GetSafeValueFunc();
             public override string Postfix => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
             private readonly List<long> keys;
             private readonly List<string> names;
-            private readonly Func<string> GetValueFunc, GetPostfixFunc;
+            private readonly Func<string> GetSafeValueFunc, GetPostfixFunc;
 
             public ComboBoxProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, IMyTerminalBlock block) : base(name, comboBox, control, block)
             {
@@ -655,7 +660,7 @@ namespace DarkHelmet.BuildVision2
                     GetPostfixFunc = () => $"({Math.Round((bat.CurrentStoredPower / bat.MaxStoredPower) * 100f, 1)}%)";
                 }
 
-                GetValueFunc = () => names[GetCurrentIndex()];
+                GetSafeValueFunc = () => names[GetCurrentIndex()];
             }
 
             public override void ScrollUp() =>
@@ -712,7 +717,7 @@ namespace DarkHelmet.BuildVision2
                 T newValue;
 
                 if (TryParseValue(value, out newValue))
-                    property.SetValue(block, newValue);
+                    property.SetSafeValue(block, newValue);
             }
 
             protected abstract bool TryParseValue(string text, out T value);
@@ -723,7 +728,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (x != null)
                 {
-                    property.SetValue(block, x.property.GetValue(block));
+                    property.SetSafeValue(block, x.property.GetSafeValue(block));
 
                     return true;
                 }
@@ -741,7 +746,7 @@ namespace DarkHelmet.BuildVision2
             {
                 get
                 {
-                    float value = property.GetValue(block);
+                    float value = property.GetSafeValue(block);
 
                     if ((value.Abs() >= 1000000f || value.Abs() <= .0000001f) && value != 0f)
                         return value.ToString("0.##E+0");
@@ -795,7 +800,7 @@ namespace DarkHelmet.BuildVision2
                     else if (block is IMyMotorStator)
                     {
                         var rotor = (IMyMotorStator)block;
-                        GetPostfixFunc = () => $"({Math.Round(MathHelper.Clamp(rotor.Angle.RadiansToDegrees(), 0, 360))})";
+                        GetPostfixFunc = () => $"({Math.Round(MathHelper.Clamp(rotor.Angle.RadiansToDegrees(), -360, 360))})";
                     }
                 }
             }
@@ -814,12 +819,12 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void ChangePropValue(float delta)
             {
-                float current = property.GetValue(block);
+                float current = property.GetSafeValue(block);
 
                 if (float.IsInfinity(current))
                     current = 0f;
 
-                property.SetValue(block, (float)Math.Round(MathHelper.Clamp((current + delta), minValue, maxValue), 3));
+                property.SetSafeValue(block, (float)Math.Round(MathHelper.Clamp((current + delta), minValue, maxValue), 3));
             }
 
             /// <summary>
@@ -843,7 +848,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ColorProperty : NumericPropertyBase<Color>
         {
-            public override string Value => property.GetValue(block).GetChannel(channel).ToString();
+            public override string Value => property.GetSafeValue(block).GetChannel(channel).ToString();
             public override string Postfix => null;
 
             private readonly int channel;
@@ -882,7 +887,7 @@ namespace DarkHelmet.BuildVision2
             protected override bool TryParseValue(string text, out Color value)
             {
                 byte x;
-                value = property.GetValue(block);
+                value = property.GetSafeValue(block);
 
                 if (byte.TryParse(text, out x))
                 {
@@ -898,12 +903,12 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void SetPropValue(bool increment)
             {
-                Color current = property.GetValue(block);
+                Color current = property.GetSafeValue(block);
                 int value = current.GetChannel(channel),
                     mult = increment ? GetIncrement() : -GetIncrement();
 
                 current = current.SetChannel(channel, (byte)MathHelper.Clamp(value + mult, 0, 255));
-                property.SetValue(block, current);
+                property.SetSafeValue(block, current);
             }
 
             /// <summary>
@@ -920,6 +925,36 @@ namespace DarkHelmet.BuildVision2
                 else
                     return incr0;
             }
+        }        
+    }
+
+    public static class PropertyBlockExtensions
+    {
+        public static TValue GetSafeValue<TValue>(this ITerminalProperty<TValue> prop, IMyTerminalBlock block)
+        {
+            try
+            {
+                var control = prop as IMyTerminalControl;
+
+                if (control.Enabled(block) && control.Visible(block))
+                    return prop.GetValue(block);
+            }
+            catch 
+            { }
+
+            return default(TValue);
+        }
+
+        public static void SetSafeValue<TValue>(this ITerminalProperty<TValue> prop, IMyTerminalBlock block, TValue value)
+        {
+            try
+            {
+                var control = prop as IMyTerminalControl;
+
+                if (control.Enabled(block) && control.Visible(block))
+                    prop.SetValue(block, value);
+            }
+            catch { }
         }
     }
 }

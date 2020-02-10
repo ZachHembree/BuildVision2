@@ -203,6 +203,21 @@ namespace DarkHelmet.BuildVision2
                 setPosition,
             };
 
+            var maxVisibleSlider = new SliderSetting()
+            {
+                Name = "Max Visible Properties",
+                Min = 8,
+                Max = 40,
+                Value = PropertiesMenu.Cfg.maxVisible,
+                ValueText = $"{PropertiesMenu.Cfg.maxVisible}",
+                CustomValueGetter = () => PropertiesMenu.Cfg.maxVisible,
+                CustomValueSetter = x => PropertiesMenu.Cfg.maxVisible = (int)x.Round(),
+                ControlChangedAction = x =>
+                {
+                    x.ValueText = $"{x.Value.Round()}";
+                }
+            };
+
             var resetGuiSettings = new TerminalButton()
             {
                 Name = "Reset GUI settings",
@@ -211,6 +226,7 @@ namespace DarkHelmet.BuildVision2
 
             var tile3 = new ControlTile()
             {
+                maxVisibleSlider,
                 resetGuiSettings,
             };
 

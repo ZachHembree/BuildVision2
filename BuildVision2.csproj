@@ -29,6 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+	<LangVersion>6</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" />
@@ -175,15 +176,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\.gitignore" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\.gitrepo" />
-    <None Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\ClassDiagram1.cd" />
-    <None Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\RichHudClient.csproj" />
-    <None Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\.gitrepo" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

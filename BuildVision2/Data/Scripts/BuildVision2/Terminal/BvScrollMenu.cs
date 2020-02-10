@@ -62,7 +62,7 @@ namespace DarkHelmet.BuildVision2
         private bool waitingForChat;
 
         private static readonly Color headerColor, bodyColor, selectionBoxColor;
-        private static readonly GlyphFormat headerText, bodyText,
+        private static readonly GlyphFormat headerText, bodyText, valueText,
             footerTextLeft, footerTextRight,
             highlightText, selectedText, blockIncText;
 
@@ -72,14 +72,15 @@ namespace DarkHelmet.BuildVision2
             bodyColor = new Color(70, 78, 86);
             selectionBoxColor = new Color(41, 54, 62);
 
-            headerText = new GlyphFormat(new Color(210, 235, 245), TextAlignment.Center, .9735f);
+            headerText = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f);
 
-            bodyText = new GlyphFormat(new Color(210, 235, 245), textSize: .885f);
-            highlightText = new GlyphFormat(new Color(220, 190, 20), textSize: .885f);
-            selectedText = new GlyphFormat(new Color(50, 200, 50), textSize: .885f);
+            bodyText = new GlyphFormat(Color.White, textSize: .885f);
+            valueText = bodyText.WithColor(new Color(210, 210, 210));
+            highlightText = bodyText.WithColor(new Color(220, 180, 50));
+            selectedText = bodyText.WithColor(new Color(50, 200, 50));
 
-            footerTextLeft = bodyText;
-            footerTextRight = bodyText.WithAlignment(TextAlignment.Right);
+            footerTextLeft = bodyText.WithColor(new Color(220, 235, 245));
+            footerTextRight = footerTextLeft.WithAlignment(TextAlignment.Right);
             blockIncText = footerTextRight.WithColor(new Color(200, 35, 35));
         }
 
@@ -569,7 +570,7 @@ namespace DarkHelmet.BuildVision2
 
             public void UpdateText(bool highlighted, bool selected)
             {
-                postfix.Format = bodyText;           
+                postfix.Format = bodyText;
 
                 if (highlighted)
                 {
@@ -579,7 +580,7 @@ namespace DarkHelmet.BuildVision2
                         value.Format = highlightText;
                 }
                 else
-                    value.Format = bodyText;
+                    value.Format = valueText;
 
                 value.Text = blockMember.Value;
 
