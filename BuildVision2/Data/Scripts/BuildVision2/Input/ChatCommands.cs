@@ -62,7 +62,7 @@ namespace DarkHelmet.BuildVision2
             IBind bind = BvBinds.BindGroup.GetBind(bindName);
 
             if (bind == null)
-                SendChatMessage("Error: The bind specified could not be found.");
+                Instance.SendChatMessage("Error: The bind specified could not be found.");
             else
                 bind.TrySetCombo(controls);
         }

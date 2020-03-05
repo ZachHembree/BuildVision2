@@ -1,91 +1,75 @@
 ﻿using RichHudFramework.Game;
+using RichHudFramework.Client;
 using RichHudFramework.UI;
 using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRageMath;
+using System;
 
 namespace DarkHelmet.BuildVision2
 {
-    using RichHudFramework;
-    using RichHudFramework.Client;
-
     /// <summary>
     /// Build vision main class
     /// </summary>
-    [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation, 1)]
+    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, 1)]
     internal sealed partial class BvMain : ModBase
     {
+        public static BvMain Instance { get; private set; }
         public static BvConfig Cfg { get { return BvConfig.Current; } }
 
         private PropertyBlock target;
         private CmdManager.Group bvCommands;
-        private bool LoadFinished, LoadStarted;
 
-        static BvMain()
+        public BvMain() : base(false, true)
         {
+            if (Instance == null)
+                Instance = this;
+            else
+                throw new Exception("Only one instance of BvMain can exist at any given time.");
+
             ModName = "Build Vision";
             LogFileName = "bvLog.txt";
-            BvConfig.FileName = "BuildVision2Config.xml";
 
             promptForReload = true;
             recoveryLimit = 2;
         }
 
-        public BvMain() : base(false, true)
-        { }
-
         protected override void AfterInit()
         {
-            RichHudClient.Init(this, HudInit);
+            bvCommands = CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
+            BvConfig.FileName = "BuildVision2Config.xml";
+
+            RichHudClient.Init(ModName, HudInit, Reload);
+            BvConfig.Load(true);
         }
 
         private void HudInit()
         {
-            LoadStarted = true;
-            LoadFinished = false;
-            BvConfig.LoadStart(InitFinish, true);
-        }
+            InitSettingsMenu();
 
-        /// <summary>
-        /// Finishes initialization upon retrieval of configuration information.
-        /// </summary>
-        private void InitFinish()
-        {
-            if (!LoadFinished && LoadStarted)
-            {
-                LoadFinished = true;
-                bvCommands = CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
-                InitSettingsMenu();
-
-                BvBinds.Open.OnNewPress += TryOpenMenu;
-                BvBinds.Hide.OnNewPress += TryCloseMenu;
-                SharedBinds.Escape.OnNewPress += TryCloseMenu;
-            }
+            BvBinds.Open.OnNewPress += TryOpenMenu;
+            BvBinds.Hide.OnNewPress += TryCloseMenu;
+            SharedBinds.Escape.OnNewPress += TryCloseMenu;
         }
 
         protected override void BeforeClose()
         {
-            if (LoadFinished)
-            {
-                BvConfig.Save();
-                TryCloseMenu();
+            BvConfig.Save();
+            TryCloseMenu();
 
-                LoadStarted = false;
-                LoadFinished = false;
-            }
+            if (Reloading)
+                RichHudClient.Reset();
+
+            if (Unloading)
+                Instance = null;
         }
 
         protected override void Update()
         {
-            base.Update();
-
-            if (LoadFinished)
-            {
-                if (PropertiesMenu.Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))
-                    TryCloseMenu();
-            }
+            if (PropertiesMenu.Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))
+                TryCloseMenu();
         }
 
         /// <summary>
@@ -99,16 +83,13 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void TryOpenMenu()
         {
-            if (LoadFinished)
+            if (TryGetTarget() && CanAccessTargetBlock())
             {
-                if (TryGetTarget() && CanAccessTargetBlock())
-                {
-                    PropertiesMenu.Target = target;
-                    PropertiesMenu.Show();
-                }
-                else
-                    TryCloseMenu();
+                PropertiesMenu.Target = target;
+                PropertiesMenu.Show();
             }
+            else
+                TryCloseMenu();
         }
 
         /// <summary>
@@ -116,8 +97,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void TryCloseMenu()
         {
-            if (LoadFinished)
-                PropertiesMenu.Hide();
+            PropertiesMenu.Hide();
         }
 
         /// <summary>
@@ -203,6 +183,12 @@ namespace DarkHelmet.BuildVision2
                 dist = (LocalPlayer.Position - target.GetPosition()).LengthSquared();
 
             return dist < (Cfg.general.maxControlRange * Cfg.general.maxControlRange);
-        }
+        }        
+    }
+
+    public abstract class BvComponentBase : ModBase.ComponentBase
+    {
+        public BvComponentBase(bool runOnServer, bool runOnClient) : base(runOnServer, runOnClient, BvMain.Instance)
+        { }
     }
 }

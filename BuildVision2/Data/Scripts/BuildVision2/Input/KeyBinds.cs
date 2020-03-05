@@ -7,7 +7,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Wrapper used to provide easy access to Build Vision key binds.
     /// </summary>
-    internal sealed class BvBinds : ModBase.ComponentBase
+    internal sealed class BvBinds : BvComponentBase
     {
         public static BindsConfig Cfg
         {

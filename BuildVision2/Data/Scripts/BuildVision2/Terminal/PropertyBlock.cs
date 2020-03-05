@@ -444,16 +444,16 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Base class for all Build Vision terminal properties that make use of SE's <see cref="ITerminalProperty"/>
         /// </summary>
-        private abstract class BvTerminalProperty<T> : BvTerminalPropertyBase where T : ITerminalProperty
+        private abstract class BvTerminalProperty<TProp> : BvTerminalPropertyBase where TProp : ITerminalProperty
         {
             public override string Id => property.Id;
             public override bool Enabled { get { return control.Enabled(block) && control.Visible(block); } }
 
-            protected readonly T property;
+            protected readonly TProp property;
             protected readonly IMyTerminalControl control;
             protected readonly IMyTerminalBlock block;
 
-            protected BvTerminalProperty(string name, T property, IMyTerminalControl control, IMyTerminalBlock block)
+            protected BvTerminalProperty(string name, TProp property, IMyTerminalControl control, IMyTerminalBlock block)
             {
                 Name = name;
 
@@ -463,12 +463,70 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        private abstract class BvTerminalProperty<TProp, TValue> : BvTerminalProperty<TProp> where TProp : ITerminalProperty<TValue>
+        {
+            protected BvTerminalProperty(string name, TProp property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
+            { }
+
+            public TValue GetValue()
+            {
+                try
+                {
+                    if (control.Enabled(block) && control.Visible(block))
+                        return property.GetValue(block);
+                }
+                catch
+                { }
+
+                return default(TValue);
+            }
+
+            public void SetValue(TValue value)
+            {
+                try
+                {
+                    if (control.Enabled(block) && control.Visible(block))
+                        property.SetValue(block, value);
+                }
+                catch { }
+            }
+        }
+
+        private abstract class BvTerminalValueControl<TProp, TValue> : BvTerminalProperty<TProp> where TProp : IMyTerminalValueControl<TValue>
+        {
+            protected BvTerminalValueControl(string name, TProp property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
+            { }
+
+            public TValue GetValue()
+            {
+                try
+                {
+                    if (control.Enabled(block) && control.Visible(block))
+                        return property.Getter(block);
+                }
+                catch
+                { }
+
+                return default(TValue);
+            }
+
+            public void SetValue(TValue value)
+            {
+                try
+                {
+                    if (control.Enabled(block) && control.Visible(block))
+                        property.Setter(block, value);
+                }
+                catch { }
+            }
+        }
+
         /// <summary>
         /// Field for changing block property text. 
         /// </summary>
-        private class TextProperty : BvTerminalProperty<ITerminalProperty<StringBuilder>>, IBlockTextMember
+        private class TextProperty : BvTerminalProperty<ITerminalProperty<StringBuilder>, StringBuilder>, IBlockTextMember
         {
-            public override string Value => CleanText(property.GetSafeValue(block));
+            public override string Value => CleanText(GetValue());
             public override string Postfix => null;
             public Func<char, bool> CharFilterFunc { get; protected set; }
 
@@ -479,7 +537,7 @@ namespace DarkHelmet.BuildVision2
 
             public void SetValueText(string text)
             {
-                property.SetSafeValue(block, new StringBuilder(text));
+                SetValue(new StringBuilder(text));
             }
 
             public override bool TryCopyProperty(BvTerminalPropertyBase prop)
@@ -488,7 +546,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (x != null)
                 {
-                    property.SetSafeValue(block, x.property.GetSafeValue(block));
+                    SetValue(x.GetValue());
 
                     return true;
                 }
@@ -500,7 +558,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Block Terminal Property of a Boolean
         /// </summary>
-        private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>>, IBlockAction
+        private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>, bool>, IBlockAction
         {
             public override string Value => GetPropStateText();
             public override string Postfix => GetPostfixFunc != null ? GetPostfixFunc() : null;
@@ -586,7 +644,7 @@ namespace DarkHelmet.BuildVision2
 
             public void Action()
             {
-                property.SetSafeValue(block, !property.GetSafeValue(block));
+                SetValue(!GetValue());
             }
 
             public override bool TryCopyProperty(BvTerminalPropertyBase prop)
@@ -594,7 +652,7 @@ namespace DarkHelmet.BuildVision2
                 if (prop.GetType() == this.GetType())
                 {
                     var x = prop as BoolProperty;
-                    property.SetSafeValue(block, x.property.GetSafeValue(block));
+                    SetValue(x.GetValue());
 
                     return true;
                 }
@@ -607,7 +665,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private string GetPropStateText()
             {
-                if (property.GetSafeValue(block))
+                if (GetValue())
                     return MyTexts.Get(OnText).ToString();
                 else
                     return MyTexts.Get(OffText).ToString();
@@ -617,9 +675,29 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Base for block properties that use scrolling for input.
         /// </summary>
-        private abstract class ScrollablePropBase<T> : BvTerminalProperty<T>, IBlockScrollable where T : ITerminalProperty
+        private abstract class ScrollableProp<TProp> : BvTerminalProperty<TProp>, IBlockScrollable where TProp : ITerminalProperty
         {
-            protected ScrollablePropBase(string name, T property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
+            protected ScrollableProp(string name, TProp property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
+            { }
+
+            public abstract void ScrollUp();
+
+            public abstract void ScrollDown();
+        }
+
+        private abstract class ScrollableProp<TProp, TValue> : BvTerminalProperty<TProp, TValue>, IBlockScrollable where TProp : ITerminalProperty<TValue>
+        {
+            protected ScrollableProp(string name, TProp property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
+            { }
+
+            public abstract void ScrollUp();
+
+            public abstract void ScrollDown();
+        }
+
+        private abstract class ScrollableValueControl<TProp, TValue> : BvTerminalValueControl<TProp, TValue>, IBlockScrollable where TProp : IMyTerminalValueControl<TValue>
+        {
+            protected ScrollableValueControl(string name, TProp property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
             { }
 
             public abstract void ScrollUp();
@@ -630,14 +708,14 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Scrollable property for <see cref="IMyTerminalControlCombobox"/> terminal properties.
         /// </summary>
-        private class ComboBoxProperty : ScrollablePropBase<IMyTerminalControlCombobox>
+        private class ComboBoxProperty : ScrollableValueControl<IMyTerminalControlCombobox, long>
         {
-            public override string Value => GetSafeValueFunc();
+            public override string Value => GetValueFunc();
             public override string Postfix => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
             private readonly List<long> keys;
             private readonly List<string> names;
-            private readonly Func<string> GetSafeValueFunc, GetPostfixFunc;
+            private readonly Func<string> GetValueFunc, GetPostfixFunc;
 
             public ComboBoxProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, IMyTerminalBlock block) : base(name, comboBox, control, block)
             {
@@ -660,7 +738,7 @@ namespace DarkHelmet.BuildVision2
                     GetPostfixFunc = () => $"({Math.Round((bat.CurrentStoredPower / bat.MaxStoredPower) * 100f, 1)}%)";
                 }
 
-                GetSafeValueFunc = () => names[GetCurrentIndex()];
+                GetValueFunc = () => names[GetCurrentIndex()];
             }
 
             public override void ScrollUp() =>
@@ -672,7 +750,7 @@ namespace DarkHelmet.BuildVision2
             private void ChangePropValue(int delta)
             {
                 int index = MathHelper.Clamp((GetCurrentIndex() + delta), 0, keys.Count - 1);
-                property.Setter(block, keys[index]);
+                SetValue(keys[index]);
             }
 
             private int GetCurrentIndex()
@@ -703,32 +781,32 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private abstract class NumericPropertyBase<T> : ScrollablePropBase<ITerminalProperty<T>>, IBlockTextMember
+        private abstract class NumericPropertyBase<TValue> : ScrollableProp<ITerminalProperty<TValue>, TValue>, IBlockTextMember
         {
             public Func<char, bool> CharFilterFunc { get; protected set; }
 
-            public NumericPropertyBase(string name, ITerminalProperty<T> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
+            public NumericPropertyBase(string name, ITerminalProperty<TValue> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
             {
                 CharFilterFunc = x => (x >= '0' && x <= '9') || x == '.' || x == '-' || x == '+';
             }
 
             public void SetValueText(string value)
             {
-                T newValue;
+                TValue newValue;
 
                 if (TryParseValue(value, out newValue))
-                    property.SetSafeValue(block, newValue);
+                    SetValue(newValue);
             }
 
-            protected abstract bool TryParseValue(string text, out T value);
+            protected abstract bool TryParseValue(string text, out TValue value);
 
             public override bool TryCopyProperty(BvTerminalPropertyBase prop)
             {
-                var x = prop as NumericPropertyBase<T>;
+                var x = prop as NumericPropertyBase<TValue>;
 
                 if (x != null)
                 {
-                    property.SetSafeValue(block, x.property.GetSafeValue(block));
+                    SetValue(x.GetValue());
 
                     return true;
                 }
@@ -746,7 +824,7 @@ namespace DarkHelmet.BuildVision2
             {
                 get
                 {
-                    float value = property.GetSafeValue(block);
+                    float value = GetValue();
 
                     if ((value.Abs() >= 1000000f || value.Abs() <= .0000001f) && value != 0f)
                         return value.ToString("0.##E+0");
@@ -819,12 +897,12 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void ChangePropValue(float delta)
             {
-                float current = property.GetSafeValue(block);
+                float current = GetValue();
 
                 if (float.IsInfinity(current))
                     current = 0f;
 
-                property.SetSafeValue(block, (float)Math.Round(MathHelper.Clamp((current + delta), minValue, maxValue), 3));
+                SetValue((float)Math.Round(MathHelper.Clamp((current + delta), minValue, maxValue), 3));
             }
 
             /// <summary>
@@ -848,7 +926,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ColorProperty : NumericPropertyBase<Color>
         {
-            public override string Value => property.GetSafeValue(block).GetChannel(channel).ToString();
+            public override string Value => GetValue().GetChannel(channel).ToString();
             public override string Postfix => null;
 
             private readonly int channel;
@@ -887,7 +965,7 @@ namespace DarkHelmet.BuildVision2
             protected override bool TryParseValue(string text, out Color value)
             {
                 byte x;
-                value = property.GetSafeValue(block);
+                value = GetValue();
 
                 if (byte.TryParse(text, out x))
                 {
@@ -903,12 +981,12 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void SetPropValue(bool increment)
             {
-                Color current = property.GetSafeValue(block);
+                Color current = GetValue();
                 int value = current.GetChannel(channel),
                     mult = increment ? GetIncrement() : -GetIncrement();
 
                 current = current.SetChannel(channel, (byte)MathHelper.Clamp(value + mult, 0, 255));
-                property.SetSafeValue(block, current);
+                SetValue(current);
             }
 
             /// <summary>
@@ -926,35 +1004,5 @@ namespace DarkHelmet.BuildVision2
                     return incr0;
             }
         }        
-    }
-
-    public static class PropertyBlockExtensions
-    {
-        public static TValue GetSafeValue<TValue>(this ITerminalProperty<TValue> prop, IMyTerminalBlock block)
-        {
-            try
-            {
-                var control = prop as IMyTerminalControl;
-
-                if (control.Enabled(block) && control.Visible(block))
-                    return prop.GetValue(block);
-            }
-            catch 
-            { }
-
-            return default(TValue);
-        }
-
-        public static void SetSafeValue<TValue>(this ITerminalProperty<TValue> prop, IMyTerminalBlock block, TValue value)
-        {
-            try
-            {
-                var control = prop as IMyTerminalControl;
-
-                if (control.Enabled(block) && control.Visible(block))
-                    prop.SetValue(block, value);
-            }
-            catch { }
-        }
     }
 }
