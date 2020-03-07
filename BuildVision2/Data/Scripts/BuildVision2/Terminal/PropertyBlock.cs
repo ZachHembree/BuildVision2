@@ -624,7 +624,7 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 if (sink != null)
-                    disp += Math.Round(powerDraw * scale, 1);
+                    disp += "-" + Math.Round(powerDraw * scale, 1);
 
                 if (producer != null)
                 {

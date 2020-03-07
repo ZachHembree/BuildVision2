@@ -42,11 +42,11 @@ namespace DarkHelmet.BuildVision2
         protected override void AfterInit()
         {
             RichHudClient.Init(ModName, HudInit, Reload);
-            BvConfig.Load(true);
         }
 
         private void HudInit()
         {
+            BvConfig.Load(true);
             bvCommands = CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
             InitSettingsMenu();
 
