@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
 using VRage;
-using VRageMath;
 using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using EventAccessor = VRage.MyTuple<bool, System.Action>;
@@ -10,9 +9,12 @@ namespace RichHudFramework.UI.Client
 {
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
 
-    public class ColorPicker : TerminalValue<Color, ColorPicker>
+    /// <summary>
+    /// On/Off toggle designed to mimic the appearance of the On/Off button in the SE Terminal.
+    /// </summary>
+    public class TerminalOnOffButton : TerminalValue<bool, TerminalOnOffButton>
     {
-        public ColorPicker() : base(MenuControls.ColorPicker)
+        public TerminalOnOffButton() : base(MenuControls.OnOffButton)
         { }
     }
 }

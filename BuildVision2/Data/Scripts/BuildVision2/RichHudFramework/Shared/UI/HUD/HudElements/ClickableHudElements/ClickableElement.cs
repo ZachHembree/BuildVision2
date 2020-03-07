@@ -3,9 +3,9 @@
 namespace RichHudFramework.UI
 {
     /// <summary>
-    /// Creates a clickable box. Doesn't render any textures or text. Must be used in conjunction with other elements.
+    /// A clickable box. Doesn't render any textures or text. Must be used in conjunction with other elements.
     /// </summary>
-    public class ClickableElement : HudElementBase, IClickableElement
+    public class MouseInputElement : HudElementBase, IMouseInput
     {
         /// <summary>
         /// Invoked when the cursor enters the element's bounds
@@ -55,7 +55,7 @@ namespace RichHudFramework.UI
         private bool mouseCursorEntered;
         private bool hasFocus;
 
-        public ClickableElement(IHudParent parent = null) : base(parent)
+        public MouseInputElement(IHudParent parent = null) : base(parent)
         {
             CaptureCursor = true;
             HasFocus = false;

@@ -21,18 +21,32 @@ namespace RichHudFramework.UI.Client
         object // ID
     >;
 
+    /// <summary>
+    /// Small collection of terminal controls organized into a single block. No more than 1-3
+    /// controls should be added to a tile. If a group of controls can't fit on a tile, then they
+    /// will be drawn outside its bounds.
+    /// </summary>
     public class ControlTile : IControlTile
     {
+        /// <summary>
+        /// Read only collection of <see cref="TerminalControlBase"/>s attached to the tile
+        /// </summary>
+        public IReadOnlyCollection<ITerminalControl> Controls { get; }
+
+        public IControlTile ControlContainer => this;
+
+        /// <summary>
+        /// Determines whether or not the tile will be rendered in the list.
+        /// </summary>
         public bool Enabled
         {
             get { return (bool)GetOrSetMemberFunc(null, (int)ControlTileAccessors.Enabled); }
             set { GetOrSetMemberFunc(value, (int)ControlTileAccessors.Enabled); }
         }
 
-        public IReadOnlyCollection<ITerminalControl> Controls { get; }
-
-        public IControlTile ControlContainer => this;
-
+        /// <summary>
+        /// Unique identifier
+        /// </summary>
         public object ID => tileMembers.Item3;
 
         private ApiMemberAccessor GetOrSetMemberFunc => tileMembers.Item1;
@@ -57,9 +71,15 @@ namespace RichHudFramework.UI.Client
         IEnumerator IEnumerable.GetEnumerator() =>
             Controls.GetEnumerator();
 
+        /// <summary>
+        /// Adds a <see cref="TerminalControlBase"/> to the tile
+        /// </summary>
         public void Add(TerminalControlBase control) =>
             GetOrSetMemberFunc(control.ID, (int)ControlTileAccessors.AddControl);
 
+        /// <summary>
+        /// Retrieves information needed by the Framework API 
+        /// </summary>
         public ControlContainerMembers GetApiData() =>
             tileMembers;
 

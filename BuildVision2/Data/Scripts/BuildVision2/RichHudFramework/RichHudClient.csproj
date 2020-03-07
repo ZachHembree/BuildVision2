@@ -77,20 +77,19 @@
     <Compile Include="Client\UI\BindManager\BindGroup.cs" />
     <Compile Include="Client\UI\BindManager\BindManager.cs" />
     <Compile Include="Client\UI\BindManager\Control.cs" />
-    <Compile Include="Client\UI\BindManager\RebindMenu.cs" />
     <Compile Include="Client\UI\HUD\HudMain.cs" />
     <Compile Include="Client\UI\HUD\Rendering\FontManager\FontData.cs" />
     <Compile Include="Client\UI\HUD\Rendering\FontManager\FontManager.cs" />
     <Compile Include="Client\UI\HUD\Rendering\TextBoard.cs" />
     <Compile Include="Client\UI\HUD\Rendering\TextBuilder.cs" />
     <Compile Include="Client\UI\SettingsMenu\ControlCategory.cs" />
-    <Compile Include="Client\UI\SettingsMenu\Controls\Checkbox.cs" />
-    <Compile Include="Client\UI\SettingsMenu\Controls\ColorPicker.cs" />
-    <Compile Include="Client\UI\SettingsMenu\Controls\DragBox.cs" />
-    <Compile Include="Client\UI\SettingsMenu\Controls\DropdownControl.cs" />
-    <Compile Include="Client\UI\SettingsMenu\Controls\ListControl.cs" />
-    <Compile Include="Client\UI\SettingsMenu\Controls\OnOffButton.cs" />
-    <Compile Include="Client\UI\SettingsMenu\Controls\SliderSetting.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\TerminalCheckbox.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\TerminalColorPicker.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\TerminalDragBox.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\TerminalDropdown.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\TerminalList.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\TerminalOnOffButton.cs" />
+    <Compile Include="Client\UI\SettingsMenu\Controls\TerminalSlider.cs" />
     <Compile Include="Client\UI\SettingsMenu\Controls\TerminalButton.cs" />
     <Compile Include="Client\UI\SettingsMenu\Controls\TerminalControlBase.cs" />
     <Compile Include="Client\UI\SettingsMenu\Controls\TextField.cs" />
@@ -104,6 +103,7 @@
     <Compile Include="Shared\General\Collections.cs" />
     <Compile Include="Shared\General\Extensions.cs" />
     <Compile Include="Shared\General\LocalPlayer.cs" />
+    <Compile Include="Shared\General\RichHudInternal.cs" />
     <Compile Include="Shared\General\TaskPool.cs" />
     <Compile Include="Shared\General\Utilities.cs" />
     <Compile Include="Shared\IO\ConfigIO.cs" />
@@ -111,6 +111,7 @@
     <Compile Include="Shared\IO\LogIO.cs" />
     <Compile Include="Shared\ModBase.cs" />
     <Compile Include="Shared\MsgEnums.cs" />
+    <Compile Include="Shared\RichHudCore.cs" />
     <Compile Include="Shared\UI\BindManager\BindDefinition.cs" />
     <Compile Include="Shared\UI\BindManager\BindGroupData.cs" />
     <Compile Include="Shared\UI\BindManager\CustomControls.cs" />
@@ -138,6 +139,7 @@
     <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\LabelBoxButton.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\LabelButton.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\ListBox.cs" />
+    <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\ListBoxEntry.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\ScrollBar.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\ScrollBox.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\ClickableHudElements\SliderBar.cs" />
@@ -148,8 +150,6 @@
     <Compile Include="Shared\UI\HUD\HudElements\HudChain.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\Label.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\LabelBox.cs" />
-    <Compile Include="Shared\UI\HUD\HudElements\LabelListBox.cs" />
-    <Compile Include="Shared\UI\HUD\HudElements\TextList.cs" />
     <Compile Include="Shared\UI\HUD\HudElements\TexturedBox.cs" />
     <Compile Include="Shared\UI\HUD\ICursor.cs" />
     <Compile Include="Shared\UI\HUD\Rendering\IFontMin.cs" />
@@ -161,7 +161,14 @@
     <Compile Include="Shared\UI\HUD\RichText\GlyphFormat.cs" />
     <Compile Include="Shared\UI\HUD\RichText\RichString.cs" />
     <Compile Include="Shared\UI\HUD\RichText\RichText.cs" />
-    <Compile Include="Shared\UI\SettingsMenu\SettingsInterfaces.cs" />
+    <Compile Include="Shared\UI\SettingsMenu\IControlCategory.cs" />
+    <Compile Include="Shared\UI\SettingsMenu\IControlPage.cs" />
+    <Compile Include="Shared\UI\SettingsMenu\IControlTile.cs" />
+    <Compile Include="Shared\UI\SettingsMenu\IModControlRoot.cs" />
+    <Compile Include="Shared\UI\SettingsMenu\IRebindPage.cs" />
+    <Compile Include="Shared\UI\SettingsMenu\ITerminalControl.cs" />
+    <Compile Include="Shared\UI\SettingsMenu\ITerminalPage.cs" />
+    <Compile Include="Shared\UI\SettingsMenu\ITextPage.cs" />
     <Compile Include="Shared\UI\SharedBinds.cs" />
     <Compile Include="Shared\UI\TextInput.cs" />
   </ItemGroup>

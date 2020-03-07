@@ -47,7 +47,7 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// With of the hud element in pixels.
+            /// Width of the hud element in pixels.
             /// </summary>
             public virtual float Width
             {
@@ -76,6 +76,9 @@ namespace RichHudFramework
                 }
             }
 
+            /// <summary>
+            /// Border size. Included in total element size.
+            /// </summary>
             public virtual Vector2 Padding { get { return padding * Scale; } set { padding = value / Scale; } }
 
             /// <summary>
@@ -98,6 +101,9 @@ namespace RichHudFramework
             /// </summary>
             public ParentAlignments ParentAlignment { get; set; }
 
+            /// <summary>
+            /// Determines how/if an element will copy its parent's dimensions. 
+            /// </summary>
             public DimAlignments DimAlignment { get; set; }
 
             /// <summary>
@@ -121,6 +127,10 @@ namespace RichHudFramework
             /// </summary>
             public virtual bool IsMousedOver => Visible && isMousedOver;
 
+            /// <summary>
+            /// Determines whether or not the scale of the parent element should be used in the calculation
+            /// of the final scale. True by default.
+            /// </summary>
             public bool ignoreParentScale;
 
             private const float minMouseBounds = 8f;
@@ -188,6 +198,9 @@ namespace RichHudFramework
                     HudMain.Cursor.Capture(ID);
             }
 
+            /// <summary>
+            /// Updates input for child elements.
+            /// </summary>
             private void HandleChildInput()
             {
                 for (int n = children.Count - 1; n >= 0; n--)
@@ -230,6 +243,10 @@ namespace RichHudFramework
                 }
             }
 
+            /// <summary>
+            /// Updates element dimensions to match those of its parent in accordance
+            /// with its DimAlignment.
+            /// </summary>
             private void GetDimAlignment()
             {
                 if (DimAlignment != DimAlignments.None)

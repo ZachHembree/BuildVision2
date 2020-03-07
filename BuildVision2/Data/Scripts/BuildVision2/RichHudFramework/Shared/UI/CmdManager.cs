@@ -9,7 +9,7 @@ namespace RichHudFramework.UI
     /// <summary>
     /// Manages chat commands; singleton
     /// </summary>
-    public sealed class CmdManager : ModBase.ComponentBase
+    public sealed class CmdManager : InternalComponentBase
     {
         private static CmdManager Instance
         {
@@ -111,7 +111,7 @@ namespace RichHudFramework.UI
                     string[] matches;
                     sendToOthers = false;
 
-                    ModBase.RunSafeAction(() =>
+                    RunSafeAction(() =>
                     {
                         if (TryParseCommand(message, out matches))
                         {
@@ -127,7 +127,7 @@ namespace RichHudFramework.UI
                                         if (matches.Length > 1)
                                             cmd.action(matches.GetSubarray(1));
                                         else
-                                            ModBase.SendChatMessage("Invalid Command. This command requires an argument.");
+                                           SendChatMessage("Invalid Command. This command requires an argument.");
                                     }
                                     else
                                         cmd.action(null);
@@ -137,7 +137,7 @@ namespace RichHudFramework.UI
                         }
 
                         if (!cmdFound)
-                            ModBase.SendChatMessage("Command not recognised.");
+                            SendChatMessage("Command not recognised.");
                     });                 
                 }
             }

@@ -14,6 +14,31 @@ namespace RichHudFramework
         /// </summary>
         public abstract class LabelBoxBase : HudElementBase
         {
+            /// <summary>
+            /// Size of the text element sans padding.
+            /// </summary>
+            public abstract Vector2 TextSize { get; protected set; }
+
+            /// <summary>
+            /// Padding applied to the text element.
+            /// </summary>
+            public abstract Vector2 TextPadding { get; set; }
+
+            /// <summary>
+            /// Determines whether or not the text box can be resized manually.
+            /// </summary>
+            public abstract bool AutoResize { get; set; }
+
+            /// <summary>
+            /// Background color
+            /// </summary>
+            public virtual Color Color { get { return background.Color; } set { background.Color = value; } }
+
+            /// <summary>
+            /// Label box background
+            /// </summary>
+            public readonly TexturedBox background;
+
             public override float Width
             {
                 get { return TextSize.X + Padding.X; }
@@ -37,16 +62,6 @@ namespace RichHudFramework
                     TextSize = new Vector2(TextSize.X, value);
                 }
             }
-
-            public abstract Vector2 TextSize { get; protected set; }
-            public abstract Vector2 TextPadding { get; set; }
-
-            public abstract bool AutoResize { get; set; }
-
-            public virtual Color Color { get { return background.Color; } set { background.Color = value; } }
-            public IHudElement Background => background;
-
-            protected readonly TexturedBox background;
 
             public LabelBoxBase(IHudParent parent) : base(parent)
             {

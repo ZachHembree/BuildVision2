@@ -9,9 +9,12 @@ namespace RichHudFramework.UI.Client
 {
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
 
-    public class OnOffButton : TerminalValue<bool, OnOffButton>
+    /// <summary>
+    /// Labeled checkbox designed to mimic the appearance of checkboxes in the SE terminal.
+    /// </summary>
+    public class TerminalCheckbox : TerminalValue<bool, TerminalCheckbox>
     {
-        public OnOffButton() : base(MenuControls.OnOffButton)
+        public TerminalCheckbox() : base(MenuControls.Checkbox)
         { }
     }
 }

@@ -45,6 +45,8 @@ namespace RichHudFramework
                 }
             }
 
+            public bool Registered => (bool)GetOrSetMemberFunc(null, (int)HudNodeAccessors.Registered);
+
             private IHudParent parent;
 
             public HudNodeData(HudElementMembers apiData) : base(apiData)

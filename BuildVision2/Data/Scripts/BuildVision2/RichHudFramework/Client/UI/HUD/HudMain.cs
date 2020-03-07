@@ -12,6 +12,7 @@ using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
+    using Client;
     using CursorMembers = MyTuple<
         Func<bool>, // Visible
         Func<bool>, // IsCaptured
@@ -51,7 +52,6 @@ namespace RichHudFramework
 
     namespace UI.Client
     {
-        using RichHudFramework.Client;
         using HudMainMembers = MyTuple<
             HudElementMembers,
             CursorMembers,
@@ -77,10 +77,10 @@ namespace RichHudFramework
             {
                 get
                 {
-                    if (instance == null)
+                    if (_instance == null)
                         Init();
 
-                    return instance.root;
+                    return _instance.root;
                 }
             }
 
@@ -91,10 +91,10 @@ namespace RichHudFramework
             {
                 get
                 {
-                    if (instance == null)
+                    if (_instance == null)
                         Init();
 
-                    return instance.cursor;
+                    return _instance.cursor;
                 }
             }
 
@@ -115,10 +115,10 @@ namespace RichHudFramework
             {
                 get
                 {
-                    if (instance == null)
+                    if (_instance == null)
                         Init();
 
-                    return instance.ResScaleFunc();
+                    return _instance.ResScaleFunc();
                 }
             }
 
@@ -129,10 +129,10 @@ namespace RichHudFramework
             {
                 get
                 {
-                    if (instance == null)
+                    if (_instance == null)
                         Init();
 
-                    return instance.ScreenWidthFunc();
+                    return _instance.ScreenWidthFunc();
                 }
             }
 
@@ -143,10 +143,10 @@ namespace RichHudFramework
             {
                 get
                 {
-                    if (instance == null)
+                    if (_instance == null)
                         Init();
 
-                    return instance.ScreenHeightFunc();
+                    return _instance.ScreenHeightFunc();
                 }
             }
 
@@ -157,10 +157,10 @@ namespace RichHudFramework
             {
                 get
                 {
-                    if (instance == null)
+                    if (_instance == null)
                         Init();
 
-                    return instance.AspectRatioFunc();
+                    return _instance.AspectRatioFunc();
                 }
             }
 
@@ -171,10 +171,10 @@ namespace RichHudFramework
             {
                 get
                 {
-                    if (instance == null)
+                    if (_instance == null)
                         Init();
 
-                    return instance.FovFunc();
+                    return _instance.FovFunc();
                 }
             }
 
@@ -186,19 +186,19 @@ namespace RichHudFramework
             {
                 get
                 {
-                    if (instance == null)
+                    if (_instance == null)
                         Init();
 
-                    return instance.FovScaleFunc();
+                    return _instance.FovScaleFunc();
                 }
             }
 
             private static HudMain Instance
             {
-                get { Init(); return instance; }
-                set { instance = value; }
+                get { Init(); return _instance; }
+                set { _instance = value; }
             }
-            private static HudMain instance;
+            private static HudMain _instance;
 
             private readonly HudParentData root;
             private readonly ICursor cursor;
@@ -232,15 +232,15 @@ namespace RichHudFramework
 
             private static void Init()
             {
-                if (instance == null)
+                if (_instance == null)
                 {
-                    instance = new HudMain();
+                    _instance = new HudMain();
                 }
             }
 
             public override void Close()
             {
-                if (ModBase.Reloading)
+                if (Parent.Reloading)
                     root.ClearLocalChildren();
 
                 Instance = null;
@@ -254,15 +254,15 @@ namespace RichHudFramework
             /// </summary>
             public static Vector2 GetPixelVector(Vector2 scaledVec)
             {
-                if (instance == null)
+                if (_instance == null)
 
                     Init();
                 scaledVec /= 2f;
 
                 return new Vector2
                 (
-                    (int)(scaledVec.X * instance.ScreenWidthFunc()),
-                    (int)(scaledVec.Y * instance.ScreenHeightFunc())
+                    (int)(scaledVec.X * _instance.ScreenWidthFunc()),
+                    (int)(scaledVec.Y * _instance.ScreenHeightFunc())
                 );
             }
 
@@ -271,15 +271,15 @@ namespace RichHudFramework
             /// </summary>
             public static Vector2 GetRelativeVector(Vector2 pixelVec)
             {
-                if (instance == null)
+                if (_instance == null)
                     Init();
 
                 pixelVec *= 2f;
 
                 return new Vector2
                 (
-                    pixelVec.X / instance.ScreenWidthFunc(),
-                    pixelVec.Y / instance.ScreenHeightFunc()
+                    pixelVec.X / _instance.ScreenWidthFunc(),
+                    pixelVec.Y / _instance.ScreenHeightFunc()
                 );
             }
 

@@ -6,11 +6,29 @@ namespace RichHudFramework.UI
 {
     using Rendering;
 
-    public class Dropdown<T> : HudElementBase, IListBoxEntry
+    /// <summary>
+    /// Collapsable list box. Designed to mimic the appearance of the dropdown in the SE terminal.
+    /// </summary>
+    public class Dropdown<T> : HudElementBase, IClickableElement, IListBoxEntry
     {
+        /// <summary>
+        /// Invoked when a member of the list is selected.
+        /// </summary>
         public event Action OnSelectionChanged { add { listBox.OnSelectionChanged += value; } remove { listBox.OnSelectionChanged -= value; } }
+
+        /// <summary>
+        /// List of entries in the dropdown.
+        /// </summary>
         public ReadOnlyCollection<ListBoxEntry<T>> List => listBox.List;
 
+        /// <summary>
+        /// Padding applied to list members.
+        /// </summary>
+        public Vector2 MemberPadding { get { return listBox.MemberPadding; } set { listBox.MemberPadding = value; } }
+
+        /// <summary>
+        /// Height of entries in the dropdown.
+        /// </summary>
         public float LineHeight { get { return listBox.LineHeight; } set { listBox.LineHeight = value; } }
 
         /// <summary>
@@ -28,10 +46,19 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool Enabled { get { return listBox.Enabled; } set { listBox.Enabled = value; } }
 
-        public IClickableElement MouseInput => display.MouseInput;
+        /// <summary>
+        /// Mouse input for the dropdown display.
+        /// </summary>
+        public IMouseInput MouseInput => display.MouseInput;
 
+        /// <summary>
+        /// Indicates whether or not the dropdown is moused over.
+        /// </summary>
         public override bool IsMousedOver => display.IsMousedOver || listBox.IsMousedOver;
 
+        /// <summary>
+        /// Indicates whether or not the list is open.
+        /// </summary>
         public bool Open => listBox.Visible;
 
         protected readonly DropdownDisplay display;
@@ -48,6 +75,7 @@ namespace RichHudFramework.UI
             listBox = new ListBox<T>(display)
             {
                 TabColor = new Color(0, 0, 0, 0),
+                MemberPadding = new Vector2(8f, 0f),
                 MinimumVisCount = 4,
                 Offset = new Vector2(0f, -1f),
                 DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
@@ -102,20 +130,6 @@ namespace RichHudFramework.UI
         /// Adds a new member to the list box with the given name and associated
         /// object.
         /// </summary>
-        public ListBoxEntry<T> Add(string name, T assocMember) =>
-            listBox.Add(name, assocMember);
-
-        /// <summary>
-        /// Adds a new member to the list box with the given name and associated
-        /// object.
-        /// </summary>
-        public ListBoxEntry<T> Add(RichString name, T assocMember) =>
-            listBox.Add(name, assocMember);
-
-        /// <summary>
-        /// Adds a new member to the list box with the given name and associated
-        /// object.
-        /// </summary>
         public ListBoxEntry<T> Add(RichText name, T assocMember) =>
             listBox.Add(name, assocMember);
 
@@ -137,6 +151,9 @@ namespace RichHudFramework.UI
         public void SetSelection(T assocMember) =>
             listBox.SetSelection(assocMember);
 
+        /// <summary>
+        /// Sets the selection to the specified entry.
+        /// </summary>
         public void SetSelection(ListBoxEntry<T> member) =>
             listBox.SetSelection(member);
 
@@ -151,11 +168,11 @@ namespace RichHudFramework.UI
             public GlyphFormat Format { get { return name.Format; } set { name.Format = value; } }
             public Color Color { get { return background.Color; } set { background.Color = value; } }
             public override bool IsMousedOver => mouseInput.IsMousedOver;
-            public IClickableElement MouseInput => mouseInput;
+            public IMouseInput MouseInput => mouseInput;
 
             public readonly Label name;
             public readonly TexturedBox arrow, divider, background;
-            private readonly ClickableElement mouseInput;
+            private readonly MouseInputElement mouseInput;
             private readonly HudChain<HudElementBase> layout;
 
             public DropdownDisplay(IHudParent parent = null) : base(parent)
@@ -194,7 +211,7 @@ namespace RichHudFramework.UI
                     ChildContainer = { name, divider, arrow }
                 };
 
-                mouseInput = new ClickableElement(this) 
+                mouseInput = new MouseInputElement(this) 
                 { 
                     DimAlignment = DimAlignments.Both
                 };

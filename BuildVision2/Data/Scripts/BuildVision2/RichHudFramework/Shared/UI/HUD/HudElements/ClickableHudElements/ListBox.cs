@@ -29,10 +29,35 @@ namespace RichHudFramework.UI
         Selection = 3,
     }
 
+    /// <summary>
+    /// Scrollable list of text elements. Each list entry is associated with a value of type T.
+    /// </summary>
     public class ListBox<T> : HudElementBase, IListBoxEntry
     {
+        /// <summary>
+        /// Invoked when an entry is selected.
+        /// </summary>
         public event Action OnSelectionChanged;
+
+        /// <summary>
+        /// Read-only collection of list entries.
+        /// </summary>
         public ReadOnlyCollection<ListBoxEntry<T>> List => scrollBox.List;
+
+        /// <summary>
+        /// Width of the list box in pixels.
+        /// </summary>
+        public override float Width { get { return scrollBox.Width; } set { scrollBox.Width = value; } }
+
+        /// <summary>
+        /// Height of the list box in pixels.
+        /// </summary>
+        public override float Height { get { return scrollBox.Height; } set { scrollBox.Height = value; } }
+
+        /// <summary>
+        /// Border size. Included in total element size.
+        /// </summary>
+        public override Vector2 Padding { get { return scrollBox.Padding; } set { scrollBox.Padding = value; } }
 
         /// <summary>
         /// Background color
@@ -65,12 +90,30 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Padding applied to list members.
+        /// </summary>
+        public Vector2 MemberPadding
+        {
+            get { return _memberPadding; }
+            set
+            {
+                _memberPadding = value;
+
+                for (int n = 0; n < scrollBox.List.Count; n++)
+                    scrollBox.List[n].Padding = value;
+            }
+        }
+
+        /// <summary>
+        /// Height of entries in the list.
+        /// </summary>
         public float LineHeight 
         { 
-            get { return lineHeight; } 
+            get { return _lineHeight; } 
             set 
             {
-                lineHeight = value;
+                _lineHeight = value;
                 
                 for (int n = 0; n < scrollBox.List.Count; n++)
                     scrollBox.List[n].Height = value;
@@ -105,16 +148,15 @@ namespace RichHudFramework.UI
         public readonly ScrollBox<ListBoxEntry<T>> scrollBox;
         protected readonly HighlightBox selectionBox, highlight;
         protected readonly BorderBox border;
-        private float lineHeight;
+        private Vector2 _memberPadding;
+        private float _lineHeight;
 
         public ListBox(IHudParent parent = null) : base(parent)
         {
             scrollBox = new ScrollBox<ListBoxEntry<T>>(this)
             {
-                FitToChain = false,
-                ClampMembers = true,
+                SizingMode = ScrollBoxSizingModes.FitMembersToBox,
                 AlignVertical = true,
-                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
             };
 
             border = new BorderBox(scrollBox)
@@ -124,32 +166,18 @@ namespace RichHudFramework.UI
                 Thickness = 1f,
             };
 
-            selectionBox = new HighlightBox(scrollBox.Members)
+            selectionBox = new HighlightBox(scrollBox.Chain)
             { Color = new Color(34, 44, 53) };
 
-            highlight = new HighlightBox(scrollBox.Members)
+            highlight = new HighlightBox(scrollBox.Chain)
             { Color = new Color(34, 44, 53) };
 
             Size = new Vector2(355f, 223f);
-            lineHeight = 30f;
+            _lineHeight = 30f;
 
             Enabled = true;
             CaptureCursor = true;
         }
-
-        /// <summary>
-        /// Adds a new member to the list box with the given name and associated
-        /// object.
-        /// </summary>
-        public ListBoxEntry<T> Add(string name, T assocMember) =>
-            Add(new RichText(name, Format), assocMember);
-
-        /// <summary>
-        /// Adds a new member to the list box with the given name and associated
-        /// object.
-        /// </summary>
-        public ListBoxEntry<T> Add(RichString name, T assocMember) =>
-            Add(new RichText(name), assocMember);
 
         /// <summary>
         /// Adds a new member to the list box with the given name and associated
@@ -164,7 +192,8 @@ namespace RichHudFramework.UI
                 member = new ListBoxEntry<T>(assocMember)
                 {
                     Format = Format,
-                    Height = lineHeight,
+                    Height = _lineHeight,
+                    Padding = _memberPadding,
                 };
 
                 member.OnMemberSelected += SetSelection;
@@ -212,6 +241,9 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Sets the selection to the specified entry.
+        /// </summary>
         public void SetSelection(ListBoxEntry<T> member)
         {
             ListBoxEntry<T> result = scrollBox.Find(x => member.Equals(x));
@@ -240,13 +272,14 @@ namespace RichHudFramework.UI
         {
             highlight.Visible = false;
 
-            foreach (ListBoxEntry<T> button in scrollBox.List)
+            foreach (ListBoxEntry<T> entry in scrollBox.List)
             {
-                if (button.IsMousedOver)
+                if (entry.IsMousedOver)
                 {
                     highlight.Visible = true;
-                    highlight.Size = button.Size;
-                    highlight.Offset = button.Offset;
+                    highlight.Size = entry.Size;
+                    highlight.Offset = entry.Offset;
+                    highlight.Padding = entry.Padding;
                 }
             }
         }
@@ -302,101 +335,6 @@ namespace RichHudFramework.UI
                     ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH
                 };
             }
-        }
-    }
-
-    public interface IListBoxEntry : IHudElement
-    {
-        /// <summary>
-        /// Indicates whether or not the element will appear in the list
-        /// </summary>
-        bool Enabled { get; }
-    }
-
-    internal enum ListBoxEntryAccessors : int
-    {
-        /// <summary>
-        /// IList<RichStringMembers>
-        /// </summary>
-        Name = 1,
-
-        /// <summary>
-        /// Bool
-        /// </summary>
-        Enabled = 2,
-
-        /// <summary>
-        /// Object
-        /// </summary>
-        AssocObject = 3,
-
-        /// <summary>
-        /// Object
-        /// </summary>
-        ID = 4,
-    }
-
-    /// <summary>
-    /// Text button assocated with a given object. Used in conjunction with list boxes. Implements IListBoxMember.
-    /// </summary>
-    public class ListBoxEntry<T> : LabelButton, IListBoxEntry
-    {
-        public event Action<ListBoxEntry<T>> OnMemberSelected;
-        public bool Enabled { get; set; }
-        public T AssocMember { get; set; }
-
-        public ListBoxEntry(T assocMember, IHudParent parent = null) : base(parent)
-        {
-            this.AssocMember = assocMember;
-            AutoResize = false;
-            Enabled = true;
-
-            MouseInput.OnLeftClick += SelectMember;
-        }
-
-        private void SelectMember()
-        {
-            OnMemberSelected?.Invoke(this);
-        }
-
-        public new object GetOrSetMember(object data, int memberEnum)
-        {
-            var member = (ListBoxEntryAccessors)memberEnum;
-
-            switch (member)
-            {
-                case ListBoxEntryAccessors.Name:
-                    {
-                        if (data == null)
-                            TextBoard.SetText(new RichText(data as IList<RichStringMembers>));
-                        else
-                            return TextBoard.GetText().ApiData;
-
-                        break;
-                    }
-                case ListBoxEntryAccessors.Enabled:
-                    {
-                        if (data == null)
-                            Enabled = (bool)data;
-                        else
-                            return Enabled;
-
-                        break;
-                    }
-                case ListBoxEntryAccessors.AssocObject:
-                    {
-                        if (data == null)
-                            AssocMember = (T)data;
-                        else
-                            return AssocMember;
-
-                        break;
-                    }
-                case ListBoxEntryAccessors.ID:
-                        return this;
-            }
-
-            return null;
         }
     }
 }

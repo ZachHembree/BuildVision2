@@ -10,6 +10,7 @@ using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageM
 
 namespace RichHudFramework
 {
+    using Client;
     using ControlContainerMembers = MyTuple<
         ApiMemberAccessor, // GetOrSetMember,
         MyTuple<object, Func<int>>, // Member List
@@ -23,7 +24,6 @@ namespace RichHudFramework
 
     namespace UI.Client
     {
-        using RichHudFramework.Client;
         using SettingsMenuMembers = MyTuple<
             ApiMemberAccessor, // GetOrSetMembers
             ControlContainerMembers, // MenuRoot
@@ -32,8 +32,14 @@ namespace RichHudFramework
             Func<int, ControlMembers> // GetNewModPage
         >;
 
+        /// <summary>
+        /// Windowed settings menu shared by mods using the framework.
+        /// </summary>
         public sealed class RichHudTerminal : RichHudClient.ApiModule<SettingsMenuMembers>
         {
+            /// <summary>
+            /// Mod control root for the client.
+            /// </summary>
             public static IModControlRoot Root => Instance.menuRoot;
 
             private static RichHudTerminal Instance
@@ -86,35 +92,58 @@ namespace RichHudFramework
             internal static ControlMembers GetNewMenuPage(ModPages pageEnum) =>
                 Instance.GetNewPageFunc((int)pageEnum);
 
+            /// <summary>
+            /// Indented dropdown list of terminal pages. Root UI element for all terminal controls
+            /// associated with a given mod.
+            /// </summary>
             private class ModControlRoot : IModControlRoot
             {
-                public RichText Name
+                /// <summary>
+                /// Invoked when a new page is selected
+                /// </summary>
+                public event Action OnSelectionChanged
                 {
-                    get { return new RichText(GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Name) as IList<RichStringMembers>); }
-                    set { GetOrSetMemberFunc(value.ApiData, (int)ModControlRootAccessors.Name); }
+                    add { GetOrSetMemberFunc(new EventAccessor(true, value), (int)ModControlRootAccessors.OnSelectionChanged); }
+                    remove { GetOrSetMemberFunc(new EventAccessor(false, value), (int)ModControlRootAccessors.OnSelectionChanged); }
                 }
 
+                /// <summary>
+                /// Name of the mod as it appears in the <see cref="RichHudTerminal"/> mod list
+                /// </summary>
+                public string Name
+                {
+                    get { return GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Name) as string; }
+                    set { GetOrSetMemberFunc(value, (int)ModControlRootAccessors.Name); }
+                }
+
+                /// <summary>
+                /// Read only collection of <see cref="ITerminalPage"/>s assigned to this object.
+                /// </summary>
                 public IReadOnlyCollection<ITerminalPage> Pages { get; }
 
                 public IModControlRoot PageContainer => this;
 
+                /// <summary>
+                /// Unique identifer
+                /// </summary>
                 public object ID => data.Item3;
 
+                /// <summary>
+                /// Currently selected <see cref="ITerminalPage"/>.
+                /// </summary>
                 public ITerminalPage Selection
                 {
                     get { return new TerminalPage((ControlMembers)GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Selection)); }
                 }
 
+                /// <summary>
+                /// Determines whether or not the element will appear in the list.
+                /// Disabled by default.
+                /// </summary>
                 public bool Enabled
                 {
                     get { return (bool)GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Enabled); }
                     set { GetOrSetMemberFunc(value, (int)ModControlRootAccessors.Enabled); }
-                }
-
-                public event Action OnSelectionChanged
-                {
-                    add { GetOrSetMemberFunc(new EventAccessor(true, value), (int)ModControlRootAccessors.OnSelectionChanged); }
-                    remove { GetOrSetMemberFunc(new EventAccessor(false, value), (int)ModControlRootAccessors.OnSelectionChanged); }
                 }
 
                 private ApiMemberAccessor GetOrSetMemberFunc => data.Item1;
@@ -136,9 +165,15 @@ namespace RichHudFramework
                 IEnumerator IEnumerable.GetEnumerator() =>
                     Pages.GetEnumerator();
 
+                /// <summary>
+                /// Adds the given <see cref="TerminalPageBase"/> to the object.
+                /// </summary>
                 public void Add(TerminalPageBase page) =>
                     GetOrSetMemberFunc(page.ID, (int)ModControlRootAccessors.AddPage);
 
+                /// <summary>
+                /// Retrieves data used by the Framework API
+                /// </summary>
                 public ControlContainerMembers GetApiData() =>
                     data;
 

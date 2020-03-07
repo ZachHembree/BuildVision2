@@ -9,6 +9,9 @@ namespace RichHudFramework.UI
     /// </summary>
     public class DoubleLabelBox : LabelBoxBase
     {
+        /// <summary>
+        /// Size of the text element sans padding.
+        /// </summary>
         public override Vector2 TextSize
         {
             get { return new Vector2(left.Size.X + right.Size.X, Math.Max(left.Size.Y, right.Size.Y)); }
@@ -22,8 +25,14 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Padding applied to the text element.
+        /// </summary>
         public override Vector2 TextPadding { get { return left.Padding; } set { left.Padding = value; right.Padding = value; } }
 
+        /// <summary>
+        /// Padding applied to the label box.
+        /// </summary>
         public override Vector2 Padding
         {
             set
@@ -34,10 +43,24 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Determines whether or not the text box can be resized manually.
+        /// </summary>
         public override bool AutoResize { get { return left.AutoResize; } set { left.AutoResize = value; right.AutoResize = value; } }
+
+        /// <summary>
+        /// Line formatting mode used by the label.
+        /// </summary>
         public TextBuilderModes BuilderMode { get { return left.BuilderMode; } set { left.BuilderMode = value; right.BuilderMode = value; } }
 
+        /// <summary>
+        /// Text rendered by the left label.
+        /// </summary>
         public RichText LeftText { get { return LeftTextBoard.GetText(); } set { LeftTextBoard.SetText(value); } }
+
+        /// <summary>
+        /// Text rendered by the right label.
+        /// </summary>
         public RichText RightText { get { return RightTextBoard.GetText(); } set { RightTextBoard.SetText(value); } }
 
         public ITextBuilder LeftTextBoard => left.TextBoard;

@@ -79,7 +79,7 @@ namespace RichHudFramework
                     /// <summary>
                     /// Returns true if the font is defined for the given style.
                     /// </summary>
-                    public bool IsStyleDefined(FontStyleEnum styleEnum) =>
+                    public bool IsStyleDefined(FontStyles styleEnum) =>
                         IsFontDefinedFunc((int)styleEnum);
 
                     /// <summary>
@@ -97,8 +97,20 @@ namespace RichHudFramework
                     /// <summary>
                     /// Retrieves the full index of the font style
                     /// </summary>
-                    public Vector2I GetStyleIndex(FontStyleEnum style) =>
+                    public Vector2I GetStyleIndex(FontStyles style) =>
                         new Vector2I(Index, (int)style);
+
+                    public override int GetHashCode()
+                    {
+                        return Index.GetHashCode();
+                    }
+
+                    public override bool Equals(object obj)
+                    {
+                        var font = obj as FontData;
+
+                        return font != null && font.Index == Index;
+                    }
                 }
             }
         }

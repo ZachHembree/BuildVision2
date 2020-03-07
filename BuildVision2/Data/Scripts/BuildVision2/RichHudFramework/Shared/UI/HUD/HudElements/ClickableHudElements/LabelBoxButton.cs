@@ -2,22 +2,39 @@
 
 namespace RichHudFramework.UI
 {
-    public class TextBoxButton : LabelBox
+    /// <summary>
+    /// Clickable label box. 
+    /// </summary>
+    public class LabelBoxButton : LabelBox, IClickableElement
     {
+        /// <summary>
+        /// Color of the background when moused over.
+        /// </summary>
         public virtual Color HighlightColor { get; set; }
+
+        /// <summary>
+        /// Determines whether or not the button will highlight when moused over.
+        /// </summary>
         public virtual bool HighlightEnabled { get; set; }
-        public override bool IsMousedOver => mouseInput.IsMousedOver;
 
-        public IClickableElement MouseInput => mouseInput;
+        /// <summary>
+        /// Indicates whether or not the cursor is currently over the element.
+        /// </summary>
+        public override bool IsMousedOver => _mouseInput.IsMousedOver;
 
-        protected ClickableElement mouseInput;
+        /// <summary>
+        /// Mouse input for the button.
+        /// </summary>
+        public IMouseInput MouseInput => _mouseInput;
+
+        protected MouseInputElement _mouseInput;
         private Color oldColor;
 
-        public TextBoxButton(IHudParent parent = null) : base(parent)
+        public LabelBoxButton(IHudParent parent = null) : base(parent)
         {
-            mouseInput = new ClickableElement(this) { DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding };
-            mouseInput.OnCursorEnter += CursorEntered;
-            mouseInput.OnCursorExit += CursorExited;
+            _mouseInput = new MouseInputElement(this) { DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding };
+            _mouseInput.OnCursorEnter += CursorEntered;
+            _mouseInput.OnCursorExit += CursorExited;
         }
 
         protected virtual void CursorEntered()

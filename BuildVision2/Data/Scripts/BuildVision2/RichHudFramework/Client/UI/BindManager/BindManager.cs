@@ -15,6 +15,7 @@ using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
+    using Client;
     using UI;
     using ControlMembers = MyTuple<string, string, int, Func<bool>, bool, ApiMemberAccessor>;
     using BindGroupMembers = MyTuple<
@@ -26,7 +27,6 @@ namespace RichHudFramework
 
     namespace UI.Client
     {
-        using RichHudFramework.Client;
         using BindClientMembers = MyTuple<
             MyTuple<Func<int, ControlMembers?>, Func<int>>, // Control List
             Action, // HandleInput

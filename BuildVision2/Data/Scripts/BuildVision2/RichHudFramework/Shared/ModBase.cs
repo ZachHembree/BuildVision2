@@ -10,31 +10,27 @@ using VRage.Game.ModAPI;
 namespace RichHudFramework.Game
 {
     /// <summary>
-    /// Extends <see cref="MySessionComponentBase"/> to include built-in exception handling / logging and to allow 
-    /// for types that need to be associated with and updated alongside the mod deriving from this type but without
-    /// being a session component. Only one instance of <see cref="ModBase"/> can exist at a given time.
+    /// Extends <see cref="MySessionComponentBase"/> to include built-in exception handling, logging and a component
+    /// system.
     /// </summary>
     public abstract class ModBase : MySessionComponentBase
     {
+        private const long errorLoopThreshold = 100, exceptionLimit = 10;
+
         /// <summary>
         /// Sets the mod name to be used in chat messages, popups and anything else that might require it.
         /// </summary>
-        public static string ModName { get; protected set; }
-
-        /// <summary>
-        /// Sets the name of the log file to be created in the mod's local storage. Should end in .txt.
-        /// </summary>
-        public static string LogFileName { get; protected set; }
+        public string ModName { get; protected set; }
 
         /// <summary>
         /// Determines whether or not the main class will be allowed to run on a dedicated server.
         /// </summary>
-        public static bool RunOnServer { get; protected set; }
+        public bool RunOnServer { get; protected set; }
 
         /// <summary>
         /// If true, then the mod will be allowed to run on a client.
         /// </summary>
-        public static bool RunOnClient { get; protected set; }
+        public bool RunOnClient { get; protected set; }
 
         /// <summary>
         /// If true, the mod is currently running on a client.
@@ -49,35 +45,32 @@ namespace RichHudFramework.Game
         /// <summary>
         /// If true, the mod is currently loaded.
         /// </summary>
-        public new static bool Loaded { get; private set; }
+        public new bool Loaded { get; private set; }
 
-        public static bool CanLoad => !(Unloading || Reloading);
+        public bool CanLoad => !(Unloading || Reloading);
 
         /// <summary>
         /// If true, then the mod is currently in the process of unloading.
         /// </summary>
-        public static bool Unloading { get; private set; }
+        public bool Unloading { get; private set; }
 
         /// <summary>
         /// If true, then themod is currently in the process of reloading.
         /// </summary>
-        public static bool Reloading { get; private set; }
-
-        protected static ModBase Instance { get; private set; }
+        public bool Reloading { get; private set; }
 
         /// <summary>
         /// If set to true, the user will be given the option to reload in the event of an
         /// unhandled exception.
         /// </summary>
-        protected static bool promptForReload;
+        protected bool promptForReload;
 
         /// <summary>
         /// The maximum number of times the mod will be allowed to reload as a result of an unhandled exception.
         /// </summary>
-        protected static int recoveryLimit;
+        protected int recoveryLimit;
 
-        private static int recoveryAttempts, exceptionCount;
-        private const long errorLoopThreshold = 100, exceptionLimit = 10;
+        private int recoveryAttempts, exceptionCount;
 
         private readonly List<ComponentBase> clientComponents, serverComponents;
         private readonly List<string> exceptionMessages;
@@ -86,48 +79,45 @@ namespace RichHudFramework.Game
         private Action lastMissionScreen;
         protected LogIO log;
 
-        static ModBase()
+        protected ModBase(bool runOnServer, bool runOnClient)
         {
-            LogFileName = "modLog.txt";
+            ModName = DebugName;
             recoveryLimit = 1;
-        }
-
-        public ModBase(bool runOnServer, bool runOnClient)
-        {
-            if (Instance != null)
-                throw new Exception("Only one instance of type ModBase can exist at a given time.");
-
-            if (ModName == null)
-                ModName = DebugName;
 
             clientComponents = new List<ComponentBase>();
             serverComponents = new List<ComponentBase>();
             RunOnServer = runOnServer;
             RunOnClient = runOnClient;
-
+            
             exceptionMessages = new List<string>();
             errorTimer = new Utils.Stopwatch();
         }
 
-        public sealed override void Init(MyObjectBuilder_SessionComponent sessionComponent)
+        public sealed override void LoadData()
         {
             if (!Loaded && CanLoad)
             {
-                Instance = this;
-                Loaded = true;
-
-                Reloading = false;
-                Unloading = false;
-                exceptionCount = 0;
-                log = new LogIO(LogFileName);
-
                 bool isServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
                 IsDedicated = (MyAPIGateway.Utilities.IsDedicated && isServer);
                 canUpdate = (RunOnClient && IsClient) || (RunOnServer && IsDedicated);
 
+                Reloading = false;
+                Unloading = false;
+                exceptionCount = 0;
+
                 if (canUpdate)
-                    RunSafeAction(AfterInit);
+                    AfterLoadData();
             }
+        }
+        
+        protected new virtual void AfterLoadData() { }
+
+        public sealed override void Init(MyObjectBuilder_SessionComponent sessionComponent)
+        {
+            if (canUpdate)
+                AfterInit();
+
+            Loaded = true;
         }
 
         protected virtual void AfterInit() { }
@@ -177,9 +167,6 @@ namespace RichHudFramework.Game
         /// </summary>
         private void BeforeUpdate()
         {
-            if (!Loaded && CanLoad)
-                Init(null);
-
             if (Loaded && canUpdate)
                 RunSafeAction(UpdateComponents);
 
@@ -237,7 +224,7 @@ namespace RichHudFramework.Game
         /// Executes a given <see cref="Action"/> in a try-catch block. If an exception occurs, it will attempt
         /// to log it, display an error message to the user then unload the mod and its components.
         /// </summary>
-        public static void RunSafeAction(Action action)
+        public void RunSafeAction(Action action)
         {
             try
             {
@@ -245,17 +232,8 @@ namespace RichHudFramework.Game
             }
             catch (Exception e)
             {
-                ReportException(e);
+                HandleException(e);
             }
-        }
-
-        /// <summary>
-        /// Attempts to report and log a given <see cref="Exception"/>.
-        /// </summary>
-        public static void ReportException(Exception e)
-        {
-            if (Instance != null && Loaded)
-                Instance.HandleException(e);
         }
 
         private void HandleException(Exception e)
@@ -311,57 +289,57 @@ namespace RichHudFramework.Game
         /// <summary>
         /// Attempts to synchronously update mod log with message and adds a time stamp.
         /// </summary>
-        public static void TryWriteToLog(string message)
-        {
-            if (Instance != null && Instance.log != null)
-                Instance.log.TryWriteToLog(message);
-        }
+        public bool TryWriteToLog(string message) =>
+            LogIO.TryWriteToLog(message);
 
         /// <summary>
         /// Attempts to update mod log in parallel with message and adds a time stamp.
         /// </summary>
-        public static void WriteToLogStart(string message)
-        {
-            if (Instance != null && Instance.log != null)
-                Instance.log.WriteToLogStart(message);
-        }
+        public void WriteToLogStart(string message) =>
+            LogIO.WriteToLogStart(message);
 
         /// <summary>
         /// Sends chat message using the mod name as the sender.
         /// </summary>
-        public static void SendChatMessage(string message)
+        public void SendChatMessage(string message)
         {
-            if (Instance != null && !Unloading && !IsDedicated)
+            if (!Unloading && !IsDedicated)
                 MyAPIGateway.Utilities.ShowMessage(ModName, message);
         }
 
         /// <summary>
         /// Creates a message window using the mod name, a given subheading and a message.
         /// </summary>
-        public static void ShowMessageScreen(string subHeading, string message)
+        public void ShowMessageScreen(string subHeading, string message)
         {
-            if (Instance != null && !Unloading && !IsDedicated)
+            if (!Unloading && !IsDedicated)
                 ShowMissionScreen(subHeading, message, null, "Close");
         }
 
-        private static void ShowMissionScreen(string subHeading = null, string message = null, Action<ResultEnum> callback = null, string okButtonCaption = null)
+        private void ShowMissionScreen(string subHeading = null, string message = null, Action<ResultEnum> callback = null, string okButtonCaption = null)
         {
-            if (Instance != null)
-            {
-                Action messageAction = () => MyAPIGateway.Utilities.ShowMissionScreen(ModName, subHeading, null, message, callback, okButtonCaption);
-                Instance.lastMissionScreen = messageAction;
-            }
+            Action messageAction = () => MyAPIGateway.Utilities.ShowMissionScreen(ModName, subHeading, null, message, callback, okButtonCaption);
+            lastMissionScreen = messageAction;
         }
 
         public void Reload()
         {
             if (Loaded)
             {
-                if (recoveryAttempts <= recoveryLimit)
+                if (recoveryAttempts < recoveryLimit)
                 {
                     Reloading = true;
                     Close();
                     Reloading = false;
+
+                    if (!Loaded && CanLoad)
+                    {
+                        RunSafeAction(() => 
+                        {
+                            LoadData();
+                            Init(null);
+                        });
+                    }
                 }
                 else
                     UnloadData();
@@ -374,11 +352,8 @@ namespace RichHudFramework.Game
             {
                 Unloading = true;
                 Close();
-                Instance = null;
             }
         }
-
-        protected virtual void BeforeClose() { }
 
         private void Close()
         {
@@ -388,17 +363,17 @@ namespace RichHudFramework.Game
 
                 if (canUpdate)
                 {
-                    RunSafeAction(Instance.BeforeClose);
+                    RunSafeAction(BeforeClose);
 
                     for (int n = clientComponents.Count - 1; n >= 0; n--)
                     {
-                        RunSafeAction(() => clientComponents[n].Close());
+                        RunSafeAction(clientComponents[n].Close);
                         clientComponents[n].UnregisterComponent(n);
                     }
 
                     for (int n = serverComponents.Count - 1; n >= 0; n--)
                     {
-                        RunSafeAction(() => serverComponents[n].Close());
+                        RunSafeAction(serverComponents[n].Close);
                         serverComponents[n].UnregisterComponent(n);
                     }
                 }
@@ -408,45 +383,38 @@ namespace RichHudFramework.Game
             }
         }
 
+        protected virtual void BeforeClose() { }
+
         /// <summary>
-        /// Base for classes that need to be continuously updated by the game. This should not be used for short
-        /// lived objects.
+        /// Base class for ModBase components.
         /// </summary>
         public abstract class ComponentBase
         {
-            protected bool Registered { get; private set; }
+            protected ModBase Parent { get; private set; }
 
             /// <summary>
             /// Determines whether or not this component will run on a dedicated server.
             /// </summary>
             public readonly bool runOnServer, runOnClient;
 
-            protected ComponentBase(bool runOnServer, bool runOnClient)
+            protected ComponentBase(bool runOnServer, bool runOnClient, ModBase parent)
             {
-                if (Instance == null)
-                    throw new Exception("Types of ComponentBase cannot be instantiated before ModBase.");
-
                 this.runOnServer = runOnServer;
                 this.runOnClient = runOnClient;
 
-                if (!IsDedicated && runOnClient)
-                    Instance.clientComponents.Add(this);
-                else if (IsDedicated && runOnServer)
-                    Instance.serverComponents.Add(this);
-
-                Registered = true;
+                RegisterComponent(parent);
             }
 
-            public void RegisterComponent()
+            public void RegisterComponent(ModBase parent)
             {
-                if (!Registered)
+                if (Parent == null)
                 {
                     if (!IsDedicated && runOnClient)
-                        Instance.clientComponents.Add(this);
+                        parent.clientComponents.Add(this);
                     else if (IsDedicated && runOnServer)
-                        Instance.serverComponents.Add(this);
+                        parent.serverComponents.Add(this);
 
-                    Registered = true;
+                    Parent = parent;
                 }
             }
 
@@ -456,12 +424,15 @@ namespace RichHudFramework.Game
             /// </summary>
             public void UnregisterComponent()
             {
-                if (!IsDedicated && runOnClient)
-                    Instance.clientComponents.Remove(this);
-                else if (IsDedicated && runOnServer)
-                    Instance.serverComponents.Remove(this);
+                if (Parent != null)
+                {
+                    if (!IsDedicated && runOnClient)
+                        Parent.clientComponents.Remove(this);
+                    else if (IsDedicated && runOnServer)
+                        Parent.serverComponents.Remove(this);
 
-                Registered = false;
+                    Parent = null;
+                }
             }
 
             /// <summary>
@@ -470,20 +441,23 @@ namespace RichHudFramework.Game
             /// </summary>
             public void UnregisterComponent(int index)
             {
-                if (!IsDedicated && runOnClient)
+                if (Parent != null)
                 {
-                    if (index < Instance.clientComponents.Count && Instance.clientComponents[index] == this)
+                    if (!IsDedicated && runOnClient)
                     {
-                        Instance.clientComponents.RemoveAt(index);
-                        Registered = false;
+                        if (index < Parent.clientComponents.Count && Parent.clientComponents[index] == this)
+                        {
+                            Parent.clientComponents.RemoveAt(index);
+                            Parent = null;
+                        }
                     }
-                }
-                else if (IsDedicated && runOnServer)
-                {
-                    if (index < Instance.serverComponents.Count && Instance.serverComponents[index] == this)
+                    else if (IsDedicated && runOnServer)
                     {
-                        Instance.serverComponents.RemoveAt(index);
-                        Registered = false;
+                        if (index < Parent.serverComponents.Count && Parent.serverComponents[index] == this)
+                        {
+                            Parent.serverComponents.RemoveAt(index);
+                            Parent = null;
+                        }
                     }
                 }
             }
@@ -495,6 +469,31 @@ namespace RichHudFramework.Game
             public virtual void Update() { }
 
             public virtual void Close() { }
+
+            /// <summary>
+            /// Executes a given <see cref="Action"/> in a try-catch block. If an exception occurs, it will attempt
+            /// to log it, display an error message to the user then unload the mod and its components.
+            /// </summary>
+            protected void RunSafeAction(Action action) =>
+                Parent.RunSafeAction(action);
+
+            /// <summary>
+            /// Attempts to synchronously update mod log with message and adds a time stamp.
+            /// </summary>
+            protected bool TryWriteToLog(string message) =>
+                LogIO.TryWriteToLog(message);
+
+            /// <summary>
+            /// Attempts to update mod log in parallel with message and adds a time stamp.
+            /// </summary>
+            protected void WriteToLogStart(string message) =>
+                LogIO.WriteToLogStart(message);
+
+            /// <summary>
+            /// Sends chat message using the mod name as the sender.
+            /// </summary>
+            protected void SendChatMessage(string message) =>
+                Parent.SendChatMessage(message);
         }
 
         /// <summary>
@@ -504,7 +503,7 @@ namespace RichHudFramework.Game
         {
             private readonly TaskPool taskPool;
 
-            protected ParallelComponentBase(bool runOnServer, bool runOnClient) : base(runOnServer, runOnClient)
+            protected ParallelComponentBase(bool runOnServer, bool runOnClient, ModBase parent) : base(runOnServer, runOnClient, parent)
             {
                 taskPool = new TaskPool(ErrorCallback);
             }

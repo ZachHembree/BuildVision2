@@ -20,7 +20,7 @@ namespace RichHudFramework
     namespace UI
     {
         /// <summary>
-        /// Base for all hud elements that serve as parents of other HUD elements. Types deriving from this class cannot be
+        /// Base class for HUD elements to which other elements are parented. Types deriving from this class cannot be
         /// parented to other elements; only types of <see cref="IHudNode"/> can be parented.
         /// </summary>
         public abstract class HudParentBase : IHudParent
@@ -37,15 +37,15 @@ namespace RichHudFramework
 
             protected readonly List<IHudNode> children;
 
-            /// <summary>
-            /// Initializes a new <see cref="HudParentBase"/> with no child elements.
-            /// </summary>
             public HudParentBase()
             {
                 Visible = true;
                 children = new List<IHudNode>();
             }
 
+            /// <summary>
+            /// Updates input for the element and its children.
+            /// </summary>
             public virtual void HandleInputStart()
             {
                 for (int n = children.Count - 1; n >= 0; n--)
@@ -59,6 +59,9 @@ namespace RichHudFramework
 
             protected virtual void HandleInput() { }
 
+            /// <summary>
+            /// Updates before draw for the element and its children.
+            /// </summary>
             public virtual void BeforeDrawStart()
             {
                 BeforeDraw();
@@ -72,6 +75,9 @@ namespace RichHudFramework
 
             protected virtual void BeforeDraw() { }
 
+            /// <summary>
+            /// Draws the element and its children.
+            /// </summary>
             public virtual void DrawStart()
             {
                 Draw();
@@ -105,9 +111,9 @@ namespace RichHudFramework
             /// </summary>
             public virtual void RegisterChild(IHudNode child)
             {
-                if (child.Parent?.ID == ID)
+                if (child.Parent?.ID == ID && !child.Registered)
                     children.Add(child);
-                else
+                else if (child.Parent?.ID == null)
                     child.Register(this);
             }
 
@@ -164,9 +170,9 @@ namespace RichHudFramework
                 {
                     Item1 = () => Visible,
                     Item2 = this,
-                    Item3 = () => ModBase.RunSafeAction(BeforeDrawStart),
-                    Item4 = () => ModBase.RunSafeAction(DrawStart),
-                    Item5 = () => ModBase.RunSafeAction(HandleInputStart),
+                    Item3 = () => RichHudCore.Instance.RunSafeAction(BeforeDrawStart),
+                    Item4 = () => RichHudCore.Instance.RunSafeAction(DrawStart),
+                    Item5 = () => RichHudCore.Instance.RunSafeAction(HandleInputStart),
                     Item6 = GetOrSetMember
                 };
             }           

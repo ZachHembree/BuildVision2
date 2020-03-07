@@ -2,8 +2,14 @@
 
 namespace RichHudFramework.UI
 {
+    /// <summary>
+    /// Clickable scrollbar. Designed to mimic the appearance of the scrollbars used in SE.
+    /// </summary>
     public class ScrollBar : HudElementBase
     {
+        /// <summary>
+        /// Width of the scrollbar in pixels.
+        /// </summary>
         public override float Width
         {
             get { return slide.Width + Padding.X; }
@@ -17,6 +23,9 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Height of the scrollbar in pixels.
+        /// </summary>
         public override float Height
         {
             get { return slide.Height + Padding.Y; }
@@ -30,19 +39,37 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Minimum allowable value.
+        /// </summary>
         public float Min
         {
             get { return slide.Min; }
             set { slide.Min = value; }
         }
+
+        /// <summary>
+        /// Maximum allowable value.
+        /// </summary>
         public float Max
         {
             get { return slide.Max; }
             set { slide.Max = value; }
         }
 
+        /// <summary>
+        /// Currently set value. Clamped between min and max.
+        /// </summary>
         public float Current { get { return slide.Current; } set { slide.Current = value; } }
+
+        /// <summary>
+        /// Current value expressed as a percentage over the range between the min and max values.
+        /// </summary>
         public float Percent { get { return slide.Percent; } set { slide.Percent = value; } }
+
+        /// <summary>
+        /// Determines whether or not the scrollbar will be oriented vertically.
+        /// </summary>
         public bool Vertical { get { return slide.Vertical; } set { slide.Vertical = value; slide.Reverse = value; } }
 
         public readonly SliderBar slide;

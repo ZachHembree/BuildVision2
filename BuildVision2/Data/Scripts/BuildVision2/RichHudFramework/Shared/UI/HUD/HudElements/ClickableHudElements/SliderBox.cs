@@ -7,12 +7,30 @@ namespace RichHudFramework.UI
     /// </summary>
     public class SliderBox : HudElementBase
     {
-        public override Vector2 Padding { get { return slide.Padding; } set { slide.Padding = value; } }
-
+        /// <summary>
+        /// Lower limit.
+        /// </summary>
         public float Min { get { return slide.Min; } set { slide.Min = value; } }
+
+        /// <summary>
+        /// Upper limit.
+        /// </summary>
         public float Max { get { return slide.Max; } set { slide.Max = value; } }
+
+        /// <summary>
+        /// Current value. Clamped between min and max.
+        /// </summary>
         public float Current { get { return slide.Current; } set { slide.Current = value; } }
+
+        /// <summary>
+        /// Current value expressed as a percentage over the range between the min and max values.
+        /// </summary>
         public float Percent { get { return slide.Percent; } set { slide.Percent = value; } }
+
+        /// <summary>
+        /// Border size. Included in total element size.
+        /// </summary>
+        public override Vector2 Padding { get { return slide.Padding; } set { slide.Padding = value; } }
 
         public readonly TexturedBox background;
         public readonly BorderBox border;

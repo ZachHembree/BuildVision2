@@ -10,9 +10,9 @@ namespace RichHudFramework.UI
     using Server;
 
     /// <summary>
-    /// Clickable text box.
+    /// Clickable text box. Supports text highlighting and has its own text caret. Text only, no background.
     /// </summary>
-    public class TextBox : Label
+    public class TextBox : Label, IClickableElement
     {
         /// <summary>
         /// Determines whether or not this element will accept input from the mouse.
@@ -44,7 +44,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool SelectionEmpty => selectionBox.Empty;
 
-        public readonly ClickableElement mouseInput;
+        public IMouseInput MouseInput { get; }
 
         private bool acceptInput;
         private readonly TextInput textInput;
@@ -56,19 +56,25 @@ namespace RichHudFramework.UI
             CaptureCursor = true;
             ShareCursor = true;
 
-            mouseInput = new ClickableElement(this) { DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding };
+            MouseInput = new MouseInputElement(this) { DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding };
             textInput = new TextInput(AddChar, RemoveLastChar, TextInputFilter);
 
             caret = new TextCaret(this) { Visible = false };
             selectionBox = new SelectionBox(caret, this) { Color = new Color(255, 255, 255, 140), Visible = false };
         }
 
+        /// <summary>
+        /// Opens the textbox for input and moves the caret to the end.
+        /// </summary>
         public void OpenInput()
         {
             InputOpen = true;
             caret.SetPosition(new Vector2I(int.MaxValue, int.MaxValue));
         }
 
+        /// <summary>
+        /// Closes textbox input and clears the text selection.
+        /// </summary>
         public void CloseInput()
         {
             InputOpen = false;
@@ -88,7 +94,7 @@ namespace RichHudFramework.UI
 
         protected override void HandleInput()
         {
-            acceptInput = (UseMouseInput && mouseInput.HasFocus && HudMain.Cursor.Visible) || InputOpen;
+            acceptInput = (UseMouseInput && MouseInput.HasFocus && HudMain.Cursor.Visible) || InputOpen;
 
             if (acceptInput)
             {

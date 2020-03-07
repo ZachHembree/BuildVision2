@@ -7,6 +7,10 @@ namespace RichHudFramework
 {
     namespace UI
     {
+        using Rendering.Client;
+        using Rendering.Server;
+        using Rendering;
+
         /// <summary>
         /// Defines the formatting of the characters in rich text types.
         /// </summary>
@@ -28,6 +32,19 @@ namespace RichHudFramework
             /// </summary>
             public float TextSize => data.Item2;
 
+            /// <summary>
+            /// Font specified by the format.
+            /// </summary>
+            public IFontMin Font => FontManager.GetFont(data.Item3.X);
+
+            /// <summary>
+            /// The font style specifed by the format.
+            /// </summary>
+            public FontStyles FontStyle => (FontStyles)data.Item3.Y;
+
+            /// <summary>
+            /// The font and style used by the format represented as a pair of integers.
+            /// </summary>
             public Vector2I StyleIndex => data.Item3;
 
             /// <summary>
@@ -78,6 +95,28 @@ namespace RichHudFramework
             /// </summary>
             public GlyphFormat WithFont(Vector2I fontStyle) =>
                 new GlyphFormat(Color, Alignment, TextSize, fontStyle);
+
+            /// <summary>
+            /// Returns a copy of the <see cref="GlyphFormat"/> using the font style associated with the given enum.
+            /// </summary>
+            public GlyphFormat WithStyle(FontStyles style)
+            {
+                if (FontManager.GetFont(StyleIndex.X).IsStyleDefined(style))
+                    return new GlyphFormat(Color, Alignment, TextSize, new Vector2I(StyleIndex.X, (int)style));
+                else
+                    return this;
+            }
+
+            /// <summary>
+            /// Returns a copy of the <see cref="GlyphFormat"/> using the font style associated with the given enum.
+            /// </summary>
+            public GlyphFormat WithStyle(int style)
+            {
+                if (FontManager.GetFont(StyleIndex.X).IsStyleDefined(style))
+                    return new GlyphFormat(Color, Alignment, TextSize, new Vector2I(StyleIndex.X, style));
+                else
+                    return this;
+            }
 
             /// <summary>
             /// Returns a copy of the <see cref="GlyphFormat"/> using the given text size.

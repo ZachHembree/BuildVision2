@@ -23,26 +23,44 @@ namespace RichHudFramework
 
     namespace UI.Client
     {
+        /// <summary>
+        /// Horizontally scrolling list of control tiles.
+        /// </summary>
         public class ControlCategory : IControlCategory
         {
-            public RichText HeaderText
+            /// <summary>
+            /// Category name
+            /// </summary>
+            public string HeaderText
             {
-                get { return new RichText(GetOrSetMemberFunc(null, (int)ControlCatAccessors.HeaderText) as IList<RichStringMembers>); }
-                set { GetOrSetMemberFunc(value.ApiData, (int)ControlCatAccessors.HeaderText); }
+                get { return GetOrSetMemberFunc(null, (int)ControlCatAccessors.HeaderText) as string; }
+                set { GetOrSetMemberFunc(value, (int)ControlCatAccessors.HeaderText); }
             }
 
-            public RichText SubheaderText
+            /// <summary>
+            /// Category description
+            /// </summary>
+            public string SubheaderText
             {
-                get { return new RichText(GetOrSetMemberFunc(null, (int)ControlCatAccessors.SubheaderText) as IList<RichStringMembers>); }
-                set { GetOrSetMemberFunc(value.ApiData, (int)ControlCatAccessors.SubheaderText); }
+                get { return GetOrSetMemberFunc(null, (int)ControlCatAccessors.SubheaderText) as string; }
+                set { GetOrSetMemberFunc(value, (int)ControlCatAccessors.SubheaderText); }
             }
 
+            /// <summary>
+            /// Read only collection of <see cref="IControlTile"/>s assigned to this category
+            /// </summary>
             public IReadOnlyCollection<IControlTile> Tiles { get; }
 
             public IControlCategory TileContainer => this;
 
+            /// <summary>
+            /// Unique identifier
+            /// </summary>
             public object ID => data.Item3;
 
+            /// <summary>
+            /// Determines whether or not the element will be drawn.
+            /// </summary>
             public bool Enabled
             {
                 get { return (bool)GetOrSetMemberFunc(null, (int)ControlCatAccessors.Enabled); }
@@ -71,6 +89,9 @@ namespace RichHudFramework
             IEnumerator IEnumerable.GetEnumerator() =>
                 Tiles.GetEnumerator();
 
+            /// <summary>
+            /// Adds a <see cref="IControlTile"/> to the category
+            /// </summary>
             public void Add(ControlTile tile) =>
                 GetOrSetMemberFunc(tile.ID, (int)ControlCatAccessors.AddTile);
 

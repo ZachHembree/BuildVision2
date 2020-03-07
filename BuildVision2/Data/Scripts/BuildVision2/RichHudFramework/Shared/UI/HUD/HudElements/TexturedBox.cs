@@ -8,10 +8,24 @@ namespace RichHudFramework.UI
     /// </summary>
     public class TexturedBox : HudElementBase
     {
+        /// <summary>
+        /// Material applied to the box.
+        /// </summary>
         public Material Material { get { return hudBoard.Material; } set { hudBoard.Material = value; } }
+
+        /// <summary>
+        /// Determines how the material reacts to changes in element size/aspect ratio.
+        /// </summary>
         public MaterialAlignment MatAlignment { get { return hudBoard.MatAlignment; } set { hudBoard.MatAlignment = value; } }
+
+        /// <summary>
+        /// Coloring applied to the material.
+        /// </summary>
         public Color Color { get { return hudBoard.Color; } set { hudBoard.Color = value; } }
 
+        /// <summary>
+        /// Width of the hud element in pixels.
+        /// </summary>
         public override float Width
         {
             get { return hudBoard.Width + Padding.X; }
@@ -24,6 +38,9 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Height of the hud element in pixels.
+        /// </summary>
         public override float Height
         {
             get { return hudBoard.Height + Padding.Y; }
@@ -36,10 +53,13 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Position of the element relative to its origin.
+        /// </summary>
         public override Vector2 Offset { get { return hudBoard.offset; } set { hudBoard.offset = value; } }
 
         private float lastScale;
-        protected readonly MatBoard hudBoard;
+        private readonly MatBoard hudBoard;
 
         public TexturedBox(IHudParent parent = null) : base(parent)
         {

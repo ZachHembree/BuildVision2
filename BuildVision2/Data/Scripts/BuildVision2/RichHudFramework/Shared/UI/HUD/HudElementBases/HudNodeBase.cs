@@ -21,12 +21,12 @@ namespace RichHudFramework
             GetParentData = 11,
             GetFocus = 12,
             Register = 13,
-            Unregister = 14
+            Unregister = 14,
+            Registered = 15,
         }
 
         /// <summary>
-        /// Base class for hud elements that can serve as child and/or parent nodes. Derives from <see cref="HudParentBase"/>
-        /// and implements <see cref="IHudNode"/>.
+        /// Base class for hud elements that can be parented to other elements.
         /// </summary>
         public abstract class HudNodeBase : HudParentBase, IHudNode
         {
@@ -36,8 +36,10 @@ namespace RichHudFramework
             public virtual IHudParent Parent { get; protected set; }
 
             /// <summary>
-            /// Initializes the node without any child elements and with/without a parent node.
+            /// Indicates whether or not the element has been registered to a parent.
             /// </summary>
+            public bool Registered { get; private set; }
+
             public HudNodeBase(IHudParent parent)
             {
                 if (parent != null)
@@ -65,6 +67,7 @@ namespace RichHudFramework
                 {
                     Parent = parent;
                     Parent.RegisterChild(this);
+                    Registered = true;
                 }
             }
 
@@ -79,6 +82,7 @@ namespace RichHudFramework
 
                     Parent = null;
                     lastParent.RemoveChild(this);
+                    Registered = false;
                 }
             }
 
@@ -105,6 +109,8 @@ namespace RichHudFramework
                         case HudNodeAccessors.Unregister:
                             Unregister();
                             break;
+                        case HudNodeAccessors.Registered:
+                            return Registered;
                     }
                 }
 

@@ -25,14 +25,23 @@ namespace RichHudFramework
     {
         public abstract class TerminalPageBase : ITerminalPage
         {
-            public RichText Name
+            /// <summary>
+            /// Name of the <see cref="ITerminalPage"/> as it appears in the dropdown of the <see cref="IModControlRoot"/>.
+            /// </summary>
+            public string Name
             {
-                get { return new RichText(GetOrSetMemberFunc(null, (int)TerminalPageAccessors.Name) as IList<RichStringMembers>); }
-                set { GetOrSetMemberFunc(value.ApiData, (int)TerminalPageAccessors.Name); }
+                get { return GetOrSetMemberFunc(null, (int)TerminalPageAccessors.Name) as string; }
+                set { GetOrSetMemberFunc(value, (int)TerminalPageAccessors.Name); }
             }
 
+            /// <summary>
+            /// Unique identifier
+            /// </summary>
             public object ID => data.Item2;
 
+            /// <summary>
+            /// Determines whether or not the <see cref="ITerminalPage"/> will be visible in the mod root.
+            /// </summary>
             public bool Enabled
             {
                 get { return (bool)GetOrSetMemberFunc(null, (int)TerminalPageAccessors.Enabled); }
@@ -52,6 +61,9 @@ namespace RichHudFramework
                 this.data = data;
             }
 
+            /// <summary>
+            /// Retrieves information used by the Framework API
+            /// </summary>
             public ControlMembers GetApiData() =>
                 data;
         }

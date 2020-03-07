@@ -9,6 +9,9 @@ namespace RichHudFramework.UI.Client
 {
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
 
+    /// <summary>
+    /// Clickable button. Mimics the appearance of the terminal button in the SE terminal.
+    /// </summary>
     public class TerminalButton : TerminalControlBase<TerminalButton>
     {
         public TerminalButton() : base(MenuControls.TerminalButton)

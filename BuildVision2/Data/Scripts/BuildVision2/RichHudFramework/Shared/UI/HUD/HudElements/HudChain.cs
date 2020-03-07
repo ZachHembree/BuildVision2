@@ -5,10 +5,23 @@ using System.Collections;
 
 namespace RichHudFramework.UI
 {
+    /// <summary>
+    /// HUD element used to organize other elements into straight lines, either horizontally or vertically.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class HudChain<T> : HudElementBase, IEnumerable<T> where T : class, IHudElement
     {
+        /// <summary>
+        /// Used to allow the addition of child elements using collection-initializer syntax in
+        /// conjunction with normal initializers.
+        /// </summary>
         public HudChain<T> ChildContainer => this;
-        public ReadOnlyCollection<T> List { get; }
+
+        /// <summary>
+        /// List of elements registered to the chain. Does not include elements that are parented
+        /// using normal methods.
+        /// </summary>
+        public ReadOnlyCollection<T> ChainMembers { get; }
 
         /// <summary>
         /// Determines whether or not chain elements will be resized to match the
@@ -33,7 +46,7 @@ namespace RichHudFramework.UI
         {
             Spacing = 0f;
             elements = new List<T>();
-            List = new ReadOnlyCollection<T>(elements);
+            ChainMembers = new ReadOnlyCollection<T>(elements);
         }
 
         public IEnumerator<T> GetEnumerator() =>
@@ -55,11 +68,19 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Finds the chain member that meets the conditions
+        /// required by the predicate.
+        /// </summary>
         public T Find(Func<T, bool> predicate)
         {
             return elements.Find(x => predicate(x));
         }
 
+        /// <summary>
+        /// Finds the index of the chain member that meets the conditions
+        /// required by the predicate.
+        /// </summary>
         public int FindIndex(Func<T, bool> predicate)
         {
             return elements.FindIndex(x => predicate(x));
@@ -78,6 +99,10 @@ namespace RichHudFramework.UI
             base.RemoveChild(element);
         }
 
+        /// <summary>
+        /// Removes the chain member that meets the conditions
+        /// required by the predicate.
+        /// </summary>
         public void Remove(Func<T, bool> predicate) =>
             RemoveChild(elements.Find(x => predicate(x)));
 
@@ -85,102 +110,131 @@ namespace RichHudFramework.UI
         {
             if (elements != null && elements.Count > 0)
             {
-                Vector2 offset = Vector2.Zero, size = GetSize();
+                Vector2 offset = Vector2.Zero, size;
 
                 if (AlignVertical)
+                {
+                    size = GetSizeVertical();
                     offset.Y = size.Y / 2f;
+                    UpdateOffsetsVertical(offset, size);
+                }
                 else
+                {
+                    size = GetSizeHorizontal();
                     offset.X = -size.X / 2f;
+                    UpdateOffsetsHorizontal(offset, size);
+                }
 
-                UpdateOffsets(offset, size);
                 Size = size + Padding;
             }
         }
 
-        private Vector2 GetSize()
+        /// <summary>
+        /// Calculates the size of the element for a vertically aligned chain.
+        /// </summary>
+        private Vector2 GetSizeVertical()
         {
             float width = 0f, height = 0f;
 
             if (AutoResize)
-            {
-                if (AlignVertical)
-                    width = Width - Padding.X;
-                else
-                    height = Height - Padding.Y;
-            }
+                width = Width - Padding.X;
 
             for (int n = 0; n < elements.Count; n++)
             {
                 if (elements[n].Visible)
                 {
-                    if (AlignVertical)
-                    {
-                        height += elements[n].Height;
+                    height += elements[n].Height;
 
-                        if (!AutoResize && elements[n].Width > width)
-                            width = elements[n].Width;
+                    if (!AutoResize && elements[n].Width > width)
+                        width = elements[n].Width;
 
-                        if (n != elements.Count - 1)
-                            height += Spacing;
-                    }
-                    else
-                    {
-                        width += elements[n].Width;
-
-                        if (!AutoResize && elements[n].Height > height)
-                            height = elements[n].Height;
-
-                        if (n != elements.Count - 1)
-                            width += Spacing;
-                    }
+                    if (n != elements.Count - 1)
+                        height += Spacing;
                 }
             }
 
             return new Vector2(width, height);
         }
 
-        private void UpdateOffsets(Vector2 offset, Vector2 memberArea)
+        /// <summary>
+        /// Calculates the size of the element for a horizontally aligned chain.
+        /// </summary>
+        private Vector2 GetSizeHorizontal()
+        {
+            float width = 0f, height = 0f;
+
+            if (AutoResize)
+                height = Height - Padding.Y;
+
+            for (int n = 0; n < elements.Count; n++)
+            {
+                if (elements[n].Visible)
+                {
+                    width += elements[n].Width;
+
+                    if (!AutoResize && elements[n].Height > height)
+                        height = elements[n].Height;
+
+                    if (n != elements.Count - 1)
+                        width += Spacing;
+                }
+            }
+
+            return new Vector2(width, height);
+        }
+
+        /// <summary>
+        /// Updates chain member offsets to ensure that they're in a straight, vertical line.
+        /// </summary>
+        private void UpdateOffsetsVertical(Vector2 offset, Vector2 memberArea)
         {
             for (int n = 0; n < elements.Count; n++)
             {
                 if (elements[n].Visible)
                 {
-                    if (AlignVertical)
-                    {
-                        elements[n].Offset = new Vector2(0f, -(elements[n].Height / 2f)) + offset;
+                    elements[n].Offset = new Vector2(0f, -(elements[n].Height / 2f)) + offset;
 
-                        if (elements[n].ParentAlignment.HasFlag(ParentAlignments.Left))
-                            elements[n].Offset += new Vector2(Padding.X / 2f, 0f);
-                        else if (elements[n].ParentAlignment.HasFlag(ParentAlignments.Right))
-                            elements[n].Offset += new Vector2(-Padding.X / 2f, 0f);
+                    if (elements[n].ParentAlignment.HasFlag(ParentAlignments.Left))
+                        elements[n].Offset += new Vector2(Padding.X / 2f, 0f);
+                    else if (elements[n].ParentAlignment.HasFlag(ParentAlignments.Right))
+                        elements[n].Offset += new Vector2(-Padding.X / 2f, 0f);
 
-                        if (AutoResize)
-                            elements[n].Width = memberArea.X;
+                    if (AutoResize)
+                        elements[n].Width = memberArea.X;
 
-                        offset.Y -= elements[n].Height;
+                    offset.Y -= elements[n].Height;
 
-                        if (n != elements.Count - 1)
-                            offset.Y -= Spacing;
-                    }
-                    else
-                    {
-                        elements[n].Offset = new Vector2((elements[n].Width / 2f), 0f) + offset;
-
-                        if (elements[n].ParentAlignment.HasFlag(ParentAlignments.Top))
-                            elements[n].Offset += new Vector2(0f, -Padding.Y / 2f);
-                        else if (elements[n].ParentAlignment.HasFlag(ParentAlignments.Bottom))
-                            elements[n].Offset += new Vector2(0f, Padding.Y / 2f);
-
-                        if (AutoResize)
-                            elements[n].Height = memberArea.Y;
-
-                        offset.X += elements[n].Width;
-
-                        if (n != elements.Count - 1)
-                            offset.X += Spacing;
-                    }
+                    if (n != elements.Count - 1)
+                        offset.Y -= Spacing;
                 }
-            }
+            }           
+        }
+
+        /// <summary>
+        /// Updates chain member offsets to ensure that they're in a straight, horizontal line.
+        /// </summary>
+        private void UpdateOffsetsHorizontal(Vector2 offset, Vector2 memberArea)
+        {
+            for (int n = 0; n < elements.Count; n++)
+            {
+                if (elements[n].Visible)
+                {
+                    elements[n].Offset = new Vector2((elements[n].Width / 2f), 0f) + offset;
+
+                    if (elements[n].ParentAlignment.HasFlag(ParentAlignments.Top))
+                        elements[n].Offset += new Vector2(0f, -Padding.Y / 2f);
+                    else if (elements[n].ParentAlignment.HasFlag(ParentAlignments.Bottom))
+                        elements[n].Offset += new Vector2(0f, Padding.Y / 2f);
+
+                    if (AutoResize)
+                        elements[n].Height = memberArea.Y;
+
+                    offset.X += elements[n].Width;
+
+                    if (n != elements.Count - 1)
+                        offset.X += Spacing;
+                }
+            }   
         }
     }
 }

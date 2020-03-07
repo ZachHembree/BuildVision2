@@ -8,11 +8,12 @@ namespace RichHudFramework.UI
     using Server;
 
     /// <summary>
-    /// Base type for all windows. Supports dragging/resizing like pretty much every other window ever.
+    /// Base type for HUD windows. Supports dragging/resizing like pretty much every other window ever.
     /// </summary>
     public abstract class WindowBase : HudElementBase
     {
         public RichText HeaderText { get { return Header.GetText(); } set { Header.SetText(value); } }
+
         public ITextBuilder Header => header.TextBoard;
 
         /// <summary>
@@ -33,6 +34,10 @@ namespace RichHudFramework.UI
         /// </summary>
         public virtual Color BodyColor { get { return body.Color; } set { body.Color = value; } }
 
+        /// <summary>
+        /// Position of the window relative to its origin. Clamped to prevent the window from moving
+        /// off screen.
+        /// </summary>
         public override Vector2 Offset
         {
             set
@@ -52,14 +57,32 @@ namespace RichHudFramework.UI
         /// </summary>
         public Vector2 MinimumSize { get { return minimumSize * Scale; } set { minimumSize = value / Scale; } }
 
+        /// <summary>
+        /// Determines whether or not the window can be resized by the user
+        /// </summary>
         public bool AllowResizing { get; set; }
+
+        /// <summary>
+        /// Determines whether or not the user can reposition the window
+        /// </summary>
         public bool CanDrag { get; set; }
 
-        public readonly TextBoxButton header;
+        /// <summary>
+        /// Window header element.
+        /// </summary>
+        public readonly LabelBoxButton header;
+
+        /// <summary>
+        /// Textured background. Body of the window.
+        /// </summary>
         public readonly TexturedBox body;
+
+        /// <summary>
+        /// Window border.
+        /// </summary>
         public readonly BorderBox border;
 
-        private readonly ClickableElement resizeLeft, resizeTop, resizeRight, resizeBottom;
+        private readonly MouseInputElement resizeLeft, resizeTop, resizeRight, resizeBottom;
         protected float cornerSize = 8f;
         protected bool canMoveWindow, canResize;
         protected int resizeDir;
@@ -72,7 +95,7 @@ namespace RichHudFramework.UI
             CanDrag = true;
             MinimumSize = new Vector2(200f, 200f);
 
-            header = new TextBoxButton(this)
+            header = new LabelBoxButton(this)
             {
                 DimAlignment = DimAlignments.Width,
                 ParentAlignment = ParentAlignments.Top | ParentAlignments.Inner,
@@ -90,16 +113,16 @@ namespace RichHudFramework.UI
             border = new BorderBox(this)
             { Thickness = 1f, DimAlignment = DimAlignments.Both, };
 
-            resizeBottom = new ClickableElement(this) 
+            resizeBottom = new MouseInputElement(this) 
             { Height = 1f, DimAlignment = DimAlignments.Width, ParentAlignment = ParentAlignments.Bottom };
 
-            resizeTop = new ClickableElement(this) 
+            resizeTop = new MouseInputElement(this) 
             { Height = 1f, DimAlignment = DimAlignments.Width, ParentAlignment = ParentAlignments.Top };
 
-            resizeLeft = new ClickableElement(this) 
+            resizeLeft = new MouseInputElement(this) 
             { Width = 1f, DimAlignment = DimAlignments.Height, ParentAlignment = ParentAlignments.Left };
 
-            resizeRight = new ClickableElement(this) 
+            resizeRight = new MouseInputElement(this) 
             { Width = 1f, DimAlignment = DimAlignments.Height, ParentAlignment = ParentAlignments.Right };
 
             header.MouseInput.OnLeftClick += HeaderClicked;
@@ -108,6 +131,31 @@ namespace RichHudFramework.UI
             resizeTop.OnLeftClick += ResizeClicked;
             resizeLeft.OnLeftClick += ResizeClicked;
             resizeRight.OnLeftClick += ResizeClicked;
+        }
+
+        protected virtual void HeaderClicked()
+        {
+            if (CanDrag)
+            {
+                canMoveWindow = true;
+                cursorOffset = (Origin + Offset) - HudMain.Cursor.Origin;
+            }
+        }
+
+        protected virtual void ResizeClicked()
+        {
+            if (AllowResizing)
+            {
+                Vector2 pos = Origin + Offset;
+                canResize = true;
+                resizeDir = 0;
+
+                if (Width - 2d * Math.Abs(pos.X - HudMain.Cursor.Origin.X) <= cornerSize)
+                    resizeDir += 1;
+
+                if (Height - 2d * Math.Abs(pos.Y - HudMain.Cursor.Origin.Y) <= cornerSize)
+                    resizeDir += 2;
+            }
         }
 
         protected override void BeforeDraw()
@@ -121,27 +169,9 @@ namespace RichHudFramework.UI
             body.Height = Height - header.Height;
         }
 
-        protected override void HandleInput()
-        {
-            if (IsMousedOver)
-            {
-                if (SharedBinds.LeftButton.IsNewPressed)
-                    GetFocus();
-            }
-            
-            if (canResize || canMoveWindow)
-            {
-                if (!SharedBinds.LeftButton.IsPressed)
-                {
-                    HeaderReleased();
-                    ResizeStopped();
-                }
-            }
-        }
-
         protected void Resize()
         {
-            Vector2 center = Origin + Offset, 
+            Vector2 center = Origin + Offset,
                 cursorPos = HudMain.Cursor.Origin, newOffset = Offset;
             float newWidth, newHeight;
 
@@ -180,34 +210,27 @@ namespace RichHudFramework.UI
             Offset = newOffset;
         }
 
-        protected virtual void HeaderClicked()
+        protected override void HandleInput()
         {
-            if (CanDrag)
+            if (IsMousedOver)
             {
-                canMoveWindow = true;
-                cursorOffset = (Origin + Offset) - HudMain.Cursor.Origin;
+                if (SharedBinds.LeftButton.IsNewPressed)
+                    GetFocus();
+            }
+            
+            if (canResize || canMoveWindow)
+            {
+                if (!SharedBinds.LeftButton.IsPressed)
+                {
+                    HeaderReleased();
+                    ResizeStopped();
+                }
             }
         }
 
         protected virtual void HeaderReleased()
         {
             canMoveWindow = false;
-        }
-
-        protected virtual void ResizeClicked()
-        {
-            if (AllowResizing)
-            {
-                Vector2 pos = Origin + Offset;
-                canResize = true;
-                resizeDir = 0;
-
-                if (Width - 2d * Math.Abs(pos.X - HudMain.Cursor.Origin.X) <= cornerSize)
-                    resizeDir += 1;
-
-                if (Height - 2d * Math.Abs(pos.Y - HudMain.Cursor.Origin.Y) <= cornerSize)
-                    resizeDir += 2;
-            }
         }
 
         protected virtual void ResizeStopped()

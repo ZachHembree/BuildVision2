@@ -6,8 +6,15 @@ namespace RichHudFramework.UI
     using Client;
     using Server;
 
-    public class SliderBar : HudElementBase
+    /// <summary>
+    /// Generic clickable slider bar. Can be oriented vertically or horizontally. Current value
+    /// automatically clamped between min and max.
+    /// </summary>
+    public class SliderBar : HudElementBase, IClickableElement
     {
+        /// <summary>
+        /// Width of the sliderbar in pixels.
+        /// </summary>
         public override float Width
         {
             get { return Math.Max(bar.Width, slider.Width) + Padding.X; }
@@ -29,6 +36,9 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Height of the sliderbar in pixels.
+        /// </summary>
         public override float Height
         {
             get { return Math.Max(bar.Height, slider.Height) + Padding.Y; }
@@ -116,31 +126,58 @@ namespace RichHudFramework.UI
         }
 
         /// <summary>
-        /// The color of the slider bar
+        /// Color of the slider bar
         /// </summary>
         public Color BarColor { get; set; }
 
+        /// <summary>
+        /// Bar color when moused over
+        /// </summary>
         public Color BarHighlight { get; set; }
 
         /// <summary>
-        /// The color of the slider box when not moused over.
+        /// Color of the slider box when not moused over
         /// </summary>
         public Color SliderColor { get; set; }
 
+        /// <summary>
+        /// Color of the slider button when moused over
+        /// </summary>
         public Color SliderHighlight { get; set; }
 
+        /// <summary>
+        /// Size of the slider bar
+        /// </summary>
         public Vector2 BarSize { get { return bar.Size; } set { bar.Size = value; } }
 
+        /// <summary>
+        /// Width of the slider bar
+        /// </summary>
         public float BarWidth { get { return bar.Width; } set { bar.Width = value; } }
 
+        /// <summary>
+        /// Height of the slider bar
+        /// </summary>
         public float BarHeight { get { return bar.Height; } set { bar.Height = value; } }
 
+        /// <summary>
+        /// Size of the slider button
+        /// </summary>
         public Vector2 SliderSize { get { return slider.Size; } set { slider.Size = value; } }
 
+        /// <summary>
+        /// Width of the slider button.
+        /// </summary>
         public float SliderWidth { get { return slider.Width; } set { slider.Width = value; } }
 
+        /// <summary>
+        /// Height of the slider button
+        /// </summary>
         public float SliderHeight { get { return slider.Height; } set { slider.Height = value; } }
 
+        /// <summary>
+        /// Determines whether or not the slider button is currently visible
+        /// </summary>
         public bool SliderVisible { get { return slider.Visible; } set { slider.Visible = value; } }
 
         /// <summary>
@@ -153,19 +190,25 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool Reverse { get; set; }
 
+        /// <summary>
+        /// Indicates whether or not the hud element is currently moused over
+        /// </summary>
         public override bool IsMousedOver => mouseInput.IsMousedOver;
 
-        public IClickableElement MouseInput => mouseInput;
+        /// <summary>
+        /// Handles mouse input for the slider bar
+        /// </summary>
+        public IMouseInput MouseInput => mouseInput;
 
         private readonly TexturedBox slider, bar;
-        private readonly ClickableElement mouseInput;
+        private readonly MouseInputElement mouseInput;
 
         private float min, max, current, percent;
         private bool canMoveSlider;
 
         public SliderBar(IHudParent parent = null) : base(parent)
         {
-            mouseInput = new ClickableElement(this) { DimAlignment = DimAlignments.Both };
+            mouseInput = new MouseInputElement(this) { DimAlignment = DimAlignments.Both };
             mouseInput.OnLeftClick += BarClicked;
 
             bar = new TexturedBox(this);

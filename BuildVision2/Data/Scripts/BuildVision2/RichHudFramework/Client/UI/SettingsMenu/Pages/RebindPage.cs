@@ -24,8 +24,14 @@ namespace RichHudFramework
 
     namespace UI.Client
     {
+        /// <summary>
+        /// Scrollable list of bind group controls.
+        /// </summary>
         public class RebindPage : TerminalPageBase, IRebindPage
         {
+            /// <summary>
+            /// List of bind groups registered to the page.
+            /// </summary>
             public IReadOnlyCollection<IBindGroup> BindGroups { get; }
 
             public RebindPage GroupContainer => this;
@@ -38,12 +44,18 @@ namespace RichHudFramework
                 BindGroups = new ReadOnlyCollection<IBindGroup>(bindGroups);
             }
 
+            /// <summary>
+            /// Adds the given bind group to the page.
+            /// </summary>
             public void Add(IBindGroup bindGroup)
             {
                 GetOrSetMemberFunc(bindGroup.ID, (int)RebindPageAccessors.Add);
                 bindGroups.Add(bindGroup);
             }
 
+            /// <summary>
+            /// Adds the given bind group to the page along with its associated default configuration.
+            /// </summary>
             public void Add(IBindGroup bindGroup, BindDefinition[] defaultBinds)
             {
                 BindDefinitionData[] data = new BindDefinitionData[defaultBinds.Length];

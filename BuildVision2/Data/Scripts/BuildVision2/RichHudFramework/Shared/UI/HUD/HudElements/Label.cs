@@ -7,63 +7,80 @@ namespace RichHudFramework.UI
     using Rendering.Client;
     using Rendering.Server;
 
+    /// <summary>
+    /// HUD element used to render text.
+    /// </summary>
     public class Label : HudElementBase
     {
-        public RichText Text { get { return textBoard.GetText(); } set { textBoard.SetText(value); } }
-        public ITextBoard TextBoard => textBoard;
-        public GlyphFormat Format { get { return textBoard.Format; } set { textBoard.Format = value; } }
+        /// <summary>
+        /// Text rendered by the label.
+        /// </summary>
+        public RichText Text { get { return _textBoard.GetText(); } set { _textBoard.SetText(value); } }
+
+        /// <summary>
+        /// TextBoard backing the label element.
+        /// </summary>
+        public ITextBoard TextBoard => _textBoard;
+
+        /// <summary>
+        /// Default formatting used by the label.
+        /// </summary>
+        public GlyphFormat Format { get { return _textBoard.Format; } set { _textBoard.Format = value; } }
+
+        /// <summary>
+        /// Line formatting mode used by the label.
+        /// </summary>
+        public TextBuilderModes BuilderMode { get { return _textBoard.BuilderMode; } set { _textBoard.BuilderMode = value; } }
+
+        /// <summary>
+        /// If true, the element will automatically resize to fit the text.
+        /// </summary>
+        public bool AutoResize { get { return _textBoard.AutoResize; } set { _textBoard.AutoResize = value; } }
+
+        /// <summary>
+        /// If true, the text will be vertically centered.
+        /// </summary>
+        public bool VertCenterText { get { return _textBoard.VertCenterText; } set { _textBoard.VertCenterText = value; } }
 
         public override float Width
         {
-            get { return (AutoResize ? textBoard.Size.X : textBoard.FixedSize.X) + Padding.X; }
+            get { return (AutoResize ? _textBoard.Size.X : _textBoard.FixedSize.X) + Padding.X; }
             set
             {
                 if (value > Padding.X)
                     value -= Padding.X;
 
-                textBoard.FixedSize = new Vector2(value, textBoard.FixedSize.Y);
+                _textBoard.FixedSize = new Vector2(value, _textBoard.FixedSize.Y);
             }
         }
 
         public override float Height
         {
-            get { return (AutoResize ? textBoard.Size.Y : textBoard.FixedSize.Y) + Padding.Y; }
+            get { return (AutoResize ? _textBoard.Size.Y : _textBoard.FixedSize.Y) + Padding.Y; }
             set
             {
                 if (value > Padding.Y)
                     value -= Padding.Y;
 
-                textBoard.FixedSize = new Vector2(textBoard.FixedSize.X, value);
+                _textBoard.FixedSize = new Vector2(_textBoard.FixedSize.X, value);
             }
         }
 
-        public TextBuilderModes BuilderMode { get { return textBoard.BuilderMode; } set { textBoard.BuilderMode = value; } }
-
-        /// <summary>
-        /// If true, the element will automatically resize to fit the text.
-        /// </summary>
-        public bool AutoResize { get { return textBoard.AutoResize; } set { textBoard.AutoResize = value; } }
-
-        /// <summary>
-        /// If true, the text will be vertically centered.
-        /// </summary>
-        public bool VertCenterText { get { return textBoard.VertCenterText; } set { textBoard.VertCenterText = value; } }
-
-        protected readonly TextBoard textBoard;
+        protected readonly TextBoard _textBoard;
 
         public Label(IHudParent parent = null) : base(parent)
         {
-            textBoard = new TextBoard();
+            _textBoard = new TextBoard();
         }
 
         protected override void Draw()
         {
-            if (textBoard.Scale != Scale)
+            if (_textBoard.Scale != Scale)
             {
-                textBoard.Scale = Scale;
+                _textBoard.Scale = Scale;
             }
 
-            textBoard.Draw(Origin + Offset);
+            _textBoard.Draw(Origin + Offset);
         }
     }
 }

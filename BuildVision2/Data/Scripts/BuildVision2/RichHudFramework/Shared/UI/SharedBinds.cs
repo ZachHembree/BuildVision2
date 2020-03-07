@@ -9,7 +9,7 @@ namespace RichHudFramework.UI
     /// <summary>
     /// Wrapper used to provide easy access to library key binds.
     /// </summary>
-    internal sealed class SharedBinds : ModBase.ComponentBase
+    internal sealed class SharedBinds : RichHudComponentBase
     {
         public static IBind LeftButton { get { return BindGroup[0]; } }
         public static IBind RightButton { get { return BindGroup[1]; } }

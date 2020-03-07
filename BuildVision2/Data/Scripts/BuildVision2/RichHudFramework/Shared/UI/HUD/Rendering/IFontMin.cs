@@ -4,7 +4,7 @@ using VRageMath;
 namespace RichHudFramework.UI.Rendering
 {
     [Flags]
-    public enum FontStyleEnum : int
+    public enum FontStyles : int
     {
         Regular = 0,
         Bold = 1,
@@ -60,7 +60,7 @@ namespace RichHudFramework.UI.Rendering
         /// <summary>
         /// Returns true if the font is defined for the given style.
         /// </summary>
-        bool IsStyleDefined(FontStyleEnum styleEnum);
+        bool IsStyleDefined(FontStyles styleEnum);
 
         /// <summary>
         /// Returns true if the font is defined for the given style.
@@ -75,6 +75,6 @@ namespace RichHudFramework.UI.Rendering
         /// <summary>
         /// Retrieves the full index of the font style
         /// </summary>
-        Vector2I GetStyleIndex(FontStyleEnum style);
+        Vector2I GetStyleIndex(FontStyles style);
     }
 }

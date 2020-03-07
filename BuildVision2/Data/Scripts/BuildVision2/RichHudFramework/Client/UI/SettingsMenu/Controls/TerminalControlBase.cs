@@ -15,7 +15,7 @@ namespace RichHudFramework.UI.Client
     >;
 
     /// <summary>
-    /// Abstract base for all controls in the settings menu accessible via the Framework API.
+    /// Base type for all controls in the Rich Hud Terminal.
     /// </summary>
     public abstract class TerminalControlBase : ITerminalControl
     {
@@ -25,17 +25,17 @@ namespace RichHudFramework.UI.Client
         /// </summary>
         public event Action OnControlChanged
         {
-            add { GetOrSetMemberFunc(new EventAccessor(true, value), (int)TerminalControlAccessors.OnSettingChanged); }
-            remove { GetOrSetMemberFunc(new EventAccessor(false, value), (int)TerminalControlAccessors.OnSettingChanged); }
+            add { GetOrSetMember(new EventAccessor(true, value), (int)TerminalControlAccessors.OnSettingChanged); }
+            remove { GetOrSetMember(new EventAccessor(false, value), (int)TerminalControlAccessors.OnSettingChanged); }
         }
 
         /// <summary>
-        /// The name of the control as rendred in the terminal.
+        /// The name of the control as it appears in the terminal.
         /// </summary>
-        public RichText Name
+        public string Name
         {
-            get { return new RichText(GetOrSetMemberFunc(null, (int)TerminalControlAccessors.Name) as IList<RichStringMembers>); }
-            set { GetOrSetMemberFunc(value.ApiData, (int)TerminalControlAccessors.Name); }
+            get { return GetOrSetMember(null, (int)TerminalControlAccessors.Name) as string; }
+            set { GetOrSetMember(value, (int)TerminalControlAccessors.Name); }
         }
 
         /// <summary>
@@ -43,20 +43,23 @@ namespace RichHudFramework.UI.Client
         /// </summary>
         public bool Enabled
         {
-            get { return (bool)GetOrSetMemberFunc(null, (int)TerminalControlAccessors.Enabled); }
-            set { GetOrSetMemberFunc(value, (int)TerminalControlAccessors.Enabled); }
+            get { return (bool)GetOrSetMember(null, (int)TerminalControlAccessors.Enabled); }
+            set { GetOrSetMember(value, (int)TerminalControlAccessors.Enabled); }
         }
 
+        /// <summary>
+        /// Unique identifier
+        /// </summary>
         public object ID { get; }
 
-        protected readonly ApiMemberAccessor GetOrSetMemberFunc;
+        protected readonly ApiMemberAccessor GetOrSetMember;
 
         internal TerminalControlBase(MenuControls controlEnum) : this(RichHudTerminal.GetNewMenuControl(controlEnum))
         { }
 
         internal TerminalControlBase(ControlMembers data)
         {
-            GetOrSetMemberFunc = data.Item1;
+            GetOrSetMember = data.Item1;
             ID = data.Item2;
         }
 
@@ -64,19 +67,19 @@ namespace RichHudFramework.UI.Client
         {
             return new ControlMembers()
             {
-                Item1 = GetOrSetMemberFunc,
+                Item1 = GetOrSetMember,
                 Item2 = ID
             };
         }
-
-        protected object GetOrSetMember(object data, int memberEnum) =>
-            GetOrSetMemberFunc(data, memberEnum);
     }
 
+    /// <summary>
+    /// Clickable control used in conjunction by the settings menu.
+    /// </summary>
     public abstract class TerminalControlBase<T> : TerminalControlBase, ITerminalControl<T> where T : TerminalControlBase<T>
     {
         /// <summary>
-        /// Delegate invoked by OnControlChanged. Passes in a reference of type calling.
+        /// Delegate invoked by OnControlChanged. Passes in a reference to the control.
         /// </summary>
         public Action<T> ControlChangedAction { get; set; }
 
@@ -88,14 +91,14 @@ namespace RichHudFramework.UI.Client
             OnControlChanged += UpdateControl;
         }
 
-        protected virtual void UpdateControl()
+        private void UpdateControl()
         {
             ControlChangedAction?.Invoke(this as T);
         }
     }
 
     /// <summary>
-    /// Abstract base for all settings menu controls associated with a given type of value.
+    /// Base type for settings menu controls associated with a value of a given type.
     /// </summary>
     public abstract class TerminalValue<TValue, TCon> : TerminalControlBase<TCon>, ITerminalValue<TValue, TCon> where TCon : TerminalControlBase<TCon>
     {
@@ -108,16 +111,13 @@ namespace RichHudFramework.UI.Client
             set { GetOrSetMember(value, (int)TerminalControlAccessors.Value); }
         }
 
+        /// <summary>
+        /// Used to periodically update the value associated with the control. Optional.
+        /// </summary>
         public Func<TValue> CustomValueGetter
         {
             get { return GetOrSetMember(null, (int)TerminalControlAccessors.ValueGetter) as Func<TValue>; }
             set { GetOrSetMember(value, (int)TerminalControlAccessors.ValueGetter); }
-        }
-
-        public Action<TValue> CustomValueSetter
-        {
-            get { return GetOrSetMember(null, (int)TerminalControlAccessors.ValueSetter) as Action<TValue>; }
-            set { GetOrSetMember(value, (int)TerminalControlAccessors.ValueSetter); }
         }
 
         internal TerminalValue(MenuControls controlEnum) : base(controlEnum)

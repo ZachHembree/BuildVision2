@@ -133,7 +133,7 @@ namespace RichHudFramework.IO
         /// <summary>
         /// Handles loading/saving configuration data
         /// </summary>
-        private sealed class ConfigIO : ModBase.ParallelComponentBase
+        private sealed class ConfigIO : RichHudParallelComponentBase
         {
             public bool SaveInProgress { get; private set; }
             public static ConfigIO Instance
@@ -174,17 +174,17 @@ namespace RichHudFramework.IO
 
                     foreach (Exception e in known)
                     {
-                        ModBase.SendChatMessage(e.Message);
+                        SendChatMessage(e.Message);
                         exceptions += e.ToString();
                     }
 
-                    ModBase.WriteToLogStart(exceptions);
+                    WriteToLogStart(exceptions);
                 }
 
                 if (unknown != null)
                 {
-                    ModBase.WriteToLogStart("\nConfig operation failed.\n" + unknown.ToString());
-                    ModBase.SendChatMessage("Config operation failed.");
+                    WriteToLogStart("\nConfig operation failed.\n" + unknown.ToString());
+                    SendChatMessage("Config operation failed.");
                     SaveInProgress = false;
 
                     throw unknown;
@@ -204,7 +204,7 @@ namespace RichHudFramework.IO
                     SaveInProgress = true;
 
                     if (!silent)
-                        ModBase.SendChatMessage("Loading configuration...");
+                        SendChatMessage("Loading configuration...");
 
                     if (cfgFile.FileExists)
                     {
@@ -217,12 +217,12 @@ namespace RichHudFramework.IO
                     TrySave(cfg);
 
                     if (loadException != null)
-                        ModBase.TryWriteToLog(loadException.ToString());
-                    else
-                        ModBase.SendChatMessage("Configuration loaded.");
+                        TryWriteToLog(loadException.ToString());
+                    else if (!silent)
+                        SendChatMessage("Configuration loaded.");
                 }
                 else
-                    ModBase.SendChatMessage("Save operation already in progress.");
+                    SendChatMessage("Save operation already in progress.");
 
                 SaveInProgress = false;
                 return cfg;
@@ -236,7 +236,7 @@ namespace RichHudFramework.IO
                 if (!SaveInProgress)
                 {
                     SaveInProgress = true;
-                    if (!silent) ModBase.SendChatMessage("Loading configuration...");
+                    if (!silent) SendChatMessage("Loading configuration...");
 
                     EnqueueTask(() =>
                     {
@@ -272,7 +272,7 @@ namespace RichHudFramework.IO
                     });
                 }
                 else
-                    ModBase.SendChatMessage("Save operation already in progress.");
+                    SendChatMessage("Save operation already in progress.");
             }
 
             private ConfigT ValidateConfig(ConfigT cfg)
@@ -281,7 +281,7 @@ namespace RichHudFramework.IO
                 {
                     if (cfg.VersionID != Defaults.VersionID)
                     {
-                        EnqueueAction(() => ModBase.SendChatMessage("Config version mismatch. Some settings may have " +
+                        EnqueueAction(() => SendChatMessage("Config version mismatch. Some settings may have " +
                             "been reset. A backup of the original config file will be made."));
 
                         Backup();
@@ -292,7 +292,7 @@ namespace RichHudFramework.IO
                 }
                 else
                 {
-                    EnqueueAction(() => ModBase.SendChatMessage("Unable to load configuration."));
+                    EnqueueAction(() => SendChatMessage("Unable to load configuration."));
                     return Defaults;
                 }
             }
@@ -304,7 +304,7 @@ namespace RichHudFramework.IO
                     if (!silent)
                     {
                         if (success)
-                            ModBase.SendChatMessage("Configuration loaded.");
+                            SendChatMessage("Configuration loaded.");
                     }
 
                     SaveInProgress = false;
@@ -318,7 +318,7 @@ namespace RichHudFramework.IO
             {
                 if (!SaveInProgress)
                 {
-                    if (!silent) ModBase.SendChatMessage("Saving configuration...");
+                    if (!silent) SendChatMessage("Saving configuration...");
                     SaveInProgress = true;
 
                     EnqueueTask(() =>
@@ -339,7 +339,7 @@ namespace RichHudFramework.IO
                     });
                 }
                 else
-                    ModBase.SendChatMessage("Save operation already in progress.");
+                    SendChatMessage("Save operation already in progress.");
             }
 
             private void SaveFinish(bool success, bool silent = false)
@@ -349,9 +349,9 @@ namespace RichHudFramework.IO
                     if (!silent)
                     {
                         if (success)
-                            ModBase.SendChatMessage("Configuration saved.");
+                            SendChatMessage("Configuration saved.");
                         else
-                            ModBase.SendChatMessage("Unable to save configuration.");
+                            SendChatMessage("Unable to save configuration.");
                     }
 
                     SaveInProgress = false;

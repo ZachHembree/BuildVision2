@@ -6,11 +6,24 @@ namespace RichHudFramework.UI
 {
     using Rendering;
 
-    public class TreeBox<T> : HudElementBase, IListBoxEntry
+    /// <summary>
+    /// Indented, collapsable list. Designed to fit in with SE UI elements.
+    /// </summary>
+    public class TreeBox<T> : HudElementBase, IClickableElement, IListBoxEntry
     {
+        /// <summary>
+        /// Invoked when a list member is selected.
+        /// </summary>
         public event Action OnSelectionChanged;
-        public ReadOnlyCollection<ListBoxEntry<T>> Members => chain.List;
 
+        /// <summary>
+        /// List of entries in the treebox.
+        /// </summary>
+        public ReadOnlyCollection<ListBoxEntry<T>> List => chain.ChainMembers;
+
+        /// <summary>
+        /// Height of the treebox in pixels.
+        /// </summary>
         public override float Height
         {
             get
@@ -39,8 +52,14 @@ namespace RichHudFramework.UI
         /// </summary>
         public GlyphFormat Format { get { return display.Format; } set { display.Format = value; } }
 
+        /// <summary>
+        /// Determines the color of the header's background/
+        /// </summary>
         public Color HeaderColor { get { return display.Color; } set { display.Color = value; } }
 
+        /// <summary>
+        /// Color of the list's highlight box.
+        /// </summary>
         public Color HighlightColor { get { return highlight.Color; } set { highlight.Color = value; selectionBox.Color = value; } }
 
         /// <summary>
@@ -48,8 +67,14 @@ namespace RichHudFramework.UI
         /// </summary>
         public ListBoxEntry<T> Selection { get; private set; }
 
+        /// <summary>
+        /// Size of the collection.
+        /// </summary>
         public int Count { get; private set; }
 
+        /// <summary>
+        /// Determines how far to the right list members should be offset from the position of the header.
+        /// </summary>
         public float IndentSize { get { return indent * Scale; } set { indent = value / Scale; } }
 
         /// <summary>
@@ -57,7 +82,10 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool Enabled { get; set; }
 
-        public IClickableElement MouseInput => display.MouseInput;
+        /// <summary>
+        /// Handles mouse input for the header.
+        /// </summary>
+        public IMouseInput MouseInput => display.MouseInput;
 
         private readonly TreeBoxDisplay display;
         private readonly HighlightBox highlight, selectionBox;
@@ -131,6 +159,9 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Sets the selection to the specified entry.
+        /// </summary>
         public void SetSelection(ListBoxEntry<T> member)
         {
             ListBoxEntry<T> result = chain.Find(x => member.Equals(x));
@@ -142,6 +173,9 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Clears the current selection.
+        /// </summary>
         public void ClearSelection()
         {
             Selection = null;
@@ -169,7 +203,7 @@ namespace RichHudFramework.UI
         {
             ListBoxEntry<T> member;
 
-            if (Count >= Members.Count)
+            if (Count >= List.Count)
             {
                 member = new ListBoxEntry<T>(assocMember)
                 {
@@ -181,7 +215,7 @@ namespace RichHudFramework.UI
                 chain.Add(member);
             }
 
-            member = Members[Count];
+            member = List[Count];
             member.TextBoard.SetText(name);
             member.Visible = true;
             Count++;
@@ -198,12 +232,12 @@ namespace RichHudFramework.UI
         }
 
         /// <summary>
-        /// Clears the current contents of the list.
+        /// Clears the contents of the list.
         /// </summary>
         public void Clear()
         {
-            for (int n = 0; n < Members.Count; n++)
-                Members[n].Visible = false;
+            for (int n = 0; n < List.Count; n++)
+                List[n].Visible = false;
 
             Count = 0;
         }
@@ -212,7 +246,7 @@ namespace RichHudFramework.UI
         {
             chain.Width = Width - IndentSize;
 
-            foreach (ListBoxEntry<T> member in chain.List)
+            foreach (ListBoxEntry<T> member in chain.ChainMembers)
                 member.Height = display.Height;
 
             if (Selection != null)
@@ -229,7 +263,7 @@ namespace RichHudFramework.UI
         {
             highlight.Visible = false;
 
-            foreach (ListBoxEntry<T> button in Members)
+            foreach (ListBoxEntry<T> button in List)
             {
                 if (button.IsMousedOver)
                 {
@@ -291,7 +325,7 @@ namespace RichHudFramework.UI
 
             public Color Color { get { return background.Color; } set { background.Color = value; } }
 
-            public IClickableElement MouseInput => mouseInput;
+            public IMouseInput MouseInput => mouseInput;
 
             public bool Open
             {
@@ -312,7 +346,7 @@ namespace RichHudFramework.UI
             private readonly Label name;
             private readonly TexturedBox arrow, divider, background;
             private readonly HudChain<HudElementBase> layout;
-            private readonly ClickableElement mouseInput;
+            private readonly MouseInputElement mouseInput;
 
             private static readonly Material 
                 downArrow = new Material("RichHudDownArrow", new Vector2(64f, 64f)), 
@@ -357,7 +391,7 @@ namespace RichHudFramework.UI
                     ChildContainer = { arrow, divider, name }
                 };
 
-                mouseInput = new ClickableElement(this)
+                mouseInput = new MouseInputElement(this)
                 {
                     DimAlignment = DimAlignments.Both
                 };

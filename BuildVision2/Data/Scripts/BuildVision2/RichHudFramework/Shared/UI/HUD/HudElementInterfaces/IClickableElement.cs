@@ -5,7 +5,7 @@ namespace RichHudFramework
 {
     namespace UI
     {
-        public interface IClickableElement : IHudElement
+        public interface IMouseInput : IHudElement
         {
             /// <summary>
             /// Invoked when the cursor enters the element's bounds
@@ -46,6 +46,13 @@ namespace RichHudFramework
             /// True if the element is being clicked with the right mouse button
             /// </summary>
             bool IsRightClicked { get; }
+
+            bool HasFocus { get; }
+        }
+
+        public interface IClickableElement : IHudElement
+        {
+            IMouseInput MouseInput { get; }
         }
     }
 }

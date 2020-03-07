@@ -23,8 +23,14 @@ namespace RichHudFramework
 
     namespace UI.Client
     {
+        /// <summary>
+        /// Vertically scrolling collection of control categories.
+        /// </summary>
         public class ControlPage : TerminalPageBase, IControlPage
         {
+            /// <summary>
+            /// List of control categories registered to the page.
+            /// </summary>
             public IReadOnlyCollection<IControlCategory> Categories { get; }
 
             public IControlPage CategoryContainer => this;
@@ -44,6 +50,9 @@ namespace RichHudFramework
             IEnumerator IEnumerable.GetEnumerator() =>
                 Categories.GetEnumerator();
 
+            /// <summary>
+            /// Adds the given control category to the page.
+            /// </summary>
             public void Add(ControlCategory category) =>
                 GetOrSetMemberFunc(category.ID, (int)ControlPageAccessors.AddCategory);
         }

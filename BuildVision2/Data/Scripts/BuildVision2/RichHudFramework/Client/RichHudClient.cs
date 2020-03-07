@@ -1,6 +1,4 @@
 ﻿using RichHudFramework.Game;
-using RichHudFramework.UI;
-using RichHudFramework.UI.Rendering;
 using Sandbox.ModAPI;
 using System;
 using VRage;
@@ -13,39 +11,64 @@ namespace RichHudFramework.Client
     using ClientData = MyTuple<string, Action<int, object>, Action, int>;
     using ServerData = MyTuple<Action, Func<int, object>, int>;
 
-    public sealed class RichHudClient : ModBase.ComponentBase
+    public sealed class RichHudClient : RichHudComponentBase
     {
         private const long modID = 1965654081, queueID = 1314086443;
-        private const int versionID = 2;
+        private const int versionID = 4;
 
         public static bool Registered => Instance != null ? Instance.registered : false;
         private static RichHudClient Instance { get; set; }
+        
+        private readonly ClientData regMessage;
+        private readonly Action InitAction, ReloadAction;
 
-        private ClientData regMessage;
         private bool regFail, registered, inQueue;
-        private Action UnregisterAction;
         private Func<int, object> GetApiDataFunc;
-        private readonly ModBase modInstance;
-        private readonly Action InitCallbackAction;
+        private Action UnregisterAction;
 
-        private RichHudClient(ModBase mod, Action InitCallback = null) : base(false, true)
+        private RichHudClient(string modName, Action InitCallback, Action ReloadCallback) : base(false, true)
         {
-            InitCallbackAction = InitCallback;
-            modInstance = mod;
+            InitAction = InitCallback;
+            ReloadAction = ReloadCallback;
+            RichHudCore.MainModName = modName;
 
-            regMessage = new ClientData(ModBase.ModName, MessageHandler, () => ModBase.RunSafeAction(RemoteReload), versionID);
+            regMessage = new ClientData(modName, MessageHandler, () => RunSafeAction(RemoteReload), versionID);
         }
 
-        public static void Init(ModBase mod, Action InitCallback = null)
+        /// <summary>
+        /// Initialzes and registers the client with the API if it is not already registered.
+        /// </summary>
+        /// <param name="modName">Name of the mod as it appears in the settings menu and in diagnostics</param>
+        /// <param name="InitCallback">Invoked upon successfully registering with the API.</param>
+        /// <param name="ReloadCallback">Invoked on client reload.</param>
+        public static void Init(string modName, Action InitCallback, Action ReloadCallback)
         {
             if (Instance == null)
             {
-                Instance = new RichHudClient(mod, InitCallback);
+                Instance = new RichHudClient(modName, InitCallback, ReloadCallback);
                 Instance.RequestRegistration();
 
                 if (!Registered && !Instance.regFail)
+                {
                     Instance.EnterQueue();
+                }
             }
+        }
+
+        /// <summary>
+        /// Initialzes and registers the client with the API if it is not already registered.
+        /// </summary>
+        /// <param name="InitCallback">Invoked upon successfully registering with the API.</param>
+        public static void Init(ModBase main, Action InitCallback) =>
+            Init(main.ModName, InitCallback, main.Reload);
+
+        /// <summary>
+        /// Unregisters the client and resets all framework modules.
+        /// </summary>
+        public static void Reset()
+        {
+            if (Registered)
+                RichHudCore.Instance.Reload();
         }
 
         /// <summary>
@@ -60,6 +83,9 @@ namespace RichHudFramework.Client
         private void EnterQueue() =>
             MyAPIUtilities.Static.RegisterMessageHandler(queueID, QueueHandler);
 
+        /// <summary>
+        /// Unregisters callback for framework client queue.
+        /// </summary>
         private void ExitQueue() =>
             MyAPIUtilities.Static.UnregisterMessageHandler(queueID, QueueHandler);
 
@@ -91,15 +117,14 @@ namespace RichHudFramework.Client
                     GetApiDataFunc = data.Item2;
                     registered = true;
 
-                    if (InitCallbackAction != null)
-                        ModBase.RunSafeAction(InitCallbackAction);
+                    RunSafeAction(InitAction);
                 }
                 else if (msgType == MsgTypes.RegistrationFailed)
                 {
                     if (message is string)
-                        ModBase.WriteToLogStart($"Rich HUD API registration failed. Message: {message as string}");
+                        WriteToLogStart($"Rich HUD API registration failed. Message: {message as string}");
                     else
-                        ModBase.WriteToLogStart($"Rich HUD API registration failed.");
+                        WriteToLogStart($"Rich HUD API registration failed.");
 
                     regFail = true;
                 }
@@ -121,13 +146,13 @@ namespace RichHudFramework.Client
             Unregister();
             Instance = null;
         }
-
+        
         private void RemoteReload()
         {
             if (registered)
             {
-                Unregister();
-                modInstance.Reload();
+                Parent.Reload();
+                ReloadAction();
             }
         }
 
@@ -146,20 +171,27 @@ namespace RichHudFramework.Client
         /// <summary>
         /// Base class for types acting as modules for the API
         /// </summary>
-        public abstract class ApiModule<T> : ModBase.ComponentBase
+        public abstract class ApiModule<T> : RichHudComponentBase
         {
             protected readonly ApiModuleTypes componentType;
 
             public ApiModule(ApiModuleTypes componentType, bool runOnServer, bool runOnClient) : base(runOnServer, runOnClient)
             {
                 if (!Registered)
-                    throw new Exception("Types of ApiModule cannot be instantiated before RichHudClient is registered.");
+                    throw new Exception("Types of ApiModule cannot be instantiated before RichHudClient is initialized.");
 
                 this.componentType = componentType;
             }
 
-            protected T GetApiData() =>
-                (T)Instance.GetApiDataFunc((int)componentType);
+            protected T GetApiData()
+            {
+                object data = Instance?.GetApiDataFunc((int)componentType);
+
+                if (data == null)
+                    TryWriteToLog($"API Data for {componentType.ToString()} is null.");
+
+                return (T)data;
+            }
         }
     }
 }

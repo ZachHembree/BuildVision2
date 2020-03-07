@@ -54,7 +54,7 @@ namespace RichHudFramework
         { }
     }
 
-    public class TaskPool : ModBase.ComponentBase
+    public class TaskPool : InternalComponentBase
     {
         /// <summary>
         /// Sets the limit for the total number of tasks running in all <see cref="TaskPool"/>s.
@@ -96,7 +96,7 @@ namespace RichHudFramework
         /// </summary>
         public void EnqueueTask(Action action)
         {
-            if (!ModBase.Loaded)
+            if (Parent.Unloading)
                 throw new Exception("New tasks cannot be started while the mod is being unloaded.");
 
             tasksWaiting.Enqueue(action);

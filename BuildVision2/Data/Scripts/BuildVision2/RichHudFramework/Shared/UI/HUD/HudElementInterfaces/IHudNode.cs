@@ -26,6 +26,11 @@ namespace RichHudFramework
             IHudParent Parent { get; }
 
             /// <summary>
+            /// Indicates whether or not the node has been registered to its parent.
+            /// </summary>
+            bool Registered { get; }
+
+            /// <summary>
             /// Registers the element to the given parent object.
             /// </summary>
             void Register(IHudParent parent);
