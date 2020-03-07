@@ -101,7 +101,7 @@ namespace DarkHelmet.BuildVision2
             body = new ScrollBox<BvPropertyBox>()
             {
                 AlignVertical = true,
-                FitToChain = true,
+                SizingMode = ScrollBoxSizingModes.FitToMembers,
                 Color = bodyColor,
                 Padding = new Vector2(48f, 16f),
                 MinimumVisCount = 10,
@@ -110,9 +110,9 @@ namespace DarkHelmet.BuildVision2
 
             body.scrollBar.Padding = new Vector2(12f, 16f);
             body.scrollBar.Width = 4f;
-            body.Members.AutoResize = false;
+            body.Chain.AutoResize = false;
 
-            selectionBox = new TexturedBox(body.Members)
+            selectionBox = new TexturedBox(body.Chain)
             {
                 Color = selectionBoxColor,
                 Padding = new Vector2(30f, 0f),

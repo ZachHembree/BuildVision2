@@ -41,25 +41,25 @@ namespace DarkHelmet.BuildVision2
         private ControlCategory GetGeneralSettings()
         {
             // Close if not in view
-            var autoCloseBox = new Checkbox()
+            var autoCloseBox = new TerminalCheckbox()
             {
                 Name = "Close if target not in sight",
                 Value = Cfg.general.closeIfNotInView,
                 CustomValueGetter = () => Cfg.general.closeIfNotInView,
-                CustomValueSetter = (x => Cfg.general.closeIfNotInView = x),
+                ControlChangedAction = (x => Cfg.general.closeIfNotInView = x.Value),
             };
 
             // Can open while holding tools
-            var toolOpenBox = new Checkbox()
+            var toolOpenBox = new TerminalCheckbox()
             {
                 Name = "Can open while holding tools",
                 Value = Cfg.general.canOpenIfHolding,
                 CustomValueGetter = () => Cfg.general.canOpenIfHolding,
-                CustomValueSetter = (x => Cfg.general.canOpenIfHolding = x),
+                ControlChangedAction = (x => Cfg.general.canOpenIfHolding = x.Value),
             };
 
             // Open range slider
-            var openRangeSlider = new SliderSetting()
+            var openRangeSlider = new TerminalSlider()
             {
                 Name = "Max open range",
                 Min = 2.5f,
@@ -67,15 +67,15 @@ namespace DarkHelmet.BuildVision2
                 ValueText = $"{Cfg.general.maxOpenRange.Round(1)}m",
                 Value = (float)Cfg.general.maxOpenRange,
                 CustomValueGetter = () => (float)Cfg.general.maxOpenRange,
-                CustomValueSetter = x => Cfg.general.maxOpenRange = x,
                 ControlChangedAction = x =>
                 {
+                    Cfg.general.maxOpenRange = x.Value;
                     x.ValueText = $"{x.Value.Round(1)}m";
                 }
             };
 
             // Control range slider
-            var controlRangeSlider = new SliderSetting()
+            var controlRangeSlider = new TerminalSlider()
             {
                 Name = "Max control range",
                 Min = 2.5f,
@@ -83,9 +83,9 @@ namespace DarkHelmet.BuildVision2
                 ValueText = $"{Cfg.general.maxControlRange.Round(1)}m",
                 Value = (float)Cfg.general.maxControlRange.Round(1),
                 CustomValueGetter = () => (float)Cfg.general.maxControlRange,
-                CustomValueSetter = x => Cfg.general.maxControlRange = x,
                 ControlChangedAction = x =>
                 {
+                    Cfg.general.maxControlRange = x.Value;
                     x.ValueText = $"{x.Value.Round(1)}m";
                 }
             };
@@ -105,16 +105,16 @@ namespace DarkHelmet.BuildVision2
         private ControlCategory GetGuiSettings()
         {
             // Resolution scale
-            var resScaling = new Checkbox()
+            var resScaling = new TerminalCheckbox()
             {
                 Name = "Resolution scaling",
                 Value = PropertiesMenu.Cfg.resolutionScaling,
                 CustomValueGetter = () => PropertiesMenu.Cfg.resolutionScaling,
-                CustomValueSetter = x => PropertiesMenu.Cfg.resolutionScaling = x,
+                ControlChangedAction = (x => PropertiesMenu.Cfg.resolutionScaling = x.Value),
             };
 
             // Menu size
-            var menuScale = new SliderSetting()
+            var menuScale = new TerminalSlider()
             {
                 Name = "Menu scale",
                 Min = .75f,
@@ -122,15 +122,15 @@ namespace DarkHelmet.BuildVision2
                 Value = PropertiesMenu.Cfg.hudScale,
                 ValueText = $"{(PropertiesMenu.Cfg.hudScale * 100f).Round()}%",
                 CustomValueGetter = () => PropertiesMenu.Cfg.hudScale,
-                CustomValueSetter = x => PropertiesMenu.Cfg.hudScale = x,
                 ControlChangedAction = x =>
                 {
+                    PropertiesMenu.Cfg.hudScale = x.Value;
                     x.ValueText = $"{(x.Value * 100f).Round()}%";
                 }
             };
 
             // Menu opacity
-            var opacity = new SliderSetting()
+            var opacity = new TerminalSlider()
             {
                 Name = "Menu opacity",
                 Min = 0f,
@@ -138,9 +138,9 @@ namespace DarkHelmet.BuildVision2
                 Value = PropertiesMenu.Cfg.hudOpacity,
                 ValueText = $"{(PropertiesMenu.Cfg.hudOpacity * 100f).Round()}%",
                 CustomValueGetter = () => PropertiesMenu.Cfg.hudOpacity,
-                CustomValueSetter = x => PropertiesMenu.Cfg.hudOpacity = x,
                 ControlChangedAction = x =>
                 {
+                    PropertiesMenu.Cfg.hudOpacity = x.Value;
                     x.ValueText = $"{(x.Value * 100f).Round()}%";
                 }
             };
@@ -153,7 +153,7 @@ namespace DarkHelmet.BuildVision2
             };
 
             // Max visible properties
-            var maxVisible = new SliderSetting()
+            var maxVisible = new TerminalSlider()
             {
                 Name = "Max visible properties",
                 Min = 6,
@@ -161,39 +161,39 @@ namespace DarkHelmet.BuildVision2
                 Value = PropertiesMenu.Cfg.maxVisible,
                 ValueText = $"{PropertiesMenu.Cfg.maxVisible}",
                 CustomValueGetter = () => PropertiesMenu.Cfg.maxVisible,
-                CustomValueSetter = x => PropertiesMenu.Cfg.maxVisible = (int)x,
                 ControlChangedAction = x =>
                 {
+                    PropertiesMenu.Cfg.maxVisible = (int)x.Value;
                     x.ValueText = $"{(int)x.Value}";
                 }
             };
 
             // Clamp to screen edges
-            var clampToEdges = new Checkbox()
+            var clampToEdges = new TerminalCheckbox()
             {
                 Name = "Clamp to screen edges",
                 Value = PropertiesMenu.Cfg.clampHudPos,
                 CustomValueGetter = () => PropertiesMenu.Cfg.clampHudPos,
-                CustomValueSetter = x => PropertiesMenu.Cfg.clampHudPos = x,
+                ControlChangedAction = (x => PropertiesMenu.Cfg.clampHudPos = x.Value),
             };
 
             // Use custom position
-            var customPos = new Checkbox()
+            var customPos = new TerminalCheckbox()
             {
                 Name = "Use custom position",
                 Value = PropertiesMenu.Cfg.useCustomPos,
                 CustomValueGetter = () => PropertiesMenu.Cfg.useCustomPos,
-                CustomValueSetter = x => PropertiesMenu.Cfg.useCustomPos = x,
+                ControlChangedAction = (x => PropertiesMenu.Cfg.useCustomPos = x.Value),
             };
 
             // Set custom position
-            var setPosition = new DragBox()
+            var setPosition = new TerminalDragBox()
             {
                 Name = "Set custom position",
                 AlignToEdge = true,
                 Value = PropertiesMenu.Cfg.hudPos,
                 CustomValueGetter = () => PropertiesMenu.Cfg.hudPos,
-                CustomValueSetter = x => PropertiesMenu.Cfg.hudPos = x,
+                ControlChangedAction = (x => PropertiesMenu.Cfg.hudPos = x.Value),
             };
 
             var tile2 = new ControlTile()
@@ -203,7 +203,7 @@ namespace DarkHelmet.BuildVision2
                 setPosition,
             };
 
-            var maxVisibleSlider = new SliderSetting()
+            var maxVisibleSlider = new TerminalSlider()
             {
                 Name = "Max Visible Properties",
                 Min = 8,
@@ -211,9 +211,9 @@ namespace DarkHelmet.BuildVision2
                 Value = PropertiesMenu.Cfg.maxVisible,
                 ValueText = $"{PropertiesMenu.Cfg.maxVisible}",
                 CustomValueGetter = () => PropertiesMenu.Cfg.maxVisible,
-                CustomValueSetter = x => PropertiesMenu.Cfg.maxVisible = (int)x.Round(),
                 ControlChangedAction = x =>
                 {
+                    PropertiesMenu.Cfg.maxVisible = (int)x.Value.Round();
                     x.ValueText = $"{x.Value.Round()}";
                 }
             };
@@ -243,17 +243,17 @@ namespace DarkHelmet.BuildVision2
             Func<char, bool> NumFilterFunc = x => (x >= '0' && x <= '9') || x == '.';
 
             // Float divider
-            var floatDiv = new TextField()
+            var floatDiv = new TerminalTextField()
             {
                 Name = "Float Divider",
                 Value = PropertyBlock.Cfg.floatDiv.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.floatDiv.ToString(),
-                CustomValueSetter = x =>
+                ControlChangedAction = x =>
                 {
                     double value;
 
-                    if (double.TryParse(x, out value))
+                    if (double.TryParse(x.Value, out value))
                     {
                         PropertyBlock.Cfg.floatDiv = value;
                         PropertyBlock.Cfg.Validate();
@@ -274,43 +274,43 @@ namespace DarkHelmet.BuildVision2
             };
 
             // X
-            var floatMultX = new TextField()
+            var floatMultX = new TerminalTextField()
             {
                 Name = "Float Mult X",
                 Value = PropertyBlock.Cfg.floatMult.X.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.floatMult.X.ToString(),
-                CustomValueSetter = x =>
+                ControlChangedAction = x =>
                 {
-                    float.TryParse(x, out PropertyBlock.Cfg.floatMult.X);
+                    float.TryParse(x.Value, out PropertyBlock.Cfg.floatMult.X);
                     PropertyBlock.Cfg.Validate();
                 }
             };
 
             // Y
-            var floatMultY = new TextField()
+            var floatMultY = new TerminalTextField()
             {
                 Name = "Float Mult Y",
                 Value = PropertyBlock.Cfg.floatMult.Y.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.floatMult.Y.ToString(),
-                CustomValueSetter = x =>
+                ControlChangedAction = x =>
                 {
-                    float.TryParse(x, out PropertyBlock.Cfg.floatMult.Y);
+                    float.TryParse(x.Value, out PropertyBlock.Cfg.floatMult.Y);
                     PropertyBlock.Cfg.Validate();
                 },
             };
 
             // Z
-            var floatMultZ = new TextField()
+            var floatMultZ = new TerminalTextField()
             {
                 Name = "Float Mult Z",
                 Value = PropertyBlock.Cfg.floatMult.Z.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.floatMult.Z.ToString(),
-                CustomValueSetter = x =>
+                ControlChangedAction = x =>
                 {
-                    float.TryParse(x, out PropertyBlock.Cfg.floatMult.Z);
+                    float.TryParse(x.Value, out PropertyBlock.Cfg.floatMult.Z);
                     PropertyBlock.Cfg.Validate();
                 },
             };
@@ -323,43 +323,43 @@ namespace DarkHelmet.BuildVision2
             };
 
             // Color - X
-            var colorMultX = new TextField()
+            var colorMultX = new TerminalTextField()
             {
                 Name = "Color Mult X",
                 Value = PropertyBlock.Cfg.colorMult.X.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.colorMult.X.ToString(),
-                CustomValueSetter = x =>
+                ControlChangedAction = x =>
                 {
-                    int.TryParse(x, out PropertyBlock.Cfg.colorMult.X);
+                    int.TryParse(x.Value, out PropertyBlock.Cfg.colorMult.X);
                     PropertyBlock.Cfg.Validate();
                 },
             };
 
             // Y
-            var colorMultY = new TextField()
+            var colorMultY = new TerminalTextField()
             {
                 Name = "Color Mult Y",
                 Value = PropertyBlock.Cfg.colorMult.Y.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.colorMult.Y.ToString(),
-                CustomValueSetter = x =>
+                ControlChangedAction = x =>
                 {
-                    int.TryParse(x, out PropertyBlock.Cfg.colorMult.Y);
+                    int.TryParse(x.Value, out PropertyBlock.Cfg.colorMult.Y);
                     PropertyBlock.Cfg.Validate();
                 },
             };
 
             // Z
-            var colorMultZ = new TextField()
+            var colorMultZ = new TerminalTextField()
             {
                 Name = "Color Mult X",
                 Value = PropertyBlock.Cfg.colorMult.X.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.colorMult.Z.ToString(),
-                CustomValueSetter = x =>
+                ControlChangedAction = x =>
                 {
-                    int.TryParse(x, out PropertyBlock.Cfg.colorMult.Z);
+                    int.TryParse(x.Value, out PropertyBlock.Cfg.colorMult.Z);
                     PropertyBlock.Cfg.Validate();
                 },
             };

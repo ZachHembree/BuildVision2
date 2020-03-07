@@ -1,6 +1,8 @@
 ﻿using RichHudFramework.Game;
 using RichHudFramework.Client;
 using RichHudFramework.UI;
+using RichHudFramework.IO;
+using RichHudFramework;
 using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.Components;
@@ -13,7 +15,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Build vision main class
     /// </summary>
-    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, 1)]
+    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, 0)]
     internal sealed partial class BvMain : ModBase
     {
         public static BvMain Instance { get; private set; }
@@ -30,7 +32,8 @@ namespace DarkHelmet.BuildVision2
                 throw new Exception("Only one instance of BvMain can exist at any given time.");
 
             ModName = "Build Vision";
-            LogFileName = "bvLog.txt";
+            LogIO.FileName = "bvLog.txt";
+            BvConfig.FileName = "BuildVision2Config.xml";
 
             promptForReload = true;
             recoveryLimit = 2;
@@ -38,15 +41,13 @@ namespace DarkHelmet.BuildVision2
 
         protected override void AfterInit()
         {
-            bvCommands = CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
-            BvConfig.FileName = "BuildVision2Config.xml";
-
             RichHudClient.Init(ModName, HudInit, Reload);
             BvConfig.Load(true);
         }
 
         private void HudInit()
         {
+            bvCommands = CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
             InitSettingsMenu();
 
             BvBinds.Open.OnNewPress += TryOpenMenu;
