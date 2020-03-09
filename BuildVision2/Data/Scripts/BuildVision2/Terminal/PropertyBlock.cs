@@ -472,6 +472,8 @@ namespace DarkHelmet.BuildVision2
             {
                 try
                 {
+                    // Because some custom blocks don't have their properties set up correctly
+                    // and I have to live with it
                     if (control.Enabled(block) && control.Visible(block))
                         return property.GetValue(block);
                 }
@@ -755,8 +757,8 @@ namespace DarkHelmet.BuildVision2
 
             private int GetCurrentIndex()
             {
-                long key = property.Getter(block);
-
+                long key = GetValue();
+                
                 for (int n = 0; n < keys.Count; n++)
                 {
                     if (keys[n] == key)
@@ -772,8 +774,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (x != null)
                 {
-                    property.Setter(block, x.property.Getter(block));
-
+                    SetValue(x.GetValue());
                     return true;
                 }
                 else
@@ -781,6 +782,9 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        /// <summary>
+        /// Property for numerical values. Allows scrolling and text input.
+        /// </summary>
         private abstract class NumericPropertyBase<TValue> : ScrollableProp<ITerminalProperty<TValue>, TValue>, IBlockTextMember
         {
             public Func<char, bool> CharFilterFunc { get; protected set; }
