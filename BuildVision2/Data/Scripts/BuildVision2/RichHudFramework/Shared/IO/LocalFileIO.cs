@@ -24,7 +24,7 @@ namespace RichHudFramework.IO
         /// </summary>
         public KnownException TryDuplicate(string newName)
         {
-            string data;
+            byte[] data;
             KnownException exception = TryRead(out data);
             LocalFileIO newFile;
 
@@ -57,7 +57,37 @@ namespace RichHudFramework.IO
         }
 
         /// <summary>
-        /// Attempts to retrieve local file data.
+        /// Attempts to retrieve the file data as a byte array. Requires data stream to begin with array size.
+        /// </summary>
+        public KnownException TryRead(out byte[] stream)
+        {
+            KnownException exception = null;
+            BinaryReader reader = null;
+            
+            lock (fileLock)
+            {
+                try
+                {
+                    reader = MyAPIGateway.Utilities.ReadBinaryFileInLocalStorage(file, typeof(LocalFileIO));
+                    stream = reader.ReadBytes(reader.ReadInt32());
+                }
+                catch (Exception e)
+                {
+                    stream = null;
+                    exception = new KnownException($"IO Error. Unable to read from {file}.", e);
+                }
+                finally
+                {
+                    if (reader != null)
+                        reader.Close();
+                }
+            }
+
+            return exception;
+        }
+
+        /// <summary>
+        /// Attempts to retrieve the file data as a string.
         /// </summary>
         public KnownException TryRead(out string data)
         {
@@ -88,7 +118,38 @@ namespace RichHudFramework.IO
         }
 
         /// <summary>
-        /// Attempts to write data to a local file.
+        /// Attempts to write a byte array to the file. Byte array size will be prepended to the data stream.
+        /// </summary>
+        public KnownException TryWrite(byte[] stream)
+        {
+            KnownException exception = null;
+            BinaryWriter writer = null;
+
+            lock (fileLock)
+            {
+                try
+                {
+                    writer = MyAPIGateway.Utilities.WriteBinaryFileInLocalStorage(file, typeof(LocalFileIO));
+                    writer.Write(stream.Length);
+                    writer.Write(stream);
+                    writer.Flush();
+                }
+                catch (Exception e)
+                {
+                    exception = new KnownException($"IO Error. Unable to write to {file}.", e);
+                }
+                finally
+                {
+                    if (writer != null)
+                        writer.Close();
+                }
+            }
+
+            return exception;
+        }
+
+        /// <summary>
+        /// Attempts to write a string to the file.
         /// </summary>
         public KnownException TryWrite(string data)
         {
