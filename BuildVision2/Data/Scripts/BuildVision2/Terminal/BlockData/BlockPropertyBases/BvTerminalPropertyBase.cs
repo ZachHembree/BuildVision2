@@ -107,6 +107,9 @@ namespace DarkHelmet.BuildVision2
                     return false;
             }
 
+            public override PropertyData GetPropertyData() =>
+                new PropertyData(PropName, ID, GetValue().ToString());
+
             public abstract bool TryParseValue(string valueData, out TValue value);
         }
 

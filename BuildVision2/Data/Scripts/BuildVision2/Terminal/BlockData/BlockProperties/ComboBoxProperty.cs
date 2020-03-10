@@ -29,7 +29,7 @@ namespace DarkHelmet.BuildVision2
 
                 keys = new List<long>(content.Count);
                 names = new List<string>(content.Count);
-
+                
                 foreach (MyTerminalControlComboBoxItem item in content)
                 {
                     string itemName = MyTexts.Get(item.Value).ToString();
@@ -69,24 +69,8 @@ namespace DarkHelmet.BuildVision2
                 return 0;
             }
 
-            public override bool TryParseValue(string valueData, out long value)
-            {
-                int index = names.FindIndex(x => x == valueData);
-
-                if (index != -1)
-                {
-                    value = keys[index];
-                    return true;
-                }
-                else
-                {
-                    value = -1;
-                    return false;
-                }
-            }
-
-            public override PropertyData GetPropertyData() =>
-                new PropertyData(PropName, ID, Value);
+            public override bool TryParseValue(string valueData, out long value) =>
+                long.TryParse(valueData, out value);
         }
     }
 }

@@ -104,9 +104,6 @@ namespace DarkHelmet.BuildVision2
                 SetValue(!GetValue());
             }
 
-            public override PropertyData GetPropertyData() =>
-                new PropertyData(PropName, ID, GetValue().ToString());
-
             public override bool TryParseValue(string valueData, out bool value) =>
                 bool.TryParse(valueData, out value);
 

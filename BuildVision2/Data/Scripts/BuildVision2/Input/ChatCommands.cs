@@ -1,6 +1,7 @@
 ﻿using RichHudFramework;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
+using RichHudFramework.IO;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -48,8 +49,35 @@ namespace DarkHelmet.BuildVision2
                 new CmdManager.Command("crash", 
                     Crash),
                 new CmdManager.Command("printControlsToLog",
-                    () => WriteToLogStart($"Control List:\n{GetControlList()}"))
+                    () => WriteToLogStart($"Control List:\n{GetControlList()}")),
+                new CmdManager.Command("export", 
+                    ExportBlockData),
+                new CmdManager.Command("import",
+                    TryImportBlockData)
             };
+        }
+
+        private void TryImportBlockData()
+        {
+            LocalFileIO blockIO = new LocalFileIO($"{target?.TypeID}.bin");
+            byte[] byteData;
+
+            if (blockIO.FileExists && blockIO.TryRead(out byteData) == null)
+            {
+                BlockData data;
+
+                if (Utils.ProtoBuf.TryDeserialize(byteData, out data) == null)
+                    target.ImportSettings(data);
+            }
+        }
+
+        private void ExportBlockData()
+        {
+            LocalFileIO blockIO = new LocalFileIO($"{target?.TypeID}.bin");
+            byte[] byteData;
+
+            if (Utils.ProtoBuf.TrySerialize(target?.ExportSettings(), out byteData) == null)
+                blockIO.TryWrite(byteData);
         }
 
         private static void Crash()

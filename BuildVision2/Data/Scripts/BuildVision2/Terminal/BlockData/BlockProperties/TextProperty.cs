@@ -32,9 +32,6 @@ namespace DarkHelmet.BuildVision2
                 value = new StringBuilder(valueData);
                 return true;
             }
-
-            public override PropertyData GetPropertyData() =>
-                new PropertyData(PropName, ID, GetValue().ToString());
         }
     }
 }
