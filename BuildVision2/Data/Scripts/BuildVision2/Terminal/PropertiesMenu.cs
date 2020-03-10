@@ -3,6 +3,7 @@ using RichHudFramework.UI;
 using RichHudFramework;
 using Sandbox.ModAPI;
 using RichHudFramework.UI.Client;
+using RichHudFramework.IO;
 using VRageMath;
 
 namespace DarkHelmet.BuildVision2
@@ -16,9 +17,7 @@ namespace DarkHelmet.BuildVision2
             set
             {
                 if (value != null)
-                {
-                    Instance.scrollMenu.SetTarget(value);
-                }
+                    Instance.scrollMenu.SetTarget(value);                 
 
                 Instance.target = value;
             }
@@ -108,23 +107,6 @@ namespace DarkHelmet.BuildVision2
 
                 scrollMenu.Offset = HudMain.GetPixelVector(screenPos);
             }
-        }
-
-        private Vector2 GetPosAlignment()
-        {
-            Vector2 alignment = new Vector2();
-
-            if (scrollMenu.Position.X < 0)
-                alignment.X = scrollMenu.Width / 2f;
-            else
-                alignment.X = -scrollMenu.Width / 2f;
-
-            if (scrollMenu.Position.Y < 0)
-                alignment.Y = scrollMenu.Height / 2f;
-            else
-                alignment.Y = -scrollMenu.Height / 2f;
-
-            return alignment;
         }
 
         /// <summary>

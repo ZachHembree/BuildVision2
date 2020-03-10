@@ -19,7 +19,7 @@ namespace DarkHelmet.BuildVision2
     internal sealed partial class BvMain : ModBase
     {
         public static BvMain Instance { get; private set; }
-        public static BvConfig Cfg { get { return BvConfig.Current; } }
+        public static BvConfig Cfg => BvConfig.Current;
 
         private PropertyBlock target;
         private CmdManager.Group bvCommands;
