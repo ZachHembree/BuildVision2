@@ -121,16 +121,22 @@ namespace DarkHelmet.BuildVision2
             if (prop is IMyTerminalControlTitleTooltip)
             {
                 IMyTerminalControlTitleTooltip tooltip = (IMyTerminalControlTitleTooltip)prop;
-                int trailingSpaceLength = 0;
-                StringBuilder name = MyTexts.Get(tooltip.Title),
-                    cleanedName = new StringBuilder(name.Length);
+                StringBuilder name = MyTexts.Get(tooltip.Title), cleanedName;
+                int trailingCharacters = 0;
 
-                for (int n = name.Length - 1; (n >= 0 && name[n] == ' '); n--)
-                    trailingSpaceLength++;
-
-                for (int n = 0; n < name.Length - trailingSpaceLength; n++)
+                for (int n = name.Length - 1; n >= 0; n--)
                 {
-                    if (name[n] > 31)
+                    if ((name[n] >= '0' && name[n] <= '9') || name[n] >= 'A')
+                        break;
+                    else
+                        trailingCharacters++;
+                }
+
+                cleanedName = new StringBuilder(name.Length - trailingCharacters);
+
+                for (int n = 0; n < (name.Length - trailingCharacters); n++)
+                {
+                    if (name[n] >= ' ')
                         cleanedName.Append(name[n]);
                 }
 
@@ -151,7 +157,7 @@ namespace DarkHelmet.BuildVision2
 
                 for (int n = 0; n < text.Length; n++)
                 {
-                    if (text[n] > 31)
+                    if (text[n] >= ' ')
                         cleanedText.Append(text[n]);
                 }
 
