@@ -6,18 +6,35 @@ namespace RichHudFramework
 {
     public static class MathExtensions
     {
+        /// <summary>
+        /// Rounds a double-precision floating-point value to a specified number of fractional 
+        /// digits, and rounds midpoint values to the nearest even number.
+        /// </summary>
         public static double Round(this double value, int digits = 0) =>
             Math.Round(value, digits);
 
+        /// <summary>
+        /// Rounds a single-precision floating-point value to a specified number of fractional 
+        /// digits, and rounds midpoint values to the nearest even number.
+        /// </summary>
         public static float Round(this float value, int digits = 0) =>
             (float)Math.Round(value, digits);
 
+        /// <summary>
+        /// Returns the absolute value of a single-precision floating-point number.
+        /// </summary>
         public static float Abs(this float value) =>
             Math.Abs(value);
 
+        /// <summary>
+        /// Converts a floating point value given in radians to an fp value in degrees.
+        /// </summary>
         public static float RadiansToDegrees(this float value) =>
             (value / (float)Math.PI) * 180f;
 
+        /// <summary>
+        /// Converts a floating point value given in degrees to an fp value in radians.
+        /// </summary>
         public static float DegreesToRadians(this float value) =>
             (value * (float)Math.PI) / 180f;
     }
@@ -84,9 +101,9 @@ namespace RichHudFramework
         public static Vector2 ToSingle(this Vector2D vec) =>
             new Vector2((float)vec.X, (float)vec.Y);
 
-        public static Color SetAlpha(this Color color, byte alpha) =>
-            new Color(color.R, color.G, color.B, alpha);
-
+        /// <summary>
+        /// Calculates the alpha of the color based on a float value between 0 and 1 and returns the new color.
+        /// </summary>
         public static Color SetAlphaPct(this Color color, float alphaPercent) =>
             new Color(color.R, color.G, color.B, (byte)(alphaPercent * 255f));
 
@@ -95,14 +112,19 @@ namespace RichHudFramework
         /// </summary>
         public static byte GetChannel(this Color color, int channel)
         {
-            if (channel == 0)
-                return color.R;
-            else if (channel == 1)
-                return color.G;
-            else if (channel == 2)
-                return color.B;
-            else
-                return color.A;
+            switch (channel)
+            {
+                case 0:
+                    return color.R;
+                case 1:
+                    return color.G;
+                case 2:
+                    return color.B;
+                case 3:
+                    return color.A;
+            }
+
+            return 0;
         }
 
         /// <summary>
@@ -110,14 +132,21 @@ namespace RichHudFramework
         /// </summary>
         public static Color SetChannel(this Color color, int channel, byte value)
         {
-            if (channel == 0)
-                color.R = value;
-            else if (channel == 1)
-                color.G = value;
-            else if (channel == 2)
-                color.B = value;
-            else
-                color.A = value;
+            switch(channel)
+            {
+                case 0:
+                    color.R = value;
+                    break;
+                case 1:
+                    color.G = value;
+                    break;
+                case 2:
+                    color.B = value;
+                    break;
+                case 3:
+                    color.A = value;
+                    break;
+            }
 
             return color;
         }
