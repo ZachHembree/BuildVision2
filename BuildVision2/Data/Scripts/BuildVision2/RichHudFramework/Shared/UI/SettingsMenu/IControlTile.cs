@@ -18,7 +18,7 @@ namespace RichHudFramework
             object // ID
         >;
 
-        internal enum ControlTileAccessors : int
+        public enum ControlTileAccessors : int
         {
             /// <summary>
             /// out: MemberAccessor

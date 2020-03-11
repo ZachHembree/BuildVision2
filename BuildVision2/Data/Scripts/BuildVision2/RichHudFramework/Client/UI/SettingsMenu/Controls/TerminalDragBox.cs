@@ -10,7 +10,7 @@ namespace RichHudFramework.UI.Client
 {
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
 
-    internal enum DragBoxAccessors : int
+    public enum DragBoxAccessors : int
     {
         BoxSize = 16,
         AlignToEdge = 17,

@@ -51,12 +51,12 @@ namespace RichHudFramework
             protected ApiMemberAccessor GetOrSetMemberFunc => data.Item1;
             protected readonly ControlMembers data;
 
-            internal TerminalPageBase(ModPages pageEnum)
+            public TerminalPageBase(ModPages pageEnum)
             {
                 data = RichHudTerminal.GetNewMenuPage(pageEnum);
             }
 
-            internal TerminalPageBase(ControlMembers data)
+            public TerminalPageBase(ControlMembers data)
             {
                 this.data = data;
             }

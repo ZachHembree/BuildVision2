@@ -17,7 +17,7 @@ namespace RichHudFramework
             /// Defines a rectangular billboard drawn on the HUD using a <see cref="Material"/> positioned and framed by
             /// a <see cref="MaterialFrame"/>.
             /// </summary>
-            internal struct QuadBoard
+            public struct QuadBoard
             {
                 /// <summary>
                 /// Material ID used by the billboard.

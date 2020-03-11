@@ -18,7 +18,7 @@ namespace RichHudFramework
             object // ID
         >;
 
-        internal enum ControlCatAccessors : int
+        public enum ControlCatAccessors : int
         {
             /// <summary>
             /// IList<RichStringMembers>

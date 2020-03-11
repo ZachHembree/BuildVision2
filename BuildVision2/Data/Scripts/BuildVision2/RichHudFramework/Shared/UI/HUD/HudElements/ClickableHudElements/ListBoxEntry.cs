@@ -17,7 +17,7 @@ namespace RichHudFramework.UI
         bool Enabled { get; }
     }
 
-    internal enum ListBoxEntryAccessors : int
+    public enum ListBoxEntryAccessors : int
     {
         /// <summary>
         /// IList<RichStringMembers>

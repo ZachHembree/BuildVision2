@@ -73,7 +73,7 @@ namespace RichHudFramework
             public ControlCategory() : this(RichHudTerminal.GetNewMenuCategory())
             { }
 
-            internal ControlCategory(ControlContainerMembers data)
+            public ControlCategory(ControlContainerMembers data)
             {
                 this.data = data;
 

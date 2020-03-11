@@ -29,7 +29,7 @@ namespace RichHudFramework
             Action // Unload
         >;
 
-        internal enum BindClientAccessors : int
+        public enum BindClientAccessors : int
         {
             /// <summary>
             /// In: IList{string}, Out: int[]

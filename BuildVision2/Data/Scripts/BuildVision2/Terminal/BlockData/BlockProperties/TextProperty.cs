@@ -6,7 +6,7 @@ using System.Text;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal partial class PropertyBlock
+    public partial class PropertyBlock
     {
         /// <summary>
         /// Field for changing block property text. 

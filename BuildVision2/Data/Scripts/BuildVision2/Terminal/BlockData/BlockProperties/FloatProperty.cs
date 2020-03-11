@@ -7,7 +7,7 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal partial class PropertyBlock
+    public partial class PropertyBlock
     {
         /// <summary>
         /// Block Terminal Property of a Float

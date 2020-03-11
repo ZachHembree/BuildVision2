@@ -14,7 +14,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Block property data used by the menu
     /// </summary>
-    internal partial class PropertyBlock
+    public partial class PropertyBlock
     {
         public static PropBlockConfig Cfg { get { return BvConfig.Current.block; } set { BvConfig.Current.block = value; } }
 

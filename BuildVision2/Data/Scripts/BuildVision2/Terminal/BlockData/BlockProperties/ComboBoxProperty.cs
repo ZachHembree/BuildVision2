@@ -8,7 +8,7 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal partial class PropertyBlock
+    public partial class PropertyBlock
     {
         /// <summary>
         /// Scrollable property for <see cref="IMyTerminalControlCombobox"/> terminal properties.

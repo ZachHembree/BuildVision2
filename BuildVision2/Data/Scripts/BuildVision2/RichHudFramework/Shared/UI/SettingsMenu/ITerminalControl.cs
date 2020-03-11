@@ -16,7 +16,7 @@ namespace RichHudFramework
         using Server;
         using Client;
 
-        internal enum TerminalControlAccessors : int
+        public enum TerminalControlAccessors : int
         {
             /// <summary>
             /// MyTuple<bool, Action>

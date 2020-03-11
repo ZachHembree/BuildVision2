@@ -55,7 +55,7 @@ namespace RichHudFramework.UI.Client
         public ControlTile() : this(RichHudTerminal.GetNewMenuTile())
         { }
 
-        internal ControlTile(ControlContainerMembers data)
+        public ControlTile(ControlContainerMembers data)
         {
             tileMembers = data;
 

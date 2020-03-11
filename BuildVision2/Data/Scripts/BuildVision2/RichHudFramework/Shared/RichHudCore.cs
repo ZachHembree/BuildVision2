@@ -9,18 +9,9 @@ using VRageMath;
 namespace RichHudFramework
 {
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, 0)]
-    internal sealed class RichHudCore : ModBase
+    public sealed class RichHudCore : ModBase
     {
         public static RichHudCore Instance { get; private set; }
-        public static string MainModName 
-        {
-            get { return RichHudInternal.MainModName; } 
-            set 
-            { 
-                RichHudInternal.MainModName = value;
-                Instance.ModName = value;
-            } 
-        }
 
         public RichHudCore() : base(false, true)
         {

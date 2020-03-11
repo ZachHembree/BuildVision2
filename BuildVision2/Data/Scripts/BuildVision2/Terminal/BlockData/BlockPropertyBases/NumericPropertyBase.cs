@@ -5,7 +5,7 @@ using System;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal partial class PropertyBlock
+    public partial class PropertyBlock
     {
         /// <summary>
         /// Property for numerical values. Allows scrolling and text input.

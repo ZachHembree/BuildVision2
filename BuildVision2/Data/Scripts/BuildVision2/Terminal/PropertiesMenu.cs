@@ -8,7 +8,7 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal sealed partial class PropertiesMenu : BvComponentBase
+    public sealed partial class PropertiesMenu : BvComponentBase
     {
         public static HudConfig Cfg { get { return BvConfig.Current.menu.hudConfig; } set { BvConfig.Current.menu.hudConfig = value; } }
         public static PropertyBlock Target

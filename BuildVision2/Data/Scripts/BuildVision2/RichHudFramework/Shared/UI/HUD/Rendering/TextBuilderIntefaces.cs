@@ -31,7 +31,7 @@ namespace RichHudFramework
 
         namespace Rendering
         {
-            internal enum RichCharAccessors : int
+            public enum RichCharAccessors : int
             {
                 /// <summary>
                 /// out: char
@@ -78,7 +78,7 @@ namespace RichHudFramework
                 Vector2 Offset { get; }
             }
 
-            internal enum LineAccessors : int
+            public enum LineAccessors : int
             {
                 /// <summary>
                 /// out: int
@@ -96,7 +96,7 @@ namespace RichHudFramework
                 Vector2 Size { get; }
             }
 
-            internal enum TextBuilderAccessors : int
+            public enum TextBuilderAccessors : int
             {
                 /// <summary>
                 /// in/out: float
@@ -208,7 +208,7 @@ namespace RichHudFramework
                 void Clear();
             }
 
-            internal enum TextBoardAccessors : int
+            public enum TextBoardAccessors : int
             {
                 /// <summary>
                 /// in/out: bool

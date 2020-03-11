@@ -13,10 +13,10 @@ using System;
 namespace DarkHelmet.BuildVision2
 {
     /// <summary>
-    /// Build vision main class
+    /// Build Vision main class
     /// </summary>
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, 0)]
-    internal sealed partial class BvMain : ModBase
+    public sealed partial class BvMain : ModBase
     {
         public static BvMain Instance { get; private set; }
         public static BvConfig Cfg => BvConfig.Current;
@@ -31,17 +31,17 @@ namespace DarkHelmet.BuildVision2
             else
                 throw new Exception("Only one instance of BvMain can exist at any given time.");
 
-            ModName = "Build Vision";
             LogIO.FileName = "bvLog.txt";
             BvConfig.FileName = "BuildVision2Config.xml";
 
-            promptForReload = true;
-            recoveryLimit = 2;
+            ExceptionHandler.ModName = "Build Vision";
+            ExceptionHandler.PromptForReload = true;
+            ExceptionHandler.RecoveryLimit = 3;
         }
 
         protected override void AfterInit()
         {
-            RichHudClient.Init(ModName, HudInit, Reload);
+            RichHudClient.Init(ExceptionHandler.ModName, HudInit, Reload);
         }
 
         private void HudInit()
@@ -60,10 +60,9 @@ namespace DarkHelmet.BuildVision2
             BvConfig.Save();
             TryCloseMenu();
 
-            if (Reloading)
+            if (!Unloading)
                 RichHudClient.Reset();
-
-            if (Unloading)
+            else
                 Instance = null;
         }
 

@@ -7,7 +7,7 @@ namespace RichHudFramework.IO
     /// <summary>
     /// Handles logging
     /// </summary>
-    public sealed class LogIO : InternalParallelComponentBase
+    public sealed class LogIO : RichHudParallelComponentBase
     {
         public static bool Accessible => Instance.accessible;
         public static string FileName 
@@ -62,17 +62,17 @@ namespace RichHudFramework.IO
 
                 if (known != null && known.Count > 0)
                     foreach (Exception e in known)
-                        SendChatMessage(e.Message);
+                        ExceptionHandler.SendChatMessage(e.Message);
 
                 if (unknown != null)
                     throw unknown;
             }
         }
 
-        public new static bool TryWriteToLog(string message) =>
+        public static bool TryWriteToLog(string message) =>
             Instance.TryWriteToLogInternal(message);
 
-        public new static void WriteToLogStart(string message) =>
+        public static void WriteToLogStart(string message) =>
             Instance.WriteToLogStartInternal(message);
 
         /// <summary>
@@ -87,13 +87,13 @@ namespace RichHudFramework.IO
 
                 if (exception != null)
                 {
-                    SendChatMessage("Unable to update log; please check your file access permissions.");
+                    ExceptionHandler.SendChatMessage("Unable to update log; please check your file access permissions.");
                     accessible = false;
                     throw exception;
                 }
                 else
                 {
-                    SendChatMessage("Log updated.");
+                    ExceptionHandler.SendChatMessage("Log updated.");
                     accessible = true;
                     return true;
                 }
@@ -131,14 +131,14 @@ namespace RichHudFramework.IO
             if (!success)
             {
                 if (accessible)
-                    SendChatMessage("Unable to update log; please check your file access permissions.");
+                    ExceptionHandler.SendChatMessage("Unable to update log; please check your file access permissions.");
 
                 accessible = false;
             }
             else
             {
                 if (accessible)
-                    SendChatMessage("Log updated.");
+                    ExceptionHandler.SendChatMessage("Log updated.");
 
                 accessible = true;
             }

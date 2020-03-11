@@ -16,7 +16,7 @@ namespace RichHudFramework
 
     namespace UI
     {
-        internal enum HudParentAccessors : int
+        public enum HudParentAccessors : int
         {
             Add = 1,
             RemoveChild = 2,

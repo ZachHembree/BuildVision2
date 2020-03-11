@@ -8,7 +8,7 @@ using System.Text;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal sealed partial class BvMain
+    public sealed partial class BvMain
     {
         private static string controlList;
 
@@ -19,11 +19,11 @@ namespace DarkHelmet.BuildVision2
             return new List <CmdManager.Command>
             {
                 new CmdManager.Command ("help",
-                    () => ShowMessageScreen("Help", GetHelpMessage())),
+                    () => ExceptionHandler.ShowMessageScreen("Help", GetHelpMessage())),
                 new CmdManager.Command ("bindHelp",
-                    () => ShowMessageScreen("Bind Help", GetBindHelpMessage())),
+                    () => ExceptionHandler.ShowMessageScreen("Bind Help", GetBindHelpMessage())),
                 new CmdManager.Command ("printBinds",
-                    () => SendChatMessage(GetPrintBindsMessage())),
+                    () => ExceptionHandler.SendChatMessage(GetPrintBindsMessage())),
                 new CmdManager.Command ("bind",
                     (string[] args) => UpdateBind(args[0], args.GetSubarray(1))),
                 new CmdManager.Command("resetBinds",
@@ -49,11 +49,13 @@ namespace DarkHelmet.BuildVision2
                 new CmdManager.Command("crash", 
                     Crash),
                 new CmdManager.Command("printControlsToLog",
-                    () => WriteToLogStart($"Control List:\n{GetControlList()}")),
+                    () => LogIO.WriteToLogStart($"Control List:\n{GetControlList()}")),
                 new CmdManager.Command("export", 
                     ExportBlockData),
                 new CmdManager.Command("import",
-                    TryImportBlockData)
+                    TryImportBlockData),
+                new CmdManager.Command("echo",
+                    x => ExceptionHandler.SendChatMessage($"echo: {x[0]}")),
             };
         }
 
@@ -90,7 +92,7 @@ namespace DarkHelmet.BuildVision2
             IBind bind = BvBinds.BindGroup.GetBind(bindName);
 
             if (bind == null)
-                Instance.SendChatMessage("Error: The bind specified could not be found.");
+                ExceptionHandler.SendChatMessage("Error: The bind specified could not be found.");
             else
                 bind.TrySetCombo(controls);
         }

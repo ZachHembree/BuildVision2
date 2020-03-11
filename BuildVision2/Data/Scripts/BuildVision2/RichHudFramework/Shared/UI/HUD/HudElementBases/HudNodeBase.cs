@@ -15,7 +15,7 @@ namespace RichHudFramework
 
     namespace UI
     {
-        internal enum HudNodeAccessors : int
+        public enum HudNodeAccessors : int
         {
             GetParentID = 10,
             GetParentData = 11,

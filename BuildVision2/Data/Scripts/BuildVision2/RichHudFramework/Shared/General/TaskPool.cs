@@ -54,7 +54,7 @@ namespace RichHudFramework
         { }
     }
 
-    public class TaskPool : InternalComponentBase
+    public class TaskPool : RichHudComponentBase
     {
         /// <summary>
         /// Sets the limit for the total number of tasks running in all <see cref="TaskPool"/>s.
@@ -82,7 +82,7 @@ namespace RichHudFramework
         }
 
         /// <summary>
-        /// Updates internal task/action queues and runs exception handling.
+        /// Updates public task/action queues and runs exception handling.
         /// </summary>
         public override void Update()
         {

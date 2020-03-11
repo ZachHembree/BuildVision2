@@ -80,16 +80,16 @@ namespace RichHudFramework
                 instance = null;
             }
 
-            internal static ControlMembers GetNewMenuControl(MenuControls controlEnum) =>
+            public static ControlMembers GetNewMenuControl(MenuControls controlEnum) =>
                 Instance.GetNewControlFunc((int)controlEnum);
 
-            internal static ControlContainerMembers GetNewMenuTile() =>
+            public static ControlContainerMembers GetNewMenuTile() =>
                 Instance.GetNewContainerFunc((int)ControlContainers.Tile);
 
-            internal static ControlContainerMembers GetNewMenuCategory() =>
+            public static ControlContainerMembers GetNewMenuCategory() =>
                 Instance.GetNewContainerFunc((int)ControlContainers.Category);
 
-            internal static ControlMembers GetNewMenuPage(ModPages pageEnum) =>
+            public static ControlMembers GetNewMenuPage(ModPages pageEnum) =>
                 Instance.GetNewPageFunc((int)pageEnum);
 
             /// <summary>

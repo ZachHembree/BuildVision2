@@ -12,7 +12,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Scrollable list menu; the selection box position is based on the selection index.
     /// </summary>
-    internal class BvScrollMenu : HudElementBase
+    public class BvScrollMenu : HudElementBase
     {
         public override float Width { get { return layout.Width; } set { layout.Width = value; } }
         public override float Height { get { return header.Height + body.Height + footer.Height; } set { layout.Height = value; } }

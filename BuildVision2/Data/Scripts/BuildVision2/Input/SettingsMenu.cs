@@ -10,7 +10,7 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal sealed partial class BvMain
+    public sealed partial class BvMain
     {
         private void InitSettingsMenu()
         {
@@ -384,13 +384,13 @@ namespace DarkHelmet.BuildVision2
             var openHelp = new TerminalButton()
             {
                 Name = "Open help menu",
-                ControlChangedAction = x => ShowMessageScreen("Help", GetHelpMessage())
+                ControlChangedAction = x => ExceptionHandler.ShowMessageScreen("Help", GetHelpMessage())
             };
 
             var openBindHelp = new TerminalButton()
             {
                 Name = "Open bind help",
-                ControlChangedAction = x => ShowMessageScreen("Bind Help", GetBindHelpMessage()),
+                ControlChangedAction = x => ExceptionHandler.ShowMessageScreen("Bind Help", GetBindHelpMessage()),
             };
 
             var tile1 = new ControlTile()

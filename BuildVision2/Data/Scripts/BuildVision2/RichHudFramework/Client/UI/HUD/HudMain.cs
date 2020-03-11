@@ -240,7 +240,7 @@ namespace RichHudFramework
 
             public override void Close()
             {
-                if (Parent.Reloading)
+                if (ExceptionHandler.Reloading)
                     root.ClearLocalChildren();
 
                 Instance = null;

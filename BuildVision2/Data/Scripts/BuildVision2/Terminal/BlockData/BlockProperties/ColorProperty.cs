@@ -6,7 +6,7 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal partial class PropertyBlock
+    public partial class PropertyBlock
     {
         /// <summary>
         /// Block Terminal Property for individual color channels of a VRageMath.Color

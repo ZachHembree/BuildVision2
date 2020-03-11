@@ -115,7 +115,6 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Collections.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Extensions\VectorExtensions.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\General\LocalPlayer.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\RichHudInternal.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\TaskPool.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\General\ConfigIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\IO\LocalFileIO.cs" />
@@ -205,8 +204,10 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\ProtoBuf.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\Stopwatch.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\Xml.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\ExceptionHandler.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Data\Scripts\BuildVision2\RichHudFramework\Shared\" />
     <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
