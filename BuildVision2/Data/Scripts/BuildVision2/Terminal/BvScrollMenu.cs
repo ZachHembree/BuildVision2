@@ -33,9 +33,9 @@ namespace DarkHelmet.BuildVision2
             get { return bgOpacity; }
             set
             {
-                header.Color = header.Color.SetAlpha((byte)(255f * bgOpacity));
-                body.Color = body.Color.SetAlpha((byte)(255f * bgOpacity * .887f));
-                footer.Color = footer.Color.SetAlpha((byte)(255f * bgOpacity));
+                header.Color = header.Color.SetAlphaPct(bgOpacity);
+                body.Color = body.Color.SetAlphaPct(bgOpacity);
+                footer.Color = footer.Color.SetAlphaPct(bgOpacity);
                 bgOpacity = value;
             }
         }

@@ -80,12 +80,12 @@ namespace DarkHelmet.BuildVision2
                     suffix = "W";
                 }
 
-                if (sink != null)
+                if (sink != null && powerDraw != 0f)
                     disp += "-" + Math.Round(powerDraw * scale, 1);
 
-                if (producer != null)
+                if (producer != null && powerOut != 0f)
                 {
-                    if (sink != null)
+                    if (sink != null && powerDraw != 0f)
                         disp += " / ";
 
                     disp += "+" + Math.Round(powerOut * scale, 1);
@@ -94,15 +94,11 @@ namespace DarkHelmet.BuildVision2
                 return $"({disp} {suffix})";
             }
 
-            private static string GetGasTankFillPercent(IMyGasTank gasTank)
-            {
-                return $"({Math.Round(gasTank.FilledRatio * 100d, 1)}%)";
-            }
+            private static string GetGasTankFillPercent(IMyGasTank gasTank) =>
+                $"({Math.Round(gasTank.FilledRatio * 100d, 1)}%)";
 
-            public void Action()
-            {
+            public void Action() =>
                 SetValue(!GetValue());
-            }
 
             public override bool TryParseValue(string valueData, out bool value) =>
                 bool.TryParse(valueData, out value);

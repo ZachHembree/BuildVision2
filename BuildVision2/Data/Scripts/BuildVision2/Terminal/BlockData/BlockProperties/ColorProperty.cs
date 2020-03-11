@@ -61,12 +61,14 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public override bool TryParseValue(string valueData, out Color value)
             {
-                byte channelValue;
+                int result;
                 value = GetValue();
 
-                if (byte.TryParse(valueData, out channelValue))
+                if (int.TryParse(valueData, out result))
                 {
-                    value = value.SetChannel(channel, channelValue);
+                    byte newValue = (byte)MathHelper.Clamp(result, 0, 255);
+
+                    value = value.SetChannel(channel, newValue);
                     return true;
                 }
 
