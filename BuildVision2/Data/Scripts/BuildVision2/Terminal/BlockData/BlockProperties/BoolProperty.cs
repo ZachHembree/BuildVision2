@@ -80,12 +80,12 @@ namespace DarkHelmet.BuildVision2
                     suffix = "W";
                 }
 
-                if (sink != null && powerDraw != 0f)
+                if (sink != null)
                     disp += "-" + Math.Round(powerDraw * scale, 1);
 
-                if (producer != null && powerOut != 0f)
+                if (producer != null)
                 {
-                    if (sink != null && powerDraw != 0f)
+                    if (sink != null)
                         disp += " / ";
 
                     disp += "+" + Math.Round(powerOut * scale, 1);
