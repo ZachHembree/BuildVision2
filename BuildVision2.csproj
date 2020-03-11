@@ -113,11 +113,10 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Client\UI\SettingsMenu\RichHudTerminal.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\ApiContainers.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Collections.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Extensions.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Extensions\VectorExtensions.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\General\LocalPlayer.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\RichHudInternal.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\TaskPool.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\General\ConfigIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\IO\LocalFileIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\IO\LogIO.cs" />
@@ -199,6 +198,13 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockProperties\FloatProperty.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockProperties\TextProperty.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockData.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Extensions\CollectionExtensions.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Extensions\MathExtensions.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\Color.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\Debug.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\ProtoBuf.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\Stopwatch.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\Xml.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

@@ -75,8 +75,8 @@ namespace RichHudFramework.UI
 
         protected override void Draw()
         {
-            if (_textBoard.Scale != cachedScale)
-                _textBoard.Scale = cachedScale;
+            if (_textBoard.Scale != _scale)
+                _textBoard.Scale = _scale;
 
             _textBoard.Draw(cachedPosition);
         }

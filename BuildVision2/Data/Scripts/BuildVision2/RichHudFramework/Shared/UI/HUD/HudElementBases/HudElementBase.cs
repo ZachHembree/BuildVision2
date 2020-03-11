@@ -33,11 +33,11 @@ namespace RichHudFramework
             /// </summary>
             public float Scale
             {
-                get { return (_parent == null || ignoreParentScale) ? _localScale : (_localScale * _parent.cachedScale); }
+                get { return _scale; }
                 set 
                 { 
                     _localScale = value;
-                    cachedScale = Scale;
+                    _scale = (_parent == null || ignoreParentScale) ? value : (value * _parent._scale);
                 }
             }
 
@@ -55,13 +55,13 @@ namespace RichHudFramework
             /// </summary>
             public virtual float Width
             {
-                get { return (_width * Scale) + Padding.X; }
+                get { return (_width * _scale) + Padding.X; }
                 set
                 {
                     if (Padding.X < value)
-                        _width = (value - Padding.X) / Scale;
+                        _width = (value - Padding.X) / _scale;
                     else
-                        _width = (value / Scale);
+                        _width = (value / _scale);
                 }
             }
 
@@ -70,30 +70,30 @@ namespace RichHudFramework
             /// </summary>
             public virtual float Height
             {
-                get { return (_height * Scale) + Padding.Y; }
+                get { return (_height * _scale) + Padding.Y; }
                 set
                 {
                     if (Padding.Y < value)
-                        _height = (value - Padding.Y) / Scale;
+                        _height = (value - Padding.Y) / _scale;
                     else
-                        _height = (value / Scale);
+                        _height = (value / _scale);
                 }
             }
 
             /// <summary>
             /// Border size. Included in total element size.
             /// </summary>
-            public virtual Vector2 Padding { get { return _padding * Scale; } set { _padding = value / Scale; } }
+            public virtual Vector2 Padding { get { return _padding * _scale; } set { _padding = value / _scale; } }
 
             /// <summary>
             /// Starting position of the hud element on the screen in pixels.
             /// </summary>
-            public virtual Vector2 Origin => (_parent == null) ? Vector2.Zero : (_parent.Origin + _parent.Offset + offsetAlignment);
+            public Vector2 Origin => (_parent == null) ? Vector2.Zero : (_parent.Origin + _parent.Offset + originAlignment);
 
             /// <summary>
             /// Position of the element relative to its origin.
             /// </summary>
-            public virtual Vector2 Offset { get { return _offset * Scale; } set { _offset = value / Scale; } }
+            public virtual Vector2 Offset { get { return _offset * _scale; } set { _offset = value / _scale; } }
 
             /// <summary>
             /// Absolute position of the hud element. Origin + Offset.
@@ -139,12 +139,13 @@ namespace RichHudFramework
 
             private const float minMouseBounds = 8f;
             private bool isMousedOver;
-            private Vector2 _offset, _padding, offsetAlignment;
-            private float _localScale, _width, _height;
+            private Vector2 _offset, _padding, originAlignment;
 
-            protected Vector2 cachedPosition, cachedSize;
-            protected float cachedScale;
+            protected float _localScale = 1f, _scale = 1f;
+            protected float _width, _height;
             protected HudElementBase _parent;
+
+            protected Vector2 cachedOrigin, cachedPosition, cachedSize;
 
             /// <summary>
             /// Initializes a new hud element with cursor sharing enabled and scaling set to 1f.
@@ -154,9 +155,18 @@ namespace RichHudFramework
                 ShareCursor = true;
                 DimAlignment = DimAlignments.None;
                 ParentAlignment = ParentAlignments.Center;
+            }
 
-                _localScale = 1f;
-                cachedScale = 1f;
+            public override void Register(IHudParent parent)
+            {
+                base.Register(parent);
+                _scale = (_parent == null || ignoreParentScale) ? _localScale : (_localScale * _parent._scale);
+            }
+
+            public override void Unregister()
+            {
+                base.Unregister();
+                _scale = _localScale;
             }
 
             public sealed override void HandleInputStart()
@@ -237,17 +247,32 @@ namespace RichHudFramework
 
             public sealed override void BeforeDrawStart()
             {
-                cachedScale = Scale;
-                cachedSize = new Vector2(Width, Height);
-                cachedPosition = Origin + Offset;
+                UpdateCache();
+                BeforeDraw();
+                UpdateCache();
 
-                base.BeforeDrawStart();
+                for (int n = 0; n < children.Count; n++)
+                {
+                    if (children[n].Visible)
+                        children[n].BeforeDrawStart();
+                }
+            }
+
+            private void UpdateCache()
+            {
+                _scale = Scale;
+                cachedSize = new Vector2(Width, Height);
 
                 if (_parent != null)
                 {
                     GetDimAlignment();
-                    offsetAlignment = GetParentAlignment();
+                    originAlignment = GetParentAlignment();
+                    cachedOrigin = _parent.cachedOrigin + _parent.Offset + originAlignment;
                 }
+                else
+                    cachedOrigin = Vector2.Zero;
+
+                cachedPosition = cachedOrigin + Offset;
             }
 
             /// <summary>
