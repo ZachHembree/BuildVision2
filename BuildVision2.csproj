@@ -183,6 +183,7 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\SettingsMenu\ITextPage.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\SharedBinds.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\TextInput.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockPropertyBases\ScrollablePropertyBase.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BvScrollMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\PropertiesMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ConfigTypes.cs" />
@@ -191,7 +192,6 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockPropertyBases\BvTerminalPropertyBase.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockMemberInterfaces.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockPropertyBases\NumericPropertyBase.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockPropertyBases\ScrollablePropBase.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockProperties\BlockAction.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockProperties\BoolProperty.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockProperties\ColorProperty.cs" />

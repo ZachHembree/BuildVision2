@@ -17,7 +17,7 @@ namespace RichHudFramework
             /// <summary>
             /// Parent object of the node.
             /// </summary>
-            public override IHudParent Parent
+            public sealed override IHudParent Parent
             {
                 get { return base.Parent; }
                 protected set
@@ -31,10 +31,14 @@ namespace RichHudFramework
             /// Scales the size and offset of an element. Any offset or size set at a given
             /// be increased or decreased with scale. Defaults to 1f. Includes parent scale.
             /// </summary>
-            public virtual float Scale
+            public float Scale
             {
                 get { return (_parent == null || ignoreParentScale) ? _localScale : (_localScale * _parent.cachedScale); }
-                set { _localScale = value; }
+                set 
+                { 
+                    _localScale = value;
+                    cachedScale = Scale;
+                }
             }
 
             /// <summary>
@@ -231,7 +235,7 @@ namespace RichHudFramework
                     (cursorPos.Y >= lowerBound && cursorPos.Y < upperBound);
             }
 
-            public override void BeforeDrawStart()
+            public sealed override void BeforeDrawStart()
             {
                 cachedScale = Scale;
                 cachedSize = new Vector2(Width, Height);
