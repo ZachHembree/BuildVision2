@@ -10,7 +10,7 @@ using VRage.Game.ModAPI;
 namespace RichHudFramework
 {
     /// <summary>
-    /// Handles exceptions. Shocking, right?
+    /// Handles exceptions for session components extending from ModBase.
     /// </summary>
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, 0)]
     public sealed class ExceptionHandler : MySessionComponentBase
@@ -25,6 +25,9 @@ namespace RichHudFramework
         /// </summary>
         public static int RecoveryLimit { get; set; }
 
+        /// <summary>
+        /// The number of times the handler has reloaded its clients in response to unhandled exceptions.
+        /// </summary>
         public static int RecoveryAttempts { get; private set; }
 
         /// <summary>
@@ -33,8 +36,14 @@ namespace RichHudFramework
         /// </summary>
         public static bool PromptForReload { get; set; }
 
+        /// <summary>
+        /// True if the handler is currently in the process of reloading its clients.
+        /// </summary>
         public static bool Reloading { get; private set; }
 
+        /// <summary>
+        /// True if the handler is currently in the process of unloading its clients.
+        /// </summary>
         public static bool Unloading { get; private set; }
 
         private static ExceptionHandler instance;
@@ -63,6 +72,9 @@ namespace RichHudFramework
             clients = new List<ModBase>();
         }
 
+        /// <summary>
+        /// Registers the <see cref="ModBase"/> with the handler if it isn't already registered.
+        /// </summary>
         public static void RegisterClient(ModBase client)
         {
             if (!instance.clients.Contains(client))
@@ -85,6 +97,9 @@ namespace RichHudFramework
             }
         }
 
+        /// <summary>
+        /// Records exceptions to be handled. Duplicate stack traces are excluded from the log entry.
+        /// </summary>
         private void ReportException(Exception e)
         {
             string message = e.ToString();
@@ -114,9 +129,14 @@ namespace RichHudFramework
             }
         }
 
+        /// <summary>
+        /// Generates an single log entry from the stack traces recorded within the logging interval
+        /// and reloads or unloads the clients depending on the handler's current configuration and
+        /// the number of recovery attempts.
+        /// </summary>
         private void HandleExceptions()
         {
-            string exceptionText = GetExceptionMessages();
+            string exceptionText = GetExceptionText();
             exceptionCount = 0;
 
             LogIO.TryWriteToLog(ModName + " encountered an unhandled exception.\n" + exceptionText + '\n');
@@ -146,20 +166,30 @@ namespace RichHudFramework
             RecoveryAttempts++;
         }
 
-        private string GetExceptionMessages()
+        /// <summary>
+        /// Generates final exception text from the list of messages recorded.
+        /// </summary>
+        private string GetExceptionText()
         {
             StringBuilder errorMessage = new StringBuilder();
 
             if (exceptionCount > exceptionLoopCount && errorTimer.ElapsedMilliseconds < exceptionLoopTime)
                 errorMessage.AppendLine($"[Exception Loop Detected] {exceptionCount} exceptions were reported within a span of {errorTimer.ElapsedMilliseconds}ms.");
 
-            foreach (string msg in exceptionMessages)
-                errorMessage.Append(msg);
+            for (int n = 0; n < exceptionMessages.Count - 1; n++)
+                errorMessage.AppendLine(exceptionMessages[n]);
+
+            errorMessage.Append(exceptionMessages[exceptionMessages.Count - 1]);
 
             errorMessage.Replace("--->", "\n   --->");
             return errorMessage.ToString();
         }
 
+        /// <summary>
+        /// If canReload == true, the user will be prompted to choose to either reload or cancel reload.
+        /// If canReload == false, it will still show the user the error message, but wont give them an option
+        /// to reload.
+        /// </summary>
         private void ShowErrorPrompt(string errorMessage, bool canReload)
         {
             if (canReload)
@@ -191,6 +221,10 @@ namespace RichHudFramework
             }
         }
 
+        /// <summary>
+        /// Error prompt callback. If reload is clicked, it will unpause the clients and reload. Otherwise, the
+        /// clients will unload.
+        /// </summary>
         private void AllowReload(ResultEnum response)
         {
             if (response == ResultEnum.OK)
@@ -199,6 +233,9 @@ namespace RichHudFramework
                 UnloadClients();
         }
 
+        /// <summary>
+        /// Creates a message window using the mod name, a given subheading and a message.
+        /// </summary>
         public static void ShowMissionScreen(string subHeading = null, string message = null, Action<ResultEnum> callback = null, string okButtonCaption = null)
         {
             if (!Unloading && instance.Loaded)
