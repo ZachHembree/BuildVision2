@@ -1,5 +1,4 @@
 ﻿using RichHudFramework;
-using RichHudFramework.Game;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using Sandbox.ModAPI;
@@ -12,9 +11,10 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Scrollable list menu; the selection box position is based on the selection index.
     /// </summary>
-    public class BvScrollMenu : HudElementBase
+    public sealed partial class BvScrollMenu : HudElementBase
     {
         public override float Width { get { return layout.Width; } set { layout.Width = value; } }
+
         public override float Height { get { return header.Height + body.Height + footer.Height; } set { layout.Height = value; } }
 
         public override Vector2 Offset
@@ -28,23 +28,51 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        /// <summary>
+        /// Opacity between 0 and 1
+        /// </summary>
         public float BgOpacity
         {
-            get { return bgOpacity; }
+            get { return _bgOpacity; }
             set
             {
-                header.Color = header.Color.SetAlphaPct(bgOpacity);
-                body.Color = body.Color.SetAlphaPct(bgOpacity);
-                footer.Color = footer.Color.SetAlphaPct(bgOpacity);
-                bgOpacity = value;
+                header.Color = header.Color.SetAlphaPct(_bgOpacity);
+                body.Color = body.Color.SetAlphaPct(_bgOpacity);
+                footer.Color = footer.Color.SetAlphaPct(_bgOpacity);
+                _bgOpacity = value;
             }
         }
 
+        /// <summary>
+        /// Maximum number of properties visible at once
+        /// </summary>
         public int MaxVisible { get { return body.MinimumVisCount; } set { body.MinimumVisCount = value; } }
+
+        /// <summary>
+        /// Number of block members registered with the menu
+        /// </summary>
         public int Count { get; private set; }
+
+        /// <summary>
+        /// If true, then a property is currently selected and open
+        /// </summary>
         public bool PropOpen { get; private set; }
+
+        /// <summary>
+        /// If true, then the menu will automatically align itself to the edge of the screen.
+        /// </summary>
         public bool AlignToEdge { get; set; }
+
+        public bool ReplicationMode { get; private set; }
+
+        /// <summary>
+        /// Currently highlighted property. Null if none selected.
+        /// </summary>
         private BvPropertyBox Selection => (index < body.List.Count) ? body.List[index] : null;
+
+        /// <summary>
+        /// If true, then if the property currently selected and open will have its text updated.
+        /// </summary>
         private bool updateSelection;
 
         public readonly LabelBox header;
@@ -56,10 +84,14 @@ namespace DarkHelmet.BuildVision2
         private readonly Utils.Stopwatch listWrapTimer;
 
         private int index;
-        private float bgOpacity;
+        private float _bgOpacity;
         private PropertyBlock target;
         private Vector2 alignment;
         private bool waitingForChat;
+
+        private string notification;
+        private Utils.Stopwatch notificationTimer;
+        private const long notifTime = 3000;
 
         private static readonly Color headerColor, bodyColor, selectionBoxColor;
         private static readonly GlyphFormat headerText, bodyText, valueText,
@@ -129,14 +161,14 @@ namespace DarkHelmet.BuildVision2
 
             footer = new DoubleLabelBox()
             {
-                AutoResize = false,
-                TextPadding = new Vector2(48f, 0f),
+                AutoResize = true,
+                FitToTextElement = false,
+                Padding = new Vector2(48f, 0f),
                 Height = 24f,
                 Color = headerColor,
             };
 
             footer.LeftTextBoard.Format = footerTextLeft;
-            footer.BuilderMode = TextBuilderModes.Unlined;
 
             layout = new HudChain<HudElementBase>(this)
             {
@@ -150,9 +182,11 @@ namespace DarkHelmet.BuildVision2
                 }
             };
 
-            bgOpacity = 0.9f;
+            _bgOpacity = 0.9f;
             BgOpacity = 0.9f;
             Count = 0;
+
+            notificationTimer = new Utils.Stopwatch();
 
             listWrapTimer = new Utils.Stopwatch();
             listWrapTimer.Start();
@@ -165,8 +199,13 @@ namespace DarkHelmet.BuildVision2
         {
             if (target != null)
             {
+                int copyCount = 0;
+
                 for (int n = 0; n < Count; n++)
                 {
+                    if (body.List[n].Replicating)
+                        copyCount++;
+
                     if (n == index)
                     {
                         if ((!PropOpen || updateSelection) && !body.List[n].value.InputOpen)
@@ -176,7 +215,17 @@ namespace DarkHelmet.BuildVision2
                         body.List[n].UpdateText(false, false);
                 }
 
-                footer.LeftText = $"[{body.VisStart + 1} - {body.VisStart + body.VisCount} of {body.EnabledCount}]";
+                if (notification != null)
+                {
+                    footer.LeftText = $"[{notification}]";
+
+                    if (notificationTimer.ElapsedMilliseconds > notifTime)
+                        notification = null;
+                }
+                else if (ReplicationMode)
+                    footer.LeftText = $"[Copying {copyCount} of {body.EnabledCount}]";
+                else
+                    footer.LeftText = $"[{body.VisStart + 1} - {body.VisStart + body.VisCount} of {body.EnabledCount}]";
 
                 if (target.IsWorking)
                     footer.RightText = new RichText("[Working]", footerTextRight);
@@ -187,6 +236,15 @@ namespace DarkHelmet.BuildVision2
             }
             else
                 footer.RightText = new RichText("[Target is null]", blockIncText);
+        }
+
+        /// <summary>
+        /// Displays a temporary message in the footer.
+        /// </summary>
+        public void ShowNotification(string message)
+        {
+            notification = message;
+            notificationTimer.Start();
         }
 
         protected override void Draw()
@@ -213,204 +271,15 @@ namespace DarkHelmet.BuildVision2
 
         protected override void HandleInput()
         {
-            if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
-                Scroll(-1);
-            else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
-                Scroll(1);
+            if (BvBinds.SelectAll.IsNewPressed)
+                ToggleReplicationMode();
 
-            if (BvBinds.Select.IsNewPressed)
-                ToggleSelect();
+            HandleSelectionInput();
 
-            if (SharedBinds.Enter.IsNewPressed)
-                ToggleTextBox();
-
-            if (Selection != null && Selection.BlockMember is IBlockTextMember)
-            {
-                if (MyAPIGateway.Gui.ChatEntryVisible)
-                {
-                    if (waitingForChat && !Selection.value.InputOpen)
-                    {
-                        OpenProp();
-                        waitingForChat = false;
-                    }
-                }
-                else if (!waitingForChat && Selection.value.InputOpen)
-                    CloseProp();
-            }
-        }
-
-        /// <summary>
-        /// Interprets scrolling input. If a property is currently opened, scrolling will change the
-        /// current property value, if applicable. Otherwise, it will change the current property selection.
-        /// </summary>
-        private void Scroll(int dir)
-        {
-            if (!PropOpen)
-            {
-                UpdateIndex(BvBinds.MultX.IsPressed ? dir * 4 : dir);
-                listWrapTimer.Reset();
-            }
+            if (ReplicationMode)
+                HandleReplicatorInput();
             else
-            {
-                var scrollable = Selection.BlockMember as IBlockScrollable;
-
-                if (scrollable != null)
-                {
-                    if (dir < 0)
-                        scrollable.ScrollUp();
-                    else if (dir > 0)
-                        scrollable.ScrollDown();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Updates the selection index.
-        /// </summary>
-        private void UpdateIndex(int offset)
-        {
-            int min = GetFirstIndex(), max = GetLastIndex(), dir = (offset > 0) ? 1 : -1;
-            offset = Math.Abs(offset);
-
-            for (int x = 1; x <= offset; x++)
-            {
-                index += dir;
-
-                for (int y = index; (y <= max && y >= min); y += dir)
-                {
-                    if (body.List[y].BlockMember.Enabled)
-                    {
-                        index = y;
-                        break;
-                    }
-                }
-            }
-
-            if (listWrapTimer.ElapsedMilliseconds > 400 && (index > max || index < min) && !BvBinds.MultX.IsPressed)
-            {
-                if (index < min)
-                {
-                    index = max;
-                    body.End = index;
-                }
-                else
-                {
-                    index = min;
-                    body.Start = index;
-                }
-            }
-            else
-            {
-                index = MathHelper.Clamp(index, min, max);
-
-                if (index < body.Start)
-                    body.Start = index;
-                else if (index > body.End)
-                    body.End = index;
-            }
-        }
-
-        /// <summary>
-        /// Toggles property selection.
-        /// </summary>
-        private void ToggleSelect()
-        {
-            if (!PropOpen)
-                OpenProp();
-            else
-                CloseProp();
-        }
-
-        /// <summary>
-        /// Toggles the textbox of the selected property open/closed if the property supports text
-        /// input.
-        /// </summary>
-        private void ToggleTextBox()
-        {
-            if (Selection.BlockMember is IBlockTextMember)
-            {
-                if (!PropOpen)
-                {
-                    if (!Selection.value.InputOpen)
-                        waitingForChat = true;
-                }
-                else
-                {
-                    if (Selection.value.InputOpen)
-                        waitingForChat = false;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Opens the currently highlighted property.
-        /// </summary>
-        private void OpenProp()
-        {
-            var blockAction = Selection.BlockMember as IBlockAction;
-
-            if (blockAction == null)
-            {
-                PropOpen = true;
-
-                if (Selection.BlockMember is IBlockTextMember)
-                {
-                    if (MyAPIGateway.Gui.ChatEntryVisible)
-                        OpenTextInput();
-                    else
-                    {
-                        waitingForChat = true;
-
-                        if (!(Selection.BlockMember is IBlockScrollable))
-                        {
-                            Selection.value.TextBoard.Format = selectedText;
-                            Selection.value.Text = "Open chat to continue";
-                            updateSelection = false;
-                        }
-                        else
-                            updateSelection = true;
-                    }
-                }
-                else
-                    updateSelection = true;
-            }
-            else
-            {
-                blockAction.Action();
-            }
-        }
-
-        private void OpenTextInput()
-        {
-            updateSelection = false;
-            waitingForChat = false;
-
-            Selection.value.OpenInput();
-            Selection.value.TextBoard.Format = selectedText;
-            Selection.value.Text = Selection.BlockMember.Value;
-        }
-
-        /// <summary>
-        /// Closes the currently selected property.
-        /// </summary>
-        private void CloseProp()
-        {
-            CloseTextInput();
-            PropOpen = false;
-        }
-
-        private void CloseTextInput()
-        {
-            if (Selection != null)
-            {
-                var textMember = Selection.BlockMember as IBlockTextMember;
-
-                if (textMember != null && Selection.value.InputOpen)
-                    textMember.SetValueText(Selection.value.Text.ToString());
-
-                waitingForChat = false;
-                Selection.value.CloseInput();
-            }
+                HandlePropertyInput();
         }
 
         /// <summary>
@@ -428,46 +297,6 @@ namespace DarkHelmet.BuildVision2
 
             index = GetFirstIndex();
             body.Start = 0;
-        }
-
-        /// <summary>
-        /// Returns the index of the first enabled property.
-        /// </summary>
-        /// <returns></returns>
-        private int GetFirstIndex()
-        {
-            int first = 0;
-
-            for (int n = 0; n < Count; n++)
-            {
-                if (body.List[n].Enabled)
-                {
-                    first = n;
-                    break;
-                }
-            }
-
-            return first;
-        }
-
-        /// <summary>
-        /// Retrieves the index of the last enabled property.
-        /// </summary>
-        /// <returns></returns>
-        private int GetLastIndex()
-        {
-            int last = 0;
-
-            for (int n = Count - 1; n >= 0; n--)
-            {
-                if (body.List[n].Enabled)
-                {
-                    last = n;
-                    break;
-                }
-            }
-
-            return last;
         }
 
         /// <summary>
@@ -502,6 +331,7 @@ namespace DarkHelmet.BuildVision2
                 body.List[n].BlockMember = null;
             }
 
+            ReplicationMode = false;
             waitingForChat = false;
             target = null;
             PropOpen = false;
@@ -512,19 +342,24 @@ namespace DarkHelmet.BuildVision2
 
         private class BvPropertyBox : HudElementBase, IListBoxEntry
         {
+            public override float Width { get { return layout.Width; } }
+            public override float Height { get { return layout.Height; } }
+
             public override bool Visible => base.Visible && Enabled;
-            public bool Enabled { get { return enabled && (BlockMember!= null && BlockMember.Enabled); } set { enabled = value; } }
+            public bool Enabled { get { return _enabled && (BlockMember!= null && BlockMember.Enabled); } set { _enabled = value; } }
+            public bool Replicating { get { return selectionBox.Visible; } set { selectionBox.Visible = value && (_blockMember is IBlockProperty); } }
 
             public IBlockMember BlockMember
             {
-                get { return blockMember; }
+                get { return _blockMember; }
                 set
                 {
-                    blockMember = value;
+                    _blockMember = value;
+                    Replicating = false;
 
                     if (value != null)
                     {
-                        var textMember = blockMember as IBlockTextMember;
+                        var textMember = _blockMember as IBlockTextMember;
 
                         if (textMember != null)
                             this.value.CharFilterFunc = textMember.CharFilterFunc;
@@ -533,8 +368,8 @@ namespace DarkHelmet.BuildVision2
 
                         name.Format = bodyText;
 
-                        if (blockMember.Name != null && blockMember.Name.Length > 0)
-                            name.Text = $"{blockMember.Name}: ";
+                        if (_blockMember.Name != null && _blockMember.Name.Length > 0)
+                            name.Text = $"{_blockMember.Name}: ";
                         else
                             name.TextBoard.Clear();
                     }
@@ -545,27 +380,30 @@ namespace DarkHelmet.BuildVision2
             public readonly Label name, postfix;
             public readonly TextBox value;
 
-            private IBlockMember blockMember;
-            private bool enabled;
+            private readonly HudChain<HudElementBase> layout;
+            private readonly SelectionBox selectionBox;
+            private IBlockMember _blockMember;
+            private bool _enabled;
 
             public BvPropertyBox(int index, IHudParent parent = null) : base(parent)
             {
                 this.index = index;
 
-                name = new Label(this)
-                { ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH };
+                selectionBox = new SelectionBox();
+                name = new Label();
+                value = new TextBox() { UseMouseInput = false };
+                postfix = new Label();
 
-                value = new TextBox(name)
-                { ParentAlignment = ParentAlignments.Right, UseMouseInput = false };
-
-                postfix = new Label(value)
-                { ParentAlignment = ParentAlignments.Right };
+                layout = new HudChain<HudElementBase>(this)
+                {
+                    AlignVertical = false,
+                    ChildContainer = { selectionBox, name, value, postfix }
+                };
             }
 
             protected override void Draw()
             {
-                Width = name.Width + value.Width + postfix.Width;
-                Height = Math.Max(name.Height, Math.Max(value.Height, postfix.Height));
+                selectionBox.Height = Math.Max(name.Height, Math.Max(value.Height, postfix.Height));
             }
 
             public void UpdateText(bool highlighted, bool selected)
@@ -582,12 +420,26 @@ namespace DarkHelmet.BuildVision2
                 else
                     value.Format = valueText;
 
-                value.Text = blockMember.Value;
+                value.Text = _blockMember.Value;
 
-                if (blockMember.Postfix != null && blockMember.Postfix.Length > 0)
-                    postfix.Text = $" {blockMember.Postfix}";
+                if (_blockMember.Postfix != null && _blockMember.Postfix.Length > 0)
+                    postfix.Text = $" {_blockMember.Postfix}";
                 else
                     postfix.TextBoard.Clear();
+            }
+
+            private class SelectionBox : Label
+            {
+                public SelectionBox(IHudParent parent = null) : base (parent)
+                {
+                    AutoResize = true;
+                    VertCenterText = true;
+                    Visible = false;
+
+                    Padding = new Vector2(4f, 0f);
+                    Format = selectedText.WithAlignment(TextAlignment.Center);
+                    Text = "+";
+                }
             }
         }
     }

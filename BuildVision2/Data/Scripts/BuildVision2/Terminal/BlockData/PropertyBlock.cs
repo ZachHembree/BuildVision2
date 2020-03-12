@@ -81,15 +81,25 @@ namespace DarkHelmet.BuildVision2
         public Vector3D GetPosition() =>
             TBlock.GetPosition();
 
-        public void ImportSettings(BlockData src)
+        /// <summary>
+        /// Applies property settings from block data and returns the number of properties successfully updated.
+        /// </summary>
+        public int ImportSettings(BlockData src)
         {
+            int importCount = 0;
+
             foreach (PropertyData propData in src.terminalProperties)
             {
                 BvTerminalPropertyBase prop = blockProperties.Find(x => (x.ID == propData.id) && (x.PropName == propData.name));
 
                 if (prop != null)
-                    prop.TryImportPropertyValue(propData);
+                {
+                    if (prop.TryImportPropertyValue(propData))
+                        importCount++;
+                }
             }
+
+            return importCount;
         }
 
         public BlockData ExportSettings()
@@ -99,7 +109,7 @@ namespace DarkHelmet.BuildVision2
             for (int n = 0; n < blockProperties.Count; n++)
                 propData.Add(blockProperties[n].GetPropertyData());
 
-            return new BlockData(TypeID, propData.ToArray());
+            return new BlockData(TypeID, propData);
         }
 
         private int GetEnabledElementCount()

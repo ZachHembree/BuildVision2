@@ -7,7 +7,7 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class PropertyBlock
     {
-        private abstract class BvTerminalPropertyBase : BlockMemberBase
+        private abstract class BvTerminalPropertyBase : BlockMemberBase, IBlockProperty
         {
             /// <summary>
             /// Unique identifier associated with the property

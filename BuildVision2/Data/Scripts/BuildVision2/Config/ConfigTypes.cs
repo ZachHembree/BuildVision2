@@ -268,6 +268,7 @@ namespace DarkHelmet.BuildVision2
                     { "SelectAll", MyKeys.Shift, MyKeys.A },
                     { "CopySelection", MyKeys.Shift, MyKeys.C },
                     { "PasteSelection", MyKeys.Shift, MyKeys.V },
+                    { "UndoPaste", MyKeys.Shift, MyKeys.Z },
                 };
             }
         }

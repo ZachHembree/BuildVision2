@@ -4,12 +4,20 @@ using Sandbox.ModAPI;
 using RichHudFramework.UI.Client;
 using RichHudFramework.IO;
 using VRageMath;
+using System.Collections.Generic;
 
 namespace DarkHelmet.BuildVision2
 {
     public sealed partial class PropertiesMenu : BvComponentBase
     {
+        /// <summary>
+        /// Current UI configuration
+        /// </summary>
         public static HudConfig Cfg { get { return BvConfig.Current.menu.hudConfig; } set { BvConfig.Current.menu.hudConfig = value; } }
+
+        /// <summary>
+        /// Currently targeted terminal block
+        /// </summary>
         public static PropertyBlock Target
         {
             get { return Instance.target; }
@@ -21,17 +29,23 @@ namespace DarkHelmet.BuildVision2
                 Instance.target = value;
             }
         }
+
+        /// <summary>
+        /// If true, then the menu is open
+        /// </summary>
         public static bool Open { get { return Instance.scrollMenu.Visible; } set { Instance.scrollMenu.Visible = value; } }
 
         private static PropertiesMenu Instance
         {
-            get { Init(); return instance; }
-            set { instance = value; }
+            get { Init(); return _instance; }
+            set { _instance = value; }
         }
-        private static PropertiesMenu instance;
+        private static PropertiesMenu _instance;
 
         private readonly BvScrollMenu scrollMenu;
         private PropertyBlock target;
+        private IMyTerminalBlock lastPastedTarget;
+        private BlockData clipboard, pasteBackup;
 
         private PropertiesMenu() : base(false, true)
         {
@@ -41,8 +55,8 @@ namespace DarkHelmet.BuildVision2
 
         private static void Init()
         {
-            if (instance == null)
-                instance = new PropertiesMenu();
+            if (_instance == null)
+                _instance = new PropertiesMenu();
         }
 
         public override void Close()
@@ -51,6 +65,9 @@ namespace DarkHelmet.BuildVision2
             Instance = null;
         }
 
+        /// <summary>
+        /// Intercepts chat input when a property is open
+        /// </summary>
         private void MessageHandler(string message, ref bool sendToOthers)
         {
             if (scrollMenu.Visible && scrollMenu.PropOpen)
@@ -65,6 +82,39 @@ namespace DarkHelmet.BuildVision2
             if (target != null && Open)
             {
                 scrollMenu.UpdateText();
+            }
+        }
+
+        public override void HandleInput()
+        {
+            if (target != null && Open)
+            {
+                if (BvBinds.CopySelection.IsNewPressed && scrollMenu.ReplicationMode)
+                {
+                    clipboard = new BlockData(target.TypeID, scrollMenu.GetReplicationRange());
+                    scrollMenu.ShowNotification($"Copied {clipboard.terminalProperties.Count} Properties");
+                }
+
+                if (BvBinds.PasteSelection.IsNewPressed && !clipboard.Equals(default(BlockData)) && clipboard.terminalProperties.Count > 0)
+                {
+                    if (clipboard.blockTypeID == target.TypeID)
+                    {
+                        pasteBackup = target.ExportSettings();
+                        lastPastedTarget = target.TBlock;
+
+                        int importCount = target.ImportSettings(clipboard);
+                        scrollMenu.ShowNotification($"Pasted {importCount} Properties");
+                    }
+                    else
+                        scrollMenu.ShowNotification($"Paste Incompatible");
+                }
+
+                if (BvBinds.UndoPaste.IsNewPressed && target.TBlock == lastPastedTarget)
+                {
+                    target.ImportSettings(pasteBackup);
+                    scrollMenu.ShowNotification("Paste Undone");
+                    lastPastedTarget = null;
+                }
             }
         }
 

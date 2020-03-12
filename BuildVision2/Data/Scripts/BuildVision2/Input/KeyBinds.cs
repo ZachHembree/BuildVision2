@@ -30,15 +30,22 @@ namespace DarkHelmet.BuildVision2
         public static IBind SelectAll { get { return BindGroup[8]; } }
         public static IBind CopySelection { get { return BindGroup[9]; } }
         public static IBind PasteSelection { get { return BindGroup[10]; } }
+        public static IBind UndoPaste { get { return BindGroup[11]; } }
 
         public static IBindGroup BindGroup { get { return Instance.bindGroup; } }
 
         private static BvBinds Instance
         {
-            get { Init(); return instance; }
-            set { instance = value; }
+            get 
+            {
+                if (_instance == null)
+                    Init();
+
+                return _instance;
+            }
+            set { _instance = value; }
         }
-        private static BvBinds instance;
+        private static BvBinds _instance;
         private readonly IBindGroup bindGroup;
 
         private BvBinds() : base(false, true)
@@ -49,13 +56,13 @@ namespace DarkHelmet.BuildVision2
 
         private static void Init()
         {
-            if (instance == null)
+            if (_instance == null)
             {
-                instance = new BvBinds();
+                _instance = new BvBinds();
                 Cfg = BvConfig.Current.binds;
 
-                BvConfig.OnConfigSave += instance.UpdateConfig;
-                BvConfig.OnConfigLoad += instance.UpdateBinds;
+                BvConfig.OnConfigSave += _instance.UpdateConfig;
+                BvConfig.OnConfigLoad += _instance.UpdateBinds;
             }
         }
 

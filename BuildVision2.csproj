@@ -182,7 +182,7 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\SharedBinds.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\TextInput.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockPropertyBases\ScrollablePropertyBase.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BvScrollMenu.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\ScrollMenu\BvScrollMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\PropertiesMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Config\ConfigTypes.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\PropertyBlock.cs" />
@@ -205,6 +205,9 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\Stopwatch.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\Xml.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\Internal\ExceptionHandler.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\ScrollMenu\ReplicatorInput.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\ScrollMenu\PropertyInput.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\ScrollMenu\SelectionInput.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
