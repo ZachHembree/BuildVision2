@@ -96,7 +96,9 @@ namespace RichHudFramework
         /// </summary>
         public void EnqueueTask(Action action)
         {
-            if (Parent.Unloading)
+            if (Parent == null)
+                RegisterComponent(RichHudCore.Instance);
+            else if (Parent.Unloading)
                 throw new Exception("New tasks cannot be started while the mod is being unloaded.");
 
             tasksWaiting.Enqueue(action);
@@ -107,6 +109,11 @@ namespace RichHudFramework
         /// </summary>
         public void EnqueueAction(Action action)
         {
+            if (Parent == null)
+                RegisterComponent(RichHudCore.Instance);
+            else if (Parent.Unloading)
+                throw new Exception("New tasks cannot be started while the mod is being unloaded.");
+
             actions.Enqueue(action);
         }
 

@@ -86,6 +86,26 @@ namespace RichHudFramework
 
                 bindData.Add(new MyTuple<string, IList<int>>(bindName, indices));
             }
+
+            /// <summary>
+            /// Returns group data as a serializable array of BindDefinitions.
+            /// </summary>
+            public BindDefinition[] GetBindDefinitions()
+            {
+                var definitions = new BindDefinition[bindData.Count];
+
+                for (int a = 0; a < definitions.Length; a++)
+                {
+                    var controlNames = new string[bindData[a].Item2.Count];
+
+                    for (int b = 0; b < controlNames.Length; b++)
+                        controlNames[b] = BindManager.Controls[bindData[a].Item2[b]].Name;
+
+                    definitions[a] = new BindDefinition(bindData[a].Item1, controlNames);
+                }
+
+                return definitions;
+            }
         }
 
         public class ControlData

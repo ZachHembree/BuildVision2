@@ -25,9 +25,11 @@ namespace RichHudFramework.IO
         private static LogIO Instance
         { 
             get 
-            { 
-                if (_instance == null) 
-                    Init(); 
+            {
+                if (_instance == null)
+                    _instance = new LogIO();
+                else if (_instance.Parent == null)
+                    _instance.RegisterComponent(RichHudCore.Instance);
 
                 return _instance; 
             } 
@@ -44,14 +46,6 @@ namespace RichHudFramework.IO
         {
             accessible = true;
             logFile = new LocalFileIO(_fileName);
-        }
-
-        private static void Init()
-        {
-            if (_instance == null)
-            {
-                _instance = new LogIO();
-            }
         }
 
         protected override void ErrorCallback(List<KnownException> known, AggregateException unknown)
