@@ -22,7 +22,6 @@ namespace DarkHelmet.BuildVision2
         public static BvConfig Cfg => BvConfig.Current;
 
         private PropertyBlock target;
-        private CmdManager.Group bvCommands;
 
         public BvMain() : base(false, true)
         {
@@ -41,13 +40,16 @@ namespace DarkHelmet.BuildVision2
 
         protected override void AfterInit()
         {
+            CanUpdate = false;
             RichHudClient.Init(ExceptionHandler.ModName, HudInit, Reload);
         }
 
         private void HudInit()
         {
+            CanUpdate = true;
+
             BvConfig.Load(true);
-            bvCommands = CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
+            CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
             InitSettingsMenu();
 
             BvBinds.Open.OnNewPress += TryOpenMenu;
