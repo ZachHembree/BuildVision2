@@ -1,8 +1,8 @@
-﻿using RichHudFramework.Game;
-using Sandbox.ModAPI;
+﻿using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using RichHudFramework.Internal;
 
 namespace RichHudFramework.IO
 {

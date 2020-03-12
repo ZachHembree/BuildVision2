@@ -7,7 +7,7 @@ using VRageMath;
 using System;
 using CollisionLayers = Sandbox.Engine.Physics.MyPhysics.CollisionLayers;
 
-namespace RichHudFramework.Game
+namespace DarkHelmet.BuildVision2
 {
     /// <summary>
     /// Wrapper for various local player related fields and methods.

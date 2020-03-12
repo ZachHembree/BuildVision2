@@ -1,4 +1,4 @@
-﻿using RichHudFramework.Game;
+﻿
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using VRage.Input;

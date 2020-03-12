@@ -1,14 +1,14 @@
-﻿using RichHudFramework.Game;
+﻿using RichHudFramework;
 using RichHudFramework.Client;
-using RichHudFramework.UI;
+using RichHudFramework.Internal;
 using RichHudFramework.IO;
-using RichHudFramework;
+using RichHudFramework.UI;
 using Sandbox.ModAPI;
+using System;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRageMath;
-using System;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -185,7 +185,7 @@ namespace DarkHelmet.BuildVision2
                 dist = (LocalPlayer.Position - target.GetPosition()).LengthSquared();
 
             return dist < (Cfg.general.maxControlRange * Cfg.general.maxControlRange);
-        }        
+        }
     }
 
     public abstract class BvComponentBase : ModBase.ComponentBase

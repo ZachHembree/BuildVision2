@@ -1,5 +1,6 @@
-﻿using RichHudFramework.IO;
-using RichHudFramework;
+﻿using RichHudFramework;
+using RichHudFramework.Internal;
+using RichHudFramework.IO;
 using Sandbox.ModAPI;
 using System;
 using VRage;
@@ -19,7 +20,7 @@ namespace RichHudFramework.Client
 
         public static bool Registered => Instance != null ? Instance.registered : false;
         private static RichHudClient Instance { get; set; }
-        
+
         private readonly ClientData regMessage;
         private readonly Action InitAction, ReloadAction;
 
@@ -140,7 +141,7 @@ namespace RichHudFramework.Client
             Unregister();
             Instance = null;
         }
-        
+
         private void RemoteReload()
         {
             if (registered)

@@ -119,9 +119,9 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Config\ConfigIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\IO\LocalFileIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\IO\LogIO.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\ModBase.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\Internal\ModBase.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\MsgEnums.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\RichHudCore.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\Internal\RichHudCore.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\BindManager\BindDefinition.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\BindManager\BindGroupData.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\UI\BindManager\CustomControls.cs" />
@@ -204,7 +204,7 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\ProtoBuf.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\Stopwatch.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Utilities\Xml.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\ExceptionHandler.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\Internal\ExceptionHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

@@ -1,11 +1,11 @@
-﻿using RichHudFramework.Game;
-using ParallelTasks;
+﻿using ParallelTasks;
+using RichHudFramework.Internal;
 using Sandbox.ModAPI;
-using VRageMath;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using VRageMath;
 
 namespace RichHudFramework
 {

@@ -1,5 +1,4 @@
 ﻿using RichHudFramework.IO;
-using RichHudFramework.Game;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,7 @@ using System.Text;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 
-namespace RichHudFramework
+namespace RichHudFramework.Internal
 {
     /// <summary>
     /// Handles exceptions for session components extending from ModBase.

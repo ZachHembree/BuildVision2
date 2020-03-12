@@ -1,7 +1,7 @@
-﻿using System;
+﻿using RichHudFramework.Internal;
+using System;
 using System.Collections.Generic;
 using VRage;
-using RichHudFramework.Game;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using EventAccessor = VRage.MyTuple<bool, System.Action>;
 using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
@@ -175,7 +175,7 @@ namespace RichHudFramework
                     Item5 = () => ExceptionHandler.Run(HandleInputStart),
                     Item6 = GetOrSetMember
                 };
-            }           
+            }
         }
     }
 }

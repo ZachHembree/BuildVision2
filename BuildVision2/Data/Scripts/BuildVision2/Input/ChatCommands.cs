@@ -1,7 +1,8 @@
 ﻿using RichHudFramework;
+using RichHudFramework.Internal;
+using RichHudFramework.IO;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
-using RichHudFramework.IO;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,7 +17,7 @@ namespace DarkHelmet.BuildVision2
         {
             controlList = GetControlList();
 
-            return new List <CmdManager.Command>
+            return new List<CmdManager.Command>
             {
                 new CmdManager.Command ("help",
                     () => ExceptionHandler.ShowMessageScreen("Help", GetHelpMessage())),
@@ -46,11 +47,11 @@ namespace DarkHelmet.BuildVision2
                     () => TryCloseMenu()),
                 new CmdManager.Command ("reload",
                     () => Instance.Reload()),
-                new CmdManager.Command("crash", 
+                new CmdManager.Command("crash",
                     Crash),
                 new CmdManager.Command("printControlsToLog",
                     () => LogIO.WriteToLogStart($"Control List:\n{GetControlList()}")),
-                new CmdManager.Command("export", 
+                new CmdManager.Command("export",
                     ExportBlockData),
                 new CmdManager.Command("import",
                     TryImportBlockData),
@@ -143,8 +144,8 @@ namespace DarkHelmet.BuildVision2
                 $"To select a property in the menu press [{GetBindString(BvBinds.Select)}].\n\n" +
 
                 $"By default, the menu will close if you move more than 10 meters (4 large blocks) from your target block." +
-                $"The exact distance can be customized in the settings menu.\n\n" +     
-                
+                $"The exact distance can be customized in the settings menu.\n\n" +
+
                 $"Settings Menu:\n" +
                 $"The settings menu can be accessed by pressing ~ (tilde) while having chat open.\n\n" +
 

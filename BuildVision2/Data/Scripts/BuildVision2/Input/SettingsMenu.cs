@@ -1,7 +1,7 @@
-﻿using RichHudFramework.Game;
+﻿using RichHudFramework;
+using RichHudFramework.Internal;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
-using RichHudFramework;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,7 +17,7 @@ namespace DarkHelmet.BuildVision2
             RichHudTerminal.Root.Enabled = true;
 
             RichHudTerminal.Root.Add(new ControlPage()
-            { 
+            {
                 Name = "Settings",
                 CategoryContainer =
                 {
@@ -314,7 +314,7 @@ namespace DarkHelmet.BuildVision2
                     PropertyBlock.Cfg.Validate();
                 },
             };
-            
+
             var tile2 = new ControlTile()
             {
                 floatMultX,

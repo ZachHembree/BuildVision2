@@ -1,14 +1,14 @@
-﻿using RichHudFramework.Game;
+﻿using RichHudFramework.Internal;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using VRage;
 using VRage.Game.ModAPI;
 using VRageMath;
+using ApiMemberAccessor = System.Func<object, int, object>;
 using FloatProp = VRage.MyTuple<System.Func<float>, System.Action<float>>;
 using RichStringMembers = VRage.MyTuple<System.Text.StringBuilder, VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>>;
 using Vec2Prop = VRage.MyTuple<System.Func<VRageMath.Vector2>, System.Action<VRageMath.Vector2>>;
-using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
@@ -153,7 +153,7 @@ namespace RichHudFramework
             /// <summary>
             /// The current aspect ratio (ScreenWidth/ScreenHeight).
             /// </summary>
-            public static float AspectRatio 
+            public static float AspectRatio
             {
                 get
                 {

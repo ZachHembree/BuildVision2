@@ -1,4 +1,4 @@
-﻿using RichHudFramework.Game;
+﻿using RichHudFramework.Internal;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -138,7 +138,7 @@ namespace RichHudFramework.UI
 
                         if (!cmdFound)
                             ExceptionHandler.SendChatMessage("Command not recognised.");
-                    });                 
+                    });
                 }
             }
         }

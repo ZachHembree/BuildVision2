@@ -6,7 +6,7 @@ using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 
-namespace RichHudFramework.Game
+namespace RichHudFramework.Internal
 {
     /// <summary>
     /// Extends <see cref="MySessionComponentBase"/> to include built-in exception handling, logging and a component
