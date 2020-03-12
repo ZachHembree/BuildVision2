@@ -1,6 +1,7 @@
 ﻿using RichHudFramework.Game;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
+using VRage.Input;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -17,12 +18,19 @@ namespace DarkHelmet.BuildVision2
 
         public static IBind Open { get { return BindGroup[0]; } }
         public static IBind Hide { get { return BindGroup[1]; } }
+
         public static IBind Select { get { return BindGroup[2]; } }
         public static IBind ScrollUp { get { return BindGroup[3]; } }
         public static IBind ScrollDown { get { return BindGroup[4]; } }
+
         public static IBind MultX { get { return BindGroup[5]; } }
         public static IBind MultY { get { return BindGroup[6]; } }
         public static IBind MultZ { get { return BindGroup[7]; } }
+
+        public static IBind SelectAll { get { return BindGroup[8]; } }
+        public static IBind CopySelection { get { return BindGroup[9]; } }
+        public static IBind PasteSelection { get { return BindGroup[10]; } }
+
         public static IBindGroup BindGroup { get { return Instance.bindGroup; } }
 
         private static BvBinds Instance
@@ -31,14 +39,12 @@ namespace DarkHelmet.BuildVision2
             set { instance = value; }
         }
         private static BvBinds instance;
-        private static readonly string[] bindNames = new string[] { "Open", "Close", "Select", "ScrollUp", "ScrollDown", "MultX", "MultY", "MultZ" };
-
         private readonly IBindGroup bindGroup;
 
         private BvBinds() : base(false, true)
         {
             bindGroup = BindManager.GetOrCreateGroup("BvMain");
-            bindGroup.RegisterBinds(bindNames);
+            bindGroup.RegisterBinds(BindsConfig.DefaultBinds);
         }
 
         private static void Init()

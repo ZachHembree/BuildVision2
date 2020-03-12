@@ -114,9 +114,9 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\ApiContainers.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Collections.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\Extensions\VectorExtensions.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\General\LocalPlayer.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\LocalPlayer.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\General\TaskPool.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\General\ConfigIO.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Config\ConfigIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\IO\LocalFileIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\IO\LogIO.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\ModBase.cs" />
@@ -184,7 +184,7 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockPropertyBases\ScrollablePropertyBase.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BvScrollMenu.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\PropertiesMenu.cs" />
-    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\ConfigTypes.cs" />
+    <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Config\ConfigTypes.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\PropertyBlock.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockPropertyBases\BlockMemberBase.cs" />
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\Terminal\BlockData\BlockPropertyBases\BvTerminalPropertyBase.cs" />
@@ -207,7 +207,6 @@
     <Compile Include="BuildVision2\Data\Scripts\BuildVision2\RichHudFramework\Shared\ExceptionHandler.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Data\Scripts\BuildVision2\RichHudFramework\Shared\" />
     <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

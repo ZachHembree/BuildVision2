@@ -33,7 +33,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Binds",
                 GroupContainer =
                 {
-                    { BvBinds.BindGroup, BindsConfig.DefaultBinds },
+                    { BvBinds.BindGroup, BindsConfig.DefaultBinds.GetBindDefinitions() },
                 }
             });
         }
