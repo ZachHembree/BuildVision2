@@ -249,7 +249,6 @@ namespace RichHudFramework
             {
                 UpdateCache();
                 BeforeDraw();
-                UpdateCache();
 
                 for (int n = 0; n < children.Count; n++)
                 {
