@@ -23,9 +23,11 @@ namespace RichHudFramework.Internal
         protected override void AfterLoadData()
         { }
 
-        protected override void BeforeClose()
+        public override void Close()
         {
-            if (Unloading)
+            base.Close();
+
+            if (ExceptionHandler.Unloading)
                 Instance = null;
         }       
     }

@@ -57,12 +57,12 @@ namespace DarkHelmet.BuildVision2
             SharedBinds.Escape.OnNewPress += TryCloseMenu;
         }
 
-        protected override void BeforeClose()
+        public override void BeforeClose()
         {
             BvConfig.Save();
             TryCloseMenu();
 
-            if (!Unloading)
+            if (!ExceptionHandler.Unloading)
                 RichHudClient.Reset();
             else
                 Instance = null;

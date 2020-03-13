@@ -40,11 +40,6 @@ namespace RichHudFramework.Internal
         public new bool Loaded { get; private set; }
 
         /// <summary>
-        /// If true, then the mod is currently in the process of unloading.
-        /// </summary>
-        public bool Unloading { get; private set; }
-
-        /// <summary>
         /// If true, then the session component will be allowed to update.
         /// </summary>
         public bool CanUpdate
@@ -71,7 +66,7 @@ namespace RichHudFramework.Internal
 
         public sealed override void LoadData()
         {
-            if (!Loaded && !Unloading && !closing)
+            if (!Loaded && !ExceptionHandler.Unloading && !closing)
             {
                 bool isServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
                 IsDedicated = (MyAPIGateway.Utilities.IsDedicated && isServer);
@@ -88,7 +83,7 @@ namespace RichHudFramework.Internal
 
         public sealed override void Init(MyObjectBuilder_SessionComponent sessionComponent)
         {
-            if (!Loaded && !Unloading && !closing)
+            if (!Loaded && !ExceptionHandler.Unloading && !closing)
             {
                 if (CanUpdate)
                     AfterInit();
@@ -98,6 +93,27 @@ namespace RichHudFramework.Internal
         }
 
         protected virtual void AfterInit() { }
+
+        public void ManualStart()
+        {
+            if (!Loaded && !closing)
+            {
+                CanUpdate = true;
+
+                ExceptionHandler.Run(() =>
+                {
+                    LoadData();
+                    Init(null);
+                });
+            }
+        }
+
+        public void Reload()
+        {
+            ExceptionHandler.Run(BeforeClose);
+            Close();
+            ManualStart();
+        }
 
         public override void Draw()
         {
@@ -161,36 +177,9 @@ namespace RichHudFramework.Internal
 
         protected virtual void Update() { }
 
-        public void Reload()
-        {
-            Close();
+        public virtual void BeforeClose() { }
 
-            if (!Loaded && !closing)
-            {
-                Unloading = false;
-
-                ExceptionHandler.Run(() =>
-                {
-                    LoadData();
-                    Init(null);
-                });
-            }
-        }
-
-        public void Unload() =>
-            UnloadData();
-
-        protected override void UnloadData()
-        {
-            if (!Unloading)
-            {
-                CanUpdate = true;
-                Unloading = true;
-                Close();
-            }
-        }
-
-        public void Close()
+        public virtual void Close()
         {
             if (Loaded && !closing)
             {
@@ -200,8 +189,6 @@ namespace RichHudFramework.Internal
 
                 if (CanUpdate)
                 {
-                    ExceptionHandler.Run(BeforeClose);
-
                     for (int n = clientComponents.Count - 1; n >= 0; n--)
                     {
                         ExceptionHandler.Run(clientComponents[n].Close);
@@ -217,11 +204,13 @@ namespace RichHudFramework.Internal
 
                 clientComponents.Clear();
                 serverComponents.Clear();
+                CanUpdate = false;
                 closing = false;
             }
         }
 
-        protected virtual void BeforeClose() { }
+        protected sealed override void UnloadData()
+        { }
 
         /// <summary>
         /// Base class for ModBase components.

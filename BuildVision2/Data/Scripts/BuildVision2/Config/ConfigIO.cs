@@ -138,10 +138,18 @@ namespace RichHudFramework.IO
             public bool SaveInProgress { get; private set; }
             public static ConfigIO Instance
             {
-                get { Init(); return instance; }
-                private set { instance = value; }
+                get
+                {
+                    if (_instance == null)
+                        _instance = new ConfigIO();
+                    else if (_instance.Parent == null && RichHudCore.Instance != null)
+                        _instance.RegisterComponent(RichHudCore.Instance);
+
+                    return _instance;
+                }
+                private set { _instance = value; }
             }
-            private static ConfigIO instance;
+            private static ConfigIO _instance;
 
             public static string FileName { get { return fileName; } set { if (value != null && value.Length > 0) fileName = value; } }
             private static string fileName = $"{typeof(ConfigT).Name}.xml";
@@ -152,17 +160,6 @@ namespace RichHudFramework.IO
             {
                 cfgFile = new LocalFileIO(FileName);
                 SaveInProgress = false;
-            }
-
-            private static void Init()
-            {
-                if (instance == null)
-                    instance = new ConfigIO();
-            }
-
-            public override void Close()
-            {
-                Instance = null;
             }
 
             protected override void ErrorCallback(List<KnownException> known, AggregateException unknown)

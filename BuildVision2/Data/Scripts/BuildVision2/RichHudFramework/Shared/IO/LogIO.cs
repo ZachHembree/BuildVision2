@@ -28,7 +28,7 @@ namespace RichHudFramework.IO
             {
                 if (_instance == null)
                     _instance = new LogIO();
-                else if (_instance.Parent == null)
+                else if (_instance.Parent == null && RichHudCore.Instance != null)
                     _instance.RegisterComponent(RichHudCore.Instance);
 
                 return _instance; 
