@@ -1,4 +1,5 @@
 using RichHudFramework;
+using RichHudFramework.Internal;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using VRage;
 using VRageMath;
+using VRage.ModAPI;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
 using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
 
@@ -41,17 +43,17 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// True if the block integrity is above its breaking threshold
         /// </summary>
-        public bool IsFunctional { get { return TBlock.IsFunctional; } }
+        public bool IsFunctional { get { return TBlock != null && TBlock.IsFunctional; } }
 
         /// <summary>
         /// True if the block is functional and able to do work.
         /// </summary>
-        public bool IsWorking { get { return TBlock.IsWorking; } }
+        public bool IsWorking { get { return TBlock != null && TBlock.IsWorking; } }
 
         /// <summary>
         /// True if the local player has terminal access permissions
         /// </summary>
-        public bool CanLocalPlayerAccess { get { return TBlock.HasLocalPlayerAccess(); } }
+        public bool CanLocalPlayerAccess { get { return TBlock != null && TBlock.HasLocalPlayerAccess(); } }
 
         public readonly Vector3D modelOffset;
 
@@ -73,13 +75,21 @@ namespace DarkHelmet.BuildVision2
             BoundingBoxD bb;
             tBlock.SlimBlock.GetWorldBoundingBox(out bb);
             modelOffset = bb.Center - tBlock.GetPosition();
+
+            TBlock.SlimBlock.FatBlock.OnMarkForClose += BlockClosing;
+        }
+
+        private void BlockClosing(IMyEntity entity)
+        {
+            // Null the block reference to avoid holding onto a block that no longer exists
+            TBlock = null;
         }
 
         /// <summary>
         /// Gets the block's current position.
         /// </summary>
         public Vector3D GetPosition() =>
-            TBlock.GetPosition();
+             TBlock != null ? TBlock.GetPosition() : Vector3D.Zero;
 
         /// <summary>
         /// Applies property settings from block data and returns the number of properties successfully updated.
