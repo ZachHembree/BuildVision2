@@ -271,7 +271,7 @@ namespace DarkHelmet.BuildVision2
 
         protected override void HandleInput()
         {
-            if (BvBinds.SelectAll.IsNewPressed)
+            if (BvBinds.ToggleSelectMode.IsNewPressed || (!ReplicationMode && BvBinds.SelectAll.IsNewPressed))
                 ToggleReplicationMode();
 
             HandleSelectionInput();
@@ -383,7 +383,7 @@ namespace DarkHelmet.BuildVision2
             private readonly HudChain<HudElementBase> layout;
             private readonly SelectionBox selectionBox;
             private IBlockMember _blockMember;
-            private bool _enabled;
+            private bool _enabled, blockEnabled;
 
             public BvPropertyBox(int index, IHudParent parent = null) : base(parent)
             {

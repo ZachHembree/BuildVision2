@@ -265,10 +265,11 @@ namespace DarkHelmet.BuildVision2
                     { "MultY", MyKeys.Shift },
                     { "MultZ", MyKeys.Control, MyKeys.Shift },
 
-                    { "SelectAll", MyKeys.Shift, MyKeys.A },
-                    { "CopySelection", MyKeys.Shift, MyKeys.C },
-                    { "PasteSelection", MyKeys.Shift, MyKeys.V },
-                    { "UndoPaste", MyKeys.Shift, MyKeys.Z },
+                    { "ToggleSelectMode", MyKeys.Home },
+                    { "SelectAll", MyKeys.Insert },
+                    { "CopySelection", MyKeys.PageUp },
+                    { "PasteSelection", MyKeys.PageDown },
+                    { "UndoPaste", MyKeys.Delete },
                 };
             }
         }

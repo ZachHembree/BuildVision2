@@ -12,10 +12,11 @@ namespace DarkHelmet.BuildVision2
     {
         private void HandleReplicatorInput()
         {
+            if (BvBinds.SelectAll.IsNewPressed)
+                SelectAllProperties();
+
             if (BvBinds.Select.IsNewPressed)
-            {
                 Selection.Replicating = !Selection.Replicating;
-            }
         }
 
         public List<PropertyData> GetReplicationRange()
@@ -43,7 +44,6 @@ namespace DarkHelmet.BuildVision2
             if (ReplicationMode)
             {
                 CloseProp();
-                SelectAllProperties();
             }
             else
             {

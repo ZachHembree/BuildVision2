@@ -27,10 +27,11 @@ namespace DarkHelmet.BuildVision2
         public static IBind MultY { get { return BindGroup[6]; } }
         public static IBind MultZ { get { return BindGroup[7]; } }
 
-        public static IBind SelectAll { get { return BindGroup[8]; } }
-        public static IBind CopySelection { get { return BindGroup[9]; } }
-        public static IBind PasteSelection { get { return BindGroup[10]; } }
-        public static IBind UndoPaste { get { return BindGroup[11]; } }
+        public static IBind ToggleSelectMode { get { return BindGroup[8]; } }
+        public static IBind SelectAll { get { return BindGroup[9]; } }
+        public static IBind CopySelection { get { return BindGroup[10]; } }
+        public static IBind PasteSelection { get { return BindGroup[11]; } }
+        public static IBind UndoPaste { get { return BindGroup[12]; } }
 
         public static IBindGroup BindGroup { get { return Instance.bindGroup; } }
 
