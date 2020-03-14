@@ -36,7 +36,7 @@ namespace RichHudFramework
                 get { return _scale; }
                 set 
                 { 
-                    _localScale = value;
+                    localScale = value;
                     _scale = (_parent == null || ignoreParentScale) ? value : (value * _parent._scale);
                 }
             }
@@ -141,7 +141,7 @@ namespace RichHudFramework
             private bool isMousedOver;
             private Vector2 _offset, _padding, originAlignment;
 
-            protected float _localScale = 1f, _scale = 1f;
+            protected float localScale = 1f, _scale = 1f;
             protected float _width, _height;
             protected HudElementBase _parent;
 
@@ -160,13 +160,13 @@ namespace RichHudFramework
             public override void Register(IHudParent parent)
             {
                 base.Register(parent);
-                _scale = (_parent == null || ignoreParentScale) ? _localScale : (_localScale * _parent._scale);
+                _scale = (_parent == null || ignoreParentScale) ? localScale : (localScale * _parent._scale);
             }
 
             public override void Unregister()
             {
                 base.Unregister();
-                _scale = _localScale;
+                _scale = localScale;
             }
 
             public sealed override void HandleInputStart()
@@ -259,7 +259,7 @@ namespace RichHudFramework
 
             private void UpdateCache()
             {
-                _scale = Scale;
+                _scale = (_parent == null || ignoreParentScale) ? localScale : (localScale * _parent._scale);
                 cachedSize = new Vector2(Width, Height);
 
                 if (_parent != null)
