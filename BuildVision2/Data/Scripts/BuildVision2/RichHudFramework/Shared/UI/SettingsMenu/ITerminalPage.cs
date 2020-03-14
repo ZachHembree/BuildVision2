@@ -16,7 +16,7 @@ namespace RichHudFramework
         using Client;
         using Server;
 
-        internal enum TerminalPageAccessors : int
+        public enum TerminalPageAccessors : int
         {
             /// <summary>
             /// IList<RichStringMembers>

@@ -12,7 +12,7 @@ namespace RichHudFramework
         using Server;
         using Client;
 
-        internal enum ControlPageAccessors : int
+        public enum ControlPageAccessors : int
         {
             /// <summary>
             /// MemberAccessor

@@ -12,7 +12,7 @@ namespace RichHudFramework
         using Client;
         using Server;
 
-        internal enum RebindPageAccessors : int
+        public enum RebindPageAccessors : int
         {
             Add = 10,
         }

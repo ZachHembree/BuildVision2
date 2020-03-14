@@ -10,7 +10,7 @@ namespace RichHudFramework.UI.Client
 {
     using CollectionData = MyTuple<Func<int, ApiMemberAccessor>, Func<int>>;
 
-    internal enum ListControlAccessors : int
+    public enum ListControlAccessors : int
     {
         ListAccessors = 16,
     }

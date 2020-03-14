@@ -5,9 +5,9 @@ using Sandbox.ModAPI.Interfaces.Terminal;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal partial class PropertyBlock
+    public partial class PropertyBlock
     {
-        private abstract class BvTerminalPropertyBase : BlockMemberBase
+        private abstract class BvTerminalPropertyBase : BlockMemberBase, IBlockProperty
         {
             /// <summary>
             /// Unique identifier associated with the property
@@ -106,6 +106,9 @@ namespace DarkHelmet.BuildVision2
                 else
                     return false;
             }
+
+            public override PropertyData GetPropertyData() =>
+                new PropertyData(PropName, ID, GetValue().ToString());
 
             public abstract bool TryParseValue(string valueData, out TValue value);
         }

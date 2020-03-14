@@ -1,7 +1,7 @@
-﻿using System;
+﻿using RichHudFramework.Internal;
+using System;
 using System.Collections.Generic;
 using VRage;
-using RichHudFramework.Game;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using EventAccessor = VRage.MyTuple<bool, System.Action>;
 using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
@@ -170,12 +170,12 @@ namespace RichHudFramework
                 {
                     Item1 = () => Visible,
                     Item2 = this,
-                    Item3 = () => RichHudCore.Instance.RunSafeAction(BeforeDrawStart),
-                    Item4 = () => RichHudCore.Instance.RunSafeAction(DrawStart),
-                    Item5 = () => RichHudCore.Instance.RunSafeAction(HandleInputStart),
+                    Item3 = () => ExceptionHandler.Run(BeforeDrawStart),
+                    Item4 = () => ExceptionHandler.Run(DrawStart),
+                    Item5 = () => ExceptionHandler.Run(HandleInputStart),
                     Item6 = GetOrSetMember
                 };
-            }           
+            }
         }
     }
 }

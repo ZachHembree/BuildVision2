@@ -1,4 +1,6 @@
-﻿using RichHudFramework.Game;
+﻿using RichHudFramework;
+using RichHudFramework.Internal;
+using RichHudFramework.IO;
 using Sandbox.ModAPI;
 using System;
 using VRage;
@@ -18,7 +20,7 @@ namespace RichHudFramework.Client
 
         public static bool Registered => Instance != null ? Instance.registered : false;
         private static RichHudClient Instance { get; set; }
-        
+
         private readonly ClientData regMessage;
         private readonly Action InitAction, ReloadAction;
 
@@ -30,9 +32,9 @@ namespace RichHudFramework.Client
         {
             InitAction = InitCallback;
             ReloadAction = ReloadCallback;
-            RichHudCore.MainModName = modName;
+            ExceptionHandler.ModName = modName;
 
-            regMessage = new ClientData(modName, MessageHandler, () => RunSafeAction(RemoteReload), versionID);
+            regMessage = new ClientData(modName, MessageHandler, () => ExceptionHandler.Run(RemoteReload), versionID);
         }
 
         /// <summary>
@@ -54,13 +56,6 @@ namespace RichHudFramework.Client
                 }
             }
         }
-
-        /// <summary>
-        /// Initialzes and registers the client with the API if it is not already registered.
-        /// </summary>
-        /// <param name="InitCallback">Invoked upon successfully registering with the API.</param>
-        public static void Init(ModBase main, Action InitCallback) =>
-            Init(main.ModName, InitCallback, main.Reload);
 
         /// <summary>
         /// Unregisters the client and resets all framework modules.
@@ -117,14 +112,14 @@ namespace RichHudFramework.Client
                     GetApiDataFunc = data.Item2;
                     registered = true;
 
-                    RunSafeAction(InitAction);
+                    ExceptionHandler.Run(InitAction);
                 }
                 else if (msgType == MsgTypes.RegistrationFailed)
                 {
                     if (message is string)
-                        WriteToLogStart($"Rich HUD API registration failed. Message: {message as string}");
+                        LogIO.WriteToLogStart($"Rich HUD API registration failed. Message: {message as string}");
                     else
-                        WriteToLogStart($"Rich HUD API registration failed.");
+                        LogIO.WriteToLogStart($"Rich HUD API registration failed.");
 
                     regFail = true;
                 }
@@ -146,7 +141,7 @@ namespace RichHudFramework.Client
             Unregister();
             Instance = null;
         }
-        
+
         private void RemoteReload()
         {
             if (registered)
@@ -186,9 +181,6 @@ namespace RichHudFramework.Client
             protected T GetApiData()
             {
                 object data = Instance?.GetApiDataFunc((int)componentType);
-
-                if (data == null)
-                    TryWriteToLog($"API Data for {componentType.ToString()} is null.");
 
                 return (T)data;
             }

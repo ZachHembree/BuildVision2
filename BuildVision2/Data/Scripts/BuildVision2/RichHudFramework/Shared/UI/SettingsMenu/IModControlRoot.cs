@@ -21,7 +21,7 @@ namespace RichHudFramework
         /// <summary>
         /// Used by the API to specify to request a given type of settings menu control
         /// </summary>
-        internal enum MenuControls : int
+        public enum MenuControls : int
         {
             Checkbox = 1,
             ColorPicker = 2,
@@ -34,19 +34,19 @@ namespace RichHudFramework
             DragBox = 9,
         }
 
-        internal enum ControlContainers : int
+        public enum ControlContainers : int
         {
             Tile = 1,
             Category = 2,
         }
 
-        internal enum ModPages : int
+        public enum ModPages : int
         {
             ControlPage = 1,
             RebindPage = 2,
         }
 
-        internal enum ModControlRootAccessors : int
+        public enum ModControlRootAccessors : int
         {
             /// <summary>
             /// MyTuple<bool, Action>

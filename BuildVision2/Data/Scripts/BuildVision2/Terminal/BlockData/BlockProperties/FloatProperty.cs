@@ -7,7 +7,7 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal partial class PropertyBlock
+    public partial class PropertyBlock
     {
         /// <summary>
         /// Block Terminal Property of a Float
@@ -85,9 +85,6 @@ namespace DarkHelmet.BuildVision2
 
             public override bool TryParseValue(string text, out float value) =>
                 float.TryParse(text, out value);
-
-            public override PropertyData GetPropertyData() =>
-                new PropertyData(PropName, ID, GetValue().ToString());
 
             /// <summary>
             /// Changes property float value based on given delta.

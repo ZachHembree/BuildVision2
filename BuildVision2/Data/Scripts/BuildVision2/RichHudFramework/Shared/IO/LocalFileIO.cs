@@ -24,7 +24,7 @@ namespace RichHudFramework.IO
         /// </summary>
         public KnownException TryDuplicate(string newName)
         {
-            byte[] data;
+            string data;
             KnownException exception = TryRead(out data);
             LocalFileIO newFile;
 
@@ -161,7 +161,7 @@ namespace RichHudFramework.IO
                 try
                 {
                     writer = MyAPIGateway.Utilities.WriteFileInLocalStorage(file, typeof(LocalFileIO));
-                    writer.WriteLine(data);
+                    writer.Write(data);
                     writer.Flush();
                 }
                 catch (Exception e)

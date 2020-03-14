@@ -11,7 +11,7 @@ namespace RichHudFramework.UI
     using CollectionData = MyTuple<Func<int, ApiMemberAccessor>, Func<int>>;
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
 
-    internal enum ListBoxAccessors : int
+    public enum ListBoxAccessors : int
     {
         /// <summary>
         /// CollectionData

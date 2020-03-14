@@ -31,19 +31,6 @@ namespace RichHudFramework.UI
         public override Vector2 TextPadding { get { return left.Padding; } set { left.Padding = value; right.Padding = value; } }
 
         /// <summary>
-        /// Padding applied to the label box.
-        /// </summary>
-        public override Vector2 Padding
-        {
-            set
-            {
-                base.Padding = value;
-                left.Offset = new Vector2(Padding.X / 2f, 0f);
-                right.Offset = -left.Offset;
-            }
-        }
-
-        /// <summary>
         /// Determines whether or not the text box can be resized manually.
         /// </summary>
         public override bool AutoResize { get { return left.AutoResize; } set { left.AutoResize = value; right.AutoResize = value; } }
@@ -70,8 +57,8 @@ namespace RichHudFramework.UI
 
         public DoubleLabelBox(IHudParent parent = null) : base(parent)
         {
-            left = new Label(this) { ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH };
-            right = new Label(this) { ParentAlignment = ParentAlignments.Right | ParentAlignments.InnerH };
+            left = new Label(this) { ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH | ParentAlignments.UsePadding };
+            right = new Label(this) { ParentAlignment = ParentAlignments.Right | ParentAlignments.InnerH | ParentAlignments.UsePadding };
         }
     }
 }

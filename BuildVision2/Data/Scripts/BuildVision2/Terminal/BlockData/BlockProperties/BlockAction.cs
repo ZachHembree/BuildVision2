@@ -9,7 +9,7 @@ using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal partial class PropertyBlock
+    public partial class PropertyBlock
     {
         /// <summary>
         /// Custom block actions

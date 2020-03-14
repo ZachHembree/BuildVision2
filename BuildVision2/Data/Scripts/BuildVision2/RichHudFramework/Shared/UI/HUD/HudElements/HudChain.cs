@@ -110,19 +110,19 @@ namespace RichHudFramework.UI
         {
             if (elements != null && elements.Count > 0)
             {
-                Vector2 offset = Vector2.Zero, size;
+                Vector2 offset = Vector2.Zero, size = Size - Padding;
 
                 if (AlignVertical)
                 {
-                    size = GetSizeVertical();
                     offset.Y = size.Y / 2f;
                     UpdateOffsetsVertical(offset, size);
+                    size = GetSizeVertical();
                 }
                 else
                 {
-                    size = GetSizeHorizontal();
                     offset.X = -size.X / 2f;
                     UpdateOffsetsHorizontal(offset, size);
+                    size = GetSizeHorizontal();
                 }
 
                 Size = size + Padding;

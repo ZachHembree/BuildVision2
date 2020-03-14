@@ -1,11 +1,11 @@
-﻿using RichHudFramework.Game;
-using ParallelTasks;
+﻿using ParallelTasks;
+using RichHudFramework.Internal;
 using Sandbox.ModAPI;
-using VRageMath;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using VRageMath;
 
 namespace RichHudFramework
 {
@@ -39,8 +39,8 @@ namespace RichHudFramework
     }
 
     /// <summary>
-    /// Used to separate exceptions thrown manually in a task from random unhandled exceptions that weren't planned for
-    /// in the application.
+    /// Used to separate exceptions thrown manually in response to expected exceptions. Usually used in conjunction 
+    /// with IO/serialization operations.
     /// </summary>
     public class KnownException : Exception
     {
@@ -54,7 +54,7 @@ namespace RichHudFramework
         { }
     }
 
-    public class TaskPool : InternalComponentBase
+    public class TaskPool : RichHudComponentBase
     {
         /// <summary>
         /// Sets the limit for the total number of tasks running in all <see cref="TaskPool"/>s.
@@ -82,7 +82,7 @@ namespace RichHudFramework
         }
 
         /// <summary>
-        /// Updates internal task/action queues and runs exception handling.
+        /// Updates public task/action queues and runs exception handling.
         /// </summary>
         public override void Update()
         {
@@ -96,7 +96,9 @@ namespace RichHudFramework
         /// </summary>
         public void EnqueueTask(Action action)
         {
-            if (Parent.Unloading)
+            if (Parent == null && RichHudCore.Instance != null)
+                RegisterComponent(RichHudCore.Instance);
+            else if (ExceptionHandler.Unloading)
                 throw new Exception("New tasks cannot be started while the mod is being unloaded.");
 
             tasksWaiting.Enqueue(action);
@@ -107,6 +109,11 @@ namespace RichHudFramework
         /// </summary>
         public void EnqueueAction(Action action)
         {
+            if (Parent == null && RichHudCore.Instance != null)
+                RegisterComponent(RichHudCore.Instance);
+            else if (ExceptionHandler.Unloading)
+                throw new Exception("New tasks cannot be started while the mod is being unloaded.");
+
             actions.Enqueue(action);
         }
 

@@ -1,28 +1,27 @@
-﻿using RichHudFramework.Game;
+﻿using RichHudFramework;
 using RichHudFramework.Client;
-using RichHudFramework.UI;
+using RichHudFramework.Internal;
 using RichHudFramework.IO;
-using RichHudFramework;
+using RichHudFramework.UI;
 using Sandbox.ModAPI;
+using System;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRageMath;
-using System;
 
 namespace DarkHelmet.BuildVision2
 {
     /// <summary>
-    /// Build vision main class
+    /// Build Vision main class
     /// </summary>
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, 0)]
-    internal sealed partial class BvMain : ModBase
+    public sealed partial class BvMain : ModBase
     {
         public static BvMain Instance { get; private set; }
         public static BvConfig Cfg => BvConfig.Current;
 
         private PropertyBlock target;
-        private CmdManager.Group bvCommands;
 
         public BvMain() : base(false, true)
         {
@@ -31,23 +30,26 @@ namespace DarkHelmet.BuildVision2
             else
                 throw new Exception("Only one instance of BvMain can exist at any given time.");
 
-            ModName = "Build Vision";
             LogIO.FileName = "bvLog.txt";
             BvConfig.FileName = "BuildVision2Config.xml";
 
-            promptForReload = true;
-            recoveryLimit = 2;
+            ExceptionHandler.ModName = "Build Vision";
+            ExceptionHandler.PromptForReload = true;
+            ExceptionHandler.RecoveryLimit = 3;
         }
 
         protected override void AfterInit()
         {
-            RichHudClient.Init(ModName, HudInit, Reload);
+            CanUpdate = false;
+            RichHudClient.Init(ExceptionHandler.ModName, HudInit, Reload);
         }
 
         private void HudInit()
         {
+            CanUpdate = true;
+
             BvConfig.Load(true);
-            bvCommands = CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
+            CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
             InitSettingsMenu();
 
             BvBinds.Open.OnNewPress += TryOpenMenu;
@@ -55,15 +57,14 @@ namespace DarkHelmet.BuildVision2
             SharedBinds.Escape.OnNewPress += TryCloseMenu;
         }
 
-        protected override void BeforeClose()
+        public override void BeforeClose()
         {
             BvConfig.Save();
             TryCloseMenu();
 
-            if (Reloading)
+            if (!ExceptionHandler.Unloading)
                 RichHudClient.Reset();
-
-            if (Unloading)
+            else
                 Instance = null;
         }
 
@@ -77,7 +78,7 @@ namespace DarkHelmet.BuildVision2
         /// Checks if the player can access the targeted block.
         /// </summary>
         private bool CanAccessTargetBlock() =>
-            target != null && BlockInRange() && target.CanLocalPlayerAccess && (!Cfg.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(target.TBlock));
+            target?.TBlock != null && BlockInRange() && target.CanLocalPlayerAccess && (!Cfg.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(target.TBlock));
 
         /// <summary>
         /// Opens the menu and/or updates the current target if that target is valid. If it isn't, it closes the menu.
@@ -184,7 +185,7 @@ namespace DarkHelmet.BuildVision2
                 dist = (LocalPlayer.Position - target.GetPosition()).LengthSquared();
 
             return dist < (Cfg.general.maxControlRange * Cfg.general.maxControlRange);
-        }        
+        }
     }
 
     public abstract class BvComponentBase : ModBase.ComponentBase

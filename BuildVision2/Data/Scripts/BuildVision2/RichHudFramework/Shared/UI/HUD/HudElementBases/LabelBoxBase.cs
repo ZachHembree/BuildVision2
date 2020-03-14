@@ -29,6 +29,8 @@ namespace RichHudFramework
             /// </summary>
             public abstract bool AutoResize { get; set; }
 
+            public bool FitToTextElement { get; set; }
+
             /// <summary>
             /// Background color
             /// </summary>
@@ -41,25 +43,35 @@ namespace RichHudFramework
 
             public override float Width
             {
-                get { return TextSize.X + Padding.X; }
+                get { return FitToTextElement ? TextSize.X + Padding.X : base.Width; }
                 set
                 {
-                    if (value > Padding.X)
-                        value -= Padding.X;
+                    if (FitToTextElement)
+                    {
+                        if (value > Padding.X)
+                            value -= Padding.X;
 
-                    TextSize = new Vector2(value, TextSize.Y);
+                        TextSize = new Vector2(value, TextSize.Y);
+                    }
+                    else
+                        base.Width = value;
                 }
             }
 
             public override float Height
             {
-                get { return TextSize.Y + Padding.Y; }
+                get { return FitToTextElement ? TextSize.Y + Padding.Y : base.Height; }
                 set
                 {
-                    if (value > Padding.Y)
-                        value -= Padding.Y;
+                    if (FitToTextElement)
+                    {
+                        if (value > Padding.Y)
+                            value -= Padding.Y;
 
-                    TextSize = new Vector2(TextSize.X, value);
+                        TextSize = new Vector2(TextSize.X, value);
+                    }
+                    else
+                        base.Height = value;
                 }
             }
 
@@ -67,7 +79,7 @@ namespace RichHudFramework
             {
                 background = new TexturedBox(this)
                 {
-                    DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                    DimAlignment = DimAlignments.Both,
                 };
             }
         }

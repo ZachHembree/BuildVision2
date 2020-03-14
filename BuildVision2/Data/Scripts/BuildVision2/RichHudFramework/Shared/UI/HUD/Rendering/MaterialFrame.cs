@@ -25,7 +25,7 @@ namespace RichHudFramework
             /// <summary>
             /// Defines the positioning and alignment of a Material on a QuadBoard.
             /// </summary>
-            internal class MaterialFrame
+            public class MaterialFrame
             {
                 /// <summary>
                 /// Texture associated with the frame

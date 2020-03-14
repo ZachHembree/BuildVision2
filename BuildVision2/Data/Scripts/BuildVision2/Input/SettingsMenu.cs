@@ -1,7 +1,7 @@
-﻿using RichHudFramework.Game;
+﻿using RichHudFramework;
+using RichHudFramework.Internal;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
-using RichHudFramework;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,14 +10,14 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal sealed partial class BvMain
+    public sealed partial class BvMain
     {
         private void InitSettingsMenu()
         {
             RichHudTerminal.Root.Enabled = true;
 
             RichHudTerminal.Root.Add(new ControlPage()
-            { 
+            {
                 Name = "Settings",
                 CategoryContainer =
                 {
@@ -33,7 +33,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Binds",
                 GroupContainer =
                 {
-                    { BvBinds.BindGroup, BindsConfig.DefaultBinds },
+                    { BvBinds.BindGroup, BindsConfig.DefaultBinds.GetBindDefinitions() },
                 }
             });
         }
@@ -314,7 +314,7 @@ namespace DarkHelmet.BuildVision2
                     PropertyBlock.Cfg.Validate();
                 },
             };
-            
+
             var tile2 = new ControlTile()
             {
                 floatMultX,
@@ -384,13 +384,13 @@ namespace DarkHelmet.BuildVision2
             var openHelp = new TerminalButton()
             {
                 Name = "Open help menu",
-                ControlChangedAction = x => ShowMessageScreen("Help", GetHelpMessage())
+                ControlChangedAction = x => ExceptionHandler.ShowMessageScreen("Help", GetHelpMessage())
             };
 
             var openBindHelp = new TerminalButton()
             {
                 Name = "Open bind help",
-                ControlChangedAction = x => ShowMessageScreen("Bind Help", GetBindHelpMessage()),
+                ControlChangedAction = x => ExceptionHandler.ShowMessageScreen("Bind Help", GetBindHelpMessage()),
             };
 
             var tile1 = new ControlTile()

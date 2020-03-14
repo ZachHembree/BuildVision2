@@ -10,7 +10,7 @@ using VRage.Utils;
 
 namespace DarkHelmet.BuildVision2
 {
-    internal partial class PropertyBlock
+    public partial class PropertyBlock
     {
         /// <summary>
         /// Block Terminal Property of a Boolean
@@ -94,18 +94,11 @@ namespace DarkHelmet.BuildVision2
                 return $"({disp} {suffix})";
             }
 
-            private static string GetGasTankFillPercent(IMyGasTank gasTank)
-            {
-                return $"({Math.Round(gasTank.FilledRatio * 100d, 1)}%)";
-            }
+            private static string GetGasTankFillPercent(IMyGasTank gasTank) =>
+                $"({Math.Round(gasTank.FilledRatio * 100d, 1)}%)";
 
-            public void Action()
-            {
+            public void Action() =>
                 SetValue(!GetValue());
-            }
-
-            public override PropertyData GetPropertyData() =>
-                new PropertyData(PropName, ID, GetValue().ToString());
 
             public override bool TryParseValue(string valueData, out bool value) =>
                 bool.TryParse(valueData, out value);

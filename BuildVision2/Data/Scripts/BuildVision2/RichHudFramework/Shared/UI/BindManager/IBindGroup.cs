@@ -23,7 +23,7 @@ namespace RichHudFramework
     {
         using Client;
 
-        internal enum BindGroupAccessors : int
+        public enum BindGroupAccessors : int
         {
             /// <summary>
             /// In: MyTuple{IList{int}, int}, Out: bool

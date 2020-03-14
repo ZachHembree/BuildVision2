@@ -3,6 +3,7 @@ using RichHudFramework.IO;
 using RichHudFramework.UI;
 using System.Xml.Serialization;
 using VRageMath;
+using VRage.Input;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -25,7 +26,7 @@ namespace DarkHelmet.BuildVision2
         {
             return new BvConfig
             {
-                VersionID = 7,
+                VersionID = 8,
                 general = GeneralConfig.Defaults,
                 menu = PropMenuConfig.Defaults,
                 block = PropBlockConfig.Defaults,
@@ -43,9 +44,6 @@ namespace DarkHelmet.BuildVision2
 
             if (VersionID < 5)
                 block = PropBlockConfig.Defaults;
-
-            if (VersionID != Defaults.VersionID)
-                VersionID = Defaults.VersionID;
 
             if (general != null)
                 general.Validate();
@@ -66,6 +64,9 @@ namespace DarkHelmet.BuildVision2
                 block.Validate();
             else
                 block = PropBlockConfig.Defaults;
+
+            if (VersionID != Defaults.VersionID)
+                VersionID = Defaults.VersionID;
         }
     }
 
@@ -248,37 +249,37 @@ namespace DarkHelmet.BuildVision2
     public class BindsConfig : Config<BindsConfig>
     {
         [XmlIgnore]
-        public static BindDefinition[] DefaultBinds
+        public static BindGroupData DefaultBinds
         {
             get
             {
-                BindDefinition[] copy = new BindDefinition[defaultBinds.Length];
+                return new BindGroupData()
+                {
+                    { "Open", MyKeys.Control, MyKeys.MiddleButton },
+                    { "Close", MyKeys.Shift, MyKeys.MiddleButton },
 
-                for (int n = 0; n < defaultBinds.Length; n++)
-                    copy[n] = defaultBinds[n];
+                    { "Select", MyKeys.MiddleButton },
+                    { "ScrollUp", RichHudControls.MousewheelUp },
+                    { "ScrollDown", RichHudControls.MousewheelDown },
+                    { "MultX", MyKeys.Control },
+                    { "MultY", MyKeys.Shift },
+                    { "MultZ", MyKeys.Control, MyKeys.Shift },
 
-                return copy;
+                    { "ToggleSelectMode", MyKeys.Home },
+                    { "SelectAll", MyKeys.Insert },
+                    { "CopySelection", MyKeys.PageUp },
+                    { "PasteProperties", MyKeys.PageDown },
+                    { "UndoPaste", MyKeys.Delete },
+                };
             }
         }
-
-        private static readonly BindDefinition[] defaultBinds = new BindDefinition[]
-        {
-            new BindDefinition("open", new string[] { "control", "middlebutton" }),
-            new BindDefinition("close", new string[] { "shift", "middlebutton" }),
-            new BindDefinition("select", new string[] { "middlebutton" }),
-            new BindDefinition("scrollup", new string[] { "mousewheelup" }),
-            new BindDefinition("scrolldown", new string[] { "mousewheeldown" }),
-            new BindDefinition("multx", new string[] { "control" }),
-            new BindDefinition("multy", new string[] { "shift" }),
-            new BindDefinition("multz", new string[] { "control", "shift" })
-        };
 
         [XmlArray("KeyBinds")]
         public BindDefinition[] bindData;
 
         protected override BindsConfig GetDefaults()
         {
-            return new BindsConfig { bindData = DefaultBinds };
+            return new BindsConfig { bindData = DefaultBinds.GetBindDefinitions() };
         }
 
         /// <summary>
@@ -286,8 +287,19 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public override void Validate()
         {
-            if (bindData == null || bindData.Length != defaultBinds.Length)
-                bindData = DefaultBinds;
+            BindDefinition[] defaults = DefaultBinds.GetBindDefinitions();
+
+            if (bindData == null || bindData.Length == 0)
+                bindData = defaults;
+            else if (bindData.Length == 8)
+            {
+                for (int n = 0; n < 8; n++)
+                    defaults[n] = bindData[n];
+
+                bindData = defaults;
+            }
+            else if (bindData.Length < defaults.Length)
+                bindData = defaults;
         }
     }
 }

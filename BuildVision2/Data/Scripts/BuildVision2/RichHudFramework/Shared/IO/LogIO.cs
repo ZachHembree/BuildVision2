@@ -1,13 +1,13 @@
-﻿using RichHudFramework.Game;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using RichHudFramework.Internal;
 
 namespace RichHudFramework.IO
 {
     /// <summary>
     /// Handles logging
     /// </summary>
-    public sealed class LogIO : InternalParallelComponentBase
+    public sealed class LogIO : RichHudParallelComponentBase
     {
         public static bool Accessible => Instance.accessible;
         public static string FileName 
@@ -25,9 +25,11 @@ namespace RichHudFramework.IO
         private static LogIO Instance
         { 
             get 
-            { 
-                if (_instance == null) 
-                    Init(); 
+            {
+                if (_instance == null)
+                    _instance = new LogIO();
+                else if (_instance.Parent == null && RichHudCore.Instance != null)
+                    _instance.RegisterComponent(RichHudCore.Instance);
 
                 return _instance; 
             } 
@@ -46,14 +48,6 @@ namespace RichHudFramework.IO
             logFile = new LocalFileIO(_fileName);
         }
 
-        private static void Init()
-        {
-            if (_instance == null)
-            {
-                _instance = new LogIO();
-            }
-        }
-
         protected override void ErrorCallback(List<KnownException> known, AggregateException unknown)
         {
             if ((known != null && known.Count > 0) || unknown != null)
@@ -62,17 +56,17 @@ namespace RichHudFramework.IO
 
                 if (known != null && known.Count > 0)
                     foreach (Exception e in known)
-                        SendChatMessage(e.Message);
+                        ExceptionHandler.SendChatMessage(e.Message);
 
                 if (unknown != null)
                     throw unknown;
             }
         }
 
-        public new static bool TryWriteToLog(string message) =>
+        public static bool TryWriteToLog(string message) =>
             Instance.TryWriteToLogInternal(message);
 
-        public new static void WriteToLogStart(string message) =>
+        public static void WriteToLogStart(string message) =>
             Instance.WriteToLogStartInternal(message);
 
         /// <summary>
@@ -87,13 +81,13 @@ namespace RichHudFramework.IO
 
                 if (exception != null)
                 {
-                    SendChatMessage("Unable to update log; please check your file access permissions.");
+                    ExceptionHandler.SendChatMessage("Unable to update log; please check your file access permissions.");
                     accessible = false;
                     throw exception;
                 }
                 else
                 {
-                    SendChatMessage("Log updated.");
+                    ExceptionHandler.SendChatMessage("Log updated.");
                     accessible = true;
                     return true;
                 }
@@ -131,14 +125,14 @@ namespace RichHudFramework.IO
             if (!success)
             {
                 if (accessible)
-                    SendChatMessage("Unable to update log; please check your file access permissions.");
+                    ExceptionHandler.SendChatMessage("Unable to update log; please check your file access permissions.");
 
                 accessible = false;
             }
             else
             {
                 if (accessible)
-                    SendChatMessage("Log updated.");
+                    ExceptionHandler.SendChatMessage("Log updated.");
 
                 accessible = true;
             }

@@ -1,8 +1,8 @@
-﻿using RichHudFramework.Game;
-using Sandbox.ModAPI;
+﻿using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using RichHudFramework.Internal;
 
 namespace RichHudFramework.IO
 {
@@ -138,10 +138,18 @@ namespace RichHudFramework.IO
             public bool SaveInProgress { get; private set; }
             public static ConfigIO Instance
             {
-                get { Init(); return instance; }
-                private set { instance = value; }
+                get
+                {
+                    if (_instance == null)
+                        _instance = new ConfigIO();
+                    else if (_instance.Parent == null && RichHudCore.Instance != null)
+                        _instance.RegisterComponent(RichHudCore.Instance);
+
+                    return _instance;
+                }
+                private set { _instance = value; }
             }
-            private static ConfigIO instance;
+            private static ConfigIO _instance;
 
             public static string FileName { get { return fileName; } set { if (value != null && value.Length > 0) fileName = value; } }
             private static string fileName = $"{typeof(ConfigT).Name}.xml";
@@ -154,17 +162,6 @@ namespace RichHudFramework.IO
                 SaveInProgress = false;
             }
 
-            private static void Init()
-            {
-                if (instance == null)
-                    instance = new ConfigIO();
-            }
-
-            public override void Close()
-            {
-                Instance = null;
-            }
-
             protected override void ErrorCallback(List<KnownException> known, AggregateException unknown)
             {
                 if (known != null && known.Count > 0)
@@ -174,17 +171,17 @@ namespace RichHudFramework.IO
 
                     foreach (Exception e in known)
                     {
-                        SendChatMessage(e.Message);
+                        ExceptionHandler.SendChatMessage(e.Message);
                         exceptions += e.ToString();
                     }
 
-                    WriteToLogStart(exceptions);
+                    LogIO.WriteToLogStart(exceptions);
                 }
 
                 if (unknown != null)
                 {
-                    WriteToLogStart("\nConfig operation failed.\n" + unknown.ToString());
-                    SendChatMessage("Config operation failed.");
+                    LogIO.WriteToLogStart("\nConfig operation failed.\n" + unknown.ToString());
+                    ExceptionHandler.SendChatMessage("Config operation failed.");
                     SaveInProgress = false;
 
                     throw unknown;
@@ -204,7 +201,7 @@ namespace RichHudFramework.IO
                     SaveInProgress = true;
 
                     if (!silent)
-                        SendChatMessage("Loading configuration...");
+                        ExceptionHandler.SendChatMessage("Loading configuration...");
 
                     if (cfgFile.FileExists)
                     {
@@ -217,12 +214,12 @@ namespace RichHudFramework.IO
                     TrySave(cfg);
 
                     if (loadException != null)
-                        TryWriteToLog(loadException.ToString());
+                        LogIO.TryWriteToLog(loadException.ToString());
                     else if (!silent)
-                        SendChatMessage("Configuration loaded.");
+                        ExceptionHandler.SendChatMessage("Configuration loaded.");
                 }
                 else
-                    SendChatMessage("Save operation already in progress.");
+                    ExceptionHandler.SendChatMessage("Save operation already in progress.");
 
                 SaveInProgress = false;
                 return cfg;
@@ -236,7 +233,7 @@ namespace RichHudFramework.IO
                 if (!SaveInProgress)
                 {
                     SaveInProgress = true;
-                    if (!silent) SendChatMessage("Loading configuration...");
+                    if (!silent) ExceptionHandler.SendChatMessage("Loading configuration...");
 
                     EnqueueTask(() =>
                     {
@@ -272,7 +269,7 @@ namespace RichHudFramework.IO
                     });
                 }
                 else
-                    SendChatMessage("Save operation already in progress.");
+                    ExceptionHandler.SendChatMessage("Save operation already in progress.");
             }
 
             private ConfigT ValidateConfig(ConfigT cfg)
@@ -281,7 +278,7 @@ namespace RichHudFramework.IO
                 {
                     if (cfg.VersionID != Defaults.VersionID)
                     {
-                        EnqueueAction(() => SendChatMessage("Config version mismatch. Some settings may have " +
+                        EnqueueAction(() => ExceptionHandler.SendChatMessage("Config version mismatch. Some settings may have " +
                             "been reset. A backup of the original config file will be made."));
 
                         Backup();
@@ -292,7 +289,7 @@ namespace RichHudFramework.IO
                 }
                 else
                 {
-                    EnqueueAction(() => SendChatMessage("Unable to load configuration."));
+                    EnqueueAction(() => ExceptionHandler.SendChatMessage("Unable to load configuration."));
                     return Defaults;
                 }
             }
@@ -304,7 +301,7 @@ namespace RichHudFramework.IO
                     if (!silent)
                     {
                         if (success)
-                            SendChatMessage("Configuration loaded.");
+                            ExceptionHandler.SendChatMessage("Configuration loaded.");
                     }
 
                     SaveInProgress = false;
@@ -318,7 +315,7 @@ namespace RichHudFramework.IO
             {
                 if (!SaveInProgress)
                 {
-                    if (!silent) SendChatMessage("Saving configuration...");
+                    if (!silent) ExceptionHandler.SendChatMessage("Saving configuration...");
                     SaveInProgress = true;
 
                     EnqueueTask(() =>
@@ -339,7 +336,7 @@ namespace RichHudFramework.IO
                     });
                 }
                 else
-                    SendChatMessage("Save operation already in progress.");
+                    ExceptionHandler.SendChatMessage("Save operation already in progress.");
             }
 
             private void SaveFinish(bool success, bool silent = false)
@@ -349,9 +346,9 @@ namespace RichHudFramework.IO
                     if (!silent)
                     {
                         if (success)
-                            SendChatMessage("Configuration saved.");
+                            ExceptionHandler.SendChatMessage("Configuration saved.");
                         else
-                            SendChatMessage("Unable to save configuration.");
+                            ExceptionHandler.SendChatMessage("Unable to save configuration.");
                     }
 
                     SaveInProgress = false;

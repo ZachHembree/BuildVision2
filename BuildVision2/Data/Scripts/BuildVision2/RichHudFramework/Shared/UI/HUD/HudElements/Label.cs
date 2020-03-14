@@ -44,7 +44,7 @@ namespace RichHudFramework.UI
 
         public override float Width
         {
-            get { return (AutoResize ? _textBoard.Size.X : _textBoard.FixedSize.X) + Padding.X; }
+            get { return _textBoard.Size.X + Padding.X; }
             set
             {
                 if (value > Padding.X)
@@ -56,7 +56,7 @@ namespace RichHudFramework.UI
 
         public override float Height
         {
-            get { return (AutoResize ? _textBoard.Size.Y : _textBoard.FixedSize.Y) + Padding.Y; }
+            get { return _textBoard.Size.Y + Padding.Y; }
             set
             {
                 if (value > Padding.Y)
@@ -75,12 +75,10 @@ namespace RichHudFramework.UI
 
         protected override void Draw()
         {
-            if (_textBoard.Scale != Scale)
-            {
-                _textBoard.Scale = Scale;
-            }
+            if (_textBoard.Scale != _scale)
+                _textBoard.Scale = _scale;
 
-            _textBoard.Draw(Origin + Offset);
+            _textBoard.Draw(cachedPosition);
         }
     }
 }

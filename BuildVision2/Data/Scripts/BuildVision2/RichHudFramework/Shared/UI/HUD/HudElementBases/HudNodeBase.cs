@@ -15,7 +15,7 @@ namespace RichHudFramework
 
     namespace UI
     {
-        internal enum HudNodeAccessors : int
+        public enum HudNodeAccessors : int
         {
             GetParentID = 10,
             GetParentData = 11,
@@ -61,7 +61,7 @@ namespace RichHudFramework
             /// <summary>
             /// Registers the element to the given parent object.
             /// </summary>
-            public void Register(IHudParent parent)
+            public virtual void Register(IHudParent parent)
             {
                 if (parent != null && Parent == null)
                 {
@@ -74,7 +74,7 @@ namespace RichHudFramework
             /// <summary>
             /// Unregisters the element from its parent, if it has one.
             /// </summary>
-            public void Unregister()
+            public virtual void Unregister()
             {
                 if (Parent != null)
                 {

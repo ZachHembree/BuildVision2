@@ -1,7 +1,7 @@
 ﻿namespace DarkHelmet.BuildVision2
 {
 
-    internal partial class PropertyBlock
+    public partial class PropertyBlock
     {
         private abstract class BlockMemberBase : IBlockMember
         {

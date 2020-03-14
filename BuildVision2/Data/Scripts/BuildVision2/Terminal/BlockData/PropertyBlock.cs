@@ -1,4 +1,5 @@
 using RichHudFramework;
+using RichHudFramework.Internal;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using VRage;
 using VRageMath;
+using VRage.ModAPI;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
 using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
 
@@ -14,7 +16,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Block property data used by the menu
     /// </summary>
-    internal partial class PropertyBlock
+    public partial class PropertyBlock
     {
         public static PropBlockConfig Cfg { get { return BvConfig.Current.block; } set { BvConfig.Current.block = value; } }
 
@@ -41,17 +43,17 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// True if the block integrity is above its breaking threshold
         /// </summary>
-        public bool IsFunctional { get { return TBlock.IsFunctional; } }
+        public bool IsFunctional { get { return TBlock != null && TBlock.IsFunctional; } }
 
         /// <summary>
         /// True if the block is functional and able to do work.
         /// </summary>
-        public bool IsWorking { get { return TBlock.IsWorking; } }
+        public bool IsWorking { get { return TBlock != null && TBlock.IsWorking; } }
 
         /// <summary>
         /// True if the local player has terminal access permissions
         /// </summary>
-        public bool CanLocalPlayerAccess { get { return TBlock.HasLocalPlayerAccess(); } }
+        public bool CanLocalPlayerAccess { get { return TBlock != null && TBlock.HasLocalPlayerAccess(); } }
 
         public readonly Vector3D modelOffset;
 
@@ -73,23 +75,41 @@ namespace DarkHelmet.BuildVision2
             BoundingBoxD bb;
             tBlock.SlimBlock.GetWorldBoundingBox(out bb);
             modelOffset = bb.Center - tBlock.GetPosition();
+
+            TBlock.SlimBlock.FatBlock.OnMarkForClose += BlockClosing;
+        }
+
+        private void BlockClosing(IMyEntity entity)
+        {
+            // Null the block reference to avoid holding onto a block that no longer exists
+            TBlock = null;
         }
 
         /// <summary>
         /// Gets the block's current position.
         /// </summary>
         public Vector3D GetPosition() =>
-            TBlock.GetPosition();
+             TBlock != null ? TBlock.GetPosition() : Vector3D.Zero;
 
-        public void ImportSettings(BlockData src)
+        /// <summary>
+        /// Applies property settings from block data and returns the number of properties successfully updated.
+        /// </summary>
+        public int ImportSettings(BlockData src)
         {
+            int importCount = 0;
+
             foreach (PropertyData propData in src.terminalProperties)
             {
                 BvTerminalPropertyBase prop = blockProperties.Find(x => (x.ID == propData.id) && (x.PropName == propData.name));
 
                 if (prop != null)
-                    prop.TryImportPropertyValue(propData);
+                {
+                    if (prop.TryImportPropertyValue(propData))
+                        importCount++;
+                }
             }
+
+            return importCount;
         }
 
         public BlockData ExportSettings()
@@ -99,7 +119,7 @@ namespace DarkHelmet.BuildVision2
             for (int n = 0; n < blockProperties.Count; n++)
                 propData.Add(blockProperties[n].GetPropertyData());
 
-            return new BlockData(TypeID, propData.ToArray());
+            return new BlockData(TypeID, propData);
         }
 
         private int GetEnabledElementCount()
@@ -121,16 +141,22 @@ namespace DarkHelmet.BuildVision2
             if (prop is IMyTerminalControlTitleTooltip)
             {
                 IMyTerminalControlTitleTooltip tooltip = (IMyTerminalControlTitleTooltip)prop;
-                int trailingSpaceLength = 0;
-                StringBuilder name = MyTexts.Get(tooltip.Title),
-                    cleanedName = new StringBuilder(name.Length);
+                StringBuilder name = MyTexts.Get(tooltip.Title), cleanedName;
+                int trailingCharacters = 0;
 
-                for (int n = name.Length - 1; (n >= 0 && name[n] == ' '); n--)
-                    trailingSpaceLength++;
-
-                for (int n = 0; n < name.Length - trailingSpaceLength; n++)
+                for (int n = name.Length - 1; n >= 0; n--)
                 {
-                    if (name[n] > 31)
+                    if ((name[n] >= '0' && name[n] <= '9') || name[n] >= 'A')
+                        break;
+                    else
+                        trailingCharacters++;
+                }
+
+                cleanedName = new StringBuilder(name.Length - trailingCharacters);
+
+                for (int n = 0; n < (name.Length - trailingCharacters); n++)
+                {
+                    if (name[n] >= ' ')
                         cleanedName.Append(name[n]);
                 }
 
@@ -151,7 +177,7 @@ namespace DarkHelmet.BuildVision2
 
                 for (int n = 0; n < text.Length; n++)
                 {
-                    if (text[n] > 31)
+                    if (text[n] >= ' ')
                         cleanedText.Append(text[n]);
                 }
 

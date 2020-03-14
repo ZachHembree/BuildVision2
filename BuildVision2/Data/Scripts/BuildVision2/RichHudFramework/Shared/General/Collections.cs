@@ -5,18 +5,42 @@ using System;
 
 namespace RichHudFramework
 {
+    /// <summary>
+    /// Interface for collections with an indexer and a count property.
+    /// </summary>
     public interface IIndexedCollection<T>
     {
+        /// <summary>
+        /// Returns the element associated with the given index.
+        /// </summary>
         T this[int index] { get; }
+
+        /// <summary>
+        /// The number of elements in the collection
+        /// </summary>
         int Count { get; }
     }
 
+    /// <summary>
+    /// An indexed, enumerable read-only collection
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface IReadOnlyCollection<T> : IIndexedCollection<T>, IEnumerable<T>
     { }
 
+    /// <summary>
+    /// Read-only wrapper for types of <see cref="IDictionary{TKey, TValue}"/>
+    /// </summary>
     public class ReadOnlyDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
+        /// <summary>
+        /// Returns the value associated with the given key
+        /// </summary>
         public TValue this[TKey key] => dictionary[key];
+
+        /// <summary>
+        /// Returns the number of entries in the dictionary
+        /// </summary>
         public int Count => dictionary.Count;
 
         protected readonly IDictionary<TKey, TValue> dictionary;

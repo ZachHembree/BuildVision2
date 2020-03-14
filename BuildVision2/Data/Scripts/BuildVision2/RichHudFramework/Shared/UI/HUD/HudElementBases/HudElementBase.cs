@@ -17,13 +17,13 @@ namespace RichHudFramework
             /// <summary>
             /// Parent object of the node.
             /// </summary>
-            public override IHudParent Parent
+            public sealed override IHudParent Parent
             {
                 get { return base.Parent; }
                 protected set
                 {
                     base.Parent = value;
-                    parent = value as HudElementBase;
+                    _parent = value as HudElementBase;
                 }
             }
 
@@ -31,16 +31,20 @@ namespace RichHudFramework
             /// Scales the size and offset of an element. Any offset or size set at a given
             /// be increased or decreased with scale. Defaults to 1f. Includes parent scale.
             /// </summary>
-            public virtual float Scale
+            public float Scale
             {
-                get { return (parent == null || ignoreParentScale) ? localScale : localScale * parentScale; }
-                set { localScale = value; }
+                get { return _scale; }
+                set 
+                { 
+                    localScale = value;
+                    _scale = (_parent == null || ignoreParentScale) ? value : (value * _parent._scale);
+                }
             }
 
             /// <summary>
             /// Size of the element in pixels.
             /// </summary>
-            public virtual Vector2 Size
+            public Vector2 Size
             {
                 get { return new Vector2(Width, Height); }
                 set { Width = value.X; Height = value.Y; }
@@ -51,13 +55,13 @@ namespace RichHudFramework
             /// </summary>
             public virtual float Width
             {
-                get { return (width * Scale) + Padding.X; }
+                get { return (_width * _scale) + Padding.X; }
                 set
                 {
                     if (Padding.X < value)
-                        width = (value - Padding.X) / Scale;
+                        _width = (value - Padding.X) / _scale;
                     else
-                        width = (value / Scale);
+                        _width = (value / _scale);
                 }
             }
 
@@ -66,30 +70,30 @@ namespace RichHudFramework
             /// </summary>
             public virtual float Height
             {
-                get { return (height * Scale) + Padding.Y; }
+                get { return (_height * _scale) + Padding.Y; }
                 set
                 {
                     if (Padding.Y < value)
-                        height = (value - Padding.Y) / Scale;
+                        _height = (value - Padding.Y) / _scale;
                     else
-                        height = (value / Scale);
+                        _height = (value / _scale);
                 }
             }
 
             /// <summary>
             /// Border size. Included in total element size.
             /// </summary>
-            public virtual Vector2 Padding { get { return padding * Scale; } set { padding = value / Scale; } }
+            public virtual Vector2 Padding { get { return _padding * _scale; } set { _padding = value / _scale; } }
 
             /// <summary>
             /// Starting position of the hud element on the screen in pixels.
             /// </summary>
-            public virtual Vector2 Origin => (parent == null) ? Vector2.Zero : (parent.Origin + parent.Offset + offsetAlignment);
+            public Vector2 Origin => (_parent == null) ? Vector2.Zero : (_parent.Origin + _parent.Offset + originAlignment);
 
             /// <summary>
             /// Position of the element relative to its origin.
             /// </summary>
-            public virtual Vector2 Offset { get { return offset * Scale; } set { offset = value / Scale; } }
+            public virtual Vector2 Offset { get { return _offset * _scale; } set { _offset = value / _scale; } }
 
             /// <summary>
             /// Absolute position of the hud element. Origin + Offset.
@@ -134,11 +138,14 @@ namespace RichHudFramework
             public bool ignoreParentScale;
 
             private const float minMouseBounds = 8f;
-            private float parentScale, localScale, width, height;
             private bool isMousedOver;
-            private Vector2 offset, padding, offsetAlignment;
+            private Vector2 _offset, _padding, originAlignment;
 
-            protected HudElementBase parent;
+            protected float localScale = 1f, _scale = 1f;
+            protected float _width, _height;
+            protected HudElementBase _parent;
+
+            protected Vector2 cachedOrigin, cachedPosition, cachedSize;
 
             /// <summary>
             /// Initializes a new hud element with cursor sharing enabled and scaling set to 1f.
@@ -148,9 +155,18 @@ namespace RichHudFramework
                 ShareCursor = true;
                 DimAlignment = DimAlignments.None;
                 ParentAlignment = ParentAlignments.Center;
+            }
 
-                localScale = 1f;
-                parentScale = 1f;
+            public override void Register(IHudParent parent)
+            {
+                base.Register(parent);
+                _scale = (_parent == null || ignoreParentScale) ? localScale : (localScale * _parent._scale);
+            }
+
+            public override void Unregister()
+            {
+                base.Unregister();
+                _scale = localScale;
             }
 
             public sealed override void HandleInputStart()
@@ -229,18 +245,33 @@ namespace RichHudFramework
                     (cursorPos.Y >= lowerBound && cursorPos.Y < upperBound);
             }
 
-            public override void BeforeDrawStart()
-            {             
-                base.BeforeDrawStart();
+            public sealed override void BeforeDrawStart()
+            {
+                UpdateCache();
+                BeforeDraw();
 
-                if (parent != null)
+                for (int n = 0; n < children.Count; n++)
                 {
-                    if (parentScale != parent.Scale)
-                        parentScale = parent.Scale;
-
-                    GetDimAlignment();
-                    offsetAlignment = GetParentAlignment();
+                    if (children[n].Visible)
+                        children[n].BeforeDrawStart();
                 }
+            }
+
+            private void UpdateCache()
+            {
+                _scale = (_parent == null || ignoreParentScale) ? localScale : (localScale * _parent._scale);
+                cachedSize = new Vector2(Width, Height);
+
+                if (_parent != null)
+                {
+                    GetDimAlignment();
+                    originAlignment = GetParentAlignment();
+                    cachedOrigin = _parent.cachedOrigin + _parent.Offset + originAlignment;
+                }
+                else
+                    cachedOrigin = Vector2.Zero;
+
+                cachedPosition = cachedOrigin + Offset;
             }
 
             /// <summary>
@@ -251,12 +282,12 @@ namespace RichHudFramework
             {
                 if (DimAlignment != DimAlignments.None)
                 {
-                    float width = Width, height = Height,
-                        parentWidth = parent.Width, parentHeight = parent.Height;
+                    float width = cachedSize.X, height = cachedSize.Y,
+                        parentWidth = _parent.cachedSize.X, parentHeight = _parent.cachedSize.Y;
 
                     if (DimAlignment.HasFlag(DimAlignments.IgnorePadding))
                     {
-                        Vector2 parentPadding = parent.Padding;
+                        Vector2 parentPadding = _parent.Padding;
 
                         if (DimAlignment.HasFlag(DimAlignments.Width))
                             width = parentWidth - parentPadding.X;
@@ -284,14 +315,13 @@ namespace RichHudFramework
             /// </summary>
             private Vector2 GetParentAlignment()
             {
-                Vector2 size = new Vector2(Width, Height),
-                    alignment = Vector2.Zero,
-                    max = (parent.Size + Size) / 2f, 
+                Vector2 alignment = Vector2.Zero,
+                    max = (_parent.cachedSize + cachedSize) / 2f, 
                     min = -max;
 
                 if (ParentAlignment.HasFlag(ParentAlignments.UsePadding))
                 {
-                    Vector2 parentPadding = parent.Padding;
+                    Vector2 parentPadding = _parent.Padding;
 
                     min += parentPadding / 2f;
                     max -= parentPadding / 2f;
@@ -299,14 +329,14 @@ namespace RichHudFramework
 
                 if (ParentAlignment.HasFlag(ParentAlignments.InnerV))
                 {
-                    min.Y += size.Y;
-                    max.Y -= size.Y;
+                    min.Y += cachedSize.Y;
+                    max.Y -= cachedSize.Y;
                 }
 
                 if (ParentAlignment.HasFlag(ParentAlignments.InnerH))
                 {
-                    min.X += size.X;
-                    max.X -= size.X;
+                    min.X += cachedSize.X;
+                    max.X -= cachedSize.X;
                 }
 
                 if (ParentAlignment.HasFlag(ParentAlignments.Bottom))

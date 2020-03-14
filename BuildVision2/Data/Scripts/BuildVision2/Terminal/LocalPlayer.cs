@@ -7,19 +7,42 @@ using VRageMath;
 using System;
 using CollisionLayers = Sandbox.Engine.Physics.MyPhysics.CollisionLayers;
 
-namespace RichHudFramework.Game
+namespace DarkHelmet.BuildVision2
 {
     /// <summary>
     /// Wrapper for various local player related fields and methods.
     /// </summary>
     public static partial class LocalPlayer
     {
+        /// <summary>
+        /// Returns the currently controlled object as an IMyCharacter
+        /// </summary>
         public static IMyCharacter PlyEnt { get { return MyAPIGateway.Session.ControlledObject as IMyCharacter; } }
-        public static MyObjectBuilder_Character CharEnt { get { return PlyEnt?.GetObjectBuilder() as MyObjectBuilder_Character; } }
+
+        /// <summary>
+        /// Returns the object builder for PlyEnt, provided PlyEnt isn't null
+        /// </summary>
+        public static MyObjectBuilder_Character PlyBuilder { get { return PlyEnt?.GetObjectBuilder() as MyObjectBuilder_Character; } }
+
+        /// <summary>
+        /// Returns the object builder for the cube block currently selected by the player
+        /// </summary>
         public static MyCubeBlockDefinition CurrentBuilderBlock { get { return MyCubeBuilder.Static?.CubeBuilderState?.CurrentBlockDefinition; } }
+
+        /// <summary>
+        /// Returns the matrix for the player's head
+        /// </summary>
         public static MatrixD HeadTransform { get { return PlyEnt != null ? PlyEnt.GetHeadMatrix(true) : MatrixD.Zero; } }
+
+        /// <summary>
+        /// Returns players position in the world
+        /// </summary>
         public static Vector3D Position { get { return PlyEnt != null ? PlyEnt.GetPosition() : Vector3D.Zero; } }
-        public static bool HasEmptyHands { get { return CharEnt?.HandWeapon == null; } }
+
+        /// <summary>
+        /// Returns false if the player is holding a tool or a weapon
+        /// </summary>
+        public static bool HasEmptyHands { get { return PlyBuilder?.HandWeapon == null; } }
 
         /// <summary>
         /// Finds where position of a world coordinate lies on the screen's plane (with the Z-coord being distance from that plane).

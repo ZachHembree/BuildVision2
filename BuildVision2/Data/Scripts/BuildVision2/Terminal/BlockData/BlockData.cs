@@ -15,9 +15,9 @@ namespace DarkHelmet.BuildVision2
         public string blockTypeID;
 
         [ProtoMember(2)]
-        public PropertyData[] terminalProperties;
+        public IList<PropertyData> terminalProperties;
 
-        public BlockData(string blockTypeID, PropertyData[] terminalProperties)
+        public BlockData(string blockTypeID, IList<PropertyData> terminalProperties)
         {
             this.blockTypeID = blockTypeID;
             this.terminalProperties = terminalProperties;

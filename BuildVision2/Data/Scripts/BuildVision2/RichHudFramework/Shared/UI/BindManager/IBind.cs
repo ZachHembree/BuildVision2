@@ -14,7 +14,7 @@ namespace RichHudFramework
 {
     namespace UI
     {
-        internal enum BindAccesssors : int
+        public enum BindAccesssors : int
         {
             /// <summary>
             /// out: <see cref="string"/>

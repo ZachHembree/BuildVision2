@@ -2,7 +2,7 @@
 
 namespace DarkHelmet.BuildVision2
 {
-    internal interface IBlockMember
+    public interface IBlockMember
     {
         /// <summary>
         /// Retrieves the name of the block property
@@ -25,15 +25,23 @@ namespace DarkHelmet.BuildVision2
         bool Enabled { get; }
     }
 
-    internal interface IBlockAction : IBlockMember
+    public interface IBlockAction : IBlockMember
     {
         void Action();
+    }
+
+    public interface IBlockProperty : IBlockMember
+    {
+        /// <summary>
+        /// Returns a serializable representation of the property.
+        /// </summary>
+        PropertyData GetPropertyData();
     }
 
     /// <summary>
     /// Interface for block terminal settings that support text input.
     /// </summary>
-    internal interface IBlockTextMember : IBlockMember
+    public interface IBlockTextMember : IBlockProperty
     {
         Func<char, bool> CharFilterFunc { get; }
 
@@ -44,7 +52,7 @@ namespace DarkHelmet.BuildVision2
     /// Interface for block terminal settings that support scrolling. Usually used for incrementing/decrementing
     /// values.
     /// </summary>
-    internal interface IBlockScrollable : IBlockMember
+    public interface IBlockScrollable : IBlockProperty
     {
         void ScrollUp();
 
