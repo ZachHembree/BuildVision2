@@ -268,7 +268,7 @@ namespace DarkHelmet.BuildVision2
                     { "ToggleSelectMode", MyKeys.Home },
                     { "SelectAll", MyKeys.Insert },
                     { "CopySelection", MyKeys.PageUp },
-                    { "PasteSelection", MyKeys.PageDown },
+                    { "PasteProperties", MyKeys.PageDown },
                     { "UndoPaste", MyKeys.Delete },
                 };
             }

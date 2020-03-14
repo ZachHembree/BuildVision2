@@ -95,7 +95,7 @@ namespace DarkHelmet.BuildVision2
                     scrollMenu.ShowNotification($"Copied {clipboard.terminalProperties.Count} Properties");
                 }
 
-                if (BvBinds.PasteSelection.IsNewPressed && !clipboard.Equals(default(BlockData)) && clipboard.terminalProperties.Count > 0)
+                if (BvBinds.PasteProperties.IsNewPressed && !clipboard.Equals(default(BlockData)) && clipboard.terminalProperties.Count > 0)
                 {
                     if (clipboard.blockTypeID == target.TypeID)
                     {

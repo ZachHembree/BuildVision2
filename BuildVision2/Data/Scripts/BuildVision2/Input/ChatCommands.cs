@@ -140,34 +140,55 @@ namespace DarkHelmet.BuildVision2
                 $"press [{GetBindString(BvBinds.Hide)}].\n\n" +
 
                 $"[{GetBindString(BvBinds.ScrollUp)}] and [{GetBindString(BvBinds.ScrollDown)}] can be used to scroll up and down " +
-                $"the list and to increment/decrement numerical properties when selected. You can scroll faster by pressing [{GetBindString(BvBinds.MultX)}]. " +
-                $"To select a property in the menu press [{GetBindString(BvBinds.Select)}].\n\n" +
+                $"the list and to increment/decrement numerical properties when selected. To select a property in the menu press " +
+                $"[{GetBindString(BvBinds.Select)}].\n\n" +
 
                 $"By default, the menu will close if you move more than 10 meters (4 large blocks) from your target block." +
                 $"The exact distance can be customized in the settings menu.\n\n" +
 
-                $"Settings Menu:\n" +
-                $"The settings menu can be accessed by pressing ~ (tilde) while having chat open.\n\n" +
+                $"Main Binds:\n" +
+                $"    Open Menu: [{GetBindString(BvBinds.Open)}]\n" +
+                $"    Close Menu: [{GetBindString(BvBinds.Hide)}]\n" +
+                $"    Select Property/Trigger Action: [{GetBindString(BvBinds.Select)}]\n" +
+                $"    Scroll Up: [{GetBindString(BvBinds.ScrollUp)}]\n" +
+                $"    Scroll Down: {GetBindString(BvBinds.ScrollDown)}\n\n" +
+
+                $"Multiplier Binds:\n" +
+                $"    MultX (x{BvConfig.Current.block.floatMult.X}): {GetBindString(BvBinds.MultX)}\n" +
+                $"    MultY (x{BvConfig.Current.block.floatMult.Y}): {GetBindString(BvBinds.MultY)}\n" +
+                $"    MultZ (x{BvConfig.Current.block.floatMult.Z}): {GetBindString(BvBinds.MultZ)}\n\n" +
 
                 $"The multiplier (mult) binds can be used to increase/decrease the rate at which numerical properties change with " +
                 $"each tick of the scroll wheel.\n\n" +
 
-                $"These are your current key binds:\n" +
-                $"{GetPrintBindsMessage()}\n\n" +
+                $"Copy/Paste Binds:\n" +
+                $"    Toggle Copy Mode: [{GetBindString(BvBinds.ToggleSelectMode)}]\n" +
+                $"    Select All Properties: [{GetBindString(BvBinds.SelectAll)}]\n" +
+                $"    Copy Selected Properties: [{GetBindString(BvBinds.CopySelection)}]\n" +
+                $"    Paste Copied Properties: [{GetBindString(BvBinds.PasteProperties)}]\n" +
+                $"    Undo Paste: [{GetBindString(BvBinds.UndoPaste)}]\n\n" +
+
+                $"The copy/paste binds are used to copy properties between compatible block types. When in copy mode, you'll be" +
+                $"able to select/deselect properties one at a time using the scroll and select binds or select them all at once using" +
+                $"the select all bind.\n\n" +
+
+                $"Settings Menu:\n" +
+                $"The settings menu can be accessed by pressing ~ (tilde) while having chat open. From there, you can configure block " +
+                $"targeting, change UI settings and configure your keybinds.\n\n" +
 
                 $"Chat Commands:\n" +
                 $"Chat commands are not case sensitive and , ; | or spaces can be used to separate arguments.\n\n" +
 
-                $"help -- You are here.\n" +
-                $"bindHelp -- Help menu for changing keybinds\n" +
-                $"printBinds -- Prints current key bind configuration to chat.\n" +
-                $"bind [bindName] [control1] [control2] [control3] (see bindHelp for more info)\n" +
-                $"save -– Saves the current configuration\n" +
-                $"load -- Loads configuration from the config file\n" +
-                $"resetConfig -- Resets all settings to default\n" +
-                $"resetBinds -- Resets all keybinds\n\n" +
+                $"• help -- You are here.\n" +
+                $"• bindHelp -- Help menu for changing keybinds\n" +
+                $"• printBinds -- Prints current key bind configuration to chat.\n" +
+                $"• bind [bindName] [control1] [control2] [control3] (see bindHelp for more info)\n" +
+                $"• save -– Saves the current configuration\n" +
+                $"• load -- Loads configuration from the config file\n" +
+                $"• resetBinds -- Resets all keybinds\n" +
+                $"• resetConfig -- Resets all settings to default\n\n" +
 
-                $"For more information, see the Build Vision workshop page.";
+                $"For more information, see the Build Vision 2 workshop page.";
 
             return helpMessage;
         }
@@ -181,16 +202,16 @@ namespace DarkHelmet.BuildVision2
                 $"The /bv2 printBinds command can be used to print your current bind cfg to chat. No more than three controls " +
                 $"can be used for any one bind.\n\n" +
 
-                $"Syntax:\n" +
+                $"Command Syntax:\n" +
                 $"bind: /bv2 bind [bindName] [control1] [control2] [control3].\n\n " +
 
                 $"Examples:\n" +
                 $"/bv2 bind scrollup pageup\n" +
                 $"/bv2 bind scrolldown pagedown\n\n" +
 
-                $"You cna reset your binds by either pressing the defaults button in the terminal or by" +
+                $"You can reset your binds by either pressing the defaults button in the terminal or by " +
                 $"using the chat command /bv2 resetBinds.\n" +
-                $"These are your current key binds:\n" +
+                $"These are your current key binds:\n\n" +
                 $"{GetPrintBindsMessage()}\n\n" +
 
                 $"The following controls can be used to create binds (probably):\n\n" +
@@ -206,13 +227,19 @@ namespace DarkHelmet.BuildVision2
                 "\n---Build Vision 2 Binds---\n" +
                 $"Open: [{GetBindString(BvBinds.Open)}]\n" +
                 $"Close: [{GetBindString(BvBinds.Hide)}]\n" +
-                $"Select [{GetBindString(BvBinds.Select)}]\n" +
+                $"Select: [{GetBindString(BvBinds.Select)}]\n" +
                 $"Scroll Up: [{GetBindString(BvBinds.ScrollUp)}]\n" +
-                $"Scroll Down: [{GetBindString(BvBinds.ScrollDown)}]]\n" +
-                "---Multipliers---\n" +
+                $"Scroll Down: [{GetBindString(BvBinds.ScrollDown)}]\n" +
+                $"---Multipliers---\n" +
                 $"MultX: [{GetBindString(BvBinds.MultX)}]\n" +
                 $"MultY: [{GetBindString(BvBinds.MultY)}]\n" +
-                $"MultZ: [{GetBindString(BvBinds.MultZ)}]";
+                $"MultZ: [{GetBindString(BvBinds.MultZ)}]\n" +
+                $"---Copy/Paste---\n" +
+                $"ToggleSelectMode: [{GetBindString(BvBinds.ToggleSelectMode)}]\n" +
+                $"SelectAll: [{GetBindString(BvBinds.SelectAll)}]\n" +
+                $"CopySelection: [{GetBindString(BvBinds.CopySelection)}]\n" +
+                $"PasteProperties: [{GetBindString(BvBinds.PasteProperties)}]\n" +
+                $"UndoPaste: [{GetBindString(BvBinds.UndoPaste)}]";
 
             return bindHelp;
         }
