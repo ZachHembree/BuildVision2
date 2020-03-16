@@ -15,7 +15,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Build Vision main class
     /// </summary>
-    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, 0)]
+    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, -1)]
     public sealed partial class BvMain : ModBase
     {
         public static BvMain Instance { get; private set; }

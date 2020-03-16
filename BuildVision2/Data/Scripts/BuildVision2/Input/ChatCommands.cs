@@ -143,7 +143,7 @@ namespace DarkHelmet.BuildVision2
                 $"the list and to increment/decrement numerical properties when selected. To select a property in the menu press " +
                 $"[{GetBindString(BvBinds.Select)}].\n\n" +
 
-                $"By default, the menu will close if you move more than 10 meters (4 large blocks) from your target block." +
+                $"By default, the menu will close if you move more than 10 meters (4 large blocks) from your target block. " +
                 $"The exact distance can be customized in the settings menu.\n\n" +
 
                 $"Main Binds:\n" +
@@ -168,9 +168,9 @@ namespace DarkHelmet.BuildVision2
                 $"    Paste Copied Properties: [{GetBindString(BvBinds.PasteProperties)}]\n" +
                 $"    Undo Paste: [{GetBindString(BvBinds.UndoPaste)}]\n\n" +
 
-                $"The copy/paste binds are used to copy properties between compatible block types. When in copy mode, you'll be" +
-                $"able to select/deselect properties one at a time using the scroll and select binds or select them all at once using" +
-                $"the select all bind.\n\n" +
+                $"The copy/paste binds are used to copy properties between compatible block types. When in copy mode, you'll be " +
+                $"able to select/deselect properties one at a time using the scroll and select binds or you can select them all at " +
+                $"once using the select all bind.\n\n" +
 
                 $"Settings Menu:\n" +
                 $"The settings menu can be accessed by pressing ~ (tilde) while having chat open. From there, you can configure block " +
@@ -210,8 +210,8 @@ namespace DarkHelmet.BuildVision2
                 $"/bv2 bind scrolldown pagedown\n\n" +
 
                 $"You can reset your binds by either pressing the defaults button in the terminal or by " +
-                $"using the chat command /bv2 resetBinds.\n" +
-                $"These are your current key binds:\n\n" +
+                $"using the chat command /bv2 resetBinds.\n\n" +
+                $"These are your current key binds:\n" +
                 $"{GetPrintBindsMessage()}\n\n" +
 
                 $"The following controls can be used to create binds (probably):\n\n" +
