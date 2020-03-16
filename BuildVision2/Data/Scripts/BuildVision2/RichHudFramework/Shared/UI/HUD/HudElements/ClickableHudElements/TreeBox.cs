@@ -242,7 +242,7 @@ namespace RichHudFramework.UI
             Count = 0;
         }
 
-        protected override void Draw()
+        protected override void Layout()
         {
             chain.Width = Width - IndentSize;
 

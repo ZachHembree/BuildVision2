@@ -7,8 +7,8 @@ namespace RichHudFramework
     using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        Action, // BeforeDrawStart
-        Action, // DrawStart
+        Action<bool>, // BeforeLayout
+        Action<int>, // BeforeDraw
         Action, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
@@ -34,6 +34,18 @@ namespace RichHudFramework
             /// Parent object of the node.
             /// </summary>
             public virtual IHudParent Parent { get; protected set; }
+
+            public HudLayers ZOffset
+            {
+                get { return _zOffset; }
+                set
+                {
+                    for (int n = 0; n < children.Count; n++)
+                        children[n].ZOffset = value;
+
+                    _zOffset = value;
+                }
+            }
 
             /// <summary>
             /// Indicates whether or not the element has been registered to a parent.

@@ -261,10 +261,10 @@ namespace RichHudFramework.UI
                 caretOffset = Math.Max(GetOffsetFromIndex(Index), 0);
             }
 
-            protected override void Draw()
+            protected override void Layout()
             {
                 if (blink)
-                    base.Draw();
+                    base.Layout();
 
                 if (blinkTimer.ElapsedMilliseconds > 500)
                 {
@@ -597,7 +597,7 @@ namespace RichHudFramework.UI
                 return box;
             }
 
-            protected override void Draw()
+            protected override void Layout()
             {
                 if (!Empty)
                 {

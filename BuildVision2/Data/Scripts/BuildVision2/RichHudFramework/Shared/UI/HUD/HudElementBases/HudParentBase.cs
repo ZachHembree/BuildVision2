@@ -11,14 +11,21 @@ namespace RichHudFramework
     using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        Action, // BeforeDrawStart
-        Action, // DrawStart
+        Action<bool>, // BeforeLayout
+        Action<int>, // BeforeDraw
         Action, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
 
     namespace UI
     {
+        public enum HudLayers : int
+        {
+            Background = -1,
+            Normal = 0,
+            Foreground = 1,
+        }
+
         /// <summary>
         /// Base class for HUD elements to which other elements are parented. Types deriving from this class cannot be
         /// parented to other elements; only types of <see cref="IHudNode"/> can be parented.
@@ -35,6 +42,7 @@ namespace RichHudFramework
             /// </summary>
             public object ID => this;
 
+            protected HudLayers _zOffset;
             protected readonly List<IHudNode> children;
 
             public HudParentBase()
@@ -46,12 +54,12 @@ namespace RichHudFramework
             /// <summary>
             /// Updates input for the element and its children.
             /// </summary>
-            public virtual void HandleInputStart()
+            public virtual void BeforeInput()
             {
                 for (int n = children.Count - 1; n >= 0; n--)
                 {
                     if (children[n].Visible)
-                        children[n].HandleInputStart();
+                        children[n].BeforeInput();
                 }
 
                 HandleInput();
@@ -62,30 +70,31 @@ namespace RichHudFramework
             /// <summary>
             /// Updates before draw for the element and its children.
             /// </summary>
-            public virtual void BeforeDrawStart()
+            public virtual void BeforeLayout(bool refresh)
             {
-                BeforeDraw();
+                Layout();
 
                 for (int n = 0; n < children.Count; n++)
                 {
-                    if (children[n].Visible)
-                        children[n].BeforeDrawStart();
+                    if (children[n].Visible || refresh)
+                        children[n].BeforeLayout(refresh);
                 }
             }
 
-            protected virtual void BeforeDraw() { }
+            protected virtual void Layout() { }
 
             /// <summary>
             /// Draws the element and its children.
             /// </summary>
-            public virtual void DrawStart()
+            public virtual void BeforeDraw(HudLayers layer)
             {
-                Draw();
+                if (_zOffset == layer)
+                    Draw();
 
                 for (int n = 0; n < children.Count; n++)
                 {
                     if (children[n].Visible)
-                        children[n].DrawStart();
+                        children[n].BeforeDraw(layer);
                 }
             }
 
@@ -170,9 +179,9 @@ namespace RichHudFramework
                 {
                     Item1 = () => Visible,
                     Item2 = this,
-                    Item3 = () => ExceptionHandler.Run(BeforeDrawStart),
-                    Item4 = () => ExceptionHandler.Run(DrawStart),
-                    Item5 = () => ExceptionHandler.Run(HandleInputStart),
+                    Item3 = x => ExceptionHandler.Run(() => BeforeLayout(x)),
+                    Item4 = x => ExceptionHandler.Run(() => BeforeDraw((HudLayers)x)),
+                    Item5 = () => ExceptionHandler.Run(BeforeInput),
                     Item6 = GetOrSetMember
                 };
             }

@@ -158,7 +158,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected override void BeforeDraw()
+        protected override void Layout()
         {
             if (canMoveWindow)
                 Offset = HudMain.Cursor.Origin + cursorOffset - Origin;

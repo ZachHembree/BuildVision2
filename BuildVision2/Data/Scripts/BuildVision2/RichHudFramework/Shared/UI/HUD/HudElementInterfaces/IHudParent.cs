@@ -8,8 +8,8 @@ namespace RichHudFramework
     using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        Action, // BeforeDrawStart
-        Action, // DrawStart
+        Action<bool>, // BeforeLayout
+        Action<int>, // BeforeDraw
         Action, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
@@ -60,11 +60,11 @@ namespace RichHudFramework
             /// </summary>
             void SetFocus(IHudNode child);
 
-            void HandleInputStart();
+            void BeforeInput();
 
-            void BeforeDrawStart();
+            void BeforeLayout(bool refresh);
 
-            void DrawStart();
+            void BeforeDraw(HudLayers layer);
 
             /// <summary>
             /// Retrieves the information necessary to access the <see cref="IHudParent"/> through the API.

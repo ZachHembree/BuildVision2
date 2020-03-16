@@ -255,7 +255,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected override void Draw()
+        protected override void Layout()
         {
             if (Selection != null)
             {

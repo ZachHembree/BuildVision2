@@ -7,8 +7,8 @@ namespace RichHudFramework
     using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        Action, // BeforeDrawStart
-        Action, // DrawStart
+        Action<bool>, // BeforeLayout
+        Action<int>, // BeforeDraw
         Action, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
@@ -44,6 +44,8 @@ namespace RichHudFramework
                     return parent;
                 }
             }
+
+            public HudLayers ZOffset { get; set; }
 
             public bool Registered => (bool)GetOrSetMemberFunc(null, (int)HudNodeAccessors.Registered);
 

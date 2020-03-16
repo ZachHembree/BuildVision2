@@ -8,8 +8,8 @@ namespace RichHudFramework
     using HudElementMembers = MyTuple<
         Func<bool>, // Visible
         object, // ID
-        Action, // BeforeDrawStart
-        Action, // DrawStart
+        Action<bool>, // BeforeLayout
+        Action<int>, // BeforeDraw
         Action, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
@@ -22,12 +22,14 @@ namespace RichHudFramework
         public class HudParentData : IHudParent
         {
             public bool Visible { get { return VisFunc(); } set { } }
+
             public object ID { get; }
 
             private readonly List<object> localChildren;
 
             private readonly Func<bool> VisFunc;
-            private readonly Action BeforeDrawAction, DrawAction;
+            private readonly Action<bool> BeforeLayoutAction;
+            private readonly Action<int> BeforeDrawAction;
             private readonly Action InputAction;
             protected readonly ApiMemberAccessor GetOrSetMemberFunc;
 
@@ -37,8 +39,8 @@ namespace RichHudFramework
 
                 VisFunc = members.Item1;
                 ID = members.Item2;
-                BeforeDrawAction = members.Item3;
-                DrawAction = members.Item4;
+                BeforeLayoutAction = members.Item3;
+                BeforeDrawAction = members.Item4;
                 InputAction = members.Item5;
                 GetOrSetMemberFunc = members.Item6;
             }
@@ -49,13 +51,13 @@ namespace RichHudFramework
                 GetOrSetMemberFunc(child.GetApiData(), (int)HudParentAccessors.Add);
             }
 
-            public void BeforeDrawStart() =>
-                BeforeDrawAction();
+            public void BeforeLayout(bool refresh) =>
+                BeforeLayoutAction(refresh);
 
-            public void DrawStart() =>
-                DrawAction();
+            public void BeforeDraw(HudLayers layer) =>
+                BeforeDrawAction((int)layer);
 
-            public void HandleInputStart() =>
+            public void BeforeInput() =>
                 InputAction();
 
             public void RegisterChildren(IEnumerable<IHudNode> newChildren)
@@ -87,8 +89,8 @@ namespace RichHudFramework
                 {
                     Item1 = VisFunc,
                     Item2 = ID,
-                    Item3 = BeforeDrawAction,
-                    Item4 = DrawAction,
+                    Item3 = BeforeLayoutAction,
+                    Item4 = BeforeDrawAction,
                     Item5 = InputAction,
                     Item6 = GetOrSetMemberFunc
                 };

@@ -74,13 +74,14 @@ namespace RichHudFramework.UI
 
             listBox = new ListBox<T>(display)
             {
-                TabColor = new Color(0, 0, 0, 0),
-                MemberPadding = new Vector2(8f, 0f),
+                Visible = false,
+                ZOffset = HudLayers.Foreground,
                 MinimumVisCount = 4,
-                Offset = new Vector2(0f, -1f),
                 DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
                 ParentAlignment = ParentAlignments.Bottom,
-                Visible = false,
+                MemberPadding = new Vector2(8f, 0f),
+                Offset = new Vector2(0f, -1f),
+                TabColor = new Color(0, 0, 0, 0),
             };
 
             Size = new Vector2(331f, 43f);
@@ -117,7 +118,6 @@ namespace RichHudFramework.UI
 
         private void OpenList()
         {
-            GetFocus();
             listBox.Visible = true;
         }
 
@@ -221,7 +221,7 @@ namespace RichHudFramework.UI
                 Text = "NewDropdown";
             }
 
-            protected override void Draw()
+            protected override void Layout()
             {
                 name.Width = (Width - Padding.X) - divider.Width - arrow.Width;
             }

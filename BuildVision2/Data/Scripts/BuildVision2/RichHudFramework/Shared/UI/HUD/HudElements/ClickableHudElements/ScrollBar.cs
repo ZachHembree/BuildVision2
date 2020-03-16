@@ -72,6 +72,11 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool Vertical { get { return slide.Vertical; } set { slide.Vertical = value; slide.Reverse = value; } }
 
+        /// <summary>
+        /// Indicates whether or not the hud element is currently moused over
+        /// </summary>
+        public override bool IsMousedOver => slide.IsMousedOver;
+
         public readonly SliderBar slide;
 
         public ScrollBar(IHudParent parent = null) : base(parent)
@@ -93,7 +98,7 @@ namespace RichHudFramework.UI
             Size = new Vector2(317f, 47f);
         }
 
-        protected override void Draw()
+        protected override void Layout()
         {
             if (Vertical)
             {

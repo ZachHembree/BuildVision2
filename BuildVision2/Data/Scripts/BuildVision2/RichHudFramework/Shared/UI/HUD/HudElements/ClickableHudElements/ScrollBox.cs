@@ -212,8 +212,8 @@ namespace RichHudFramework.UI
             };
 
             CaptureCursor = true;
-            ShareCursor = true;
-            CedeCursor = true;
+            ShareCursor = false;
+            CaptureEarly = true;
 
             AlignVertical = true;
             Enabled = true;
@@ -255,26 +255,22 @@ namespace RichHudFramework.UI
 
         protected override void HandleInput()
         {
-            if (IsMousedOver)
+            CaptureCursor = scrollBar.Min != scrollBar.Max;
+
+            if (IsMousedOver || scrollBar.IsMousedOver)
             {
                 if (SharedBinds.MousewheelUp.IsPressed)
                 {
-                    CedeCursor = false;
                     scrollBar.Current = Start - 1;
                 }
                 else if (SharedBinds.MousewheelDown.IsPressed)
                 {
-                    CedeCursor = false;
                     scrollBar.Current = Start + 1;
                 }
-                else
-                    CedeCursor = true;
             }
-            else
-                CedeCursor = true;
         }
 
-        protected override void BeforeDraw()
+        protected override void Layout()
         {
             scrollBar.Max = GetMaxStart(List.Count - 1);
             scrollBar.Min = GetFirstEnabled();

@@ -1,18 +1,5 @@
-﻿using System;
-using VRage;
-using ApiMemberAccessor = System.Func<object, int, object>;
-
-namespace RichHudFramework
+﻿namespace RichHudFramework
 {
-    using HudElementMembers = MyTuple<
-        Func<bool>, // Visible
-        object, // ID
-        Action, // BeforeDraw
-        Action, // Draw
-        Action, // HandleInput
-        ApiMemberAccessor // GetOrSetMembers
-    >;
-
     namespace UI
     {
         /// <summary>
@@ -24,6 +11,8 @@ namespace RichHudFramework
             /// Parent object of the node.
             /// </summary>
             IHudParent Parent { get; }
+
+            HudLayers ZOffset { get; set; }
 
             /// <summary>
             /// Indicates whether or not the node has been registered to its parent.

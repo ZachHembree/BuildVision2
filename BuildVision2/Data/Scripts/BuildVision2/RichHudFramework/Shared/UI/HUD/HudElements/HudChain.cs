@@ -106,7 +106,7 @@ namespace RichHudFramework.UI
         public void Remove(Func<T, bool> predicate) =>
             RemoveChild(elements.Find(x => predicate(x)));
 
-        protected override void BeforeDraw()
+        protected override void Layout()
         {
             if (elements != null && elements.Count > 0)
             {
