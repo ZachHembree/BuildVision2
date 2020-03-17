@@ -11,14 +11,14 @@ namespace RichHudFramework.Internal
     /// <summary>
     /// Handles exceptions for session components extending from ModBase.
     /// </summary>
-    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, 0)]
+    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, -1)]
     public sealed class ExceptionHandler : MySessionComponentBase
     {
         /// <summary>
         /// Sets the mod name to be used in chat messages, popups and anything else that might require it.
         /// </summary>
         public static string ModName { get; set; }
-       
+
         /// <summary>
         /// The maximum number of times the mod will be allowed to reload as a result of an unhandled exception.
         /// </summary>
@@ -44,6 +44,8 @@ namespace RichHudFramework.Internal
         /// True if the handler is currently in the process of unloading its clients.
         /// </summary>
         public static bool Unloading { get; private set; }
+
+        public static bool ClientsPaused { get; private set; }
 
         private static ExceptionHandler instance;
         private const long exceptionReportInterval = 100, exceptionLoopTime = 50;
@@ -97,6 +99,42 @@ namespace RichHudFramework.Internal
         }
 
         /// <summary>
+        /// Executes a given <see cref="Action{T}"/> in a try-catch block. If an exception occurs, it will attempt
+        /// to log it, display an error message to the user and reload or unload the mod depending on the configuration.
+        /// </summary>
+        public static void Run<T>(Action<T> Action, T argument)
+        {
+            try
+            {
+                Action(argument);
+            }
+            catch (Exception e)
+            {
+                instance.ReportException(e);
+            }
+        }
+
+        /// <summary>
+        /// Executes a given <see cref="Func{TResult}"/> in a try-catch block. If an exception occurs, it will attempt
+        /// to log it, display an error message to the user and reload or unload the mod depending on the configuration.
+        /// </summary>
+        public static TResult Run<TResult>(Func<TResult> Func)
+        {
+            TResult value = default(TResult);
+
+            try
+            {
+                value = Func();
+            }
+            catch (Exception e)
+            {
+                instance.ReportException(e);
+            }
+
+            return value;
+        }
+
+        /// <summary>
         /// Records exceptions to be handled. Duplicate stack traces are excluded from the log entry.
         /// </summary>
         private void ReportException(Exception e)
@@ -106,12 +144,14 @@ namespace RichHudFramework.Internal
             if (!exceptionMessages.Contains(message))
                 exceptionMessages.Add(message);
 
+            if (exceptionCount == 0)
+                errorTimer.Start();
+
             exceptionCount++;
-            errorTimer.Start();
 
             // Exception loop, respond immediately
             if (exceptionCount > exceptionLoopCount && errorTimer.ElapsedMilliseconds < exceptionLoopTime)
-                HandleExceptions();
+                PauseClients();
         }
 
         public override void UpdateBeforeSimulation()
@@ -135,34 +175,37 @@ namespace RichHudFramework.Internal
         /// </summary>
         private void HandleExceptions()
         {
-            string exceptionText = GetExceptionText();
-            exceptionCount = 0;
-
-            LogIO.TryWriteToLog(ModName + " encountered an unhandled exception.\n" + exceptionText + '\n');
-            exceptionMessages.Clear();
-
-            if (ModBase.IsClient && PromptForReload)
+            if (!Unloading && !Reloading)
             {
-                if (RecoveryAttempts < RecoveryLimit)
+                string exceptionText = GetExceptionText();
+                exceptionCount = 0;
+
+                LogIO.TryWriteToLog(ModName + " encountered an unhandled exception.\n" + exceptionText + '\n');
+                exceptionMessages.Clear();
+
+                if (ModBase.IsClient && PromptForReload)
                 {
-                    PauseClients();
-                    ShowErrorPrompt(exceptionText, true);
+                    if (RecoveryAttempts < RecoveryLimit)
+                    {
+                        PauseClients();
+                        ShowErrorPrompt(exceptionText, true);
+                    }
+                    else
+                    {
+                        UnloadClients();
+                        ShowErrorPrompt(exceptionText, false);
+                    }
                 }
                 else
                 {
-                    UnloadClients();
-                    ShowErrorPrompt(exceptionText, false);
+                    if (RecoveryAttempts < RecoveryLimit)
+                        ReloadClients();
+                    else
+                        UnloadClients();
                 }
-            }
-            else
-            {
-                if (RecoveryAttempts < RecoveryLimit)
-                    ReloadClients();
-                else
-                    UnloadClients();
-            }
 
-            RecoveryAttempts++;
+                RecoveryAttempts++;
+            }
         }
 
         /// <summary>
@@ -269,6 +312,8 @@ namespace RichHudFramework.Internal
         {
             for (int n = 0; n < clients.Count; n++)
                 clients[n].CanUpdate = false;
+
+            ClientsPaused = true;
         }
 
         /// <summary>
@@ -278,6 +323,8 @@ namespace RichHudFramework.Internal
         {
             for (int n = 0; n < clients.Count; n++)
                 clients[n].CanUpdate = true;
+
+            ClientsPaused = false;
         }
 
         /// <summary>
@@ -299,6 +346,7 @@ namespace RichHudFramework.Internal
             for (int n = 0; n < clients.Count; n++)
                 clients[n].ManualStart();
 
+            ClientsPaused = false;
             Reloading = false;
         }
 
@@ -314,6 +362,8 @@ namespace RichHudFramework.Internal
                 if (clients[n].Loaded && clients[n].CanUpdate)
                     Run(clients[n].BeforeClose);
             }
+
+            ClientsPaused = true;
 
             for (int n = 0; n < clients.Count; n++)
                 clients[n].Close();

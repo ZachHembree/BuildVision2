@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using VRage;
 using ApiMemberAccessor = System.Func<object, int, object>;
-using EventAccessor = VRage.MyTuple<bool, System.Action>;
-using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
 namespace RichHudFramework
 {
@@ -152,6 +150,43 @@ namespace RichHudFramework
                 RemoveChild(node);
             }
 
+            /// <summary>
+            /// Retrieves the information necessary to access the <see cref="IHudParent"/> through the API.
+            /// </summary>
+            public HudElementMembers GetApiData()
+            {
+                return new HudElementMembers()
+                {
+                    Item1 = GetApiVisible,
+                    Item2 = this,
+                    Item3 = BeforeApiLayout,
+                    Item4 = BeforeApiDraw,
+                    Item5 = BeforeApiInput,
+                    Item6 = GetOrSetMember
+                };
+            }
+
+            private bool GetApiVisible() =>
+                !ExceptionHandler.ClientsPaused && Visible;
+
+            private void BeforeApiLayout(bool refresh)
+            {
+                if (!ExceptionHandler.ClientsPaused)
+                    ExceptionHandler.Run(BeforeLayout, refresh);
+            }
+
+            private void BeforeApiDraw(int layer)
+            {
+                if (!ExceptionHandler.ClientsPaused)
+                    ExceptionHandler.Run(BeforeDraw, (HudLayers)layer);
+            }
+
+            private void BeforeApiInput()
+            {
+                if (!ExceptionHandler.ClientsPaused)
+                    ExceptionHandler.Run(BeforeInput);
+            }
+
             protected virtual object GetOrSetMember(object data, int memberEnum)
             {
                 switch ((HudParentAccessors)memberEnum)
@@ -168,22 +203,6 @@ namespace RichHudFramework
                 }
 
                 return null;
-            }
-
-            /// <summary>
-            /// Retrieves the information necessary to access the <see cref="IHudParent"/> through the API.
-            /// </summary>
-            public HudElementMembers GetApiData()
-            {
-                return new HudElementMembers()
-                {
-                    Item1 = () => Visible,
-                    Item2 = this,
-                    Item3 = x => ExceptionHandler.Run(() => BeforeLayout(x)),
-                    Item4 = x => ExceptionHandler.Run(() => BeforeDraw((HudLayers)x)),
-                    Item5 = () => ExceptionHandler.Run(BeforeInput),
-                    Item6 = GetOrSetMember
-                };
             }
         }
     }
