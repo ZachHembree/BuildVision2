@@ -140,7 +140,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (prop is IMyTerminalControlTitleTooltip)
             {
-                IMyTerminalControlTitleTooltip tooltip = (IMyTerminalControlTitleTooltip)prop;
+                var tooltip = prop as IMyTerminalControlTitleTooltip;
                 StringBuilder name = MyTexts.Get(tooltip.Title), cleanedName;
                 int trailingCharacters = 0;
 
@@ -198,68 +198,59 @@ namespace DarkHelmet.BuildVision2
 
             foreach (ITerminalProperty prop in properties)
             {
-                try
+                var control = prop as IMyTerminalControl;
+
+                if (control != null && control.CanUseControl(TBlock))
                 {
-                    var control = prop as IMyTerminalControl;
+                    name = GetTooltipName(prop);
 
-                    if (control != null && TestControlEnabled(control, TBlock))
+                    if (name.Length > 0)
                     {
-                        name = GetTooltipName(prop);
-
-                        if (name.Length > 0)
+                        if (prop is ITerminalProperty<StringBuilder>)
                         {
-                            if (prop is ITerminalProperty<StringBuilder>)
-                            {
-                                ITerminalProperty<StringBuilder> textProp = (ITerminalProperty<StringBuilder>)prop;
+                            var textProp = prop as ITerminalProperty<StringBuilder>;
 
-                                if (prop.Id == "Name")
+                            if (textProp.CanAccessValue(TBlock))
+                            {
+                                if (prop.Id == "Name" || prop.Id == "CustomName")
                                     blockProperties.Insert(0, new TextProperty(name, textProp, control, TBlock));
                                 else
                                     blockProperties.Add(new TextProperty(name, textProp, control, TBlock));
                             }
-                            if (prop is IMyTerminalControlCombobox)
-                            {
-                                var comboBox = prop as IMyTerminalControlCombobox;
+                        }
+                        if (prop is IMyTerminalControlCombobox)
+                        {
+                            var comboBox = prop as IMyTerminalControlCombobox;
 
-                                if (comboBox.ComboBoxContent != null && comboBox.Getter != null && comboBox.Setter != null)
-                                    blockProperties.Add(new ComboBoxProperty(name, comboBox, control, TBlock));
-                            }
-                            else if (prop is ITerminalProperty<bool>)
-                            {
-                                blockProperties.Add(new BoolProperty(name, (ITerminalProperty<bool>)prop, control, TBlock));
-                            }
-                            else if (prop is ITerminalProperty<float>)
-                            {
-                                blockProperties.Add(new FloatProperty(name, (ITerminalProperty<float>)prop, control, TBlock));
-                            }
-                            else if (prop is ITerminalProperty<Color>)
-                            {
-                                blockProperties.AddRange(ColorProperty.GetColorProperties(name, (ITerminalProperty<Color>)prop, control, TBlock));
-                            }
+                            if (comboBox.CanAccessValue(TBlock))
+                                blockProperties.Add(new ComboBoxProperty(name, comboBox, control, TBlock));
+                        }
+                        else if (prop is ITerminalProperty<bool>)
+                        {
+                            var boolProp = prop as ITerminalProperty<bool>;
+
+                            if (boolProp.CanAccessValue(TBlock))
+                                blockProperties.Add(new BoolProperty(name, boolProp, control, TBlock));
+                        }
+                        else if (prop is ITerminalProperty<float>)
+                        {
+                            var floatProp = prop as ITerminalProperty<float>;
+
+                            if (floatProp.CanAccessValue(TBlock))
+                                blockProperties.Add(new FloatProperty(name, floatProp, control, TBlock));
+                        }
+                        else if (prop is ITerminalProperty<Color>)
+                        {
+                            var colorProp = prop as ITerminalProperty<Color>;
+
+                            if (colorProp.CanAccessValue(TBlock))
+                                blockProperties.AddRange(ColorProperty.GetColorProperties(name, colorProp, control, TBlock));
                         }
                     }
                 }
-                catch { }
             }
 
             blockMembers.AddRange(blockProperties);
-        }
-
-        private static bool TestControlEnabled(IMyTerminalControl control, IMyTerminalBlock tBlock)
-        {
-            try
-            {
-                if (control.Enabled != null && control.Visible != null)
-                {
-                    control.Enabled(tBlock);
-                    control.Visible(tBlock);
-
-                    return true;
-                }
-            }
-            catch { }
-
-            return false;
         }
 
         /// <summary>
@@ -291,6 +282,81 @@ namespace DarkHelmet.BuildVision2
             {
                 BlockAction.GetChuteActions((IMyParachute)TBlock, blockMembers);
             }
+        }
+    }
+
+    public static class TerminalExtensions
+    {
+        /// <summary>
+        /// Checks whether or not the Enabled and Visible delegates are defined and whether
+        /// invoking those delegates will throw an exception.
+        /// </summary>
+        public static bool CanUseControl(this IMyTerminalControl control, IMyTerminalBlock tBlock)
+        {
+            try
+            {
+                if (control.Enabled != null && control.Visible != null)
+                {
+                    control.Enabled(tBlock);
+                    control.Visible(tBlock);
+
+                    return true;
+                }
+            }
+            catch { }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if it can retrieve the current value without throwing an exception.
+        /// </summary>
+        public static bool CanAccessValue<TValue>(this ITerminalProperty<TValue> terminalValue, IMyTerminalBlock tBlock)
+        {
+            try
+            {
+                terminalValue.GetValue(tBlock);
+                return true;
+            }
+            catch { }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if it can retrieve the current value without throwing an exception.
+        /// </summary>
+        public static bool CanAccessValue<TValue>(this IMyTerminalValueControl<TValue> terminalValue, IMyTerminalBlock tBlock)
+        {
+            if (terminalValue.Getter != null && terminalValue.Setter != null)
+            {
+                try
+                {
+                    terminalValue.Getter(tBlock);
+                    return true;
+                }
+                catch { }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if it can retrieve the current value without throwing an exception.
+        /// </summary>
+        public static bool CanAccessValue(this IMyTerminalControlCombobox comboBox, IMyTerminalBlock tBlock)
+        {
+            if (CanAccessValue(comboBox as IMyTerminalValueControl<long>, tBlock) && comboBox.ComboBoxContent != null)
+            {
+                try
+                {
+                    comboBox.ComboBoxContent(new List<MyTerminalControlComboBoxItem>());
+                    return true;
+                }
+                catch { }
+            }
+
+            return false;
         }
     }
 }

@@ -259,8 +259,11 @@ namespace DarkHelmet.BuildVision2
             if (base.Offset.Y < 0)
                 alignment.Y = Height / 2f;
             else
-                alignment.Y = -Height / 2f;
+                alignment.Y = -Height / 2f;   
+        }
 
+        protected override void Draw()
+        {
             if (Selection != null)
             {
                 selectionBox.Size = new Vector2(body.Width - body.divider.Width - body.scrollBar.Width, Selection.Size.Y + (2f * Scale));

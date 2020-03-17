@@ -39,19 +39,7 @@ namespace DarkHelmet.BuildVision2
 
             public override int ID { get; }
 
-            public override bool Enabled 
-            {
-                get 
-                {
-                    try
-                    {
-                        return (control.Enabled != null && control.Visible != null) && (control.Enabled(block) && control.Visible(block));
-                    }
-                    catch { }
-
-                    return false;
-                } 
-            }
+            public override bool Enabled => (control.Enabled(block) && control.Visible(block));
 
             protected readonly TProp property;
             protected readonly IMyTerminalControl control;
@@ -80,7 +68,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public TValue GetValue()
             {
-                if (Enabled && Getter != null)
+                if (Enabled)
                 {
                     try
                     {
@@ -97,7 +85,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public void SetValue(TValue value)
             {
-                if (Enabled && Setter != null)
+                if (Enabled)
                 {
                     try
                     {
