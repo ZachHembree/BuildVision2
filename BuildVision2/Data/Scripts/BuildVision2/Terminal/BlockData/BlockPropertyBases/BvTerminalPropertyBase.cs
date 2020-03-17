@@ -39,7 +39,19 @@ namespace DarkHelmet.BuildVision2
 
             public override int ID { get; }
 
-            public override bool Enabled => control.Enabled(block) && control.Visible(block);
+            public override bool Enabled 
+            {
+                get 
+                {
+                    try
+                    {
+                        return (control.Enabled != null && control.Visible != null) && (control.Enabled(block) && control.Visible(block));
+                    }
+                    catch { }
+
+                    return false;
+                } 
+            }
 
             protected readonly TProp property;
             protected readonly IMyTerminalControl control;
@@ -68,15 +80,14 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public TValue GetValue()
             {
-                try
+                if (Enabled && Getter != null)
                 {
-                    // Because some custom blocks don't have their properties set up correctly
-                    // and I have to live with it
-                    if (control.Enabled(block) && control.Visible(block))
+                    try
+                    {
                         return Getter(block);
+                    }
+                    catch { }
                 }
-                catch
-                { }
 
                 return default(TValue);
             }
@@ -86,12 +97,14 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public void SetValue(TValue value)
             {
-                try
+                if (Enabled && Setter != null)
                 {
-                    if (control.Enabled(block) && control.Visible(block))
+                    try
+                    {
                         Setter(block, value);
+                    }
+                    catch { }
                 }
-                catch { }
             }
 
             public override bool TryImportPropertyValue(PropertyData data)

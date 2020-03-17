@@ -247,7 +247,7 @@ namespace DarkHelmet.BuildVision2
             notificationTimer.Start();
         }
 
-        protected override void Draw()
+        protected override void Layout()
         {
             layout.Width = body.Width;
 
@@ -401,7 +401,7 @@ namespace DarkHelmet.BuildVision2
                 };
             }
 
-            protected override void Draw()
+            protected override void Layout()
             {
                 selectionBox.Height = Math.Max(name.Height, Math.Max(value.Height, postfix.Height));
             }

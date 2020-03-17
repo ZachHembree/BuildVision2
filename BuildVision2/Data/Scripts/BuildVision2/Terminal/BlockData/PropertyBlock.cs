@@ -198,47 +198,68 @@ namespace DarkHelmet.BuildVision2
 
             foreach (ITerminalProperty prop in properties)
             {
-                if (prop is IMyTerminalControl)
+                try
                 {
-                    IMyTerminalControl control = (IMyTerminalControl)prop;
-                    name = GetTooltipName(prop);
+                    var control = prop as IMyTerminalControl;
 
-                    if (name.Length > 0)
+                    if (control != null && TestControlEnabled(control, TBlock))
                     {
-                        if (prop is ITerminalProperty<StringBuilder>)
-                        {
-                            ITerminalProperty<StringBuilder> textProp = (ITerminalProperty<StringBuilder>)prop;
+                        name = GetTooltipName(prop);
 
-                            if (prop.Id == "Name")
-                                blockProperties.Insert(0, new TextProperty(name, textProp, control, TBlock));
-                            else
-                                blockProperties.Add(new TextProperty(name, textProp, control, TBlock));
-                        }
-                        if (prop is IMyTerminalControlCombobox) // fields having to do with camera assignments seem to give me trouble here
+                        if (name.Length > 0)
                         {
-                            try
+                            if (prop is ITerminalProperty<StringBuilder>)
                             {
-                                blockProperties.Add(new ComboBoxProperty(name, (IMyTerminalControlCombobox)prop, control, TBlock));
+                                ITerminalProperty<StringBuilder> textProp = (ITerminalProperty<StringBuilder>)prop;
+
+                                if (prop.Id == "Name")
+                                    blockProperties.Insert(0, new TextProperty(name, textProp, control, TBlock));
+                                else
+                                    blockProperties.Add(new TextProperty(name, textProp, control, TBlock));
                             }
-                            catch { }
-                        }
-                        else if (prop is ITerminalProperty<bool>)
-                        {
-                            blockProperties.Add(new BoolProperty(name, (ITerminalProperty<bool>)prop, control, TBlock));
-                        }
-                        else if (prop is ITerminalProperty<float>)
-                        {
-                            blockProperties.Add(new FloatProperty(name, (ITerminalProperty<float>)prop, control, TBlock));
-                        }
-                        else if (prop is ITerminalProperty<Color>)
-                        {
-                            blockProperties.AddRange(ColorProperty.GetColorProperties(name, (ITerminalProperty<Color>)prop, control, TBlock));
+                            if (prop is IMyTerminalControlCombobox)
+                            {
+                                var comboBox = prop as IMyTerminalControlCombobox;
+
+                                if (comboBox.ComboBoxContent != null && comboBox.Getter != null && comboBox.Setter != null)
+                                    blockProperties.Add(new ComboBoxProperty(name, comboBox, control, TBlock));
+                            }
+                            else if (prop is ITerminalProperty<bool>)
+                            {
+                                blockProperties.Add(new BoolProperty(name, (ITerminalProperty<bool>)prop, control, TBlock));
+                            }
+                            else if (prop is ITerminalProperty<float>)
+                            {
+                                blockProperties.Add(new FloatProperty(name, (ITerminalProperty<float>)prop, control, TBlock));
+                            }
+                            else if (prop is ITerminalProperty<Color>)
+                            {
+                                blockProperties.AddRange(ColorProperty.GetColorProperties(name, (ITerminalProperty<Color>)prop, control, TBlock));
+                            }
                         }
                     }
                 }
+                catch { }
             }
 
             blockMembers.AddRange(blockProperties);
+        }
+
+        private static bool TestControlEnabled(IMyTerminalControl control, IMyTerminalBlock tBlock)
+        {
+            try
+            {
+                if (control.Enabled != null && control.Visible != null)
+                {
+                    control.Enabled(tBlock);
+                    control.Visible(tBlock);
+
+                    return true;
+                }
+            }
+            catch { }
+
+            return false;
         }
 
         /// <summary>
