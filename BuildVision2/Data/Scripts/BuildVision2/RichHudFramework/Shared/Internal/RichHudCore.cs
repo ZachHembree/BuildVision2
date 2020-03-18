@@ -7,7 +7,7 @@ using VRageMath;
 
 namespace RichHudFramework.Internal
 {
-    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, 0)]
+    [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate)]
     public sealed class RichHudCore : ModBase
     {
         public static RichHudCore Instance { get; private set; }
@@ -20,8 +20,16 @@ namespace RichHudFramework.Internal
                 throw new Exception("Only one instance of RichHudCore can exist at any given time.");
         }
 
-        protected override void AfterLoadData()
-        { }
+        public override void Draw()
+        {
+            // It seems there's some kind of bug in the game's session component system that prevents the Before/Sim/After
+            // update methods from being called on more than one component with the same fully qualified name, update order
+            // and priority, but for some reason, Draw and HandleInput still work.
+            //
+            // It would be really nice if I didn't have to work around this issue like this, but here we are.         
+            BeforeUpdate();
+            base.Draw();
+        }
 
         public override void Close()
         {
@@ -29,7 +37,7 @@ namespace RichHudFramework.Internal
 
             if (ExceptionHandler.Unloading)
                 Instance = null;
-        }       
+        }
     }
 
     public abstract class RichHudComponentBase : ModBase.ComponentBase

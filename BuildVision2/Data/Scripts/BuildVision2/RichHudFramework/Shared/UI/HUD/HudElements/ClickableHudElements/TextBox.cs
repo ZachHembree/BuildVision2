@@ -597,7 +597,7 @@ namespace RichHudFramework.UI
                 return box;
             }
 
-            protected override void Layout()
+            protected override void Draw()
             {
                 if (!Empty)
                 {

@@ -158,7 +158,7 @@ namespace RichHudFramework.Internal
         /// The update function used (Before/Sim/After) is determined by the settings used by
         /// the MySessionComponentDescriptorAttribute applied to the child class.
         /// </summary>
-        private void BeforeUpdate()
+        protected void BeforeUpdate()
         {
             if (Loaded && CanUpdate)
                 ExceptionHandler.Run(UpdateComponents);

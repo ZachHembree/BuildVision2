@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.Text;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
+using VRage.Game;
 
 namespace RichHudFramework.Internal
 {
     /// <summary>
     /// Handles exceptions for session components extending from ModBase.
     /// </summary>
-    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, -1)]
+    [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate)]
     public sealed class ExceptionHandler : MySessionComponentBase
     {
         /// <summary>
@@ -154,7 +155,7 @@ namespace RichHudFramework.Internal
                 PauseClients();
         }
 
-        public override void UpdateBeforeSimulation()
+        public override void Draw()
         {
             if (exceptionCount > 0 && errorTimer.ElapsedMilliseconds > exceptionReportInterval)
                 HandleExceptions();
