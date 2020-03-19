@@ -249,37 +249,46 @@ namespace DarkHelmet.BuildVision2
     public class BindsConfig : Config<BindsConfig>
     {
         [XmlIgnore]
-        public static BindGroupData DefaultBinds
+        public static BindDefinition[] DefaultBinds 
         {
-            get
+            get 
             {
-                return new BindGroupData()
-                {
-                    { "Open", MyKeys.Control, MyKeys.MiddleButton },
-                    { "Close", MyKeys.Shift, MyKeys.MiddleButton },
+                var copy = new BindDefinition[defaultBinds.Length];
+                System.Array.Copy(defaultBinds, 0, copy, 0, defaultBinds.Length);
 
-                    { "Select", MyKeys.MiddleButton },
-                    { "ScrollUp", RichHudControls.MousewheelUp },
-                    { "ScrollDown", RichHudControls.MousewheelDown },
-                    { "MultX", MyKeys.Control },
-                    { "MultY", MyKeys.Shift },
-                    { "MultZ", MyKeys.Control, MyKeys.Shift },
-
-                    { "ToggleSelectMode", MyKeys.Home },
-                    { "SelectAll", MyKeys.Insert },
-                    { "CopySelection", MyKeys.PageUp },
-                    { "PasteProperties", MyKeys.PageDown },
-                    { "UndoPaste", MyKeys.Delete },
-                };
+                return copy;
             }
         }
 
         [XmlArray("KeyBinds")]
         public BindDefinition[] bindData;
+        private static readonly BindDefinition[] defaultBinds;
+
+        static BindsConfig()
+        {
+            defaultBinds = new BindGroupData()
+            {
+                { "Open", MyKeys.Control, MyKeys.MiddleButton },
+                { "Close", MyKeys.Shift, MyKeys.MiddleButton },
+
+                { "Select", MyKeys.MiddleButton },
+                { "ScrollUp", RichHudControls.MousewheelUp },
+                { "ScrollDown", RichHudControls.MousewheelDown },
+                { "MultX", MyKeys.Control },
+                { "MultY", MyKeys.Shift },
+                { "MultZ", MyKeys.Control, MyKeys.Shift },
+
+                { "ToggleSelectMode", MyKeys.Home },
+                { "SelectAll", MyKeys.Insert },
+                { "CopySelection", MyKeys.PageUp },
+                { "PasteProperties", MyKeys.PageDown },
+                { "UndoPaste", MyKeys.Delete },
+            }.GetBindDefinitions();
+        }
 
         protected override BindsConfig GetDefaults()
         {
-            return new BindsConfig { bindData = DefaultBinds.GetBindDefinitions() };
+            return new BindsConfig { bindData = DefaultBinds };
         }
 
         /// <summary>
@@ -287,7 +296,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public override void Validate()
         {
-            BindDefinition[] defaults = DefaultBinds.GetBindDefinitions();
+            BindDefinition[] defaults = DefaultBinds;
 
             if (bindData == null || bindData.Length == 0)
                 bindData = defaults;
