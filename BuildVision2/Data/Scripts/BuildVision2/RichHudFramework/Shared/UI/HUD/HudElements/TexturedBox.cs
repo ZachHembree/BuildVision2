@@ -67,7 +67,6 @@ namespace RichHudFramework.UI
             if (Scale != lastScale)
             {
                 hudBoard.Size *= Scale / lastScale;
-                Offset *= Scale / lastScale;
                 lastScale = Scale;
             }
         }

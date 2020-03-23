@@ -188,7 +188,7 @@ namespace RichHudFramework.UI
                 DeleteSelection();
 
                 if (caret.Index.Y >= 0)
-                    TextBoard.RemoveAt(caret.Index);
+                    TextBoard.RemoveAt(ClampIndex(caret.Index));
 
                 caret.Move(new Vector2I(0, -1));
             }
@@ -204,6 +204,22 @@ namespace RichHudFramework.UI
                 TextBoard.RemoveRange(selectionBox.Start, selectionBox.End);
                 selectionBox.ClearSelection();
             }
+        }
+
+        /// <summary>
+        /// Clamps the given index within the range of existing characters.
+        /// </summary>
+        private Vector2I ClampIndex(Vector2I index)
+        {
+            if (TextBoard.Count > 0)
+            {
+                index.X = MathHelper.Clamp(index.X, 0, TextBoard.Count - 1);
+                index.Y = MathHelper.Clamp(index.Y, 0, TextBoard[index.X].Count - 1);
+
+                return index;
+            }
+            else
+                return Vector2I.Zero;
         }
 
         private static int GetRichTextLength(RichText text)
@@ -566,7 +582,7 @@ namespace RichHudFramework.UI
             /// </summary>
             private void UpdateHighlight()
             {
-                IRichChar left = text[Start], right = text[End];
+                IRichChar left = text[ClampIndex(Start)], right = text[ClampIndex(End)];
                 Vector2 lastOffset;
 
                 text.MoveToChar(Start);
@@ -611,6 +627,22 @@ namespace RichHudFramework.UI
                         bottom = null;
                     }
                 }
+            }
+
+            /// <summary>
+            /// Clamps the given index within the range of existing characters.
+            /// </summary>
+            private Vector2I ClampIndex(Vector2I index)
+            {
+                if (text.Count > 0)
+                {
+                    index.X = MathHelper.Clamp(index.X, 0, text.Count - 1);
+                    index.Y = MathHelper.Clamp(index.Y, 0, text[index.X].Count - 1);
+
+                    return index;
+                }
+                else
+                    return Vector2I.Zero;
             }
 
             /// <summary>
