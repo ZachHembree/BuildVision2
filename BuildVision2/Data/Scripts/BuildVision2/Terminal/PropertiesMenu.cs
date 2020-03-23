@@ -70,7 +70,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void MessageHandler(string message, ref bool sendToOthers)
         {
-            if (scrollMenu.Visible && scrollMenu.PropOpen)
+            if (scrollMenu.Visible)
                 sendToOthers = false;
         }
 

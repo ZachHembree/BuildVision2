@@ -18,3 +18,7 @@ RichHudMaster/
 BuildVision2.3.1/
 
 TextEditorExample/
+
+*.csproj
+
+*.sln
