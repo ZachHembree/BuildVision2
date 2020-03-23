@@ -32,7 +32,11 @@ namespace RichHudFramework.Client
         {
             InitAction = InitCallback;
             ReloadAction = ReloadCallback;
+
             ExceptionHandler.ModName = modName;
+
+            if (LogIO.FileName == null || LogIO.FileName == "modLog.txt")
+                LogIO.FileName = $"richHudLog.txt";
 
             regMessage = new ClientData(modName, MessageHandler, () => ExceptionHandler.Run(RemoteReload), versionID);
         }

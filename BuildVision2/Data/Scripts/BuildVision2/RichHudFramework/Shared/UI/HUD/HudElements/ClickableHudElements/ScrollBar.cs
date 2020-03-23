@@ -19,7 +19,6 @@ namespace RichHudFramework.UI
                     value -= Padding.X;
 
                 slide.BarWidth = value;
-                slide.SliderWidth = value;
             }
         }
 
@@ -35,7 +34,6 @@ namespace RichHudFramework.UI
                     value -= Padding.Y;
 
                 slide.BarHeight = value;
-                slide.SliderHeight = value;
             }
         }
 
@@ -107,7 +105,7 @@ namespace RichHudFramework.UI
             }
             else
             {
-                slide.BarHeight = slide.SliderHeight;
+                slide.SliderHeight = slide.BarHeight;
                 slide.SliderVisible = slide.SliderWidth < slide.BarWidth;
             }
         }

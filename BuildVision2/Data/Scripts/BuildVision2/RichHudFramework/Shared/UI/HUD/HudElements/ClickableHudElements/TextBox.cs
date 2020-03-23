@@ -20,9 +20,9 @@ namespace RichHudFramework.UI
         public bool UseMouseInput { get { return ShareCursor; } set { ShareCursor = value; } }
 
         /// <summary>
-        /// Determines whether or not text can be entered.
+        /// Indicates whether or not the textbox will accept input
         /// </summary>
-        public bool InputOpen { get; set; }
+        public bool InputOpen { get; private set; }
 
         /// <summary>
         /// Used to restrict the range of characters allowed for input.
@@ -46,10 +46,10 @@ namespace RichHudFramework.UI
 
         public IMouseInput MouseInput { get; }
 
-        private bool acceptInput;
         private readonly TextInput textInput;
         private readonly TextCaret caret;
         private readonly SelectionBox selectionBox;
+        private bool canHighlight, allowInput;
 
         public TextBox(IHudParent parent = null) : base(parent)
         {
@@ -60,7 +60,9 @@ namespace RichHudFramework.UI
             textInput = new TextInput(AddChar, RemoveLastChar, TextInputFilter);
 
             caret = new TextCaret(this) { Visible = false };
-            selectionBox = new SelectionBox(caret, this) { Color = new Color(255, 255, 255, 140), Visible = false };
+            selectionBox = new SelectionBox(caret, this) { Color = new Color(255, 255, 255, 140) };
+
+            caret.OnCaretMoved += CaretMoved;
         }
 
         /// <summary>
@@ -68,7 +70,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public void OpenInput()
         {
-            InputOpen = true;
+            allowInput = true;
             caret.SetPosition(new Vector2I(int.MaxValue, int.MaxValue));
         }
 
@@ -77,9 +79,21 @@ namespace RichHudFramework.UI
         /// </summary>
         public void CloseInput()
         {
-            InputOpen = false;
+            allowInput = false;
             selectionBox.ClearSelection();
         }
+
+        /// <summary>
+        /// Highlights the range of text specified.
+        /// </summary>
+        public void SetSelection(Vector2I start, Vector2I end) =>
+            selectionBox.SetSelection(start, end);
+
+        /// <summary>
+        /// Clears selected text range.
+        /// </summary>
+        public void ClearSelection() =>
+            selectionBox.ClearSelection();
 
         /// <summary>
         /// Determines whether or not the given character is within the accepted range for input.
@@ -92,26 +106,44 @@ namespace RichHudFramework.UI
                 return CharFilterFunc(ch) && (ch >= ' ' || ch == '\n');
         }
 
+        private void CaretMoved()
+        {
+            if (canHighlight)
+                selectionBox.UpdateSelection();
+        }
+
         protected override void HandleInput()
         {
-            acceptInput = (UseMouseInput && MouseInput.HasFocus && HudMain.Cursor.Visible) || InputOpen;
+            InputOpen = (UseMouseInput && MouseInput.HasFocus && HudMain.Cursor.Visible) || allowInput;
 
-            if (acceptInput)
+            if (InputOpen)
             {
-                if (!selectionBox.Visible && !SharedBinds.LeftButton.IsPressed)
-                    selectionBox.Visible = true;
-
                 caret.Visible = true;
                 textInput.HandleInput();
+
+                if (SharedBinds.LeftButton.IsNewPressed)
+                {
+                    canHighlight = true;
+                    selectionBox.ClearSelection();
+                }
+                else if (SharedBinds.LeftButton.IsReleased)
+                {
+                    canHighlight = false;
+                }
+                else if (SharedBinds.SelectAll.IsNewPressed)
+                    selectionBox.SetSelection(Vector2I.Zero, new Vector2I(TextBoard.Count - 1, TextBoard[TextBoard.Count - 1].Count - 1));
+                else if (SharedBinds.Escape.IsNewPressed)
+                    selectionBox.ClearSelection();
 
                 if (SharedBinds.Copy.IsNewPressed && !selectionBox.Empty)
                     HudMain.ClipBoard = TextBoard.GetTextRange(selectionBox.Start, selectionBox.End);
 
                 if (SharedBinds.Cut.IsNewPressed && !selectionBox.Empty)
                 {
-                    HudMain.ClipBoard = TextBoard.GetTextRange(selectionBox.Start, selectionBox.End);
+                    RichText text = TextBoard.GetTextRange(selectionBox.Start, selectionBox.End);
                     DeleteSelection();
-                    caret.Move(Vector2I.Zero);
+                    caret.Move(new Vector2I(0, -GetRichTextLength(text)));
+                    HudMain.ClipBoard = text;
                 }
 
                 if (SharedBinds.Paste.IsNewPressed)
@@ -120,20 +152,19 @@ namespace RichHudFramework.UI
                     {
                         DeleteSelection();
                         TextBoard.Insert(HudMain.ClipBoard, caret.Index + new Vector2I(0, 1));
+                        int length = GetRichTextLength(HudMain.ClipBoard);
 
-                        int count = 0;
+                        if (caret.Index.Y == -1)
+                            length++;
 
-                        for (int n = 0; n < HudMain.ClipBoard.ApiData.Count; n++)
-                            count += HudMain.ClipBoard.ApiData[n].Item1.Length;
-
-                        caret.Move(new Vector2I(0, count));
+                        caret.Move(new Vector2I(0, length));
                     }
                 }
             }
-            else if (caret.Visible || selectionBox.Visible)
+            else
             {
+                canHighlight = false;
                 caret.Visible = false;
-                selectionBox.Visible = false;
             }
         }
 
@@ -172,8 +203,17 @@ namespace RichHudFramework.UI
             {
                 TextBoard.RemoveRange(selectionBox.Start, selectionBox.End);
                 selectionBox.ClearSelection();
-                caret.ClampIndex();
             }
+        }
+
+        private static int GetRichTextLength(RichText text)
+        {
+            int length = 0;
+
+            for (int n = 0; n < text.ApiData.Count; n++)
+                length += text.ApiData[n].Item1.Length;
+
+            return length;
         }
 
         private class TextCaret : TexturedBox
@@ -183,6 +223,8 @@ namespace RichHudFramework.UI
             /// the caret is positioned to the left of the first character in the line.
             /// </summary>
             public Vector2I Index { get; private set; }
+
+            public event Action OnCaretMoved;
 
             private readonly Label textElement;
             private readonly ITextBoard text;
@@ -212,10 +254,14 @@ namespace RichHudFramework.UI
             {
                 Vector2I newIndex, min = new Vector2I(0, -1);
 
-                if (dir.Y < 0 && (Index == min || Index != ClampIndex(Index)))
+                if (dir.Y < 0 && Index == min)
                     dir.Y = 0;
 
-                if ((dir.Y < 0 && Index.Y == 0) || (dir.Y == 0 && Index.Y == -1))
+                bool moveLeft = dir.Y < 0, moveRight = dir.Y > 0,
+                    prepending = Index.Y == -1, 
+                    startPrepend = moveLeft && Index.Y == 0;
+
+                if (startPrepend || (dir.Y == 0 && prepending))
                 {
                     newIndex = Index + new Vector2I(dir.X, 0);
                     newIndex.Y = -1;
@@ -227,18 +273,20 @@ namespace RichHudFramework.UI
                 {
                     int newOffset = Math.Max(caretOffset + dir.Y, 0);
 
-                    if ((Index.X > 0 || text[0].Count > 1) && Index.Y == -1 && dir.Y > 0)
+                    // Stop prepending
+                    if ((prepending && moveRight) && (Index.X > 0 || text[0].Count > 1))
                         newOffset -= 1;
 
                     newIndex = GetIndexFromOffset(newOffset) + new Vector2I(dir.X, 0);
                     newIndex = ClampIndex(newIndex);
                     caretOffset = GetOffsetFromIndex(newIndex);
 
-                    if (newIndex.X > Index.X && dir.Y > 0 && navigate)
+                    if (navigate && moveRight && newIndex.X > Index.X)
                         newIndex.Y = -1;
                 }
 
-                Index = newIndex;
+                Index = ClampIndex(newIndex);
+                OnCaretMoved?.Invoke();
 
                 if (Index.Y >= 0)
                     text.MoveToChar(Index);
@@ -253,27 +301,26 @@ namespace RichHudFramework.UI
             {
                 Index = ClampIndex(index);
                 caretOffset = Math.Max(GetOffsetFromIndex(Index), 0);
+
+                if (Index != index)
+                    OnCaretMoved?.Invoke();
             }
 
-            public void ClampIndex()
-            {
-                Index = ClampIndex(Index);
-                caretOffset = Math.Max(GetOffsetFromIndex(Index), 0);
-            }
-
-            protected override void Layout()
+            protected override void Draw()
             {
                 if (blink)
-                    base.Layout();
+                {
+                    Index = ClampIndex(Index);
+                    UpdateOffset();
+
+                    base.Draw();
+                }
 
                 if (blinkTimer.ElapsedMilliseconds > 500)
                 {
                     blink = !blink;
                     blinkTimer.Reset();
                 }
-
-                Index = ClampIndex(Index);
-                UpdateOffset();
             }
 
             /// <summary>
@@ -309,6 +356,9 @@ namespace RichHudFramework.UI
                         offset.X = textElement.Size.X / 2f - 2f;
 
                     offset.X += Padding.X / 2f;
+
+                    if (!text.VertCenterText)
+                        offset.Y = (text.Size.Y - Height) / 2f - 4f;
                 }
 
                 Offset = offset;
@@ -342,16 +392,22 @@ namespace RichHudFramework.UI
             /// </summary>
             private void GetClickedChar()
             {
-                if (HudMain.Cursor.Origin != lastCursorPos)
+                if ((HudMain.Cursor.Origin - lastCursorPos).LengthSquared() > 4f)
                 {
                     Vector2 offset = HudMain.Cursor.Origin - textElement.Position;
-                    Index = ClampIndex(text.GetCharAtOffset(offset));
-                    caretOffset = GetOffsetFromIndex(Index);
+                    Vector2I newIndex = text.GetCharAtOffset(offset);
 
-                    if (text.Count > 0 && text[Index.X].Count > 0 && offset.X < text[Index].Offset.X)
+                    Index = ClampIndex(newIndex);
+
+                    if ((text.Count > 0 && text[Index.X].Count > 0 && text[Index].Ch != '\n') && (offset.X < text[Index].Offset.X))
                         Index -= new Vector2I(0, 1);
 
-                    lastCursorPos = HudMain.Cursor.Origin;
+                    caretOffset = GetOffsetFromIndex(Index);
+                    lastCursorPos = HudMain.Cursor.Origin;         
+
+                    blink = true;
+                    blinkTimer.Reset();
+                    OnCaretMoved?.Invoke();
                 }
             }
 
@@ -457,6 +513,14 @@ namespace RichHudFramework.UI
                 Start = -Vector2I.One;
             }
 
+            public void SetSelection(Vector2I start, Vector2I end)
+            {
+                Start = start;
+                End = end;
+
+                UpdateHighlight();
+            }
+
             public void ClearSelection()
             {
                 top = null;
@@ -464,86 +528,88 @@ namespace RichHudFramework.UI
                 End = -Vector2I.One;
             }
 
-            protected override void HandleInput()
+            public void UpdateSelection()
             {
-                if (text.Count > 0 && text[text.Count - 1].Count > 0)
+                Vector2I caretIndex = caret.Index;
+
+                if (Start == -Vector2I.One)
                 {
-                    if (SharedBinds.LeftButton.IsNewPressed)
-                    {
-                        ClearSelection();
-                    }
-                    else if (SharedBinds.LeftButton.IsPressed)
-                    {
-                        Vector2I caretIndex = caret.Index;
-                        caretIndex.Y = Math.Max(caretIndex.Y, 0);
+                    Start = caretIndex;
+                    End = Start;
 
-                        if (Start == -Vector2I.One)
-                        {
-                            Start = caretIndex;
-                            End = Start;
-                        }
-                        else
-                        {
-                            if (caretIndex.X < End.X || (caretIndex.X == End.X && caretIndex.Y < End.Y))
-                            {
-                                if (caretIndex.X > Start.X || (caretIndex.X == Start.X && caretIndex.Y > Start.Y))
-                                    End = caretIndex;
-                                else
-                                    Start = caretIndex;
-                            }
-                            else
-                                End = caretIndex;
-                        }
-
-                        if (Start != End)
-                            UpdateSelection();
-                    }
-                    else if (SharedBinds.LeftButton.IsReleased || SharedBinds.Shift.IsReleased)
-                    {
-                        if (Empty)
-                            ClearSelection();
-                    }
-
-                    if (SharedBinds.SelectAll.IsNewPressed)
-                    {
-                        Start = Vector2I.Zero;
-                        End = new Vector2I(text.Count - 1, text[text.Count - 1].Count - 1);
-
-                        UpdateSelection();
-                    }
-
-                    if (SharedBinds.Escape.IsNewPressed || SharedBinds.LeftArrow.IsNewPressed || SharedBinds.RightArrow.IsNewPressed || SharedBinds.UpArrow.IsNewPressed || SharedBinds.DownArrow.IsNewPressed)
-                        ClearSelection();
+                    if (Start.Y < text[Start.X].Count - 1)
+                        Start += new Vector2I(0, 1);
                 }
+                else
+                {
+                    // If caret after start
+                    if (caretIndex.X > Start.X || (caretIndex.X == Start.X && caretIndex.Y >= Start.Y))
+                        End = caretIndex;
+                    else
+                    {
+                        Start = caretIndex;
+
+                        if (Start.Y < text[Start.X].Count - 1)
+                            Start += new Vector2I(0, 1);
+                    }
+                }
+
+                if (End.Y == -1)
+                    End += new Vector2I(0, 1);
+
+                UpdateHighlight();
             }
+
 
             /// <summary>
             /// Calculates the size and offsets for the boxes highlighting the selection.
             /// </summary>
-            private void UpdateSelection()
+            private void UpdateHighlight()
             {
-                IRichChar left = text[Start],
-                    right = text[End];
+                IRichChar left = text[Start], right = text[End];
+                Vector2 lastOffset;
 
-                if (End.X != Start.X)
+                text.MoveToChar(Start);
+                lastOffset = text.TextOffset;
+                text.MoveToChar(End);
+
+                if (text.TextOffset != lastOffset)
                 {
-                    IRichChar firstLineEnd = text[Start.X][text[Start.X].Count - 1],
-                        lastLineStart = text[End.X][0];
-
-                    top = GetEndBar(left, firstLineEnd);
-                    bottom = GetEndBar(lastLineStart, right);
-
-                    if (End.X - Start.X > 1)
-                        middle = GetMiddleBar();
-                    else
-                        middle = null;
-                }
-                else
-                {
-                    top = GetEndBar(left, right);
+                    caret.SetPosition(End);
+                    top = new HighlightBox() 
+                    { 
+                        size = new Vector2()
+                        { 
+                            X = Math.Min(text.Size.X, text.TextSize.X),
+                            Y = Math.Min(text.Size.Y, text.TextSize.Y),
+                        }
+                    };
 
                     middle = null;
                     bottom = null;
+                }
+                else
+                {
+                    if (End.X != Start.X)
+                    {
+                        IRichChar firstLineEnd = text[Start.X][text[Start.X].Count - 1],
+                            lastLineStart = text[End.X][0];
+
+                        top = GetEndBar(left, firstLineEnd);
+                        bottom = GetEndBar(lastLineStart, right);
+
+                        if (End.X - Start.X > 1)
+                            middle = GetMiddleBar();
+                        else
+                            middle = null;
+                    }
+                    else
+                    {
+                        top = GetEndBar(left, right);
+
+                        middle = null;
+                        bottom = null;
+                    }
                 }
             }
 
@@ -584,7 +650,7 @@ namespace RichHudFramework.UI
 
                 box.size = new Vector2()
                 {
-                    X = text.Size.X,
+                    X = Math.Min(text.Size.X, text.TextSize.X),
                     Y = upperBound - lowerBound
                 };
 
@@ -618,8 +684,7 @@ namespace RichHudFramework.UI
                 public void Draw(MatBoard matBoard, Vector2 origin)
                 {
                     matBoard.Size = size;
-                    matBoard.offset = offset;
-                    matBoard.Draw(origin);
+                    matBoard.Draw(origin + offset);
                 }
             }
         }

@@ -45,6 +45,7 @@ namespace RichHudFramework.IO
         private LogIO() : base(true, true)
         {
             accessible = true;
+            _fileName = "modLog.txt";
             logFile = new LocalFileIO(_fileName);
         }
 

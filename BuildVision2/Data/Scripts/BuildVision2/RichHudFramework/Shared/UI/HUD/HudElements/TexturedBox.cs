@@ -53,11 +53,6 @@ namespace RichHudFramework.UI
             }
         }
 
-        /// <summary>
-        /// Position of the element relative to its origin.
-        /// </summary>
-        public override Vector2 Offset { get { return hudBoard.offset; } set { hudBoard.offset = value; } }
-
         private float lastScale;
         private readonly MatBoard hudBoard;
 
@@ -67,7 +62,7 @@ namespace RichHudFramework.UI
             lastScale = Scale;
         }
 
-        protected override void Draw()
+        protected override void Layout()
         {
             if (Scale != lastScale)
             {
@@ -75,10 +70,13 @@ namespace RichHudFramework.UI
                 Offset *= Scale / lastScale;
                 lastScale = Scale;
             }
+        }
 
+        protected override void Draw()
+        {
             if (Color.A > 0)
             {
-                hudBoard.Draw(Origin);
+                hudBoard.Draw(cachedPosition);
             }
         }
     }

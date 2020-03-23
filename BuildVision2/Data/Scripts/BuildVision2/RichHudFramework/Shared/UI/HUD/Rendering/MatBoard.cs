@@ -135,8 +135,6 @@ namespace RichHudFramework
                     }
                 }
 
-                public Vector2 offset;
-
                 private Vector2 size;
                 private Color color;
                 private bool updateMatFit;
@@ -162,7 +160,7 @@ namespace RichHudFramework
                         updateMatFit = false;
                     }
 
-                    minBoard.Draw(size, origin + offset);
+                    minBoard.Draw(size, origin);
                 }           
             }
 

@@ -184,6 +184,7 @@ namespace RichHudFramework.UI
         public readonly TexturedBox background;
         public readonly TexturedBox divider;
 
+        private readonly MouseInputFilter scrollInput;
         private Vector2 maxSize, minSize, chainSize;
         private float totalSize;
         private int end;
@@ -194,6 +195,12 @@ namespace RichHudFramework.UI
             {
                 Color = new Color(41, 54, 62),
                 DimAlignment = DimAlignments.Both,
+            };
+
+            scrollInput = new MouseInputFilter(this)
+            {
+                Binds = new IBind[] { SharedBinds.MousewheelUp, SharedBinds.MousewheelDown },
+                DimAlignment = DimAlignments.Both
             };
 
             scrollBar = new ScrollBar(this)
@@ -210,10 +217,6 @@ namespace RichHudFramework.UI
             {
                 AutoResize = true,
             };
-
-            CaptureCursor = true;
-            ShareCursor = false;
-            CaptureEarly = true;
 
             AlignVertical = true;
             Enabled = true;
@@ -255,18 +258,14 @@ namespace RichHudFramework.UI
 
         protected override void HandleInput()
         {
-            CaptureCursor = scrollBar.Min != scrollBar.Max;
+            scrollInput.CaptureCursor = scrollBar.Min != scrollBar.Max;
 
-            if (IsMousedOver || scrollBar.IsMousedOver)
+            if (scrollInput.IsControlPressed)
             {
                 if (SharedBinds.MousewheelUp.IsPressed)
-                {
                     scrollBar.Current = Start - 1;
-                }
                 else if (SharedBinds.MousewheelDown.IsPressed)
-                {
                     scrollBar.Current = Start + 1;
-                }
             }
         }
 
@@ -487,16 +486,16 @@ namespace RichHudFramework.UI
             if (AlignVertical)
             {
                 scrollBar.Height = Height;
-                divider.Height = scrollBar.Height;
+                divider.Height = Height;
 
-                scrollBar.slide.SliderSize = new Vector2(scrollBar.slide.SliderSize.X, ((Height - Padding.Y) / totalSize) * scrollBar.Height);
+                scrollBar.slide.SliderHeight = ((Height - Padding.Y) / totalSize) * Height;
             }
             else
             {
                 scrollBar.Width = Width;
-                divider.Width = scrollBar.Width;
+                divider.Width = Width;
 
-                scrollBar.slide.SliderSize = new Vector2(((Width - Padding.X) / totalSize) * scrollBar.Width, scrollBar.slide.SliderSize.Y);
+                scrollBar.slide.SliderWidth = ((Width - Padding.X) / totalSize) * Width;
             }
         }
 

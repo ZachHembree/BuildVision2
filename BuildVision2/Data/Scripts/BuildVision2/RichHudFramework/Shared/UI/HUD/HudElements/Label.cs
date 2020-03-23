@@ -73,11 +73,14 @@ namespace RichHudFramework.UI
             _textBoard = new TextBoard();
         }
 
-        protected override void Draw()
+        protected override void Layout()
         {
             if (_textBoard.Scale != _scale)
                 _textBoard.Scale = _scale;
+        }
 
+        protected override void Draw()
+        {
             _textBoard.Draw(cachedPosition);
         }
     }

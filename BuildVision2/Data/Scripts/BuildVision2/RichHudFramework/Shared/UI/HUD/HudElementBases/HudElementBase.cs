@@ -116,15 +116,9 @@ namespace RichHudFramework
             public bool CaptureCursor { get; set; }
 
             /// <summary>
-            /// If set to true the hud element will share the cursor with its child elements if it's
-            /// already captured it.
+            /// If set to true the hud element will share the cursor with other elements.
             /// </summary>
             public bool ShareCursor { get; set; }
-
-            /// <summary>
-            /// If true, the hud element will attempt to capture the cursor before its children.
-            /// </summary>
-            public bool CaptureEarly { get; set; }
 
             /// <summary>
             /// Indicates whether or not the element is capturing the cursor.
@@ -152,9 +146,9 @@ namespace RichHudFramework
             /// </summary>
             public HudElementBase(IHudParent parent) : base(parent)
             {
-                ShareCursor = true;
                 DimAlignment = DimAlignments.None;
                 ParentAlignment = ParentAlignments.Center;
+                ShareCursor = true;
             }
 
             public override void Register(IHudParent parent)
@@ -180,57 +174,28 @@ namespace RichHudFramework
             {
                 if (Visible)
                 {
-                    if (CaptureEarly)
-                        HandleChildInput();
+                    for (int n = children.Count - 1; n >= 0; n--)
+                    {
+                        if (children[n].Visible)
+                            children[n].BeforeInput();
+                    }
 
                     if (CaptureCursor && HudMain.Cursor.Visible && !HudMain.Cursor.IsCaptured)
                     {
                         isMousedOver = IsMouseInBounds();
+                        HandleInput();
 
-                        if (isMousedOver)
+                        if (!ShareCursor && isMousedOver)
                             HudMain.Cursor.Capture(ID);
                     }
                     else
-                        isMousedOver = false;
-
-                    HandleInput();
-
-                    if (!CaptureEarly)
                     {
-                        if (ShareCursor)
-                            ShareInput();
-                        else
-                            HandleChildInput();
+                        isMousedOver = false;
+                        HandleInput();
                     }
                 }
                 else
                     isMousedOver = false;
-            }
-
-            /// <summary>
-            /// Temporarily releases the cursor and shares it with its child elements then attempts
-            /// to recapture it.
-            /// </summary>
-            private void ShareInput()
-            {
-                bool wasCapturing = isMousedOver && HudMain.Cursor.IsCapturing(ID);
-                HudMain.Cursor.TryRelease(ID);
-                HandleChildInput();
-
-                if (!HudMain.Cursor.IsCaptured && wasCapturing)
-                    HudMain.Cursor.Capture(ID);
-            }
-
-            /// <summary>
-            /// Updates input for child elements.
-            /// </summary>
-            private void HandleChildInput()
-            {
-                for (int n = children.Count - 1; n >= 0; n--)
-                {
-                    if (children[n].Visible)
-                        children[n].BeforeInput();
-                }
             }
 
             /// <summary>

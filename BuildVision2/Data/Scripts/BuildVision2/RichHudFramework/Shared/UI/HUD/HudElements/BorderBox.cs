@@ -26,9 +26,9 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Size of the border on all four sides in pixels.
         /// </summary>
-        public float Thickness { get { return thickness * Scale; } set { thickness = value / Scale; } }
+        public float Thickness { get { return _thickness * Scale; } set { _thickness = value / Scale; } }
 
-        private float thickness;
+        private float _thickness;
         protected readonly MatBoard hudBoard;
 
         public BorderBox(IHudParent parent = null) : base(parent)
@@ -41,17 +41,20 @@ namespace RichHudFramework.UI
         {
             if (Color.A > 0)
             {
-                hudBoard.Size = new Vector2(Thickness, Height);
-                hudBoard.Draw(Origin + Offset + new Vector2(-Width / 2f, 0f));
+                float height = _height * _scale, width = _width * _scale, 
+                    thickness = _thickness * _scale;
 
-                hudBoard.Size = new Vector2(Width, Thickness);
-                hudBoard.Draw(Origin + Offset + new Vector2(0f, Height / 2f));
+                hudBoard.Size = new Vector2(thickness, height);
+                hudBoard.Draw(cachedPosition + new Vector2(-width / 2f, 0f));
 
-                hudBoard.Size = new Vector2(Thickness, Height);
-                hudBoard.Draw(Origin + Offset + new Vector2(Width / 2f, 0f));
+                hudBoard.Size = new Vector2(width, thickness);
+                hudBoard.Draw(cachedPosition + new Vector2(0f, height / 2f));
 
-                hudBoard.Size = new Vector2(Width, Thickness);
-                hudBoard.Draw(Origin + Offset + new Vector2(0f, -Height / 2f));
+                hudBoard.Size = new Vector2(thickness, height);
+                hudBoard.Draw(cachedPosition + new Vector2(width / 2f, 0f));
+
+                hudBoard.Size = new Vector2(width, thickness);
+                hudBoard.Draw(cachedPosition + new Vector2(0f, -height / 2f));
             }
         }
     }

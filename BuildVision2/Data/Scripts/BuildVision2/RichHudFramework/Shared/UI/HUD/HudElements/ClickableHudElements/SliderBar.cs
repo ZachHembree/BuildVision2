@@ -241,7 +241,7 @@ namespace RichHudFramework.UI
                 canMoveSlider = false;
             }
 
-            if (IsMousedOver)
+            if (IsMousedOver || canMoveSlider)
             {
                 slider.Color = SliderHighlight;
 

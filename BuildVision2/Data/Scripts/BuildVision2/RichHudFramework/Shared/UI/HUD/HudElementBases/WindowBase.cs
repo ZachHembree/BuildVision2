@@ -91,6 +91,7 @@ namespace RichHudFramework.UI
         public WindowBase(IHudParent parent) : base(parent)
         {
             CaptureCursor = true;
+            ShareCursor = false;
             AllowResizing = true;
             CanDrag = true;
             MinimumSize = new Vector2(200f, 200f);
@@ -160,13 +161,13 @@ namespace RichHudFramework.UI
 
         protected override void Layout()
         {
+            body.Height = Height - header.Height;
+
             if (canMoveWindow)
                 Offset = HudMain.Cursor.Origin + cursorOffset - Origin;
 
             if (canResize)
-                Resize();
-
-            body.Height = Height - header.Height;
+                Resize();            
         }
 
         protected void Resize()
