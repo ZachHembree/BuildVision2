@@ -95,7 +95,7 @@ namespace DarkHelmet.BuildVision2
 
             if (PlyEnt != null)
             {
-                MyAPIGateway.Physics.CastRay(line.From, line.To, out rayInfo);
+                MyAPIGateway.Physics.CastRay(line.From, line.To, out rayInfo, CollisionLayers.CollisionLayerWithoutCharacter);
                 grid = rayInfo?.HitEntity as IMyCubeGrid;
             }
             else
@@ -117,12 +117,8 @@ namespace DarkHelmet.BuildVision2
 
             if (PlyEnt != null)
             {
-                MyAPIGateway.Physics.CastRay(line.From, line.To, out rayInfo);
-
-                if (rayInfo != null)
-                {
-                    grid = rayInfo.HitEntity as IMyCubeGrid;
-                }
+                MyAPIGateway.Physics.CastRay(line.From, line.To, out rayInfo, CollisionLayers.CollisionLayerWithoutCharacter);
+                grid = rayInfo?.HitEntity as IMyCubeGrid;
             }
 
             return grid != null;
@@ -141,7 +137,7 @@ namespace DarkHelmet.BuildVision2
                 start = HeadTransform.Translation;
                 end = start + HeadTransform.Forward * maxDist;
 
-                MyAPIGateway.Physics.CastRay(start, end, out rayInfo);
+                MyAPIGateway.Physics.CastRay(start, end, out rayInfo, CollisionLayers.CollisionLayerWithoutCharacter);
                 grid = rayInfo?.HitEntity as IMyCubeGrid;
                 hitPos = rayInfo.Position;
             }

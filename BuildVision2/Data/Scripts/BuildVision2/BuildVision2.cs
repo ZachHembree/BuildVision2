@@ -5,6 +5,7 @@ using RichHudFramework.IO;
 using RichHudFramework.UI;
 using Sandbox.ModAPI;
 using System;
+using System.Collections.Generic;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
@@ -132,46 +133,37 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Tries to retrieve targeted <see cref="IMyTerminalBlock"/> on a grid within a given distance.
         /// </summary>
-        private static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock tBlock)
+        private static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock target)
         {
             IMyCubeGrid grid;
             IHitInfo rayInfo;
             Vector3D headPos = LocalPlayer.HeadTransform.Translation, forward = LocalPlayer.HeadTransform.Forward;
-            LineD lineA = new LineD(headPos, headPos + forward * maxDist);
+            LineD line = new LineD(headPos, headPos + forward * maxDist);
+            target = null;
 
-            double dist;
-            tBlock = null;
-
-            if (LocalPlayer.TryGetTargetedGrid(lineA, out grid, out rayInfo))
+            if (LocalPlayer.TryGetTargetedGrid(line, out grid, out rayInfo))
             {
-                IMySlimBlock blockA, blockB;
-                LineD lineB = new LineD(rayInfo.Position - (rayInfo.Normal * .3f), rayInfo.Position);
+                double currentDist = double.PositiveInfinity, currentCenterDist = double.PositiveInfinity;
+                var bounds = new BoundingSphereD(rayInfo.Position, (grid.GridSizeEnum == MyCubeSize.Large) ? 1.3 : .3);
+                List<IMySlimBlock> blocks = grid.GetBlocksInsideSphere(ref bounds);
 
-                grid.GetLineIntersectionExactAll(ref lineA, out dist, out blockA);
-                grid.GetLineIntersectionExactAll(ref lineB, out dist, out blockB);
-
-                var fatA = blockA?.FatBlock as IMyTerminalBlock;
-                var fatB = blockB?.FatBlock as IMyTerminalBlock;
-
-                if (fatA != null && fatB != null)
+                foreach (IMySlimBlock slimBlock in blocks)
                 {
-                    BoundingBoxD boundA, boundB;
+                    BoundingBoxD bound; slimBlock.GetWorldBoundingBox(out bound);
+                    double newDist = bound.DistanceSquared(rayInfo.Position),
+                        newCenterDist = Vector3D.DistanceSquared(bound.Center, rayInfo.Position);
+                    var fatBlock = slimBlock?.FatBlock as IMyTerminalBlock;
 
-                    blockA.GetWorldBoundingBox(out boundA);
-                    blockB.GetWorldBoundingBox(out boundB);
-
-                    if (boundB.Distance(rayInfo.Position) < boundA.Distance(rayInfo.Position))
-                        tBlock = fatB;
-                    else
-                        tBlock = fatA;
+                    if ((fatBlock != null || currentDist > 0d) && (newDist < currentDist || (newDist == 0d && newCenterDist < currentCenterDist)))
+                    {
+                        target = fatBlock;
+                        currentDist = newDist;
+                        currentCenterDist = newCenterDist;
+                    }
                 }
-                else if (fatA != null)
-                    tBlock = fatA;
-                else
-                    tBlock = fatB;
             }
 
-            return tBlock != null;
+            return target != null;
         }
 
         /// <summary>
