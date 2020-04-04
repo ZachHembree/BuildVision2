@@ -144,14 +144,14 @@ namespace DarkHelmet.BuildVision2
             if (LocalPlayer.TryGetTargetedGrid(line, out grid, out rayInfo))
             {
                 double currentDist = double.PositiveInfinity, currentCenterDist = double.PositiveInfinity;
-                var bounds = new BoundingSphereD(rayInfo.Position, (grid.GridSizeEnum == MyCubeSize.Large) ? 1.3 : .3);
-                List<IMySlimBlock> blocks = grid.GetBlocksInsideSphere(ref bounds);
+                var sphere = new BoundingSphereD(rayInfo.Position, (grid.GridSizeEnum == MyCubeSize.Large) ? 1.3 : .3);
+                List<IMySlimBlock> blocks = grid.GetBlocksInsideSphere(ref sphere);
 
                 foreach (IMySlimBlock slimBlock in blocks)
                 {
-                    BoundingBoxD bound; slimBlock.GetWorldBoundingBox(out bound);
-                    double newDist = bound.DistanceSquared(rayInfo.Position),
-                        newCenterDist = Vector3D.DistanceSquared(bound.Center, rayInfo.Position);
+                    BoundingBoxD box; slimBlock.GetWorldBoundingBox(out box);
+                    double newDist = box.DistanceSquared(rayInfo.Position),
+                        newCenterDist = Vector3D.DistanceSquared(box.Center, rayInfo.Position);
                     var fatBlock = slimBlock?.FatBlock as IMyTerminalBlock;
 
                     if ((fatBlock != null || currentDist > 0d) && (newDist < currentDist || (newDist == 0d && newCenterDist < currentCenterDist)))
@@ -160,6 +160,14 @@ namespace DarkHelmet.BuildVision2
                         currentDist = newDist;
                         currentCenterDist = newCenterDist;
                     }
+                }
+
+                if (target == null)
+                {
+                    IMySlimBlock slimBlock;
+                    double dist;
+                    grid.GetLineIntersectionExactAll(ref line, out dist, out slimBlock);
+                    target = slimBlock?.FatBlock as IMyTerminalBlock;
                 }
             }
 
