@@ -14,18 +14,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class FloatProperty : NumericPropertyBase<float>
         {
-            public override string Value
-            {
-                get
-                {
-                    float value = GetValue();
-
-                    if ((value.Abs() >= 1000000f || value.Abs() <= .0000001f) && value != 0f)
-                        return value.ToString("0.##E+0");
-                    else
-                        return value.ToString("0.##");
-                }
-            }
+            public override string Value => GetValue().ToString("G6");
             public override string Postfix => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
             private readonly float minValue, maxValue, incrX, incrY, incrZ, incr0;
