@@ -182,7 +182,7 @@ namespace DarkHelmet.BuildVision2
             double dist = double.PositiveInfinity;
 
             if (target != null)
-                dist = (LocalPlayer.Position - target.GetPosition()).LengthSquared();
+                dist = (LocalPlayer.Position - target.Position).LengthSquared();
 
             return dist < (Cfg.general.maxControlRange * Cfg.general.maxControlRange);
         }

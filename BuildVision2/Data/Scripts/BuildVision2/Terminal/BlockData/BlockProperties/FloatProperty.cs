@@ -20,10 +20,10 @@ namespace DarkHelmet.BuildVision2
             private readonly float minValue, maxValue, incrX, incrY, incrZ, incr0;
             private readonly Func<string> GetPostfixFunc;
 
-            public FloatProperty(string name, ITerminalProperty<float> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
+            public FloatProperty(string name, ITerminalProperty<float> property, IMyTerminalControl control, SuperBlock block) : base(name, property, control, block)
             {
-                minValue = property.GetMinimum(block);
-                maxValue = property.GetMaximum(block);
+                minValue = property.GetMinimum(block.TBlock);
+                maxValue = property.GetMaximum(block.TBlock);
 
                 if (property.Id.StartsWith("Rot")) // Increment exception for projectors
                     incr0 = 90f;
@@ -53,16 +53,10 @@ namespace DarkHelmet.BuildVision2
 
                 if (property.Id == "UpperLimit")
                 {
-                    if (block is IMyPistonBase)
-                    {
-                        var piston = (IMyPistonBase)block;
-                        GetPostfixFunc = () => $"({Math.Round(piston.CurrentPosition, 1)}m)";
-                    }
-                    else if (block is IMyMotorStator)
-                    {
-                        var rotor = (IMyMotorStator)block;
-                        GetPostfixFunc = () => $"({Math.Round(MathHelper.Clamp(rotor.Angle.RadiansToDegrees(), -360, 360))})";
-                    }
+                    if (block.SubtypeId.HasFlag(TBlockSubtypes.Piston))
+                        GetPostfixFunc = () => $"({Math.Round(block.Piston.ExtensionDist, 2)}m)";
+                    else if (block.SubtypeId.HasFlag(TBlockSubtypes.Rotor))
+                        GetPostfixFunc = () => $"({Math.Round(MathHelper.Clamp(block.Rotor.Angle.RadiansToDegrees(), -360, 360))})";
                 }
             }
 

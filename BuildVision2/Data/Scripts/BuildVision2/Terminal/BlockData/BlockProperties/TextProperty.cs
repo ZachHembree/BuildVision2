@@ -1,5 +1,4 @@
-﻿using Sandbox.ModAPI;
-using Sandbox.ModAPI.Interfaces;
+﻿using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
 using System.Text;
@@ -17,7 +16,7 @@ namespace DarkHelmet.BuildVision2
             public override string Postfix => null;
             public Func<char, bool> CharFilterFunc { get; protected set; }
 
-            public TextProperty(string name, ITerminalProperty<StringBuilder> textProp, IMyTerminalControl control, IMyTerminalBlock block) : base(name, textProp, control, block)
+            public TextProperty(string name, ITerminalProperty<StringBuilder> textProp, IMyTerminalControl control, SuperBlock block) : base(name, textProp, control, block)
             {
                 CharFilterFunc = x => (x >= ' ');
             }

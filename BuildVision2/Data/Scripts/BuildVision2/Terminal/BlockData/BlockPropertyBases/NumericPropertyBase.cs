@@ -1,5 +1,4 @@
-﻿using Sandbox.ModAPI;
-using Sandbox.ModAPI.Interfaces;
+﻿using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
 
@@ -14,7 +13,7 @@ namespace DarkHelmet.BuildVision2
         {
             public Func<char, bool> CharFilterFunc { get; protected set; }
 
-            public NumericPropertyBase(string name, ITerminalProperty<TValue> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
+            public NumericPropertyBase(string name, ITerminalProperty<TValue> property, IMyTerminalControl control, SuperBlock block) : base(name, property, control, block)
             {
                 CharFilterFunc = x => (x >= '0' && x <= '9') || x == '.' || x == '-' || x == '+';
             }

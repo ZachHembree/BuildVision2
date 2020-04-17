@@ -1,11 +1,8 @@
 ﻿using Sandbox.Game.Localization;
-using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
 using VRage;
-using VRage.Game;
-using VRage.Game.Components;
 using VRage.Utils;
 
 namespace DarkHelmet.BuildVision2
@@ -23,20 +20,12 @@ namespace DarkHelmet.BuildVision2
             private readonly Func<string> GetPostfixFunc;
             private readonly MyStringId OnText, OffText;
 
-            public BoolProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, IMyTerminalBlock block) : base(name, property, control, block)
+            public BoolProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, SuperBlock block) : base(name, property, control, block)
             {
-                if (property.Id == "OnOff" && (block.ResourceSink != null || block is IMyPowerProducer)) // Insert power draw / output info
-                {
-                    MyDefinitionId definitionId = MyDefinitionId.FromContent(block.SlimBlock.GetObjectBuilder());
-                    var sink = block.ResourceSink;
-                    var producer = block as IMyPowerProducer;
-
-                    GetPostfixFunc = () => GetBlockPowerInfo(sink, producer, definitionId);
-                }
-                else if (property.Id == "Stockpile" && block is IMyGasTank) // Insert gas tank info
-                {
-                    GetPostfixFunc = () => GetGasTankFillPercent((IMyGasTank)block);
-                }
+                if (property.Id == "OnOff" && block.SubtypeId.HasFlag(TBlockSubtypes.Powered)) // Insert power draw / output info
+                    GetPostfixFunc = GetBlockPowerInfo;
+                else if (property.Id == "Stockpile" && block.SubtypeId.HasFlag(TBlockSubtypes.GasTank)) // Insert gas tank info
+                    GetPostfixFunc = GetGasTankFillPercent;
 
                 if (property is IMyTerminalControlOnOffSwitch)
                 {
@@ -52,11 +41,11 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            private static string GetBlockPowerInfo(MyResourceSinkComponentBase sink, IMyPowerProducer producer, MyDefinitionId definitionId)
+            private string GetBlockPowerInfo()
             {
                 string disp = "", suffix;
-                float powerDraw = sink != null ? sink.CurrentInputByType(definitionId) : 0f,
-                    powerOut = producer != null ? producer.CurrentOutput : 0f,
+                float powerDraw = block.Power.Input,
+                    powerOut = block.Power.Out,
                     total = (powerDraw + powerOut), scale;
 
                 if (total >= 1000f)
@@ -80,12 +69,12 @@ namespace DarkHelmet.BuildVision2
                     suffix = "W";
                 }
 
-                if (sink != null)
+                if (powerDraw >= 0f)
                     disp += "-" + Math.Round(powerDraw * scale, 1);
 
-                if (producer != null)
+                if (powerOut >= 0f)
                 {
-                    if (sink != null)
+                    if (powerDraw >= 0f)
                         disp += " / ";
 
                     disp += "+" + Math.Round(powerOut * scale, 1);
@@ -94,8 +83,8 @@ namespace DarkHelmet.BuildVision2
                 return $"({disp} {suffix})";
             }
 
-            private static string GetGasTankFillPercent(IMyGasTank gasTank) =>
-                $"({Math.Round(gasTank.FilledRatio * 100d, 1)}%)";
+            private string GetGasTankFillPercent() =>
+                $"({Math.Round(block.GasTank.FillRatio * 100d, 1)}%)";
 
             public void Action() =>
                 SetValue(!GetValue());

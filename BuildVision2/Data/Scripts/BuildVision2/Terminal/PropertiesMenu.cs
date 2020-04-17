@@ -135,7 +135,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !Cfg.useCustomPos)
                 {
-                    targetPos = Target.GetPosition() + Target.modelOffset * .75;
+                    targetPos = Target.Position + Target.modelOffset * .75;
                     worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
 
                     screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);

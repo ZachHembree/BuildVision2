@@ -1,7 +1,7 @@
-﻿using System;
-using Sandbox.ModAPI;
+﻿using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
+using System;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -27,7 +27,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Attempts to apply the given property data.
             /// </summary>
-            public abstract bool TryImportPropertyValue(PropertyData data);           
+            public abstract bool TryImportPropertyValue(PropertyData data);
         }
 
         /// <summary>
@@ -39,23 +39,23 @@ namespace DarkHelmet.BuildVision2
 
             public override int ID { get; }
 
-            public override bool Enabled => (control.Enabled(block) && control.Visible(block));
+            public override bool Enabled => (control.Enabled(block.TBlock) && control.Visible(block.TBlock));
 
             protected readonly TProp property;
             protected readonly IMyTerminalControl control;
-            protected readonly IMyTerminalBlock block;
+            protected readonly SuperBlock block;
 
             private readonly Func<IMyTerminalBlock, TValue> Getter;
             private readonly Action<IMyTerminalBlock, TValue> Setter;
 
-            protected BvTerminalPropertyBase(string name, TProp property, IMyTerminalControl control, IMyTerminalBlock block, Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
+            protected BvTerminalPropertyBase(string name, TProp property, IMyTerminalControl control, SuperBlock block, Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
             {
                 Name = name;
 
                 this.property = property;
                 this.control = control;
                 this.block = block;
-                
+
                 this.Getter = Getter;
                 this.Setter = Setter;
 
@@ -72,7 +72,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     try
                     {
-                        return Getter(block);
+                        return Getter(block.TBlock);
                     }
                     catch { }
                 }
@@ -89,7 +89,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     try
                     {
-                        Setter(block, value);
+                        Setter(block.TBlock, value);
                     }
                     catch { }
                 }
@@ -115,14 +115,14 @@ namespace DarkHelmet.BuildVision2
         }
 
         private abstract class BvTerminalProperty<TProp, TValue> : BvTerminalPropertyBase<TProp, TValue> where TProp : ITerminalProperty<TValue>
-        {         
-            protected BvTerminalProperty(string name, TProp property, IMyTerminalControl control, IMyTerminalBlock block) 
-                : base(name, property, control, block, property.GetValue, property.SetValue) { }          
+        {
+            protected BvTerminalProperty(string name, TProp property, IMyTerminalControl control, SuperBlock block)
+                : base(name, property, control, block, property.GetValue, property.SetValue) { }
         }
 
         private abstract class BvTerminalValueControl<TProp, TValue> : BvTerminalPropertyBase<TProp, TValue> where TProp : IMyTerminalValueControl<TValue>
         {
-            protected BvTerminalValueControl(string name, TProp property, IMyTerminalControl control, IMyTerminalBlock block) 
+            protected BvTerminalValueControl(string name, TProp property, IMyTerminalControl control, SuperBlock block)
                 : base(name, property, control, block, property.Getter, property.Setter) { }
         }
     }
