@@ -57,7 +57,7 @@ namespace DarkHelmet.BuildVision2
 
                 for (int y = index; (y <= max && y >= min); y += dir)
                 {
-                    if (body.List[y].BlockMember.Enabled)
+                    if (scrollBody.List[y].BlockMember.Enabled)
                     {
                         index = y;
                         break;
@@ -70,22 +70,22 @@ namespace DarkHelmet.BuildVision2
                 if (index < min)
                 {
                     index = max;
-                    body.End = index;
+                    scrollBody.End = index;
                 }
                 else
                 {
                     index = min;
-                    body.Start = index;
+                    scrollBody.Start = index;
                 }
             }
             else
             {
                 index = MathHelper.Clamp(index, min, max);
 
-                if (index < body.Start)
-                    body.Start = index;
-                else if (index > body.End)
-                    body.End = index;
+                if (index < scrollBody.Start)
+                    scrollBody.Start = index;
+                else if (index > scrollBody.End)
+                    scrollBody.End = index;
             }
         }
 
@@ -99,7 +99,7 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = 0; n < Count; n++)
             {
-                if (body.List[n].Enabled)
+                if (scrollBody.List[n].Enabled)
                 {
                     first = n;
                     break;
@@ -119,7 +119,7 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = Count - 1; n >= 0; n--)
             {
-                if (body.List[n].Enabled)
+                if (scrollBody.List[n].Enabled)
                 {
                     last = n;
                     break;

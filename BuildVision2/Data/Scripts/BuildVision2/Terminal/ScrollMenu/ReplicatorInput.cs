@@ -25,9 +25,9 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = 0; n < Count; n++)
             {
-                if (body.List[n].Replicating)
+                if (scrollBody.List[n].Replicating)
                 {
-                    var property = body.List[n].BlockMember as IBlockProperty;
+                    var property = scrollBody.List[n].BlockMember as IBlockProperty;
 
                     if (property != null)
                         propertyData.Add(property.GetPropertyData());
@@ -39,14 +39,14 @@ namespace DarkHelmet.BuildVision2
 
         private void ToggleReplicationMode()
         {
-            ReplicationMode = !ReplicationMode;
-
-            if (ReplicationMode)
+            if (MenuMode == ScrollMenuModes.Copy)
             {
+                MenuMode = ScrollMenuModes.Control;
                 CloseProp();
             }
             else
             {
+                MenuMode = ScrollMenuModes.Copy;
                 DeselectAllProperties();
             }
         }
@@ -55,15 +55,15 @@ namespace DarkHelmet.BuildVision2
         {
             for (int n = 0; n < Count; n++)
             {
-                if (body.List[n].Enabled)
-                    body.List[n].Replicating = true;
+                if (scrollBody.List[n].Enabled)
+                    scrollBody.List[n].Replicating = true;
             }
         }
 
         private void DeselectAllProperties()
         {
             for (int n = 0; n < Count; n++)
-                body.List[n].Replicating = false;
+                scrollBody.List[n].Replicating = false;
         }
     }
 }

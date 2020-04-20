@@ -42,9 +42,9 @@ namespace DarkHelmet.BuildVision2
 
                 // Debug/Testing
                 new CmdManager.Command ("open",
-                    () => TryOpenMenu()),
+                    () => PropertiesMenu.TryOpenMenu()),
                 new CmdManager.Command ("close",
-                    () => TryCloseMenu()),
+                    () => PropertiesMenu.HideMenu()),
                 new CmdManager.Command ("reload",
                     () => Instance.Reload()),
                 new CmdManager.Command("crash",
@@ -62,7 +62,7 @@ namespace DarkHelmet.BuildVision2
 
         private void TryImportBlockData()
         {
-            LocalFileIO blockIO = new LocalFileIO($"{target?.TypeID}.bin");
+            LocalFileIO blockIO = new LocalFileIO($"{PropertiesMenu.Target?.TypeID}.bin");
             byte[] byteData;
 
             if (blockIO.FileExists && blockIO.TryRead(out byteData) == null)
@@ -70,16 +70,16 @@ namespace DarkHelmet.BuildVision2
                 BlockData data;
 
                 if (Utils.ProtoBuf.TryDeserialize(byteData, out data) == null)
-                    target.ImportSettings(data);
+                    PropertiesMenu.Target.ImportSettings(data);
             }
         }
 
         private void ExportBlockData()
         {
-            LocalFileIO blockIO = new LocalFileIO($"{target?.TypeID}.bin");
+            LocalFileIO blockIO = new LocalFileIO($"{PropertiesMenu.Target?.TypeID}.bin");
             byte[] byteData;
 
-            if (Utils.ProtoBuf.TrySerialize(target?.ExportSettings(), out byteData) == null)
+            if (Utils.ProtoBuf.TrySerialize(PropertiesMenu.Target?.ExportSettings(), out byteData) == null)
                 blockIO.TryWrite(byteData);
         }
 

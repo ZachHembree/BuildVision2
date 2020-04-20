@@ -16,7 +16,7 @@ namespace RichHudFramework
         /// A collection of rich strings. <see cref="RichString"/>s and <see cref="string"/>s can be implicitly
         /// cast to this type. Collection-initializer syntax can be used with this type.
         /// </summary>
-        public struct RichText : IEnumerable<RichString>
+        public class RichText : IEnumerable<RichString>
         {
             public GlyphFormat defaultFormat;
             public List<RichStringMembers> ApiData { get; }

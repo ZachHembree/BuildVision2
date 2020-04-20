@@ -4,6 +4,9 @@ using Sandbox.ModAPI;
 using RichHudFramework.UI.Client;
 using RichHudFramework.IO;
 using VRageMath;
+using VRage.Game;
+using VRage.Game.Components;
+using VRage.Game.ModAPI;
 using System.Collections.Generic;
 
 namespace DarkHelmet.BuildVision2
@@ -18,17 +21,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Currently targeted terminal block
         /// </summary>
-        public static PropertyBlock Target
-        {
-            get { return Instance.target; }
-            set
-            {
-                if (value != null)
-                    Instance.scrollMenu.SetTarget(value);                 
-
-                Instance.target = value;
-            }
-        }
+        public static PropertyBlock Target => Instance.target;
 
         /// <summary>
         /// If true, then the menu is open
@@ -46,11 +39,16 @@ namespace DarkHelmet.BuildVision2
         private PropertyBlock target;
         private IMyTerminalBlock lastPastedTarget;
         private BlockData clipboard, pasteBackup;
+        private int peakTick;
+        private bool canPeak;
 
         private PropertiesMenu() : base(false, true)
         {
             scrollMenu = new BvScrollMenu() { Visible = false };
             MyAPIGateway.Utilities.MessageEntered += MessageHandler;
+
+            BvBinds.Hide.OnNewPress += Hide;
+            SharedBinds.Escape.OnNewPress += Hide;
         }
 
         private static void Init()
@@ -59,8 +57,15 @@ namespace DarkHelmet.BuildVision2
                 _instance = new PropertiesMenu();
         }
 
+        public static void TryOpenMenu() =>
+            Instance.TryOpen();
+
+        public static void HideMenu() =>
+            Instance.Hide();
+
         public override void Close()
         {
+            Hide();
             MyAPIGateway.Utilities.MessageEntered -= MessageHandler;
             Instance = null;
         }
@@ -79,6 +84,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public override void Update()
         {
+            if (Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))
+                Hide();
+
             if (target != null && Open)
             {
                 scrollMenu.UpdateText();
@@ -87,9 +95,35 @@ namespace DarkHelmet.BuildVision2
 
         public override void HandleInput()
         {
+            if (BvBinds.MultX.IsNewPressed)
+            {
+                canPeak = true;
+                peakTick = 0;
+            }
+            else if (BvBinds.MultX.IsReleased)
+            {
+                canPeak = false;
+
+                if (Open && scrollMenu.MenuMode == ScrollMenuModes.Peak)
+                    Hide();
+            }
+
+            if (BvBinds.Open.IsNewPressed)
+                TryOpen();
+            else if (BvBinds.MultX.IsPressed && ((!Open && canPeak) || scrollMenu.MenuMode == ScrollMenuModes.Peak))
+            {
+                if (peakTick == 0)
+                    TryPeak();
+
+                peakTick++;
+
+                if (peakTick == 15)
+                    peakTick = 0;
+            }
+
             if (target != null && Open)
             {
-                if (BvBinds.CopySelection.IsNewPressed && scrollMenu.ReplicationMode)
+                if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Copy)
                 {
                     clipboard = new BlockData(target.TypeID, scrollMenu.GetReplicationRange());
                     scrollMenu.ShowNotification($"Copied {clipboard.terminalProperties.Count} Properties");
@@ -158,20 +192,128 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        /// <summary>
-        /// Shows the menu if its hidden.
-        /// </summary>
-        public static void Show()
+        private void TryPeak()
         {
-            Open = true;
+            scrollMenu.MenuMode = ScrollMenuModes.Peak;
+
+            if (TryGetTarget() && CanAccessTargetBlock())
+            {
+                scrollMenu.SetTarget(target);
+                Open = true;
+            }
+        }
+
+        private void TryOpen()
+        {
+            scrollMenu.MenuMode = ScrollMenuModes.Control;
+            canPeak = false;
+
+            if (TryGetTarget() && CanAccessTargetBlock())
+            {
+                scrollMenu.SetTarget(target);
+                Open = true;
+            }
+            else
+                Hide();
         }
 
         /// <summary>
         /// Hides all menu elements.
         /// </summary>
-        public static void Hide()
+        private void Hide()
         {
             Open = false;
+            target = null;
+            scrollMenu.Clear();
+        }
+
+        /// <summary>
+        /// Tries to get terminal block being targeted by the local player if there is one.
+        /// </summary>
+        private bool TryGetTarget()
+        {
+            IMyTerminalBlock block;
+
+            if ((BvConfig.Current.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && TryGetTargetedBlock(BvConfig.Current.general.maxOpenRange, out block))
+            {
+                if (block != null)
+                {
+                    if (block.HasLocalPlayerAccess())
+                    {
+                        if (target == null || block != target.TBlock)
+                            target = new PropertyBlock(block);
+
+                        return true;
+                    }
+                    else if (scrollMenu.MenuMode != ScrollMenuModes.Peak)
+                        MyAPIGateway.Utilities.ShowNotification("Access denied", 1000, MyFontEnum.Red);
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to retrieve targeted <see cref="IMyTerminalBlock"/> on a grid within a given distance.
+        /// </summary>
+        private static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock target)
+        {
+            IMyCubeGrid grid;
+            IHitInfo rayInfo;
+            Vector3D headPos = LocalPlayer.HeadTransform.Translation, forward = LocalPlayer.HeadTransform.Forward;
+            LineD line = new LineD(headPos, headPos + forward * maxDist);
+            target = null;
+
+            if (LocalPlayer.TryGetTargetedGrid(line, out grid, out rayInfo))
+            {
+                double currentDist = double.PositiveInfinity, currentCenterDist = double.PositiveInfinity;
+                var sphere = new BoundingSphereD(rayInfo.Position, (grid.GridSizeEnum == MyCubeSize.Large) ? 1.3 : .3);
+                List<IMySlimBlock> blocks = grid.GetBlocksInsideSphere(ref sphere);
+
+                foreach (IMySlimBlock slimBlock in blocks)
+                {
+                    BoundingBoxD box; slimBlock.GetWorldBoundingBox(out box);
+                    double newDist = box.DistanceSquared(rayInfo.Position),
+                        newCenterDist = Vector3D.DistanceSquared(box.Center, rayInfo.Position);
+                    var fatBlock = slimBlock?.FatBlock as IMyTerminalBlock;
+
+                    if ((fatBlock != null || currentDist > 0d) && (newDist < currentDist || (newDist == 0d && newCenterDist < currentCenterDist)))
+                    {
+                        target = fatBlock;
+                        currentDist = newDist;
+                        currentCenterDist = newCenterDist;
+                    }
+                }
+
+                if (target == null)
+                {
+                    IMySlimBlock slimBlock;
+                    double dist;
+                    grid.GetLineIntersectionExactAll(ref line, out dist, out slimBlock);
+                    target = slimBlock?.FatBlock as IMyTerminalBlock;
+                }
+            }
+
+            return target != null;
+        }
+
+        /// <summary>
+        /// Checks if the player can access the targeted block.
+        /// </summary>
+        private bool CanAccessTargetBlock() =>
+            target?.TBlock != null && BlockInRange() && target.CanLocalPlayerAccess && (!BvConfig.Current.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(target.TBlock));
+
+        /// <summary>
+        /// Determines whether the player is within 10 units of the block.
+        /// </summary>
+        private bool BlockInRange()
+        {
+            double dist = double.PositiveInfinity;
+
+            if (target != null)
+                dist = (LocalPlayer.Position - target.Position).LengthSquared();
+
+            return dist < (BvConfig.Current.general.maxControlRange * BvConfig.Current.general.maxControlRange);
         }
     }
 }
