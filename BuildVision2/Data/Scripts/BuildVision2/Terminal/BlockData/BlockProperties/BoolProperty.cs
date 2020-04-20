@@ -3,6 +3,7 @@ using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
 using VRage;
+using VRageMath;
 using VRage.Utils;
 
 namespace DarkHelmet.BuildVision2
@@ -46,7 +47,8 @@ namespace DarkHelmet.BuildVision2
                 string disp = "", suffix;
                 float powerDraw = block.Power.Input,
                     powerOut = block.Power.Out,
-                    total = (powerDraw + powerOut), scale;
+                    total = MathHelper.Max(powerDraw, 0f) + MathHelper.Max(powerOut, 0f),
+                    scale;
 
                 if (total >= 1000f)
                 {

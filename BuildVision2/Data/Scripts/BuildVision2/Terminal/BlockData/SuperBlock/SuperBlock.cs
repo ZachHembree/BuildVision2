@@ -21,8 +21,8 @@ namespace DarkHelmet.BuildVision2
         Connector = 0x80,
         MechanicalConnection = 0x100,
         Suspension = 0x200,
-        Piston = 0x300,
-        Rotor = 0x400
+        Piston = 0x400,
+        Rotor = 0x800
     }
 
     /// <summary>
