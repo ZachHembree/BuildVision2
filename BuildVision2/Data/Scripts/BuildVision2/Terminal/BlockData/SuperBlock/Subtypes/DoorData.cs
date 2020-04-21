@@ -1,5 +1,7 @@
 ﻿using Sandbox.ModAPI;
 using System;
+using VRage;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using DoorStatus = Sandbox.ModAPI.Ingame.DoorStatus;
 
 namespace DarkHelmet.BuildVision2
@@ -24,6 +26,17 @@ namespace DarkHelmet.BuildVision2
             {
                 door = tBlock as IMyDoor;
                 ToggleDoor = door.ToggleDoor;
+            }
+
+            /// <summary>
+            /// Returns localized string representing the door's status.
+            /// </summary>
+            public string GetLocalizedStatus()
+            {
+                if (Status != DoorStatus.Open)
+                    return MyTexts.GetString(MySpaceTexts.BlockAction_DoorClosed);
+                else
+                    return MyTexts.GetString(MySpaceTexts.BlockAction_DoorOpen);
             }
         }
     }

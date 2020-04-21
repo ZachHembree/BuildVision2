@@ -259,6 +259,42 @@ namespace DarkHelmet.BuildVision2
 
     public static class TerminalExtensions
     {
+        public static string GetPowerDisplay(float value)
+        {
+            float scale;
+            string suffix;
+            GetPowerScale(value, out scale, out suffix);
+
+            return $"{(value * scale).ToString("G4")} {suffix}";
+        }
+
+        /// <summary>
+        /// Attempts to find the most appropriate scale for the given power value (GW/MW/KW/W).
+        /// </summary>
+        public static void GetPowerScale(float value, out float scale, out string suffix)
+        {
+            if (value >= 1000f)
+            {
+                scale = .001f;
+                suffix = "GW";
+            }
+            else if (value >= 1f)
+            {
+                scale = 1f;
+                suffix = "MW";
+            }
+            else if (value >= .001f)
+            {
+                scale = 1000f;
+                suffix = "KW";
+            }
+            else
+            {
+                scale = 1000000f;
+                suffix = "W";
+            }
+        }
+
         /// <summary>
         /// Checks whether or not the Enabled and Visible delegates are defined and whether
         /// invoking those delegates will throw an exception.

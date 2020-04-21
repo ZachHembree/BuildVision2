@@ -1,5 +1,7 @@
 ﻿using Sandbox.ModAPI;
 using System;
+using VRage;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -29,6 +31,17 @@ namespace DarkHelmet.BuildVision2
                 mechBlock = tBlock as IMyMechanicalConnectionBlock;
                 AttachHead = mechBlock.Attach;
                 DetachHead = mechBlock.Detach;
+            }
+
+            /// <summary>
+            /// Returns head attachment status as a localized string.
+            /// </summary>
+            public string GetLocalizedStatus()
+            {
+                if (PartAttached)
+                    return MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorAttached);
+                else
+                    return MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorDetached);
             }
         }
     }

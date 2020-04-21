@@ -1,5 +1,7 @@
 ﻿using Sandbox.ModAPI;
 using System;
+using VRage;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
 
 namespace DarkHelmet.BuildVision2
@@ -24,6 +26,24 @@ namespace DarkHelmet.BuildVision2
             {
                 connector = tBlock as IMyShipConnector;
                 ToggleConnect = connector.ToggleConnect;
+            }
+
+            /// <summary>
+            /// Returns localized string representing the connector's status.
+            /// </summary>
+            public string GetLocalizedStatus()
+            {
+                switch (Status)
+                {
+                    case ConnectorStatus.Unconnected:
+                        return MyTexts.GetString(MySpaceTexts.BlockPropertyValue_Unlocked);
+                    case ConnectorStatus.Connectable:
+                        return MyTexts.GetString(MySpaceTexts.BlockPropertyValue_ReadyToLock);
+                    case ConnectorStatus.Connected:
+                        return MyTexts.GetString(MySpaceTexts.BlockPropertyValue_Locked);
+                }
+
+                return null;
             }
         }
     }

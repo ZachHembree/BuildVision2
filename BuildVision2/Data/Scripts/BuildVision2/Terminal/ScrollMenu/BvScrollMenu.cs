@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using VRageMath;
 using VRage;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -23,7 +24,7 @@ namespace DarkHelmet.BuildVision2
     {
         public override float Width { get { return layout.Width; } set { layout.Width = value; } }
 
-        public override float Height { get { return header.Height + scrollBody.Height + footer.Height; } set { layout.Height = value; } }
+        public override float Height { get { return layout.Height; } set { layout.Height = value; } }
 
         public override Vector2 Offset
         {
@@ -226,11 +227,11 @@ namespace DarkHelmet.BuildVision2
                     UpdatePropertyText();
 
                 if (target.IsWorking)
-                    footer.RightText = new RichText("[Working]", footerTextRight);
+                    footer.RightText = new RichText($"[Working]", footerTextRight);
                 else if (target.IsFunctional)
-                    footer.RightText = new RichText("[Functional]", footerTextRight);
+                    footer.RightText = new RichText($"[Functional]", footerTextRight);
                 else
-                    footer.RightText = new RichText("[Incomplete]", blockIncText);
+                    footer.RightText = new RichText($"[Incomplete]", blockIncText);
             }
             else
                 footer.RightText = new RichText("[Target is null]", blockIncText);
@@ -238,7 +239,7 @@ namespace DarkHelmet.BuildVision2
 
         private void UpdatePeakText()
         {
-            var peakText = new RichText()
+            var peakText = new RichText
             {
                 { $"{MyTexts.TrySubstitute("Name")}: ", bodyText },
                 { $"{target.TBlock.CustomName}\n", valueText }
@@ -246,113 +247,104 @@ namespace DarkHelmet.BuildVision2
 
             if (target.SubtypeId.HasFlag(TBlockSubtypes.Powered))
             {
-                peakText.Add($"{MyTexts.TrySubstitute("Power")}: ", bodyText);
-                peakText.Add($"{GetBlockPowerInfo()}\n", valueText);
+                peakText.Add(new RichText {
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", bodyText },
+                    { $"{target.Power.GetPowerDisplay()}\n", valueText },
+                });
             }
 
             if (target.SubtypeId.HasFlag(TBlockSubtypes.Battery))
             {
-                peakText.Add($"{MyTexts.TrySubstitute("Charge")}: ", bodyText);
-                peakText.Add($"{(target.Battery.PowerStored / target.Battery.Capacity).Round(1)}%\n", valueText);
+                peakText.Add(new RichText { 
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", bodyText }, 
+                    { $"{TerminalExtensions.GetPowerDisplay(target.Battery.PowerStored)}", valueText }, 
+                    { $" ({((target.Battery.PowerStored / target.Battery.Capacity) * 100f).Round(1)}%)\n", bodyText },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", bodyText },
+                    { $"{TerminalExtensions.GetPowerDisplay(target.Battery.Capacity)}\n", valueText },
+                });
             }
 
             if (target.SubtypeId.HasFlag(TBlockSubtypes.GasTank))
             {
-                peakText.Add($"{MyTexts.TrySubstitute("Fill Percent")}: ", bodyText);
-                peakText.Add($"{(target.GasTank.FillRatio * 100d).Round(1)}%\n", valueText);
+                peakText.Add(new RichText {
+                    { $"{MyTexts.GetString(MySpaceTexts.Oxygen_Filled).Split(':')[0]}: ", bodyText },
+                    { $"{(target.GasTank.FillRatio * 100d).Round(1)}%\n", valueText },
+                });
+            }
+
+            if (target.SubtypeId.HasFlag(TBlockSubtypes.Warhead))
+            {
+                peakText.Add(new RichText {
+                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", bodyText },
+                    { $"{target.Warhead.GetLocalizedStatus()} ", valueText },
+                    { $"({Math.Truncate(target.Warhead.CountdownTime)}s)\n", bodyText },
+                });
+            }
+
+            if (target.SubtypeId.HasFlag(TBlockSubtypes.Door))
+            {
+                peakText.Add(new RichText {
+                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", bodyText },
+                    { $"{target.Door.GetLocalizedStatus()}\n", valueText },
+                });
             }
 
             if (target.SubtypeId.HasFlag(TBlockSubtypes.LandingGear))
             {
-                peakText.Add($"{MyTexts.TrySubstitute("Lock Status")}: ", bodyText);
-                peakText.Add($"{target.LandingGear.Status}\n", valueText);
+                peakText.Add(new RichText {
+                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", bodyText },
+                    { $"{target.LandingGear.GetLocalizedStatus()}\n", valueText },
+                });
             }
 
             if (target.SubtypeId.HasFlag(TBlockSubtypes.Connector))
             {
-                peakText.Add($"{MyTexts.TrySubstitute("Connector Status")}: ", bodyText);
-                peakText.Add($"{target.Connector.Status}\n", valueText);
+                peakText.Add(new RichText {
+                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", bodyText },
+                    { $"{target.Connector.GetLocalizedStatus()}\n", valueText },
+                });
             }
 
             if (target.SubtypeId.HasFlag(TBlockSubtypes.MechanicalConnection))
             {
                 if (target.SubtypeId.HasFlag(TBlockSubtypes.Suspension))
                 {
-                    peakText.Add($"{MyTexts.TrySubstitute("Wheel")}: ", bodyText);
-                    peakText.Add($"{(target.MechConnection.PartAttached ? "Attached" : "N/A")}\n", valueText);
+                    peakText.Add(new RichText {
+                        { $"{MyTexts.TrySubstitute("Wheel")}: ", bodyText },
+                        { $"{target.MechConnection.GetLocalizedStatus()}\n", valueText },
+                    });
                 }
                 else
                 {
+                    peakText.Add(new RichText {
+                        { $"{MyTexts.TrySubstitute("Head")}: ", bodyText },
+                        { $"{target.MechConnection.GetLocalizedStatus()}\n", valueText },
+                    });
+
                     if (target.MechConnection.PartAttached)
                     {
-                        peakText.Add($"{MyTexts.TrySubstitute("Head")}: ", bodyText);
-                        peakText.Add($"Attached\n", valueText);
-
                         if (target.SubtypeId.HasFlag(TBlockSubtypes.Piston))
                         {
-                            peakText.Add($"{MyTexts.TrySubstitute("Extension")}: ", bodyText);
-                            peakText.Add($"{target.Piston.ExtensionDist.Round(2)}m\n", valueText);
+                            peakText.Add(new RichText {
+                                { $"{MyTexts.GetString(MySpaceTexts.TerminalDistance)}: ", bodyText },
+                                { $"{target.Piston.ExtensionDist.Round(2)}m\n", valueText },
+                            });
                         }
 
                         if (target.SubtypeId.HasFlag(TBlockSubtypes.Rotor))
                         {
-                            peakText.Add($"{MyTexts.TrySubstitute("Angle")}: ", bodyText);
-                            peakText.Add($"{MathHelper.Clamp(target.Rotor.Angle.RadiansToDegrees().Round(2), -360f, 360f)}\n", valueText);
+                            peakText.Add(new RichText {
+                                { MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle), bodyText },
+                                { $"{target.Rotor.Angle.RadiansToDegrees().Round(2)}\n", valueText },
+                            });
                         }
-                    }
-                    else
-                    {
-                        peakText.Add($"{MyTexts.TrySubstitute("Head")}: ", bodyText);
-                        peakText.Add($"N/A\n", valueText);
                     }
                 }
             }
 
             footer.LeftText = new RichText("[Peaking]", footerTextRight);
             peakBody.TextBoard.SetText(peakText);
-        }
-
-        private string GetBlockPowerInfo()
-        {
-            string disp = "", suffix;
-            float powerDraw = target.Power.Input,
-                powerOut = target.Power.Out,
-                total = MathHelper.Max(powerDraw, 0f) + MathHelper.Max(powerOut, 0f),
-                scale;
-
-            if (total >= 1000f)
-            {
-                scale = .001f;
-                suffix = "GW";
-            }
-            else if (total >= 1f)
-            {
-                scale = 1f;
-                suffix = "MW";
-            }
-            else if (total >= .001f)
-            {
-                scale = 1000f;
-                suffix = "KW";
-            }
-            else
-            {
-                scale = 1000000f;
-                suffix = "W";
-            }
-
-            if (powerDraw >= 0f)
-                disp += "-" + Math.Round(powerDraw * scale, 1);
-
-            if (powerOut >= 0f)
-            {
-                if (powerDraw >= 0f)
-                    disp += " / ";
-
-                disp += "+" + Math.Round(powerOut * scale, 1);
-            }
-
-            return $"{disp} {suffix}";
         }
 
         private void UpdatePropertyText()
