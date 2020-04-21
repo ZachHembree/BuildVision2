@@ -56,7 +56,7 @@ namespace DarkHelmet.BuildVision2
                     if (block.SubtypeId.HasFlag(TBlockSubtypes.Piston))
                         GetPostfixFunc = () => $"({Math.Round(block.Piston.ExtensionDist, 2)}m)";
                     else if (block.SubtypeId.HasFlag(TBlockSubtypes.Rotor))
-                        GetPostfixFunc = () => $"({Math.Round(MathHelper.Clamp(block.Rotor.Angle.RadiansToDegrees(), -360, 360))})";
+                        GetPostfixFunc = () => $"({Math.Round(MathHelper.Clamp(block.Rotor.Angle.RadiansToDegrees(), -360, 360), 2)})";
                 }
             }
 

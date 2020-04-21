@@ -1,6 +1,8 @@
 ﻿using SpaceEngineers.Game.ModAPI.Ingame;
 using System;
 using System.Collections.Generic;
+using VRage;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
 using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
 
@@ -38,53 +40,40 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyMechanicalConnectionBlock.
             /// </summary>
-            public static void GetMechActions(SuperBlock blockData, List<IBlockMember> members)
+            public static void GetMechActions(SuperBlock block, List<IBlockMember> members)
             {
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
-                blockData.TBlock.GetActions(terminalActions);
+                block.TBlock.GetActions(terminalActions);
 
-                if (blockData.SubtypeId.HasFlag(TBlockSubtypes.Suspension))
-                {
-                    members.Add(new BlockAction(
-                        "Attach Wheel",
-                        () => blockData.MechConnection.PartAttached ? "(Attached)" : null,
-                        blockData.MechConnection.AttachHead));
-                    members.Add(new BlockAction(
-                        "Detach Wheel", null,
-                        blockData.MechConnection.DetachHead));
-                }
-                else
-                {
-                    members.Add(new BlockAction(
-                        "Attach Head",
-                        () => blockData.MechConnection.PartAttached ? "(Attached)" : null,
-                        blockData.MechConnection.AttachHead));
-                    members.Add(new BlockAction(
-                        "Detach Head", null,
-                        blockData.MechConnection.DetachHead));
-                }
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.BlockActionTitle_Attach),
+                    () => $"({block.MechConnection.GetLocalizedStatus()})",
+                    block.MechConnection.AttachHead));
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.BlockActionTitle_Detach), null,
+                    block.MechConnection.DetachHead));
 
                 foreach (IMyTerminalAction tAction in terminalActions)
                 {
                     if (tAction.Id.StartsWith("Add"))
                     {
                         members.Add(new BlockAction(
-                            tAction.Name.ToString(), null,
-                            () => tAction.Apply(blockData.TBlock)));
+                            MyTexts.TrySubstitute(tAction.Name.ToString()), null,
+                            () => tAction.Apply(block.TBlock)));
                     }
                 }
 
-                if (blockData.SubtypeId.HasFlag(TBlockSubtypes.Piston))
+                if (block.SubtypeId.HasFlag(TBlockSubtypes.Piston))
                 {
                     members.Add(new BlockAction(
-                        "Reverse", null,
-                         blockData.Piston.Reverse));
+                         MyTexts.GetString(MySpaceTexts.BlockActionTitle_Reverse), null,
+                         block.Piston.Reverse));
                 }
-                else if (blockData.SubtypeId.HasFlag(TBlockSubtypes.Rotor))
+                else if (block.SubtypeId.HasFlag(TBlockSubtypes.Rotor))
                 {
                     members.Add(new BlockAction(
-                        "Reverse", null,
-                        blockData.Rotor.Reverse));
+                        MyTexts.GetString(MySpaceTexts.BlockActionTitle_Reverse), null,
+                        block.Rotor.Reverse));
                 }
             }
 
@@ -94,7 +83,7 @@ namespace DarkHelmet.BuildVision2
             public static void GetDoorActions(SuperBlock blockData, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
-                    "Open/Close", null,
+                    MyTexts.TrySubstitute("Open/Close"), null,
                     blockData.Door.ToggleDoor));
             }
 
@@ -104,14 +93,14 @@ namespace DarkHelmet.BuildVision2
             public static void GetWarheadActions(SuperBlock blockData, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
-                    "Start Countdown",
-                    () => $"({ Math.Truncate(blockData.Warhead.CountdownTime) })",
+                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StartCountdown),
+                    () => $"({Math.Truncate(blockData.Warhead.CountdownTime)}s)",
                     () => blockData.Warhead.StartCountdown()));
                 members.Add(new BlockAction(
-                    "Stop Countdown", null,
+                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StopCountdown), null,
                     () => blockData.Warhead.StopCountdown()));
                 members.Add(new BlockAction(
-                    "Detonate", null,
+                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_Detonate), null,
                     blockData.Warhead.Detonate));
             }
 
@@ -121,20 +110,8 @@ namespace DarkHelmet.BuildVision2
             public static void GetGearActions(SuperBlock blockData, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
-                    "Lock/Unlock",
-                    () =>
-                    {
-                        string status = "";
-
-                        if (blockData.LandingGear.Status == LandingGearMode.Locked)
-                            status = "(Locked)";
-                        else if (blockData.LandingGear.Status == LandingGearMode.ReadyToLock)
-                            status = "(Ready)";
-                        else if (blockData.LandingGear.Status == LandingGearMode.Unlocked)
-                            status = "(Unlocked)";
-
-                        return status;
-                    },
+                    MyTexts.GetString(MySpaceTexts.BlockActionTitle_SwitchLock),
+                    () => $"({blockData.LandingGear.GetLocalizedStatus()})",
                     blockData.LandingGear.ToggleLock));
             }
 
@@ -144,32 +121,9 @@ namespace DarkHelmet.BuildVision2
             public static void GetConnectorActions(SuperBlock blockData, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
-                    "Lock/Unlock",
-                    () =>
-                    {
-                        string status = "";
-
-                        if (blockData.Connector.Status == ConnectorStatus.Connected)
-                            status = "(Locked)";
-                        else if (blockData.Connector.Status == ConnectorStatus.Connectable)
-                            status = "(Ready)";
-                        else if (blockData.Connector.Status == ConnectorStatus.Unconnected)
-                            status = "(Unlocked)";
-
-                        return status;
-                    },
+                    MyTexts.GetString(MySpaceTexts.BlockActionTitle_SwitchLock),
+                    () => $"({blockData.Connector.GetLocalizedStatus()})",
                     blockData.Connector.ToggleConnect));
-            }
-
-            /// <summary>
-            /// Gets actions for blocks implementing IMyParachute.
-            /// </summary>
-            public static void GetChuteActions(SuperBlock blockData, List<IBlockMember> members)
-            {
-                members.Add(new BlockAction(
-                    "Open/Close",
-                    () => $"({blockData.Door.Status})",
-                    blockData.Door.ToggleDoor));
             }
         }
     }

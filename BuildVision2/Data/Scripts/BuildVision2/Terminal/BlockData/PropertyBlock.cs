@@ -251,9 +251,6 @@ namespace DarkHelmet.BuildVision2
 
             if (SubtypeId.HasFlag(TBlockSubtypes.Connector))
                 BlockAction.GetConnectorActions(this, blockMembers);
-
-            if (SubtypeId.HasFlag(TBlockSubtypes.Parachute))
-                BlockAction.GetChuteActions(this, blockMembers);
         }
     }
 
