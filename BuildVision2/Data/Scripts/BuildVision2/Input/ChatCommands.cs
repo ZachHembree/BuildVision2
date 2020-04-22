@@ -90,7 +90,10 @@ namespace DarkHelmet.BuildVision2
 
         private static void UpdateBind(string bindName, string[] controls)
         {
-            IBind bind = BvBinds.BindGroup.GetBind(bindName);
+            IBind bind = BvBinds.OpenGroup.GetBind(bindName);
+
+            if (bind == null)
+                BvBinds.MainGroup.GetBind(bindName);
 
             if (bind == null)
                 ExceptionHandler.SendChatMessage("Error: The bind specified could not be found.");

@@ -4,6 +4,8 @@ using RichHudFramework.UI;
 using System.Xml.Serialization;
 using VRageMath;
 using VRage.Input;
+using System;
+using System.Collections.Generic;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -26,7 +28,7 @@ namespace DarkHelmet.BuildVision2
         {
             return new BvConfig
             {
-                VersionID = 8,
+                VersionID = 9,
                 general = GeneralConfig.Defaults,
                 menu = PropMenuConfig.Defaults,
                 block = PropBlockConfig.Defaults,
@@ -248,29 +250,19 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public class BindsConfig : Config<BindsConfig>
     {
-        [XmlIgnore]
-        public static BindDefinition[] DefaultBinds 
-        {
-            get 
+        public static BindDefinition[] DefaultOpen => defaultOpen.Clone() as BindDefinition[];
+
+        public static BindDefinition[] DefaultMain => defaultMain.Clone() as BindDefinition[];
+
+        private static readonly BindDefinition[] 
+            defaultOpen = new BindGroupData 
             {
-                var copy = new BindDefinition[defaultBinds.Length];
-                System.Array.Copy(defaultBinds, 0, copy, 0, defaultBinds.Length);
-
-                return copy;
-            }
-        }
-
-        [XmlArray("KeyBinds")]
-        public BindDefinition[] bindData;
-        private static readonly BindDefinition[] defaultBinds;
-
-        static BindsConfig()
-        {
-            defaultBinds = new BindGroupData()
-            {
+                { "Peak", MyKeys.Control },
                 { "Open", MyKeys.Control, MyKeys.MiddleButton },
+            }.GetBindDefinitions(),
+            defaultMain = new BindGroupData
+            {
                 { "Close", MyKeys.Shift, MyKeys.MiddleButton },
-
                 { "Select", MyKeys.MiddleButton },
                 { "ScrollUp", RichHudControls.MousewheelUp },
                 { "ScrollDown", RichHudControls.MousewheelDown },
@@ -284,11 +276,25 @@ namespace DarkHelmet.BuildVision2
                 { "PasteProperties", MyKeys.PageDown },
                 { "UndoPaste", MyKeys.Delete },
             }.GetBindDefinitions();
-        }
+
+        [Obsolete]
+        [XmlArray("KeyBinds")]
+        public BindDefinition[] oldBinds;
+
+        [XmlArray("OpenGroup")]
+        public BindDefinition[] openGroup;
+
+        [XmlArray("MainGroup")]
+        public BindDefinition[] mainGroup;
 
         protected override BindsConfig GetDefaults()
         {
-            return new BindsConfig { bindData = DefaultBinds };
+            return new BindsConfig
+            {
+                oldBinds = null,
+                openGroup = DefaultOpen,
+                mainGroup = DefaultMain
+            };
         }
 
         /// <summary>
@@ -296,19 +302,14 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public override void Validate()
         {
-            BindDefinition[] defaults = DefaultBinds;
-
-            if (bindData == null || bindData.Length == 0)
-                bindData = defaults;
-            else if (bindData.Length == 8)
+            if (oldBinds == null)
             {
-                for (int n = 0; n < 8; n++)
-                    defaults[n] = bindData[n];
+                if (openGroup == null)
+                    openGroup = DefaultOpen;
 
-                bindData = defaults;
+                if (mainGroup == null)
+                    mainGroup = DefaultMain;
             }
-            else if (bindData.Length < defaults.Length)
-                bindData = defaults;
         }
     }
 }

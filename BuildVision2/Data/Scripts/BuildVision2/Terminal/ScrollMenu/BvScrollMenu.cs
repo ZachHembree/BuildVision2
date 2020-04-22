@@ -12,7 +12,7 @@ namespace DarkHelmet.BuildVision2
 {
     public enum ScrollMenuModes
     {
-        Peak = 1,
+        Peek = 1,
         Control = 2,
         Copy = 3
     }
@@ -94,7 +94,7 @@ namespace DarkHelmet.BuildVision2
             get { return _menuMode; }
             set
             {
-                if (target != null && value != ScrollMenuModes.Peak && Count == 0)
+                if (target != null && value != ScrollMenuModes.Peek && Count == 0)
                     AddMembers();
 
                 _menuMode = value;
@@ -224,8 +224,8 @@ namespace DarkHelmet.BuildVision2
         {
             if (target != null)
             {
-                if (MenuMode == ScrollMenuModes.Peak)
-                    UpdatePeakText();
+                if (MenuMode == ScrollMenuModes.Peek)
+                    UpdatePeekText();
                 else if (MenuMode == ScrollMenuModes.Control)
                     UpdatePropertyText();
 
@@ -240,7 +240,7 @@ namespace DarkHelmet.BuildVision2
                 footer.RightText = new RichText("[Target is null]", blockIncText);
         }
 
-        private void UpdatePeakText()
+        private void UpdatePeekText()
         {
             var peakText = new RichText
             {
@@ -346,7 +346,7 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            footer.LeftText = new RichText("[Peaking]", footerTextRight);
+            footer.LeftText = new RichText("[Peeking]", footerTextRight);
             peakBody.TextBoard.SetText(peakText);
         }
 
@@ -398,7 +398,7 @@ namespace DarkHelmet.BuildVision2
                 peakBody.Visible = false;
                 layout.Width = scrollBody.Width;
             }
-            else if (MenuMode == ScrollMenuModes.Peak)
+            else if (MenuMode == ScrollMenuModes.Peek)
             {
                 peakBody.Visible = true;
                 scrollBody.Visible = false;
@@ -430,7 +430,7 @@ namespace DarkHelmet.BuildVision2
 
         protected override void HandleInput()
         {
-            if (MenuMode != ScrollMenuModes.Peak)
+            if (MenuMode != ScrollMenuModes.Peek && !BvBinds.Open.IsPressed)
             {
                 if (BvBinds.ToggleSelectMode.IsNewPressed || (MenuMode == ScrollMenuModes.Control && BvBinds.SelectAll.IsNewPressed))
                     ToggleReplicationMode();
@@ -452,7 +452,7 @@ namespace DarkHelmet.BuildVision2
             Clear();
             target = newTarget;
 
-            if (MenuMode != ScrollMenuModes.Peak)
+            if (MenuMode != ScrollMenuModes.Peek)
                 AddMembers();
         }
 

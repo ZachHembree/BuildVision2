@@ -98,18 +98,18 @@ namespace DarkHelmet.BuildVision2
 
         public override void HandleInput()
         {
-            if (BvBinds.MultX.IsPressed && (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peak))
+            if (BvBinds.Peek.IsPressed && (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peek))
             {
-                if (BvBinds.MultX.IsNewPressed || peakRefresh.ElapsedTicks > peakTime)
+                if (BvBinds.Peek.IsNewPressed || peakRefresh.ElapsedTicks > peakTime)
                 {
                     TryPeak();
                     peakRefresh.Reset();
                 }
             }
-            else if (BvBinds.MultX.IsReleased && Open && scrollMenu.MenuMode == ScrollMenuModes.Peak)
+            else if (BvBinds.Peek.IsReleased && Open && scrollMenu.MenuMode == ScrollMenuModes.Peek)
                 Hide();
            
-            if (target != null && Open && scrollMenu.MenuMode != ScrollMenuModes.Peak)
+            if (target != null && Open && scrollMenu.MenuMode != ScrollMenuModes.Peek)
             {
                 if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Copy)
                 {
@@ -182,7 +182,7 @@ namespace DarkHelmet.BuildVision2
 
         private void TryPeak()
         {
-            scrollMenu.MenuMode = ScrollMenuModes.Peak;
+            scrollMenu.MenuMode = ScrollMenuModes.Peek;
 
             if (TryGetTarget() && CanAccessTargetBlock())
             {
@@ -193,15 +193,18 @@ namespace DarkHelmet.BuildVision2
 
         private void TryOpen()
         {
-            scrollMenu.MenuMode = ScrollMenuModes.Control;
-
-            if (TryGetTarget() && CanAccessTargetBlock())
+            if (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peek)
             {
-                scrollMenu.SetTarget(target);
-                Open = true;
+                scrollMenu.MenuMode = ScrollMenuModes.Control;
+
+                if (TryGetTarget() && CanAccessTargetBlock())
+                {
+                    scrollMenu.SetTarget(target);
+                    Open = true;
+                }
+                else
+                    Hide();
             }
-            else
-                Hide();
         }
 
         /// <summary>
@@ -232,7 +235,7 @@ namespace DarkHelmet.BuildVision2
 
                         return true;
                     }
-                    else if (scrollMenu.MenuMode != ScrollMenuModes.Peak)
+                    else if (scrollMenu.MenuMode != ScrollMenuModes.Peek)
                         MyAPIGateway.Utilities.ShowNotification("Access denied", 1000, MyFontEnum.Red);
                 }
             }
