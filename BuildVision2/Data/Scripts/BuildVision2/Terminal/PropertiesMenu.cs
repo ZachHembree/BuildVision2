@@ -2,12 +2,14 @@
 using RichHudFramework;
 using Sandbox.ModAPI;
 using RichHudFramework.UI.Client;
+using RichHudFramework.Internal;
 using RichHudFramework.IO;
 using VRageMath;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using System.Collections.Generic;
+using System;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -34,24 +36,27 @@ namespace DarkHelmet.BuildVision2
             set { _instance = value; }
         }
         private static PropertiesMenu _instance;
+        private const long peakTime = 100 * TimeSpan.TicksPerMillisecond;
 
         private readonly BvScrollMenu scrollMenu;
         private PropertyBlock target;
         private IMyTerminalBlock lastPastedTarget;
         private BlockData clipboard, pasteBackup;
-        private int peakTick;
-        private bool canPeak;
+        private Utils.Stopwatch peakRefresh;
 
         private PropertiesMenu() : base(false, true)
         {
             scrollMenu = new BvScrollMenu() { Visible = false };
             MyAPIGateway.Utilities.MessageEntered += MessageHandler;
+            peakRefresh = new Utils.Stopwatch();
+            peakRefresh.Start();
 
+            BvBinds.Open.OnNewPress += TryOpen;
             BvBinds.Hide.OnNewPress += Hide;
             SharedBinds.Escape.OnNewPress += Hide;
         }
 
-        private static void Init()
+        public static void Init()
         {
             if (_instance == null)
                 _instance = new PropertiesMenu();
@@ -88,40 +93,23 @@ namespace DarkHelmet.BuildVision2
                 Hide();
 
             if (target != null && Open)
-            {
                 scrollMenu.UpdateText();
-            }
         }
 
         public override void HandleInput()
         {
-            if (BvBinds.MultX.IsNewPressed)
+            if (BvBinds.MultX.IsPressed && (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peak))
             {
-                canPeak = true;
-                peakTick = 0;
-            }
-            else if (BvBinds.MultX.IsReleased)
-            {
-                canPeak = false;
-
-                if (Open && scrollMenu.MenuMode == ScrollMenuModes.Peak)
-                    Hide();
-            }
-
-            if (BvBinds.Open.IsNewPressed)
-                TryOpen();
-            else if (BvBinds.MultX.IsPressed && ((!Open && canPeak) || scrollMenu.MenuMode == ScrollMenuModes.Peak))
-            {
-                if (peakTick == 0)
+                if (BvBinds.MultX.IsNewPressed || peakRefresh.ElapsedTicks > peakTime)
+                {
                     TryPeak();
-
-                peakTick++;
-
-                if (peakTick == 15)
-                    peakTick = 0;
+                    peakRefresh.Reset();
+                }
             }
-
-            if (target != null && Open)
+            else if (BvBinds.MultX.IsReleased && Open && scrollMenu.MenuMode == ScrollMenuModes.Peak)
+                Hide();
+           
+            if (target != null && Open && scrollMenu.MenuMode != ScrollMenuModes.Peak)
             {
                 if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Copy)
                 {
@@ -206,7 +194,6 @@ namespace DarkHelmet.BuildVision2
         private void TryOpen()
         {
             scrollMenu.MenuMode = ScrollMenuModes.Control;
-            canPeak = false;
 
             if (TryGetTarget() && CanAccessTargetBlock())
             {

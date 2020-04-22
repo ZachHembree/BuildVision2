@@ -22,6 +22,22 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public sealed partial class BvScrollMenu : HudElementBase
     {
+        private const long notifTime = 3000;
+
+        private static readonly Color
+            headerColor = new Color(41, 54, 62), 
+            bodyColor = new Color(70, 78, 86), 
+            selectionBoxColor = new Color(41, 54, 62);
+        private static readonly GlyphFormat 
+            headerText = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f), 
+            bodyText = new GlyphFormat(Color.White, textSize: .885f), 
+            valueText = bodyText.WithColor(new Color(210, 210, 210)),
+            footerTextLeft = bodyText.WithColor(new Color(220, 235, 245)), 
+            footerTextRight = footerTextLeft.WithAlignment(TextAlignment.Right),
+            highlightText = bodyText.WithColor(new Color(220, 180, 50)), 
+            selectedText = bodyText.WithColor(new Color(50, 200, 50)), 
+            blockIncText = footerTextRight.WithColor(new Color(200, 35, 35));
+
         public override float Width { get { return layout.Width; } set { layout.Width = value; } }
 
         public override float Height { get { return layout.Height; } set { layout.Height = value; } }
@@ -73,7 +89,17 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public bool AlignToEdge { get; set; }
 
-        public ScrollMenuModes MenuMode { get; set; }
+        public ScrollMenuModes MenuMode
+        {
+            get { return _menuMode; }
+            set
+            {
+                if (target != null && value != ScrollMenuModes.Peak && Count == 0)
+                    AddMembers();
+
+                _menuMode = value;
+            }
+        }
 
         /// <summary>
         /// Currently highlighted property. Null if none selected.
@@ -102,30 +128,7 @@ namespace DarkHelmet.BuildVision2
 
         private string notification;
         private Utils.Stopwatch notificationTimer;
-        private const long notifTime = 3000;
-
-        private static readonly Color headerColor, bodyColor, selectionBoxColor;
-        private static readonly GlyphFormat headerText, bodyText, valueText,
-            footerTextLeft, footerTextRight,
-            highlightText, selectedText, blockIncText;
-
-        static BvScrollMenu()
-        {
-            headerColor = new Color(41, 54, 62);
-            bodyColor = new Color(70, 78, 86);
-            selectionBoxColor = new Color(41, 54, 62);
-
-            headerText = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f);
-
-            bodyText = new GlyphFormat(Color.White, textSize: .885f);
-            valueText = bodyText.WithColor(new Color(210, 210, 210));
-            highlightText = bodyText.WithColor(new Color(220, 180, 50));
-            selectedText = bodyText.WithColor(new Color(50, 200, 50));
-
-            footerTextLeft = bodyText.WithColor(new Color(220, 235, 245));
-            footerTextRight = footerTextLeft.WithAlignment(TextAlignment.Right);
-            blockIncText = footerTextRight.WithColor(new Color(200, 35, 35));
-        }
+        private ScrollMenuModes _menuMode;
 
         public BvScrollMenu() : base(HudMain.Root)
         {
@@ -199,7 +202,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     header,
                     peakBody,
-                    scrollBody, 
+                    scrollBody,
                     footer
                 }
             };
@@ -255,9 +258,9 @@ namespace DarkHelmet.BuildVision2
 
             if (target.SubtypeId.HasFlag(TBlockSubtypes.Battery))
             {
-                peakText.Add(new RichText { 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", bodyText }, 
-                    { $"{TerminalExtensions.GetPowerDisplay(target.Battery.PowerStored)}", valueText }, 
+                peakText.Add(new RichText {
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", bodyText },
+                    { $"{TerminalExtensions.GetPowerDisplay(target.Battery.PowerStored)}", valueText },
                     { $" ({((target.Battery.PowerStored / target.Battery.Capacity) * 100f).Round(1)}%)\n", bodyText },
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", bodyText },
@@ -412,7 +415,7 @@ namespace DarkHelmet.BuildVision2
             if (base.Offset.Y < 0)
                 alignment.Y = Height / 2f;
             else
-                alignment.Y = -Height / 2f;   
+                alignment.Y = -Height / 2f;
         }
 
         protected override void Draw()
@@ -450,15 +453,16 @@ namespace DarkHelmet.BuildVision2
             target = newTarget;
 
             if (MenuMode != ScrollMenuModes.Peak)
-            {
-                for (int n = 0; n < target.BlockMembers.Count; n++)
-                {
-                    AddMember(target.BlockMembers[n]);
-                }
+                AddMembers();
+        }
 
-                index = GetFirstIndex();
-                scrollBody.Start = 0;
-            }
+        private void AddMembers()
+        {
+            for (int n = 0; n < target.BlockMembers.Count; n++)
+                AddMember(target.BlockMembers[n]);
+
+            index = GetFirstIndex();
+            scrollBody.Start = 0;
         }
 
         /// <summary>
@@ -511,7 +515,7 @@ namespace DarkHelmet.BuildVision2
             public override float Height { get { return layout.Height; } set { } }
 
             public override bool Visible => base.Visible && Enabled;
-            public bool Enabled { get { return _enabled && (BlockMember!= null && BlockMember.Enabled); } set { _enabled = value; } }
+            public bool Enabled { get { return _enabled && (BlockMember != null && BlockMember.Enabled); } set { _enabled = value; } }
             public bool Replicating { get { return selectionBox.Visible; } set { selectionBox.Visible = value && (_blockMember is IBlockProperty); } }
 
             public IBlockMember BlockMember
@@ -595,7 +599,7 @@ namespace DarkHelmet.BuildVision2
 
             private class SelectionBox : Label
             {
-                public SelectionBox(IHudParent parent = null) : base (parent)
+                public SelectionBox(IHudParent parent = null) : base(parent)
                 {
                     AutoResize = true;
                     VertCenterText = true;

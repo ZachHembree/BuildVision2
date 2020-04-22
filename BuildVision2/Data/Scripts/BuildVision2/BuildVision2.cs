@@ -44,6 +44,7 @@ namespace DarkHelmet.BuildVision2
             BvConfig.Load(true);
             CmdManager.AddOrGetCmdGroup("/bv2", GetChatCommands());
             InitSettingsMenu();
+            PropertiesMenu.Init();
         }
 
         public override void BeforeClose()
