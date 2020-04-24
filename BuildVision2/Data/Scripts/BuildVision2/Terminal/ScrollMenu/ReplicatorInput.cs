@@ -42,12 +42,12 @@ namespace DarkHelmet.BuildVision2
             if (MenuMode == ScrollMenuModes.Copy)
             {
                 MenuMode = ScrollMenuModes.Control;
-                CloseProp();
+                DeselectAllProperties();
             }
             else
             {
-                MenuMode = ScrollMenuModes.Copy;
-                DeselectAllProperties();
+                MenuMode = ScrollMenuModes.Copy;                
+                CloseProp();
             }
         }
 

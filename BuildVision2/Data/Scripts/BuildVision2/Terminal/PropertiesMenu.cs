@@ -36,7 +36,7 @@ namespace DarkHelmet.BuildVision2
             set { _instance = value; }
         }
         private static PropertiesMenu _instance;
-        private const long peakTime = 100 * TimeSpan.TicksPerMillisecond;
+        private const long peekTime = 100 * TimeSpan.TicksPerMillisecond;
 
         private readonly BvScrollMenu scrollMenu;
         private PropertyBlock target;
@@ -100,7 +100,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (BvBinds.Peek.IsPressed && (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peek))
             {
-                if (BvBinds.Peek.IsNewPressed || peakRefresh.ElapsedTicks > peakTime)
+                if (BvBinds.Peek.IsNewPressed || peakRefresh.ElapsedTicks > peekTime)
                 {
                     TryPeak();
                     peakRefresh.Reset();
@@ -193,17 +193,15 @@ namespace DarkHelmet.BuildVision2
 
         private void TryOpen()
         {
-            if (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peek)
-            {
-                scrollMenu.MenuMode = ScrollMenuModes.Control;
+            scrollMenu.MenuMode = ScrollMenuModes.Control;
 
-                if (TryGetTarget() && CanAccessTargetBlock())
+            if (TryGetTarget() && CanAccessTargetBlock())
+            {
+                if (target.TBlock != scrollMenu.Target.TBlock)
                 {
                     scrollMenu.SetTarget(target);
                     Open = true;
                 }
-                else
-                    Hide();
             }
         }
 

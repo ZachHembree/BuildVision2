@@ -2,8 +2,8 @@
 using System;
 using VRage.ModAPI;
 using VRageMath;
+using IMyAirVent = SpaceEngineers.Game.ModAPI.Ingame.IMyAirVent;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
-using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -21,7 +21,16 @@ namespace DarkHelmet.BuildVision2
         MechanicalConnection = 0x100,
         Suspension = 0x200,
         Piston = 0x400,
-        Rotor = 0x800
+        Rotor = 0x800,
+        Inventory = 0x1000,
+        Turret = 0x2000,
+        Light = 0x4000,
+        JumpDrive = 0x8000,
+        Thruster = 0x10000,
+        LaserAntenna = 0x20000,
+        RadioAntenna = 0x40000,
+        OreDetector = 0x80000,
+        AirVent = 0x100000,
     }
 
     /// <summary>
@@ -59,58 +68,6 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public bool CanLocalPlayerAccess => TBlock != null && TBlock.HasLocalPlayerAccess();
 
-        #region SubtypeAccessors
-        /// <summary>
-        /// Provides access to block power information, if defined.
-        /// </summary>
-        public PowerData Power { get; private set; }
-
-        /// <summary>
-        /// Provides access to block battery information, if defined.
-        /// </summary>
-        public BatteryData Battery { get; private set; }
-
-        /// <summary>
-        /// Provides access to block tank information, if defined.
-        /// </summary>
-        public GasTankData GasTank { get; private set; }
-
-        /// <summary>
-        /// Provides access to block warhead information, if defined.
-        /// </summary>
-        public WarheadData Warhead { get; private set; }
-
-        /// <summary>
-        /// Provides access to block door information, if defined.
-        /// </summary>
-        public DoorData Door { get; private set; }
-
-        /// <summary>
-        /// Provides access to block landing gear information, if defined.
-        /// </summary>
-        public LandingGearData LandingGear { get; private set; }
-
-        /// <summary>
-        /// Provides access to block connector information, if defined.
-        /// </summary>
-        public ConnectorData Connector { get; private set; }
-
-        /// <summary>
-        /// Provides access to mechanical connection block information, if defined.
-        /// </summary>
-        public MechConnectionData MechConnection { get; private set; }
-
-        /// <summary>
-        /// Provides access to block piston information, if defined.
-        /// </summary>
-        public PistonData Piston { get; private set; }
-
-        /// <summary>
-        /// Provides access to block rotor information, if defined.
-        /// </summary>
-        public RotorData Rotor { get; private set; }
-        #endregion
-
         public TBlockSubtypes SubtypeId { get; private set; }
 
         public SuperBlock(IMyTerminalBlock tBlock)
@@ -128,16 +85,6 @@ namespace DarkHelmet.BuildVision2
         private void BlockClosing(IMyEntity entity)
         {
             TBlock = null;
-            Power = null;
-            Battery = null;
-            GasTank = null;
-            Warhead = null;
-            Door = null;
-            LandingGear = null;
-            Connector = null;
-            MechConnection = null;
-            Piston = null;
-            Rotor = null;
             SubtypeId = 0;
         }
 
@@ -145,70 +92,77 @@ namespace DarkHelmet.BuildVision2
         {
             if (TBlock.ResourceSink != null || TBlock is IMyPowerProducer)
             {
-                SubtypeId |= TBlockSubtypes.Powered;
-                Power = new PowerData(TBlock);
+                Power = new PowerAccessor(this);
 
                 if (TBlock is IMyBatteryBlock)
-                {
-                    SubtypeId |= TBlockSubtypes.Battery;
-                    Battery = new BatteryData(TBlock);
-                }
+                    Battery = new BatteryAccessor(this);
             }
 
             if (TBlock is IMyGasTank)
-            {
-                SubtypeId |= TBlockSubtypes.GasTank;
-                GasTank = new GasTankData(TBlock);
-            }
+                GasTank = new GasTankAccessor(this);
 
             if (TBlock is IMyWarhead)
-            {
-                SubtypeId |= TBlockSubtypes.Warhead;
-                Warhead = new WarheadData(TBlock);
-            }
+                Warhead = new WarheadAccessor(this);
 
             if (TBlock is IMyDoor)
-            {
-                SubtypeId |= TBlockSubtypes.Door;
-                Door = new DoorData(TBlock);
-            }
-
-            if (TBlock is IMyParachute)
-            {
-                SubtypeId |= TBlockSubtypes.Parachute;
-            }
+                Door = new DoorAccessor(this);
 
             if (TBlock is IMyLandingGear)
-            {
-                SubtypeId |= TBlockSubtypes.LandingGear;
-                LandingGear = new LandingGearData(TBlock);
-            }
+                LandingGear = new LandingGearAccessor(this);
 
             if (TBlock is IMyShipConnector)
-            {
-                SubtypeId |= TBlockSubtypes.Connector;
-                Connector = new ConnectorData(TBlock);
-            }
+                Connector = new ConnectorAccessor(this);
 
             if (TBlock is IMyMechanicalConnectionBlock)
             {
-                SubtypeId |= TBlockSubtypes.MechanicalConnection;
-                MechConnection = new MechConnectionData(TBlock);
-
-                if (TBlock is IMyMotorSuspension)
-                    SubtypeId |= TBlockSubtypes.Suspension;
+                MechConnection = new MechConnectionAccessor(this);
 
                 if (TBlock is IMyPistonBase)
-                {
-                    SubtypeId |= TBlockSubtypes.Piston;
-                    Piston = new PistonData(TBlock);
-                }
+                    Piston = new PistonAccessor(this);
 
                 if (TBlock is IMyMotorStator)
-                {
-                    SubtypeId |= TBlockSubtypes.Rotor;
-                    Rotor = new RotorData(TBlock);
-                }
+                    Rotor = new RotorAccessor(this);
+            }
+
+            if (TBlock.HasInventory)
+                Inventory = new InventoryAccessor(this);
+
+            if (TBlock is IMyLargeTurretBase)
+                Turret = new TurretAccessor(this);
+
+            if (TBlock is IMyLightingBlock)
+                Light = new LightAccessor(this);
+
+            if (TBlock is IMyJumpDrive)
+                JumpDrive = new JumpDriveAccessor(this);
+
+            if (TBlock is IMyThrust)
+                Thruster = new ThrusterAccessor(this);
+
+            if (TBlock is IMyLaserAntenna)
+                LaserAntenna = new LaserAntennaAccessor(this);
+
+            if (TBlock is IMyRadioAntenna)
+                RadioAntenna = new RadioAntennaAccessor(this);
+
+            if (TBlock is IMyOreDetector)
+                OreDetector = new OreDetectorAccessor(this);
+
+            if (TBlock is IMyAirVent)
+                AirVent = new AirVentAccessor(this);
+        }
+
+        public abstract class SubtypeAccessorBase
+        {
+            public readonly TBlockSubtypes subtype;
+
+            protected SuperBlock block;
+
+            protected SubtypeAccessorBase(SuperBlock block, TBlockSubtypes subtype)
+            {
+                this.block = block;
+                this.subtype = subtype;
+                block.SubtypeId |= subtype;
             }
         }
     }

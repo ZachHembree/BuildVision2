@@ -22,8 +22,7 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public sealed partial class BvScrollMenu : HudElementBase
     {
-        private const long notifTime = 3000;
-
+        private const long notifTime = 2000;
         private static readonly Color
             headerColor = new Color(41, 54, 62), 
             bodyColor = new Color(70, 78, 86), 
@@ -62,7 +61,7 @@ namespace DarkHelmet.BuildVision2
             set
             {
                 header.Color = header.Color.SetAlphaPct(_bgOpacity);
-                peakBody.Color = peakBody.Color.SetAlphaPct(_bgOpacity);
+                peekBody.Color = peekBody.Color.SetAlphaPct(_bgOpacity);
                 scrollBody.Color = scrollBody.Color.SetAlphaPct(_bgOpacity);
                 footer.Color = footer.Color.SetAlphaPct(_bgOpacity);
                 _bgOpacity = value;
@@ -94,7 +93,7 @@ namespace DarkHelmet.BuildVision2
             get { return _menuMode; }
             set
             {
-                if (target != null && value != ScrollMenuModes.Peek && Count == 0)
+                if (Target != null && value != ScrollMenuModes.Peek && Count == 0)
                     AddMembers();
 
                 _menuMode = value;
@@ -106,6 +105,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private BvPropertyBox Selection => (index < scrollBody.List.Count) ? scrollBody.List[index] : null;
 
+        public PropertyBlock Target { get; private set; }
+
         /// <summary>
         /// If true, then if the property currently selected and open will have its text updated.
         /// </summary>
@@ -115,14 +116,13 @@ namespace DarkHelmet.BuildVision2
         public readonly DoubleLabelBox footer;
         public readonly TexturedBox selectionBox, tab;
 
-        private readonly LabelBox peakBody;
+        private readonly LabelBox peekBody;
         private readonly ScrollBox<BvPropertyBox> scrollBody;
         private readonly HudChain<HudElementBase> layout;
         private readonly Utils.Stopwatch listWrapTimer;
 
         private int index;
         private float _bgOpacity;
-        private PropertyBlock target;
         private Vector2 alignment;
         private bool waitingForChat;
 
@@ -144,7 +144,7 @@ namespace DarkHelmet.BuildVision2
                 Color = headerColor,
             };
 
-            peakBody = new LabelBox()
+            peekBody = new LabelBox()
             {
                 AutoResize = false,
                 FitToTextElement = true,
@@ -201,7 +201,7 @@ namespace DarkHelmet.BuildVision2
                 ChildContainer =
                 {
                     header,
-                    peakBody,
+                    peekBody,
                     scrollBody,
                     footer
                 }
@@ -222,143 +222,132 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void UpdateText()
         {
-            if (target != null)
+            if (Target != null)
             {
                 if (MenuMode == ScrollMenuModes.Peek)
-                    UpdatePeekText();
-                else if (MenuMode == ScrollMenuModes.Control)
-                    UpdatePropertyText();
-
-                if (target.IsWorking)
-                    footer.RightText = new RichText($"[Working]", footerTextRight);
-                else if (target.IsFunctional)
-                    footer.RightText = new RichText($"[Functional]", footerTextRight);
+                    UpdatePeekBody();
                 else
-                    footer.RightText = new RichText($"[Incomplete]", blockIncText);
+                    UpdatePropertyBody();
+
+                UpdateFooterText();
             }
             else
                 footer.RightText = new RichText("[Target is null]", blockIncText);
         }
 
-        private void UpdatePeekText()
+        private void UpdatePeekBody()
         {
-            var peakText = new RichText
+            var peekText = new RichText
             {
                 { $"{MyTexts.TrySubstitute("Name")}: ", bodyText },
-                { $"{target.TBlock.CustomName}\n", valueText }
+                { $"{Target.TBlock.CustomName}\n", valueText }
             };
 
-            if (target.SubtypeId.HasFlag(TBlockSubtypes.Powered))
+            if (Target.SubtypeId.HasFlag(TBlockSubtypes.Powered))
             {
-                peakText.Add(new RichText {
+                peekText.Add(new RichText {
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", bodyText },
-                    { $"{target.Power.GetPowerDisplay()}\n", valueText },
+                    { $"{Target.Power.GetPowerDisplay()}\n", valueText },
                 });
             }
 
-            if (target.SubtypeId.HasFlag(TBlockSubtypes.Battery))
+            if (Target.SubtypeId.HasFlag(TBlockSubtypes.Battery))
             {
-                peakText.Add(new RichText {
+                peekText.Add(new RichText {
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", bodyText },
-                    { $"{TerminalExtensions.GetPowerDisplay(target.Battery.PowerStored)}", valueText },
-                    { $" ({((target.Battery.PowerStored / target.Battery.Capacity) * 100f).Round(1)}%)\n", bodyText },
+                    { $"{TerminalExtensions.GetPowerDisplay(Target.Battery.PowerStored)}", valueText },
+                    { $" ({((Target.Battery.PowerStored / Target.Battery.Capacity) * 100f).Round(1)}%)\n", bodyText },
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", bodyText },
-                    { $"{TerminalExtensions.GetPowerDisplay(target.Battery.Capacity)}\n", valueText },
+                    { $"{TerminalExtensions.GetPowerDisplay(Target.Battery.Capacity)}\n", valueText },
                 });
             }
 
-            if (target.SubtypeId.HasFlag(TBlockSubtypes.GasTank))
+            if (Target.SubtypeId.HasFlag(TBlockSubtypes.GasTank))
             {
-                peakText.Add(new RichText {
+                peekText.Add(new RichText {
                     { $"{MyTexts.GetString(MySpaceTexts.Oxygen_Filled).Split(':')[0]}: ", bodyText },
-                    { $"{(target.GasTank.FillRatio * 100d).Round(1)}%\n", valueText },
+                    { $"{(Target.GasTank.FillRatio * 100d).Round(1)}%\n", valueText },
                 });
             }
 
-            if (target.SubtypeId.HasFlag(TBlockSubtypes.Warhead))
+            if (Target.SubtypeId.HasFlag(TBlockSubtypes.Warhead))
             {
-                peakText.Add(new RichText {
+                peekText.Add(new RichText {
                     { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", bodyText },
-                    { $"{target.Warhead.GetLocalizedStatus()} ", valueText },
-                    { $"({Math.Truncate(target.Warhead.CountdownTime)}s)\n", bodyText },
+                    { $"{Target.Warhead.GetLocalizedStatus()} ", valueText },
+                    { $"({Math.Truncate(Target.Warhead.CountdownTime)}s)\n", bodyText },
                 });
             }
 
-            if (target.SubtypeId.HasFlag(TBlockSubtypes.Door))
+            if (Target.SubtypeId.HasFlag(TBlockSubtypes.Door))
             {
-                peakText.Add(new RichText {
+                peekText.Add(new RichText {
                     { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", bodyText },
-                    { $"{target.Door.GetLocalizedStatus()}\n", valueText },
+                    { $"{Target.Door.GetLocalizedStatus()}\n", valueText },
                 });
             }
 
-            if (target.SubtypeId.HasFlag(TBlockSubtypes.LandingGear))
+            if (Target.SubtypeId.HasFlag(TBlockSubtypes.LandingGear))
             {
-                peakText.Add(new RichText {
+                peekText.Add(new RichText {
                     { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", bodyText },
-                    { $"{target.LandingGear.GetLocalizedStatus()}\n", valueText },
+                    { $"{Target.LandingGear.GetLocalizedStatus()}\n", valueText },
                 });
             }
 
-            if (target.SubtypeId.HasFlag(TBlockSubtypes.Connector))
+            if (Target.SubtypeId.HasFlag(TBlockSubtypes.Connector))
             {
-                peakText.Add(new RichText {
+                peekText.Add(new RichText {
                     { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", bodyText },
-                    { $"{target.Connector.GetLocalizedStatus()}\n", valueText },
+                    { $"{Target.Connector.GetLocalizedStatus()}\n", valueText },
                 });
             }
 
-            if (target.SubtypeId.HasFlag(TBlockSubtypes.MechanicalConnection))
+            if (Target.SubtypeId.HasFlag(TBlockSubtypes.MechanicalConnection))
             {
-                if (target.SubtypeId.HasFlag(TBlockSubtypes.Suspension))
+                if (Target.SubtypeId.HasFlag(TBlockSubtypes.Suspension))
                 {
-                    peakText.Add(new RichText {
+                    peekText.Add(new RichText {
                         { $"{MyTexts.TrySubstitute("Wheel")}: ", bodyText },
-                        { $"{target.MechConnection.GetLocalizedStatus()}\n", valueText },
+                        { $"{Target.MechConnection.GetLocalizedStatus()}\n", valueText },
                     });
                 }
                 else
                 {
-                    peakText.Add(new RichText {
+                    peekText.Add(new RichText {
                         { $"{MyTexts.TrySubstitute("Head")}: ", bodyText },
-                        { $"{target.MechConnection.GetLocalizedStatus()}\n", valueText },
+                        { $"{Target.MechConnection.GetLocalizedStatus()}\n", valueText },
                     });
 
-                    if (target.MechConnection.PartAttached)
+                    if (Target.MechConnection.PartAttached)
                     {
-                        if (target.SubtypeId.HasFlag(TBlockSubtypes.Piston))
+                        if (Target.SubtypeId.HasFlag(TBlockSubtypes.Piston))
                         {
-                            peakText.Add(new RichText {
+                            peekText.Add(new RichText {
                                 { $"{MyTexts.GetString(MySpaceTexts.TerminalDistance)}: ", bodyText },
-                                { $"{target.Piston.ExtensionDist.Round(2)}m\n", valueText },
+                                { $"{Target.Piston.ExtensionDist.Round(2)}m\n", valueText },
                             });
                         }
 
-                        if (target.SubtypeId.HasFlag(TBlockSubtypes.Rotor))
+                        if (Target.SubtypeId.HasFlag(TBlockSubtypes.Rotor))
                         {
-                            peakText.Add(new RichText {
+                            peekText.Add(new RichText {
                                 { MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle), bodyText },
-                                { $"{target.Rotor.Angle.RadiansToDegrees().Round(2)}\n", valueText },
+                                { $"{Target.Rotor.Angle.RadiansToDegrees().Round(2)}\n", valueText },
                             });
                         }
                     }
                 }
             }
 
-            footer.LeftText = new RichText("[Peeking]", footerTextRight);
-            peakBody.TextBoard.SetText(peakText);
+            peekBody.TextBoard.SetText(peekText);
         }
 
-        private void UpdatePropertyText()
+        private void UpdatePropertyBody()
         {
-            int copyCount = 0;
-
             for (int n = 0; n < Count; n++)
             {
-                if (scrollBody.List[n].Replicating)
-                    copyCount++;
-
                 if (n == index)
                 {
                     if ((!PropOpen || updateSelection) && !scrollBody.List[n].value.InputOpen)
@@ -366,8 +355,11 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                     scrollBody.List[n].UpdateText(false, false);
-            }
+            }   
+        }
 
+        private void UpdateFooterText()
+        {
             if (notification != null)
             {
                 footer.LeftText = $"[{notification}]";
@@ -376,9 +368,28 @@ namespace DarkHelmet.BuildVision2
                     notification = null;
             }
             else if (MenuMode == ScrollMenuModes.Copy)
+            {
+                int copyCount = 0;
+
+                for (int n = 0; n < Count; n++)
+                {
+                    if (scrollBody.List[n].Replicating)
+                        copyCount++;
+                }
+
                 footer.LeftText = $"[Copying {copyCount} of {scrollBody.EnabledCount}]";
+            }
+            else if (MenuMode == ScrollMenuModes.Peek)
+                footer.LeftText = new RichText("[Peeking]", footerTextRight);
             else
                 footer.LeftText = $"[{scrollBody.VisStart + 1} - {scrollBody.VisStart + scrollBody.VisCount} of {scrollBody.EnabledCount}]";
+
+            if (Target.IsWorking)
+                footer.RightText = new RichText($"[Working]", footerTextRight);
+            else if (Target.IsFunctional)
+                footer.RightText = new RichText($"[Functional]", footerTextRight);
+            else
+                footer.RightText = new RichText($"[Incomplete]", blockIncText);
         }
 
         /// <summary>
@@ -395,15 +406,15 @@ namespace DarkHelmet.BuildVision2
             if (MenuMode == ScrollMenuModes.Control || MenuMode == ScrollMenuModes.Copy)
             {
                 scrollBody.Visible = true;
-                peakBody.Visible = false;
+                peekBody.Visible = false;
                 layout.Width = scrollBody.Width;
             }
             else if (MenuMode == ScrollMenuModes.Peek)
             {
-                peakBody.Visible = true;
+                peekBody.Visible = true;
                 scrollBody.Visible = false;
 
-                peakBody.TextBoard.FixedSize = new Vector2(0f, peakBody.TextBoard.TextSize.Y);
+                peekBody.TextBoard.FixedSize = new Vector2(0f, peekBody.TextBoard.TextSize.Y);
                 layout.Width = 300f * Scale;
             }
 
@@ -450,7 +461,7 @@ namespace DarkHelmet.BuildVision2
         public void SetTarget(PropertyBlock newTarget)
         {
             Clear();
-            target = newTarget;
+            Target = newTarget;
 
             if (MenuMode != ScrollMenuModes.Peek)
                 AddMembers();
@@ -458,8 +469,8 @@ namespace DarkHelmet.BuildVision2
 
         private void AddMembers()
         {
-            for (int n = 0; n < target.BlockMembers.Count; n++)
-                AddMember(target.BlockMembers[n]);
+            for (int n = 0; n < Target.BlockMembers.Count; n++)
+                AddMember(Target.BlockMembers[n]);
 
             index = GetFirstIndex();
             scrollBody.Start = 0;
@@ -501,7 +512,7 @@ namespace DarkHelmet.BuildVision2
             }
 
             waitingForChat = false;
-            target = null;
+            Target = null;
             PropOpen = false;
             index = 0;
             scrollBody.Start = 0;
