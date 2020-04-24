@@ -1,6 +1,8 @@
 ﻿using Sandbox.ModAPI;
 using System;
 using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
@@ -44,12 +46,20 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns head attachment status as a localized string.
             /// </summary>
-            public string GetLocalizedStatus()
+            public string GetLocalizedAttachStatus()
             {
                 if (PartAttached)
                     return MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorAttached);
                 else
                     return MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorDetached);
+            }
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText {
+                    { $"{MyTexts.TrySubstitute(block.SubtypeId.HasFlag(TBlockSubtypes.Suspension) ? "Wheel" : "Head")}: ", nameFormat },
+                    { $"{GetLocalizedAttachStatus()}\n", valueFormat },
+                };
             }
         }
     }

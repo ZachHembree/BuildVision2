@@ -1,4 +1,8 @@
 ﻿using Sandbox.ModAPI;
+using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -26,6 +30,18 @@ namespace DarkHelmet.BuildVision2
             public BatteryAccessor(SuperBlock block) : base(block, TBlockSubtypes.Battery)
             {
                 battery = block.TBlock as IMyBatteryBlock;
+            }
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText {
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", nameFormat },
+                    { $"{TerminalExtensions.GetPowerDisplay(PowerStored)}", valueFormat },
+                    { $" ({((PowerStored / Capacity) * 100f).Round(1)}%)\n", nameFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat },
+                    { $"{TerminalExtensions.GetPowerDisplay(Capacity)}\n", valueFormat },
+                };
             }
         }
     }

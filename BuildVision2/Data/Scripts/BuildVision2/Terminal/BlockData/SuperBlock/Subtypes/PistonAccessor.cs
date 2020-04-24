@@ -1,5 +1,9 @@
 ﻿using Sandbox.ModAPI;
 using System;
+using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -29,6 +33,19 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public void Reverse() =>
                 piston.Reverse();
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                if (piston.IsAttached)
+                {
+                    return new RichText {
+                        { $"{MyTexts.GetString(MySpaceTexts.TerminalDistance)}: ", nameFormat },
+                        { $"{ExtensionDist.Round(2)}m\n", valueFormat },
+                    };
+                }
+                else
+                    return null;
+            }
         }
     }
 }

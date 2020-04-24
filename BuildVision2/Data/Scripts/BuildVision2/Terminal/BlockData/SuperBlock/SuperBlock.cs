@@ -2,6 +2,8 @@
 using System;
 using VRage.ModAPI;
 using VRageMath;
+using RichHudFramework.UI;
+using System.Collections.Generic;
 using IMyAirVent = SpaceEngineers.Game.ModAPI.Ingame.IMyAirVent;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
 
@@ -68,13 +70,24 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public bool CanLocalPlayerAccess => TBlock != null && TBlock.HasLocalPlayerAccess();
 
+        /// <summary>
+        /// Indicates the subtypes supported by the block.
+        /// </summary>
         public TBlockSubtypes SubtypeId { get; private set; }
+
+        /// <summary>
+        /// List of subtype accessors
+        /// </summary>
+        public IReadOnlyList<SubtypeAccessorBase> Subtypes => subtypes;
+
+        private readonly List<SubtypeAccessorBase> subtypes;
 
         public SuperBlock(IMyTerminalBlock tBlock)
         {
             TBlock = tBlock;
             TypeID = tBlock.BlockDefinition.TypeIdString;
             TBlock.OnMarkForClose += BlockClosing;
+            subtypes = new List<SubtypeAccessorBase>();
 
             AddBlockSubtypes();
         }
@@ -163,7 +176,10 @@ namespace DarkHelmet.BuildVision2
                 this.block = block;
                 this.subtype = subtype;
                 block.SubtypeId |= subtype;
+                block.subtypes.Add(this);
             }
+
+            public abstract RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat);
         }
     }
 }

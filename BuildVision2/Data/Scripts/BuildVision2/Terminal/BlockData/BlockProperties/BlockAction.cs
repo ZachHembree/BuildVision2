@@ -47,7 +47,7 @@ namespace DarkHelmet.BuildVision2
 
                 members.Add(new BlockAction(
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_Attach),
-                    () => $"({block.MechConnection.GetLocalizedStatus()})",
+                    () => $"({block.MechConnection.GetLocalizedAttachStatus()})",
                     block.MechConnection.AttachHead));
                 members.Add(new BlockAction(
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_Detach), null,

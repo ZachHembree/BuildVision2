@@ -1,4 +1,7 @@
 ﻿using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using IMyAirVent = SpaceEngineers.Game.ModAPI.Ingame.IMyAirVent;
 using VentStatus = SpaceEngineers.Game.ModAPI.Ingame.VentStatus;
 
@@ -34,6 +37,18 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public string GetLocalizedVentStatus() =>
                 MyTexts.TrySubstitute(Status.ToString());
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText
+                {
+                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
+                    { $"{GetLocalizedVentStatus()}\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.HudInfoOxygen)}", nameFormat },
+                    { $"{(OxygenLevel * 100f).Round(2)}%\n", valueFormat },
+                };
+            }
         }
     }
 }

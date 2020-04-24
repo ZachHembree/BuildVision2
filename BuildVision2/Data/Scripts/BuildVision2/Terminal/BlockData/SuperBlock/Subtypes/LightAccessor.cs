@@ -1,5 +1,9 @@
 ﻿using Sandbox.ModAPI;
 using VRageMath;
+using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -37,6 +41,26 @@ namespace DarkHelmet.BuildVision2
             public LightAccessor(SuperBlock block) : base(block, TBlockSubtypes.Light)
             {
                 lighting = block.TBlock as IMyLightingBlock;
+            }
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText 
+                {
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightColor)}: ", nameFormat },
+                    { $"R: ", nameFormat }, { $"{Color.R} ", valueFormat }, 
+                    { $"G: ", nameFormat }, { $"{Color.G} ", valueFormat }, 
+                    { $"B: ", nameFormat }, { $"{Color.B}\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightRadius)}: ", nameFormat },
+                    { $"{Radius.Round(2)}m\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightIntensity)}: ", nameFormat },
+                    { $"{Intensity.Round(2)}\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightFalloff)}: ", nameFormat },
+                    { $"{Falloff.Round(2)}\n", valueFormat },
+                };
             }
         }
     }

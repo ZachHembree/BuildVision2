@@ -1,6 +1,8 @@
 ﻿using Sandbox.ModAPI;
 using System;
 using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
 
@@ -49,6 +51,14 @@ namespace DarkHelmet.BuildVision2
                     default:
                          return null;
                 }
+            }
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText {
+                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
+                    { $"{GetLocalizedStatus()}\n", valueFormat },
+                };
             }
         }
     }

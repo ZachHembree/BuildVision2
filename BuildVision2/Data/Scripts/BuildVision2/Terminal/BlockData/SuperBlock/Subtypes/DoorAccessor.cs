@@ -1,6 +1,7 @@
 ﻿using Sandbox.ModAPI;
 using System;
 using VRage;
+using RichHudFramework.UI;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using DoorStatus = Sandbox.ModAPI.Ingame.DoorStatus;
 using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
@@ -46,6 +47,14 @@ namespace DarkHelmet.BuildVision2
                     return MyTexts.GetString(MySpaceTexts.BlockAction_DoorClosed);
                 else
                     return MyTexts.GetString(MySpaceTexts.BlockAction_DoorOpen);
+            }
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText {
+                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
+                    { $"{GetLocalizedStatus()}\n", valueFormat },
+                };
             }
         }
     }

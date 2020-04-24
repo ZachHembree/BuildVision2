@@ -1,4 +1,8 @@
 ﻿using Sandbox.ModAPI;
+using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -31,6 +35,21 @@ namespace DarkHelmet.BuildVision2
             public RadioAntennaAccessor(SuperBlock block) : base(block, TBlockSubtypes.RadioAntenna)
             {
                 radioAntenna = block.TBlock as IMyRadioAntenna;
+            }
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText 
+                {
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesTitle_HudText)}: ", nameFormat },
+                    { $"{HudText}\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_BroadcastRadius)}: ", nameFormat },
+                    { $"{Range.Round(2)}m\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.HudInfoBroadcasting)}: ", nameFormat },
+                    { $"{(IsBroadcasting ? MyTexts.GetString(MySpaceTexts.Beacon_SafeZone_Info_Enabled) : MyTexts.GetString(MySpaceTexts.Beacon_SafeZone_Info_Disabled))}\n", valueFormat },
+                };
             }
         }
     }

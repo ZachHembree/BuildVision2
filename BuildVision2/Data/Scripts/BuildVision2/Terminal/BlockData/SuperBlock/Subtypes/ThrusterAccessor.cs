@@ -1,4 +1,8 @@
 ﻿using Sandbox.ModAPI;
+using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -31,6 +35,15 @@ namespace DarkHelmet.BuildVision2
             public ThrusterAccessor(SuperBlock block) : base(block, TBlockSubtypes.Thruster)
             {
                 thruster = block.TBlock as IMyThrust;
+            }
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText 
+                {
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ThrustOverride)}: ", nameFormat },
+                    { $"{Override.Round(2)}n\n", valueFormat },
+                };
             }
         }
     }

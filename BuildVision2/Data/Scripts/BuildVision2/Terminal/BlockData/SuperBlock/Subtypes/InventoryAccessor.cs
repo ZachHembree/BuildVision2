@@ -1,4 +1,8 @@
-﻿using VRage.Game.ModAPI;
+﻿using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
+using VRage.Game.ModAPI;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -19,14 +23,14 @@ namespace DarkHelmet.BuildVision2
             public double CurrentMass => (double)Inventory.CurrentMass;
 
             /// <summary>
-            /// Returns the maximum volume of items in cubic meters.
+            /// Returns the maximum volume of items in liters.
             /// </summary>
-            public double MaxVolume => (double)Inventory.MaxVolume;
+            public double MaxVolume => (double)Inventory.MaxVolume * 1000d;
 
             /// <summary>
-            /// Returns the total volume of items in cubic meters.
+            /// Returns the total volume of items in liters.
             /// </summary>
-            public double CurrentVolume => (double)Inventory.CurrentVolume;
+            public double CurrentVolume => (double)Inventory.CurrentVolume * 1000d;
 
             /// <summary>
             /// Number of occupied inventory slots
@@ -41,6 +45,19 @@ namespace DarkHelmet.BuildVision2
             public InventoryAccessor(SuperBlock block) : base(block, TBlockSubtypes.Inventory)
             {
                 Inventory = block.TBlock.GetInventory();             
+            }
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText 
+                {
+                    { $"{MyTexts.GetString(MySpaceTexts.HudInfoNameMass)} ", nameFormat },
+                    { $"{CurrentMass}kg\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.ContractScreen_ObtainDeliver_ItemVolume)}", nameFormat },
+                    { $"{CurrentVolume} / {MaxVolume}L ", valueFormat }, 
+                    { $"({(100d * CurrentVolume / MaxVolume).Round(2)}%)\n", nameFormat },
+                };
             }
         }
     }

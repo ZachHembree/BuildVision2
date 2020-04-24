@@ -1,5 +1,8 @@
 ﻿using Sandbox.ModAPI;
 using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using MyLaserAntennaStatus = Sandbox.ModAPI.Ingame.MyLaserAntennaStatus;
 
 namespace DarkHelmet.BuildVision2
@@ -35,6 +38,18 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public string GetLocalizedAntennaStatus() =>
                 MyTexts.TrySubstitute(Status.ToString());
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText 
+                {
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LaserRange)}: ", nameFormat },
+                    { $"{Range.Round(2)}m\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
+                    { $"{GetLocalizedAntennaStatus()}\n", valueFormat }
+                };
+            }
         }
     }
 }

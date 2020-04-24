@@ -65,7 +65,7 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            if (listWrapTimer.ElapsedMilliseconds > 400 && (index > max || index < min) && !BvBinds.MultX.IsPressed)
+            if (listWrapTimer.ElapsedMilliseconds > 300 && (index > max || index < min) && !BvBinds.MultX.IsPressed)
             {
                 if (index < min)
                 {

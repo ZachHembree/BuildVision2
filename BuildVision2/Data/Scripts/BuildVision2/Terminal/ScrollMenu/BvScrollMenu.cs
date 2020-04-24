@@ -243,101 +243,14 @@ namespace DarkHelmet.BuildVision2
                 { $"{Target.TBlock.CustomName}\n", valueText }
             };
 
-            if (Target.SubtypeId.HasFlag(TBlockSubtypes.Powered))
+            foreach (SuperBlock.SubtypeAccessorBase subtype in Target.Subtypes)
             {
-                peekText.Add(new RichText {
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", bodyText },
-                    { $"{Target.Power.GetPowerDisplay()}\n", valueText },
-                });
-            }
-
-            if (Target.SubtypeId.HasFlag(TBlockSubtypes.Battery))
-            {
-                peekText.Add(new RichText {
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", bodyText },
-                    { $"{TerminalExtensions.GetPowerDisplay(Target.Battery.PowerStored)}", valueText },
-                    { $" ({((Target.Battery.PowerStored / Target.Battery.Capacity) * 100f).Round(1)}%)\n", bodyText },
-
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", bodyText },
-                    { $"{TerminalExtensions.GetPowerDisplay(Target.Battery.Capacity)}\n", valueText },
-                });
-            }
-
-            if (Target.SubtypeId.HasFlag(TBlockSubtypes.GasTank))
-            {
-                peekText.Add(new RichText {
-                    { $"{MyTexts.GetString(MySpaceTexts.Oxygen_Filled).Split(':')[0]}: ", bodyText },
-                    { $"{(Target.GasTank.FillRatio * 100d).Round(1)}%\n", valueText },
-                });
-            }
-
-            if (Target.SubtypeId.HasFlag(TBlockSubtypes.Warhead))
-            {
-                peekText.Add(new RichText {
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", bodyText },
-                    { $"{Target.Warhead.GetLocalizedStatus()} ", valueText },
-                    { $"({Math.Truncate(Target.Warhead.CountdownTime)}s)\n", bodyText },
-                });
-            }
-
-            if (Target.SubtypeId.HasFlag(TBlockSubtypes.Door))
-            {
-                peekText.Add(new RichText {
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", bodyText },
-                    { $"{Target.Door.GetLocalizedStatus()}\n", valueText },
-                });
-            }
-
-            if (Target.SubtypeId.HasFlag(TBlockSubtypes.LandingGear))
-            {
-                peekText.Add(new RichText {
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", bodyText },
-                    { $"{Target.LandingGear.GetLocalizedStatus()}\n", valueText },
-                });
-            }
-
-            if (Target.SubtypeId.HasFlag(TBlockSubtypes.Connector))
-            {
-                peekText.Add(new RichText {
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", bodyText },
-                    { $"{Target.Connector.GetLocalizedStatus()}\n", valueText },
-                });
-            }
-
-            if (Target.SubtypeId.HasFlag(TBlockSubtypes.MechanicalConnection))
-            {
-                if (Target.SubtypeId.HasFlag(TBlockSubtypes.Suspension))
+                if (subtype != null)
                 {
-                    peekText.Add(new RichText {
-                        { $"{MyTexts.TrySubstitute("Wheel")}: ", bodyText },
-                        { $"{Target.MechConnection.GetLocalizedStatus()}\n", valueText },
-                    });
-                }
-                else
-                {
-                    peekText.Add(new RichText {
-                        { $"{MyTexts.TrySubstitute("Head")}: ", bodyText },
-                        { $"{Target.MechConnection.GetLocalizedStatus()}\n", valueText },
-                    });
+                    RichText summary = subtype.GetSummary(bodyText, valueText);
 
-                    if (Target.MechConnection.PartAttached)
-                    {
-                        if (Target.SubtypeId.HasFlag(TBlockSubtypes.Piston))
-                        {
-                            peekText.Add(new RichText {
-                                { $"{MyTexts.GetString(MySpaceTexts.TerminalDistance)}: ", bodyText },
-                                { $"{Target.Piston.ExtensionDist.Round(2)}m\n", valueText },
-                            });
-                        }
-
-                        if (Target.SubtypeId.HasFlag(TBlockSubtypes.Rotor))
-                        {
-                            peekText.Add(new RichText {
-                                { MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle), bodyText },
-                                { $"{Target.Rotor.Angle.RadiansToDegrees().Round(2)}\n", valueText },
-                            });
-                        }
-                    }
+                    if (summary != null)
+                        peekText.Add(summary);
                 }
             }
 

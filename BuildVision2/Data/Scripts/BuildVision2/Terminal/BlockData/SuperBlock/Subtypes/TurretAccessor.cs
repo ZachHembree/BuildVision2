@@ -1,5 +1,9 @@
 ﻿using Sandbox.ModAPI;
 using System.Collections.Generic;
+using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using MyItemType = VRage.Game.ModAPI.Ingame.MyItemType;
 
 namespace DarkHelmet.BuildVision2
@@ -32,6 +36,15 @@ namespace DarkHelmet.BuildVision2
                 var acceptedItems = new List<MyItemType>();
                 AmmoTypes = acceptedItems;
                 block.Inventory.Inventory.GetAcceptedItems(acceptedItems);
+            }
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText 
+                {
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LaserRange)}: ", nameFormat },
+                    { $"{Range.Round(2)}m", valueFormat },
+                };
             }
         }
     }

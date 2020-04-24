@@ -2,6 +2,8 @@
 using System;
 using VRageMath;
 using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
@@ -64,6 +66,15 @@ namespace DarkHelmet.BuildVision2
                     return MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_SwitchTextArmed);
                 else
                     return MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_SwitchTextDisarmed);
+            }
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText {
+                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
+                    { $"{GetLocalizedStatus()} ", valueFormat },
+                    { $"({Math.Truncate(CountdownTime)}s)\n", nameFormat },
+                };
             }
         }
     }

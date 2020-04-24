@@ -1,5 +1,9 @@
 ﻿using Sandbox.ModAPI;
 using System;
+using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -29,6 +33,19 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public void Reverse() =>
                 rotor.TargetVelocityRad = -rotor.TargetVelocityRad;
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                if (rotor.IsAttached)
+                {
+                    return new RichText {
+                        { MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle), nameFormat },
+                        { $"{Angle.RadiansToDegrees().Round(2)}\n", valueFormat },
+                    };
+                }
+                else
+                    return null;
+            }
         }
     }
 }

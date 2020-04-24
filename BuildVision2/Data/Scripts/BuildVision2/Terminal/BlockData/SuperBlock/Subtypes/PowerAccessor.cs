@@ -3,6 +3,9 @@ using VRage.Game;
 using VRage.Game.Components;
 using VRageMath;
 using System;
+using VRage;
+using RichHudFramework.UI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -34,6 +37,15 @@ namespace DarkHelmet.BuildVision2
                 resourceId = MyDefinitionId.FromContent(block.TBlock.SlimBlock.GetObjectBuilder());
                 sink = block.TBlock.ResourceSink;
                 powerProducer = block.TBlock as IMyPowerProducer;
+            }
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText 
+                {
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat },
+                    { $"{GetPowerDisplay()}\n", valueFormat },
+                };
             }
 
             /// <summary>

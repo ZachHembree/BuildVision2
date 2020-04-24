@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using VRage;
 using VRage.ModAPI;
+using VRage.Game.ModAPI;
 using VRageMath;
 
 namespace DarkHelmet.BuildVision2
@@ -291,6 +292,9 @@ namespace DarkHelmet.BuildVision2
                 suffix = "W";
             }
         }
+
+        public static bool IsLargeGrid(this IMyCubeBlock block) =>
+            block.CubeGrid.GridSizeEnum == VRage.Game.MyCubeSize.Large;
 
         /// <summary>
         /// Checks whether or not the Enabled and Visible delegates are defined and whether

@@ -1,5 +1,8 @@
 ﻿using Sandbox.ModAPI;
 using VRage;
+using RichHudFramework;
+using RichHudFramework.UI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using MyJumpDriveStatus = Sandbox.ModAPI.Ingame.MyJumpDriveStatus;
 
 namespace DarkHelmet.BuildVision2
@@ -40,6 +43,18 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public string GetLocalizedDriveStatus() =>
                 MyTexts.TrySubstitute(Status.ToString());
+
+            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            {
+                return new RichText 
+                {
+                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
+                    { $"{GetLocalizedDriveStatus()}\n", valueFormat },
+
+                    { $"{MyTexts.TrySubstitute("Charge")}:", nameFormat },
+                    { $"{(100f * Charge / Capacity).Round(2)}%\n" }
+                };
+            }
         }
     }
 }
