@@ -52,7 +52,7 @@ namespace DarkHelmet.BuildVision2
                 return new RichText 
                 {
                     { $"{MyTexts.GetString(MySpaceTexts.ScreenTerminalProduction_Inventory)} ", nameFormat },
-                    { $"{CurrentVolume.Round(2)} / {MaxVolume.Round(2)}L ", valueFormat }, 
+                    { $"{CurrentVolume.ToString("G6")} / {MaxVolume.ToString("G6")} L ", valueFormat }, 
                     { $"({(100d * CurrentVolume / MaxVolume).Round(2)}%)\n", nameFormat },
                 };
             }

@@ -41,7 +41,7 @@ namespace DarkHelmet.BuildVision2
                 if (rotor.IsAttached)
                 {
                     return new RichText {
-                        { MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_MotorLock), nameFormat },
+                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_MotorLock)}: ", nameFormat },
                         { $"{(RotorLock ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
 
                         { MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle), nameFormat },

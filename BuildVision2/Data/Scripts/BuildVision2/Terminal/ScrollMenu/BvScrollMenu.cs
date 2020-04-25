@@ -12,9 +12,9 @@ namespace DarkHelmet.BuildVision2
 {
     public enum ScrollMenuModes
     {
-        Peek = 1,
-        Control = 2,
-        Copy = 3
+        Peek = 0,
+        Control = 1,
+        Copy = 2
     }
 
     /// <summary>
@@ -209,7 +209,7 @@ namespace DarkHelmet.BuildVision2
 
             _bgOpacity = 0.9f;
             BgOpacity = 0.9f;
-            MenuMode = ScrollMenuModes.Control;
+            MenuMode = ScrollMenuModes.Peek;
             Count = 0;
 
             notificationTimer = new Utils.Stopwatch();

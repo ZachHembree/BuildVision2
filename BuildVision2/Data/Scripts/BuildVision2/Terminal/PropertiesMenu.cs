@@ -16,11 +16,6 @@ namespace DarkHelmet.BuildVision2
     public sealed partial class PropertiesMenu : BvComponentBase
     {
         /// <summary>
-        /// Current UI configuration
-        /// </summary>
-        public static HudConfig Cfg { get { return BvConfig.Current.menu.hudConfig; } set { BvConfig.Current.menu.hudConfig = value; } }
-
-        /// <summary>
         /// Currently targeted terminal block
         /// </summary>
         public static PropertyBlock Target => Instance.target;
@@ -51,8 +46,6 @@ namespace DarkHelmet.BuildVision2
             peakRefresh = new Utils.Stopwatch();
             peakRefresh.Start();
 
-            BvBinds.Open.OnNewPress += TryOpen;
-            BvBinds.Hide.OnNewPress += Hide;
             SharedBinds.Escape.OnNewPress += Hide;
         }
 
@@ -98,17 +91,27 @@ namespace DarkHelmet.BuildVision2
 
         public override void HandleInput()
         {
-            if (BvBinds.Peek.IsPressed && (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peek))
-            {
-                if (BvBinds.Peek.IsNewPressed || peakRefresh.ElapsedTicks > peekTime)
-                {
-                    TryPeak();
-                    peakRefresh.Reset();
-                }
-            }
-            else if (BvBinds.Peek.IsReleased && Open && scrollMenu.MenuMode == ScrollMenuModes.Peek)
+            if (BvBinds.Open.IsNewPressed && BvBinds.Hide.IsNewPressed)
+                ToggleOpen();
+            else if (BvBinds.Open.IsNewPressed)
+                TryOpen();
+            else if (BvBinds.Hide.IsNewPressed)
                 Hide();
-           
+
+            if (BvConfig.Current.general.enablePeek)
+            {
+                if (BvBinds.Peek.IsPressed && (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peek))
+                {
+                    if (BvBinds.Peek.IsNewPressed || peakRefresh.ElapsedTicks > peekTime)
+                    {
+                        TryPeek();
+                        peakRefresh.Reset();
+                    }
+                }
+                else if (BvBinds.Peek.IsReleased && Open && scrollMenu.MenuMode == ScrollMenuModes.Peek)
+                    Hide();
+            }
+
             if (target != null && Open && scrollMenu.MenuMode != ScrollMenuModes.Peek)
             {
                 if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Copy)
@@ -142,20 +145,20 @@ namespace DarkHelmet.BuildVision2
 
         public override void Draw()
         {
-            if (Cfg.resolutionScaling)
-                scrollMenu.Scale = Cfg.hudScale * HudMain.ResScale;
+            if (BvConfig.Current.hudConfig.resolutionScaling)
+                scrollMenu.Scale = BvConfig.Current.hudConfig.hudScale * HudMain.ResScale;
             else
-                scrollMenu.Scale = Cfg.hudScale;
+                scrollMenu.Scale = BvConfig.Current.hudConfig.hudScale;
 
-            scrollMenu.BgOpacity = Cfg.hudOpacity;
-            scrollMenu.MaxVisible = Cfg.maxVisible;
+            scrollMenu.BgOpacity = BvConfig.Current.hudConfig.hudOpacity;
+            scrollMenu.MaxVisible = BvConfig.Current.hudConfig.maxVisible;
 
             if (target != null && Open)
             {
                 Vector3D targetPos, worldPos;
                 Vector2 screenPos, screenBounds = Vector2.One;
 
-                if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !Cfg.useCustomPos)
+                if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !BvConfig.Current.hudConfig.useCustomPos)
                 {
                     targetPos = Target.Position + Target.modelOffset * .75;
                     worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
@@ -166,11 +169,11 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    screenPos = Cfg.hudPos;
+                    screenPos = BvConfig.Current.hudConfig.hudPos;
                     scrollMenu.AlignToEdge = true;
                 }
 
-                if (Cfg.clampHudPos)
+                if (BvConfig.Current.hudConfig.clampHudPos)
                 {
                     screenPos.X = MathHelper.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
                     screenPos.Y = MathHelper.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
@@ -180,24 +183,32 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private void TryPeak()
+        private void ToggleOpen()
         {
-            scrollMenu.MenuMode = ScrollMenuModes.Peek;
+            if (Open && scrollMenu.MenuMode != ScrollMenuModes.Peek)
+                Hide();
+            else
+                TryOpen();
+        }
 
+        private void TryPeek()
+        {
             if (TryGetTarget() && CanAccessTargetBlock())
             {
+                scrollMenu.MenuMode = ScrollMenuModes.Peek;
+
                 scrollMenu.SetTarget(target);
-                Open = true;
+                Open = true;   
             }
         }
 
         private void TryOpen()
         {
-            scrollMenu.MenuMode = ScrollMenuModes.Control;
-
             if (TryGetTarget() && CanAccessTargetBlock())
             {
-                if (target.TBlock != scrollMenu.Target.TBlock)
+                scrollMenu.MenuMode = ScrollMenuModes.Control;
+
+                if (target?.TBlock != scrollMenu?.Target?.TBlock)
                 {
                     scrollMenu.SetTarget(target);
                     Open = true;

@@ -13,10 +13,14 @@ namespace DarkHelmet.BuildVision2
     public class BvConfig : ConfigRoot<BvConfig>
     {
         [XmlElement(ElementName = "GeneralSettings")]
-        public GeneralConfig general;
+        public TargetingConfig general;
 
+        [Obsolete]
         [XmlElement(ElementName = "GuiSettings")]
         public PropMenuConfig menu;
+
+        [XmlElement(ElementName = "HudConfig")]
+        public HudConfig hudConfig;
 
         [XmlElement(ElementName = "BlockPropertySettings")]
         public PropBlockConfig block;
@@ -29,8 +33,9 @@ namespace DarkHelmet.BuildVision2
             return new BvConfig
             {
                 VersionID = 9,
-                general = GeneralConfig.Defaults,
-                menu = PropMenuConfig.Defaults,
+                general = TargetingConfig.Defaults,
+                menu = null,
+                hudConfig = HudConfig.Defaults,
                 block = PropBlockConfig.Defaults,
                 binds = BindsConfig.Defaults
             };
@@ -38,24 +43,34 @@ namespace DarkHelmet.BuildVision2
 
         public override void Validate()
         {
-            if (VersionID < 7)
-                menu.hudConfig.hudOpacity = HudConfig.Defaults.hudOpacity;
+            if (VersionID < 5)
+                block = PropBlockConfig.Defaults;
 
             if (VersionID < 6)
                 menu = PropMenuConfig.Defaults;
 
-            if (VersionID < 5)
-                block = PropBlockConfig.Defaults;
+            if (VersionID < 7 && menu?.hudConfig != null)
+                menu.hudConfig.hudOpacity = HudConfig.Defaults.hudOpacity;
+
+            if (VersionID < 9)
+            {
+                general.enablePeek = true;
+
+                if (menu?.hudConfig != null)
+                    hudConfig = menu.hudConfig;
+
+                menu = null;
+            }
 
             if (general != null)
                 general.Validate();
             else
-                general = GeneralConfig.Defaults;
+                general = TargetingConfig.Defaults;
 
-            if (menu != null)
-                menu.Validate();
+            if (hudConfig != null)
+                hudConfig.Validate();
             else
-                menu = PropMenuConfig.Defaults;
+                hudConfig = HudConfig.Defaults;
 
             if (binds != null)
                 binds.Validate();
@@ -72,8 +87,11 @@ namespace DarkHelmet.BuildVision2
         }
     }
 
-    public class GeneralConfig : Config<GeneralConfig>
+    public class TargetingConfig : Config<TargetingConfig>
     {
+        [XmlElement(ElementName = "EnablePeek")]
+        public bool enablePeek;
+
         [XmlElement(ElementName = "CloseIfTargetNotInView")]
         public bool closeIfNotInView;
 
@@ -86,10 +104,11 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "maxControlRange")]
         public double maxControlRange;
 
-        protected override GeneralConfig GetDefaults()
+        protected override TargetingConfig GetDefaults()
         {
-            return new GeneralConfig
+            return new TargetingConfig
             {
+                enablePeek = true,
                 closeIfNotInView = true,
                 canOpenIfHolding = true,
                 maxOpenRange = 10d,
@@ -111,6 +130,7 @@ namespace DarkHelmet.BuildVision2
         }
     }
 
+    [Obsolete]
     public class PropMenuConfig : Config<PropMenuConfig>
     {
         [XmlElement(ElementName = "ApiHudSettings")]
@@ -257,7 +277,7 @@ namespace DarkHelmet.BuildVision2
         private static readonly BindDefinition[] 
             defaultOpen = new BindGroupData 
             {
-                { "Peak", MyKeys.Control },
+                { "Peek", MyKeys.Control },
                 { "Open", MyKeys.Control, MyKeys.MiddleButton },
             }.GetBindDefinitions(),
             defaultMain = new BindGroupData

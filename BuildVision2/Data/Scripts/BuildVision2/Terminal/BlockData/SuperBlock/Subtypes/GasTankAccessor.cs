@@ -20,6 +20,8 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public double Capacity => gasTank.Capacity;
 
+            public double Fill => gasTank.Capacity * gasTank.FilledRatio;
+
             /// <summary>
             /// Returns the fill ratio of the tank
             /// </summary>
@@ -40,7 +42,8 @@ namespace DarkHelmet.BuildVision2
             {
                 return new RichText {
                     { $"{MyTexts.GetString(MySpaceTexts.Oxygen_Filled).Split(':')[0]}: ", nameFormat },
-                    { $"{(FillRatio * 100d).Round(1)}%\n", valueFormat },
+                    { $"{Fill.ToString("G6")} / {Capacity.ToString("G6")} L ", valueFormat },
+                    { $"({(FillRatio * 100d).Round(2)}%)\n", nameFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Stockpile)}: ", nameFormat },
                     { $"{(Stockpile ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
