@@ -55,11 +55,11 @@ namespace DarkHelmet.BuildVision2
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightRadius)}: ", nameFormat },
                     { $"{Radius.Round(2)}m\n", valueFormat },
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightIntensity)}: ", nameFormat },
-                    { $"{Intensity.Round(2)}\n", valueFormat },
-
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightFalloff)}: ", nameFormat },
                     { $"{Falloff.Round(2)}\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightIntensity)}: ", nameFormat },
+                    { $"{Intensity.Round(2)}\n", valueFormat },
                 };
             }
         }

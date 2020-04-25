@@ -42,7 +42,7 @@ namespace DarkHelmet.BuildVision2
                 return new RichText 
                 {
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ThrustOverride)}: ", nameFormat },
-                    { $"{Override.Round(2)}n\n", valueFormat },
+                    { $"{Override.Round(2)} N\n", valueFormat },
                 };
             }
         }

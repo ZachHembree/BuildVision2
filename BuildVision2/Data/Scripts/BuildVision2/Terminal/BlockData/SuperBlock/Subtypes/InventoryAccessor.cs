@@ -51,11 +51,8 @@ namespace DarkHelmet.BuildVision2
             {
                 return new RichText 
                 {
-                    { $"{MyTexts.GetString(MySpaceTexts.HudInfoNameMass)} ", nameFormat },
-                    { $"{CurrentMass}kg\n", valueFormat },
-
-                    { $"{MyTexts.GetString(MySpaceTexts.ContractScreen_ObtainDeliver_ItemVolume)}", nameFormat },
-                    { $"{CurrentVolume} / {MaxVolume}L ", valueFormat }, 
+                    { $"{MyTexts.GetString(MySpaceTexts.ScreenTerminalProduction_Inventory)} ", nameFormat },
+                    { $"{CurrentVolume.Round(2)} / {MaxVolume.Round(2)}L ", valueFormat }, 
                     { $"({(100d * CurrentVolume / MaxVolume).Round(2)}%)\n", nameFormat },
                 };
             }

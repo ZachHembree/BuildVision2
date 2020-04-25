@@ -42,7 +42,7 @@ namespace DarkHelmet.BuildVision2
             /// Returns the jump drive's status as a localized string.
             /// </summary>
             public string GetLocalizedDriveStatus() =>
-                MyTexts.TrySubstitute(Status.ToString());
+                (Charge == Capacity && Status == MyJumpDriveStatus.Charging) ? MyTexts.TrySubstitute(MyJumpDriveStatus.Ready.ToString()) : MyTexts.TrySubstitute(Status.ToString());
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
@@ -51,8 +51,12 @@ namespace DarkHelmet.BuildVision2
                     { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
                     { $"{GetLocalizedDriveStatus()}\n", valueFormat },
 
-                    { $"{MyTexts.TrySubstitute("Charge")}:", nameFormat },
-                    { $"{(100f * Charge / Capacity).Round(2)}%\n" }
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", nameFormat },
+                    { $"{TerminalExtensions.GetPowerDisplay(Charge)}", valueFormat },
+                    { $" ({((Charge / Capacity) * 100f).Round(1)}%)\n", nameFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat },
+                    { $"{TerminalExtensions.GetPowerDisplay(Capacity)}\n", valueFormat },
                 };
             }
         }

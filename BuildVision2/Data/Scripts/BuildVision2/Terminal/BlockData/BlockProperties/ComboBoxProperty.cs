@@ -37,7 +37,7 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 if (control.Id == "ChargeMode" && block.SubtypeId.HasFlag(TBlockSubtypes.Battery)) // Insert bat charge info
-                    GetPostfixFunc = () => $"({Math.Round((block.Battery.PowerStored / block.Battery.Capacity) * 100f, 1)}%)";
+                    GetPostfixFunc = () => $"({Math.Round((block.Battery.Charge / block.Battery.Capacity) * 100f, 1)}%)";
             }
 
             public override void ScrollUp() =>

@@ -18,7 +18,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns the amount of power currently stored in the battery.
             /// </summary>
-            public float PowerStored => battery.CurrentStoredPower;
+            public float Charge => battery.CurrentStoredPower;
 
             /// <summary>
             /// Returns the maximum capacity of the battery.
@@ -36,8 +36,8 @@ namespace DarkHelmet.BuildVision2
             {
                 return new RichText {
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", nameFormat },
-                    { $"{TerminalExtensions.GetPowerDisplay(PowerStored)}", valueFormat },
-                    { $" ({((PowerStored / Capacity) * 100f).Round(1)}%)\n", nameFormat },
+                    { $"{TerminalExtensions.GetPowerDisplay(Charge)}", valueFormat },
+                    { $" ({((Charge / Capacity) * 100f).Round(1)}%)\n", nameFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat },
                     { $"{TerminalExtensions.GetPowerDisplay(Capacity)}\n", valueFormat },

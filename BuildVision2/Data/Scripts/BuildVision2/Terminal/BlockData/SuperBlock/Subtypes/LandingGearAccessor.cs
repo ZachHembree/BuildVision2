@@ -22,6 +22,8 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public LandingGearMode Status => landingGear.LockMode;
 
+            public bool AutoLock { get { return landingGear.AutoLock; } set { landingGear.AutoLock = value; } }
+
             private readonly IMyLandingGear landingGear;
 
             public LandingGearAccessor(SuperBlock block) : base(block, TBlockSubtypes.LandingGear)
@@ -58,6 +60,9 @@ namespace DarkHelmet.BuildVision2
                 return new RichText {
                     { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
                     { $"{GetLocalizedStatus()}\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LandGearAutoLock)}: ", nameFormat },
+                    { $"{(AutoLock ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
                 };
             }
         }

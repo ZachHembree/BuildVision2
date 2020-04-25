@@ -48,7 +48,7 @@ namespace DarkHelmet.BuildVision2
                     { $"{Range.Round(2)}m\n", valueFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.HudInfoBroadcasting)}: ", nameFormat },
-                    { $"{(IsBroadcasting ? MyTexts.GetString(MySpaceTexts.Beacon_SafeZone_Info_Enabled) : MyTexts.GetString(MySpaceTexts.Beacon_SafeZone_Info_Disabled))}\n", valueFormat },
+                    { $"{(IsBroadcasting ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
                 };
             }
         }

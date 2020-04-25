@@ -21,6 +21,8 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public float Angle => rotor.Angle;
 
+            public bool RotorLock { get { return rotor.RotorLock; } set { rotor.RotorLock = value; } }
+
             private readonly IMyMotorStator rotor;
 
             public RotorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Rotor)
@@ -39,6 +41,9 @@ namespace DarkHelmet.BuildVision2
                 if (rotor.IsAttached)
                 {
                     return new RichText {
+                        { MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_MotorLock), nameFormat },
+                        { $"{(RotorLock ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
+
                         { MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle), nameFormat },
                         { $"{Angle.RadiansToDegrees().Round(2)}\n", valueFormat },
                     };

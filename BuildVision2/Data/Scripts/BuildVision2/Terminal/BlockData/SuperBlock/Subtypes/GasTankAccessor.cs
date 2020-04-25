@@ -25,6 +25,10 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public double FillRatio => gasTank.FilledRatio;
 
+            public bool Stockpile { get { return gasTank.Stockpile; } set { gasTank.Stockpile = value; } }
+
+            public bool AutoRefillBottles { get { return gasTank.AutoRefillBottles; } set { gasTank.AutoRefillBottles = value; } }
+
             private readonly IMyGasTank gasTank;
 
             public GasTankAccessor(SuperBlock block) : base(block, TBlockSubtypes.GasTank)
@@ -37,6 +41,12 @@ namespace DarkHelmet.BuildVision2
                 return new RichText {
                     { $"{MyTexts.GetString(MySpaceTexts.Oxygen_Filled).Split(':')[0]}: ", nameFormat },
                     { $"{(FillRatio * 100d).Round(1)}%\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Stockpile)}: ", nameFormat },
+                    { $"{(Stockpile ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_AutoRefill)}: ", nameFormat },
+                    { $"{(AutoRefillBottles ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
                 };
             }
         }

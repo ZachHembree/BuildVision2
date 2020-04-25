@@ -1,10 +1,12 @@
-﻿using Sandbox.ModAPI;
+﻿using RichHudFramework.Internal;
+using RichHudFramework.UI;
+using Sandbox.ModAPI;
 using System;
+using System.Collections.Generic;
 using VRage.ModAPI;
 using VRageMath;
-using RichHudFramework.UI;
-using System.Collections.Generic;
 using IMyAirVent = SpaceEngineers.Game.ModAPI.Ingame.IMyAirVent;
+using IMyGunBaseUser = Sandbox.Game.Entities.IMyGunBaseUser;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
 
 namespace DarkHelmet.BuildVision2
@@ -14,25 +16,27 @@ namespace DarkHelmet.BuildVision2
     {
         Powered = 0x1,
         Battery = 0x2,
-        GasTank = 0x4,
-        Warhead = 0x8,
-        Door = 0x10,
-        Parachute = 0x20,
-        LandingGear = 0x40,
-        Connector = 0x80,
-        MechanicalConnection = 0x100,
-        Suspension = 0x200,
-        Piston = 0x400,
-        Rotor = 0x800,
-        Inventory = 0x1000,
-        Turret = 0x2000,
-        Light = 0x4000,
-        JumpDrive = 0x8000,
-        Thruster = 0x10000,
-        LaserAntenna = 0x20000,
-        RadioAntenna = 0x40000,
-        OreDetector = 0x80000,
-        AirVent = 0x100000,
+        Inventory = 0x4,
+        GasTank = 0x8,
+        AirVent = 0x10,
+        Door = 0x20,
+        Parachute = 0x40,
+        LandingGear = 0x80,
+        Connector = 0x100,
+        MechanicalConnection = 0x200,
+        Suspension = 0x400,
+        Piston = 0x800,
+        Rotor = 0x1000,
+        Light = 0x2000,
+        JumpDrive = 0x4000,
+        Thruster = 0x8000,
+        LaserAntenna = 0x10000,
+        RadioAntenna = 0x20000,
+        OreDetector = 0x40000,
+        Gyroscope = 0x80000,
+        Warhead = 0x100000,
+        GunBase = 0x200000,
+        Turret = 0x400000,
     }
 
     /// <summary>
@@ -111,11 +115,14 @@ namespace DarkHelmet.BuildVision2
                     Battery = new BatteryAccessor(this);
             }
 
+            if (TBlock.HasInventory)
+                Inventory = new InventoryAccessor(this);
+
             if (TBlock is IMyGasTank)
                 GasTank = new GasTankAccessor(this);
 
-            if (TBlock is IMyWarhead)
-                Warhead = new WarheadAccessor(this);
+            if (TBlock is IMyAirVent)
+                AirVent = new AirVentAccessor(this);
 
             if (TBlock is IMyDoor)
                 Door = new DoorAccessor(this);
@@ -137,12 +144,6 @@ namespace DarkHelmet.BuildVision2
                     Rotor = new RotorAccessor(this);
             }
 
-            if (TBlock.HasInventory)
-                Inventory = new InventoryAccessor(this);
-
-            if (TBlock is IMyLargeTurretBase)
-                Turret = new TurretAccessor(this);
-
             if (TBlock is IMyLightingBlock)
                 Light = new LightAccessor(this);
 
@@ -161,8 +162,17 @@ namespace DarkHelmet.BuildVision2
             if (TBlock is IMyOreDetector)
                 OreDetector = new OreDetectorAccessor(this);
 
-            if (TBlock is IMyAirVent)
-                AirVent = new AirVentAccessor(this);
+            if (TBlock is IMyWarhead)
+                Warhead = new WarheadAccessor(this);
+
+            if (TBlock is IMyGunBaseUser)
+                Weapon = new GunBaseAccessor(this);
+
+            if (TBlock is IMyLargeTurretBase)
+                Turret = new TurretAccessor(this);
+
+            if (TBlock is IMyGyro)
+                Gyroscope = new GyroAccessor(this);
         }
 
         public abstract class SubtypeAccessorBase

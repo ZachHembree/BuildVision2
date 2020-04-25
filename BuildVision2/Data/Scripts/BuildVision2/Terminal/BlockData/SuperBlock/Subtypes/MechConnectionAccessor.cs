@@ -26,7 +26,7 @@ namespace DarkHelmet.BuildVision2
             public MechConnectionAccessor(SuperBlock block) : base(block, TBlockSubtypes.MechanicalConnection)
             {
                 mechBlock = block.TBlock as IMyMechanicalConnectionBlock;
-
+                
                 if (block.TBlock is IMyMotorSuspension)
                     block.SubtypeId |= TBlockSubtypes.Suspension;
             }
