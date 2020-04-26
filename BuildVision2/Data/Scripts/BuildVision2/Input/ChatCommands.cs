@@ -55,6 +55,8 @@ namespace DarkHelmet.BuildVision2
                     ExportBlockData),
                 new CmdManager.Command("import",
                     TryImportBlockData),
+                new CmdManager.Command("checkType", 
+                    () => ExceptionHandler.SendChatMessage($"Block Type: {(PropertiesMenu.Target?.SubtypeId.ToString() ?? "No Target")}")),
                 new CmdManager.Command("echo",
                     x => ExceptionHandler.SendChatMessage($"echo: {x[0]}")),
             };

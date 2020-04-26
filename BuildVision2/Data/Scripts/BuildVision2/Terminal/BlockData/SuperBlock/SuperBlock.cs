@@ -8,6 +8,7 @@ using VRageMath;
 using IMyAirVent = SpaceEngineers.Game.ModAPI.Ingame.IMyAirVent;
 using IMyGunBaseUser = Sandbox.Game.Entities.IMyGunBaseUser;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
+using IMyGravityGeneratorBase = SpaceEngineers.Game.ModAPI.IMyGravityGeneratorBase;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -17,26 +18,29 @@ namespace DarkHelmet.BuildVision2
         Powered = 0x1,
         Battery = 0x2,
         Inventory = 0x4,
-        GasTank = 0x8,
-        AirVent = 0x10,
-        Door = 0x20,
-        Parachute = 0x40,
-        LandingGear = 0x80,
-        Connector = 0x100,
-        MechanicalConnection = 0x200,
-        Suspension = 0x400,
-        Piston = 0x800,
-        Rotor = 0x1000,
-        Light = 0x2000,
-        JumpDrive = 0x4000,
-        Thruster = 0x8000,
-        LaserAntenna = 0x10000,
-        RadioAntenna = 0x20000,
-        OreDetector = 0x40000,
-        Gyroscope = 0x80000,
-        Warhead = 0x100000,
-        GunBase = 0x200000,
-        Turret = 0x400000,
+        Production = 0x8,
+        GasTank = 0x10,
+        AirVent = 0x20,
+        Door = 0x40,
+        Parachute = 0x80,
+        LandingGear = 0x100,
+        Connector = 0x200,
+        MechanicalConnection = 0x400,
+        Suspension = 0x800,
+        Piston = 0x1000,
+        Rotor = 0x2000,
+        Light = 0x4000,
+        JumpDrive = 0x8000,
+        Thruster = 0x10000,
+        Beacon = 0x20000,
+        LaserAntenna = 0x40000,
+        RadioAntenna = 0x80000,
+        OreDetector = 0x100000,
+        Gyroscope = 0x200000,
+        Warhead = 0x400000,
+        GunBase = 0x800000,
+        Turret = 0x1000000,
+        GravityGen = 0x2000000,
     }
 
     /// <summary>
@@ -118,6 +122,9 @@ namespace DarkHelmet.BuildVision2
             if (TBlock.HasInventory)
                 Inventory = new InventoryAccessor(this);
 
+            if (TBlock is IMyProductionBlock)
+                Production = new ProductionAccessorBase(this);
+
             if (TBlock is IMyGasTank)
                 GasTank = new GasTankAccessor(this);
 
@@ -153,6 +160,9 @@ namespace DarkHelmet.BuildVision2
             if (TBlock is IMyThrust)
                 Thruster = new ThrusterAccessor(this);
 
+            if (TBlock is IMyBeacon)
+                Beacon = new BeaconAccessorBase(this);
+
             if (TBlock is IMyLaserAntenna)
                 LaserAntenna = new LaserAntennaAccessor(this);
 
@@ -173,6 +183,9 @@ namespace DarkHelmet.BuildVision2
 
             if (TBlock is IMyGyro)
                 Gyroscope = new GyroAccessor(this);
+
+            if (TBlock is IMyGravityGeneratorBase)
+                GravityGen = new GravityGenAccessor(this);
         }
 
         public abstract class SubtypeAccessorBase
