@@ -1,4 +1,5 @@
 using RichHudFramework;
+using RichHudFramework.Internal;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
@@ -185,7 +186,7 @@ namespace DarkHelmet.BuildVision2
                     name = GetTooltipName(prop);
 
                     if (name.Length > 0)
-                    {
+                    {                        
                         if (prop is ITerminalProperty<StringBuilder>)
                         {
                             var textProp = prop as ITerminalProperty<StringBuilder>;
@@ -257,6 +258,19 @@ namespace DarkHelmet.BuildVision2
 
     public static class TerminalExtensions
     {
+        public static string GetDistanceString(float meters)
+        {
+            string postfix = "m";
+
+            if (meters > 1000f)
+            {
+                meters /= 1000f;
+                postfix = "km";
+            }
+
+            return $"{meters.ToString("G6")} {postfix}";
+        }
+
         public static string GetPowerDisplay(float value)
         {
             float scale;
@@ -269,19 +283,19 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Attempts to find the most appropriate scale for the given power value (GW/MW/KW/W).
         /// </summary>
-        public static void GetPowerScale(float value, out float scale, out string suffix)
+        public static void GetPowerScale(float megawatts, out float scale, out string suffix)
         {
-            if (value >= 1000f)
+            if (megawatts >= 1000f)
             {
                 scale = .001f;
                 suffix = "GW";
             }
-            else if (value >= 1f)
+            else if (megawatts >= 1f)
             {
                 scale = 1f;
                 suffix = "MW";
             }
-            else if (value >= .001f)
+            else if (megawatts >= .001f)
             {
                 scale = 1000f;
                 suffix = "KW";

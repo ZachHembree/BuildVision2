@@ -1,6 +1,7 @@
 ﻿using RichHudFramework.UI;
 using Sandbox.ModAPI;
 using VRage;
+using VRage.Game.ModAPI;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2

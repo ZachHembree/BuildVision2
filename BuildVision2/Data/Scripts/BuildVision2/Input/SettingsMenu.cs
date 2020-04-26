@@ -99,14 +99,21 @@ namespace DarkHelmet.BuildVision2
                 }
             };
 
+            var targetingResetButton = new TerminalButton()
+            {
+                Name = "Reset targeting settings",
+                ControlChangedAction = x => BvConfig.Current.general = TargetingConfig.Defaults,
+            };
+
             return new ControlCategory()
             {
                 HeaderText = "Targeting",
-                SubheaderText = "",
+                SubheaderText = "Configure block targeting behavior",
                 TileContainer =
                 {
                     new ControlTile() { peekToggleBox, autoCloseBox, toolOpenBox, },
                     new ControlTile() { openRangeSlider, controlRangeSlider, },
+                    new ControlTile() { targetingResetButton }
                 },
             };
         }
@@ -242,7 +249,7 @@ namespace DarkHelmet.BuildVision2
             return new ControlCategory()
             {
                 HeaderText = "GUI Settings",
-                SubheaderText = "",
+                SubheaderText = "Customize appearance and menu positioning",
                 TileContainer = { tile1, tile2, tile3 }
             };
         }

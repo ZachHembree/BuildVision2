@@ -204,7 +204,7 @@ namespace DarkHelmet.BuildVision2
 
         private void TryOpen()
         {
-            if (TryGetTarget() && CanAccessTargetBlock())
+            if ((scrollMenu.MenuMode == ScrollMenuModes.Peek && target?.TBlock != null || TryGetTarget()) && CanAccessTargetBlock())
             {
                 scrollMenu.MenuMode = ScrollMenuModes.Control;
 

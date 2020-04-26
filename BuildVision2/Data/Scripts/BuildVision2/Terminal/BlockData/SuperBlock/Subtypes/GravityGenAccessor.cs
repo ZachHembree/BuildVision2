@@ -54,7 +54,7 @@ namespace DarkHelmet.BuildVision2
                     summary.Add(new RichText 
                     {
                         { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldRadius)}: ", nameFormat },
-                        { $"{Radius.ToString("G4")} m\n", valueFormat },
+                        { $"{TerminalExtensions.GetDistanceString(Radius)}\n", valueFormat },
                     });
                 }
                 else
@@ -62,13 +62,13 @@ namespace DarkHelmet.BuildVision2
                     summary.Add(new RichText
                     {
                         { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldWidth)}: ", nameFormat },
-                        { $"{FieldSize.X} m\n", valueFormat },
+                        { $"{TerminalExtensions.GetDistanceString(FieldSize.X)}\n", valueFormat },
 
                         { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldHeight)}: ", nameFormat },
-                        { $"{FieldSize.Y} m\n", valueFormat },
+                        { $"{TerminalExtensions.GetDistanceString(FieldSize.Y)}\n", valueFormat },
 
                         { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldDepth)}: ", nameFormat },
-                        { $"{FieldSize.Z} m\n", valueFormat },
+                        { $"{TerminalExtensions.GetDistanceString(FieldSize.Z)}\n", valueFormat },
                     });
                 }
 
