@@ -15,9 +15,14 @@ namespace DarkHelmet.BuildVision2
         string Value { get; }
 
         /// <summary>
-        /// Additional information following the value of the member.
+        /// Postfix applied to the end of the value.
         /// </summary>
         string Postfix { get; }
+
+        /// <summary>
+        /// Additional information following the value of the member.
+        /// </summary>
+        string Status { get; }
 
         /// <summary>
         /// Indicates whether or not a given <see cref="IBlockMember"/> should be shown in the terminal.

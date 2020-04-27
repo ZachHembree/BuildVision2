@@ -57,7 +57,7 @@ namespace DarkHelmet.BuildVision2
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
                 return new RichText {
-                    { $"{MyTexts.TrySubstitute(block.SubtypeId.HasFlag(TBlockSubtypes.Suspension) ? "Wheel" : "Head")}: ", nameFormat },
+                    { $"{MyTexts.TrySubstitute(block.SubtypeId.UsesSubtype(TBlockSubtypes.Suspension) ? "Wheel" : "Head")}: ", nameFormat },
                     { $"{GetLocalizedAttachStatus()}\n", valueFormat },
                 };
             }

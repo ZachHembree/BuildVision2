@@ -15,6 +15,7 @@ namespace DarkHelmet.BuildVision2
     [Flags]
     public enum TBlockSubtypes : int
     {
+        None = 0,
         Powered = 0x1,
         Battery = 0x2,
         Inventory = 0x4,
@@ -86,16 +87,16 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// List of subtype accessors
         /// </summary>
-        public IReadOnlyList<SubtypeAccessorBase> Subtypes => subtypes;
+        public IReadOnlyList<SubtypeAccessorBase> SubtypeAccessors => subtypeAccessors;
 
-        private readonly List<SubtypeAccessorBase> subtypes;
+        private readonly List<SubtypeAccessorBase> subtypeAccessors;
 
         public SuperBlock(IMyTerminalBlock tBlock)
         {
             TBlock = tBlock;
             TypeID = tBlock.BlockDefinition.TypeIdString;
             TBlock.OnMarkForClose += BlockClosing;
-            subtypes = new List<SubtypeAccessorBase>();
+            subtypeAccessors = new List<SubtypeAccessorBase>();
 
             AddBlockSubtypes();
         }
@@ -199,10 +200,34 @@ namespace DarkHelmet.BuildVision2
                 this.block = block;
                 this.subtype = subtype;
                 block.SubtypeId |= subtype;
-                block.subtypes.Add(this);
+                block.subtypeAccessors.Add(this);
             }
 
             public abstract RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat);
         }
+    }
+
+    public static class SubtypeEnumExtensions
+    {
+        private static readonly IReadOnlyList<TBlockSubtypes> subtypes;
+
+        static SubtypeEnumExtensions()
+        {
+            subtypes = Enum.GetValues(typeof(TBlockSubtypes)) as IReadOnlyList<TBlockSubtypes>;
+        }
+
+        public static TBlockSubtypes GetLargestSubtype(this TBlockSubtypes subtypeId)
+        {
+            for (int n = subtypes.Count - 1; n >= 0; n--)
+            {
+                if ((subtypeId & subtypes[n]) == subtypes[n])
+                    return subtypes[n];
+            }
+
+            return TBlockSubtypes.None;
+        }
+
+        public static bool UsesSubtype(this TBlockSubtypes subtypeId, TBlockSubtypes flag) =>
+            (subtypeId & flag) == flag;
     }
 }

@@ -37,7 +37,7 @@ namespace DarkHelmet.BuildVision2
         {
             public override string PropName => property.Id;
 
-            public override int ID { get; }
+            public override int ID => PropName.GetHashCode();
 
             public override bool Enabled => (control.Enabled(block.TBlock) && control.Visible(block.TBlock));
 
@@ -58,15 +58,13 @@ namespace DarkHelmet.BuildVision2
 
                 this.Getter = Getter;
                 this.Setter = Setter;
-
-                ID = property.Id.GetHashCode();
             }
 
             /// <summary>
             /// Safely retrieves the current value of the property. Will return default if the property is not enabled
             /// or if an error occurs.
             /// </summary>
-            public TValue GetValue()
+            public virtual TValue GetValue()
             {
                 if (Enabled)
                 {
@@ -83,7 +81,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Safely sets the current value of the property to the one given if the property is enabled.
             /// </summary>
-            public void SetValue(TValue value)
+            public virtual void SetValue(TValue value)
             {
                 if (Enabled)
                 {

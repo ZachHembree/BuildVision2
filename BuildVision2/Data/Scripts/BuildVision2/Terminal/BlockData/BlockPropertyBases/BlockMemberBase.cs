@@ -15,15 +15,22 @@
             /// </summary>
             public abstract string Value { get; }
 
+            public virtual string Postfix { get; }
+
             /// <summary>
             /// Additional information following the value of the member.
             /// </summary>
-            public abstract string Postfix { get; }
+            public abstract string Status { get; }
 
             /// <summary>
             /// Indicates whether or not a given <see cref="IBlockMember"/> should be shown in the terminal.
             /// </summary>
             public virtual bool Enabled { get; protected set; }
+
+            public BlockMemberBase()
+            {
+                Postfix = "";
+            }
         }
     }
 }

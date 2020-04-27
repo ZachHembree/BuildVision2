@@ -45,7 +45,7 @@ namespace DarkHelmet.BuildVision2
                         { $"{(RotorLock ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
 
                         { MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle), nameFormat },
-                        { $"{Angle.RadiansToDegrees().Round(2)}\n", valueFormat },
+                        { $"{Angle.RadiansToDegrees().Round(2)}°\n", valueFormat },
                     };
                 }
                 else

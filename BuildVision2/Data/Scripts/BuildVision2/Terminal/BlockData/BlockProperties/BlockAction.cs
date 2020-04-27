@@ -16,7 +16,7 @@ namespace DarkHelmet.BuildVision2
         private class BlockAction : BlockMemberBase, IBlockAction
         {
             public override string Value => GetValueFunc();
-            public override string Postfix => GetPostfixFunc != null ? GetPostfixFunc() : null;
+            public override string Status => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
             private readonly Func<string> GetValueFunc, GetPostfixFunc;
             private readonly Action action;
@@ -63,13 +63,13 @@ namespace DarkHelmet.BuildVision2
                     }
                 }
 
-                if (block.SubtypeId.HasFlag(TBlockSubtypes.Piston))
+                if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Piston))
                 {
                     members.Add(new BlockAction(
                          MyTexts.GetString(MySpaceTexts.BlockActionTitle_Reverse), null,
                          block.Piston.Reverse));
                 }
-                else if (block.SubtypeId.HasFlag(TBlockSubtypes.Rotor))
+                else if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Rotor))
                 {
                     members.Add(new BlockAction(
                         MyTexts.GetString(MySpaceTexts.BlockActionTitle_Reverse), null,

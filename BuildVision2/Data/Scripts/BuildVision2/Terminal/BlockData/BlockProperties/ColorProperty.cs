@@ -14,7 +14,7 @@ namespace DarkHelmet.BuildVision2
         {
             public override string PropName => $"{property.Id}_{channel}";
             public override string Value => GetValue().GetChannel(channel).ToString();
-            public override string Postfix => null;
+            public override string Status => null;
 
             private readonly int channel;
             private static int incrX, incrY, incrZ, incr0;

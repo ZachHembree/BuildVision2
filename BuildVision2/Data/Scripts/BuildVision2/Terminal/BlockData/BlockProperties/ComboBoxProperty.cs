@@ -15,7 +15,7 @@ namespace DarkHelmet.BuildVision2
         private class ComboBoxProperty : ScrollableValueControlBase<IMyTerminalControlCombobox, long>
         {
             public override string Value => names[GetCurrentIndex()];
-            public override string Postfix => GetPostfixFunc?.Invoke();
+            public override string Status => GetPostfixFunc?.Invoke();
 
             private readonly List<long> keys;
             private readonly List<string> names;
@@ -36,7 +36,7 @@ namespace DarkHelmet.BuildVision2
                     names.Add(itemName);
                 }
 
-                if (control.Id == "ChargeMode" && block.SubtypeId.HasFlag(TBlockSubtypes.Battery)) // Insert bat charge info
+                if (control.Id == "ChargeMode" && block.SubtypeId.UsesSubtype(TBlockSubtypes.Battery)) // Insert bat charge info
                     GetPostfixFunc = () => $"({Math.Round((block.Battery.Charge / block.Battery.Capacity) * 100f, 1)}%)";
             }
 

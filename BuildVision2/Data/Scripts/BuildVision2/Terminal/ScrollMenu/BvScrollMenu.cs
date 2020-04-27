@@ -107,11 +107,6 @@ namespace DarkHelmet.BuildVision2
 
         public PropertyBlock Target { get; private set; }
 
-        /// <summary>
-        /// If true, then if the property currently selected and open will have its text updated.
-        /// </summary>
-        private bool updateSelection;
-
         public readonly LabelBox header;
         public readonly DoubleLabelBox footer;
         public readonly TexturedBox selectionBox, tab;
@@ -243,7 +238,7 @@ namespace DarkHelmet.BuildVision2
                 { $"{Target.TBlock.CustomName}\n", valueText }
             };
 
-            foreach (SuperBlock.SubtypeAccessorBase subtype in Target.Subtypes)
+            foreach (SuperBlock.SubtypeAccessorBase subtype in Target.SubtypeAccessors)
             {
                 if (subtype != null)
                 {
@@ -262,10 +257,7 @@ namespace DarkHelmet.BuildVision2
             for (int n = 0; n < Count; n++)
             {
                 if (n == index)
-                {
-                    if ((!PropOpen || updateSelection) && !scrollBody.List[n].value.InputOpen)
-                        scrollBody.List[n].UpdateText(true, PropOpen);
-                }
+                    scrollBody.List[n].UpdateText(true, PropOpen);
                 else
                     scrollBody.List[n].UpdateText(false, false);
             }   
@@ -503,22 +495,31 @@ namespace DarkHelmet.BuildVision2
             {
                 postfix.Format = bodyText;
 
-                if (highlighted)
+                if (!value.InputOpen)
                 {
-                    if (selected)
-                        value.Format = selectedText;
+                    if (highlighted)
+                    {
+                        if (selected)
+                            value.Format = selectedText;
+                        else
+                            value.Format = highlightText;
+                    }
                     else
-                        value.Format = highlightText;
+                        value.Format = valueText;
+
+                    value.Text = _blockMember.Value;
+                }
+
+                if (_blockMember.Postfix.Length > 0)
+                {
+                    postfix.Text = new RichText
+                    {
+                        { $"{_blockMember.Postfix}", value.Format },
+                        { $" {_blockMember.Status}" },
+                    };
                 }
                 else
-                    value.Format = valueText;
-
-                value.Text = _blockMember.Value;
-
-                if (_blockMember.Postfix != null && _blockMember.Postfix.Length > 0)
-                    postfix.Text = $" {_blockMember.Postfix}";
-                else
-                    postfix.TextBoard.Clear();
+                    postfix.Text = $" {_blockMember.Status}";
             }
 
             private class SelectionBox : Label

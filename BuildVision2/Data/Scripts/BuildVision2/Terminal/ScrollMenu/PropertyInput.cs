@@ -88,14 +88,9 @@ namespace DarkHelmet.BuildVision2
                         {
                             Selection.value.TextBoard.Format = selectedText;
                             Selection.value.Text = "Open chat to continue";
-                            updateSelection = false;
                         }
-                        else
-                            updateSelection = true;
                     }
                 }
-                else
-                    updateSelection = true;
             }
             else
             {
@@ -105,7 +100,6 @@ namespace DarkHelmet.BuildVision2
 
         private void OpenTextInput()
         {
-            updateSelection = false;
             waitingForChat = false;
 
             Selection.value.OpenInput();

@@ -16,16 +16,16 @@ namespace DarkHelmet.BuildVision2
         private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>, bool>, IBlockAction
         {
             public override string Value => GetPropStateText();
-            public override string Postfix => GetPostfixFunc != null ? GetPostfixFunc() : null;
+            public override string Status => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
             private readonly Func<string> GetPostfixFunc;
             private readonly MyStringId OnText, OffText;
 
             public BoolProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, SuperBlock block) : base(name, property, control, block)
             {
-                if (property.Id == "OnOff" && block.SubtypeId.HasFlag(TBlockSubtypes.Powered)) // Insert power draw / output info
+                if (property.Id == "OnOff" && block.SubtypeId.UsesSubtype(TBlockSubtypes.Powered)) // Insert power draw / output info
                     GetPostfixFunc = GetBlockPowerInfo;
-                else if (property.Id == "Stockpile" && block.SubtypeId.HasFlag(TBlockSubtypes.GasTank)) // Insert gas tank info
+                else if (property.Id == "Stockpile" && block.SubtypeId.UsesSubtype(TBlockSubtypes.GasTank)) // Insert gas tank info
                     GetPostfixFunc = GetGasTankFillPercent;
 
                 if (property is IMyTerminalControlOnOffSwitch)
