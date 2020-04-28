@@ -5,10 +5,11 @@ using System;
 using System.Collections.Generic;
 using VRage.ModAPI;
 using VRageMath;
-using IMyAirVent = SpaceEngineers.Game.ModAPI.Ingame.IMyAirVent;
+using IMyAirVent = SpaceEngineers.Game.ModAPI.IMyAirVent;
 using IMyGunBaseUser = Sandbox.Game.Entities.IMyGunBaseUser;
-using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
+using IMyLandingGear = SpaceEngineers.Game.ModAPI.IMyLandingGear;
 using IMyGravityGeneratorBase = SpaceEngineers.Game.ModAPI.IMyGravityGeneratorBase;
+using IMyTimerBlock = SpaceEngineers.Game.ModAPI.IMyTimerBlock;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -42,6 +43,10 @@ namespace DarkHelmet.BuildVision2
         GunBase = 0x800000,
         Turret = 0x1000000,
         GravityGen = 0x2000000,
+        Sensor = 0x4000000,
+        Projector = 0x8000000,
+        Timer = 0x10000000,
+        Programmable = 0x20000000
     }
 
     /// <summary>
@@ -187,6 +192,18 @@ namespace DarkHelmet.BuildVision2
 
             if (TBlock is IMyGravityGeneratorBase)
                 GravityGen = new GravityGenAccessor(this);
+
+            if (TBlock is IMySensorBlock)
+                Sensor = new SensorAccessor(this);
+
+            if (TBlock is IMyProjector)
+                Projector = new ProjectorAccessor(this);
+
+            if (TBlock is IMyTimerBlock)
+                Timer = new TimerAccessor(this);
+
+            if (TBlock is IMyProgrammableBlock)
+                Program = new ProgramBlockAccessor(this);
         }
 
         public abstract class SubtypeAccessorBase
@@ -229,5 +246,5 @@ namespace DarkHelmet.BuildVision2
 
         public static bool UsesSubtype(this TBlockSubtypes subtypeId, TBlockSubtypes flag) =>
             (subtypeId & flag) == flag;
-    }
+    }    
 }

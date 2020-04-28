@@ -40,21 +40,6 @@ namespace DarkHelmet.BuildVision2
                     { $"{(Override ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
                 };
 
-                if (Override)
-                {
-                    summary.Add(new RichText 
-                    {
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPitchOverride)}: ", nameFormat },
-                        { $"{Pitch.Round(2)}\n", valueFormat },
-
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroRollOverride)}: ", nameFormat },
-                        { $"{Roll.Round(2)}\n", valueFormat },
-
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroYawOverride)}: ", nameFormat },
-                        { $"{Yaw.Round(2)}\n", valueFormat } 
-                    });
-                }
-
                 return summary;
             }
         }

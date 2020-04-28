@@ -71,9 +71,11 @@ namespace DarkHelmet.BuildVision2
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
                 return new RichText {
+                    { $"{MyTexts.GetString(MySpaceTexts.TerminalControlPanel_TimerDelay)}: ", nameFormat },
+                    { $"{Math.Truncate(CountdownTime)}s\n", valueFormat },
+
                     { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
                     { $"{GetLocalizedStatus()} ", valueFormat },
-                    { $"({Math.Truncate(CountdownTime)}s)\n", nameFormat },
                 };
             }
         }

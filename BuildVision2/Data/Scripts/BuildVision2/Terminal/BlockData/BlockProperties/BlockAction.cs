@@ -15,7 +15,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BlockAction : BlockMemberBase, IBlockAction
         {
-            public override string Value => GetValueFunc();
+            public override string Display => GetValueFunc();
             public override string Status => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
             private readonly Func<string> GetValueFunc, GetPostfixFunc;
@@ -124,6 +124,36 @@ namespace DarkHelmet.BuildVision2
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_SwitchLock),
                     () => $"({blockData.Connector.GetLocalizedStatus()})",
                     blockData.Connector.ToggleConnect));
+            }
+
+            /// <summary>
+            /// Gets actions for blocks implementing IMyShipConnector.
+            /// </summary>
+            public static void GetProgrammableBlockActions(SuperBlock blockData, List<IBlockMember> members)
+            {
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_RunCode), null,
+                    blockData.Program.Run));
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Recompile), 
+                    () => $"({blockData.Program.GetLocalizedStatus()})",
+                    blockData.Program.Recompile));
+            }
+
+            /// <summary>
+            /// Gets actions for blocks implementing IMyShipConnector.
+            /// </summary>
+            public static void GetTimerActions(SuperBlock blockData, List<IBlockMember> members)
+            {
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_TimerStart), null,
+                    blockData.Timer.StartCountdown));
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_TimerStop), null,
+                    blockData.Timer.StopCountdown));
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_TimerTrigger), null,
+                    blockData.Timer.Trigger));
             }
         }
     }

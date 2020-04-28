@@ -172,6 +172,7 @@ namespace DarkHelmet.BuildVision2
         private void GetScrollableProps()
         {
             List<ITerminalProperty> properties = new List<ITerminalProperty>(12);
+            TextProperty argProperty = null;
             string name;
             TBlock.GetProperties(properties);
 
@@ -191,7 +192,9 @@ namespace DarkHelmet.BuildVision2
 
                             if (textProp.CanAccessValue(TBlock))
                             {
-                                if (prop.Id == "Name" || prop.Id == "CustomName")
+                                if (prop.Id == "ConsoleCommand")
+                                    argProperty = new TextProperty(name, textProp, control, this);
+                                else if (prop.Id == "Name" || prop.Id == "CustomName")
                                     blockProperties.Insert(0, new TextProperty(name, textProp, control, this));
                                 else
                                     blockProperties.Add(new TextProperty(name, textProp, control, this));
@@ -229,6 +232,9 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            if (argProperty != null)
+                blockProperties.Add(argProperty);
+
             blockMembers.AddRange(blockProperties);
         }
 
@@ -251,6 +257,12 @@ namespace DarkHelmet.BuildVision2
 
             if (SubtypeId.UsesSubtype(TBlockSubtypes.Connector))
                 BlockAction.GetConnectorActions(this, blockMembers);
+
+            if (SubtypeId.UsesSubtype(TBlockSubtypes.Programmable))
+                BlockAction.GetProgrammableBlockActions(this, blockMembers);
+
+            if (SubtypeId.UsesSubtype(TBlockSubtypes.Timer))
+                BlockAction.GetTimerActions(this, blockMembers);
         }
     }
 }
