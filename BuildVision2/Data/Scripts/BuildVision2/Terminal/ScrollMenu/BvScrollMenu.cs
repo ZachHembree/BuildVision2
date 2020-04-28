@@ -107,6 +107,11 @@ namespace DarkHelmet.BuildVision2
 
         public PropertyBlock Target { get; private set; }
 
+        /// <summary>
+        /// If true, then if the property currently selected and open will have its text updated.
+        /// </summary>
+        private bool updateSelection;
+
         public readonly LabelBox header;
         public readonly DoubleLabelBox footer;
         public readonly TexturedBox selectionBox, tab;
@@ -257,7 +262,10 @@ namespace DarkHelmet.BuildVision2
             for (int n = 0; n < Count; n++)
             {
                 if (n == index)
-                    scrollBody.List[n].UpdateText(true, PropOpen);
+                {
+                    if ((!PropOpen || updateSelection) && !scrollBody.List[n].value.InputOpen)
+                        scrollBody.List[n].UpdateText(true, PropOpen);
+                }
                 else
                     scrollBody.List[n].UpdateText(false, false);
             }   
@@ -495,31 +503,18 @@ namespace DarkHelmet.BuildVision2
             {
                 postfix.Format = bodyText;
 
-                if (!value.InputOpen)
+                if (highlighted)
                 {
-                    if (highlighted)
-                    {
-                        if (selected)
-                            value.Format = selectedText;
-                        else
-                            value.Format = highlightText;
-                    }
+                    if (selected)
+                        value.Format = selectedText;
                     else
-                        value.Format = valueText;
-
-                    value.Text = _blockMember.Value;
-                }
-
-                if (_blockMember.Postfix.Length > 0)
-                {
-                    postfix.Text = new RichText
-                    {
-                        { $"{_blockMember.Postfix}", value.Format },
-                        { $" {_blockMember.Status}" },
-                    };
+                        value.Format = highlightText;
                 }
                 else
-                    postfix.Text = $" {_blockMember.Status}";
+                    value.Format = valueText;
+
+                value.Text = _blockMember.Display;
+                postfix.Text = $" {_blockMember.Status}";
             }
 
             private class SelectionBox : Label

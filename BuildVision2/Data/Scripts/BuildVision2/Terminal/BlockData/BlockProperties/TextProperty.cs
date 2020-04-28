@@ -12,7 +12,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class TextProperty : BvTerminalProperty<ITerminalProperty<StringBuilder>, StringBuilder>, IBlockTextMember
         {
-            public override string Value => CleanText(GetValue());
+            public override string Display => CleanText(GetValue());
             public override string Status => null;
             public Func<char, bool> CharFilterFunc { get; protected set; }
 

@@ -10,14 +10,14 @@ namespace DarkHelmet.BuildVision2
         string Name { get; }
 
         /// <summary>
-        /// Retrieves the current value of the block member as a <see cref="string"/>
+        /// Retrieves the value as a <see cref="string"/> using formatting specific to the member.
         /// </summary>
-        string Value { get; }
+        string Display { get; }
 
         /// <summary>
-        /// Postfix applied to the end of the value.
+        /// Retrieves the current value of the block member as an unformatted <see cref="string"/>
         /// </summary>
-        string Postfix { get; }
+        string Value { get; }
 
         /// <summary>
         /// Additional information following the value of the member.

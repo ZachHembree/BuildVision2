@@ -15,7 +15,7 @@ namespace DarkHelmet.BuildVision2
 
             public NumericPropertyBase(string name, ITerminalProperty<TValue> property, IMyTerminalControl control, SuperBlock block) : base(name, property, control, block)
             {
-                CharFilterFunc = x => (x >= '0' && x <= '9') || x == '.' || x == '-' || x == '+';
+                CharFilterFunc = x => (x >= '0' && x <= '9') || x == '.' || x == ',' || x == 'E' || x == 'e' || x == '-' || x == '+';
             }
 
             public void SetValueText(string value)

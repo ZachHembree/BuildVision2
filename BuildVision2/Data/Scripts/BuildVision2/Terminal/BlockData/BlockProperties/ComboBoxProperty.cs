@@ -14,7 +14,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ComboBoxProperty : ScrollableValueControlBase<IMyTerminalControlCombobox, long>
         {
-            public override string Value => names[GetCurrentIndex()];
+            public override string Display => names[GetCurrentIndex()];
             public override string Status => GetPostfixFunc?.Invoke();
 
             private readonly List<long> keys;

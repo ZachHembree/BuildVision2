@@ -5,6 +5,7 @@ using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
+using System.Text;
 using VRage;
 using VRageMath;
 
@@ -17,28 +18,32 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class FloatProperty : NumericPropertyBase<float>
         {
-            public override string PropName { get; }
+            public override string Display
+            {
+                get 
+                {
+                    sliderWriter.Clear();
+                    slider.Writer(block.TBlock, sliderWriter);
+                    return sliderWriter.ToString();
+                } 
+            }
 
             public override string Value => GetValue().ToString("G6");
-
-            public override string Postfix { get; }
 
             public override string Status => GetStatusFunc?.Invoke() ?? "";
 
             private readonly float minValue, maxValue, incrX, incrY, incrZ, incr0;
             private readonly Func<string> GetStatusFunc;
-            private float scale;
+            private readonly IMyTerminalControlSlider slider;
+            private readonly StringBuilder sliderWriter;
 
             public FloatProperty(string name, ITerminalProperty<float> property, IMyTerminalControl control, SuperBlock block) : base(name, property, control, block)
             {
-                PropName = $"{block.SubtypeId.GetLargestSubtype()}_{property.Id}";
+                slider = control as IMyTerminalControlSlider;
+                sliderWriter = new StringBuilder();
 
-                FloatValueUnits units = GetUnitType();
-                Postfix = TerminalExtensions.FloatUnitPostfixes[units];
-                scale = GetScale(units);
-
-                minValue = property.GetMinimum(block.TBlock) * scale;
-                maxValue = property.GetMaximum(block.TBlock) * scale;
+                minValue = property.GetMinimum(block.TBlock);
+                maxValue = property.GetMaximum(block.TBlock);
 
                 if (property.Id.StartsWith("Rot")) // Increment exception for projectors
                     incr0 = 90f;
@@ -82,10 +87,10 @@ namespace DarkHelmet.BuildVision2
                 ChangePropValue(+GetIncrement());
 
             public override float GetValue() =>
-                base.GetValue() * scale;
+                base.GetValue();
 
             public override void SetValue(float value) =>
-                base.SetValue(value / scale);
+                base.SetValue(value);
 
             public override bool TryParseValue(string text, out float value) =>
                 float.TryParse(text, out value);
@@ -116,22 +121,6 @@ namespace DarkHelmet.BuildVision2
                     return incrX;
                 else
                     return incr0;
-            }
-
-            private FloatValueUnits GetUnitType()
-            {
-                FloatValueUnits unit = FloatValueUnits.None;
-                TerminalExtensions.FloatPropertySubtypes.TryGetValue(PropName, out unit);
-
-                return unit;
-            }
-
-            private static float GetScale(FloatValueUnits units)
-            {
-                if (units == FloatValueUnits.Ratio)
-                    return 100f;
-                else
-                    return 1f;
             }
         }
     }

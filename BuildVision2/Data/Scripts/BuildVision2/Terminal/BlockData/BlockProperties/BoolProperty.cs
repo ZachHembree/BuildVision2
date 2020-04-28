@@ -15,7 +15,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>, bool>, IBlockAction
         {
-            public override string Value => GetPropStateText();
+            public override string Display => GetPropStateText();
             public override string Status => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
             private readonly Func<string> GetPostfixFunc;

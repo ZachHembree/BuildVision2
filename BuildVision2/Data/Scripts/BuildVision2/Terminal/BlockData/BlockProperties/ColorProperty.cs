@@ -13,7 +13,7 @@ namespace DarkHelmet.BuildVision2
         private class ColorProperty : NumericPropertyBase<Color>
         {
             public override string PropName => $"{property.Id}_{channel}";
-            public override string Value => GetValue().GetChannel(channel).ToString();
+            public override string Display => GetValue().GetChannel(channel).ToString();
             public override string Status => null;
 
             private readonly int channel;
