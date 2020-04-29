@@ -237,11 +237,7 @@ namespace DarkHelmet.BuildVision2
 
         private void UpdatePeekBody()
         {
-            var peekText = new RichText
-            {
-                { $"{MyTexts.TrySubstitute("Name")}: ", bodyText },
-                { $"{Target.TBlock.CustomName}\n", valueText }
-            };
+            var peekText = new RichText();
 
             foreach (SuperBlock.SubtypeAccessorBase subtype in Target.SubtypeAccessors)
             {

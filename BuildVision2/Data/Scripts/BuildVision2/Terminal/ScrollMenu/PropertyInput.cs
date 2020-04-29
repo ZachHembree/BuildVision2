@@ -108,9 +108,9 @@ namespace DarkHelmet.BuildVision2
             updateSelection = false;
             waitingForChat = false;
 
-            Selection.value.OpenInput();
             Selection.value.TextBoard.Format = selectedText;
             Selection.value.Text = Selection.BlockMember.Value;
+            Selection.value.OpenInput();
         }
 
         /// <summary>

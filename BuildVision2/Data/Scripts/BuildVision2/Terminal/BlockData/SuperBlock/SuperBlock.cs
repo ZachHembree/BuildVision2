@@ -1,10 +1,12 @@
 ﻿using RichHudFramework.Internal;
 using RichHudFramework.UI;
+using RichHudFramework;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using VRage.ModAPI;
 using VRageMath;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using IMyAirVent = SpaceEngineers.Game.ModAPI.IMyAirVent;
 using IMyGunBaseUser = Sandbox.Game.Entities.IMyGunBaseUser;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.IMyLandingGear;
@@ -17,36 +19,37 @@ namespace DarkHelmet.BuildVision2
     public enum TBlockSubtypes : int
     {
         None = 0,
-        Powered = 0x1,
-        Battery = 0x2,
-        Inventory = 0x4,
-        Production = 0x8,
-        GasTank = 0x10,
-        AirVent = 0x20,
-        Door = 0x40,
-        Parachute = 0x80,
-        LandingGear = 0x100,
-        Connector = 0x200,
-        MechanicalConnection = 0x400,
-        Suspension = 0x800,
-        Piston = 0x1000,
-        Rotor = 0x2000,
-        Light = 0x4000,
-        JumpDrive = 0x8000,
-        Thruster = 0x10000,
-        Beacon = 0x20000,
-        LaserAntenna = 0x40000,
-        RadioAntenna = 0x80000,
-        OreDetector = 0x100000,
-        Gyroscope = 0x200000,
-        Warhead = 0x400000,
-        GunBase = 0x800000,
-        Turret = 0x1000000,
-        GravityGen = 0x2000000,
-        Sensor = 0x4000000,
-        Projector = 0x8000000,
-        Timer = 0x10000000,
-        Programmable = 0x20000000
+        Functional = 0x1,
+        Powered = 0x2,
+        Battery = 0x4,
+        Inventory = 0x8,
+        Production = 0x10,
+        GasTank = 0x20,
+        AirVent = 0x40,
+        Door = 0x80,
+        Parachute = 0x100,
+        LandingGear = 0x200,
+        Connector = 0x400,
+        MechanicalConnection = 0x800,
+        Suspension = 0x1000,
+        Piston = 0x2000,
+        Rotor = 0x4000,
+        Light = 0x8000,
+        JumpDrive = 0x10000,
+        Thruster = 0x20000,
+        Beacon = 0x40000,
+        LaserAntenna = 0x80000,
+        RadioAntenna = 0x100000,
+        OreDetector = 0x200000,
+        Gyroscope = 0x400000,
+        Warhead = 0x800000,
+        GunBase = 0x1000000,
+        Turret = 0x2000000,
+        GravityGen = 0x4000000,
+        Sensor = 0x8000000,
+        Projector = 0x10000000,
+        Timer = 0x20000000,
+        Programmable = 0x40000000
     }
 
     /// <summary>
@@ -117,7 +120,9 @@ namespace DarkHelmet.BuildVision2
 
         private void AddBlockSubtypes()
         {
-            if (TBlock.ResourceSink != null || TBlock is IMyPowerProducer)
+            General = new GeneralAccessor(this);
+            
+            if (TBlock.ResourceSink != null || TBlock is IMyPowerProducer || TBlock is IMyFunctionalBlock)
             {
                 Power = new PowerAccessor(this);
 

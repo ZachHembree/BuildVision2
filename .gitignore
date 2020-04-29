@@ -22,3 +22,5 @@ TextEditorExample/
 *.csproj
 
 *.sln
+
+Decompiled/
