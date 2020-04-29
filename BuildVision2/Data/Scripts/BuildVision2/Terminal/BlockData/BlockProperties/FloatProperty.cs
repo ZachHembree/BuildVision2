@@ -22,25 +22,32 @@ namespace DarkHelmet.BuildVision2
             {
                 get 
                 {
-                    sliderWriter.Clear();
-                    slider.Writer(block.TBlock, sliderWriter);
-                    return sliderWriter.ToString();
+                    if (SliderWriter != null)
+                    {
+                        writerText.Clear();
+                        SliderWriter(block.TBlock, writerText);
+                        return writerText.ToString();
+                    }
+                    else
+                        return Value;
                 } 
             }
 
-            public override string Value => GetValue().ToString("G6");
+            public override string Value => GetValue().Round(4).ToString("G6");
 
             public override string Status => GetStatusFunc?.Invoke() ?? "";
 
             private readonly float minValue, maxValue, incrX, incrY, incrZ, incr0;
             private readonly Func<string> GetStatusFunc;
-            private readonly IMyTerminalControlSlider slider;
-            private readonly StringBuilder sliderWriter;
+            private readonly Action<IMyTerminalBlock, StringBuilder> SliderWriter;
+            private readonly StringBuilder writerText;
+            private readonly Func<float> GetScaleFunc;
 
             public FloatProperty(string name, ITerminalProperty<float> property, IMyTerminalControl control, SuperBlock block) : base(name, property, control, block)
             {
-                slider = control as IMyTerminalControlSlider;
-                sliderWriter = new StringBuilder();
+                var slider = control as IMyTerminalControlSlider;
+                SliderWriter = slider?.Writer;
+                writerText = new StringBuilder();
 
                 minValue = property.GetMinimum(block.TBlock);
                 maxValue = property.GetMaximum(block.TBlock);
@@ -55,10 +62,10 @@ namespace DarkHelmet.BuildVision2
                     {
                         double range = Math.Abs(maxValue - minValue), exp;
 
-                        if (range > maxValue)
-                            exp = Math.Truncate(Math.Log10(range));
+                        if (minValue != 0f && maxValue != 0f)
+                            exp = Math.Truncate(Math.Log10(1.1 * range));
                         else
-                            exp = Math.Truncate(Math.Log10(2 * range));
+                            exp = Math.Truncate(Math.Log10(2.2 * range));
 
                         incr0 = (float)(Math.Pow(10d, exp) / Cfg.floatDiv);
                     }
@@ -70,13 +77,18 @@ namespace DarkHelmet.BuildVision2
                 incrZ = incr0 * Cfg.floatMult.Z; // x10
                 incrY = incr0 * Cfg.floatMult.Y; // x5
                 incrX = incr0 * Cfg.floatMult.X; // x0.1
-                
+
+                if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Thruster) && PropName == "Override")
+                    GetScaleFunc = () => block.Thruster.ThrustEffectiveness;
+                else
+                    GetScaleFunc = () => 1f;
+
                 if (property.Id == "UpperLimit")
                 {
                     if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Piston))
-                        GetStatusFunc = () => $"({Math.Round(block.Piston.ExtensionDist, 2)}m)";
+                        GetStatusFunc = () => $"({block.Piston.ExtensionDist.Round(4).ToString("G6")}m)";
                     else if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Rotor))
-                        GetStatusFunc = () => $"({Math.Round(MathHelper.Clamp(block.Rotor.Angle.RadiansToDegrees(), -360, 360), 2)}°)";
+                        GetStatusFunc = () => $"({MathHelper.Clamp(block.Rotor.Angle.RadiansToDegrees(), -360, 360).Round(2)}°)";
                 }
             }
 
@@ -87,10 +99,10 @@ namespace DarkHelmet.BuildVision2
                 ChangePropValue(+GetIncrement());
 
             public override float GetValue() =>
-                base.GetValue();
+                base.GetValue() * GetScaleFunc();
 
             public override void SetValue(float value) =>
-                base.SetValue(value);
+                base.SetValue(value / GetScaleFunc());
 
             public override bool TryParseValue(string text, out float value) =>
                 float.TryParse(text, out value);

@@ -24,7 +24,7 @@ namespace DarkHelmet.BuildVision2
             public BoolProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, SuperBlock block) : base(name, property, control, block)
             {
                 if (property.Id == "OnOff" && block.SubtypeId.UsesSubtype(TBlockSubtypes.Powered)) // Insert power draw / output info
-                    GetPostfixFunc = GetBlockPowerInfo;
+                    GetPostfixFunc = () => $"({block.Power.GetPowerDisplay()})";
                 else if (property.Id == "Stockpile" && block.SubtypeId.UsesSubtype(TBlockSubtypes.GasTank)) // Insert gas tank info
                     GetPostfixFunc = GetGasTankFillPercent;
 
@@ -40,49 +40,6 @@ namespace DarkHelmet.BuildVision2
                     OnText = MySpaceTexts.SwitchText_On;
                     OffText = MySpaceTexts.SwitchText_Off;
                 }
-            }
-
-            private string GetBlockPowerInfo()
-            {
-                string disp = "", suffix;
-                float powerDraw = block.Power.Input,
-                    powerOut = block.Power.Out,
-                    total = MathHelper.Max(powerDraw, 0f) + MathHelper.Max(powerOut, 0f),
-                    scale;
-
-                if (total >= 1000f)
-                {
-                    scale = .001f;
-                    suffix = "GW";
-                }
-                else if (total >= 1f)
-                {
-                    scale = 1f;
-                    suffix = "MW";
-                }
-                else if (total >= .001f)
-                {
-                    scale = 1000f;
-                    suffix = "KW";
-                }
-                else
-                {
-                    scale = 1000000f;
-                    suffix = "W";
-                }
-
-                if (powerDraw >= 0f)
-                    disp += "-" + Math.Round(powerDraw * scale, 1);
-
-                if (powerOut >= 0f)
-                {
-                    if (powerDraw >= 0f)
-                        disp += " / ";
-
-                    disp += "+" + Math.Round(powerOut * scale, 1);
-                }
-
-                return $"({disp} {suffix})";
             }
 
             private string GetGasTankFillPercent() =>
