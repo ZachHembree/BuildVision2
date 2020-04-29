@@ -37,7 +37,16 @@ namespace DarkHelmet.BuildVision2
         {
             public override string PropName => property.Id;
 
-            public override int ID => PropName.GetHashCode();
+            public sealed override int ID
+            {
+                get 
+                {
+                    if (id == int.MinValue)
+                        id = PropName.GetHashCode();
+
+                    return id;
+                }
+            }
 
             public override bool Enabled => (control.Enabled(block.TBlock) && control.Visible(block.TBlock));
 
@@ -48,6 +57,8 @@ namespace DarkHelmet.BuildVision2
             private readonly Func<IMyTerminalBlock, TValue> Getter;
             private readonly Action<IMyTerminalBlock, TValue> Setter;
 
+            private int id = int.MinValue;
+
             protected BvTerminalPropertyBase(string name, TProp property, IMyTerminalControl control, SuperBlock block, Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
             {
                 Name = name;
@@ -57,7 +68,7 @@ namespace DarkHelmet.BuildVision2
                 this.block = block;
 
                 this.Getter = Getter;
-                this.Setter = Setter;
+                this.Setter = Setter;          
             }
 
             /// <summary>
