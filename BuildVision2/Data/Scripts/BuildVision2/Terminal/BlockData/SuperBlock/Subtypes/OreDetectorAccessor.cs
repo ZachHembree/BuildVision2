@@ -37,7 +37,7 @@ namespace DarkHelmet.BuildVision2
                 return new RichText 
                 {
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_OreDetectorRange)}: ", nameFormat },
-                    { $"{TerminalExtensions.GetDistanceString(Range)}\n", valueFormat },
+                    { $"{TerminalExtensions.GetDistanceDisplay(Range)}\n", valueFormat },
                 };
             }
         }

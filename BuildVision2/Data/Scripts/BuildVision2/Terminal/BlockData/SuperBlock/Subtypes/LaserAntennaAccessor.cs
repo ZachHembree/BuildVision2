@@ -44,7 +44,7 @@ namespace DarkHelmet.BuildVision2
                 return new RichText 
                 {
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LaserRange)}: ", nameFormat },
-                    { $"{TerminalExtensions.GetDistanceString(Range)}\n", valueFormat },
+                    { $"{((Range < 1E8) ? TerminalExtensions.GetDistanceDisplay(Range) : MyTexts.GetString(MySpaceTexts.ScreenTerminal_Infinite))}\n", valueFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
                     { $"{GetLocalizedAntennaStatus()}\n", valueFormat }

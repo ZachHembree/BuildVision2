@@ -12,7 +12,7 @@ namespace DarkHelmet.BuildVision2
 
         public class TimerAccessor : SubtypeAccessorBase
         {
-            public float Countdown { get { return timer.TriggerDelay; } set { timer.TriggerDelay = value; } }
+            public float Delay { get { return timer.TriggerDelay; } set { timer.TriggerDelay = value; } }
 
             public bool IsCountingDown => timer.IsCountingDown;
 
@@ -30,7 +30,7 @@ namespace DarkHelmet.BuildVision2
                 return new RichText
                 {
                     { $"{MyTexts.GetString(MySpaceTexts.TerminalControlPanel_TimerDelay)}: ", nameFormat },
-                    { $"{Math.Truncate(Countdown)}s\n", valueFormat },
+                    { $"{Math.Truncate(Delay)}s\n", valueFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Silent)}: ", nameFormat },
                     { $"{MyTexts.TrySubstitute(Silent.ToString())}\n", valueFormat },

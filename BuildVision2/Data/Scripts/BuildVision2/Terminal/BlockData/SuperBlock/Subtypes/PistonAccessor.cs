@@ -40,7 +40,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     return new RichText {
                         { $"{MyTexts.GetString(MySpaceTexts.TerminalDistance)}: ", nameFormat },
-                        { $"{TerminalExtensions.GetDistanceString(ExtensionDist)}\n", valueFormat },
+                        { $"{TerminalExtensions.GetDistanceDisplay(ExtensionDist)}\n", valueFormat },
                     };
                 }
                 else

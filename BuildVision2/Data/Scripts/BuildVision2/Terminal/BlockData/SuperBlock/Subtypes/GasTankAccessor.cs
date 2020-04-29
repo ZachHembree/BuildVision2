@@ -41,7 +41,7 @@ namespace DarkHelmet.BuildVision2
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
                 return new RichText {
-                    { $"{MyTexts.GetString(MySpaceTexts.Oxygen_Filled).Split(':')[0]}: ", nameFormat },
+                    { $"{MyTexts.TrySubstitute("Gas")}: ", nameFormat },
                     { $"{Fill.ToString("G6")} / {Capacity.ToString("G6")} L ", valueFormat },
                     { $"({(FillRatio * 100d).Round(2)}%)\n", nameFormat },
 

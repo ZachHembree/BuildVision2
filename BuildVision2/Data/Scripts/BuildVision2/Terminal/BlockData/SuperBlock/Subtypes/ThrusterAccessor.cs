@@ -28,7 +28,11 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Indicates the maximum effective thrust.
             /// </summary>
-            public float MaxThrust => thruster.MaxEffectiveThrust;
+            public float MaxEffectiveThrust => thruster.MaxEffectiveThrust;
+
+            public float MaxThrust => thruster.MaxThrust;
+
+            public float ThrustEffectiveness => thruster.MaxEffectiveThrust / thruster.MaxThrust;
 
             private readonly IMyThrust thruster;
 
@@ -41,8 +45,11 @@ namespace DarkHelmet.BuildVision2
             {
                 return new RichText 
                 {
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Effectiveness)} ", nameFormat },
+                    { $"{(ThrustEffectiveness * 100f).Round(2)}%\n", valueFormat },
+
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ThrustOverride)}: ", nameFormat },
-                    { $"{Override.Round(2)} N\n", valueFormat },
+                    { CurrentThrust > 0f ? $"{CurrentThrust.Round(2)} N\n" : MyTexts.TrySubstitute("Disabled"), valueFormat },
                 };
             }
         }

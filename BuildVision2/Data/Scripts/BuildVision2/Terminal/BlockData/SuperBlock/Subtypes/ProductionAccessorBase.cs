@@ -1,4 +1,5 @@
 ﻿using RichHudFramework.UI;
+using RichHudFramework;
 using Sandbox.ModAPI;
 using VRage;
 using VRage.Game.ModAPI;
@@ -67,7 +68,7 @@ namespace DarkHelmet.BuildVision2
                     summary.Add(new RichText
                     {
                         { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Productivity)} ", nameFormat },
-                        { $"{(Productivity.Value * 100f).ToString("G5")}%\n", valueFormat } 
+                        { $"{(Productivity.Value * 100f).Round(2)}%\n", valueFormat } 
                     });
                 }
 
@@ -76,7 +77,7 @@ namespace DarkHelmet.BuildVision2
                     summary.Add(new RichText
                     {
                         { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Effectiveness)} ", nameFormat },
-                        { $"{(Effectiveness.Value * 100f).ToString("G5")}%\n", valueFormat }
+                        { $"{(Effectiveness.Value * 100f).Round(2)}%\n", valueFormat }
                     });
                 }
 
@@ -85,7 +86,7 @@ namespace DarkHelmet.BuildVision2
                     summary.Add(new RichText
                     {
                         { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Efficiency)} ", nameFormat },
-                        { $"{(PowerEfficiency.Value * 100f).ToString("G5")}%\n", valueFormat }
+                        { $"{(PowerEfficiency.Value * 100f).Round(2)}%\n", valueFormat }
                     });
                 }
 

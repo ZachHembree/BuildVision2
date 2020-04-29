@@ -53,7 +53,7 @@ namespace DarkHelmet.BuildVision2
                     { $"B: ", nameFormat }, { $"{Color.B}\n", valueFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightRadius)}: ", nameFormat },
-                    { $"{TerminalExtensions.GetDistanceString(Radius)}\n", valueFormat },
+                    { $"{TerminalExtensions.GetDistanceDisplay(Radius)}\n", valueFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightFalloff)}: ", nameFormat },
                     { $"{Falloff.Round(2)}\n", valueFormat },
