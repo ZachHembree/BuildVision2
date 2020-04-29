@@ -30,7 +30,7 @@ namespace DarkHelmet.BuildVision2
                     { $"{HudText}\n", valueFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_BroadcastRadius)}: ", nameFormat },
-                    { $"{TerminalExtensions.GetDistanceDisplay(Radius)}\n", valueFormat },
+                    { $"{TerminalUtilities.GetDistanceDisplay(Radius)}\n", valueFormat },
                 };
             }
         }

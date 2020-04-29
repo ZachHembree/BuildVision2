@@ -49,7 +49,7 @@ namespace DarkHelmet.BuildVision2
                     { $"{(ThrustEffectiveness * 100f).Round(2)}%\n", valueFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ThrustOverride)}: ", nameFormat },
-                    { CurrentThrust > 0f ? $"{CurrentThrust.Round(2)} N\n" : MyTexts.TrySubstitute("Disabled"), valueFormat },
+                    { Override > 0f ? $"{TerminalUtilities.GetForceDisplay(Override * ThrustEffectiveness)}\n" : MyTexts.TrySubstitute("Disabled"), valueFormat },
                 };
             }
         }

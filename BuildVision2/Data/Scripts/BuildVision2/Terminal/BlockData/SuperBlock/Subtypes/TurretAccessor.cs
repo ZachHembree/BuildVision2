@@ -36,7 +36,7 @@ namespace DarkHelmet.BuildVision2
                 return new RichText 
                 {
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LargeTurretRadius)}: ", nameFormat },
-                    { $"{TerminalExtensions.GetDistanceDisplay(Range)}\n", valueFormat },
+                    { $"{TerminalUtilities.GetDistanceDisplay(Range)}\n", valueFormat },
                 };
             }
         }

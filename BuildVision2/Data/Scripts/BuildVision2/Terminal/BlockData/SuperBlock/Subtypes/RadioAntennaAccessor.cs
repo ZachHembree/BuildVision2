@@ -45,7 +45,7 @@ namespace DarkHelmet.BuildVision2
                     { $"{HudText}\n", valueFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_BroadcastRadius)}: ", nameFormat },
-                    { $"{TerminalExtensions.GetDistanceDisplay(Range)}\n", valueFormat },
+                    { $"{TerminalUtilities.GetDistanceDisplay(Range)}\n", valueFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.HudInfoBroadcasting)}: ", nameFormat },
                     { $"{(IsBroadcasting ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },

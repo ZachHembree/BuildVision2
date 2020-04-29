@@ -21,6 +21,8 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public VentStatus Status => vent.Status;
 
+            public bool Depressurize => vent.Depressurize;
+
             public bool CanPressurize => vent.CanPressurize;
 
             public float OxygenLevel => vent.GetOxygenLevel();
@@ -42,11 +44,14 @@ namespace DarkHelmet.BuildVision2
             {
                 return new RichText
                 {
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
-                    { $"{GetLocalizedVentStatus()}\n", valueFormat },
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Depressurize)}: ", nameFormat },
+                    { $"{MyTexts.GetString(Depressurize ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)}\n", valueFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.HudInfoOxygen)}", nameFormat },
                     { $"{(OxygenLevel * 100f).Round(2)}%\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
+                    { $"{GetLocalizedVentStatus()}\n", valueFormat },
                 };
             }
         }

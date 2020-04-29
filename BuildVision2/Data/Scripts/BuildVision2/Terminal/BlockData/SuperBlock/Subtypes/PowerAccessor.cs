@@ -103,7 +103,7 @@ namespace DarkHelmet.BuildVision2
                 if (Output != null)
                     total += Output.Value;
 
-                TerminalExtensions.GetPowerScale(total, out scale, out suffix);
+                TerminalUtilities.GetPowerScale(total, out scale, out suffix);
 
                 if (Input != null)
                     disp += "-" + (Input * scale).Value.ToString("G4");

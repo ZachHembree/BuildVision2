@@ -36,11 +36,11 @@ namespace DarkHelmet.BuildVision2
             {
                 return new RichText {
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", nameFormat },
-                    { $"{TerminalExtensions.GetPowerDisplay(Charge)}", valueFormat },
+                    { $"{TerminalUtilities.GetPowerDisplay(Charge)}", valueFormat },
                     { $" ({((Charge / Capacity) * 100f).Round(1)}%)\n", nameFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat },
-                    { $"{TerminalExtensions.GetPowerDisplay(Capacity)}\n", valueFormat },
+                    { $"{TerminalUtilities.GetPowerDisplay(Capacity)}\n", valueFormat },
                 };
             }
         }

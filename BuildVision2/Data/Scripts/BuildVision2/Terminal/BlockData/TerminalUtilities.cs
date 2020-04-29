@@ -2,33 +2,57 @@
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System.Collections.Generic;
+using System;
 using VRage.ModAPI;
 using VRage.Game.ModAPI;
 
 namespace DarkHelmet.BuildVision2
 {
-    public static class TerminalExtensions
+    public static class TerminalUtilities
     {
-        public static string GetDistanceString(float meters)
+        public static string GetForceDisplay(float newtons)
         {
-            string postfix = "m";
-
-            if (meters > 1000f)
+            string suffix = "N";
+            
+            if (newtons > 1E9f)
             {
-                meters /= 1000f;
-                postfix = "km";
+                newtons /= 1E9f;
+                suffix = "GN";
+            }
+            else if (newtons > 1E6f)
+            {
+                newtons /= 1E6f;
+                suffix = "MN";
+            }
+            else if (newtons > 1E3f)
+            {
+                newtons /= 1E3f;
+                suffix = "kN";
             }
 
-            return $"{meters:G6} {postfix}";
+            return $"{Math.Round(newtons, 4):G6} {suffix}";
         }
 
-        public static string GetPowerDisplay(float value)
+        public static string GetDistanceDisplay(float meters)
+        {
+            string suffix = "m";
+
+            if (meters > 1E3f)
+            {
+                meters /= 1E3f;
+                suffix = "km";
+            }
+
+            return $"{Math.Round(meters, 4):G6} {suffix}";
+        }
+
+        public static string GetPowerDisplay(float megawatts)
         {
             float scale;
             string suffix;
-            GetPowerScale(value, out scale, out suffix);
+            GetPowerScale(megawatts, out scale, out suffix);
 
-            return $"{(value * scale).ToString("G4")} {suffix}";
+            return $"{(megawatts * scale):G4} {suffix}";
         }
 
         /// <summary>
@@ -36,9 +60,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static void GetPowerScale(float megawatts, out float scale, out string suffix)
         {
-            if (megawatts >= 1000f)
+            if (megawatts >= 1E3f)
             {
-                scale = .001f;
+                scale = 1E-3f;
                 suffix = "GW";
             }
             else if (megawatts >= 1f)
@@ -46,14 +70,14 @@ namespace DarkHelmet.BuildVision2
                 scale = 1f;
                 suffix = "MW";
             }
-            else if (megawatts >= .001f)
+            else if (megawatts >= 1E-3f)
             {
-                scale = 1000f;
-                suffix = "KW";
+                scale = 1E3f;
+                suffix = "kW";
             }
             else
             {
-                scale = 1000000f;
+                scale = 1E6f;
                 suffix = "W";
             }
         }
