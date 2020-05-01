@@ -25,7 +25,7 @@ namespace RichHudFramework.UI
         {
             commandGroups = new List<Group>();
             cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)((\w+)|("".+"")))+");
-            MyAPIGateway.Utilities.MessageEntered += MessageHandler;
+            RichHudCore.LateMessageEntered += MessageHandler;
         }
 
         private static void Init()
@@ -36,7 +36,7 @@ namespace RichHudFramework.UI
 
         public override void Close()
         {
-            MyAPIGateway.Utilities.MessageEntered -= MessageHandler;
+            RichHudCore.LateMessageEntered -= MessageHandler;
             instance = null;
         }
 

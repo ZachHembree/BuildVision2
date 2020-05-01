@@ -42,7 +42,7 @@ namespace DarkHelmet.BuildVision2
         private PropertiesMenu() : base(false, true)
         {
             scrollMenu = new BvScrollMenu() { Visible = false };
-            MyAPIGateway.Utilities.MessageEntered += MessageHandler;
+            RichHudCore.LateMessageEntered += MessageHandler;
             peakRefresh = new Utils.Stopwatch();
             peakRefresh.Start();
 
@@ -64,7 +64,7 @@ namespace DarkHelmet.BuildVision2
         public override void Close()
         {
             Hide();
-            MyAPIGateway.Utilities.MessageEntered -= MessageHandler;
+            RichHudCore.LateMessageEntered -= MessageHandler;
             Instance = null;
         }
 

@@ -11,6 +11,9 @@ namespace RichHudFramework.Internal
     public sealed class RichHudCore : ModBase
     {
         public static RichHudCore Instance { get; private set; }
+        public static event MessageEnteredDel LateMessageEntered;
+
+        private readonly Utils.Stopwatch handlerRegTimer;
 
         public RichHudCore() : base(false, true)
         {
@@ -18,6 +21,18 @@ namespace RichHudFramework.Internal
                 Instance = this;
             else
                 throw new Exception("Only one instance of RichHudCore can exist at any given time.");
+
+            handlerRegTimer = new Utils.Stopwatch();
+        }
+
+        public override void BeforeStart()
+        {
+            handlerRegTimer.Start();
+        }
+
+        private void MessageHandler(string message, ref bool sendToOthers)
+        {
+            LateMessageEntered?.Invoke(message, ref sendToOthers);
         }
 
         public override void Draw()
@@ -29,14 +44,25 @@ namespace RichHudFramework.Internal
             // It would be really nice if I didn't have to work around this issue like this, but here we are.         
             BeforeUpdate();
             base.Draw();
+
+            // Because some people are just bad neighbors
+            if (handlerRegTimer.Enabled && handlerRegTimer.ElapsedMilliseconds > 10000)
+            {
+                MyAPIGateway.Utilities.MessageEntered += MessageHandler;
+                handlerRegTimer.Stop();
+            }
         }
 
         public override void Close()
         {
             base.Close();
+            LateMessageEntered = null;
 
             if (ExceptionHandler.Unloading)
+            {
+                MyAPIGateway.Utilities.MessageEntered -= MessageHandler;
                 Instance = null;
+            }
         }
     }
 
