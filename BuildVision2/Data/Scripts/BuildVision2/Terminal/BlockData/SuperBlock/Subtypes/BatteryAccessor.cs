@@ -3,6 +3,7 @@ using VRage;
 using RichHudFramework;
 using RichHudFramework.UI;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
+using ChargeMode = Sandbox.ModAPI.Ingame.ChargeMode;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -25,6 +26,8 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public float Capacity => battery.MaxStoredPower;
 
+            public ChargeMode ChargeMode { get { return battery.ChargeMode; } set { battery.ChargeMode = value; } }
+
             private readonly IMyBatteryBlock battery;
 
             public BatteryAccessor(SuperBlock block) : base(block, TBlockSubtypes.Battery)
@@ -41,7 +44,25 @@ namespace DarkHelmet.BuildVision2
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat },
                     { $"{TerminalUtilities.GetPowerDisplay(Capacity)}\n", valueFormat },
+
+                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ChargeMode)}: ", nameFormat },
+                    { $"{GetLocalizedChargeMode()}\n", valueFormat },
                 };
+            }
+
+            private string GetLocalizedChargeMode()
+            {
+                switch(ChargeMode)
+                {
+                    case ChargeMode.Auto:
+                        return MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Auto);
+                    case ChargeMode.Recharge:
+                        return MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Recharge);
+                    case ChargeMode.Discharge:
+                        return MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Discharge);
+                }
+
+                return "";
             }
         }
     }
