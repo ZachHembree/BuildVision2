@@ -22,17 +22,8 @@ namespace DarkHelmet.BuildVision2
             }
             set 
             {
-                if (value.oldBinds != null)
-                {
-                    Instance.openGroup.TryLoadBindData(value.oldBinds);
-                    Instance.mainGroup.TryLoadBindData(value.oldBinds);
-                    value.oldBinds = null;
-                }
-                else
-                {
-                    Instance.openGroup.TryLoadBindData(value.openGroup);
-                    Instance.mainGroup.TryLoadBindData(value.mainGroup);
-                }
+                Instance.openGroup.TryLoadBindData(value.openGroup);
+                Instance.mainGroup.TryLoadBindData(value.mainGroup);
             }
         }
 

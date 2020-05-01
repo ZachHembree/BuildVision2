@@ -30,7 +30,7 @@ namespace DarkHelmet.BuildVision2
                 suffix = "kN";
             }
 
-            return $"{Math.Round(newtons, 4):G6} {suffix}";
+            return $"{Math.Round(newtons, 2):G6} {suffix}";
         }
 
         public static string GetDistanceDisplay(float meters)
@@ -43,7 +43,7 @@ namespace DarkHelmet.BuildVision2
                 suffix = "km";
             }
 
-            return $"{Math.Round(meters, 4):G6} {suffix}";
+            return $"{Math.Round(meters, 2):G6} {suffix}";
         }
 
         public static string GetPowerDisplay(float megawatts)
@@ -52,7 +52,7 @@ namespace DarkHelmet.BuildVision2
             string suffix;
             GetPowerScale(megawatts, out scale, out suffix);
 
-            return $"{(megawatts * scale):G4} {suffix}";
+            return $"{Math.Round(megawatts * scale, 2):G4} {suffix}";
         }
 
         /// <summary>

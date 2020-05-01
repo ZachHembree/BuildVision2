@@ -55,6 +55,7 @@ namespace DarkHelmet.BuildVision2
             if (VersionID < 9)
             {
                 general.enablePeek = true;
+                binds = BindsConfig.Defaults;
 
                 if (menu?.hudConfig != null)
                     hudConfig = menu.hudConfig;
@@ -297,10 +298,6 @@ namespace DarkHelmet.BuildVision2
                 { "UndoPaste", MyKeys.Delete },
             }.GetBindDefinitions();
 
-        [Obsolete]
-        [XmlArray("KeyBinds")]
-        public BindDefinition[] oldBinds;
-
         [XmlArray("OpenGroup")]
         public BindDefinition[] openGroup;
 
@@ -311,7 +308,6 @@ namespace DarkHelmet.BuildVision2
         {
             return new BindsConfig
             {
-                oldBinds = null,
                 openGroup = DefaultOpen,
                 mainGroup = DefaultMain
             };
@@ -322,14 +318,11 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public override void Validate()
         {
-            if (oldBinds == null)
-            {
-                if (openGroup == null)
-                    openGroup = DefaultOpen;
+            if (openGroup == null)
+                openGroup = DefaultOpen;
 
-                if (mainGroup == null)
-                    mainGroup = DefaultMain;
-            }
+            if (mainGroup == null)
+                mainGroup = DefaultMain;
         }
     }
 }
