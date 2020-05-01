@@ -91,9 +91,10 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool AlignVertical
         {
-            get { return Chain.AlignVertical; }
+            get { return axis1 == 0; }
             set
             {
+                axis1 = value ? 0 : 1;
                 Chain.AlignVertical = value;
                 scrollBar.Vertical = value;
 
@@ -187,7 +188,7 @@ namespace RichHudFramework.UI
         private readonly MouseInputFilter scrollInput;
         private Vector2 maxSize, minSize, chainSize;
         private float totalSize;
-        private int end;
+        private int end, axis1;
 
         public ScrollBox(IHudParent parent = null) : base(parent)
         {
@@ -314,50 +315,24 @@ namespace RichHudFramework.UI
 
         private int GetMaxStart(int end)
         {
-            int start = 0;
-            int visCount = 0;
-            float size;
+            int start = 0, visCount = 0,
+                axis2 = axis1 == 0 ? 1 : 0;
+            float size = MaximumSize[axis2];
 
-            if (AlignVertical)
+            for (int n = end; n >= 0; n--)
             {
-                size = MaximumSize.Y;
-
-                for (int n = end; n >= 0; n--)
+                if (List[n].Enabled)
                 {
-                    if (List[n].Enabled)
+                    if (size >= List[n].Size[axis2] || visCount < MinimumVisCount)
                     {
-                        if (size >= List[n].Height || visCount < MinimumVisCount)
-                        {
-                            start = n;
-                            size -= List[n].Height;
-                            visCount++;
-                        }
-                        else
-                            break;
-
-                        size -= Spacing;
+                        start = n;
+                        size -= List[n].Size[axis2];
+                        visCount++;
                     }
-                }
-            }
-            else
-            {
-                size = MaximumSize.X;
+                    else
+                        break;
 
-                for (int n = end; n >= 0; n--)
-                {
-                    if (List[n].Enabled)
-                    {
-                        if (size >= List[n].Width || visCount < MinimumVisCount)
-                        {
-                            start = n;
-                            size -= List[n].Width;
-                            visCount++;
-                        }
-                        else
-                            break;
-
-                        size -= Spacing;
-                    }
+                    size -= Spacing;
                 }
             }
 
@@ -409,18 +384,18 @@ namespace RichHudFramework.UI
                             if (List[n].Width > chainSize.X)
                                 chainSize.X = List[n].Width;
 
+                            chainSize.Y += Spacing;
+                            size -= Spacing;
                             visCount++;
                             newEnd = n;
                         }
                         else
                             break;
-
-                        chainSize.Y += Spacing;
-                        size -= Spacing;
                     }
                 }
             }
 
+            chainSize.Y -= Spacing;
             end = newEnd;
             VisStart = visStart;
             VisCount = visCount;
@@ -460,18 +435,18 @@ namespace RichHudFramework.UI
                             if (List[n].Height > chainSize.Y)
                                 chainSize.Y = List[n].Height;
 
+                            chainSize.X += Spacing;
+                            size -= Spacing;
                             visCount++;
                             newEnd = n;
                         }
                         else
                             break;
-
-                        chainSize.X += Spacing;
-                        size -= Spacing;
                     }
                 }
             }
 
+            chainSize.X -= Spacing;
             end = newEnd;
             VisStart = visStart;
             VisCount = visCount;
@@ -488,14 +463,14 @@ namespace RichHudFramework.UI
                 scrollBar.Height = Height;
                 divider.Height = Height;
 
-                scrollBar.slide.SliderHeight = ((Height - Padding.Y) / totalSize) * Height;
+                scrollBar.slide.SliderHeight = (chainSize.Y / totalSize) * Height;
             }
             else
             {
                 scrollBar.Width = Width;
                 divider.Width = Width;
 
-                scrollBar.slide.SliderWidth = ((Width - Padding.X) / totalSize) * Width;
+                scrollBar.slide.SliderWidth = (chainSize.X / totalSize) * Width;
             }
         }
 
@@ -515,10 +490,12 @@ namespace RichHudFramework.UI
                     else
                         totalSize += List[n].Width;
 
+                    totalSize += Spacing;
                     count++;
                 }
             }
 
+            totalSize -= Spacing;
             return count;
         }
     }

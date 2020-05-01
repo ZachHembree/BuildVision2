@@ -127,7 +127,7 @@ namespace RichHudFramework
             /// <summary>
             /// Attempts to set the binds combo to the given controls. Returns true if successful.
             /// </summary>
-            bool TrySetCombo(IList<IControl> combo, bool strict = true, bool silent = false);
+            bool TrySetCombo(IList<IControl> combo, bool strict = true, bool silent = true);
 
             /// <summary>
             /// Attempts to set the binds combo to the given controls. Returns true if successful.
