@@ -160,7 +160,7 @@ namespace RichHudFramework
                 {
                     IBind bind;
 
-                    if (TryRegisterBind(bindName, out bind, combo, true))
+                    if (TryRegisterBind(bindName, out bind, combo))
                         return bind;
                     else
                         throw new Exception($"Bind {Name}.{bindName} is invalid. Bind names and key combinations must be unique.");
@@ -185,7 +185,7 @@ namespace RichHudFramework
                 {
                     IBind bind;
 
-                    if (TryRegisterBind(bindName, combo, out bind, true))
+                    if (TryRegisterBind(bindName, combo, out bind))
                         return bind;
                     else
                         throw new Exception($"Bind {Name}.{bindName} is invalid. Bind names and key combinations must be unique.");
@@ -194,9 +194,9 @@ namespace RichHudFramework
                 /// <summary>
                 /// Tries to register a bind using the given name and the given key combo. Shows an error message in chat upon failure.
                 /// </summary>
-                public bool TryRegisterBind(string bindName, out IBind newBind, IList<string> combo = null, bool silent = false)
+                public bool TryRegisterBind(string bindName, out IBind newBind, IList<string> combo = null)
                 {
-                    var args = new MyTuple<string, IList<string>, bool>(bindName, combo, silent);
+                    var args = new MyTuple<string, IList<string>, bool>(bindName, combo, false);
                     var bindData = (BindMembers?)GetOrSetMemberFunc(args, (int)BindGroupAccessors.TryRegisterBind2);
 
                     return TryRegisterBind(bindData, out newBind);
@@ -205,15 +205,15 @@ namespace RichHudFramework
                 /// <summary>
                 /// Tries to register a bind using the given name and the given key combo. Shows an error message in chat upon failure.
                 /// </summary>
-                public bool TryRegisterBind(string bindName, IList<IControl> combo, out IBind newBind, bool silent = false) =>
-                    TryRegisterBind(bindName, GetComboIndices(combo), out newBind, silent);
+                public bool TryRegisterBind(string bindName, IList<IControl> combo, out IBind newBind) =>
+                    TryRegisterBind(bindName, GetComboIndices(combo), out newBind);
 
                 /// <summary>
                 /// Tries to register a bind using the given name and the given key combo. Shows an error message in chat upon failure.
                 /// </summary>
-                public bool TryRegisterBind(string bindName, IList<int> combo, out IBind newBind, bool silent = false)
+                public bool TryRegisterBind(string bindName, IList<int> combo, out IBind newBind)
                 {
-                    var args = new MyTuple<string, IList<int>, bool>(bindName, combo, silent);
+                    var args = new MyTuple<string, IList<int>, bool>(bindName, combo, false);
                     BindMembers? bindData = (BindMembers?)GetOrSetMemberFunc(args, (int)BindGroupAccessors.TryRegisterBind);
 
                     return TryRegisterBind(bindData, out newBind);

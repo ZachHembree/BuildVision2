@@ -42,9 +42,9 @@ namespace DarkHelmet.BuildVision2
 
                 // Debug/Testing
                 new CmdManager.Command ("open",
-                    () => TryOpenMenu()),
+                    () => PropertiesMenu.TryOpenMenu()),
                 new CmdManager.Command ("close",
-                    () => TryCloseMenu()),
+                    () => PropertiesMenu.HideMenu()),
                 new CmdManager.Command ("reload",
                     () => Instance.Reload()),
                 new CmdManager.Command("crash",
@@ -55,6 +55,8 @@ namespace DarkHelmet.BuildVision2
                     ExportBlockData),
                 new CmdManager.Command("import",
                     TryImportBlockData),
+                new CmdManager.Command("checkType", 
+                    () => ExceptionHandler.SendChatMessage($"Block Type: {(PropertiesMenu.Target?.SubtypeId.ToString() ?? "No Target")}")),
                 new CmdManager.Command("echo",
                     x => ExceptionHandler.SendChatMessage($"echo: {x[0]}")),
             };
@@ -62,7 +64,7 @@ namespace DarkHelmet.BuildVision2
 
         private void TryImportBlockData()
         {
-            LocalFileIO blockIO = new LocalFileIO($"{target?.TypeID}.bin");
+            LocalFileIO blockIO = new LocalFileIO($"{PropertiesMenu.Target?.TypeID}.bin");
             byte[] byteData;
 
             if (blockIO.FileExists && blockIO.TryRead(out byteData) == null)
@@ -70,16 +72,16 @@ namespace DarkHelmet.BuildVision2
                 BlockData data;
 
                 if (Utils.ProtoBuf.TryDeserialize(byteData, out data) == null)
-                    target.ImportSettings(data);
+                    PropertiesMenu.Target.ImportSettings(data);
             }
         }
 
         private void ExportBlockData()
         {
-            LocalFileIO blockIO = new LocalFileIO($"{target?.TypeID}.bin");
+            LocalFileIO blockIO = new LocalFileIO($"{PropertiesMenu.Target?.TypeID}.bin");
             byte[] byteData;
 
-            if (Utils.ProtoBuf.TrySerialize(target?.ExportSettings(), out byteData) == null)
+            if (Utils.ProtoBuf.TrySerialize(PropertiesMenu.Target?.ExportSettings(), out byteData) == null)
                 blockIO.TryWrite(byteData);
         }
 
@@ -90,7 +92,10 @@ namespace DarkHelmet.BuildVision2
 
         private static void UpdateBind(string bindName, string[] controls)
         {
-            IBind bind = BvBinds.BindGroup.GetBind(bindName);
+            IBind bind = BvBinds.OpenGroup.GetBind(bindName);
+
+            if (bind == null)
+                BvBinds.MainGroup.GetBind(bindName);
 
             if (bind == null)
                 ExceptionHandler.SendChatMessage("Error: The bind specified could not be found.");

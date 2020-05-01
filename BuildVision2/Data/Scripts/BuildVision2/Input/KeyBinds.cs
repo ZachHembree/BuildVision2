@@ -12,28 +12,41 @@ namespace DarkHelmet.BuildVision2
     {
         public static BindsConfig Cfg
         {
-            get { return new BindsConfig { bindData = BindGroup.GetBindDefinitions() }; }
-            set { Instance.bindGroup.TryLoadBindData(value.bindData); }
+            get 
+            {
+                return new BindsConfig 
+                {
+                    openGroup = OpenGroup.GetBindDefinitions(),
+                    mainGroup = MainGroup.GetBindDefinitions(),
+                };
+            }
+            set 
+            {
+                Instance.openGroup.TryLoadBindData(value.openGroup);
+                Instance.mainGroup.TryLoadBindData(value.mainGroup);
+            }
         }
 
-        public static IBind Open { get { return BindGroup[0]; } }
-        public static IBind Hide { get { return BindGroup[1]; } }
+        public static IBind Peek { get { return Instance.openGroup[0]; } }
+        public static IBind Open { get { return Instance.openGroup[1]; } }
 
-        public static IBind Select { get { return BindGroup[2]; } }
-        public static IBind ScrollUp { get { return BindGroup[3]; } }
-        public static IBind ScrollDown { get { return BindGroup[4]; } }
+        public static IBind Hide { get { return Instance.mainGroup[0]; } }
+        public static IBind Select { get { return Instance.mainGroup[1]; } }
+        public static IBind ScrollUp { get { return Instance.mainGroup[2]; } }
+        public static IBind ScrollDown { get { return Instance.mainGroup[3]; } }
 
-        public static IBind MultX { get { return BindGroup[5]; } }
-        public static IBind MultY { get { return BindGroup[6]; } }
-        public static IBind MultZ { get { return BindGroup[7]; } }
+        public static IBind MultX { get { return Instance.mainGroup[4]; } }
+        public static IBind MultY { get { return Instance.mainGroup[5]; } }
+        public static IBind MultZ { get { return Instance.mainGroup[6]; } }
 
-        public static IBind ToggleSelectMode { get { return BindGroup[8]; } }
-        public static IBind SelectAll { get { return BindGroup[9]; } }
-        public static IBind CopySelection { get { return BindGroup[10]; } }
-        public static IBind PasteProperties { get { return BindGroup[11]; } }
-        public static IBind UndoPaste { get { return BindGroup[12]; } }
+        public static IBind ToggleSelectMode { get { return Instance.mainGroup[7]; } }
+        public static IBind SelectAll { get { return Instance.mainGroup[8]; } }
+        public static IBind CopySelection { get { return Instance.mainGroup[9]; } }
+        public static IBind PasteProperties { get { return Instance.mainGroup[10]; } }
+        public static IBind UndoPaste { get { return Instance.mainGroup[11]; } }
 
-        public static IBindGroup BindGroup { get { return Instance.bindGroup; } }
+        public static IBindGroup OpenGroup { get { return Instance.openGroup; } }
+        public static IBindGroup MainGroup { get { return Instance.mainGroup; } }
 
         private static BvBinds Instance
         {
@@ -47,12 +60,15 @@ namespace DarkHelmet.BuildVision2
             set { _instance = value; }
         }
         private static BvBinds _instance;
-        private readonly IBindGroup bindGroup;
+        private readonly IBindGroup openGroup, mainGroup;
 
         private BvBinds() : base(false, true)
         {
-            bindGroup = BindManager.GetOrCreateGroup("BvMain");
-            bindGroup.RegisterBinds(BindsConfig.DefaultBinds);
+            openGroup = BindManager.GetOrCreateGroup("BvOpen");
+            openGroup.RegisterBinds(BindsConfig.DefaultOpen);
+
+            mainGroup = BindManager.GetOrCreateGroup("BvMain");
+            mainGroup.RegisterBinds(BindsConfig.DefaultMain);
         }
 
         private static void Init()

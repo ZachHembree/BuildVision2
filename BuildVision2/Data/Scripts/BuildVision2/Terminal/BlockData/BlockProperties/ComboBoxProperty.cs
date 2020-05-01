@@ -1,5 +1,4 @@
-﻿using Sandbox.ModAPI;
-using Sandbox.ModAPI.Interfaces.Terminal;
+﻿using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
 using System.Collections.Generic;
 using VRage;
@@ -15,21 +14,21 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ComboBoxProperty : ScrollableValueControlBase<IMyTerminalControlCombobox, long>
         {
-            public override string Value => names[GetCurrentIndex()];
-            public override string Postfix => GetPostfixFunc?.Invoke();
+            public override string Display => names[GetCurrentIndex()];
+            public override string Status => GetPostfixFunc?.Invoke();
 
             private readonly List<long> keys;
             private readonly List<string> names;
             private readonly Func<string> GetPostfixFunc;
 
-            public ComboBoxProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, IMyTerminalBlock block) : base(name, comboBox, control, block)
+            public ComboBoxProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, SuperBlock block) : base(name, comboBox, control, block)
             {
                 List<MyTerminalControlComboBoxItem> content = new List<MyTerminalControlComboBoxItem>();
                 comboBox.ComboBoxContent(content);
 
                 keys = new List<long>(content.Count);
                 names = new List<string>(content.Count);
-                
+
                 foreach (MyTerminalControlComboBoxItem item in content)
                 {
                     string itemName = MyTexts.Get(item.Value).ToString();
@@ -37,11 +36,8 @@ namespace DarkHelmet.BuildVision2
                     names.Add(itemName);
                 }
 
-                if (control.Id == "ChargeMode" && block is IMyBatteryBlock) // Insert bat charge info
-                {
-                    var bat = (IMyBatteryBlock)block;
-                    GetPostfixFunc = () => $"({Math.Round((bat.CurrentStoredPower / bat.MaxStoredPower) * 100f, 1)}%)";
-                }
+                if (control.Id == "ChargeMode" && block.SubtypeId.UsesSubtype(TBlockSubtypes.Battery)) // Insert bat charge info
+                    GetPostfixFunc = () => $"({Math.Round((block.Battery.Charge / block.Battery.Capacity) * 100f, 1)}%)";
             }
 
             public override void ScrollUp() =>

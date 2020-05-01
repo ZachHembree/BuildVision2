@@ -5,17 +5,41 @@ using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using VRageMath;
+using VRage;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
+    public enum ScrollMenuModes
+    {
+        Peek = 0,
+        Control = 1,
+        Copy = 2
+    }
+
     /// <summary>
     /// Scrollable list menu; the selection box position is based on the selection index.
     /// </summary>
     public sealed partial class BvScrollMenu : HudElementBase
     {
+        private const long notifTime = 2000;
+        private static readonly Color
+            headerColor = new Color(41, 54, 62), 
+            bodyColor = new Color(70, 78, 86), 
+            selectionBoxColor = new Color(41, 54, 62);
+        private static readonly GlyphFormat 
+            headerText = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f), 
+            bodyText = new GlyphFormat(Color.White, textSize: .885f), 
+            valueText = bodyText.WithColor(new Color(210, 210, 210)),
+            footerTextLeft = bodyText.WithColor(new Color(220, 235, 245)), 
+            footerTextRight = footerTextLeft.WithAlignment(TextAlignment.Right),
+            highlightText = bodyText.WithColor(new Color(220, 180, 50)), 
+            selectedText = bodyText.WithColor(new Color(50, 200, 50)), 
+            blockIncText = footerTextRight.WithColor(new Color(200, 35, 35));
+
         public override float Width { get { return layout.Width; } set { layout.Width = value; } }
 
-        public override float Height { get { return header.Height + body.Height + footer.Height; } set { layout.Height = value; } }
+        public override float Height { get { return layout.Height; } set { layout.Height = value; } }
 
         public override Vector2 Offset
         {
@@ -37,7 +61,8 @@ namespace DarkHelmet.BuildVision2
             set
             {
                 header.Color = header.Color.SetAlphaPct(_bgOpacity);
-                body.Color = body.Color.SetAlphaPct(_bgOpacity);
+                peekBody.Color = peekBody.Color.SetAlphaPct(_bgOpacity);
+                scrollBody.Color = scrollBody.Color.SetAlphaPct(_bgOpacity);
                 footer.Color = footer.Color.SetAlphaPct(_bgOpacity);
                 _bgOpacity = value;
             }
@@ -46,7 +71,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Maximum number of properties visible at once
         /// </summary>
-        public int MaxVisible { get { return body.MinimumVisCount; } set { body.MinimumVisCount = value; } }
+        public int MaxVisible { get { return scrollBody.MinimumVisCount; } set { scrollBody.MinimumVisCount = value; } }
 
         /// <summary>
         /// Number of block members registered with the menu
@@ -63,12 +88,24 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public bool AlignToEdge { get; set; }
 
-        public bool ReplicationMode { get; private set; }
+        public ScrollMenuModes MenuMode
+        {
+            get { return _menuMode; }
+            set
+            {
+                if (Target != null && value != ScrollMenuModes.Peek && Count == 0)
+                    AddMembers();
+
+                _menuMode = value;
+            }
+        }
 
         /// <summary>
         /// Currently highlighted property. Null if none selected.
         /// </summary>
-        private BvPropertyBox Selection => (index < body.List.Count) ? body.List[index] : null;
+        private BvPropertyBox Selection => (index < scrollBody.List.Count) ? scrollBody.List[index] : null;
+
+        public PropertyBlock Target { get; private set; }
 
         /// <summary>
         /// If true, then if the property currently selected and open will have its text updated.
@@ -79,42 +116,19 @@ namespace DarkHelmet.BuildVision2
         public readonly DoubleLabelBox footer;
         public readonly TexturedBox selectionBox, tab;
 
-        private readonly ScrollBox<BvPropertyBox> body;
+        private readonly LabelBox peekBody;
+        private readonly ScrollBox<BvPropertyBox> scrollBody;
         private readonly HudChain<HudElementBase> layout;
         private readonly Utils.Stopwatch listWrapTimer;
 
         private int index;
         private float _bgOpacity;
-        private PropertyBlock target;
         private Vector2 alignment;
         private bool waitingForChat;
 
         private string notification;
         private Utils.Stopwatch notificationTimer;
-        private const long notifTime = 3000;
-
-        private static readonly Color headerColor, bodyColor, selectionBoxColor;
-        private static readonly GlyphFormat headerText, bodyText, valueText,
-            footerTextLeft, footerTextRight,
-            highlightText, selectedText, blockIncText;
-
-        static BvScrollMenu()
-        {
-            headerColor = new Color(41, 54, 62);
-            bodyColor = new Color(70, 78, 86);
-            selectionBoxColor = new Color(41, 54, 62);
-
-            headerText = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f);
-
-            bodyText = new GlyphFormat(Color.White, textSize: .885f);
-            valueText = bodyText.WithColor(new Color(210, 210, 210));
-            highlightText = bodyText.WithColor(new Color(220, 180, 50));
-            selectedText = bodyText.WithColor(new Color(50, 200, 50));
-
-            footerTextLeft = bodyText.WithColor(new Color(220, 235, 245));
-            footerTextRight = footerTextLeft.WithAlignment(TextAlignment.Right);
-            blockIncText = footerTextRight.WithColor(new Color(200, 35, 35));
-        }
+        private ScrollMenuModes _menuMode;
 
         public BvScrollMenu() : base(HudMain.Root)
         {
@@ -130,21 +144,31 @@ namespace DarkHelmet.BuildVision2
                 Color = headerColor,
             };
 
-            body = new ScrollBox<BvPropertyBox>()
+            peekBody = new LabelBox()
+            {
+                AutoResize = false,
+                FitToTextElement = true,
+                VertCenterText = false,
+                Color = bodyColor,
+                Padding = new Vector2(48f, 16f),
+                BuilderMode = TextBuilderModes.Lined,
+            };
+
+            scrollBody = new ScrollBox<BvPropertyBox>()
             {
                 AlignVertical = true,
                 SizingMode = ScrollBoxSizingModes.FitToMembers,
                 Color = bodyColor,
                 Padding = new Vector2(48f, 16f),
                 MinimumVisCount = 10,
-                MinimumSize = new Vector2(300f, 0f)
+                MinimumSize = new Vector2(300f, 0f),
             };
 
-            body.scrollBar.Padding = new Vector2(12f, 16f);
-            body.scrollBar.Width = 4f;
-            body.Chain.AutoResize = false;
+            scrollBody.scrollBar.Padding = new Vector2(12f, 16f);
+            scrollBody.scrollBar.Width = 4f;
+            scrollBody.Chain.AutoResize = false;
 
-            selectionBox = new TexturedBox(body.Chain)
+            selectionBox = new TexturedBox(scrollBody.Chain)
             {
                 Color = selectionBoxColor,
                 Padding = new Vector2(30f, 0f),
@@ -177,17 +201,18 @@ namespace DarkHelmet.BuildVision2
                 ChildContainer =
                 {
                     header,
-                    body, 
+                    peekBody,
+                    scrollBody,
                     footer
                 }
             };
 
             _bgOpacity = 0.9f;
             BgOpacity = 0.9f;
+            MenuMode = ScrollMenuModes.Peek;
             Count = 0;
 
             notificationTimer = new Utils.Stopwatch();
-
             listWrapTimer = new Utils.Stopwatch();
             listWrapTimer.Start();
         }
@@ -197,45 +222,83 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void UpdateText()
         {
-            if (target != null)
+            if (Target != null)
+            {
+                if (MenuMode == ScrollMenuModes.Peek)
+                    UpdatePeekBody();
+                else
+                    UpdatePropertyBody();
+
+                UpdateFooterText();
+            }
+            else
+                footer.RightText = new RichText("[Target is null]", blockIncText);
+        }
+
+        private void UpdatePeekBody()
+        {
+            var peekText = new RichText();
+
+            foreach (SuperBlock.SubtypeAccessorBase subtype in Target.SubtypeAccessors)
+            {
+                if (subtype != null)
+                {
+                    RichText summary = subtype.GetSummary(bodyText, valueText);
+
+                    if (summary != null)
+                        peekText.Add(summary);
+                }
+            }
+
+            peekBody.TextBoard.SetText(peekText);
+        }
+
+        private void UpdatePropertyBody()
+        {
+            for (int n = 0; n < Count; n++)
+            {
+                if (n == index)
+                {
+                    if ((!PropOpen || updateSelection) && !scrollBody.List[n].value.InputOpen)
+                        scrollBody.List[n].UpdateText(true, PropOpen);
+                }
+                else
+                    scrollBody.List[n].UpdateText(false, false);
+            }   
+        }
+
+        private void UpdateFooterText()
+        {
+            if (notification != null)
+            {
+                footer.LeftText = $"[{notification}]";
+
+                if (notificationTimer.ElapsedMilliseconds > notifTime)
+                    notification = null;
+            }
+            else if (MenuMode == ScrollMenuModes.Copy)
             {
                 int copyCount = 0;
 
                 for (int n = 0; n < Count; n++)
                 {
-                    if (body.List[n].Replicating)
+                    if (scrollBody.List[n].Replicating)
                         copyCount++;
-
-                    if (n == index)
-                    {
-                        if ((!PropOpen || updateSelection) && !body.List[n].value.InputOpen)
-                            body.List[n].UpdateText(true, PropOpen);
-                    }
-                    else
-                        body.List[n].UpdateText(false, false);
                 }
 
-                if (notification != null)
-                {
-                    footer.LeftText = $"[{notification}]";
-
-                    if (notificationTimer.ElapsedMilliseconds > notifTime)
-                        notification = null;
-                }
-                else if (ReplicationMode)
-                    footer.LeftText = $"[Copying {copyCount} of {body.EnabledCount}]";
-                else
-                    footer.LeftText = $"[{body.VisStart + 1} - {body.VisStart + body.VisCount} of {body.EnabledCount}]";
-
-                if (target.IsWorking)
-                    footer.RightText = new RichText("[Working]", footerTextRight);
-                else if (target.IsFunctional)
-                    footer.RightText = new RichText("[Functional]", footerTextRight);
-                else
-                    footer.RightText = new RichText("[Incomplete]", blockIncText);
+                footer.LeftText = $"[Copying {copyCount} of {scrollBody.EnabledCount}]";
             }
+            else if (MenuMode == ScrollMenuModes.Peek)
+                footer.LeftText = new RichText("[Peeking]", footerTextRight);
             else
-                footer.RightText = new RichText("[Target is null]", blockIncText);
+                footer.LeftText = $"[{scrollBody.VisStart + 1} - {scrollBody.VisStart + scrollBody.VisCount} of {scrollBody.EnabledCount}]";
+
+            if (Target.IsWorking)
+                footer.RightText = new RichText($"[Working]", footerTextRight);
+            else if (Target.IsFunctional)
+                footer.RightText = new RichText($"[Functional]", footerTextRight);
+            else
+                footer.RightText = new RichText($"[Incomplete]", blockIncText);
         }
 
         /// <summary>
@@ -249,7 +312,20 @@ namespace DarkHelmet.BuildVision2
 
         protected override void Layout()
         {
-            layout.Width = body.Width;
+            if (MenuMode == ScrollMenuModes.Control || MenuMode == ScrollMenuModes.Copy)
+            {
+                scrollBody.Visible = true;
+                peekBody.Visible = false;
+                layout.Width = scrollBody.Width;
+            }
+            else if (MenuMode == ScrollMenuModes.Peek)
+            {
+                peekBody.Visible = true;
+                scrollBody.Visible = false;
+
+                peekBody.TextBoard.FixedSize = new Vector2(0f, peekBody.TextBoard.TextSize.Y);
+                layout.Width = 300f * Scale;
+            }
 
             if (base.Offset.X < 0)
                 alignment.X = Width / 2f;
@@ -259,14 +335,14 @@ namespace DarkHelmet.BuildVision2
             if (base.Offset.Y < 0)
                 alignment.Y = Height / 2f;
             else
-                alignment.Y = -Height / 2f;   
+                alignment.Y = -Height / 2f;
         }
 
         protected override void Draw()
         {
             if (Selection != null)
             {
-                selectionBox.Size = new Vector2(body.Width - body.divider.Width - body.scrollBar.Width, Selection.Size.Y + (2f * Scale));
+                selectionBox.Size = new Vector2(scrollBody.Width - scrollBody.divider.Width - scrollBody.scrollBar.Width, Selection.Size.Y + (2f * Scale));
                 selectionBox.Offset = new Vector2((-22f * Scale), Selection.Offset.Y - (1f * Scale));
                 tab.Height = selectionBox.Height;
             };
@@ -274,15 +350,18 @@ namespace DarkHelmet.BuildVision2
 
         protected override void HandleInput()
         {
-            if (BvBinds.ToggleSelectMode.IsNewPressed || (!ReplicationMode && BvBinds.SelectAll.IsNewPressed))
-                ToggleReplicationMode();
+            if (MenuMode != ScrollMenuModes.Peek && !BvBinds.Open.IsPressed)
+            {
+                if (BvBinds.ToggleSelectMode.IsNewPressed || (MenuMode == ScrollMenuModes.Control && BvBinds.SelectAll.IsNewPressed))
+                    ToggleReplicationMode();
 
-            HandleSelectionInput();
+                HandleSelectionInput();
 
-            if (ReplicationMode)
-                HandleReplicatorInput();
-            else
-                HandlePropertyInput();
+                if (MenuMode == ScrollMenuModes.Copy)
+                    HandleReplicatorInput();
+                else if (MenuMode == ScrollMenuModes.Control)
+                    HandlePropertyInput();
+            }
         }
 
         /// <summary>
@@ -291,15 +370,19 @@ namespace DarkHelmet.BuildVision2
         public void SetTarget(PropertyBlock newTarget)
         {
             Clear();
-            target = newTarget;
+            Target = newTarget;
 
-            for (int n = 0; n < target.BlockMembers.Count; n++)
-            {
-                AddMember(target.BlockMembers[n]);
-            }
+            if (MenuMode != ScrollMenuModes.Peek)
+                AddMembers();
+        }
+
+        private void AddMembers()
+        {
+            for (int n = 0; n < Target.BlockMembers.Count; n++)
+                AddMember(Target.BlockMembers[n]);
 
             index = GetFirstIndex();
-            body.Start = 0;
+            scrollBody.Start = 0;
         }
 
         /// <summary>
@@ -307,18 +390,18 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void AddMember(IBlockMember blockMember)
         {
-            if (body.List.Count <= Count)
+            if (scrollBody.List.Count <= Count)
             {
                 BvPropertyBox propBox = new BvPropertyBox(Count)
                 {
                     ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH
                 };
 
-                body.AddToList(propBox);
+                scrollBody.AddToList(propBox);
             }
 
-            body.List[Count].Enabled = true;
-            body.List[Count].BlockMember = blockMember;
+            scrollBody.List[Count].Enabled = true;
+            scrollBody.List[Count].BlockMember = blockMember;
             Count++;
         }
 
@@ -327,29 +410,32 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void Clear()
         {
-            for (int n = 0; n < body.List.Count; n++)
+            if (Count != 0)
             {
-                body.List[n].value.CloseInput();
-                body.List[n].Enabled = false;
-                body.List[n].BlockMember = null;
+                for (int n = 0; n < scrollBody.List.Count; n++)
+                {
+                    scrollBody.List[n].value.CloseInput();
+                    scrollBody.List[n].Enabled = false;
+                    scrollBody.List[n].BlockMember = null;
+                }
             }
 
-            ReplicationMode = false;
             waitingForChat = false;
-            target = null;
+            Target = null;
             PropOpen = false;
             index = 0;
-            body.Start = 0;
+            scrollBody.Start = 0;
             Count = 0;
         }
 
         private class BvPropertyBox : HudElementBase, IListBoxEntry
         {
-            public override float Width { get { return layout.Width; } }
-            public override float Height { get { return layout.Height; } }
+            public override float Width { get { return layout.Width; } set { } }
+
+            public override float Height { get { return layout.Height; } set { } }
 
             public override bool Visible => base.Visible && Enabled;
-            public bool Enabled { get { return _enabled && (BlockMember!= null && BlockMember.Enabled); } set { _enabled = value; } }
+            public bool Enabled { get { return _enabled && (BlockMember != null && BlockMember.Enabled); } set { _enabled = value; } }
             public bool Replicating { get { return selectionBox.Visible; } set { selectionBox.Visible = value && (_blockMember is IBlockProperty); } }
 
             public IBlockMember BlockMember
@@ -386,7 +472,7 @@ namespace DarkHelmet.BuildVision2
             private readonly HudChain<HudElementBase> layout;
             private readonly SelectionBox selectionBox;
             private IBlockMember _blockMember;
-            private bool _enabled, blockEnabled;
+            private bool _enabled;
 
             public BvPropertyBox(int index, IHudParent parent = null) : base(parent)
             {
@@ -423,17 +509,13 @@ namespace DarkHelmet.BuildVision2
                 else
                     value.Format = valueText;
 
-                value.Text = _blockMember.Value;
-
-                if (_blockMember.Postfix != null && _blockMember.Postfix.Length > 0)
-                    postfix.Text = $" {_blockMember.Postfix}";
-                else
-                    postfix.TextBoard.Clear();
+                value.Text = _blockMember.Display;
+                postfix.Text = $" {_blockMember.Status}";
             }
 
             private class SelectionBox : Label
             {
-                public SelectionBox(IHudParent parent = null) : base (parent)
+                public SelectionBox(IHudParent parent = null) : base(parent)
                 {
                     AutoResize = true;
                     VertCenterText = true;

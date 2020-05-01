@@ -1,5 +1,4 @@
 ﻿using RichHudFramework;
-using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using VRageMath;
@@ -14,13 +13,13 @@ namespace DarkHelmet.BuildVision2
         private class ColorProperty : NumericPropertyBase<Color>
         {
             public override string PropName => $"{property.Id}_{channel}";
-            public override string Value => GetValue().GetChannel(channel).ToString();
-            public override string Postfix => null;
+            public override string Display => GetValue().GetChannel(channel).ToString();
+            public override string Status => null;
 
             private readonly int channel;
             private static int incrX, incrY, incrZ, incr0;
 
-            public ColorProperty(string name, ITerminalProperty<Color> property, IMyTerminalControl control, IMyTerminalBlock block, int channel)
+            public ColorProperty(string name, ITerminalProperty<Color> property, IMyTerminalControl control, SuperBlock block, int channel)
                 : base(name, property, control, block)
             {
                 incr0 = 1;
@@ -34,7 +33,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns a scrollable property for each color channel in an ITerminalProperty<Color> object
             /// </summary>
-            public static ColorProperty[] GetColorProperties(string name, ITerminalProperty<Color> property, IMyTerminalControl control, IMyTerminalBlock block)
+            public static ColorProperty[] GetColorProperties(string name, ITerminalProperty<Color> property, IMyTerminalControl control, SuperBlock block)
             {
                 return new ColorProperty[]
                 {

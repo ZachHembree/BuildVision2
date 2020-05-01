@@ -10,14 +10,19 @@ namespace DarkHelmet.BuildVision2
         string Name { get; }
 
         /// <summary>
-        /// Retrieves the current value of the block member as a <see cref="string"/>
+        /// Retrieves the value as a <see cref="string"/> using formatting specific to the member.
+        /// </summary>
+        string Display { get; }
+
+        /// <summary>
+        /// Retrieves the current value of the block member as an unformatted <see cref="string"/>
         /// </summary>
         string Value { get; }
 
         /// <summary>
         /// Additional information following the value of the member.
         /// </summary>
-        string Postfix { get; }
+        string Status { get; }
 
         /// <summary>
         /// Indicates whether or not a given <see cref="IBlockMember"/> should be shown in the terminal.

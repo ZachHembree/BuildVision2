@@ -32,7 +32,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Determines whether or not chain elements will be aligned vertically.
         /// </summary>
-        public bool AlignVertical { get; set; }
+        public bool AlignVertical { get { return axis1 == 0; } set { axis1 = value ? 0 : 1; } }
 
         /// <summary>
         /// Distance between chain elements along their axis of alignment.
@@ -41,12 +41,14 @@ namespace RichHudFramework.UI
 
         private readonly List<T> elements;
         private float spacing;
+        private int axis1;
 
         public HudChain(IHudParent parent = null) : base(parent)
         {
             Spacing = 0f;
             elements = new List<T>();
             ChainMembers = new ReadOnlyCollection<T>(elements);
+            AlignVertical = false;
         }
 
         public IEnumerator<T> GetEnumerator() =>
@@ -116,71 +118,43 @@ namespace RichHudFramework.UI
                 {
                     offset.Y = size.Y / 2f;
                     UpdateOffsetsVertical(offset, size);
-                    size = GetSizeVertical();
                 }
                 else
                 {
                     offset.X = -size.X / 2f;
                     UpdateOffsetsHorizontal(offset, size);
-                    size = GetSizeHorizontal();
                 }
 
-                Size = size + Padding;
+                Size = GetSize() + Padding;
             }
         }
 
         /// <summary>
-        /// Calculates the size of the element for a vertically aligned chain.
+        /// Calculates the size of the element
         /// </summary>
-        private Vector2 GetSizeVertical()
+        private Vector2 GetSize()
         {
-            float width = 0f, height = 0f;
+            Vector2 newSize = new Vector2();
+            int axis2 = (axis1 == 0) ? 1 : 0;
 
             if (AutoResize)
-                width = Width - Padding.X;
+                newSize[axis1] = Size[axis1] - Padding[axis1];
 
             for (int n = 0; n < elements.Count; n++)
             {
                 if (elements[n].Visible)
                 {
-                    height += elements[n].Height;
+                    newSize[axis2] += elements[n].Size[axis2];
 
-                    if (!AutoResize && elements[n].Width > width)
-                        width = elements[n].Width;
+                    if (!AutoResize && elements[n].Size[axis1] > newSize[axis1])
+                        newSize[axis1] = elements[n].Size[axis1];
 
                     if (n != elements.Count - 1)
-                        height += Spacing;
+                        newSize[axis2] += Spacing;
                 }
             }
 
-            return new Vector2(width, height);
-        }
-
-        /// <summary>
-        /// Calculates the size of the element for a horizontally aligned chain.
-        /// </summary>
-        private Vector2 GetSizeHorizontal()
-        {
-            float width = 0f, height = 0f;
-
-            if (AutoResize)
-                height = Height - Padding.Y;
-
-            for (int n = 0; n < elements.Count; n++)
-            {
-                if (elements[n].Visible)
-                {
-                    width += elements[n].Width;
-
-                    if (!AutoResize && elements[n].Height > height)
-                        height = elements[n].Height;
-
-                    if (n != elements.Count - 1)
-                        width += Spacing;
-                }
-            }
-
-            return new Vector2(width, height);
+            return newSize;
         }
 
         /// <summary>

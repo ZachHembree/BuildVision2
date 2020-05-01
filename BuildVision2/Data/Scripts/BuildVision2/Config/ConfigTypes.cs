@@ -4,6 +4,8 @@ using RichHudFramework.UI;
 using System.Xml.Serialization;
 using VRageMath;
 using VRage.Input;
+using System;
+using System.Collections.Generic;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -11,10 +13,14 @@ namespace DarkHelmet.BuildVision2
     public class BvConfig : ConfigRoot<BvConfig>
     {
         [XmlElement(ElementName = "GeneralSettings")]
-        public GeneralConfig general;
+        public TargetingConfig general;
 
+        [Obsolete]
         [XmlElement(ElementName = "GuiSettings")]
         public PropMenuConfig menu;
+
+        [XmlElement(ElementName = "HudConfig")]
+        public HudConfig hudConfig;
 
         [XmlElement(ElementName = "BlockPropertySettings")]
         public PropBlockConfig block;
@@ -26,9 +32,10 @@ namespace DarkHelmet.BuildVision2
         {
             return new BvConfig
             {
-                VersionID = 8,
-                general = GeneralConfig.Defaults,
-                menu = PropMenuConfig.Defaults,
+                VersionID = 9,
+                general = TargetingConfig.Defaults,
+                menu = null,
+                hudConfig = HudConfig.Defaults,
                 block = PropBlockConfig.Defaults,
                 binds = BindsConfig.Defaults
             };
@@ -36,24 +43,35 @@ namespace DarkHelmet.BuildVision2
 
         public override void Validate()
         {
-            if (VersionID < 7)
-                menu.hudConfig.hudOpacity = HudConfig.Defaults.hudOpacity;
+            if (VersionID < 5)
+                block = PropBlockConfig.Defaults;
 
             if (VersionID < 6)
                 menu = PropMenuConfig.Defaults;
 
-            if (VersionID < 5)
-                block = PropBlockConfig.Defaults;
+            if (VersionID < 7 && menu?.hudConfig != null)
+                menu.hudConfig.hudOpacity = HudConfig.Defaults.hudOpacity;
+
+            if (VersionID < 9)
+            {
+                general.enablePeek = true;
+                binds = BindsConfig.Defaults;
+
+                if (menu?.hudConfig != null)
+                    hudConfig = menu.hudConfig;
+
+                menu = null;
+            }
 
             if (general != null)
                 general.Validate();
             else
-                general = GeneralConfig.Defaults;
+                general = TargetingConfig.Defaults;
 
-            if (menu != null)
-                menu.Validate();
+            if (hudConfig != null)
+                hudConfig.Validate();
             else
-                menu = PropMenuConfig.Defaults;
+                hudConfig = HudConfig.Defaults;
 
             if (binds != null)
                 binds.Validate();
@@ -70,8 +88,11 @@ namespace DarkHelmet.BuildVision2
         }
     }
 
-    public class GeneralConfig : Config<GeneralConfig>
+    public class TargetingConfig : Config<TargetingConfig>
     {
+        [XmlElement(ElementName = "EnablePeek")]
+        public bool enablePeek;
+
         [XmlElement(ElementName = "CloseIfTargetNotInView")]
         public bool closeIfNotInView;
 
@@ -84,10 +105,11 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "maxControlRange")]
         public double maxControlRange;
 
-        protected override GeneralConfig GetDefaults()
+        protected override TargetingConfig GetDefaults()
         {
-            return new GeneralConfig
+            return new TargetingConfig
             {
+                enablePeek = true,
                 closeIfNotInView = true,
                 canOpenIfHolding = true,
                 maxOpenRange = 10d,
@@ -109,6 +131,7 @@ namespace DarkHelmet.BuildVision2
         }
     }
 
+    [Obsolete]
     public class PropMenuConfig : Config<PropMenuConfig>
     {
         [XmlElement(ElementName = "ApiHudSettings")]
@@ -248,29 +271,19 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public class BindsConfig : Config<BindsConfig>
     {
-        [XmlIgnore]
-        public static BindDefinition[] DefaultBinds 
-        {
-            get 
+        public static BindDefinition[] DefaultOpen => defaultOpen.Clone() as BindDefinition[];
+
+        public static BindDefinition[] DefaultMain => defaultMain.Clone() as BindDefinition[];
+
+        private static readonly BindDefinition[] 
+            defaultOpen = new BindGroupData 
             {
-                var copy = new BindDefinition[defaultBinds.Length];
-                System.Array.Copy(defaultBinds, 0, copy, 0, defaultBinds.Length);
-
-                return copy;
-            }
-        }
-
-        [XmlArray("KeyBinds")]
-        public BindDefinition[] bindData;
-        private static readonly BindDefinition[] defaultBinds;
-
-        static BindsConfig()
-        {
-            defaultBinds = new BindGroupData()
-            {
+                { "Peek", MyKeys.Control },
                 { "Open", MyKeys.Control, MyKeys.MiddleButton },
+            }.GetBindDefinitions(),
+            defaultMain = new BindGroupData
+            {
                 { "Close", MyKeys.Shift, MyKeys.MiddleButton },
-
                 { "Select", MyKeys.MiddleButton },
                 { "ScrollUp", RichHudControls.MousewheelUp },
                 { "ScrollDown", RichHudControls.MousewheelDown },
@@ -284,11 +297,20 @@ namespace DarkHelmet.BuildVision2
                 { "PasteProperties", MyKeys.PageDown },
                 { "UndoPaste", MyKeys.Delete },
             }.GetBindDefinitions();
-        }
+
+        [XmlArray("OpenGroup")]
+        public BindDefinition[] openGroup;
+
+        [XmlArray("MainGroup")]
+        public BindDefinition[] mainGroup;
 
         protected override BindsConfig GetDefaults()
         {
-            return new BindsConfig { bindData = DefaultBinds };
+            return new BindsConfig
+            {
+                openGroup = DefaultOpen,
+                mainGroup = DefaultMain
+            };
         }
 
         /// <summary>
@@ -296,19 +318,11 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public override void Validate()
         {
-            BindDefinition[] defaults = DefaultBinds;
+            if (openGroup == null)
+                openGroup = DefaultOpen;
 
-            if (bindData == null || bindData.Length == 0)
-                bindData = defaults;
-            else if (bindData.Length == 8)
-            {
-                for (int n = 0; n < 8; n++)
-                    defaults[n] = bindData[n];
-
-                bindData = defaults;
-            }
-            else if (bindData.Length < defaults.Length)
-                bindData = defaults;
+            if (mainGroup == null)
+                mainGroup = DefaultMain;
         }
     }
 }

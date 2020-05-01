@@ -1,10 +1,9 @@
-﻿using Sandbox.ModAPI;
-using SpaceEngineers.Game.ModAPI.Ingame;
+﻿using SpaceEngineers.Game.ModAPI.Ingame;
 using System;
 using System.Collections.Generic;
+using VRage;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
-using IMyLandingGear = SpaceEngineers.Game.ModAPI.Ingame.IMyLandingGear;
-using IMyParachute = SpaceEngineers.Game.ModAPI.Ingame.IMyParachute;
 using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
 
 namespace DarkHelmet.BuildVision2
@@ -16,8 +15,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BlockAction : BlockMemberBase, IBlockAction
         {
-            public override string Value => GetValueFunc();
-            public override string Postfix => GetPostfixFunc != null ? GetPostfixFunc() : null;
+            public override string Display => GetValueFunc();
+            public override string Status => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
             private readonly Func<string> GetValueFunc, GetPostfixFunc;
             private readonly Action action;
@@ -41,144 +40,120 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyMechanicalConnectionBlock.
             /// </summary>
-            public static void GetMechActions(IMyMechanicalConnectionBlock mechBlock, List<IBlockMember> members)
+            public static void GetMechActions(SuperBlock block, List<IBlockMember> members)
             {
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
-                mechBlock.GetActions(terminalActions);
+                block.TBlock.GetActions(terminalActions);
 
-                if (mechBlock is IMyMotorSuspension)
-                {
-                    members.Add(new BlockAction(
-                        "Attach Wheel",
-                        () => mechBlock.IsAttached ? "(Attached)" : null,
-                        mechBlock.Attach));
-                    members.Add(new BlockAction(
-                        "Detach Wheel", null,
-                        mechBlock.Detach));
-                }
-                else
-                {
-                    members.Add(new BlockAction(
-                        "Attach Head",
-                        () => mechBlock.IsAttached ? "(Attached)" : null,
-                        mechBlock.Attach));
-                    members.Add(new BlockAction(
-                        "Detach Head", null,
-                        mechBlock.Detach));
-                }
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.BlockActionTitle_Attach),
+                    () => $"({block.MechConnection.GetLocalizedAttachStatus()})",
+                    block.MechConnection.AttachHead));
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.BlockActionTitle_Detach), null,
+                    block.MechConnection.DetachHead));
 
                 foreach (IMyTerminalAction tAction in terminalActions)
                 {
-                    string tActionName = tAction.Name.ToString();
-
                     if (tAction.Id.StartsWith("Add"))
                     {
                         members.Add(new BlockAction(
-                            tActionName, null,
-                            () => tAction.Apply(mechBlock)));
+                            MyTexts.TrySubstitute(tAction.Name.ToString()), null,
+                            () => tAction.Apply(block.TBlock)));
                     }
                 }
 
-                if (mechBlock is IMyPistonBase)
+                if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Piston))
                 {
-                    IMyPistonBase piston = (IMyPistonBase)mechBlock;
-
                     members.Add(new BlockAction(
-                        "Reverse", null,
-                         piston.Reverse));
+                         MyTexts.GetString(MySpaceTexts.BlockActionTitle_Reverse), null,
+                         block.Piston.Reverse));
                 }
-                else if (mechBlock is IMyMotorStator)
+                else if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Rotor))
                 {
-                    IMyMotorStator rotor = (IMyMotorStator)mechBlock;
-                    
                     members.Add(new BlockAction(
-                        "Reverse", null,
-                        () => rotor.TargetVelocityRad = -rotor.TargetVelocityRad));
+                        MyTexts.GetString(MySpaceTexts.BlockActionTitle_Reverse), null,
+                        block.Rotor.Reverse));
                 }
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyDoor.
             /// </summary>
-            public static void GetDoorActions(IMyDoor doorBlock, List<IBlockMember> members)
+            public static void GetDoorActions(SuperBlock blockData, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
-                    "Open/Close", null,
-                    doorBlock.ToggleDoor));
+                    MyTexts.TrySubstitute("Open/Close"), null,
+                    blockData.Door.ToggleDoor));
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyWarhead.
             /// </summary>
-            public static void GetWarheadActions(IMyWarhead warhead, List<IBlockMember> members)
+            public static void GetWarheadActions(SuperBlock blockData, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
-                    "Start Countdown",
-                    () => $"({ Math.Truncate(warhead.DetonationTime) })",
-                    () => warhead.StartCountdown()));
+                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StartCountdown),
+                    () => $"({Math.Truncate(blockData.Warhead.CountdownTime)}s)",
+                    () => blockData.Warhead.StartCountdown()));
                 members.Add(new BlockAction(
-                    "Stop Countdown", null,
-                    () => warhead.StopCountdown()));
+                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StopCountdown), null,
+                    () => blockData.Warhead.StopCountdown()));
                 members.Add(new BlockAction(
-                    "Detonate", null,
-                    warhead.Detonate));
+                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_Detonate), null,
+                    blockData.Warhead.Detonate));
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyLandingGear.
             /// </summary>
-            public static void GetGearActions(IMyLandingGear landingGear, List<IBlockMember> members)
+            public static void GetGearActions(SuperBlock blockData, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
-                    "Lock/Unlock",
-                    () =>
-                    {
-                        string status = "";
-
-                        if (landingGear.LockMode == LandingGearMode.Locked)
-                            status = "(Locked)";
-                        else if (landingGear.LockMode == LandingGearMode.ReadyToLock)
-                            status = "(Ready)";
-                        else if (landingGear.LockMode == LandingGearMode.Unlocked)
-                            status = "(Unlocked)";
-
-                        return status;
-                    },
-                    landingGear.ToggleLock));
+                    MyTexts.GetString(MySpaceTexts.BlockActionTitle_SwitchLock),
+                    () => $"({blockData.LandingGear.GetLocalizedStatus()})",
+                    blockData.LandingGear.ToggleLock));
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyShipConnector.
             /// </summary>
-            public static void GetConnectorActions(IMyShipConnector connector, List<IBlockMember> members)
+            public static void GetConnectorActions(SuperBlock blockData, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
-                    "Lock/Unlock",
-                    () =>
-                    {
-                        string status = "";
-
-                        if (connector.Status == ConnectorStatus.Connected)
-                            status = "(Locked)";
-                        else if (connector.Status == ConnectorStatus.Connectable)
-                            status = "(Ready)";
-                        else if (connector.Status == ConnectorStatus.Unconnected)
-                            status = "(Unlocked)";
-
-                        return status;
-                    },
-                    connector.ToggleConnect));
+                    MyTexts.GetString(MySpaceTexts.BlockActionTitle_SwitchLock),
+                    () => $"({blockData.Connector.GetLocalizedStatus()})",
+                    blockData.Connector.ToggleConnect));
             }
 
             /// <summary>
-            /// Gets actions for blocks implementing IMyParachute.
+            /// Gets actions for blocks implementing IMyShipConnector.
             /// </summary>
-            public static void GetChuteActions(IMyParachute parachute, List<IBlockMember> members)
+            public static void GetProgrammableBlockActions(SuperBlock blockData, List<IBlockMember> members)
             {
                 members.Add(new BlockAction(
-                    "Open/Close",
-                    () => $"({parachute.Status.ToString()})",
-                    parachute.ToggleDoor));
+                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_RunCode), null,
+                    blockData.Program.Run));
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Recompile), 
+                    () => $"({blockData.Program.GetLocalizedStatus()})",
+                    blockData.Program.Recompile));
+            }
+
+            /// <summary>
+            /// Gets actions for blocks implementing IMyShipConnector.
+            /// </summary>
+            public static void GetTimerActions(SuperBlock blockData, List<IBlockMember> members)
+            {
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_TimerStart), null,
+                    blockData.Timer.StartCountdown));
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_TimerStop), null,
+                    blockData.Timer.StopCountdown));
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_TimerTrigger), null,
+                    blockData.Timer.Trigger));
             }
         }
     }

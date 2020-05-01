@@ -137,19 +137,19 @@ namespace RichHudFramework
             IBind AddBind(string bindName, IList<IControl> combo = null);
 
             /// <summary>
-            /// Tries to register a bind using the given name and the given key combo. Shows an error message in chat upon failure.
+            /// Tries to register a bind using the given name and the given key combo.
             /// </summary>
-            bool TryRegisterBind(string bindName, out IBind bind, IList<string> combo = null, bool silent = false);
+            bool TryRegisterBind(string bindName, out IBind bind, IList<string> combo = null);
 
             /// <summary>
             /// Tries to register a bind using the given name and the given key combo. Shows an error message in chat upon failure.
             /// </summary>
-            bool TryRegisterBind(string bindName, IList<IControl> combo, out IBind newBind, bool silent = false);
+            bool TryRegisterBind(string bindName, IList<IControl> combo, out IBind newBind);
 
             /// <summary>
             /// Tries to register a bind using the given name and the given key combo. Shows an error message in chat upon failure.
             /// </summary>
-            bool TryRegisterBind(string bindName, IList<int> combo, out IBind newBind, bool silent = false);
+            bool TryRegisterBind(string bindName, IList<int> combo, out IBind newBind);
 
             /// <summary>
             /// Retrieves the set of key binds as an array of BindDefinitions.

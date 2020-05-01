@@ -21,7 +21,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Settings",
                 CategoryContainer =
                 {
-                    GetGeneralSettings(),
+                    GetTargetingSettings(),
                     GetGuiSettings(),
                     GetPropertySettings(),
                     GetHelpSettings(),
@@ -33,13 +33,22 @@ namespace DarkHelmet.BuildVision2
                 Name = "Binds",
                 GroupContainer =
                 {
-                    { BvBinds.BindGroup, BindsConfig.DefaultBinds },
+                    { BvBinds.OpenGroup, BindsConfig.DefaultOpen },
+                    { BvBinds.MainGroup, BindsConfig.DefaultMain },
                 }
             });
         }
 
-        private ControlCategory GetGeneralSettings()
+        private ControlCategory GetTargetingSettings()
         {
+            var peekToggleBox = new TerminalCheckbox()
+            {
+                Name = "Enable peek",
+                Value = Cfg.general.enablePeek,
+                CustomValueGetter = () => Cfg.general.enablePeek,
+                ControlChangedAction = (x => Cfg.general.enablePeek = x.Value),
+            };
+
             // Close if not in view
             var autoCloseBox = new TerminalCheckbox()
             {
@@ -90,14 +99,21 @@ namespace DarkHelmet.BuildVision2
                 }
             };
 
+            var targetingResetButton = new TerminalButton()
+            {
+                Name = "Reset targeting settings",
+                ControlChangedAction = x => BvConfig.Current.general = TargetingConfig.Defaults,
+            };
+
             return new ControlCategory()
             {
                 HeaderText = "Targeting",
-                SubheaderText = "",
+                SubheaderText = "Configure block targeting behavior",
                 TileContainer =
                 {
-                    new ControlTile() { autoCloseBox, toolOpenBox, },
+                    new ControlTile() { peekToggleBox, autoCloseBox, toolOpenBox, },
                     new ControlTile() { openRangeSlider, controlRangeSlider, },
+                    new ControlTile() { targetingResetButton }
                 },
             };
         }
@@ -108,9 +124,9 @@ namespace DarkHelmet.BuildVision2
             var resScaling = new TerminalCheckbox()
             {
                 Name = "Resolution scaling",
-                Value = PropertiesMenu.Cfg.resolutionScaling,
-                CustomValueGetter = () => PropertiesMenu.Cfg.resolutionScaling,
-                ControlChangedAction = (x => PropertiesMenu.Cfg.resolutionScaling = x.Value),
+                Value = BvConfig.Current.hudConfig.resolutionScaling,
+                CustomValueGetter = () => BvConfig.Current.hudConfig.resolutionScaling,
+                ControlChangedAction = (x => BvConfig.Current.hudConfig.resolutionScaling = x.Value),
             };
 
             // Menu size
@@ -119,12 +135,12 @@ namespace DarkHelmet.BuildVision2
                 Name = "Menu scale",
                 Min = .75f,
                 Max = 2f,
-                Value = PropertiesMenu.Cfg.hudScale,
-                ValueText = $"{(PropertiesMenu.Cfg.hudScale * 100f).Round()}%",
-                CustomValueGetter = () => PropertiesMenu.Cfg.hudScale,
+                Value = BvConfig.Current.hudConfig.hudScale,
+                ValueText = $"{(BvConfig.Current.hudConfig.hudScale * 100f).Round()}%",
+                CustomValueGetter = () => BvConfig.Current.hudConfig.hudScale,
                 ControlChangedAction = x =>
                 {
-                    PropertiesMenu.Cfg.hudScale = x.Value;
+                    BvConfig.Current.hudConfig.hudScale = x.Value;
                     x.ValueText = $"{(x.Value * 100f).Round()}%";
                 }
             };
@@ -135,12 +151,12 @@ namespace DarkHelmet.BuildVision2
                 Name = "Menu opacity",
                 Min = 0f,
                 Max = 1f,
-                Value = PropertiesMenu.Cfg.hudOpacity,
-                ValueText = $"{(PropertiesMenu.Cfg.hudOpacity * 100f).Round()}%",
-                CustomValueGetter = () => PropertiesMenu.Cfg.hudOpacity,
+                Value = BvConfig.Current.hudConfig.hudOpacity,
+                ValueText = $"{(BvConfig.Current.hudConfig.hudOpacity * 100f).Round()}%",
+                CustomValueGetter = () => BvConfig.Current.hudConfig.hudOpacity,
                 ControlChangedAction = x =>
                 {
-                    PropertiesMenu.Cfg.hudOpacity = x.Value;
+                    BvConfig.Current.hudConfig.hudOpacity = x.Value;
                     x.ValueText = $"{(x.Value * 100f).Round()}%";
                 }
             };
@@ -158,12 +174,12 @@ namespace DarkHelmet.BuildVision2
                 Name = "Max visible properties",
                 Min = 6,
                 Max = 40,
-                Value = PropertiesMenu.Cfg.maxVisible,
-                ValueText = $"{PropertiesMenu.Cfg.maxVisible}",
-                CustomValueGetter = () => PropertiesMenu.Cfg.maxVisible,
+                Value = BvConfig.Current.hudConfig.maxVisible,
+                ValueText = $"{BvConfig.Current.hudConfig.maxVisible}",
+                CustomValueGetter = () => BvConfig.Current.hudConfig.maxVisible,
                 ControlChangedAction = x =>
                 {
-                    PropertiesMenu.Cfg.maxVisible = (int)x.Value;
+                    BvConfig.Current.hudConfig.maxVisible = (int)x.Value;
                     x.ValueText = $"{(int)x.Value}";
                 }
             };
@@ -172,18 +188,18 @@ namespace DarkHelmet.BuildVision2
             var clampToEdges = new TerminalCheckbox()
             {
                 Name = "Clamp to screen edges",
-                Value = PropertiesMenu.Cfg.clampHudPos,
-                CustomValueGetter = () => PropertiesMenu.Cfg.clampHudPos,
-                ControlChangedAction = (x => PropertiesMenu.Cfg.clampHudPos = x.Value),
+                Value = BvConfig.Current.hudConfig.clampHudPos,
+                CustomValueGetter = () => BvConfig.Current.hudConfig.clampHudPos,
+                ControlChangedAction = (x => BvConfig.Current.hudConfig.clampHudPos = x.Value),
             };
 
             // Use custom position
             var customPos = new TerminalCheckbox()
             {
                 Name = "Use custom position",
-                Value = PropertiesMenu.Cfg.useCustomPos,
-                CustomValueGetter = () => PropertiesMenu.Cfg.useCustomPos,
-                ControlChangedAction = (x => PropertiesMenu.Cfg.useCustomPos = x.Value),
+                Value = BvConfig.Current.hudConfig.useCustomPos,
+                CustomValueGetter = () => BvConfig.Current.hudConfig.useCustomPos,
+                ControlChangedAction = (x => BvConfig.Current.hudConfig.useCustomPos = x.Value),
             };
 
             // Set custom position
@@ -191,9 +207,9 @@ namespace DarkHelmet.BuildVision2
             {
                 Name = "Set custom position",
                 AlignToEdge = true,
-                Value = PropertiesMenu.Cfg.hudPos,
-                CustomValueGetter = () => PropertiesMenu.Cfg.hudPos,
-                ControlChangedAction = (x => PropertiesMenu.Cfg.hudPos = x.Value),
+                Value = BvConfig.Current.hudConfig.hudPos,
+                CustomValueGetter = () => BvConfig.Current.hudConfig.hudPos,
+                ControlChangedAction = (x => BvConfig.Current.hudConfig.hudPos = x.Value),
             };
 
             var tile2 = new ControlTile()
@@ -208,12 +224,12 @@ namespace DarkHelmet.BuildVision2
                 Name = "Max Visible Properties",
                 Min = 8,
                 Max = 40,
-                Value = PropertiesMenu.Cfg.maxVisible,
-                ValueText = $"{PropertiesMenu.Cfg.maxVisible}",
-                CustomValueGetter = () => PropertiesMenu.Cfg.maxVisible,
+                Value = BvConfig.Current.hudConfig.maxVisible,
+                ValueText = $"{BvConfig.Current.hudConfig.maxVisible}",
+                CustomValueGetter = () => BvConfig.Current.hudConfig.maxVisible,
                 ControlChangedAction = x =>
                 {
-                    PropertiesMenu.Cfg.maxVisible = (int)x.Value.Round();
+                    BvConfig.Current.hudConfig.maxVisible = (int)x.Value.Round();
                     x.ValueText = $"{x.Value.Round()}";
                 }
             };
@@ -221,7 +237,7 @@ namespace DarkHelmet.BuildVision2
             var resetGuiSettings = new TerminalButton()
             {
                 Name = "Reset GUI settings",
-                ControlChangedAction = x => PropertiesMenu.Cfg = HudConfig.Defaults,
+                ControlChangedAction = x => BvConfig.Current.hudConfig = HudConfig.Defaults,
             };
 
             var tile3 = new ControlTile()
@@ -233,7 +249,7 @@ namespace DarkHelmet.BuildVision2
             return new ControlCategory()
             {
                 HeaderText = "GUI Settings",
-                SubheaderText = "",
+                SubheaderText = "Customize appearance and menu positioning",
                 TileContainer = { tile1, tile2, tile3 }
             };
         }

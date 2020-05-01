@@ -22,3 +22,7 @@ TextEditorExample/
 *.csproj
 
 *.sln
+
+Decompiled/
+
+OwnershipForAll/

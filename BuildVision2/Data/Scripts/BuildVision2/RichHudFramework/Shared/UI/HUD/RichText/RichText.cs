@@ -16,7 +16,7 @@ namespace RichHudFramework
         /// A collection of rich strings. <see cref="RichString"/>s and <see cref="string"/>s can be implicitly
         /// cast to this type. Collection-initializer syntax can be used with this type.
         /// </summary>
-        public struct RichText : IEnumerable<RichString>
+        public class RichText : IEnumerable<RichString>
         {
             public GlyphFormat defaultFormat;
             public List<RichStringMembers> ApiData { get; }
@@ -77,7 +77,7 @@ namespace RichHudFramework
             /// Adds a <see cref="string"/> to the text using the default format.
             /// </summary>
             public void Add(string text) =>
-                ApiData.Add(new RichStringMembers(new StringBuilder(text), defaultFormat.data));
+                ApiData.Add(new RichStringMembers(new StringBuilder(text), defaultFormat?.data ?? default(GlyphFormatMembers)));
 
             /// <summary>
             /// Adds a <see cref="RichText"/> to the collection using the formatting specified in the <see cref="RichText"/>.
@@ -88,7 +88,6 @@ namespace RichHudFramework
             /// <summary>
             /// Adds a <see cref="RichString"/> to the collection using the formatting specified in the <see cref="RichString"/>.
             /// </summary>
-            /// <param name="text"></param>
             public void Add(RichString text) =>
                 ApiData.Add(text.ApiData);
 
