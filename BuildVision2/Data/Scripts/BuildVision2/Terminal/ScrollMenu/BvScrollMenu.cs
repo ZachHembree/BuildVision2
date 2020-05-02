@@ -157,6 +157,7 @@ namespace DarkHelmet.BuildVision2
             scrollBody = new ScrollBox<BvPropertyBox>()
             {
                 AlignVertical = true,
+                EnableScrolling = false,
                 SizingMode = ScrollBoxSizingModes.FitToMembers,
                 Color = bodyColor,
                 Padding = new Vector2(48f, 16f),
