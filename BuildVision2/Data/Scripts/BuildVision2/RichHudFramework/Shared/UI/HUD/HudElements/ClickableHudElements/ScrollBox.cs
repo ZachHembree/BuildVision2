@@ -179,6 +179,16 @@ namespace RichHudFramework.UI
         /// </summary>
         public Color Color { get { return background.Color; } set { background.Color = value; } }
 
+        public bool EnableScrolling 
+        { 
+            get { return scrollInput.Visible; } 
+            set 
+            { 
+                scrollInput.Visible = value;
+                scrollBar.slide.MouseInput.CaptureCursor = value;
+            } 
+        }
+
         private Vector2 MaximumSize { get { return maxSize * Scale; } set { maxSize = value / Scale; } }
 
         public readonly ScrollBar scrollBar;
