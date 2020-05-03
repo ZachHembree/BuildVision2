@@ -34,7 +34,7 @@ namespace DarkHelmet.BuildVision2
                 var summary = new RichText 
                 {
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat },
-                    { $"{Power.Round(2)}\n", valueFormat },
+                    { $"{(Power * 100f).Round(2)}%\n", valueFormat },
 
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroOverride)}: ", nameFormat },
                     { $"{(Override ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },

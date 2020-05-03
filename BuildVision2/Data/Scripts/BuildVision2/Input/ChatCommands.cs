@@ -142,7 +142,8 @@ namespace DarkHelmet.BuildVision2
         {
             string helpMessage =
                 $"To open Build Vision, aim at the block you want to control and press press [{GetBindString(BvBinds.Open)}]. To close the menu, " +
-                $"press [{GetBindString(BvBinds.Hide)}].\n\n" +
+                $"press [{GetBindString(BvBinds.Hide)}]. Alternatively, pressing and holding [{GetBindString(BvBinds.Peek)}] will allow you to peek " +
+                $"at a block's current status.\n\n" +
 
                 $"[{GetBindString(BvBinds.ScrollUp)}] and [{GetBindString(BvBinds.ScrollDown)}] can be used to scroll up and down " +
                 $"the list and to increment/decrement numerical properties when selected. To select a property in the menu press " +
@@ -178,7 +179,7 @@ namespace DarkHelmet.BuildVision2
                 $"once using the select all bind.\n\n" +
 
                 $"Settings Menu:\n" +
-                $"The settings menu can be accessed by pressing ~ (tilde) while having chat open. From there, you can configure block " +
+                $"The settings menu can be accessed by pressing F1 while having chat open. From there, you can configure block " +
                 $"targeting, change UI settings and configure your keybinds.\n\n" +
 
                 $"Chat Commands:\n" +
@@ -202,7 +203,7 @@ namespace DarkHelmet.BuildVision2
         {
             string helpMessage =
                 $"Key binds can be changed using either the Rich Hud Terminal or the /bv2 bind chat command. To access the terminal, open chat " +
-                $"and press ~ (tilde).\n\n" +
+                $"and press F1.\n\n" +
 
                 $"The /bv2 printBinds command can be used to print your current bind cfg to chat. No more than three controls " +
                 $"can be used for any one bind.\n\n" +
