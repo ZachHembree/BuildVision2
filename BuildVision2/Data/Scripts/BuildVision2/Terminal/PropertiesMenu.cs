@@ -193,10 +193,10 @@ namespace DarkHelmet.BuildVision2
 
         private void TryPeek()
         {
+            scrollMenu.MenuMode = ScrollMenuModes.Peek;
+
             if (TryGetTarget() && CanAccessTargetBlock())
             {
-                scrollMenu.MenuMode = ScrollMenuModes.Peek;
-
                 scrollMenu.SetTarget(target);
                 Open = true;   
             }
@@ -204,10 +204,10 @@ namespace DarkHelmet.BuildVision2
 
         private void TryOpen()
         {
+            scrollMenu.MenuMode = ScrollMenuModes.Control;
+
             if ((scrollMenu.MenuMode == ScrollMenuModes.Peek && target?.TBlock != null || TryGetTarget()) && CanAccessTargetBlock())
             {
-                scrollMenu.MenuMode = ScrollMenuModes.Control;
-
                 if (target?.TBlock != scrollMenu?.Target?.TBlock)
                 {
                     scrollMenu.SetTarget(target);
