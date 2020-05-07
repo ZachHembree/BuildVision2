@@ -48,7 +48,19 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public override bool Enabled => (control.Enabled(block.TBlock) && control.Visible(block.TBlock));
+            public override bool Enabled 
+            { 
+                get 
+                {
+                    try
+                    {
+                        return control.Enabled(block.TBlock) && control.Visible(block.TBlock);
+                    }
+                    catch { }
+
+                    return false;
+                } 
+            }
 
             protected readonly TProp property;
             protected readonly IMyTerminalControl control;
