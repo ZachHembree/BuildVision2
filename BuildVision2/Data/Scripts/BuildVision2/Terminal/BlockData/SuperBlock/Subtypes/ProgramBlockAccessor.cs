@@ -13,8 +13,6 @@ namespace DarkHelmet.BuildVision2
         { 
             public string Program { get { return programmableBlock.ProgramData; } set { programmableBlock.ProgramData = value; } }
 
-            public bool HasCompileErrors => programmableBlock.HasCompileErrors;
-
             public string Argument => programmableBlock.TerminalRunArgument;
 
 
@@ -40,20 +38,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     { $"{MyTexts.GetString(MySpaceTexts.TerminalControlPanel_RunArgument)}: ", nameFormat },
                     { $"{Argument ?? ""}\n", valueFormat },
-
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat},
-                    { $"{GetLocalizedStatus()}\n", valueFormat },
                 };
-            }
-
-            public string GetLocalizedStatus()
-            {
-                if (HasCompileErrors)
-                    return MyTexts.GetString(MySpaceTexts.ProgrammableBlock_Editor_CompilationFailed);
-                else if (Program != null && Program.Length > 0)
-                    return MyTexts.GetString(MySpaceTexts.ProgrammableBlock_Editor_CompilationOk).TrimEnd('.');
-                else
-                    return MyTexts.TrySubstitute("N/A");
             }
         }
     }

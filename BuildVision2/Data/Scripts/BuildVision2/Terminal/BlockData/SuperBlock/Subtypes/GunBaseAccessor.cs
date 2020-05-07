@@ -1,5 +1,6 @@
 ﻿using RichHudFramework.UI;
 using System.Collections.Generic;
+using System;
 using System.Text;
 using VRage.Game.ModAPI;
 using VRage;
@@ -28,7 +29,7 @@ namespace DarkHelmet.BuildVision2
             {
                 gunbase = block.TBlock as IMyGunBaseUser;
                 var acceptedItems = new List<MyItemType>();
-
+                
                 AmmoTypes = acceptedItems;
                 (gunbase.AmmoInventory as IMyInventory).GetAcceptedItems(acceptedItems);
 
@@ -52,10 +53,14 @@ namespace DarkHelmet.BuildVision2
                 for (int n = 0; n < subtypeId.Length; n++)
                 {
                     char right = subtypeId[n];
+                    bool rightCapital = right >= 'A' && right <= 'Z',
+                        rightNumber = right >= '0' && right <= '9',
+                        leftNumber = left >= '0' && left <= '9',
+                        leftCapital = left >= 'A' && left <= 'Z';
 
                     if (right == '_')
                         right = ' ';
-                    else if ((right >= 'A' && right <= 'Z') && !(left >= 'A' && left <= 'Z'))
+                    else if (!leftCapital && ((rightCapital && left != ' ') || (rightNumber && !leftNumber)))
                         sb.Append(' ');
 
                     sb.Append(right);

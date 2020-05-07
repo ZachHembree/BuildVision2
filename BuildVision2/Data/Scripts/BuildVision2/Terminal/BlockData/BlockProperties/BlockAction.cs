@@ -135,8 +135,7 @@ namespace DarkHelmet.BuildVision2
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_RunCode), null,
                     blockData.Program.Run));
                 members.Add(new BlockAction(
-                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Recompile), 
-                    () => $"({blockData.Program.GetLocalizedStatus()})",
+                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Recompile), null,
                     blockData.Program.Recompile));
             }
 
