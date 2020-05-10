@@ -1,12 +1,8 @@
 ﻿using RichHudFramework;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
-using Sandbox.ModAPI;
 using System;
-using System.Collections.Generic;
 using VRageMath;
-using VRage;
-using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -24,17 +20,17 @@ namespace DarkHelmet.BuildVision2
     {
         private const long notifTime = 2000;
         private static readonly Color
-            headerColor = new Color(41, 54, 62), 
-            bodyColor = new Color(70, 78, 86), 
+            headerColor = new Color(41, 54, 62),
+            bodyColor = new Color(70, 78, 86),
             selectionBoxColor = new Color(41, 54, 62);
-        private static readonly GlyphFormat 
-            headerText = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f), 
-            bodyText = new GlyphFormat(Color.White, textSize: .885f), 
+        private static readonly GlyphFormat
+            headerText = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f),
+            bodyText = new GlyphFormat(Color.White, textSize: .885f),
             valueText = bodyText.WithColor(new Color(210, 210, 210)),
-            footerTextLeft = bodyText.WithColor(new Color(220, 235, 245)), 
+            footerTextLeft = bodyText.WithColor(new Color(220, 235, 245)),
             footerTextRight = footerTextLeft.WithAlignment(TextAlignment.Right),
-            highlightText = bodyText.WithColor(new Color(220, 180, 50)), 
-            selectedText = bodyText.WithColor(new Color(50, 200, 50)), 
+            highlightText = bodyText.WithColor(new Color(220, 180, 50)),
+            selectedText = bodyText.WithColor(new Color(50, 200, 50)),
             blockIncText = footerTextRight.WithColor(new Color(200, 35, 35));
 
         public override float Width { get { return layout.Width; } set { layout.Width = value; } }
@@ -119,15 +115,14 @@ namespace DarkHelmet.BuildVision2
         private readonly LabelBox peekBody;
         private readonly ScrollBox<BvPropertyBox> scrollBody;
         private readonly HudChain<HudElementBase> layout;
-        private readonly Utils.Stopwatch listWrapTimer;
+        private readonly Utils.Stopwatch peekUpdateTimer, listWrapTimer, notificationTimer;
 
         private int index;
         private float _bgOpacity;
         private Vector2 alignment;
-        private bool waitingForChat;
+        private bool targetChanged, waitingForChat;
 
         private string notification;
-        private Utils.Stopwatch notificationTimer;
         private ScrollMenuModes _menuMode;
 
         public BvScrollMenu() : base(HudMain.Root)
@@ -213,8 +208,11 @@ namespace DarkHelmet.BuildVision2
             MenuMode = ScrollMenuModes.Peek;
             Count = 0;
 
+            peekUpdateTimer = new Utils.Stopwatch();
             notificationTimer = new Utils.Stopwatch();
             listWrapTimer = new Utils.Stopwatch();
+
+            peekUpdateTimer.Start();
             listWrapTimer.Start();
         }
 
@@ -234,24 +232,30 @@ namespace DarkHelmet.BuildVision2
             }
             else
                 footer.RightText = new RichText("[Target is null]", blockIncText);
+
+            targetChanged = false;
         }
 
         private void UpdatePeekBody()
         {
-            var peekText = new RichText();
-
-            foreach (SuperBlock.SubtypeAccessorBase subtype in Target.SubtypeAccessors)
+            if (peekUpdateTimer.ElapsedMilliseconds > 100 || targetChanged)
             {
-                if (subtype != null)
+                var peekText = new RichText();
+
+                foreach (SuperBlock.SubtypeAccessorBase subtype in Target.SubtypeAccessors)
                 {
-                    RichText summary = subtype.GetSummary(bodyText, valueText);
+                    if (subtype != null)
+                    {
+                        RichText summary = subtype.GetSummary(bodyText, valueText);
 
-                    if (summary != null)
-                        peekText.Add(summary);
+                        if (summary != null)
+                            peekText.Add(summary);
+                    }
                 }
-            }
 
-            peekBody.TextBoard.SetText(peekText);
+                peekBody.TextBoard.SetText(peekText);
+                peekUpdateTimer.Reset();
+            }
         }
 
         private void UpdatePropertyBody()
@@ -265,7 +269,7 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                     scrollBody.List[n].UpdateText(false, false);
-            }   
+            }
         }
 
         private void UpdateFooterText()
@@ -372,6 +376,7 @@ namespace DarkHelmet.BuildVision2
         {
             Clear();
             Target = newTarget;
+            targetChanged = Target != newTarget;
 
             if (MenuMode != ScrollMenuModes.Peek)
                 AddMembers();
