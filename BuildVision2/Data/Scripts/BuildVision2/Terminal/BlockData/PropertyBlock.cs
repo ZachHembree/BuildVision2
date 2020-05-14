@@ -45,7 +45,7 @@ namespace DarkHelmet.BuildVision2
         private List<IBlockMember> blockMembers;
         private List<BvTerminalPropertyBase> blockProperties;
 
-        public PropertyBlock(IMyTerminalBlock block) : base(block)
+        public PropertyBlock(TerminalGrid grid, IMyTerminalBlock block) : base(grid, block)
         {
             BoundingBoxD bb;
             TBlock.SlimBlock.GetWorldBoundingBox(out bb);

@@ -62,6 +62,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public IMyTerminalBlock TBlock { get; private set; }
 
+        public TerminalGrid TerminalGrid { get; }
+
         /// <summary>
         /// Block type identifier. Uses IMyCubeBlock.BlockDefinition.TypeIdString.
         /// </summary>
@@ -99,9 +101,14 @@ namespace DarkHelmet.BuildVision2
 
         private readonly List<SubtypeAccessorBase> subtypeAccessors;
 
-        public SuperBlock(IMyTerminalBlock tBlock)
+        public SuperBlock(TerminalGrid grid, IMyTerminalBlock tBlock)
         {
+            Utils.Debug.AssertNotNull(tBlock);
+            Utils.Debug.AssertNotNull(grid);
+
             TBlock = tBlock;
+            TerminalGrid = grid;
+
             TypeID = tBlock.BlockDefinition.TypeIdString;
             TBlock.OnMarkForClose += BlockClosing;
             subtypeAccessors = new List<SubtypeAccessorBase>();
@@ -210,6 +217,9 @@ namespace DarkHelmet.BuildVision2
             if (TBlock is IMyProgrammableBlock)
                 Program = new ProgramBlockAccessor(this);
         }
+
+        public void GetGroupsForBlock(List<IMyBlockGroup> groups) =>
+            TerminalGrid.GetGroupsForBlock(TBlock, groups);
 
         public abstract class SubtypeAccessorBase
         {
