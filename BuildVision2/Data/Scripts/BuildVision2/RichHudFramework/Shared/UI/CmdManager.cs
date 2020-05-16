@@ -1,16 +1,60 @@
 ﻿using RichHudFramework.Internal;
 using Sandbox.ModAPI;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using VRage;
 
 namespace RichHudFramework.UI
 {
+    public interface ICommandGroup: IIndexedCollection<IChatCommand>
+    {
+        string Prefix { get; }
+
+        bool TryAdd(string name, Action<string[]> callback = null, int argsRequired = 0);
+        void AddCommands(CmdGroupInitializer newCommands);
+    }
+
+    public interface IChatCommand
+    {
+        event Action<string[]> OnCommandInvoke;
+
+        string CmdName { get; }
+        int ArgsRequired { get; }
+    }
+
+    public class CmdGroupInitializer : IReadOnlyCollection<MyTuple<string, Action<string[]>, int>>
+    {
+        public MyTuple<string, Action<string[]>, int> this[int index] => data[index];
+        public int Count => data.Count;
+
+        private readonly List<MyTuple<string, Action<string[]>, int>> data;
+
+        public CmdGroupInitializer(int capacity = 0)
+        {
+            data = new List<MyTuple<string, Action<string[]>, int>>(capacity);
+        }
+
+        public void Add(string cmdName, Action<string[]> callback = null, int argsRequrired = 0)
+        {
+            data.Add(new MyTuple<string, Action<string[]>, int>(cmdName, callback, argsRequrired));
+        }
+
+        public IEnumerator<MyTuple<string, Action<string[]>, int>> GetEnumerator() =>
+            data.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() =>
+            data.GetEnumerator();
+    }
+
     /// <summary>
     /// Manages chat commands; singleton
     /// </summary>
     public sealed class CmdManager : RichHudComponentBase
     {
+        public static IReadOnlyList<ICommandGroup> CommandGroups => Instance.commandGroups;
+
         private static CmdManager Instance
         {
             get { Init(); return instance; }
@@ -19,18 +63,20 @@ namespace RichHudFramework.UI
 
         private static CmdManager instance;
         private readonly Regex cmdParser;
-        private readonly List<Group> commandGroups;
+        private readonly List<CommandGroup> commandGroups;
+        private readonly Dictionary<string, Command> commands;
 
         private CmdManager() : base(false, true)
         {
-            commandGroups = new List<Group>();
+            commandGroups = new List<CommandGroup>();
+            commands = new Dictionary<string, Command>();
             cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)((\w+)|("".+"")))+");
             RichHudCore.LateMessageEntered += MessageHandler;
         }
 
         private static void Init()
         {
-            if (instance == null)
+            if (instance == null && !ExceptionHandler.Unloading)
                 instance = new CmdManager();
         }
 
@@ -40,60 +86,19 @@ namespace RichHudFramework.UI
             instance = null;
         }
 
-        /// <summary>
-        /// Adds a <see cref="Group"/> with a given prefix and returns it. If a group already exists with the same prefix
-        /// that group will be returned instead.
-        /// </summary>
-        public static Group AddOrGetCmdGroup(string prefix, List<Command> commands = null)
+        public static ICommandGroup GetOrCreateGroup(string prefix, CmdGroupInitializer groupInitializer = null)
         {
             prefix = prefix.ToLower();
-            Group group = GetCmdGroup(prefix);
+            CommandGroup group = Instance.commandGroups.Find(x => x.Prefix == prefix);
 
             if (group == null)
             {
-                group = new Group(prefix, commands);
+                group = new CommandGroup(prefix);
                 Instance.commandGroups.Add(group);
+                group.AddCommands(groupInitializer);
             }
-            else if (commands != null)
-                group.commands.AddRange(commands);
 
             return group;
-        }
-
-        /// <summary>
-        /// Returns the command group using the given prefix. Returns null if the group doesn't exist.
-        /// </summary>
-        public static Group GetCmdGroup(string prefix)
-        {
-            prefix = prefix.ToLower();
-
-            foreach (Group group in Instance.commandGroups)
-                if (group.prefix == prefix)
-                    return group;
-
-            return null;
-        }
-
-        public static void AddCommand(string prefix, Command newCommand)
-        {
-            prefix = prefix.ToLower();
-            Group group = GetCmdGroup(prefix);
-
-            if (group != null)
-                group.commands.Add(newCommand);
-            else
-                throw new Exception($"Could not add chat command. No group uses the prefix {prefix}.");
-        }
-
-        public static void AddCommands(string prefix, IEnumerable<Command> newCommands)
-        {
-            prefix = prefix.ToLower();
-            Group group = GetCmdGroup(prefix);
-
-            if (group != null)
-                group.commands.AddRange(newCommands);
-            else
-                throw new Exception($"Could not add chat commands. No group uses the prefix {prefix}.");
         }
 
         /// <summary>
@@ -101,45 +106,13 @@ namespace RichHudFramework.UI
         /// </summary>
         private void MessageHandler(string message, ref bool sendToOthers)
         {
-            bool cmdFound = false;
             message = message.ToLower();
+            CommandGroup group = commandGroups.Find(x => message.StartsWith(x.Prefix));
 
-            foreach (Group group in commandGroups)
+            if (group != null)
             {
-                if (message.StartsWith(group.prefix))
-                {
-                    string[] matches;
-                    sendToOthers = false;
-
-                    ExceptionHandler.Run(() =>
-                    {
-                        if (TryParseCommand(message, out matches))
-                        {
-                            string cmdName = matches[0];
-
-                            foreach (Command cmd in group.commands)
-                                if (cmd.cmdName == cmdName)
-                                {
-                                    cmdFound = true;
-
-                                    if (cmd.needsArgs)
-                                    {
-                                        if (matches.Length > 1)
-                                            cmd.action(matches.GetSubarray(1));
-                                        else
-                                            ExceptionHandler.SendChatMessage("Invalid Command. This command requires an argument.");
-                                    }
-                                    else
-                                        cmd.action(null);
-
-                                    break;
-                                }
-                        }
-
-                        if (!cmdFound)
-                            ExceptionHandler.SendChatMessage("Command not recognised.");
-                    });
-                }
+                sendToOthers = false;
+                ExceptionHandler.Run(() => group.TryRunCommand(message));
             }
         }
 
@@ -163,54 +136,97 @@ namespace RichHudFramework.UI
             return matches.Length > 0;
         }
 
-        /// <summary>
-        /// Stores a group of chat commands associated with a given prefix.
-        /// </summary>
-        public class Group
+        private class CommandGroup : ICommandGroup
         {
-            public readonly string prefix;
-            public readonly List<Command> commands;
+            public IChatCommand this[int index] => commands[index];
+            public int Count => commands.Count;
+            public ICommandGroup Commands => this;
+            public string Prefix { get; }
 
-            public Group(string prefix, List<Command> commands = null)
+            private readonly List<Command> commands;
+
+            public CommandGroup(string prefix)
             {
-                this.prefix = prefix;
+                commands = new List<Command>();
+                this.Prefix = prefix;
+            }
 
-                if (commands != null)
-                    this.commands = commands;
+            public bool TryRunCommand(string message)
+            {
+                bool cmdFound = false, success = false;
+                string[] matches;
+
+                if (TryParseCommand(message, out matches))
+                {
+                    string cmdName = matches[0];
+                    Command command;
+
+                    if (Instance.commands.TryGetValue($"{Prefix}.{cmdName}", out command))
+                    {
+                        string[] args = matches.GetSubarray(1);
+                        cmdFound = true;
+
+                        if (args.Length >= command.ArgsRequired)
+                        {
+                            command.InvokeCommand(args);
+                            success = true;
+                        }
+                        else
+                            ExceptionHandler.SendChatMessage($"Error: {cmdName} command requires at least {command.ArgsRequired} argument(s).");
+
+                    }
+                }
+
+                if (!cmdFound)
+                    ExceptionHandler.SendChatMessage("Command not recognised.");
+
+                return success;
+            }
+
+            public bool TryAdd(string name, Action<string[]> callback = null, int argsRequired = 0)
+            {
+                name = name.ToLower();
+                string key = $"{Prefix}.{name}";
+
+                if (instance != null && !instance.commands.ContainsKey(key))
+                {
+                    Command command = new Command(name, argsRequired);
+                    commands.Add(command);
+                    instance.commands.Add(key, command);
+
+                    if (callback != null)
+                        command.OnCommandInvoke += callback;
+
+                    return true;
+                }
                 else
-                    this.commands = new List<Command>();
+                    return false;
+            }
+
+            public void AddCommands(CmdGroupInitializer newCommands)
+            {
+                for (int n = 0; n < newCommands.Count; n++)
+                {
+                    var cmd = newCommands[n];
+                    TryAdd(cmd.Item1, cmd.Item2, cmd.Item3);
+                }
             }
         }
 
-        /// <summary>
-        /// Stores chat command name and action
-        /// </summary>
-        public class Command
+        private class Command : IChatCommand
         {
-            public readonly string cmdName;
-            public readonly Func<string[], bool> action;
-            public readonly bool needsArgs;
+            public event Action<string[]> OnCommandInvoke;
+            public string CmdName { get; }
+            public int ArgsRequired { get; }
 
-            public Command(string cmdName, Func<string[], bool> argAction)
+            public Command(string cmdName, int argsRequired)
             {
-                this.cmdName = cmdName.ToLower();
-                action = argAction;
-                needsArgs = true;
+                CmdName = cmdName.ToLower();
+                ArgsRequired = argsRequired;
             }
 
-            public Command(string cmdName, Action<string[]> argAction)
-            {
-                this.cmdName = cmdName.ToLower();
-                action = args => { argAction(args); return true; };
-                needsArgs = true;
-            }
-
-            public Command(string cmdName, Action action)
-            {
-                this.cmdName = cmdName.ToLower();
-                this.action = args => { action(); return true; };
-                needsArgs = false;
-            }
+            public void InvokeCommand(string[] args) =>
+                OnCommandInvoke?.Invoke(args);
         }
     }
 }

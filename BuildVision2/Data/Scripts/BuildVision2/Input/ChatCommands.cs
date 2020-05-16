@@ -6,6 +6,7 @@ using RichHudFramework.UI.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Sandbox.ModAPI;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -13,81 +14,34 @@ namespace DarkHelmet.BuildVision2
     {
         private static string controlList;
 
-        private List<CmdManager.Command> GetChatCommands()
+        private void AddChatCommands()
         {
             controlList = GetControlList();
-
-            return new List<CmdManager.Command>
+            CmdManager.GetOrCreateGroup("/bv2", new CmdGroupInitializer 
             {
-                new CmdManager.Command ("help",
-                    () => ExceptionHandler.ShowMessageScreen("Help", GetHelpMessage())),
-                new CmdManager.Command ("bindHelp",
-                    () => ExceptionHandler.ShowMessageScreen("Bind Help", GetBindHelpMessage())),
-                new CmdManager.Command ("printBinds",
-                    () => ExceptionHandler.SendChatMessage(GetPrintBindsMessage())),
-                new CmdManager.Command ("bind",
-                    (string[] args) => UpdateBind(args[0], args.GetSubarray(1))),
-                new CmdManager.Command("resetBinds",
-                    () => BvBinds.Cfg = BindsConfig.Defaults),
-                new CmdManager.Command ("save",
-                    () => BvConfig.SaveStart()),
-                new CmdManager.Command ("load",
-                    () => BvConfig.LoadStart()),
-                new CmdManager.Command("resetConfig",
-                    () => BvConfig.ResetConfig()),
-                new CmdManager.Command ("toggleAutoclose",
-                    () => Cfg.general.closeIfNotInView = !Cfg.general.closeIfNotInView),
-                new CmdManager.Command ("toggleOpenWhileHolding",
-                    () => Cfg.general.canOpenIfHolding = !Cfg.general.canOpenIfHolding),
+                { "help", x => ExceptionHandler.ShowMessageScreen("Help", GetHelpMessage()) },
+                { "bindHelp", x => ExceptionHandler.ShowMessageScreen("Bind Help", GetBindHelpMessage()) },
+                { "printBinds", x => ExceptionHandler.SendChatMessage(GetPrintBindsMessage()) },
+                { "bind", x => UpdateBind(x[0], x.GetSubarray(1)), 2 },
+                { "resetBinds", x => BvBinds.Cfg = BindsConfig.Defaults },
+                { "save", x => BvConfig.SaveStart() },
+                { "load", x => BvConfig.LoadStart() },
+                { "resetConfig", x => BvConfig.ResetConfig() },
+                { "toggleAutoclose", x => Cfg.general.closeIfNotInView = !Cfg.general.closeIfNotInView },
+                { "toggleOpenWhileHolding", x => Cfg.general.canOpenIfHolding = !Cfg.general.canOpenIfHolding },
 
                 // Debug/Testing
-                new CmdManager.Command ("open",
-                    () => PropertiesMenu.TryOpenMenu()),
-                new CmdManager.Command ("close",
-                    () => PropertiesMenu.HideMenu()),
-                new CmdManager.Command ("reload",
-                    () => Instance.Reload()),
-                new CmdManager.Command("crash",
-                    Crash),
-                new CmdManager.Command("printControlsToLog",
-                    () => LogIO.WriteToLogStart($"Control List:\n{GetControlList()}")),
-                new CmdManager.Command("export",
-                    ExportBlockData),
-                new CmdManager.Command("import",
-                    TryImportBlockData),
-                new CmdManager.Command("checkType", 
-                    () => ExceptionHandler.SendChatMessage($"Block Type: {(PropertiesMenu.Target?.SubtypeId.ToString() ?? "No Target")}")),
-                new CmdManager.Command("echo",
-                    x => ExceptionHandler.SendChatMessage($"echo: {x[0]}")),
-            };
-        }
-
-        private void TryImportBlockData()
-        {
-            LocalFileIO blockIO = new LocalFileIO($"{PropertiesMenu.Target?.TypeID}.bin");
-            byte[] byteData;
-
-            if (blockIO.FileExists && blockIO.TryRead(out byteData) == null)
-            {
-                BlockData data;
-
-                if (Utils.ProtoBuf.TryDeserialize(byteData, out data) == null)
-                    PropertiesMenu.Target.ImportSettings(data);
-            }
-        }
-
-        private void ExportBlockData()
-        {
-            LocalFileIO blockIO = new LocalFileIO($"{PropertiesMenu.Target?.TypeID}.bin");
-            byte[] byteData;
-
-            if (Utils.ProtoBuf.TrySerialize(PropertiesMenu.Target?.ExportSettings(), out byteData) == null)
-                blockIO.TryWrite(byteData);
-        }
-
-        private static void Crash()
-        {
-            throw new Exception($"Crash chat command was called.");
+                { "open", x => PropertiesMenu.TryOpenMenu() },
+                { "close", x => PropertiesMenu.HideMenu() },
+                { "reload", x => Instance.Reload() },
+                { "crash", x => Crash() },
+                { "printControlsToLog", x => LogIO.WriteToLogStart($"Control List:\n{GetControlList()}") },
+                { "export", x => ExportBlockData() },
+                { "import", x=> TryImportBlockData() },
+                { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(PropertiesMenu.Target?.SubtypeId.ToString() ?? "No Target")}") },
+                { "targetBench", TargetBench, 1 },
+                { "echo", x => ExceptionHandler.SendChatMessage($"echo: {x[0]}") },
+            });
         }
 
         private static void UpdateBind(string bindName, string[] controls)
@@ -95,7 +49,7 @@ namespace DarkHelmet.BuildVision2
             IBind bind = BvBinds.OpenGroup.GetBind(bindName);
 
             if (bind == null)
-                BvBinds.MainGroup.GetBind(bindName);
+                bind = BvBinds.MainGroup.GetBind(bindName);
 
             if (bind == null)
                 ExceptionHandler.SendChatMessage("Error: The bind specified could not be found.");
@@ -248,6 +202,77 @@ namespace DarkHelmet.BuildVision2
                 $"UndoPaste: [{GetBindString(BvBinds.UndoPaste)}]";
 
             return bindHelp;
+        }
+
+        private void TryImportBlockData()
+        {
+            LocalFileIO blockIO = new LocalFileIO($"{PropertiesMenu.Target?.TypeID}.bin");
+            byte[] byteData;
+
+            if (blockIO.FileExists && blockIO.TryRead(out byteData) == null)
+            {
+                BlockData data;
+
+                if (Utils.ProtoBuf.TryDeserialize(byteData, out data) == null)
+                    PropertiesMenu.Target.ImportSettings(data);
+            }
+        }
+
+        private void ExportBlockData()
+        {
+            LocalFileIO blockIO = new LocalFileIO($"{PropertiesMenu.Target?.TypeID}.bin");
+            byte[] byteData;
+
+            if (Utils.ProtoBuf.TrySerialize(PropertiesMenu.Target?.ExportSettings(), out byteData) == null)
+                blockIO.TryWrite(byteData);
+        }
+
+        private void TargetBench(string[] args)
+        {
+            IMyTerminalBlock tblock;
+
+            if (PropertiesMenu.TryGetTargetedBlock(100d, out tblock))
+            {
+                int iterations;
+                bool getProperties = false;
+
+                int.TryParse(args[0], out iterations);
+
+                if (args.Length > 1)
+                    bool.TryParse(args[1], out getProperties);
+
+                Utils.Stopwatch timer = new Utils.Stopwatch();
+                timer.Start();
+
+                TerminalGrid grid = new TerminalGrid();
+                grid.SetGrid(tblock.CubeGrid);
+
+                for (int n = 0; n < iterations; n++)
+                {
+                    IMyTerminalBlock temp;
+                    PropertiesMenu.TryGetTargetedBlock(100d, out temp);
+                    PropertyBlock pBlock = new PropertyBlock(grid, tblock);
+
+                    if (getProperties)
+                        pBlock.GetEnabledElementCount();
+                }
+
+                timer.Stop();
+                ExceptionHandler.SendChatMessage
+                (
+                    $"Target Bench:\n" +
+                    $"\tGetProperties: {getProperties}\n" +
+                    $"\tTime: {(timer.ElapsedTicks / (double)TimeSpan.TicksPerMillisecond):G6} ms\n" +
+                    $"\tIterations: {iterations}"
+                );
+            }
+            else
+                ExceptionHandler.SendChatMessage($"Cant start target bench. No target found.");
+        }
+
+        private static void Crash()
+        {
+            throw new Exception($"Crash chat command was called.");
         }
     }
 }
