@@ -10,24 +10,20 @@ namespace DarkHelmet.BuildVision2
     {
         public GyroAccessor Gyroscope { get; private set; }
 
-        public class GyroAccessor : SubtypeAccessorBase
+        public class GyroAccessor : SubtypeAccessor<IMyGyro>
         {
-            public float Power { get { return gyroscope.GyroPower; } set { gyroscope.GyroPower = value; } }
+            public float Power { get { return subtype.GyroPower; } set { subtype.GyroPower = value; } }
 
-            public bool Override { get { return gyroscope.GyroOverride; } set { gyroscope.GyroOverride = value; } }
+            public bool Override { get { return subtype.GyroOverride; } set { subtype.GyroOverride = value; } }
 
-            public float Pitch { get { return gyroscope.Pitch; } set { gyroscope.Pitch = value; } }
+            public float Pitch { get { return subtype.Pitch; } set { subtype.Pitch = value; } }
 
-            public float Roll { get { return gyroscope.Roll; } set { gyroscope.Roll = value; } }
+            public float Roll { get { return subtype.Roll; } set { subtype.Roll = value; } }
 
-            public float Yaw { get { return gyroscope.Yaw; } set { gyroscope.Yaw = value; } }
-
-            private readonly IMyGyro gyroscope;
+            public float Yaw { get { return subtype.Yaw; } set { subtype.Yaw = value; } }
 
             public GyroAccessor(SuperBlock block) : base(block, TBlockSubtypes.Gyroscope)
-            {
-                gyroscope = block.TBlock as IMyGyro;
-            }
+            { }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

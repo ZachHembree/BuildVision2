@@ -9,28 +9,23 @@ namespace DarkHelmet.BuildVision2
     {
         public ProgramBlockAccessor Program { get; private set; }
 
-        public class ProgramBlockAccessor : SubtypeAccessorBase
+        public class ProgramBlockAccessor : SubtypeAccessor<IMyProgrammableBlock>
         { 
-            public string Program { get { return programmableBlock.ProgramData; } set { programmableBlock.ProgramData = value; } }
+            public string Program { get { return subtype.ProgramData; } set { subtype.ProgramData = value; } }
 
-            public string Argument => programmableBlock.TerminalRunArgument;
-
-
-            private readonly IMyProgrammableBlock programmableBlock;
+            public string Argument => subtype.TerminalRunArgument;
 
             public ProgramBlockAccessor(SuperBlock block) : base(block, TBlockSubtypes.Programmable)
-            {
-                programmableBlock = block.TBlock as IMyProgrammableBlock;
-            }
+            { }
 
             public void Run() =>
-                programmableBlock.Run();
+                subtype.Run();
 
             public void Run(string arguments) =>
-                programmableBlock.Run(arguments);
+                subtype.Run(arguments);
 
             public void Recompile() =>
-                programmableBlock.Recompile();
+                subtype.Recompile();
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

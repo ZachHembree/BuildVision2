@@ -42,18 +42,27 @@ namespace DarkHelmet.BuildVision2
             private readonly IMyPowerProducer powerProducer;
             private readonly IMyFunctionalBlock functionalBlock;
 
-            public PowerAccessor(SuperBlock block) : base(block, TBlockSubtypes.None)
+            public PowerAccessor(SuperBlock block) : base(block)
             {
-                resourceId = MyDefinitionId.FromContent(block.TBlock.SlimBlock.GetObjectBuilder());
-                sink = block.TBlock.ResourceSink;
-                powerProducer = block.TBlock as IMyPowerProducer;
-                functionalBlock = block.TBlock as IMyFunctionalBlock;
+                IMyTerminalBlock tblock = block.TBlock;
 
-                if (sink != null || powerProducer != null)
-                    block.SubtypeId |= TBlockSubtypes.Powered;
+                if (tblock.ResourceSink != null || tblock is IMyPowerProducer || tblock is IMyFunctionalBlock)
+                {
+                    resourceId = MyDefinitionId.FromContent(block.TBlock.SlimBlock.GetObjectBuilder());
 
-                if (functionalBlock != null)
-                    block.SubtypeId |= TBlockSubtypes.Functional;
+                    sink = tblock.ResourceSink;
+                    powerProducer = tblock as IMyPowerProducer;
+                    functionalBlock = tblock as IMyFunctionalBlock;
+
+                    if (sink != null || powerProducer != null)
+                        SubtypeId |= TBlockSubtypes.Powered;
+
+                    if (functionalBlock != null)
+                        SubtypeId |= TBlockSubtypes.Functional;
+
+                    block.SubtypeId |= SubtypeId;
+                    block.subtypeAccessors.Add(this);
+                }
             }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)

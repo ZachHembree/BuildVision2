@@ -14,29 +14,25 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public PistonAccessor Piston { get; private set; }
 
-        public class PistonAccessor : SubtypeAccessorBase
+        public class PistonAccessor : SubtypeAccessor<IMyPistonBase>
         {
             /// <summary>
             /// Returns the current position of the piston.
             /// </summary>
-            public float ExtensionDist => piston.CurrentPosition;
+            public float ExtensionDist => subtype.CurrentPosition;
 
-            private readonly IMyPistonBase piston;
-
-            public PistonAccessor(SuperBlock block) : base(block, TBlockSubtypes.Piston)
-            {
-                piston = block.TBlock as IMyPistonBase;
-            }
+            public PistonAccessor(SuperBlock block) : base(block, TBlockSubtypes.Piston, TBlockSubtypes.MechanicalConnection)
+            { }
 
             /// <summary>
             /// Reverses the direction of the piston.
             /// </summary>
             public void Reverse() =>
-                piston.Reverse();
+                subtype.Reverse();
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                if (piston.IsAttached)
+                if (subtype.IsAttached)
                 {
                     return new RichText {
                         { $"{MyTexts.GetString(MySpaceTexts.TerminalDistance)}: ", nameFormat },

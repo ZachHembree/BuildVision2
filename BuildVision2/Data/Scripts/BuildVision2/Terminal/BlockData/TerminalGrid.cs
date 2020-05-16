@@ -50,6 +50,23 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        public void GetGroupNamesForBlock(IMyTerminalBlock block, List<string> groups)
+        {
+            TerminalSystem.GetBlockGroups(groupBuffer);
+
+            for (int g = 0; g < groupBuffer.Count; g++)
+            {
+                groupBlockBuffer.Clear();
+                groupBuffer[g].GetBlocks(groupBlockBuffer, x => x == block);
+
+                if (groupBlockBuffer.Count > 0)
+                    groups.Add(groupBuffer[g].Name);
+            }
+
+            groupBuffer.Clear();
+            groupBlockBuffer.Clear();
+        }
+
         public void GetGroupsForBlock(IMyTerminalBlock block, List<IMyBlockGroup> groups)
         {
             TerminalSystem.GetBlockGroups(groupBuffer);
@@ -57,9 +74,9 @@ namespace DarkHelmet.BuildVision2
             for (int g = 0; g < groupBuffer.Count; g++)
             {
                 groupBlockBuffer.Clear();
-                groupBuffer[g].GetBlocks(groupBlockBuffer);
+                groupBuffer[g].GetBlocks(groupBlockBuffer, x => x == block);
 
-                if (groupBlockBuffer.Contains(block))
+                if (groupBlockBuffer.Count > 0)
                     groups.Add(groupBuffer[g]);
             }
 

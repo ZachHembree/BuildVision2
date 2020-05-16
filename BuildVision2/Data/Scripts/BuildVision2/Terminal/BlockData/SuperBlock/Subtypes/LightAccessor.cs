@@ -14,34 +14,30 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public LightAccessor Light { get; private set; }
 
-        public class LightAccessor : SubtypeAccessorBase
+        public class LightAccessor : SubtypeAccessor<IMyLightingBlock>
         {
             /// <summary>
             /// Controls the light's color
             /// </summary>
-            public Color Color { get { return lighting.Color; } set { lighting.Color = value; } }
+        public Color Color { get { return subtype.Color; } set { subtype.Color = value; } }
 
             /// <summary>
             /// Controls the light's intensity
             /// </summary>
-            public float Intensity { get { return lighting.Intensity; } set { lighting.Intensity = value; } }
+            public float Intensity { get { return subtype.Intensity; } set { subtype.Intensity = value; } }
 
             /// <summary>
             /// Controls the light's falloff
             /// </summary>
-            public float Falloff { get { return lighting.Falloff; } set { lighting.Falloff = value; } }
+            public float Falloff { get { return subtype.Falloff; } set { subtype.Falloff = value; } }
 
             /// <summary>
             /// Controls the lighting radius
             /// </summary>
-            public float Radius { get { return lighting.Radius; } set { lighting.Radius = value; } }
-
-            private readonly IMyLightingBlock lighting;
+            public float Radius { get { return subtype.Radius; } set { subtype.Radius = value; } }
 
             public LightAccessor(SuperBlock block) : base(block, TBlockSubtypes.Light)
-            {
-                lighting = block.TBlock as IMyLightingBlock;
-            }
+            { }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

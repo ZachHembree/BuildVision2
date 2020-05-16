@@ -13,24 +13,20 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public OreDetectorAccessor OreDetector { get; private set; }
 
-        public class OreDetectorAccessor : SubtypeAccessorBase
+        public class OreDetectorAccessor : SubtypeAccessor<IMyOreDetector>
         {
             /// <summary>
             /// Returns the maximum ore detection range in meters.
             /// </summary>
-            public float Range => oreDetector.Range * (oreDetector.IsLargeGrid() ? 1.5f : .5f);
+            public float Range => subtype.Range * (subtype.IsLargeGrid() ? 1.5f : .5f);
             
             /// <summary>
             /// Determines whether or not the ore detector will broadcast ore locations via antenna.
             /// </summary>
-            public bool BroadcastUsingAntennas { get { return oreDetector.BroadcastUsingAntennas; } set { oreDetector.BroadcastUsingAntennas = value; } }
-
-            private readonly IMyOreDetector oreDetector;
+            public bool BroadcastUsingAntennas { get { return subtype.BroadcastUsingAntennas; } set { subtype.BroadcastUsingAntennas = value; } }
 
             public OreDetectorAccessor(SuperBlock block) : base(block, TBlockSubtypes.OreDetector)
-            {
-                oreDetector = block.TBlock as IMyOreDetector;
-            }
+            { }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

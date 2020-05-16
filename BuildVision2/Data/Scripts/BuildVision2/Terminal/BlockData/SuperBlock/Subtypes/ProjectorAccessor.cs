@@ -9,24 +9,20 @@ namespace DarkHelmet.BuildVision2
     {
         public ProjectorAccessor Projector { get; private set; }
 
-        public class ProjectorAccessor : SubtypeAccessorBase
+        public class ProjectorAccessor : SubtypeAccessor<IMyProjector>
         {
-            public string GridName => projector.ProjectedGrid?.CustomName;
+            public string GridName => subtype.ProjectedGrid?.CustomName;
 
             public float PctComplete => TotalBlocks > 0f ? 100f * (TotalBlocks - RemainingBlocks) / TotalBlocks : 0f;
 
-            public int RemainingBlocks => projector.RemainingBlocks;
+            public int RemainingBlocks => subtype.RemainingBlocks;
 
-            public int BlocksBuilt => projector.TotalBlocks - RemainingBlocks;
+            public int BlocksBuilt => subtype.TotalBlocks - RemainingBlocks;
 
-            public int TotalBlocks => projector.TotalBlocks;
-
-            private readonly IMyProjector projector;
+            public int TotalBlocks => subtype.TotalBlocks;
 
             public ProjectorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Projector)
-            {
-                projector = block.TBlock as IMyProjector;
-            }
+            { }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

@@ -14,20 +14,16 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public MechConnectionAccessor MechConnection { get; private set; }
 
-        public class MechConnectionAccessor : SubtypeAccessorBase
+        public class MechConnectionAccessor : SubtypeAccessor<IMyMechanicalConnectionBlock>
         {
             /// <summary>
             /// Indicates whether or not a head has been attached to the mech block.
             /// </summary>
-            public bool PartAttached => mechBlock.IsAttached;
-
-            private readonly IMyMechanicalConnectionBlock mechBlock;
+            public bool PartAttached => subtype.IsAttached;
 
             public MechConnectionAccessor(SuperBlock block) : base(block, TBlockSubtypes.MechanicalConnection)
-            {
-                mechBlock = block.TBlock as IMyMechanicalConnectionBlock;
-                
-                if (block.TBlock is IMyMotorSuspension)
+            {                
+                if (subtype != null && block.TBlock is IMyMotorSuspension)
                     block.SubtypeId |= TBlockSubtypes.Suspension;
             }
 
@@ -35,13 +31,13 @@ namespace DarkHelmet.BuildVision2
             /// Attempts to attach a nearby head.
             /// </summary>
             public void AttachHead() =>
-                mechBlock.Attach();
+                subtype.Attach();
 
             /// <summary>
             /// Detaches the head.
             /// </summary>
             public void DetachHead() =>
-                mechBlock.Detach();
+                subtype.Detach();
 
             /// <summary>
             /// Returns head attachment status as a localized string.

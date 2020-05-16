@@ -14,26 +14,22 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public BatteryAccessor Battery { get; private set; }
 
-        public class BatteryAccessor : SubtypeAccessorBase
+        public class BatteryAccessor : SubtypeAccessor<IMyBatteryBlock>
         {
             /// <summary>
             /// Returns the amount of power currently stored in the battery.
             /// </summary>
-            public float Charge => battery.CurrentStoredPower;
+            public float Charge => subtype.CurrentStoredPower;
 
             /// <summary>
             /// Returns the maximum capacity of the battery.
             /// </summary>
-            public float Capacity => battery.MaxStoredPower;
+            public float Capacity => subtype.MaxStoredPower;
 
-            public ChargeMode ChargeMode { get { return battery.ChargeMode; } set { battery.ChargeMode = value; } }
-
-            private readonly IMyBatteryBlock battery;
+            public ChargeMode ChargeMode { get { return subtype.ChargeMode; } set { subtype.ChargeMode = value; } }
 
             public BatteryAccessor(SuperBlock block) : base(block, TBlockSubtypes.Battery)
-            {
-                battery = block.TBlock as IMyBatteryBlock;
-            }
+            { }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

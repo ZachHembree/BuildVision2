@@ -128,114 +128,119 @@ namespace DarkHelmet.BuildVision2
         private void AddBlockSubtypes()
         {
             General = new GeneralAccessor(this);
-            
-            if (TBlock.ResourceSink != null || TBlock is IMyPowerProducer || TBlock is IMyFunctionalBlock)
-            {
-                Power = new PowerAccessor(this);
 
-                if (TBlock is IMyBatteryBlock)
-                    Battery = new BatteryAccessor(this);
-            }
+            Power = new PowerAccessor(this);
 
-            if (TBlock.HasInventory)
-                Inventory = new InventoryAccessor(this);
+            Battery = new BatteryAccessor(this);
 
-            if (TBlock is IMyProductionBlock)
-                Production = new ProductionAccessorBase(this);
+            Inventory = new InventoryAccessor(this);
 
-            if (TBlock is IMyGasTank)
-                GasTank = new GasTankAccessor(this);
+            Production = new ProductionAccessorBase(this);
 
-            if (TBlock is IMyAirVent)
-                AirVent = new AirVentAccessor(this);
+            GasTank = new GasTankAccessor(this);
 
-            if (TBlock is IMyDoor)
-                Door = new DoorAccessor(this);
+            AirVent = new AirVentAccessor(this);
 
-            if (TBlock is IMyLandingGear)
-                LandingGear = new LandingGearAccessor(this);
+            Door = new DoorAccessor(this);
 
-            if (TBlock is IMyShipConnector)
-                Connector = new ConnectorAccessor(this);
+            LandingGear = new LandingGearAccessor(this);
 
-            if (TBlock is IMyMechanicalConnectionBlock)
-            {
-                MechConnection = new MechConnectionAccessor(this);
+            Connector = new ConnectorAccessor(this);
 
-                if (TBlock is IMyPistonBase)
-                    Piston = new PistonAccessor(this);
+            MechConnection = new MechConnectionAccessor(this);
 
-                if (TBlock is IMyMotorStator)
-                    Rotor = new RotorAccessor(this);
-            }
+            Piston = new PistonAccessor(this);
 
-            if (TBlock is IMyLightingBlock)
-                Light = new LightAccessor(this);
+            Rotor = new RotorAccessor(this);
 
-            if (TBlock is IMyJumpDrive)
-                JumpDrive = new JumpDriveAccessor(this);
+            Light = new LightAccessor(this);
 
-            if (TBlock is IMyThrust)
-                Thruster = new ThrusterAccessor(this);
+            JumpDrive = new JumpDriveAccessor(this);
 
-            if (TBlock is IMyBeacon)
-                Beacon = new BeaconAccessorBase(this);
+            Thruster = new ThrusterAccessor(this);
 
-            if (TBlock is IMyLaserAntenna)
-                LaserAntenna = new LaserAntennaAccessor(this);
+            Beacon = new BeaconAccessorBase(this);
 
-            if (TBlock is IMyRadioAntenna)
-                RadioAntenna = new RadioAntennaAccessor(this);
+            LaserAntenna = new LaserAntennaAccessor(this);
 
-            if (TBlock is IMyOreDetector)
-                OreDetector = new OreDetectorAccessor(this);
+            RadioAntenna = new RadioAntennaAccessor(this);
 
-            if (TBlock is IMyWarhead)
-                Warhead = new WarheadAccessor(this);
+            OreDetector = new OreDetectorAccessor(this);
 
-            if (TBlock is IMyGunBaseUser)
-                Weapon = new GunBaseAccessor(this);
+            Warhead = new WarheadAccessor(this);
 
-            if (TBlock is IMyLargeTurretBase)
-                Turret = new TurretAccessor(this);
+            Weapon = new GunBaseAccessor(this);
 
-            if (TBlock is IMyGyro)
-                Gyroscope = new GyroAccessor(this);
+            Turret = new TurretAccessor(this);
 
-            if (TBlock is IMyGravityGeneratorBase)
-                GravityGen = new GravityGenAccessor(this);
+            Gyroscope = new GyroAccessor(this);
 
-            if (TBlock is IMySensorBlock)
-                Sensor = new SensorAccessor(this);
+            GravityGen = new GravityGenAccessor(this);
 
-            if (TBlock is IMyProjector)
-                Projector = new ProjectorAccessor(this);
+            Sensor = new SensorAccessor(this);
 
-            if (TBlock is IMyTimerBlock)
-                Timer = new TimerAccessor(this);
+            Projector = new ProjectorAccessor(this);
 
-            if (TBlock is IMyProgrammableBlock)
-                Program = new ProgramBlockAccessor(this);
+            Timer = new TimerAccessor(this);
+
+            Program = new ProgramBlockAccessor(this);
         }
+
+        public void GetGroupNamesForBlock(List<string> groups) =>
+            TerminalGrid.GetGroupNamesForBlock(TBlock, groups);
 
         public void GetGroupsForBlock(List<IMyBlockGroup> groups) =>
             TerminalGrid.GetGroupsForBlock(TBlock, groups);
 
         public abstract class SubtypeAccessorBase
         {
-            public readonly TBlockSubtypes subtype;
+            public TBlockSubtypes SubtypeId { get; protected set; }
 
             protected SuperBlock block;
 
-            protected SubtypeAccessorBase(SuperBlock block, TBlockSubtypes subtype)
+            protected SubtypeAccessorBase(SuperBlock block)
             {
                 this.block = block;
-                this.subtype = subtype;
-                block.SubtypeId |= subtype;
-                block.subtypeAccessors.Add(this);
             }
 
+            protected SubtypeAccessorBase(SuperBlock block, TBlockSubtypes subtypeId, bool addSubtype = true)
+            {
+                this.block = block;
+                this.SubtypeId = subtypeId;
+
+                if (addSubtype)
+                {
+                    block.SubtypeId |= subtypeId;
+                    block.subtypeAccessors.Add(this);
+                }
+            }
+
+            protected SubtypeAccessorBase(SuperBlock block, TBlockSubtypes subtypeId, TBlockSubtypes prerequsites)
+                : this(block, subtypeId, block.SubtypeId.UsesSubtype(prerequsites))
+            { }
+
             public abstract RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat);
+        }
+
+        public abstract class SubtypeAccessor<T> : SubtypeAccessorBase where T : class
+        {
+            protected readonly T subtype;
+
+            protected SubtypeAccessor(SuperBlock block, TBlockSubtypes subtypeId, bool addSubtype = true) : base(block)
+            {
+                subtype = block.TBlock as T;
+                this.SubtypeId = subtypeId;
+
+                if (addSubtype && subtype != null)
+                {
+                    block.SubtypeId |= subtypeId;
+                    block.subtypeAccessors.Add(this);
+                }
+            }
+
+            protected SubtypeAccessor(SuperBlock block, TBlockSubtypes subtypeId, TBlockSubtypes prerequsites) 
+                : this(block, subtypeId, block.SubtypeId.UsesSubtype(prerequsites))
+            { }
         }
     }
 

@@ -14,31 +14,27 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public RotorAccessor Rotor { get; private set; }
 
-        public class RotorAccessor : SubtypeAccessorBase
+        public class RotorAccessor : SubtypeAccessor<IMyMotorStator>
         {
             /// <summary>
             /// Rotor angle in pi radians.
             /// </summary>
-            public float Angle => rotor.Angle;
+            public float Angle => subtype.Angle;
 
-            public bool RotorLock { get { return rotor.RotorLock; } set { rotor.RotorLock = value; } }
+            public bool RotorLock { get { return subtype.RotorLock; } set { subtype.RotorLock = value; } }
 
-            private readonly IMyMotorStator rotor;
-
-            public RotorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Rotor)
-            {
-                rotor = block.TBlock as IMyMotorStator;
-            }
+            public RotorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Rotor, TBlockSubtypes.MechanicalConnection)
+            { }
 
             /// <summary>
             /// Reverses the rotors direction of rotation
             /// </summary>
             public void Reverse() =>
-                rotor.TargetVelocityRad = -rotor.TargetVelocityRad;
+                subtype.TargetVelocityRad = -subtype.TargetVelocityRad;
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                if (rotor.IsAttached)
+                if (subtype.IsAttached)
                 {
                     return new RichText {
                         { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_MotorLock)}: ", nameFormat },

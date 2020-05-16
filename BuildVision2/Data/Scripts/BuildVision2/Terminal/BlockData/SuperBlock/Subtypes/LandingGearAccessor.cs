@@ -15,27 +15,23 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public LandingGearAccessor LandingGear { get; private set; }
 
-        public class LandingGearAccessor : SubtypeAccessorBase
+        public class LandingGearAccessor : SubtypeAccessor<IMyLandingGear>
         {
             /// <summary>
             /// Returns the status of the landing gear (unlocked/ready/locked).
             /// </summary>
-            public LandingGearMode Status => landingGear.LockMode;
+            public LandingGearMode Status => subtype.LockMode;
 
-            public bool AutoLock { get { return landingGear.AutoLock; } set { landingGear.AutoLock = value; } }
-
-            private readonly IMyLandingGear landingGear;
+            public bool AutoLock { get { return subtype.AutoLock; } set { subtype.AutoLock = value; } }
 
             public LandingGearAccessor(SuperBlock block) : base(block, TBlockSubtypes.LandingGear)
-            {
-                landingGear = block.TBlock as IMyLandingGear;
-            }
+            { }
 
             /// <summary>
             /// Toggles the landing gear's lock.
             /// </summary>
             public void ToggleLock() =>
-                landingGear.ToggleLock();
+                subtype.ToggleLock();
 
             /// <summary>
             /// Returns localized string representing the landing gear status.

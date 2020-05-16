@@ -261,7 +261,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Tries to retrieve targeted <see cref="IMyTerminalBlock"/> on a grid within a given distance.
         /// </summary>
-        private static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock target)
+        public static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock target)
         {
             IMyCubeGrid grid;
             IHitInfo rayInfo;

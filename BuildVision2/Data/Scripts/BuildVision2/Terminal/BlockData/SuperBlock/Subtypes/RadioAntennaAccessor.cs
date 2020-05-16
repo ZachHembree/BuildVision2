@@ -13,29 +13,25 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public RadioAntennaAccessor RadioAntenna { get; private set; }
 
-        public class RadioAntennaAccessor : SubtypeAccessorBase
+        public class RadioAntennaAccessor : SubtypeAccessor<IMyRadioAntenna>
         {
             /// <summary>
             /// Controls the broadcast range of the antenna.
             /// </summary>
-            public float Range { get { return radioAntenna.Radius; } set { radioAntenna.Radius = value; } }
+            public float Range { get { return subtype.Radius; } set { subtype.Radius = value; } }
 
             /// <summary>
             /// Indicates whether or not the antenna is broadcasting.
             /// </summary>
-            public bool IsBroadcasting => radioAntenna.IsBroadcasting;
+            public bool IsBroadcasting => subtype.IsBroadcasting;
 
             /// <summary>
             /// Controls the name broadcasted by the antenna.
             /// </summary>
-            public string HudText { get { return radioAntenna.HudText; } set { radioAntenna.HudText = value; } } 
-
-            private readonly IMyRadioAntenna radioAntenna;
+            public string HudText { get { return subtype.HudText; } set { subtype.HudText = value; } } 
 
             public RadioAntennaAccessor(SuperBlock block) : base(block, TBlockSubtypes.RadioAntenna)
-            {
-                radioAntenna = block.TBlock as IMyRadioAntenna;
-            }
+            { }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

@@ -17,8 +17,10 @@ namespace DarkHelmet.BuildVision2
 
             private readonly string groupString;
 
-            public GeneralAccessor(SuperBlock block) : base(block, TBlockSubtypes.None)
+            public GeneralAccessor(SuperBlock block) : base(block)
             {
+                block.SubtypeId |= SubtypeId;
+                block.subtypeAccessors.Add(this);
                 groupString = GetGroupString();
             }
 
@@ -45,28 +47,15 @@ namespace DarkHelmet.BuildVision2
             private string GetGroupString()
             {
                 var groupString = new StringBuilder();
-                var groups = new List<IMyBlockGroup>();
-                block.GetGroupsForBlock(groups);
+                var groupNames = new List<string>();
+                block.GetGroupNamesForBlock(groupNames);
 
-                // Im getting duplicates for some reason
-                var groupNames = new List<string>(groups.Count);
-
-                for (int n = 0; n < groups.Count; n++)
+                for(int n = 0; n < groupNames.Count; n++)
                 {
-                    if (!groupNames.Contains(groups[n].Name))
-                        groupNames.Add(groups[n].Name);
-                }
-
-                int count = 0;
-
-                foreach (string name in groupNames)
-                {
-                    if (count > 0)
-                        groupString.Append($", {name}");
+                    if (n > 0)
+                        groupString.Append($", {groupNames[n]}");
                     else
-                        groupString.Append(name);
-
-                    count++;
+                        groupString.Append(groupNames[n]);
                 }
 
                 return groupString.ToString();

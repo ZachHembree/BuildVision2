@@ -15,47 +15,43 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public WarheadAccessor Warhead { get; private set; }
 
-        public class WarheadAccessor : SubtypeAccessorBase
+        public class WarheadAccessor : SubtypeAccessor<IMyWarhead>
         {
             /// <summary>
             /// Controls the warhead detonation countdown in seconds.
             /// </summary>
-            public float CountdownTime { get { return warhead.DetonationTime; } set { warhead.DetonationTime = value; } }
+            public float CountdownTime { get { return subtype.DetonationTime; } set { subtype.DetonationTime = value; } }
 
             /// <summary>
             /// Controls warhead arming.
             /// </summary>
-            public bool IsArmed { get { return warhead.IsArmed; } set { warhead.IsArmed = value; } }
+            public bool IsArmed { get { return subtype.IsArmed; } set { subtype.IsArmed = value; } }
 
             /// <summary>
             /// Indicates whether or not the warhead is counting down.
             /// </summary>
-            public bool IsCountingDown => warhead.IsCountingDown;
-
-            /// <summary>
-            /// Detonates the warhead.
-            /// </summary>
-            public readonly Action Detonate;
-
-            private readonly IMyWarhead warhead;
+            public bool IsCountingDown => subtype.IsCountingDown;
 
             public WarheadAccessor(SuperBlock block) : base(block, TBlockSubtypes.Warhead)
-            {
-                warhead = block.TBlock as IMyWarhead;
-                Detonate = warhead.Detonate;
-            }
+            { }
 
             /// <summary>
             /// Starts the countdown.
             /// </summary>
             public void StartCountdown() =>
-                warhead.StartCountdown();
+                subtype.StartCountdown();
 
             /// <summary>
             /// Stops the countdown.
             /// </summary>
             public void StopCountdown() =>
-                warhead.StopCountdown();
+                subtype.StopCountdown();
+
+            /// <summary>
+            /// Detonates the warhead.
+            /// </summary>
+            public void Detonate() =>
+                subtype.Detonate();
 
             /// <summary>
             /// Returns the status of the warhead (armed/disarmed) as a localized string).

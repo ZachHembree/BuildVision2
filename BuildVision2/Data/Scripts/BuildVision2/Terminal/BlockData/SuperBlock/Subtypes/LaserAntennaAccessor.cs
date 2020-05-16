@@ -14,24 +14,20 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public LaserAntennaAccessor LaserAntenna { get; private set; }
 
-        public class LaserAntennaAccessor : SubtypeAccessorBase
+        public class LaserAntennaAccessor : SubtypeAccessor<IMyLaserAntenna>
         {
             /// <summary>
             /// Contorls the maximum range of the antenna.
             /// </summary>
-            public float Range { get { return laserAntenna.Range; } set { laserAntenna.Range = value; } }
+            public float Range { get { return subtype.Range; } set { subtype.Range = value; } }
 
             /// <summary>
             /// Indicates the antenna's current status.
             /// </summary>
-            public MyLaserAntennaStatus Status => laserAntenna.Status;
-
-            private readonly IMyLaserAntenna laserAntenna;
+            public MyLaserAntennaStatus Status => subtype.Status;
 
             public LaserAntennaAccessor(SuperBlock block) : base(block, TBlockSubtypes.LaserAntenna)
-            {
-                laserAntenna = block.TBlock as IMyLaserAntenna;
-            }
+            { }
 
             /// <summary>
             /// Returns antenna status as a localized string.

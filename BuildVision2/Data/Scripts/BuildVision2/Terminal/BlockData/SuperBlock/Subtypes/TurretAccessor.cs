@@ -17,19 +17,15 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public TurretAccessor Turret { get; private set; }
 
-        public class TurretAccessor : SubtypeAccessorBase
+        public class TurretAccessor : SubtypeAccessor<IMyLargeTurretBase>
         {
             /// <summary>
             /// Indicates the maximum targeting range for the turret.
             /// </summary>
-            public float Range => turret.Range;
-
-            private readonly IMyLargeTurretBase turret;
+            public float Range => subtype.Range;
 
             public TurretAccessor(SuperBlock block) : base(block, TBlockSubtypes.Turret)
-            {
-                turret = block.TBlock as IMyLargeTurretBase;
-            }
+            { }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

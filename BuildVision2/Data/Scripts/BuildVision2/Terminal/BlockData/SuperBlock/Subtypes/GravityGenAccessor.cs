@@ -12,9 +12,9 @@ namespace DarkHelmet.BuildVision2
     {
         public GravityGenAccessor GravityGen { get; private set; }
 
-        public class GravityGenAccessor : SubtypeAccessorBase
+        public class GravityGenAccessor : SubtypeAccessor<IMyGravityGeneratorBase>
         {
-            public float Acceleration { get { return gravGen.GravityAcceleration; } set { gravGen.GravityAcceleration = value; } }
+            public float Acceleration { get { return subtype.GravityAcceleration; } set { subtype.GravityAcceleration = value; } }
 
             public Vector3 FieldSize 
             { 
@@ -30,15 +30,16 @@ namespace DarkHelmet.BuildVision2
 
             public bool IsSpherical => sphere != null;
 
-            private readonly IMyGravityGeneratorBase gravGen;
             private readonly IMyGravityGenerator box;
             private readonly IMyGravityGeneratorSphere sphere;
 
             public GravityGenAccessor(SuperBlock block) : base(block, TBlockSubtypes.GravityGen)
             {
-                gravGen = block.TBlock as IMyGravityGeneratorBase;
-                box = block.TBlock as IMyGravityGenerator;
-                sphere = block.TBlock as IMyGravityGeneratorSphere;
+                if (subtype != null)
+                {
+                    box = block.TBlock as IMyGravityGenerator;
+                    sphere = block.TBlock as IMyGravityGeneratorSphere;
+                }
             }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)

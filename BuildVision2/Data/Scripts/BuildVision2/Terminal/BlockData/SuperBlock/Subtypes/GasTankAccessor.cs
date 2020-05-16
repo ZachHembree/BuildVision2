@@ -13,30 +13,26 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public GasTankAccessor GasTank { get; private set; }
 
-        public class GasTankAccessor : SubtypeAccessorBase
+        public class GasTankAccessor : SubtypeAccessor<IMyGasTank>
         {
             /// <summary>
             /// Returns the capacity of the tank
             /// </summary>
-            public double Capacity => gasTank.Capacity;
+            public double Capacity => subtype.Capacity;
 
-            public double Fill => gasTank.Capacity * gasTank.FilledRatio;
+            public double Fill => subtype.Capacity * subtype.FilledRatio;
 
             /// <summary>
             /// Returns the fill ratio of the tank
             /// </summary>
-            public double FillRatio => gasTank.FilledRatio;
+            public double FillRatio => subtype.FilledRatio;
 
-            public bool Stockpile { get { return gasTank.Stockpile; } set { gasTank.Stockpile = value; } }
+            public bool Stockpile { get { return subtype.Stockpile; } set { subtype.Stockpile = value; } }
 
-            public bool AutoRefillBottles { get { return gasTank.AutoRefillBottles; } set { gasTank.AutoRefillBottles = value; } }
-
-            private readonly IMyGasTank gasTank;
+            public bool AutoRefillBottles { get { return subtype.AutoRefillBottles; } set { subtype.AutoRefillBottles = value; } }
 
             public GasTankAccessor(SuperBlock block) : base(block, TBlockSubtypes.GasTank)
-            {
-                gasTank = block.TBlock as IMyGasTank;
-            }
+            { }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

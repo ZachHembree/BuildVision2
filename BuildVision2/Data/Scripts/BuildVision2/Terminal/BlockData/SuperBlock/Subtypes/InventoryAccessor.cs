@@ -23,13 +23,16 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public int InventoryCount => block.TBlock.InventoryCount;
 
-            public InventoryAccessor(SuperBlock block) : base(block, TBlockSubtypes.Inventory)
+            public InventoryAccessor(SuperBlock block) : base(block, TBlockSubtypes.Inventory, block.TBlock.HasInventory)
             {
-                var inventories = new List<InventoryWrapper>(InventoryCount);
-                Inventories = inventories;
+                if (block.TBlock.HasInventory)
+                {
+                    var inventories = new List<InventoryWrapper>(InventoryCount);
+                    Inventories = inventories;
 
-                for (int n = 0; n < InventoryCount; n++)
-                    inventories.Add(new InventoryWrapper(block.TBlock.GetInventory(n)));
+                    for (int n = 0; n < InventoryCount; n++)
+                        inventories.Add(new InventoryWrapper(block.TBlock.GetInventory(n)));
+                }
             }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)

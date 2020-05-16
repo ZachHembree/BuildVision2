@@ -9,18 +9,14 @@ namespace DarkHelmet.BuildVision2
     {
         public BeaconAccessorBase Beacon { get; private set; }
 
-        public class BeaconAccessorBase : SubtypeAccessorBase
+        public class BeaconAccessorBase : SubtypeAccessor<IMyBeacon>
         {
-            public float Radius { get { return beacon.Radius; } set { beacon.Radius = value; } }
+            public float Radius { get { return subtype.Radius; } set { subtype.Radius = value; } }
 
-            public string HudText { get { return beacon.HudText; } set { beacon.HudText = value; } }
-
-            private readonly IMyBeacon beacon;
+            public string HudText { get { return subtype.HudText; } set { subtype.HudText = value; } }
 
             public BeaconAccessorBase(SuperBlock block) : base(block, TBlockSubtypes.Beacon)
-            {
-                beacon = block.TBlock as IMyBeacon;
-            }
+            { }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

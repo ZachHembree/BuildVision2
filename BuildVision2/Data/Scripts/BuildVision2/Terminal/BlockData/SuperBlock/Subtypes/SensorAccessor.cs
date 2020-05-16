@@ -8,16 +8,12 @@ namespace DarkHelmet.BuildVision2
     {
         public SensorAccessor Sensor { get; private set; }
 
-        public class SensorAccessor : SubtypeAccessorBase
+        public class SensorAccessor : SubtypeAccessor<IMySensorBlock>
         {
-            public bool IsEntityDetected => sensor.IsActive && block.TBlock.IsWorking;
-
-            private readonly IMySensorBlock sensor;
+            public bool IsEntityDetected => subtype.IsActive && block.TBlock.IsWorking;
 
             public SensorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Sensor)
-            {
-                sensor = block.TBlock as IMySensorBlock;
-            }
+            { }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

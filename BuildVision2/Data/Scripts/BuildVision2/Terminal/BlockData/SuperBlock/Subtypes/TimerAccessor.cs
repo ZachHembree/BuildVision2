@@ -10,20 +10,16 @@ namespace DarkHelmet.BuildVision2
     {
         public TimerAccessor Timer { get; private set; }
 
-        public class TimerAccessor : SubtypeAccessorBase
+        public class TimerAccessor : SubtypeAccessor<IMyTimerBlock>
         {
-            public float Delay { get { return timer.TriggerDelay; } set { timer.TriggerDelay = value; } }
+            public float Delay { get { return subtype.TriggerDelay; } set { subtype.TriggerDelay = value; } }
 
-            public bool IsCountingDown => timer.IsCountingDown;
+            public bool IsCountingDown => subtype.IsCountingDown;
 
-            public bool Silent { get { return timer.Silent; } set { timer.Silent = value; } }
-
-            private readonly IMyTimerBlock timer;
+            public bool Silent { get { return subtype.Silent; } set { subtype.Silent = value; } }
 
             public TimerAccessor(SuperBlock block) : base(block, TBlockSubtypes.Timer)
-            {
-                timer = block.TBlock as IMyTimerBlock;
-            }
+            { }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
@@ -38,13 +34,13 @@ namespace DarkHelmet.BuildVision2
             }
 
             public void StartCountdown() =>
-                timer.StartCountdown();
+                subtype.StartCountdown();
 
             public void StopCountdown() =>
-                timer.StopCountdown();
+                subtype.StopCountdown();
 
             public void Trigger() =>
-                timer.Trigger();
+                subtype.Trigger();
         }
     }
 }

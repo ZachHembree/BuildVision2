@@ -61,7 +61,7 @@ namespace DarkHelmet.BuildVision2
             GetScrollableActions();
         }
 
-        private int GetEnabledElementCount()
+        public int GetEnabledElementCount()
         {
             int count = 0;
 

@@ -14,25 +14,21 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public AirVentAccessor AirVent { get; private set; }
 
-        public class AirVentAccessor : SubtypeAccessorBase
+        public class AirVentAccessor : SubtypeAccessor<IMyAirVent>
         {
             /// <summary>
             /// Indicates the vent's current status (depressurized/depressurizing/pressurizing/pressurized).
             /// </summary>
-            public VentStatus Status => vent.Status;
+            public VentStatus Status => subtype.Status;
 
-            public bool Depressurize => vent.Depressurize;
+            public bool Depressurize => subtype.Depressurize;
 
-            public bool CanPressurize => vent.CanPressurize;
+            public bool CanPressurize => subtype.CanPressurize;
 
-            public float OxygenLevel => vent.GetOxygenLevel();
-
-            private readonly IMyAirVent vent;
+            public float OxygenLevel => subtype.GetOxygenLevel();
 
             public AirVentAccessor(SuperBlock block) : base(block, TBlockSubtypes.AirVent)
-            {
-                vent = block.TBlock as IMyAirVent;
-            }
+            { }
 
             /// <summary>
             /// Returns vent status as a localized string.
@@ -42,17 +38,28 @@ namespace DarkHelmet.BuildVision2
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText
+                var summary = new RichText
                 {
                     { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Depressurize)}: ", nameFormat },
                     { $"{MyTexts.GetString(Depressurize ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)}\n", valueFormat },
+                };
 
-                    { $"{MyTexts.GetString(MySpaceTexts.HudInfoOxygen)}", nameFormat },
-                    { $"{(OxygenLevel * 100f).Round(2)}%\n", valueFormat },
+                if (block.Power.Enabled != null && block.Power.Enabled.Value)
+                {
+                    summary.Add(new RichText
+                    {
+                        { $"{MyTexts.GetString(MySpaceTexts.HudInfoOxygen)}", nameFormat },
+                        { $"{(OxygenLevel * 100f).Round(2)}%\n", valueFormat },
+                    });
+                }
 
+                summary.Add(new RichText
+                {
                     { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
                     { $"{GetLocalizedVentStatus()}\n", valueFormat },
-                };
+                });
+
+                return summary;
             }
         }
     }

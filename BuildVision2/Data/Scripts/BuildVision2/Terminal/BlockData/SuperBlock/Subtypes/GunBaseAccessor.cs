@@ -14,7 +14,7 @@ namespace DarkHelmet.BuildVision2
     {
         public GunBaseAccessor Weapon { get; private set; }
 
-        public class GunBaseAccessor : SubtypeAccessorBase
+        public class GunBaseAccessor : SubtypeAccessor<IMyGunBaseUser>
         {
             /// <summary>
             /// Lists the supported ammo types.
@@ -23,17 +23,17 @@ namespace DarkHelmet.BuildVision2
 
             public string AmmoName { get; }
 
-            private readonly IMyGunBaseUser gunbase;
-
             public GunBaseAccessor(SuperBlock block) : base(block, TBlockSubtypes.GunBase)
             {
-                gunbase = block.TBlock as IMyGunBaseUser;
-                var acceptedItems = new List<MyItemType>();
-                
-                AmmoTypes = acceptedItems;
-                (gunbase.AmmoInventory as IMyInventory).GetAcceptedItems(acceptedItems);
+                if (subtype != null)
+                {
+                    var acceptedItems = new List<MyItemType>();
 
-                AmmoName = CleanTypeId(AmmoTypes[0].SubtypeId);
+                    AmmoTypes = acceptedItems;
+                    (subtype.AmmoInventory as IMyInventory).GetAcceptedItems(acceptedItems);
+
+                    AmmoName = CleanTypeId(AmmoTypes[0].SubtypeId);
+                }
             }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)

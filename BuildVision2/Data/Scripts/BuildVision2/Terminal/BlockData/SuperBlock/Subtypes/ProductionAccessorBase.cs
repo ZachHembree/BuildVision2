@@ -11,7 +11,7 @@ namespace DarkHelmet.BuildVision2
     {
         public ProductionAccessorBase Production { get; set; }
 
-        public class ProductionAccessorBase : SubtypeAccessorBase
+        public class ProductionAccessorBase : SubtypeAccessor<IMyProductionBlock>
         {
             public float? Productivity 
             {
@@ -19,7 +19,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     float value;
 
-                    if (production.UpgradeValues.TryGetValue("Productivity", out value))
+                    if (subtype.UpgradeValues.TryGetValue("Productivity", out value))
                         return value + 1f;
                     else
                         return null;
@@ -32,7 +32,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     float value;
 
-                    if (production.UpgradeValues.TryGetValue("Effectiveness", out value))
+                    if (subtype.UpgradeValues.TryGetValue("Effectiveness", out value))
                         return value;
                     else
                         return null;
@@ -45,19 +45,15 @@ namespace DarkHelmet.BuildVision2
                 {
                     float value;
 
-                    if (production.UpgradeValues.TryGetValue("PowerEfficiency", out value))
+                    if (subtype.UpgradeValues.TryGetValue("PowerEfficiency", out value))
                         return value;
                     else
                         return null;
                 }
             }
 
-            private readonly IMyProductionBlock production;
-
             public ProductionAccessorBase(SuperBlock block) : base(block, TBlockSubtypes.Production)
-            {
-                production = block.TBlock as IMyProductionBlock;
-            }
+            { }
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

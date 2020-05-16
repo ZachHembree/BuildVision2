@@ -15,25 +15,21 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public ConnectorAccessor Connector { get; private set; }
 
-        public class ConnectorAccessor : SubtypeAccessorBase
+        public class ConnectorAccessor : SubtypeAccessor<IMyShipConnector>
         {
             /// <summary>
             /// Returns the status of the connector (locked/ready/unlocked).
             /// </summary>
-            public ConnectorStatus Status => connector.Status;
-
-            private readonly IMyShipConnector connector;
+            public ConnectorStatus Status => subtype.Status;
 
             public ConnectorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Connector)
-            {
-                connector = block.TBlock as IMyShipConnector;
-            }
+            { }
 
             /// <summary>
             /// Toggles connector lock.
             /// </summary>
             public void ToggleConnect() =>
-                connector.ToggleConnect();
+                subtype.ToggleConnect();
 
             /// <summary>
             /// Returns localized string representing the connector's status.

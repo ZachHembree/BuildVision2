@@ -15,20 +15,16 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public DoorAccessor Door { get; private set; }
 
-        public class DoorAccessor : SubtypeAccessorBase
+        public class DoorAccessor : SubtypeAccessor<IMyDoor>
         {
             /// <summary>
             /// Returns the status of the door (open/opening/closed).
             /// </summary>
-            public DoorStatus Status => door.Status;
-
-            private readonly IMyDoor door;
+            public DoorStatus Status => subtype.Status;
 
             public DoorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Door)
             {
-                door = block.TBlock as IMyDoor;
-
-                if (block.TBlock is IMyParachute)
+                if (subtype != null && block.TBlock is IMyParachute)
                     block.SubtypeId |= TBlockSubtypes.Parachute;
             }
 
@@ -36,7 +32,7 @@ namespace DarkHelmet.BuildVision2
             /// Toggles the door opened/closed.
             /// </summary>
             public void ToggleDoor() =>
-                door.ToggleDoor();
+                subtype.ToggleDoor();
 
             /// <summary>
             /// Returns localized string representing the door's status.
