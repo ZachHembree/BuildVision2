@@ -47,9 +47,7 @@ namespace DarkHelmet.BuildVision2
 
         public PropertyBlock(TerminalGrid grid, IMyTerminalBlock block) : base(grid, block)
         {
-            BoundingBoxD bb;
-            TBlock.SlimBlock.GetWorldBoundingBox(out bb);
-            modelOffset = bb.Center - TBlock.GetPosition();
+            modelOffset = block.WorldAABB.Center - TBlock.GetPosition();
         }
 
         private void GenerateProperties()

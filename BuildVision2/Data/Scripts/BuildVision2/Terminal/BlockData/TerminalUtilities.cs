@@ -1,10 +1,13 @@
 ﻿using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
-using System.Collections.Generic;
 using System;
-using VRage.ModAPI;
+using System.Collections.Generic;
+using VRage.Collections;
+using VRage.Game.Components;
 using VRage.Game.ModAPI;
+using VRage.ModAPI;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -13,7 +16,7 @@ namespace DarkHelmet.BuildVision2
         public static string GetForceDisplay(float newtons)
         {
             string suffix = "N";
-            
+
             if (newtons > 1E9f)
             {
                 newtons /= 1E9f;
@@ -82,6 +85,9 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        /// <summary>
+        /// Indicates whether or not the cube block is a large grid block.
+        /// </summary>
         public static bool IsLargeGrid(this IMyCubeBlock block) =>
             block.CubeGrid.GridSizeEnum == VRage.Game.MyCubeSize.Large;
 

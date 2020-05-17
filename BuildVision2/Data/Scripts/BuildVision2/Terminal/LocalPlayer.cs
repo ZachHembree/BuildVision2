@@ -3,8 +3,11 @@ using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.ModAPI;
+using VRage.Game.Entity;
 using VRageMath;
+using VRage.ModAPI;
 using System;
+using RichHudFramework.Internal;
 using CollisionLayers = Sandbox.Engine.Physics.MyPhysics.CollisionLayers;
 
 namespace DarkHelmet.BuildVision2
@@ -92,11 +95,12 @@ namespace DarkHelmet.BuildVision2
         public static bool TryGetTargetedGrid(LineD line, out IMyCubeGrid grid)
         {
             IHitInfo rayInfo;
+            grid = null;
 
             if (PlyEnt != null)
             {
                 MyAPIGateway.Physics.CastRay(line.From, line.To, out rayInfo, CollisionLayers.CollisionLayerWithoutCharacter);
-                grid = rayInfo?.HitEntity as IMyCubeGrid;
+                grid = rayInfo?.HitEntity.GetTopMostParent() as IMyCubeGrid;
             }
             else
             {
@@ -118,7 +122,7 @@ namespace DarkHelmet.BuildVision2
             if (PlyEnt != null)
             {
                 MyAPIGateway.Physics.CastRay(line.From, line.To, out rayInfo, CollisionLayers.CollisionLayerWithoutCharacter);
-                grid = rayInfo?.HitEntity as IMyCubeGrid;
+                grid = rayInfo?.HitEntity.GetTopMostParent() as IMyCubeGrid;
             }
 
             return grid != null;
@@ -131,6 +135,7 @@ namespace DarkHelmet.BuildVision2
         {
             Vector3D start, end;
             IHitInfo rayInfo;
+            grid = null;
 
             if (PlyEnt != null)
             {
@@ -138,7 +143,7 @@ namespace DarkHelmet.BuildVision2
                 end = start + HeadTransform.Forward * maxDist;
 
                 MyAPIGateway.Physics.CastRay(start, end, out rayInfo, CollisionLayers.CollisionLayerWithoutCharacter);
-                grid = rayInfo?.HitEntity as IMyCubeGrid;
+                grid = rayInfo?.HitEntity.GetTopMostParent() as IMyCubeGrid;
                 hitPos = rayInfo.Position;
             }
             else

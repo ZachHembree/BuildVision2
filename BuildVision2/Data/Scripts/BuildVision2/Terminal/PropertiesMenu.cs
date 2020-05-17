@@ -1,15 +1,17 @@
-﻿using RichHudFramework.UI;
-using RichHudFramework;
-using Sandbox.ModAPI;
-using RichHudFramework.UI.Client;
+﻿using RichHudFramework;
 using RichHudFramework.Internal;
-using RichHudFramework.IO;
-using VRageMath;
+using RichHudFramework.UI;
+using RichHudFramework.UI.Client;
+using Sandbox.ModAPI;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using VRage.Collections;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
-using System.Collections.Generic;
-using System;
+using VRage.ModAPI;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -201,7 +203,7 @@ namespace DarkHelmet.BuildVision2
             if (TryGetTarget() && CanAccessTargetBlock())
             {
                 scrollMenu.SetTarget(targetBlock);
-                Open = true;   
+                Open = true;
             }
         }
 
@@ -277,16 +279,21 @@ namespace DarkHelmet.BuildVision2
 
                 foreach (IMySlimBlock slimBlock in blocks)
                 {
-                    BoundingBoxD box; slimBlock.GetWorldBoundingBox(out box);
-                    double newDist = box.DistanceSquared(rayInfo.Position),
-                        newCenterDist = Vector3D.DistanceSquared(box.Center, rayInfo.Position);
-                    var fatBlock = slimBlock?.FatBlock as IMyTerminalBlock;
+                    IMyCubeBlock cubeBlock = slimBlock?.FatBlock;
 
-                    if ((fatBlock != null || currentDist > 0d) && (newDist < currentDist || (newDist == 0d && newCenterDist < currentCenterDist)))
+                    if (cubeBlock != null)
                     {
-                        target = fatBlock;
-                        currentDist = newDist;
-                        currentCenterDist = newCenterDist;
+                        BoundingBoxD box = cubeBlock.WorldAABB;
+                        double newDist = box.DistanceSquared(rayInfo.Position),
+                            newCenterDist = Vector3D.DistanceSquared(box.Center, rayInfo.Position);
+                        var tBlock = cubeBlock as IMyTerminalBlock;
+
+                        if ((tBlock != null || currentDist > 0d) && (newDist < currentDist || (newDist == 0d && newCenterDist < currentCenterDist)))
+                        {
+                            target = tBlock;
+                            currentDist = newDist;
+                            currentCenterDist = newCenterDist;
+                        }
                     }
                 }
 
