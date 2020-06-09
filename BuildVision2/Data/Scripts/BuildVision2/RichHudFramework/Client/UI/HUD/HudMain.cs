@@ -209,6 +209,7 @@ namespace RichHudFramework
             private readonly ICursor cursor;
             private readonly Func<TextBoardMembers> GetTextBoardDataFunc;
             private readonly ApiMemberAccessor GetOrSetMemberFunc;
+            private HudMasterDrawAccessor masterDrawAccessor;
 
             private float screenHeight, screenWidth, aspectRatio, resScale, fov, fovScale;
             private MatrixD pixelToWorld;
@@ -228,10 +229,12 @@ namespace RichHudFramework
                 if (_instance == null)
                 {
                     _instance = new HudMain();
+                    _instance.masterDrawAccessor = new HudMasterDrawAccessor();
+                    _instance.masterDrawAccessor.DrawAction = _instance.HudMasterDraw;
                 }
             }
 
-            public override void Draw()
+            private void HudMasterDraw()
             {
                 screenHeight = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.ScreenHeight);
                 screenWidth = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.ScreenWidth);
@@ -276,13 +279,28 @@ namespace RichHudFramework
                 if (_instance == null)
                     Init();
 
-                pixelVec *= 2f;
-
                 return new Vector2
                 (
                     pixelVec.X / _instance.screenWidth,
                     pixelVec.Y / _instance.screenHeight
                 );
+            }
+
+            private class HudMasterDrawAccessor : HudNodeBase
+            {
+                public override bool Visible => true;
+
+                public Action DrawAction;
+
+                public HudMasterDrawAccessor() : base(Root)
+                {
+                    ZOffset = HudLayers.Background;
+                }
+
+                protected override void Draw()
+                {
+                    DrawAction?.Invoke();
+                }
             }
 
             private class CursorData : ICursor

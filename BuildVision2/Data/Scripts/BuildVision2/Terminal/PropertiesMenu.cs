@@ -161,12 +161,12 @@ namespace DarkHelmet.BuildVision2
             if (targetBlock != null && Open)
             {
                 Vector3D targetPos, worldPos;
-                Vector2 screenPos, screenBounds = Vector2.One;
+                Vector2 screenPos, screenBounds = Vector2.One / 2f;
 
                 if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !BvConfig.Current.hudConfig.useCustomPos)
                 {
                     targetPos = Target.Position + Target.modelOffset * .75;
-                    worldPos = LocalPlayer.GetWorldToScreenPos(targetPos);
+                    worldPos = LocalPlayer.GetWorldToScreenPos(targetPos) / 2d;
 
                     screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
                     screenBounds -= HudMain.GetRelativeVector(scrollMenu.Size / 2f);

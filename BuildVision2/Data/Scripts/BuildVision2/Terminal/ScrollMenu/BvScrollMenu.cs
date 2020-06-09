@@ -162,9 +162,9 @@ namespace DarkHelmet.BuildVision2
 
             scrollBody.scrollBar.Padding = new Vector2(12f, 16f);
             scrollBody.scrollBar.Width = 4f;
-            scrollBody.Chain.AutoResize = false;
+            scrollBody.List.AutoResize = false;
 
-            selectionBox = new TexturedBox(scrollBody.Chain)
+            selectionBox = new TexturedBox(scrollBody.List)
             {
                 Color = selectionBoxColor,
                 Padding = new Vector2(30f, 0f),
@@ -494,6 +494,13 @@ namespace DarkHelmet.BuildVision2
                     AlignVertical = false,
                     ChildContainer = { selectionBox, name, value, postfix }
                 };
+            }
+
+            public void Reset()
+            {
+                name.TextBoard.Clear();
+                postfix.TextBoard.Clear();
+                BlockMember = null;
             }
 
             protected override void Layout()
