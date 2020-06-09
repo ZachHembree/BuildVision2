@@ -170,28 +170,31 @@ namespace RichHudFramework
                 _scale = localScale;
             }
 
-            public sealed override void BeforeInput()
+            public sealed override void BeforeInput(HudLayers layer)
             {
                 if (Visible)
                 {
                     for (int n = children.Count - 1; n >= 0; n--)
                     {
                         if (children[n].Visible)
-                            children[n].BeforeInput();
+                            children[n].BeforeInput(layer);
                     }
 
-                    if (CaptureCursor && HudMain.Cursor.Visible && !HudMain.Cursor.IsCaptured)
+                    if (_zOffset == layer)
                     {
-                        isMousedOver = IsMouseInBounds();
-                        HandleInput();
+                        if (CaptureCursor && HudMain.Cursor.Visible && !HudMain.Cursor.IsCaptured)
+                        {
+                            isMousedOver = IsMouseInBounds();
+                            HandleInput();
 
-                        if (!ShareCursor && isMousedOver)
-                            HudMain.Cursor.Capture(ID);
-                    }
-                    else
-                    {
-                        isMousedOver = false;
-                        HandleInput();
+                            if (!ShareCursor && isMousedOver)
+                                HudMain.Cursor.Capture(ID);
+                        }
+                        else
+                        {
+                            isMousedOver = false;
+                            HandleInput();
+                        }
                     }
                 }
                 else

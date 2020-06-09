@@ -30,7 +30,7 @@ namespace RichHudFramework
         object, // ID
         Action<bool>, // BeforeLayout
         Action<int>, // BeforeDraw
-        Action, // HandleInput
+        Action<int>, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
     using TextBoardMembers = MyTuple<
@@ -53,19 +53,10 @@ namespace RichHudFramework
     namespace UI.Client
     {
         using HudMainMembers = MyTuple<
-            HudElementMembers,
-            CursorMembers,
-            Func<float>, // ScreenWidth
-            Func<float>, // ScreenHeight
-            Func<float>, // AspectRatio
-            MyTuple<
-                Func<float>, // ResScale
-                Func<float>, // Fov
-                Func<float>, // FovScale
-                MyTuple<Func<IList<RichStringMembers>>, Action<IList<RichStringMembers>>>,
-                Func<TextBoardMembers>, // GetNewTextBoard
-                ApiMemberAccessor // GetOrSetMembers
-            >
+            HudElementMembers, // HudRoot
+            CursorMembers, // Cursor
+            Func<TextBoardMembers>, // GetNewTextBoard
+            ApiMemberAccessor // GetOrSetMembers
         >;
 
         public sealed class HudMain : RichHudClient.ApiModule<HudMainMembers>
@@ -103,8 +94,8 @@ namespace RichHudFramework
             /// </summary>
             public static RichText ClipBoard
             {
-                get { return new RichText(Instance.ClipboardPropWrapper.Getter()); }
-                set { Instance.ClipboardPropWrapper.Setter(value.ApiData); }
+                get { return new RichText(Instance.GetOrSetMemberFunc(null, (int)HudMainAccessors.ClipBoard) as IList<RichStringMembers>); }
+                set { Instance.GetOrSetMemberFunc(value.ApiData, (int)HudMainAccessors.ClipBoard); }
             }
 
             /// <summary>
@@ -118,7 +109,21 @@ namespace RichHudFramework
                     if (_instance == null)
                         Init();
 
-                    return _instance.ResScaleFunc();
+                    return _instance.resScale;
+                }
+            }
+
+            /// <summary>
+            /// Matrix used to convert from 2D pixel-value screen space coordinates to worldspace.
+            /// </summary>
+            public static MatrixD PixelToWorld
+            {
+                get
+                {
+                    if (_instance == null)
+                        Init();
+
+                    return _instance.pixelToWorld;
                 }
             }
 
@@ -132,7 +137,7 @@ namespace RichHudFramework
                     if (_instance == null)
                         Init();
 
-                    return _instance.ScreenWidthFunc();
+                    return _instance.screenWidth;
                 }
             }
 
@@ -146,7 +151,7 @@ namespace RichHudFramework
                     if (_instance == null)
                         Init();
 
-                    return _instance.ScreenHeightFunc();
+                    return _instance.screenHeight;
                 }
             }
 
@@ -160,7 +165,7 @@ namespace RichHudFramework
                     if (_instance == null)
                         Init();
 
-                    return _instance.AspectRatioFunc();
+                    return _instance.aspectRatio;
                 }
             }
 
@@ -174,7 +179,7 @@ namespace RichHudFramework
                     if (_instance == null)
                         Init();
 
-                    return _instance.FovFunc();
+                    return _instance.fov;
                 }
             }
 
@@ -189,7 +194,7 @@ namespace RichHudFramework
                     if (_instance == null)
                         Init();
 
-                    return _instance.FovScaleFunc();
+                    return _instance.fovScale;
                 }
             }
 
@@ -202,14 +207,11 @@ namespace RichHudFramework
 
             private readonly HudParentData root;
             private readonly ICursor cursor;
-            private readonly Func<float> ScreenWidthFunc;
-            private readonly Func<float> ScreenHeightFunc;
-            private readonly Func<float> AspectRatioFunc;
-            private readonly Func<float> ResScaleFunc;
-            private readonly Func<float> FovFunc;
-            private readonly Func<float> FovScaleFunc;
-            private readonly PropWrapper<IList<RichStringMembers>> ClipboardPropWrapper;
             private readonly Func<TextBoardMembers> GetTextBoardDataFunc;
+            private readonly ApiMemberAccessor GetOrSetMemberFunc;
+
+            private float screenHeight, screenWidth, aspectRatio, resScale, fov, fovScale;
+            private MatrixD pixelToWorld;
 
             private HudMain() : base(ApiModuleTypes.HudMain, false, true)
             {
@@ -217,17 +219,8 @@ namespace RichHudFramework
 
                 root = new HudParentData(members.Item1);
                 cursor = new CursorData(members.Item2);
-
-                ScreenWidthFunc = members.Item3;
-                ScreenHeightFunc = members.Item4;
-                AspectRatioFunc = members.Item5;
-
-                var data2 = members.Item6;
-                ResScaleFunc = data2.Item1;
-                FovFunc = data2.Item2;
-                FovScaleFunc = data2.Item3;
-                ClipboardPropWrapper = new PropWrapper<IList<RichStringMembers>>(data2.Item4.Item1, data2.Item4.Item2);
-                GetTextBoardDataFunc = data2.Item5;
+                GetTextBoardDataFunc = members.Item3;
+                GetOrSetMemberFunc = members.Item4;             
             }
 
             private static void Init()
@@ -236,6 +229,17 @@ namespace RichHudFramework
                 {
                     _instance = new HudMain();
                 }
+            }
+
+            public override void Draw()
+            {
+                screenHeight = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.ScreenHeight);
+                screenWidth = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.ScreenWidth);
+                aspectRatio = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.AspectRatio);
+                resScale = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.ResScale);
+                fov = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.Fov);
+                fovScale = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.FovScale);
+                pixelToWorld = (MatrixD)GetOrSetMemberFunc(null, (int)HudMainAccessors.PixelToWorldTransform);
             }
 
             public override void Close()
@@ -255,14 +259,12 @@ namespace RichHudFramework
             public static Vector2 GetPixelVector(Vector2 scaledVec)
             {
                 if (_instance == null)
-
                     Init();
-                scaledVec /= 2f;
 
                 return new Vector2
                 (
-                    (int)(scaledVec.X * _instance.ScreenWidthFunc()),
-                    (int)(scaledVec.Y * _instance.ScreenHeightFunc())
+                    (int)(scaledVec.X * _instance.screenWidth),
+                    (int)(scaledVec.Y * _instance.screenHeight)
                 );
             }
 
@@ -278,8 +280,8 @@ namespace RichHudFramework
 
                 return new Vector2
                 (
-                    pixelVec.X / _instance.ScreenWidthFunc(),
-                    pixelVec.Y / _instance.ScreenHeightFunc()
+                    pixelVec.X / _instance.screenWidth,
+                    pixelVec.Y / _instance.screenHeight
                 );
             }
 

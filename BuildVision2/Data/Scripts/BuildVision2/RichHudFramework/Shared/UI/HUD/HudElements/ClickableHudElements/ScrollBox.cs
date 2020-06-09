@@ -1,5 +1,6 @@
 ﻿using VRageMath;
 using System;
+using System.Collections.Generic;
 
 namespace RichHudFramework.UI
 {
@@ -32,12 +33,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Chain element used to position list members.
         /// </summary>
-        public HudChain<T> Chain { get; }
-
-        /// <summary>
-        /// Read-only collection of members in the scroll list.
-        /// </summary>
-        public ReadOnlyCollection<T> List => Chain.ChainMembers;
+        public HudList<T> List { get; }
 
         /// <summary>
         /// Width of the scrollbox in pixels.
@@ -95,12 +91,12 @@ namespace RichHudFramework.UI
             set
             {
                 axis1 = value ? 0 : 1;
-                Chain.AlignVertical = value;
+                List.AlignVertical = value;
                 scrollBar.Vertical = value;
 
                 if (AlignVertical)
                 {
-                    Chain.ParentAlignment = ParentAlignments.Top | ParentAlignments.Left | ParentAlignments.Inner;
+                    List.ParentAlignment = ParentAlignments.Top | ParentAlignments.Left | ParentAlignments.Inner;
                     scrollBar.ParentAlignment = ParentAlignments.Right | ParentAlignments.InnerH;
                     divider.ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH;
 
@@ -112,7 +108,7 @@ namespace RichHudFramework.UI
                 }
                 else
                 {
-                    Chain.ParentAlignment = ParentAlignments.Top | ParentAlignments.Left | ParentAlignments.Inner;
+                    List.ParentAlignment = ParentAlignments.Top | ParentAlignments.Left | ParentAlignments.Inner;
                     scrollBar.ParentAlignment = ParentAlignments.Bottom | ParentAlignments.InnerV;
                     divider.ParentAlignment = ParentAlignments.Bottom | ParentAlignments.InnerV;
 
@@ -128,7 +124,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Distance between the chain elements.
         /// </summary>
-        public float Spacing { get { return Chain.Spacing; } set { Chain.Spacing = value; } }
+        public float Spacing { get { return List.Spacing; } set { List.Spacing = value; } }
 
         /// <summary>
         /// Minimum number of visible elements allowed. Supercedes maximum size. If the number of elements that
@@ -224,7 +220,7 @@ namespace RichHudFramework.UI
                 Color = new Color(53, 66, 75),
             };
 
-            Chain = new HudChain<T>(this)
+            List = new HudList<T>(this)
             {
                 AutoResize = true,
             };
@@ -238,34 +234,51 @@ namespace RichHudFramework.UI
         /// Adds a hud element to the scrollbox.
         /// <param name="element"></param>
         public void AddToList(T element) =>
-            Chain.Add(element);
+            List.Add(element);
 
         /// <summary>
         /// Finds the scrollbox member that meets the conditions
         /// required by the predicate.
         /// </summary>
         public T Find(Func<T, bool> predicate) =>
-            Chain.Find(x => predicate(x));
+            List.Find(x => predicate(x));
 
         /// <summary>
         /// Finds the index of the scrollbox member that meets the conditions
         /// required by the predicate.
         /// </summary>
         public int FindIndex(Func<T, bool> predicate) =>
-            Chain.FindIndex(x => predicate(x));
+            List.FindIndex(x => predicate(x));
 
         /// <summary>
         /// Removes the given member from the scrollbox.
         /// </summary>
         public void RemoveFromList(T member) =>
-            Chain.RemoveChild(member);
+            List.RemoveChild(member);
 
         /// <summary>
         /// Removes the scrollbox member that meets the conditions
         /// required by the predicate.
         /// </summary>
         public void RemoveFromList(Func<T, bool> predicate) =>
-            Chain.Remove(predicate);
+            List.Remove(predicate);
+
+        /// <summary>
+        /// Unparents all HUD elements from list.
+        /// </summary>
+        public void Clear()
+        {
+            List.Clear();
+        }
+
+        /// <summary>
+        /// Resets hud elements for reuse.
+        /// </summary>
+        public void Reset()
+        {
+            Enabled = false;
+            List.Reset();
+        }
 
         protected override void HandleInput()
         {
@@ -290,8 +303,8 @@ namespace RichHudFramework.UI
 
             Vector2 min = chainSize + Padding, newSize = Size;
 
-            Chain.Size = chainSize;
-            Chain.Offset = new Vector2(Padding.X, -Padding.Y) * .5f;
+            List.Size = chainSize;
+            List.Offset = new Vector2(Padding.X, -Padding.Y) * .5f;
 
             if (AlignVertical)
                 min.X += scrollBar.Width;
@@ -389,7 +402,7 @@ namespace RichHudFramework.UI
                             if (SizingMode == ScrollBoxSizingModes.ClampMembers)
                                 List[n].Width = MathHelper.Clamp(List[n].Width, min, max);
                             else if (SizingMode == ScrollBoxSizingModes.FitMembersToBox)
-                                List[n].Width = MathHelper.Min(List[n].Width, max);
+                                List[n].Width = max;
 
                             if (List[n].Width > chainSize.X)
                                 chainSize.X = List[n].Width;
@@ -440,7 +453,7 @@ namespace RichHudFramework.UI
                             if (SizingMode == ScrollBoxSizingModes.ClampMembers)
                                 List[n].Height = MathHelper.Clamp(List[n].Height, min, max);
                             else if (SizingMode == ScrollBoxSizingModes.FitMembersToBox)
-                                List[n].Height = MathHelper.Min(List[n].Height, max);
+                                List[n].Height = max;
 
                             if (List[n].Height > chainSize.Y)
                                 chainSize.Y = List[n].Height;

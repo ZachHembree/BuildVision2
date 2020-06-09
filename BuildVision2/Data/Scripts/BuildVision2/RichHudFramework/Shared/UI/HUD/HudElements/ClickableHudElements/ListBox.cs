@@ -42,7 +42,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Read-only collection of list entries.
         /// </summary>
-        public ReadOnlyCollection<ListBoxEntry<T>> List => scrollBox.List;
+        public HudList<ListBoxEntry<T>> List => scrollBox.List;
 
         /// <summary>
         /// Width of the list box in pixels.
@@ -128,7 +128,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Total number of elements in the list
         /// </summary>
-        public int Count { get; private set; }
+        public int Count => List.Count;
 
         /// <summary>
         /// Minimum number of elements visible in the list at any given time.
@@ -166,10 +166,10 @@ namespace RichHudFramework.UI
                 Thickness = 1f,
             };
 
-            selectionBox = new HighlightBox(scrollBox.Chain)
+            selectionBox = new HighlightBox(scrollBox.List)
             { Color = new Color(34, 44, 53) };
 
-            highlight = new HighlightBox(scrollBox.Chain)
+            highlight = new HighlightBox(scrollBox.List)
             { Color = new Color(34, 44, 53) };
 
             Size = new Vector2(355f, 223f);
@@ -185,9 +185,9 @@ namespace RichHudFramework.UI
         /// </summary>
         public ListBoxEntry<T> Add(RichText name, T assocMember)
         {
-            ListBoxEntry<T> member;
+            ListBoxEntry<T> member = scrollBox.List.AddReserved();
 
-            if (Count >= scrollBox.List.Count)
+            if (member == null)
             {
                 member = new ListBoxEntry<T>(assocMember)
                 {
@@ -195,15 +195,12 @@ namespace RichHudFramework.UI
                     Height = _lineHeight,
                     Padding = _memberPadding,
                 };
-
-                member.OnMemberSelected += SetSelection;
-                scrollBox.AddToList(member);
             }
 
-            member = scrollBox.List[Count];
+            member.OnMemberSelected += SetSelection;
             member.TextBoard.SetText(name);
-            member.Visible = true;
-            Count++;
+            member.Enabled = true;
+            scrollBox.AddToList(member);
 
             return member;
         }
@@ -221,10 +218,18 @@ namespace RichHudFramework.UI
         /// </summary>
         public void Clear()
         {
-            for (int n = 0; n < scrollBox.List.Count; n++)
-                scrollBox.List[n].Visible = false;
+            scrollBox.Reset();
+            Selection = null;
+        }
 
-            Count = 0;
+        /// <summary>
+        /// Resets the element for later reuse.
+        /// </summary>
+        public void Reset()
+        {
+            Clear();
+            OnSelectionChanged = null;
+            Enabled = false;
         }
 
         /// <summary>

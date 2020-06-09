@@ -9,7 +9,7 @@ namespace RichHudFramework
         object, // ID
         Action<bool>, // BeforeLayout
         Action<int>, // BeforeDraw
-        Action, // HandleInput
+        Action<int>, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
 

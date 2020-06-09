@@ -10,7 +10,7 @@ namespace RichHudFramework
         object, // ID
         Action<bool>, // BeforeLayout
         Action<int>, // BeforeDraw
-        Action, // HandleInput
+        Action<int>, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
 
@@ -60,7 +60,7 @@ namespace RichHudFramework
             /// </summary>
             void SetFocus(IHudNode child);
 
-            void BeforeInput();
+            void BeforeInput(HudLayers layer);
 
             void BeforeLayout(bool refresh);
 

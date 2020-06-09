@@ -19,7 +19,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// List of entries in the dropdown.
         /// </summary>
-        public ReadOnlyCollection<ListBoxEntry<T>> List => listBox.List;
+        public HudList<ListBoxEntry<T>> List => listBox.List;
 
         /// <summary>
         /// Padding applied to list members.
@@ -144,6 +144,14 @@ namespace RichHudFramework.UI
         /// </summary>
         public void Clear() =>
             listBox.Clear();
+
+        /// <summary>
+        /// Resets the dropdown for reuse.
+        /// </summary>
+        public void Reset()
+        {
+            listBox.Reset();
+        }
 
         /// <summary>
         /// Sets the selection to the member associated with the given object.

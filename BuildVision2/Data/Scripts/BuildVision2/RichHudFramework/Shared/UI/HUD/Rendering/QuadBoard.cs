@@ -48,26 +48,27 @@ namespace RichHudFramework
                     bbColor = GetQuadBoardColor(color);
                 }
 
+                public void Draw(Vector2 size, Vector2 origin, ref MatrixD matrix)
+                {
+                    Vector3D worldPos = new Vector3D(origin.X, origin.Y, 1d);
+                    MyQuadD quad;
+
+                    Vector3D.Transform(ref worldPos, ref matrix, out worldPos);
+                    MyUtils.GenerateQuad(out quad, ref worldPos, size.X / 2f, size.Y / 2f, ref matrix);
+
+                    AddBillboard(worldPos, ref quad, matrix.Forward, textureID, ref matFit, bbColor);
+                }
+
                 public void Draw(Vector2 size, Vector2 origin)
                 {
-                    MatrixD cameraMatrix;
-                    Vector3D worldPos;
-                    Vector2 screenPos, boardSize;
-
-                    boardSize = HudMain.GetRelativeVector(size) * HudMain.FovScale / 2f;
-                    boardSize.X *= HudMain.AspectRatio;
-
-                    screenPos = HudMain.GetRelativeVector(origin) * HudMain.FovScale;
-                    screenPos.X *= HudMain.AspectRatio;
-
-                    cameraMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
-                    worldPos = Vector3D.Transform(new Vector3D(screenPos.X, screenPos.Y, -0.1), cameraMatrix);
-
+                    MatrixD ptw = HudMain.PixelToWorld;
+                    Vector3D worldPos = new Vector3D(origin.X, origin.Y, 1d);
                     MyQuadD quad;
-                    Vector3 normal = MyAPIGateway.Session.Camera.ViewMatrix.Forward;
-                    MyUtils.GenerateQuad(out quad, ref worldPos, boardSize.X, boardSize.Y, ref cameraMatrix);
 
-                    AddBillboard(worldPos, quad, normal, textureID, matFit, bbColor);
+                    Vector3D.Transform(ref worldPos, ref ptw, out worldPos);
+                    MyUtils.GenerateQuad(out quad, ref worldPos, size.X / 2f, size.Y / 2f, ref ptw);
+
+                    AddBillboard(worldPos, ref quad, ptw.Forward, textureID, ref matFit, bbColor);
                 }
 
                 public static Vector4 GetQuadBoardColor(Color color)
@@ -81,7 +82,7 @@ namespace RichHudFramework
                     return ((Vector4)color).ToLinearRGB();
                 }
 
-                private static void AddBillboard(Vector3D pos, MyQuadD quad, Vector3 normal, MyStringId matID, FlatQuad matFit, Vector4 color)
+                private static void AddBillboard(Vector3D pos, ref MyQuadD quad, Vector3 normal, MyStringId matID, ref FlatQuad matFit, Vector4 color)
                 {
                     MyTransparentGeometry.AddTriangleBillboard
                     (

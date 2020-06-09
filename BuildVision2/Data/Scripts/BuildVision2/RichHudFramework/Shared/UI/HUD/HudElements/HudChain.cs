@@ -8,20 +8,23 @@ namespace RichHudFramework.UI
     /// <summary>
     /// HUD element used to organize other elements into straight lines, either horizontally or vertically.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class HudChain<T> : HudElementBase, IEnumerable<T> where T : class, IHudElement
+    public class HudChain<T> : HudElementBase, IReadOnlyCollection<T> where T : class, IHudElement
     {
+        /// <summary>
+        /// Retrieves the element at the specified index.
+        /// </summary>
+        public T this[int index] => elements[index];
+
+        /// <summary>
+        /// Retrieves the number of elements in the collection.
+        /// </summary>
+        public int Count { get; protected set; }
+
         /// <summary>
         /// Used to allow the addition of child elements using collection-initializer syntax in
         /// conjunction with normal initializers.
         /// </summary>
         public HudChain<T> ChildContainer => this;
-
-        /// <summary>
-        /// List of elements registered to the chain. Does not include elements that are parented
-        /// using normal methods.
-        /// </summary>
-        public ReadOnlyCollection<T> ChainMembers { get; }
 
         /// <summary>
         /// Determines whether or not chain elements will be resized to match the
@@ -37,22 +40,23 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Distance between chain elements along their axis of alignment.
         /// </summary>
-        public float Spacing { get { return spacing * Scale; } set { spacing = value / Scale; } }
+        public float Spacing { get { return _spacing * Scale; } set { _spacing = value / Scale; } }
 
-        private readonly List<T> elements;
-        private float spacing;
+        protected readonly List<T> elements;
+        private float _spacing;
         private int axis1;
 
         public HudChain(IHudParent parent = null) : base(parent)
         {
             Spacing = 0f;
             elements = new List<T>();
-            ChainMembers = new ReadOnlyCollection<T>(elements);
             AlignVertical = false;
         }
 
-        public IEnumerator<T> GetEnumerator() =>
-            elements.GetEnumerator();
+        public IEnumerator<T> GetEnumerator()
+        {
+            throw new Exception("IEnumerable Not Implemented for HudChain");
+        }
 
         IEnumerator IEnumerable.GetEnumerator() =>
             GetEnumerator();
@@ -66,7 +70,12 @@ namespace RichHudFramework.UI
 
             if (element.Parent == this)
             {
-                elements.Add(element);
+                if (Count < elements.Count)
+                    elements[Count] = element;
+                else
+                    elements.Add(element);
+
+                Count++;
             }
         }
 
@@ -99,14 +108,33 @@ namespace RichHudFramework.UI
                 elements.Remove(member);
 
             base.RemoveChild(element);
+            Count--;
         }
 
         /// <summary>
         /// Removes the chain member that meets the conditions
         /// required by the predicate.
         /// </summary>
-        public void Remove(Func<T, bool> predicate) =>
-            RemoveChild(elements.Find(x => predicate(x)));
+        public void Remove(Func<T, bool> predicate)
+        {
+            T child = elements.Find(x => predicate(x));
+
+            if (child != null)
+            {
+                RemoveChild(child);
+                Count--;
+            }
+        }
+
+        /// <summary>
+        /// Removes all child elements from the chain.
+        /// </summary>
+        public void Clear()
+        {
+            children.Clear();
+            elements.Clear();
+            Count = 0;
+        }
 
         protected override void Layout()
         {

@@ -19,7 +19,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// List of entries in the treebox.
         /// </summary>
-        public ReadOnlyCollection<ListBoxEntry<T>> List => chain.ChainMembers;
+        public HudList<ListBoxEntry<T>> List => chain;
 
         /// <summary>
         /// Height of the treebox in pixels.
@@ -29,12 +29,17 @@ namespace RichHudFramework.UI
             get
             {
                 if (!chain.Visible)
-                    return display.Height;
+                    return display.Height + Padding.Y;
                 else
-                    return display.Height + chain.Height;
+                    return display.Height + chain.Height + Padding.Y;
             }
             set
             {
+                if (Padding.Y < value)
+                    value = (value - Padding.Y) / _scale;
+                else
+                    value = (value / _scale);
+
                 if (!chain.Visible)
                 {
                     display.Height = value;                   
@@ -70,7 +75,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Size of the collection.
         /// </summary>
-        public int Count { get; private set; }
+        public int Count => chain.Count;
 
         /// <summary>
         /// Determines how far to the right list members should be offset from the position of the header.
@@ -89,7 +94,7 @@ namespace RichHudFramework.UI
 
         private readonly TreeBoxDisplay display;
         private readonly HighlightBox highlight, selectionBox;
-        private readonly HudChain<ListBoxEntry<T>> chain;
+        private readonly HudList<ListBoxEntry<T>> chain;
         private float indent;
 
         public TreeBox(IHudParent parent = null) : base(parent)
@@ -99,9 +104,10 @@ namespace RichHudFramework.UI
                 Size = new Vector2(200f, 32f),
                 Offset = new Vector2(3f, 0f),
                 ParentAlignment = ParentAlignments.Top | ParentAlignments.InnerV,
+                DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding
             };
 
-            chain = new HudChain<ListBoxEntry<T>>(display)
+            chain = new HudList<ListBoxEntry<T>>(display)
             {
                 Visible = false,
                 AutoResize = true,
@@ -201,9 +207,9 @@ namespace RichHudFramework.UI
         /// </summary>
         public ListBoxEntry<T> Add(RichText name, T assocMember)
         {
-            ListBoxEntry<T> member;
+            ListBoxEntry<T> member = chain.AddReserved();
 
-            if (Count >= List.Count)
+            if (member == null)
             {
                 member = new ListBoxEntry<T>(assocMember)
                 {
@@ -211,14 +217,12 @@ namespace RichHudFramework.UI
                     Padding = new Vector2(24f, 0f),
                 };
 
-                member.OnMemberSelected += SetSelection;
                 chain.Add(member);
             }
 
-            member = List[Count];
+            member.OnMemberSelected += SetSelection;
             member.TextBoard.SetText(name);
-            member.Visible = true;
-            Count++;
+            member.Enabled = true;
 
             return member;
         }
@@ -232,22 +236,31 @@ namespace RichHudFramework.UI
         }
 
         /// <summary>
-        /// Clears the contents of the list.
+        /// Unparents all HUD elements from list
         /// </summary>
         public void Clear()
         {
-            for (int n = 0; n < List.Count; n++)
-                List[n].Visible = false;
+            OnSelectionChanged = null;
+            Selection = null;
+            chain.Clear();
+        }
 
-            Count = 0;
+        /// <summary>
+        /// Resets the HUD element for later reuse.
+        /// </summary>
+        public void Reset()
+        {
+            OnSelectionChanged = null;
+            Selection = null;
+            chain.Reset();
         }
 
         protected override void Layout()
         {
             chain.Width = Width - IndentSize;
 
-            foreach (ListBoxEntry<T> member in chain.ChainMembers)
-                member.Height = display.Height;
+            for (int n = 0; n < chain.Count; n++)
+                chain[n].Height = display.Height;
 
             if (Selection != null)
             {
@@ -263,13 +276,13 @@ namespace RichHudFramework.UI
         {
             highlight.Visible = false;
 
-            foreach (ListBoxEntry<T> button in List)
+            for (int n = 0; n < chain.Count; n++)
             {
-                if (button.IsMousedOver)
+                if (chain[n].IsMousedOver)
                 {
                     highlight.Visible = true;
-                    highlight.Size = button.Size;
-                    highlight.Offset = button.Offset;
+                    highlight.Size = chain[n].Size;
+                    highlight.Offset = chain[n].Offset;
                 }
             }
         }

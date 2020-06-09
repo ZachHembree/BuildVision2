@@ -15,6 +15,11 @@ namespace RichHudFramework.UI
         /// Indicates whether or not the element will appear in the list
         /// </summary>
         bool Enabled { get; }
+
+        /// <summary>
+        /// Resets the state of the entry so the object can be reused.
+        /// </summary>
+        void Reset();
     }
 
     public enum ListBoxEntryAccessors : int
@@ -67,6 +72,13 @@ namespace RichHudFramework.UI
             Enabled = true;
 
             MouseInput.OnLeftClick += SelectMember;
+        }
+
+        public void Reset()
+        {
+            OnMemberSelected = null;
+            Enabled = false;
+            AssocMember = default(T);
         }
 
         private void SelectMember()

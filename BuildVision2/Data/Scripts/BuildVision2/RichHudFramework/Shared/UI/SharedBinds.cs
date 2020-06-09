@@ -32,7 +32,6 @@ namespace RichHudFramework.UI
         public static IBind RightArrow { get { return BindGroup[15]; } }
 
         public static IBind Shift { get { return BindGroup[16]; } }
-        public static IBind Tilde { get { return BindGroup[17]; } }
 
         public static IBindGroup BindGroup { get { return Instance.sharedBinds; } }
         private static SharedBinds Instance
@@ -69,7 +68,6 @@ namespace RichHudFramework.UI
                 { "rightarrow", MyKeys.Right },
 
                 { "shift", MyKeys.Shift },
-                { "tilde", MyKeys.OemTilde },
             });
         }
 

@@ -10,7 +10,7 @@ namespace RichHudFramework
         object, // ID
         Action<bool>, // BeforeLayout
         Action<int>, // BeforeDraw
-        Action, // HandleInput
+        Action<int>, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
 
@@ -30,7 +30,7 @@ namespace RichHudFramework
             private readonly Func<bool> VisFunc;
             private readonly Action<bool> BeforeLayoutAction;
             private readonly Action<int> BeforeDrawAction;
-            private readonly Action InputAction;
+            private readonly Action<int> BeforeInputAction;
             protected readonly ApiMemberAccessor GetOrSetMemberFunc;
 
             public HudParentData(HudElementMembers members)
@@ -41,7 +41,7 @@ namespace RichHudFramework
                 ID = members.Item2;
                 BeforeLayoutAction = members.Item3;
                 BeforeDrawAction = members.Item4;
-                InputAction = members.Item5;
+                BeforeInputAction = members.Item5;
                 GetOrSetMemberFunc = members.Item6;
             }
 
@@ -57,8 +57,8 @@ namespace RichHudFramework
             public void BeforeDraw(HudLayers layer) =>
                 BeforeDrawAction((int)layer);
 
-            public void BeforeInput() =>
-                InputAction();
+            public void BeforeInput(HudLayers layer) =>
+                BeforeInputAction((int)layer);
 
             public void RegisterChildren(IEnumerable<IHudNode> newChildren)
             {
@@ -91,7 +91,7 @@ namespace RichHudFramework
                     Item2 = ID,
                     Item3 = BeforeLayoutAction,
                     Item4 = BeforeDrawAction,
-                    Item5 = InputAction,
+                    Item5 = BeforeInputAction,
                     Item6 = GetOrSetMemberFunc
                 };
             }

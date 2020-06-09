@@ -16,7 +16,7 @@ namespace RichHudFramework.Client
     public sealed class RichHudClient : RichHudComponentBase
     {
         private const long modID = 1965654081, queueID = 1314086443;
-        private const int versionID = 5;
+        private const int versionID = 6;
 
         public static bool Registered => Instance != null ? Instance.registered : false;
         private static RichHudClient Instance { get; set; }

@@ -11,7 +11,7 @@ namespace RichHudFramework
         object, // ID
         Action<bool>, // BeforeLayout
         Action<int>, // BeforeDraw
-        Action, // HandleInput
+        Action<int>, // HandleInput
         ApiMemberAccessor // GetOrSetMembers
     >;
 
@@ -52,15 +52,16 @@ namespace RichHudFramework
             /// <summary>
             /// Updates input for the element and its children.
             /// </summary>
-            public virtual void BeforeInput()
+            public virtual void BeforeInput(HudLayers layer)
             {
                 for (int n = children.Count - 1; n >= 0; n--)
                 {
                     if (children[n].Visible)
-                        children[n].BeforeInput();
+                        children[n].BeforeInput(layer);
                 }
 
-                HandleInput();
+                if (_zOffset == layer)
+                    HandleInput();
             }
 
             protected virtual void HandleInput() { }
@@ -181,10 +182,10 @@ namespace RichHudFramework
                     ExceptionHandler.Run(BeforeDraw, (HudLayers)layer);
             }
 
-            private void BeforeApiInput()
+            private void BeforeApiInput(int layer)
             {
                 if (!ExceptionHandler.ClientsPaused)
-                    ExceptionHandler.Run(BeforeInput);
+                    ExceptionHandler.Run(BeforeInput, (HudLayers)layer);
             }
 
             protected virtual object GetOrSetMember(object data, int memberEnum)
