@@ -94,7 +94,15 @@ namespace RichHudFramework
             /// </summary>
             public static RichText ClipBoard
             {
-                get { return new RichText(Instance.GetOrSetMemberFunc(null, (int)HudMainAccessors.ClipBoard) as IList<RichStringMembers>); }
+                get 
+                {
+                    object value = Instance.GetOrSetMemberFunc(null, (int)HudMainAccessors.ClipBoard);
+
+                    if (value != null)
+                        return new RichText(value as IList<RichStringMembers>);
+                    else
+                        return default(RichText);
+                }
                 set { Instance.GetOrSetMemberFunc(value.ApiData, (int)HudMainAccessors.ClipBoard); }
             }
 
@@ -231,10 +239,11 @@ namespace RichHudFramework
                     _instance = new HudMain();
                     _instance.masterDrawAccessor = new HudMasterDrawAccessor();
                     _instance.masterDrawAccessor.DrawAction = _instance.HudMasterDraw;
+                    _instance.UpdateCache();
                 }
             }
 
-            private void HudMasterDraw()
+            private void UpdateCache()
             {
                 screenHeight = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.ScreenHeight);
                 screenWidth = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.ScreenWidth);
@@ -243,6 +252,11 @@ namespace RichHudFramework
                 fov = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.Fov);
                 fovScale = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.FovScale);
                 pixelToWorld = (MatrixD)GetOrSetMemberFunc(null, (int)HudMainAccessors.PixelToWorldTransform);
+            }
+
+            private void HudMasterDraw()
+            {
+                UpdateCache();
             }
 
             public override void Close()
