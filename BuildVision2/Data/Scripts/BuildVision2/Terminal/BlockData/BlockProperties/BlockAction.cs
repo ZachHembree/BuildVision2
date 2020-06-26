@@ -55,7 +55,7 @@ namespace DarkHelmet.BuildVision2
 
                 foreach (IMyTerminalAction tAction in terminalActions)
                 {
-                    if (tAction.Id.StartsWith("Add"))
+                    if (tAction.IsEnabled(block.TBlock) && tAction.Id.StartsWith("Add"))
                     {
                         members.Add(new BlockAction(
                             MyTexts.TrySubstitute(tAction.Name.ToString()), null,
