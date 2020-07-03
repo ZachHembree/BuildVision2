@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using VRage;
+using RichHudFramework.Internal;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
 using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
@@ -45,13 +46,18 @@ namespace DarkHelmet.BuildVision2
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
                 block.TBlock.GetActions(terminalActions);
 
-                members.Add(new BlockAction(
-                    MyTexts.GetString(MySpaceTexts.BlockActionTitle_Attach),
-                    () => $"({block.MechConnection.GetLocalizedAttachStatus()})",
-                    block.MechConnection.AttachHead));
-                members.Add(new BlockAction(
-                    MyTexts.GetString(MySpaceTexts.BlockActionTitle_Detach), null,
-                    block.MechConnection.DetachHead));
+                IMyTerminalAction attach = terminalActions.Find(x => x.Id == "Attach");
+
+                if (attach != null)
+                {
+                    members.Add(new BlockAction(
+                        MyTexts.GetString(MySpaceTexts.BlockActionTitle_Attach),
+                        () => $"({block.MechConnection.GetLocalizedAttachStatus()})",
+                        () => attach.Apply(block.TBlock)));
+                    members.Add(new BlockAction(
+                        MyTexts.GetString(MySpaceTexts.BlockActionTitle_Detach), null,
+                        block.MechConnection.DetachHead));
+                }
 
                 foreach (IMyTerminalAction tAction in terminalActions)
                 {
@@ -95,10 +101,10 @@ namespace DarkHelmet.BuildVision2
                 members.Add(new BlockAction(
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StartCountdown),
                     () => $"({Math.Truncate(blockData.Warhead.CountdownTime)}s)",
-                    () => blockData.Warhead.StartCountdown()));
+                    blockData.Warhead.StartCountdown));
                 members.Add(new BlockAction(
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StopCountdown), null,
-                    () => blockData.Warhead.StopCountdown()));
+                    blockData.Warhead.StopCountdown));
                 members.Add(new BlockAction(
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_Detonate), null,
                     blockData.Warhead.Detonate));
