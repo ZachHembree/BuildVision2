@@ -46,18 +46,21 @@ namespace DarkHelmet.BuildVision2
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
                 block.TBlock.GetActions(terminalActions);
 
-                IMyTerminalAction attach = terminalActions.Find(x => x.Id == "Attach");
+                IMyTerminalAction hotBarAttach = terminalActions.Find(x => x.Id == "Attach");
+                Action AttachAction;
 
-                if (attach != null)
-                {
-                    members.Add(new BlockAction(
-                        MyTexts.GetString(MySpaceTexts.BlockActionTitle_Attach),
-                        () => $"({block.MechConnection.GetLocalizedAttachStatus()})",
-                        () => attach.Apply(block.TBlock)));
-                    members.Add(new BlockAction(
-                        MyTexts.GetString(MySpaceTexts.BlockActionTitle_Detach), null,
-                        block.MechConnection.DetachHead));
-                }
+                if (hotBarAttach != null)
+                    AttachAction = () => hotBarAttach.Apply(block.TBlock);
+                else
+                    AttachAction = block.MechConnection.AttachHead;
+
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.BlockActionTitle_Attach),
+                    () => $"({block.MechConnection.GetLocalizedAttachStatus()})",
+                    AttachAction));
+                members.Add(new BlockAction(
+                    MyTexts.GetString(MySpaceTexts.BlockActionTitle_Detach), null,
+                    block.MechConnection.DetachHead));
 
                 foreach (IMyTerminalAction tAction in terminalActions)
                 {

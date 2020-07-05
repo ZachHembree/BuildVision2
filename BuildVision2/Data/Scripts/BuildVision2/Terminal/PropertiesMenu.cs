@@ -1,6 +1,7 @@
 ﻿using RichHudFramework;
 using RichHudFramework.Internal;
 using RichHudFramework.UI;
+using RichHudFramework.UI.Rendering;
 using RichHudFramework.UI.Client;
 using Sandbox.ModAPI;
 using System;
@@ -27,6 +28,11 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static bool Open { get { return Instance.scrollMenu.Visible; } set { Instance.scrollMenu.Visible = value; } }
 
+        /// <summary>
+        /// Draws the bounding box of the target. Used for debugging.
+        /// </summary>
+        public static bool DrawBoundingBox { get; set; }
+
         private static PropertiesMenu Instance
         {
             get { Init(); return _instance; }
@@ -42,8 +48,11 @@ namespace DarkHelmet.BuildVision2
         private BlockData clipboard, pasteBackup;
         private Utils.Stopwatch peekRefresh;
 
+        private readonly BlockBoard boundsTest;
+
         private PropertiesMenu() : base(false, true)
         {
+            DrawBoundingBox = false;
             scrollMenu = new BvScrollMenu() { Visible = false };
             targetGrid = new TerminalGrid();
 
@@ -52,6 +61,14 @@ namespace DarkHelmet.BuildVision2
             peekRefresh.Start();
 
             SharedBinds.Escape.OnNewPress += Hide;
+
+            boundsTest = new BlockBoard();
+            boundsTest.Front.Color = Color.Blue.SetAlphaPct(0.7f);
+            boundsTest.Back.Color = Color.LightBlue.SetAlphaPct(0.7f);
+            boundsTest.Top.Color = Color.Red.SetAlphaPct(0.7f);
+            boundsTest.Bottom.Color = Color.Orange.SetAlphaPct(0.7f);
+            boundsTest.Left.Color = Color.Green.SetAlphaPct(0.7f);
+            boundsTest.Right.Color = Color.DarkOliveGreen.SetAlphaPct(0.7f);
         }
 
         public static void Init()
@@ -185,7 +202,18 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 scrollMenu.Offset = HudMain.GetPixelVector(screenPos);
+
+                if (DrawBoundingBox)
+                    DrawTestCube();
             }
+        }
+
+        private void DrawTestCube()
+        {
+            BoundingBoxD box = targetBlock.TBlock.WorldAABB;
+            MatrixD matrix = MatrixD.Orthogonalize(box.Matrix);
+            boundsTest.Size = box.Size;
+            boundsTest.Draw(ref matrix);
         }
 
         private void ToggleOpen()

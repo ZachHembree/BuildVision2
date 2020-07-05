@@ -39,6 +39,7 @@ namespace DarkHelmet.BuildVision2
                 { "export", x => ExportBlockData() },
                 { "import", x=> TryImportBlockData() },
                 { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(PropertiesMenu.Target?.SubtypeId.ToString() ?? "No Target")}") },
+                { "toggleBoundingBox", x => PropertiesMenu.DrawBoundingBox = !PropertiesMenu.DrawBoundingBox },
                 { "targetBench", TargetBench, 1 },
                 { "echo", x => ExceptionHandler.SendChatMessage($"echo: {x[0]}") },
             });
