@@ -35,22 +35,22 @@ namespace RichHudFramework
                 /// <summary>
                 /// Material board for the top face (+Y).
                 /// </summary>
-                public MatBoard Top => faces[4];
+                public MatBoard Top => faces[2];
 
                 /// <summary>
                 /// Material board for the bottom face (-Y).
                 /// </summary>
-                public MatBoard Bottom => faces[5];
+                public MatBoard Bottom => faces[3];
 
                 /// <summary>
                 /// Material board for the left face (-X).
                 /// </summary>
-                public MatBoard Left => faces[2];
+                public MatBoard Left => faces[4];
 
                 /// <summary>
                 /// Material board for the right face (+X).
                 /// </summary>
-                public MatBoard Right => faces[3];
+                public MatBoard Right => faces[5];
 
                 /// <summary>
                 /// Gets all six faces of the block as a read only list.
