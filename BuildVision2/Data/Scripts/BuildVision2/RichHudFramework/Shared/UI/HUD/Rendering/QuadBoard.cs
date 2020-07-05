@@ -14,8 +14,8 @@ namespace RichHudFramework
         namespace Rendering
         {
             /// <summary>
-            /// Defines a rectangular billboard drawn on the HUD using a <see cref="Material"/> positioned and framed by
-            /// a <see cref="MaterialFrame"/>.
+            /// Defines a rectangular billboard drawn on the HUD using a material with texture coordinates
+            /// accessible for each vertex using a FlatQuad.
             /// </summary>
             public struct QuadBoard
             {
@@ -48,6 +48,30 @@ namespace RichHudFramework
                     bbColor = GetQuadBoardColor(color);
                 }
 
+                /// <summary>
+                /// Draws a billboard in world space using the quad specified.
+                /// </summary>
+                public void Draw(ref MyQuadD quad)
+                {
+                    AddBillboard(ref quad, textureID, ref matFit, bbColor);
+                }
+
+                /// <summary>
+                /// Draws a billboard in world space facing the +Z direction the matrix specified. Units in meters.
+                /// </summary>
+                public void Draw(Vector2 size, Vector3D origin, ref MatrixD matrix)
+                {
+                    MyQuadD quad;
+
+                    Vector3D.Transform(ref origin, ref matrix, out origin);
+                    MyUtils.GenerateQuad(out quad, ref origin, size.X / 2f, size.Y / 2f, ref matrix);
+
+                    AddBillboard(ref quad, textureID, ref matFit, bbColor);
+                }
+
+                /// <summary>
+                /// Draws a billboard in world space facing the +Z direction the matrix specified. Units in meters.
+                /// </summary>
                 public void Draw(Vector2 size, Vector2 origin, ref MatrixD matrix)
                 {
                     Vector3D worldPos = new Vector3D(origin.X, origin.Y, 1d);
@@ -56,9 +80,12 @@ namespace RichHudFramework
                     Vector3D.Transform(ref worldPos, ref matrix, out worldPos);
                     MyUtils.GenerateQuad(out quad, ref worldPos, size.X / 2f, size.Y / 2f, ref matrix);
 
-                    AddBillboard(worldPos, ref quad, matrix.Forward, textureID, ref matFit, bbColor);
+                    AddBillboard(ref quad, textureID, ref matFit, bbColor);
                 }
 
+                /// <summary>
+                /// Draws billboard in screen space with a given size in pixels at a given origin in pixels.
+                /// </summary>
                 public void Draw(Vector2 size, Vector2 origin)
                 {
                     MatrixD ptw = HudMain.PixelToWorld;
@@ -68,7 +95,7 @@ namespace RichHudFramework
                     Vector3D.Transform(ref worldPos, ref ptw, out worldPos);
                     MyUtils.GenerateQuad(out quad, ref worldPos, size.X / 2f, size.Y / 2f, ref ptw);
 
-                    AddBillboard(worldPos, ref quad, ptw.Forward, textureID, ref matFit, bbColor);
+                    AddBillboard(ref quad, textureID, ref matFit, bbColor);
                 }
 
                 public static Vector4 GetQuadBoardColor(Color color)
@@ -82,19 +109,19 @@ namespace RichHudFramework
                     return ((Vector4)color).ToLinearRGB();
                 }
 
-                private static void AddBillboard(Vector3D pos, ref MyQuadD quad, Vector3 normal, MyStringId matID, ref FlatQuad matFit, Vector4 color)
+                private static void AddBillboard(ref MyQuadD quad, MyStringId matID, ref FlatQuad matFit, Vector4 color)
                 {
                     MyTransparentGeometry.AddTriangleBillboard
                     (
                         quad.Point0,
                         quad.Point1,
                         quad.Point2,
-                        normal, normal, normal,
+                        Vector3.Zero, Vector3.Zero, Vector3.Zero,
                         matFit.Point0,
                         matFit.Point1,
                         matFit.Point2,
                         matID, 0,
-                        pos,
+                        Vector3D.Zero,
                         color,
                         BlendTypeEnum.PostPP
                     );
@@ -104,12 +131,12 @@ namespace RichHudFramework
                         quad.Point0,
                         quad.Point2,
                         quad.Point3,
-                        normal, normal, normal,
+                        Vector3.Zero, Vector3.Zero, Vector3.Zero,
                         matFit.Point0,
                         matFit.Point2,
                         matFit.Point3,
                         matID, 0,
-                        pos,
+                        Vector3D.Zero,
                         color,
                         BlendTypeEnum.PostPP
                     );

@@ -142,6 +142,9 @@ namespace RichHudFramework
                 private QuadBoard minBoard;
                 private MaterialFrame matFrame;
 
+                /// <summary>
+                /// Initializes a new matboard with a size of 0 and a blank, white material.
+                /// </summary>
                 public MatBoard()
                 {
                     minBoard = new QuadBoard();
@@ -152,6 +155,53 @@ namespace RichHudFramework
                     updateMatFit = true;
                 }
 
+                /// <summary>
+                /// Draws a billboard in world space using the quad specified.
+                /// </summary>
+                public void Draw(ref MyQuadD quad)
+                {
+                    if (updateMatFit)
+                    {
+                        minBoard.matFit = matFrame.GetMaterialAlignment(size);
+                        updateMatFit = false;
+                    }
+
+                    minBoard.Draw(ref quad);
+                }
+
+                /// <summary>
+                /// Draws a billboard in world space facing the +Z direction of the matrix given. Units in meters.
+                /// Dont forget to compensate for perspective scaling!
+                /// </summary>
+                public void Draw(Vector3D offset, ref MatrixD matrix)
+                {
+                    if (updateMatFit)
+                    {
+                        minBoard.matFit = matFrame.GetMaterialAlignment(size);
+                        updateMatFit = false;
+                    }
+
+                    minBoard.Draw(size, offset, ref matrix);
+                }
+
+                /// <summary>
+                /// Draws a billboard in world space facing the +Z direction of the matrix given. Units in meters.
+                /// Dont forget to compensate for perspective scaling!
+                /// </summary>
+                public void Draw(Vector2 offset, ref MatrixD matrix)
+                {
+                    if (updateMatFit)
+                    {
+                        minBoard.matFit = matFrame.GetMaterialAlignment(size);
+                        updateMatFit = false;
+                    }
+
+                    minBoard.Draw(size, offset, ref matrix);
+                }
+
+                /// <summary>
+                /// Draws a billboard in screen space at the given position in pixels.
+                /// </summary>
                 public void Draw(Vector2 origin)
                 {
                     if (updateMatFit)
@@ -163,7 +213,6 @@ namespace RichHudFramework
                     minBoard.Draw(size, origin);
                 }           
             }
-
         }
     }
 }
