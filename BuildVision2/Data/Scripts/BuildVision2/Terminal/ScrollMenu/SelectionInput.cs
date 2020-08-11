@@ -12,7 +12,7 @@ namespace DarkHelmet.BuildVision2
     {
         private void HandleSelectionInput()
         {
-            if (!Selection.value.InputOpen)
+            if (!Selection.valueText.InputOpen)
             {
                 if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
                     Scroll(-1);
@@ -60,7 +60,7 @@ namespace DarkHelmet.BuildVision2
 
                 for (int y = index; (y <= max && y >= min); y += dir)
                 {
-                    if (scrollBody.List[y].BlockMember.Enabled)
+                    if (scrollBody.ChainEntries[y].Enabled)
                     {
                         index = y;
                         break;
@@ -102,7 +102,7 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = 0; n < Count; n++)
             {
-                if (scrollBody.List[n].Enabled)
+                if (scrollBody.ChainEntries[n].Enabled)
                 {
                     first = n;
                     break;
@@ -122,7 +122,7 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = Count - 1; n >= 0; n--)
             {
-                if (scrollBody.List[n].Enabled)
+                if (scrollBody.ChainEntries[n].Enabled)
                 {
                     last = n;
                     break;

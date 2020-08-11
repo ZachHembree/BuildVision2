@@ -46,7 +46,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Enable peek",
                 Value = Cfg.general.enablePeek,
                 CustomValueGetter = () => Cfg.general.enablePeek,
-                ControlChangedAction = (x => Cfg.general.enablePeek = x.Value),
+                ControlChangedHandler = ((sender, args) => Cfg.general.enablePeek = (sender as TerminalCheckbox).Value),
             };
 
             // Close if not in view
@@ -55,7 +55,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Close if target not in sight",
                 Value = Cfg.general.closeIfNotInView,
                 CustomValueGetter = () => Cfg.general.closeIfNotInView,
-                ControlChangedAction = (x => Cfg.general.closeIfNotInView = x.Value),
+                ControlChangedHandler = ((sender, args) => Cfg.general.closeIfNotInView = (sender as TerminalCheckbox).Value),
             };
 
             // Can open while holding tools
@@ -64,7 +64,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Can open while holding tools",
                 Value = Cfg.general.canOpenIfHolding,
                 CustomValueGetter = () => Cfg.general.canOpenIfHolding,
-                ControlChangedAction = (x => Cfg.general.canOpenIfHolding = x.Value),
+                ControlChangedHandler = ((sender, args) => Cfg.general.canOpenIfHolding = (sender as TerminalCheckbox).Value),
             };
 
             // Open range slider
@@ -76,10 +76,12 @@ namespace DarkHelmet.BuildVision2
                 ValueText = $"{Cfg.general.maxOpenRange.Round(1)}m",
                 Value = (float)Cfg.general.maxOpenRange,
                 CustomValueGetter = () => (float)Cfg.general.maxOpenRange,
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
-                    Cfg.general.maxOpenRange = x.Value;
-                    x.ValueText = $"{x.Value.Round(1)}m";
+                    var slider = sender as TerminalSlider;
+
+                    Cfg.general.maxOpenRange = slider.Value;
+                    slider.ValueText = $"{slider.Value.Round(1)}m";
                 }
             };
 
@@ -92,17 +94,19 @@ namespace DarkHelmet.BuildVision2
                 ValueText = $"{Cfg.general.maxControlRange.Round(1)}m",
                 Value = (float)Cfg.general.maxControlRange.Round(1),
                 CustomValueGetter = () => (float)Cfg.general.maxControlRange,
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
-                    Cfg.general.maxControlRange = x.Value;
-                    x.ValueText = $"{x.Value.Round(1)}m";
+                    var slider = sender as TerminalSlider;
+
+                    Cfg.general.maxControlRange = slider.Value;
+                    slider.ValueText = $"{slider.Value.Round(1)}m";
                 }
             };
 
             var targetingResetButton = new TerminalButton()
             {
                 Name = "Reset targeting settings",
-                ControlChangedAction = x => BvConfig.Current.general = TargetingConfig.Defaults,
+                ControlChangedHandler = (sender, args) => BvConfig.Current.general = TargetingConfig.Defaults,
             };
 
             return new ControlCategory()
@@ -126,7 +130,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Resolution scaling",
                 Value = BvConfig.Current.hudConfig.resolutionScaling,
                 CustomValueGetter = () => BvConfig.Current.hudConfig.resolutionScaling,
-                ControlChangedAction = (x => BvConfig.Current.hudConfig.resolutionScaling = x.Value),
+                ControlChangedHandler = ((sender, args) => BvConfig.Current.hudConfig.resolutionScaling = (sender as TerminalCheckbox).Value),
             };
 
             // Menu size
@@ -138,10 +142,12 @@ namespace DarkHelmet.BuildVision2
                 Value = BvConfig.Current.hudConfig.hudScale,
                 ValueText = $"{(BvConfig.Current.hudConfig.hudScale * 100f).Round()}%",
                 CustomValueGetter = () => BvConfig.Current.hudConfig.hudScale,
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
-                    BvConfig.Current.hudConfig.hudScale = x.Value;
-                    x.ValueText = $"{(x.Value * 100f).Round()}%";
+                    var slider = sender as TerminalSlider;
+
+                    BvConfig.Current.hudConfig.hudScale = slider.Value;
+                    slider.ValueText = $"{(slider.Value * 100f).Round()}%";
                 }
             };
 
@@ -154,10 +160,12 @@ namespace DarkHelmet.BuildVision2
                 Value = BvConfig.Current.hudConfig.hudOpacity,
                 ValueText = $"{(BvConfig.Current.hudConfig.hudOpacity * 100f).Round()}%",
                 CustomValueGetter = () => BvConfig.Current.hudConfig.hudOpacity,
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
-                    BvConfig.Current.hudConfig.hudOpacity = x.Value;
-                    x.ValueText = $"{(x.Value * 100f).Round()}%";
+                    var slider = sender as TerminalSlider;
+
+                    BvConfig.Current.hudConfig.hudOpacity = slider.Value;
+                    slider.ValueText = $"{(slider.Value * 100f).Round()}%";
                 }
             };
 
@@ -177,10 +185,12 @@ namespace DarkHelmet.BuildVision2
                 Value = BvConfig.Current.hudConfig.maxVisible,
                 ValueText = $"{BvConfig.Current.hudConfig.maxVisible}",
                 CustomValueGetter = () => BvConfig.Current.hudConfig.maxVisible,
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
-                    BvConfig.Current.hudConfig.maxVisible = (int)x.Value;
-                    x.ValueText = $"{(int)x.Value}";
+                    var slider = sender as TerminalSlider;
+
+                    BvConfig.Current.hudConfig.maxVisible = (int)slider.Value;
+                    slider.ValueText = $"{(int)slider.Value}";
                 }
             };
 
@@ -190,7 +200,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Clamp to screen edges",
                 Value = BvConfig.Current.hudConfig.clampHudPos,
                 CustomValueGetter = () => BvConfig.Current.hudConfig.clampHudPos,
-                ControlChangedAction = (x => BvConfig.Current.hudConfig.clampHudPos = x.Value),
+                ControlChangedHandler = ((sender, args) => BvConfig.Current.hudConfig.clampHudPos = (sender as TerminalCheckbox).Value),
             };
 
             // Use custom position
@@ -199,7 +209,7 @@ namespace DarkHelmet.BuildVision2
                 Name = "Use custom position",
                 Value = BvConfig.Current.hudConfig.useCustomPos,
                 CustomValueGetter = () => BvConfig.Current.hudConfig.useCustomPos,
-                ControlChangedAction = (x => BvConfig.Current.hudConfig.useCustomPos = x.Value),
+                ControlChangedHandler = ((sender, args) => BvConfig.Current.hudConfig.useCustomPos = (sender as TerminalCheckbox).Value),
             };
 
             // Set custom position
@@ -209,7 +219,7 @@ namespace DarkHelmet.BuildVision2
                 AlignToEdge = true,
                 Value = BvConfig.Current.hudConfig.hudPos,
                 CustomValueGetter = () => BvConfig.Current.hudConfig.hudPos,
-                ControlChangedAction = (x => BvConfig.Current.hudConfig.hudPos = x.Value),
+                ControlChangedHandler = ((sender, args) => BvConfig.Current.hudConfig.hudPos = (sender as TerminalDragBox).Value),
             };
 
             var tile2 = new ControlTile()
@@ -227,17 +237,19 @@ namespace DarkHelmet.BuildVision2
                 Value = BvConfig.Current.hudConfig.maxVisible,
                 ValueText = $"{BvConfig.Current.hudConfig.maxVisible}",
                 CustomValueGetter = () => BvConfig.Current.hudConfig.maxVisible,
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
-                    BvConfig.Current.hudConfig.maxVisible = (int)x.Value.Round();
-                    x.ValueText = $"{x.Value.Round()}";
+                    var slider = sender as TerminalSlider;
+
+                    BvConfig.Current.hudConfig.maxVisible = (int)slider.Value.Round();
+                    slider.ValueText = $"{slider.Value.Round()}";
                 }
             };
 
             var resetGuiSettings = new TerminalButton()
             {
                 Name = "Reset GUI settings",
-                ControlChangedAction = x => BvConfig.Current.hudConfig = HudConfig.Defaults,
+                ControlChangedHandler = (sender, args) => BvConfig.Current.hudConfig = HudConfig.Defaults,
             };
 
             var tile3 = new ControlTile()
@@ -265,11 +277,12 @@ namespace DarkHelmet.BuildVision2
                 Value = PropertyBlock.Cfg.floatDiv.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.floatDiv.ToString(),
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
                     double value;
+                    var textField = sender as TerminalTextField;
 
-                    if (double.TryParse(x.Value, out value))
+                    if (double.TryParse(textField.Value, out value))
                     {
                         PropertyBlock.Cfg.floatDiv = value;
                         PropertyBlock.Cfg.Validate();
@@ -280,7 +293,7 @@ namespace DarkHelmet.BuildVision2
             var resetProps = new TerminalButton()
             {
                 Name = "Reset property settings",
-                ControlChangedAction = x => PropertyBlock.Cfg = PropBlockConfig.Defaults,
+                ControlChangedHandler = (sender, args) => PropertyBlock.Cfg = PropBlockConfig.Defaults,
             };
 
             var tile1 = new ControlTile()
@@ -296,9 +309,11 @@ namespace DarkHelmet.BuildVision2
                 Value = PropertyBlock.Cfg.floatMult.X.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.floatMult.X.ToString(),
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
-                    float.TryParse(x.Value, out PropertyBlock.Cfg.floatMult.X);
+                    var textField = sender as TerminalTextField;
+
+                    float.TryParse(textField.Value, out PropertyBlock.Cfg.floatMult.X);
                     PropertyBlock.Cfg.Validate();
                 }
             };
@@ -310,9 +325,11 @@ namespace DarkHelmet.BuildVision2
                 Value = PropertyBlock.Cfg.floatMult.Y.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.floatMult.Y.ToString(),
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
-                    float.TryParse(x.Value, out PropertyBlock.Cfg.floatMult.Y);
+                    var textField = sender as TerminalTextField;
+
+                    float.TryParse(textField.Value, out PropertyBlock.Cfg.floatMult.Y);
                     PropertyBlock.Cfg.Validate();
                 },
             };
@@ -324,9 +341,11 @@ namespace DarkHelmet.BuildVision2
                 Value = PropertyBlock.Cfg.floatMult.Z.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.floatMult.Z.ToString(),
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
-                    float.TryParse(x.Value, out PropertyBlock.Cfg.floatMult.Z);
+                    var textField = sender as TerminalTextField;
+
+                    float.TryParse(textField.Value, out PropertyBlock.Cfg.floatMult.Z);
                     PropertyBlock.Cfg.Validate();
                 },
             };
@@ -345,9 +364,11 @@ namespace DarkHelmet.BuildVision2
                 Value = PropertyBlock.Cfg.colorMult.X.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.colorMult.X.ToString(),
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
-                    int.TryParse(x.Value, out PropertyBlock.Cfg.colorMult.X);
+                    var textField = sender as TerminalTextField;
+
+                    int.TryParse(textField.Value, out PropertyBlock.Cfg.colorMult.X);
                     PropertyBlock.Cfg.Validate();
                 },
             };
@@ -359,9 +380,11 @@ namespace DarkHelmet.BuildVision2
                 Value = PropertyBlock.Cfg.colorMult.Y.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.colorMult.Y.ToString(),
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
-                    int.TryParse(x.Value, out PropertyBlock.Cfg.colorMult.Y);
+                    var textField = sender as TerminalTextField;
+
+                    int.TryParse(textField.Value, out PropertyBlock.Cfg.colorMult.Y);
                     PropertyBlock.Cfg.Validate();
                 },
             };
@@ -373,9 +396,11 @@ namespace DarkHelmet.BuildVision2
                 Value = PropertyBlock.Cfg.colorMult.X.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.colorMult.Z.ToString(),
-                ControlChangedAction = x =>
+                ControlChangedHandler = (sender, args) =>
                 {
-                    int.TryParse(x.Value, out PropertyBlock.Cfg.colorMult.Z);
+                    var textField = sender as TerminalTextField;
+
+                    int.TryParse(textField.Value, out PropertyBlock.Cfg.colorMult.Z);
                     PropertyBlock.Cfg.Validate();
                 },
             };
@@ -400,13 +425,13 @@ namespace DarkHelmet.BuildVision2
             var openHelp = new TerminalButton()
             {
                 Name = "Open help menu",
-                ControlChangedAction = x => ExceptionHandler.ShowMessageScreen("Help", GetHelpMessage())
+                ControlChangedHandler = (sender, args) => ExceptionHandler.ShowMessageScreen("Help", GetHelpMessage())
             };
 
             var openBindHelp = new TerminalButton()
             {
                 Name = "Open bind help",
-                ControlChangedAction = x => ExceptionHandler.ShowMessageScreen("Bind Help", GetBindHelpMessage()),
+                ControlChangedHandler = (sender, args) => ExceptionHandler.ShowMessageScreen("Bind Help", GetBindHelpMessage()),
             };
 
             var tile1 = new ControlTile()
@@ -418,19 +443,19 @@ namespace DarkHelmet.BuildVision2
             var loadCfg = new TerminalButton()
             {
                 Name = "Load config",
-                ControlChangedAction = x => BvConfig.LoadStart(),
+                ControlChangedHandler = (sender, args) => BvConfig.LoadStart(),
             };
 
             var saveCfg = new TerminalButton()
             {
                 Name = "Save config",
-                ControlChangedAction = x => BvConfig.SaveStart()
+                ControlChangedHandler = (sender, args) => BvConfig.SaveStart()
             };
 
             var resetCfg = new TerminalButton()
             {
                 Name = "Reset config",
-                ControlChangedAction = x => BvConfig.ResetConfig(),
+                ControlChangedHandler = (sender, args) => BvConfig.ResetConfig(),
             };
 
             var tile2 = new ControlTile()

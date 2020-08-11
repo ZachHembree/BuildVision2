@@ -1,11 +1,9 @@
-﻿using RichHudFramework;
-using RichHudFramework.IO;
+﻿using RichHudFramework.IO;
 using RichHudFramework.UI;
-using System.Xml.Serialization;
-using VRageMath;
-using VRage.Input;
 using System;
-using System.Collections.Generic;
+using System.Xml.Serialization;
+using VRage.Input;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -14,10 +12,6 @@ namespace DarkHelmet.BuildVision2
     {
         [XmlElement(ElementName = "GeneralSettings")]
         public TargetingConfig general;
-
-        [Obsolete]
-        [XmlElement(ElementName = "GuiSettings")]
-        public PropMenuConfig menu;
 
         [XmlElement(ElementName = "HudConfig")]
         public HudConfig hudConfig;
@@ -34,7 +28,6 @@ namespace DarkHelmet.BuildVision2
             {
                 VersionID = 9,
                 general = TargetingConfig.Defaults,
-                menu = null,
                 hudConfig = HudConfig.Defaults,
                 block = PropBlockConfig.Defaults,
                 binds = BindsConfig.Defaults
@@ -43,24 +36,12 @@ namespace DarkHelmet.BuildVision2
 
         public override void Validate()
         {
-            if (VersionID < 5)
-                block = PropBlockConfig.Defaults;
-
-            if (VersionID < 6)
-                menu = PropMenuConfig.Defaults;
-
-            if (VersionID < 7 && menu?.hudConfig != null)
-                menu.hudConfig.hudOpacity = HudConfig.Defaults.hudOpacity;
-
             if (VersionID < 9)
             {
-                general.enablePeek = true;
+                general = TargetingConfig.Defaults;
+                hudConfig = HudConfig.Defaults;
+                block = PropBlockConfig.Defaults;
                 binds = BindsConfig.Defaults;
-
-                if (menu?.hudConfig != null)
-                    hudConfig = menu.hudConfig;
-
-                menu = null;
             }
 
             if (general != null)
@@ -275,13 +256,13 @@ namespace DarkHelmet.BuildVision2
 
         public static BindDefinition[] DefaultMain => defaultMain.Clone() as BindDefinition[];
 
-        private static readonly BindDefinition[] 
-            defaultOpen = new BindGroupData 
+        private static readonly BindDefinition[]
+            defaultOpen = new BindGroupInitializer
             {
                 { "Peek", MyKeys.Control },
                 { "Open", MyKeys.Control, MyKeys.MiddleButton },
             }.GetBindDefinitions(),
-            defaultMain = new BindGroupData
+            defaultMain = new BindGroupInitializer
             {
                 { "Close", MyKeys.Shift, MyKeys.MiddleButton },
                 { "Select", MyKeys.MiddleButton },

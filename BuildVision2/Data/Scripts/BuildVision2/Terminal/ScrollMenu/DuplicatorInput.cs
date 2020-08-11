@@ -10,24 +10,32 @@ namespace DarkHelmet.BuildVision2
 {
     public sealed partial class BvScrollMenu : HudElementBase
     {
-        private void HandleReplicatorInput()
+        /// <summary>
+        /// Updates input for copy menu mode
+        /// </summary>
+        private void HandleDuplicatorInput()
         {
             if (BvBinds.SelectAll.IsNewPressed)
                 SelectAllProperties();
 
             if (BvBinds.Select.IsNewPressed)
-                Selection.Replicating = !Selection.Replicating;
+                Selection.Copying = !Selection.Copying;
         }
 
+        /// <summary>
+        /// Returns the range of properties selected as a serialized list of data.
+        /// </summary>
         public List<PropertyData> GetReplicationRange()
         {
             var propertyData = new List<PropertyData>();
 
             for (int n = 0; n < Count; n++)
             {
-                if (scrollBody.List[n].Replicating)
+                BvPropertyBox propertyBox = scrollBody.ChainEntries[n].Element;
+
+                if (propertyBox.Copying)
                 {
-                    var property = scrollBody.List[n].BlockMember as IBlockProperty;
+                    var property = propertyBox.BlockMember as IBlockProperty;
 
                     if (property != null)
                         propertyData.Add(property.GetPropertyData());
@@ -37,6 +45,9 @@ namespace DarkHelmet.BuildVision2
             return propertyData;
         }
 
+        /// <summary>
+        /// Toggles the menu between copying and property control
+        /// </summary>
         private void ToggleReplicationMode()
         {
             if (MenuMode == ScrollMenuModes.Copy)
@@ -51,19 +62,25 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        /// <summary>
+        /// Selects all enabled properties for duplication
+        /// </summary>
         private void SelectAllProperties()
         {
             for (int n = 0; n < Count; n++)
             {
-                if (scrollBody.List[n].Enabled)
-                    scrollBody.List[n].Replicating = true;
+                if (scrollBody.ChainEntries[n].Enabled)
+                    scrollBody.ChainEntries[n].Element.Copying = true;
             }
         }
 
+        /// <summary>
+        /// Deselects all properties for duplication
+        /// </summary>
         private void DeselectAllProperties()
         {
             for (int n = 0; n < Count; n++)
-                scrollBody.List[n].Replicating = false;
+                scrollBody.ChainEntries[n].Element.Copying = false;
         }
     }
 }

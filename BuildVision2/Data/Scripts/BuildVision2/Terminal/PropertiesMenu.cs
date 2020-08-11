@@ -2,6 +2,7 @@
 using RichHudFramework.Internal;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Rendering;
+using RichHudFramework.UI.Rendering.Client;
 using RichHudFramework.UI.Client;
 using Sandbox.ModAPI;
 using System;
@@ -42,18 +43,36 @@ namespace DarkHelmet.BuildVision2
         private const long peekTime = 100 * TimeSpan.TicksPerMillisecond;
 
         private readonly BvScrollMenu scrollMenu;
+        private readonly HudSpaceNode hudSpace;
         private readonly TerminalGrid targetGrid;
         private PropertyBlock targetBlock;
         private IMyTerminalBlock lastPastedTarget;
         private BlockData clipboard, pasteBackup;
         private Utils.Stopwatch peekRefresh;
 
-        private readonly BlockBoard boundsTest;
+        private readonly BlockBoard boundingBox;
 
         private PropertiesMenu() : base(false, true)
         {
             DrawBoundingBox = false;
-            scrollMenu = new BvScrollMenu() { Visible = false };
+            hudSpace = new HudSpaceNode(HudMain.Root) 
+            { 
+                Scale = 1f,
+                /*UpdateMatrixFunc = () => 
+                {
+                    if (targetBlock != null && Open)
+                    {
+                        BoundingBoxD box = targetBlock.TBlock.WorldAABB;
+                        MatrixD matrix = MatrixD.Orthogonalize(box.Matrix);
+                        matrix.Translation += new Vector3D(0d, 0d, box.Size.Z * .5d);
+
+                        return matrix;
+                    }
+                    else
+                        return default(MatrixD);
+                }*/
+            };
+            scrollMenu = new BvScrollMenu(hudSpace) { Visible = false };
             targetGrid = new TerminalGrid();
 
             RichHudCore.LateMessageEntered += MessageHandler;
@@ -62,13 +81,13 @@ namespace DarkHelmet.BuildVision2
 
             SharedBinds.Escape.OnNewPress += Hide;
 
-            boundsTest = new BlockBoard();
-            boundsTest.Front.Color = Color.Blue.SetAlphaPct(0.7f);
-            boundsTest.Back.Color = Color.LightBlue.SetAlphaPct(0.7f);
-            boundsTest.Top.Color = Color.Red.SetAlphaPct(0.7f);
-            boundsTest.Bottom.Color = Color.Orange.SetAlphaPct(0.7f);
-            boundsTest.Left.Color = Color.Green.SetAlphaPct(0.7f);
-            boundsTest.Right.Color = Color.DarkOliveGreen.SetAlphaPct(0.7f);
+            boundingBox = new BlockBoard();
+            boundingBox.Front.Color = Color.Blue.SetAlphaPct(0.7f);
+            boundingBox.Back.Color = Color.LightBlue.SetAlphaPct(0.7f);
+            boundingBox.Top.Color = Color.Red.SetAlphaPct(0.7f);
+            boundingBox.Bottom.Color = Color.Orange.SetAlphaPct(0.7f);
+            boundingBox.Left.Color = Color.Green.SetAlphaPct(0.7f);
+            boundingBox.Right.Color = Color.DarkOliveGreen.SetAlphaPct(0.7f);
         }
 
         public static void Init()
@@ -182,11 +201,11 @@ namespace DarkHelmet.BuildVision2
 
                 if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !BvConfig.Current.hudConfig.useCustomPos)
                 {
-                    targetPos = Target.Position + Target.modelOffset * .75;
+                    targetPos = Target.Position + Target.modelOffset * .75d;
                     worldPos = LocalPlayer.GetWorldToScreenPos(targetPos) / 2d;
 
                     screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
-                    screenBounds -= HudMain.GetRelativeVector(scrollMenu.Size / 2f);
+                    screenBounds -= HudMain.GetAbsoluteVector(scrollMenu.Size / 2f);
                     scrollMenu.AlignToEdge = false;
                 }
                 else
@@ -212,8 +231,8 @@ namespace DarkHelmet.BuildVision2
         {
             BoundingBoxD box = targetBlock.TBlock.WorldAABB;
             MatrixD matrix = MatrixD.Orthogonalize(box.Matrix);
-            boundsTest.Size = box.Size;
-            boundsTest.Draw(ref matrix);
+            boundingBox.Size = box.Size;
+            boundingBox.Draw(ref matrix);
         }
 
         private void ToggleOpen()
