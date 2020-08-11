@@ -189,13 +189,13 @@ namespace RichHudFramework.Internal
 
                 for (int n = clientComponents.Count - 1; n >= 0; n--)
                 {
-                    ExceptionHandler.Run(clientComponents[n].Close);
+                    ExceptionHandler.Run(() => clientComponents[n].Close());
                     clientComponents[n].UnregisterComponent(n);
                 }
 
                 for (int n = serverComponents.Count - 1; n >= 0; n--)
                 {
-                    ExceptionHandler.Run(serverComponents[n].Close);
+                    ExceptionHandler.Run(() => serverComponents[n].Close());
                     serverComponents[n].UnregisterComponent(n);
                 }
 

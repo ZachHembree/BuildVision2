@@ -18,13 +18,13 @@ namespace RichHudFramework
         public AggregateException(string aggregatedMsg) : base(aggregatedMsg)
         { }
 
-        public AggregateException(IList<Exception> exceptions) : base(GetExceptionMessages(exceptions))
+        public AggregateException(IReadOnlyList<Exception> exceptions) : base(GetExceptionMessages(exceptions))
         { }
 
-        public AggregateException(IList<AggregateException> exceptions) : base(GetExceptionMessages(exceptions))
+        public AggregateException(IReadOnlyList<AggregateException> exceptions) : base(GetExceptionMessages(exceptions))
         { }
 
-        private static string GetExceptionMessages<T>(IList<T> exceptions) where T : Exception
+        private static string GetExceptionMessages<T>(IReadOnlyList<T> exceptions) where T : Exception
         {
             StringBuilder sb = new StringBuilder(exceptions[0].Message.Length * exceptions.Count);
 

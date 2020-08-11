@@ -22,7 +22,7 @@ namespace RichHudFramework
             /// <summary>
             /// Bind groups registered to the rebind page.
             /// </summary>
-            IReadOnlyCollection<IBindGroup> BindGroups { get; }
+            IReadOnlyList<IBindGroup> BindGroups { get; }
 
             /// <summary>
             /// Adds the given bind group to the page.

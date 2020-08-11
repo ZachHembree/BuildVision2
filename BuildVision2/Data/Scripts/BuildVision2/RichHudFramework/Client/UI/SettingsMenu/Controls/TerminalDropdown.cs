@@ -14,7 +14,7 @@ namespace RichHudFramework.UI.Client
     /// A dropdown list with a label. Designed to mimic the appearance of the dropdown in the SE terminal.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class TerminalDropdown<T> : TerminalValue<EntryData<T>, TerminalDropdown<T>>
+    public class TerminalDropdown<T> : TerminalValue<EntryData<T>>
     {
         /// <summary>
         /// Currently selected list member.

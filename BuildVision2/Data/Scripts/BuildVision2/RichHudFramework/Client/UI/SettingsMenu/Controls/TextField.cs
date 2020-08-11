@@ -18,7 +18,7 @@ namespace RichHudFramework.UI.Client
     /// One-line text field with a configurable input filter delegate. Designed to mimic the appearance of the text field
     /// in the SE terminal.
     /// </summary>
-    public class TerminalTextField : TerminalValue<string, TerminalTextField>
+    public class TerminalTextField : TerminalValue<string>
     {
         /// <summary>
         /// Restricts the range of characters allowed for input.

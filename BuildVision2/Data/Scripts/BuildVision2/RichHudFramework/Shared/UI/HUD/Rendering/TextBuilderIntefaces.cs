@@ -244,7 +244,7 @@ namespace RichHudFramework
             public interface ITextBoard : ITextBuilder
             {
                 /// <summary>
-                /// Invoked whenever a change is made to the text.
+                /// Invoked whenever a change is made to the text. Invokes once every 500ms, at most.
                 /// </summary>
                 event Action OnTextChanged;
 
@@ -293,6 +293,23 @@ namespace RichHudFramework
                 /// Returns the index of the character at the given offset.
                 /// </summary>
                 Vector2I GetCharAtOffset(Vector2 localPos);
+
+                /// <summary>
+                /// Draws the text board in screen space with an offset given in pixels.
+                /// </summary>
+                void Draw(Vector2 origin);
+
+                /// <summary>
+                /// Draws the text board in world space on the XY plane of the matrix, facing in the +Z
+                /// direction.
+                /// </summary>
+                void Draw(Vector2 offset, MatrixD matrix);
+
+                /// <summary>
+                /// Draws the text board in world space on the XY plane of the matrix, facing in the +Z
+                /// direction.
+                /// </summary>
+                void Draw(Vector2 offset, ref MatrixD matrix);
             }
         }
     }

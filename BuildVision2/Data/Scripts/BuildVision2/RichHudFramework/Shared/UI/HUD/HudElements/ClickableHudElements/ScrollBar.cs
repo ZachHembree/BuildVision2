@@ -1,14 +1,15 @@
 ﻿using VRageMath;
+using System;
 
 namespace RichHudFramework.UI
 {
     /// <summary>
     /// Clickable scrollbar. Designed to mimic the appearance of the scrollbars used in SE.
     /// </summary>
-    public class ScrollBar : HudElementBase
+    public class ScrollBar : HudElementBase, IClickableElement
     {
         /// <summary>
-        /// Width of the scrollbar in pixels.
+        /// Width of the scrollbar.
         /// </summary>
         public override float Width
         {
@@ -19,11 +20,14 @@ namespace RichHudFramework.UI
                     value -= Padding.X;
 
                 slide.BarWidth = value;
+
+                if (Vertical)
+                    slide.SliderWidth = value;
             }
         }
 
         /// <summary>
-        /// Height of the scrollbar in pixels.
+        /// Height of the scrollbar.
         /// </summary>
         public override float Height
         {
@@ -34,6 +38,9 @@ namespace RichHudFramework.UI
                     value -= Padding.Y;
 
                 slide.BarHeight = value;
+
+                if (!Vertical)
+                    slide.SliderHeight = value;
             }
         }
 
@@ -75,9 +82,11 @@ namespace RichHudFramework.UI
         /// </summary>
         public override bool IsMousedOver => slide.IsMousedOver;
 
+        public IMouseInput MouseInput => slide.MouseInput;
+
         public readonly SliderBar slide;
 
-        public ScrollBar(IHudParent parent = null) : base(parent)
+        public ScrollBar(HudParentBase parent = null) : base(parent)
         {
             slide = new SliderBar(this) 
             { 
@@ -100,12 +109,10 @@ namespace RichHudFramework.UI
         {
             if (Vertical)
             {
-                slide.SliderWidth = slide.BarWidth;
                 slide.SliderVisible = slide.SliderHeight < slide.BarHeight;
             }
             else
             {
-                slide.SliderHeight = slide.BarHeight;
                 slide.SliderVisible = slide.SliderWidth < slide.BarWidth;
             }
         }

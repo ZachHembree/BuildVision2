@@ -8,11 +8,11 @@ using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageM
 
 namespace RichHudFramework.UI.Client
 {
-    using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
     using ControlMembers = MyTuple<
         ApiMemberAccessor, // GetOrSetMember
         object // ID
     >;
+    using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
 
     /// <summary>
     /// Base type for all controls in the Rich Hud Terminal.
@@ -23,11 +23,7 @@ namespace RichHudFramework.UI.Client
         /// Invoked whenver a change occurs to a control that requires a response, like a change
         /// to a value.
         /// </summary>
-        public event Action OnControlChanged
-        {
-            add { GetOrSetMember(new EventAccessor(true, value), (int)TerminalControlAccessors.OnSettingChanged); }
-            remove { GetOrSetMember(new EventAccessor(false, value), (int)TerminalControlAccessors.OnSettingChanged); }
-        }
+        public event EventHandler OnControlChanged;
 
         /// <summary>
         /// The name of the control as it appears in the terminal.
@@ -52,10 +48,21 @@ namespace RichHudFramework.UI.Client
         /// </summary>
         public object ID { get; }
 
+        public EventHandler ControlChangedHandler { get; set; }
+
         protected readonly ApiMemberAccessor GetOrSetMember;
 
         public TerminalControlBase(MenuControls controlEnum) : this(RichHudTerminal.GetNewMenuControl(controlEnum))
-        { }
+        {
+            // Register event callback
+            GetOrSetMember(new Action(ControlChangedCallback), (int)TerminalControlAccessors.GetOrSetControlCallback);
+        }
+
+        protected virtual void ControlChangedCallback()
+        {
+            OnControlChanged?.Invoke(this, EventArgs.Empty);
+            ControlChangedHandler?.Invoke(this, EventArgs.Empty);
+        }
 
         public TerminalControlBase(ControlMembers data)
         {
@@ -74,33 +81,9 @@ namespace RichHudFramework.UI.Client
     }
 
     /// <summary>
-    /// Clickable control used in conjunction by the settings menu.
-    /// </summary>
-    public abstract class TerminalControlBase<T> : TerminalControlBase, ITerminalControl<T> where T : TerminalControlBase<T>
-    {
-        /// <summary>
-        /// Delegate invoked by OnControlChanged. Passes in a reference to the control.
-        /// </summary>
-        public Action<T> ControlChangedAction { get; set; }
-
-        public TerminalControlBase(MenuControls controlEnum) : this(RichHudTerminal.GetNewMenuControl(controlEnum))
-        { }
-
-        public TerminalControlBase(ControlMembers data) : base(data)
-        {
-            OnControlChanged += UpdateControl;
-        }
-
-        private void UpdateControl()
-        {
-            ControlChangedAction?.Invoke(this as T);
-        }
-    }
-
-    /// <summary>
     /// Base type for settings menu controls associated with a value of a given type.
     /// </summary>
-    public abstract class TerminalValue<TValue, TCon> : TerminalControlBase<TCon>, ITerminalValue<TValue, TCon> where TCon : TerminalControlBase<TCon>
+    public abstract class TerminalValue<TValue> : TerminalControlBase, ITerminalValue<TValue>
     {
         /// <summary>
         /// Value associated with the control.

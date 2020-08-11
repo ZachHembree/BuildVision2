@@ -7,30 +7,24 @@ namespace RichHudFramework
     namespace UI
     {
         /// <summary>
-        /// Interface for all hud elements with definite size and position.
+        /// Read-only interface for hud elements with definite size and position.
         /// </summary>
-        public interface IHudElement : IHudNode
+        public interface IReadOnlyHudElement : IReadOnlyHudNode
         {
             /// <summary>
-            /// Scales the size and offset of an element. Any offset or size set at a given
-            /// be increased or decreased with scale. Defaults to 1f. Includes parent scale.
+            /// Size of the element. Units in pixels by default.
             /// </summary>
-            float Scale { get; set; }
+            Vector2 Size { get; }
 
             /// <summary>
-            /// Size of the hud element in pixels.
+            /// Height of the hud element. Units in pixels by default.
             /// </summary>
-            Vector2 Size { get; set; }
+            float Height { get; }
 
             /// <summary>
-            /// Height of the hud element in pixels.
+            /// Width of the hud element. Units in pixels by default.
             /// </summary>
-            float Height { get; set; }
-
-            /// <summary>
-            /// Width of the hud element in pixels.
-            /// </summary>
-            float Width { get; set; }
+            float Width { get; }
 
             /// <summary>
             /// Starting position of the hud element on the screen in pixels.
@@ -40,24 +34,27 @@ namespace RichHudFramework
             /// <summary>
             /// Position of the hud element relative to its origin.
             /// </summary>
-            Vector2 Offset { get; set; }
+            Vector2 Offset { get; }
 
             /// <summary>
             /// Determines the starting position of the hud element relative to its parent.
             /// </summary>
-            ParentAlignments ParentAlignment { get; set; }
+            ParentAlignments ParentAlignment { get; }
 
-            DimAlignments DimAlignment { get; set; }
+            /// <summary>
+            /// Determines how/if an element will copy its parent's dimensions. 
+            /// </summary>
+            DimAlignments DimAlignment { get; }
 
             /// <summary>
             /// If set to true the hud element will be allowed to capture the cursor.
             /// </summary>
-            bool CaptureCursor { get; set; }
+            bool UseCursor { get; }
 
             /// <summary>
             /// If set to true the hud element will share the cursor with its child elements.
             /// </summary>
-            bool ShareCursor { get; set; }
+            bool ShareCursor { get; }
 
             /// <summary>
             /// Indicates whether or not the cursor is currently over the element. The element must

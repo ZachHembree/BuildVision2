@@ -3,6 +3,7 @@ using System.Text;
 using VRage;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
+using RichHudFramework.UI.Rendering;
 
 namespace RichHudFramework
 {
@@ -20,6 +21,11 @@ namespace RichHudFramework
             /// Contents of the text box.
             /// </summary>
             RichText Text { get; set; }
+
+            /// <summary>
+            /// Text builder used to control the contents of the page
+            /// </summary>
+            ITextBuilder TextBuilder { get; }
         }
     }
 }

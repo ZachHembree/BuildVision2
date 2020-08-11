@@ -7,16 +7,20 @@ using VRage;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRageMath;
+using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework.Client
 {
     using ClientData = MyTuple<string, Action<int, object>, Action, int>;
     using ServerData = MyTuple<Action, Func<int, object>, int>;
 
+    /// <summary>
+    /// API Client for the Rich HUD Framework 
+    /// </summary>
     public sealed class RichHudClient : RichHudComponentBase
     {
         private const long modID = 1965654081, queueID = 1314086443;
-        private const int versionID = 6;
+        private const int versionID = 7;
 
         public static bool Registered => Instance != null ? Instance.registered : false;
         private static RichHudClient Instance { get; set; }
@@ -114,6 +118,7 @@ namespace RichHudFramework.Client
                     var data = (ServerData)message;
                     UnregisterAction = data.Item1;
                     GetApiDataFunc = data.Item2;
+
                     registered = true;
 
                     ExceptionHandler.Run(InitAction);

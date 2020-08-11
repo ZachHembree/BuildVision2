@@ -1,86 +1,104 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using VRage;
+using VRageMath;
 using System;
 
 namespace RichHudFramework
 {
-    public class PropWrapper<T>
+    /// <summary>
+    /// Read-only collection of cached and indexed RHF API wrappers
+    /// </summary>
+    public class ReadOnlyApiCollection<TValue> : IReadOnlyList<TValue>, IIndexedCollection<TValue>
     {
-        public readonly Func<T> Getter;
-        public readonly Action<T> Setter;
-
-        public PropWrapper(Func<T> Getter, Action<T> Setter)
+        /// <summary>
+        /// Returns the element at the given index.
+        /// </summary>
+        public virtual TValue this[int index]
         {
-            this.Getter = Getter;
-            this.Setter = Setter;
+            get 
+            {
+                int count = GetCountFunc();
+
+                if (wrapperList.Count < count)
+                {
+                    for (int n = wrapperList.Count; wrapperList.Count < count; n++)
+                        wrapperList.Add(GetNewWrapperFunc(n));
+                }
+                else if (count > 9 && wrapperList.Count > count * 3)
+                {
+                    wrapperList.RemoveRange(count, wrapperList.Count - count);
+                    wrapperList.TrimExcess();
+                }
+
+                return wrapperList[index];
+            }
         }
 
-        public PropWrapper(MyTuple<Func<T>, Action<T>> tuple)
+        /// <summary>
+        /// Returns the number of elements in the collection
+        /// </summary>
+        public virtual int Count => GetCountFunc();
+
+        protected readonly Func<int, TValue> GetNewWrapperFunc;
+        protected readonly Func<int> GetCountFunc;
+        protected readonly List<TValue> wrapperList;
+        protected readonly CollectionDataEnumerator<TValue> enumerator;
+
+        public ReadOnlyApiCollection(Func<int, TValue> GetNewWrapper, Func<int> GetCount)
         {
-            Getter = tuple.Item1;
-            Setter = tuple.Item2;
-        }
-    }
+            this.GetNewWrapperFunc = GetNewWrapper;
+            this.GetCountFunc = GetCount;
 
-    public class ReadOnlyCollectionData<T> : IReadOnlyCollection<T>
-    {
-        public T this[int index] => Getter(index);
-        public int Count => CountFunc();
-
-        private readonly Func<int, T> Getter;
-        private readonly Func<int> CountFunc;
-        private readonly IEnumerator<T> enumerator;
-
-        public ReadOnlyCollectionData(Func<int, T> Getter, Func<int> CountFunc)
-        {
-            this.Getter = Getter;
-            this.CountFunc = CountFunc;
-            enumerator = new CollectionDataEnumerator<T>(Getter, CountFunc);
+            wrapperList = new List<TValue>();
+            enumerator = new CollectionDataEnumerator<TValue>(x => this[x], GetCount);
         }
 
-        public ReadOnlyCollectionData(MyTuple<Func<int, T>, Func<int>> tuple)
-        {
-            Getter = tuple.Item1;
-            CountFunc = tuple.Item2;
-            enumerator = new CollectionDataEnumerator<T>(Getter, CountFunc);
-        }
+        public ReadOnlyApiCollection(MyTuple<Func<int, TValue>, Func<int>> tuple)
+            : this(tuple.Item1, tuple.Item2)
+        { }
 
-        public IEnumerator<T> GetEnumerator() =>
+        public virtual IEnumerator<TValue> GetEnumerator() =>
             enumerator;
 
         IEnumerator IEnumerable.GetEnumerator() =>
             GetEnumerator();
     }
 
-    public class CollectionDataEnumerator<T> : IEnumerator<T>
+    /// <summary>
+    /// Read-only collection backed by delegates
+    /// </summary>
+    public class ReadOnlyCollectionData<TValue> : IReadOnlyList<TValue>, IIndexedCollection<TValue>
     {
-        object IEnumerator.Current => Current;
-        public T Current => Getter(index);
+        /// <summary>
+        /// Returns the element at the given index.
+        /// </summary>
+        public virtual TValue this[int index] => Getter(index);
 
-        private readonly Func<int, T> Getter;
-        private readonly Func<int> CountFunc;
-        private int index;
+        /// <summary>
+        /// Returns the number of elements in the collection
+        /// </summary>
+        public virtual int Count => GetCountFunc();
 
-        public CollectionDataEnumerator(Func<int, T> Getter, Func<int> CountFunc)
+        protected readonly Func<int, TValue> Getter;
+        protected readonly Func<int> GetCountFunc;
+        protected readonly CollectionDataEnumerator<TValue> enumerator;
+
+        public ReadOnlyCollectionData(Func<int, TValue> Getter, Func<int> GetCount)
         {
             this.Getter = Getter;
-            this.CountFunc = CountFunc;
-            index = -1;
+            this.GetCountFunc = GetCount;
+            enumerator = new CollectionDataEnumerator<TValue>(x => this[x], GetCount);
         }
 
-        public void Dispose()
+        public ReadOnlyCollectionData(MyTuple<Func<int, TValue>, Func<int>> tuple)
+            : this(tuple.Item1, tuple.Item2)
         { }
 
-        public bool MoveNext()
-        {
-            index++;
-            return index < CountFunc();
-        }
+        public virtual IEnumerator<TValue> GetEnumerator() =>
+            enumerator;
 
-        public void Reset()
-        {
-            index = -1;
-        }
+        IEnumerator IEnumerable.GetEnumerator() =>
+            GetEnumerator();
     }
 }

@@ -100,22 +100,6 @@ namespace RichHudFramework.Internal
         }
 
         /// <summary>
-        /// Executes a given <see cref="Action{T}"/> in a try-catch block. If an exception occurs, it will attempt
-        /// to log it, display an error message to the user and reload or unload the mod depending on the configuration.
-        /// </summary>
-        public static void Run<T>(Action<T> Action, T argument)
-        {
-            try
-            {
-                Action(argument);
-            }
-            catch (Exception e)
-            {
-                instance.ReportException(e);
-            }
-        }
-
-        /// <summary>
         /// Executes a given <see cref="Func{TResult}"/> in a try-catch block. If an exception occurs, it will attempt
         /// to log it, display an error message to the user and reload or unload the mod depending on the configuration.
         /// </summary>

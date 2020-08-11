@@ -57,7 +57,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Read-only collection of all registered fonts.
                 /// </summary>
-                public static IReadOnlyCollection<IFontMin> Fonts => Instance.fonts;
+                public static IReadOnlyList<IFontMin> Fonts => Instance.fonts;
 
                 private static FontManager Instance
                 {
@@ -66,7 +66,7 @@ namespace RichHudFramework
                 }
                 private static FontManager instance;
 
-                private readonly ReadOnlyCollectionData<IFontMin> fonts;
+                private readonly ReadOnlyApiCollection<IFontMin> fonts;
                 private readonly Func<FontDefinition, FontMembers?> TryAddFontFunc;
                 private readonly Func<string, FontMembers?> GetFontFunc;
 
@@ -75,7 +75,7 @@ namespace RichHudFramework
                     var members = GetApiData();
 
                     Func<int, IFontMin> fontGetter = x => new FontData(members.Item1.Item1(x));
-                    fonts = new ReadOnlyCollectionData<IFontMin>(fontGetter, members.Item1.Item2);
+                    fonts = new ReadOnlyApiCollection<IFontMin>(fontGetter, members.Item1.Item2);
 
                     TryAddFontFunc = members.Item2;
                     GetFontFunc = members.Item3;

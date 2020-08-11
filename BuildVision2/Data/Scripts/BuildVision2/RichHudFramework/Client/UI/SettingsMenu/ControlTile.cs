@@ -31,7 +31,7 @@ namespace RichHudFramework.UI.Client
         /// <summary>
         /// Read only collection of <see cref="TerminalControlBase"/>s attached to the tile
         /// </summary>
-        public IReadOnlyCollection<ITerminalControl> Controls { get; }
+        public IReadOnlyList<ITerminalControl> Controls { get; }
 
         public IControlTile ControlContainer => this;
 
@@ -62,7 +62,7 @@ namespace RichHudFramework.UI.Client
             var GetControlDataFunc = data.Item2.Item1 as Func<int, ControlMembers>;
             Func<int, TerminalControlBase> GetControlFunc = (x => new TerminalControl(GetControlDataFunc(x)));
 
-            Controls = new ReadOnlyCollectionData<ITerminalControl>(GetControlFunc, data.Item2.Item2);
+            Controls = new ReadOnlyApiCollection<ITerminalControl>(GetControlFunc, data.Item2.Item2);
         }
 
         IEnumerator<ITerminalControl> IEnumerable<ITerminalControl>.GetEnumerator() =>

@@ -37,9 +37,9 @@ namespace RichHudFramework
         /// <summary>
         /// Returns an array containing only unique entries from the collection.
         /// </summary>
-        public static T[] GetUnique<T>(this ICollection<T> original)
+        public static T[] GetUnique<T>(this IReadOnlyList<T> original)
         {
-            List<T> unique = new List<T>(original.Count);
+            var unique = new List<T>(original.Count);
 
             foreach (T item in original)
             {

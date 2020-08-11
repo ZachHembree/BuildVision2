@@ -41,8 +41,12 @@ namespace RichHudFramework
             /// <summary>
             /// Read only collection of <see cref="TerminalControlBase"/>s attached to the tile
             /// </summary>
-            IReadOnlyCollection<ITerminalControl> Controls { get; }
+            IReadOnlyList<ITerminalControl> Controls { get; }
 
+            /// <summary>
+            /// Used to allow the addition of controls to tiles using collection-initializer syntax in
+            /// conjunction with normal initializers.
+            /// </summary>
             IControlTile ControlContainer { get; }
 
             /// <summary>

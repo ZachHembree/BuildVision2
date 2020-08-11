@@ -101,11 +101,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Invoked when a new page is selected
                 /// </summary>
-                public event Action OnSelectionChanged
-                {
-                    add { GetOrSetMemberFunc(new EventAccessor(true, value), (int)ModControlRootAccessors.OnSelectionChanged); }
-                    remove { GetOrSetMemberFunc(new EventAccessor(false, value), (int)ModControlRootAccessors.OnSelectionChanged); }
-                }
+                public event EventHandler OnSelectionChanged;
 
                 /// <summary>
                 /// Name of the mod as it appears in the <see cref="RichHudTerminal"/> mod list
@@ -119,7 +115,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Read only collection of <see cref="ITerminalPage"/>s assigned to this object.
                 /// </summary>
-                public IReadOnlyCollection<ITerminalPage> Pages { get; }
+                public IReadOnlyList<ITerminalPage> Pages { get; }
 
                 public IModControlRoot PageContainer => this;
 
@@ -155,15 +151,10 @@ namespace RichHudFramework
 
                     var GetPageDataFunc = data.Item2.Item1 as Func<int, ControlMembers>;
                     Func<int, ITerminalPage> GetPageFunc = (x => new TerminalPage(GetPageDataFunc(x)));
+                    Pages = new ReadOnlyApiCollection<ITerminalPage>(GetPageFunc, data.Item2.Item2);
 
-                    Pages = new ReadOnlyCollectionData<ITerminalPage>(GetPageFunc, data.Item2.Item2);
+                    GetOrSetMemberFunc(new Action(ModRootCallback), (int)ModControlRootAccessors.GetOrSetCallback);
                 }
-
-                IEnumerator<ITerminalPage> IEnumerable<ITerminalPage>.GetEnumerator() =>
-                    Pages.GetEnumerator();
-
-                IEnumerator IEnumerable.GetEnumerator() =>
-                    Pages.GetEnumerator();
 
                 /// <summary>
                 /// Adds the given <see cref="TerminalPageBase"/> to the object.
@@ -176,6 +167,17 @@ namespace RichHudFramework
                 /// </summary>
                 public ControlContainerMembers GetApiData() =>
                     data;
+
+                IEnumerator<ITerminalPage> IEnumerable<ITerminalPage>.GetEnumerator() =>
+                    Pages.GetEnumerator();
+
+                IEnumerator IEnumerable.GetEnumerator() =>
+                    Pages.GetEnumerator();
+
+                protected void ModRootCallback()
+                {
+                    OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+                }
 
                 private class TerminalPage : TerminalPageBase
                 {

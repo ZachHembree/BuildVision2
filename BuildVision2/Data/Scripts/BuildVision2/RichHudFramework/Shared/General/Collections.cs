@@ -22,13 +22,6 @@ namespace RichHudFramework
     }
 
     /// <summary>
-    /// An indexed, enumerable read-only collection
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public interface IReadOnlyCollection<T> : IIndexedCollection<T>, IEnumerable<T>
-    { }
-
-    /// <summary>
     /// Read-only wrapper for types of <see cref="IDictionary{TKey, TValue}"/>
     /// </summary>
     public class ReadOnlyDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
@@ -58,17 +51,17 @@ namespace RichHudFramework
     }
 
     /// <summary>
-    /// Read only wrapper for types of <see cref="IList{T}"/> in lieu of the one in System.Collections.ObjectModel. 
-    /// The indexer doesn't allow modification of the collection, but if the underlying collection is modified, this will reflect that.
+    /// Read only wrapper for types of <see cref="IReadOnlyList{T}"/>
     /// </summary>
-    public class ReadOnlyCollection<T> : IReadOnlyCollection<T>
+    public class ReadOnlyCollection<T> : IReadOnlyList<T>
     {
         public T this[int index] => collection[index];
+
         public int Count => collection.Count;
 
-        protected readonly IList<T> collection;
+        protected readonly IReadOnlyList<T> collection;
 
-        public ReadOnlyCollection(IList<T> collection)
+        public ReadOnlyCollection(IReadOnlyList<T> collection)
         {
             this.collection = collection;
         }
@@ -83,5 +76,47 @@ namespace RichHudFramework
 
         IEnumerator IEnumerable.GetEnumerator() =>
             GetEnumerator();
+    }
+
+
+    /// <summary>
+    /// Generic enumerator using delegates.
+    /// </summary>
+    public class CollectionDataEnumerator<T> : IEnumerator<T>
+    {
+        /// <summary>
+        /// Returns the element at the enumerator's current position
+        /// </summary>
+        object IEnumerator.Current => Current;
+
+        /// <summary>
+        /// Returns the element at the enumerator's current position
+        /// </summary>
+        public T Current => Getter(index);
+
+        protected readonly Func<int, T> Getter;
+        protected readonly Func<int> CountFunc;
+        protected int index;
+
+        public CollectionDataEnumerator(Func<int, T> Getter, Func<int> CountFunc)
+        {
+            this.Getter = Getter;
+            this.CountFunc = CountFunc;
+            index = -1;
+        }
+
+        public void Dispose()
+        { }
+
+        public bool MoveNext()
+        {
+            index++;
+            return index < CountFunc();
+        }
+
+        public void Reset()
+        {
+            index = -1;
+        }
     }
 }

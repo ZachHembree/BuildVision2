@@ -24,7 +24,7 @@ namespace RichHudFramework.UI
         int ArgsRequired { get; }
     }
 
-    public class CmdGroupInitializer : IReadOnlyCollection<MyTuple<string, Action<string[]>, int>>
+    public class CmdGroupInitializer : IReadOnlyList<MyTuple<string, Action<string[]>, int>>
     {
         public MyTuple<string, Action<string[]>, int> this[int index] => data[index];
         public int Count => data.Count;

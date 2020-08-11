@@ -1,72 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using VRage;
-using BindMembers = VRage.MyTuple<
-    System.Func<object, int, object>, // GetOrSetMember
-    System.Func<bool>, // IsPressed
-    System.Func<bool>, // IsPressedAndHeld
-    System.Func<bool>, // IsNewPressed
-    System.Func<bool> // IsReleased
->;
-using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
     namespace UI
     {
-        public enum BindAccesssors : int
-        {
-            /// <summary>
-            /// out: <see cref="string"/>
-            /// </summary>
-            Name = 1,
-
-            /// <summary>
-            /// out: <see cref="bool"/>
-            /// </summary>
-            Analog = 2,
-
-            /// <summary>
-            /// in: MyTuple(bool, Action)
-            /// </summary>
-            OnNewPress = 3,
-
-            /// <summary>
-            /// in: MyTuple(bool, Action)
-            /// </summary>
-            OnPressAndHold = 4,
-
-            /// <summary>
-            /// in: MyTuple(bool, Action)
-            /// </summary>
-            OnRelease = 5,
-
-            /// <summary>
-            /// out: <see cref="List{T}(int)"/>
-            /// </summary>
-            GetCombo = 6,
-
-            /// <summary>
-            /// in: MyTuple(List(int), bool), out: bool"
-            /// </summary>
-            SetCombo = 7,
-
-            /// <summary>
-            /// void
-            /// </summary>
-            ClearCombo = 8,
-
-            /// <summary>
-            /// void
-            /// </summary>
-            ClearSubscribers = 9,
-
-            /// <summary>
-            /// out: index
-            /// </summary>
-            Index = 10
-        }
-
         public interface IBind
         {
             /// <summary>
@@ -122,22 +60,27 @@ namespace RichHudFramework
             /// <summary>
             /// Returns a list of the current key combo for this bind.
             /// </summary>
-            IList<IControl> GetCombo();
+            List<IControl> GetCombo();
+
+            /// <summary>
+            /// Returns a list of control indices for the current bind combo
+            /// </summary>
+            List<int> GetComboIndices();
 
             /// <summary>
             /// Attempts to set the binds combo to the given controls. Returns true if successful.
             /// </summary>
-            bool TrySetCombo(IList<IControl> combo, bool strict = true, bool silent = true);
+            bool TrySetCombo(IReadOnlyList<IControl> combo, bool strict = true, bool silent = true);
 
             /// <summary>
             /// Attempts to set the binds combo to the given controls. Returns true if successful.
             /// </summary>
-            bool TrySetCombo(IList<int> combo, bool strict = true, bool silent = false);
+            bool TrySetCombo(IReadOnlyList<int> combo, bool strict = true, bool silent = true);
 
             /// <summary>
             /// Attempts to set the binds combo to the given controls. Returns true if successful.
             /// </summary>
-            bool TrySetCombo(IList<string> combo, bool strict = true, bool silent = false);
+            bool TrySetCombo(IReadOnlyList<string> combo, bool strict = true, bool silent = true);
 
             /// <summary>
             /// Clears the current key combination.
@@ -148,11 +91,85 @@ namespace RichHudFramework
             /// Clears all event subscibers for this bind.
             /// </summary>
             void ClearSubscribers();
+        }
+
+        public enum BindAccesssors : int
+        {
+            /// <summary>
+            /// out: <see cref="string"/>
+            /// </summary>
+            Name = 1,
 
             /// <summary>
-            /// Returns information needed to access the bind via the API.
+            /// out: <see cref="bool"/>
             /// </summary>
-            BindMembers GetApiData();
+            Analog = 2,
+
+            /// <summary>
+            /// out: index
+            /// </summary>
+            Index = 3,
+
+            /// <summary>
+            /// out: bool
+            /// </summary>
+            IsPressed = 4,
+
+            /// <summary>
+            /// out: bool
+            /// </summary>
+            IsNewPressed = 5,
+
+            /// <summary>
+            /// out: bool
+            /// </summary>
+            IsPressedAndHeld = 6,
+
+            /// <summary>
+            /// out: bool
+            /// </summary>
+            IsReleased = 7,
+
+            /// <summary>
+            /// in: MyTuple(bool, Action)
+            /// </summary>
+            OnNewPress = 8,
+
+            /// <summary>
+            /// in: MyTuple(bool, Action)
+            /// </summary>
+            OnPressAndHold = 9,
+
+            /// <summary>
+            /// in: MyTuple(bool, Action)
+            /// </summary>
+            OnRelease = 10,
+
+            /// <summary>
+            /// out: <see cref="List{T}(int)"/>
+            /// </summary>
+            GetCombo = 11,
+
+            /// <summary>
+            /// in: MyTuple{List{int}, bool}, out: bool"
+            /// </summary>
+            TrySetComboWithIndices = 12,
+
+            /// <summary>
+            /// in: MyTuple{List{string}, bool}, out: bool"
+            /// </summary>
+            TrySetComboWithNames = 13,
+
+            /// <summary>
+            /// void
+            /// </summary>
+            ClearCombo = 14,
+
+            /// <summary>
+            /// void
+            /// </summary>
+            ClearSubscribers = 15,
         }
+
     }
 }

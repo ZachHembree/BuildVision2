@@ -23,40 +23,10 @@ namespace RichHudFramework.UI
         /// </summary>
         public Color Color { get { return hudBoard.Color; } set { hudBoard.Color = value; } }
 
-        /// <summary>
-        /// Width of the hud element in pixels.
-        /// </summary>
-        public override float Width
-        {
-            get { return hudBoard.Width + Padding.X; }
-            set
-            {
-                if (value > Padding.X)
-                    value -= Padding.X;
+        protected float lastScale;
+        protected readonly MatBoard hudBoard;
 
-                hudBoard.Width = value;
-            }
-        }
-
-        /// <summary>
-        /// Height of the hud element in pixels.
-        /// </summary>
-        public override float Height
-        {
-            get { return hudBoard.Height + Padding.Y; }
-            set
-            {
-                if (value > Padding.Y)
-                    value -= Padding.Y;
-
-                hudBoard.Height = value;
-            }
-        }
-
-        private float lastScale;
-        private readonly MatBoard hudBoard;
-
-        public TexturedBox(IHudParent parent = null) : base(parent)
+        public TexturedBox(HudParentBase parent = null) : base(parent)
         {
             hudBoard = new MatBoard();
             lastScale = Scale;
@@ -64,18 +34,15 @@ namespace RichHudFramework.UI
 
         protected override void Layout()
         {
-            if (Scale != lastScale)
-            {
-                hudBoard.Size *= Scale / lastScale;
-                lastScale = Scale;
-            }
+            hudBoard.Size = cachedSize - cachedPadding;
         }
 
-        protected override void Draw()
+        protected override void Draw(object planeToWorld)
         {
-            if (Color.A > 0)
+            if (hudBoard.Color.A > 0)
             {
-                hudBoard.Draw(cachedPosition);
+                var matrix = (MatrixD)planeToWorld;
+                hudBoard.Draw(cachedPosition, ref matrix);
             }
         }
     }

@@ -15,7 +15,7 @@ namespace RichHudFramework.UI
         public override Vector2 TextSize
         {
             get { return new Vector2(left.Size.X + right.Size.X, Math.Max(left.Size.Y, right.Size.Y)); }
-            protected set
+            set
             {
                 left.Width = value.X * .5f;
                 right.Width = value.X * .5f;
@@ -55,7 +55,7 @@ namespace RichHudFramework.UI
 
         protected readonly Label left, right;
 
-        public DoubleLabelBox(IHudParent parent = null) : base(parent)
+        public DoubleLabelBox(HudParentBase parent = null) : base(parent)
         {
             left = new Label(this) { ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH | ParentAlignments.UsePadding };
             right = new Label(this) { ParentAlignment = ParentAlignments.Right | ParentAlignments.InnerH | ParentAlignments.UsePadding };

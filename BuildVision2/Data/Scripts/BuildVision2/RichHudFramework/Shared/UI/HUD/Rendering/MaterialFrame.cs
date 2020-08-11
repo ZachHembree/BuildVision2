@@ -38,63 +38,52 @@ namespace RichHudFramework
                 public MaterialAlignment alignment;
 
                 /// <summary>
-                /// Material scale. Applied after alignment scaling.
+                /// Texture coordinate offset
                 /// </summary>
-                public float scale;
-
-                /// <summary>
-                /// Determines the material's distance from the center of the billboard.
-                /// </summary>
-                public Vector2 offset;
+                public Vector2 uvOffset;
 
                 public MaterialFrame()
                 {
                     alignment = MaterialAlignment.StretchToFit;
-                    scale = 1f;
-                    offset = Vector2.Zero;
+                    uvOffset = Vector2.Zero;
                 }
 
                 /// <summary>
-                /// Calculates the UV alignment needed to fit the billboard.
+                /// Calculates the texture coordinates needed to fit the material to the billboard. 
+                /// Aspect ratio = Width/Height
                 /// </summary>
-                public FlatQuad GetMaterialAlignment(Vector2 bbSize)
+                public FlatQuad GetMaterialAlignment(float bbAspectRatio)
                 {
-                    Vector2 matOrigin = material.scaledOrigin, matStep = material.scaledSize / 2f;
+                    Vector2 matOrigin = material.uvOffset + uvOffset, 
+                        matStep = material.uvSize / 2f;
 
                     if (alignment != MaterialAlignment.StretchToFit)
                     {
-                        float xScale = bbSize.X / material.size.X,
-                            yScale = bbSize.Y / material.size.Y;
+                        float matAspectRatio = material.size.X / material.size.Y;
+                        Vector2 localUV = new Vector2(1f);
 
-                        if (alignment == MaterialAlignment.FitVertical)
+                        if (alignment == MaterialAlignment.FitAuto)
                         {
-                            xScale /= yScale;
-                            yScale = 1f;
+                            if (matAspectRatio > bbAspectRatio) // If material is too wide, make it shorter
+                                localUV = new Vector2(1f, matAspectRatio / bbAspectRatio);
+                            else // If the material is too tall, make it narrower
+                                localUV = new Vector2(bbAspectRatio /matAspectRatio, 1f);
+                        }
+                        else if (alignment == MaterialAlignment.FitVertical)
+                        {
+                            localUV = new Vector2(bbAspectRatio / matAspectRatio, 1f);
                         }
                         else if (alignment == MaterialAlignment.FitHorizontal)
                         {
-                            yScale /= xScale;
-                            xScale = 1f;
-                        }
-                        else if (alignment == MaterialAlignment.Fixed)
-                        {
-                            xScale *= scale;
-                            yScale *= scale;
+                            localUV = new Vector2(1f, matAspectRatio / bbAspectRatio);
                         }
 
-                        matStep = new Vector2(matStep.X * xScale, matStep.Y * yScale);
+                        matStep *= localUV;
                     }
 
                     Vector2
                         min = matOrigin - matStep,
-                        max = matOrigin + matStep,
-                        scaledOffset = new Vector2()
-                        {
-                            X = MathHelper.Clamp(offset.X / material.size.X, -1f, 1f) * material.scaledSize.X,
-                            Y = MathHelper.Clamp(offset.Y / material.size.Y, -1f, 1f) * material.scaledSize.Y
-                        } * scale;
-
-                    matOrigin += scaledOffset;
+                        max = matOrigin + matStep;
                    
                     return new FlatQuad
                     (

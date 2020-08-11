@@ -1,4 +1,5 @@
 ﻿using VRageMath;
+using System;
 
 namespace RichHudFramework.UI
 {
@@ -30,14 +31,14 @@ namespace RichHudFramework.UI
         protected MouseInputElement _mouseInput;
         private Color oldColor;
 
-        public LabelBoxButton(IHudParent parent = null) : base(parent)
+        public LabelBoxButton(HudParentBase parent = null) : base(parent)
         {
             _mouseInput = new MouseInputElement(this) { DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding };
             _mouseInput.OnCursorEnter += CursorEntered;
             _mouseInput.OnCursorExit += CursorExited;
         }
 
-        protected virtual void CursorEntered()
+        protected virtual void CursorEntered(object sender, EventArgs args)
         {
             if (HighlightEnabled)
             {
@@ -46,7 +47,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected virtual void CursorExited()
+        protected virtual void CursorExited(object sender, EventArgs args)
         {
             if (HighlightEnabled)
             {

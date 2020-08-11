@@ -32,7 +32,7 @@ namespace RichHudFramework
             /// <summary>
             /// List of bind groups registered to the page.
             /// </summary>
-            public IReadOnlyCollection<IBindGroup> BindGroups { get; }
+            public IReadOnlyList<IBindGroup> BindGroups { get; }
 
             public RebindPage GroupContainer => this;
 

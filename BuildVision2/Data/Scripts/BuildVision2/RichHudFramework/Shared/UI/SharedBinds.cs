@@ -34,6 +34,7 @@ namespace RichHudFramework.UI
         public static IBind Shift { get { return BindGroup[16]; } }
 
         public static IBindGroup BindGroup { get { return Instance.sharedBinds; } }
+
         private static SharedBinds Instance
         {
             get { Init(); return instance; }
@@ -45,7 +46,7 @@ namespace RichHudFramework.UI
         private SharedBinds() : base(false, true)
         {
             sharedBinds = BindManager.GetOrCreateGroup("SharedBinds");
-            sharedBinds.RegisterBinds(new BindGroupData
+            sharedBinds.RegisterBinds(new BindGroupInitializer
             {
                 { "leftbutton", MyKeys.LeftButton },
                 { "rightbutton", MyKeys.RightButton },

@@ -13,11 +13,17 @@ namespace RichHudFramework.UI
     public class SliderBar : HudElementBase, IClickableElement
     {
         /// <summary>
-        /// Width of the sliderbar in pixels.
+        /// Width of the sliderbar.
         /// </summary>
         public override float Width
         {
-            get { return Math.Max(bar.Width, slider.Width) + Padding.X; }
+            get 
+            {
+                if (Vertical)
+                    return Math.Max(bar.Width, slider.Width) + Padding.X;
+                else
+                    return bar.Width;
+            }
             set
             {
                 if (value > Padding.X)
@@ -37,11 +43,17 @@ namespace RichHudFramework.UI
         }
 
         /// <summary>
-        /// Height of the sliderbar in pixels.
+        /// Height of the sliderbar.
         /// </summary>
         public override float Height
         {
-            get { return Math.Max(bar.Height, slider.Height) + Padding.Y; }
+            get
+            {
+                if (Vertical)
+                    return bar.Height;
+                else
+                    return Math.Max(bar.Height, slider.Height) + Padding.Y;
+            }
             set
             {
                 if (value > Padding.Y)
@@ -65,13 +77,13 @@ namespace RichHudFramework.UI
         /// </summary>
         public float Min
         {
-            get { return min; }
+            get { return _min; }
             set
             {
-                min = value;
+                _min = value;
 
-                if (max - min != 0)
-                    Percent = (current - min) / (max - min);
+                if (_max - _min != 0)
+                    Percent = (_current - _min) / (_max - _min);
                 else
                     Percent = 0;
             }
@@ -82,13 +94,13 @@ namespace RichHudFramework.UI
         /// </summary>
         public float Max
         {
-            get { return max; }
+            get { return _max; }
             set
             {
-                max = value;
+                _max = value;
 
-                if (max - min != 0)
-                    Percent = (current - min) / (max - min);
+                if (_max - _min != 0)
+                    Percent = (_current - _min) / (_max - _min);
                 else
                     Percent = 0;
             }
@@ -99,11 +111,11 @@ namespace RichHudFramework.UI
         /// </summary>
         public float Current
         {
-            get { return current; }
+            get { return _current; }
             set
             {
-                if (max - min != 0)
-                    Percent = (value - min) / (max - min);
+                if (_max - _min != 0)
+                    Percent = (value - _min) / (_max - _min);
                 else
                     Percent = 0;
             }
@@ -115,11 +127,11 @@ namespace RichHudFramework.UI
         /// </summary>
         public float Percent
         {
-            get { return percent; }
+            get { return _percent; }
             set
             {
-                percent = MathHelper.Clamp(value, 0f, 1f);
-                current = percent * (Max - Min) + Min;
+                _percent = MathHelper.Clamp(value, 0f, 1f);
+                _current = _percent * (Max - Min) + Min;
 
                 UpdateButtonOffset();
             }
@@ -203,10 +215,10 @@ namespace RichHudFramework.UI
         private readonly TexturedBox slider, bar;
         private readonly MouseInputElement mouseInput;
 
-        private float min, max, current, percent;
+        private float _min, _max, _current, _percent;
         private bool canMoveSlider;
 
-        public SliderBar(IHudParent parent = null) : base(parent)
+        public SliderBar(HudParentBase parent = null) : base(parent)
         {
             mouseInput = new MouseInputElement(this) { DimAlignment = DimAlignments.Both };
             mouseInput.OnLeftClick += BarClicked;
@@ -222,14 +234,14 @@ namespace RichHudFramework.UI
 
             SliderHighlight = new Color(200, 200, 200, 255);
 
-            min = 0f;
-            max = 1f;
+            _min = 0f;
+            _max = 1f;
 
             Current = 0f;
             Percent = 0f;
         }
 
-        private void BarClicked()
+        private void BarClicked(object sender, EventArgs args)
         {
             canMoveSlider = true;
         }
@@ -265,18 +277,18 @@ namespace RichHudFramework.UI
                 {
                     minOffset = -(bar.Height - slider.Height) / 2f;
                     maxOffset = -minOffset;
-                    pos = MathHelper.Clamp(HudMain.Cursor.Origin.Y - Origin.Y, minOffset, maxOffset);
+                    pos = MathHelper.Clamp(HudMain.Cursor.ScreenPos.Y - Origin.Y, minOffset, maxOffset);
                 }
                 else
                 {
                     minOffset = -(bar.Width - slider.Width) / 2f;
                     maxOffset = -minOffset;
-                    pos = MathHelper.Clamp(HudMain.Cursor.Origin.X - Origin.X, minOffset, maxOffset);
+                    pos = MathHelper.Clamp(HudMain.Cursor.ScreenPos.X - Origin.X, minOffset, maxOffset);
                 }
 
                 if (Reverse)
                     Percent = 1f - ((pos - minOffset) / (maxOffset - minOffset));
-                else
+                else 
                     Percent = (pos - minOffset) / (maxOffset - minOffset);
             }
 

@@ -1,21 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using VRage;
+using VRageMath;
 using ApiMemberAccessor = System.Func<object, int, object>;
+using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
+using HudLayoutDelegate = System.Func<bool, bool>;
+using HudDrawDelegate = System.Func<object, object>;
 
 namespace RichHudFramework
 {
-    using HudElementMembers = MyTuple<
-        Func<bool>, // Visible
-        object, // ID
-        Action<bool>, // BeforeLayout
-        Action<int>, // BeforeDraw
-        Action<int>, // HandleInput
-        ApiMemberAccessor // GetOrSetMembers
-    >;
+    using HudInputDelegate = Func<Vector3, HudSpaceDelegate, MyTuple<Vector3, HudSpaceDelegate>>;
 
     namespace UI
     {
+        using HudUpdateAccessors = MyTuple<
+            ushort, // ZOffset
+            byte, // Depth
+            HudInputDelegate, // DepthTest
+            HudInputDelegate, // HandleInput
+            HudLayoutDelegate, // BeforeLayout
+            HudDrawDelegate // BeforeDraw
+        >;
+
         public enum HudParentAccessors : int
         {
             Add = 1,
@@ -24,52 +30,32 @@ namespace RichHudFramework
         }
 
         /// <summary>
-        /// Interface for all types capable of serving as parent objects to <see cref="IHudNode"/>s.
+        /// Read-only interface for types capable of serving as parent objects to <see cref="HudNodeBase"/>s.
         /// </summary>
-        public interface IHudParent
+        public interface IReadOnlyHudParent
         {
             /// <summary>
             /// Determines whether or not the element will be drawn and/or accept
             /// input.
             /// </summary>
-            bool Visible { get; set; }
+            bool Visible { get; }
 
             /// <summary>
-            /// Unique identifier.
+            /// Scales the size and offset of an element. Any offset or size set at a given
+            /// be increased or decreased with scale. Defaults to 1f. Includes parent scale.
             /// </summary>
-            object ID { get; }
+            float Scale { get; }
 
             /// <summary>
-            /// Registers a child node to the object.
+            /// Used to change the draw order of the UI element. Lower offsets place the element
+            /// further in the background. Higher offsets draw later and on top.
             /// </summary>
-            void RegisterChild(IHudNode child);
+            sbyte ZOffset { get; set; }
 
             /// <summary>
-            /// Registers a collection of child nodes to the object.
+            /// Adds update delegates for members in the order dictated by the UI tree
             /// </summary>
-            void RegisterChildren(IEnumerable<IHudNode> newChildren);
-
-            /// <summary>
-            /// Unregisters the specified node from the parent.
-            /// </summary>
-            void RemoveChild(IHudNode child);
-
-            /// <summary>
-            /// Moves the specified child element to the end of the update list in
-            /// order to ensure that it's drawn on top/updated last.
-            /// </summary>
-            void SetFocus(IHudNode child);
-
-            void BeforeInput(HudLayers layer);
-
-            void BeforeLayout(bool refresh);
-
-            void BeforeDraw(HudLayers layer);
-
-            /// <summary>
-            /// Retrieves the information necessary to access the <see cref="IHudParent"/> through the API.
-            /// </summary>
-            HudElementMembers GetApiData();
+            void GetUpdateAccessors(List<HudUpdateAccessors> DrawActions, byte treeDepth);
         }
     }
 }

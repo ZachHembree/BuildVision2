@@ -31,30 +31,36 @@ namespace RichHudFramework.UI
         private float _thickness;
         protected readonly MatBoard hudBoard;
 
-        public BorderBox(IHudParent parent = null) : base(parent)
+        public BorderBox(HudParentBase parent = null) : base(parent)
         {
             hudBoard = new MatBoard();
             Thickness = 1f;
         }
 
-        protected override void Draw()
+        protected override void Draw(object matrix)
         {
             if (Color.A > 0)
             {
-                float height = _height * _scale, width = _width * _scale, 
-                    thickness = _thickness * _scale;
+                var ptw = (MatrixD)matrix;
 
+                float height = _absoluteHeight * Scale, width = _absoluteWidth * Scale, 
+                    thickness = _thickness * Scale;
+
+                // Left
                 hudBoard.Size = new Vector2(thickness, height);
-                hudBoard.Draw(cachedPosition + new Vector2(-width / 2f, 0f));
+                hudBoard.Draw(cachedPosition + new Vector2(-width / 2f, 0f), ref ptw);
 
+                // Top
                 hudBoard.Size = new Vector2(width, thickness);
-                hudBoard.Draw(cachedPosition + new Vector2(0f, height / 2f));
+                hudBoard.Draw(cachedPosition + new Vector2(0f, height / 2f), ref ptw);
 
+                // Right
                 hudBoard.Size = new Vector2(thickness, height);
-                hudBoard.Draw(cachedPosition + new Vector2(width / 2f, 0f));
+                hudBoard.Draw(cachedPosition + new Vector2(width / 2f, 0f), ref ptw);
 
+                // Bottom
                 hudBoard.Size = new Vector2(width, thickness);
-                hudBoard.Draw(cachedPosition + new Vector2(0f, -height / 2f));
+                hudBoard.Draw(cachedPosition + new Vector2(0f, -height / 2f), ref ptw);
             }
         }
     }

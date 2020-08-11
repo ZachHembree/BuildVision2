@@ -2,33 +2,32 @@
 using System;
 using System.Collections.Generic;
 using VRage;
+using VRageMath;
 using ApiMemberAccessor = System.Func<object, int, object>;
+using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
+using HudLayoutDelegate = System.Func<bool, bool>;
+using HudDrawDelegate = System.Func<object, object>;
 
 namespace RichHudFramework
 {
-    using HudElementMembers = MyTuple<
-        Func<bool>, // Visible
-        object, // ID
-        Action<bool>, // BeforeLayout
-        Action<int>, // BeforeDraw
-        Action<int>, // HandleInput
-        ApiMemberAccessor // GetOrSetMembers
-    >;
+    using HudInputDelegate = Func<Vector3, HudSpaceDelegate, MyTuple<Vector3, HudSpaceDelegate>>;
 
     namespace UI
     {
-        public enum HudLayers : int
-        {
-            Background = -1,
-            Normal = 0,
-            Foreground = 1,
-        }
+        using HudUpdateAccessors = MyTuple<
+            ushort, // ZOffset
+            byte, // Depth
+            HudInputDelegate, // DepthTest
+            HudInputDelegate, // HandleInput
+            HudLayoutDelegate, // BeforeLayout
+            HudDrawDelegate // BeforeDraw
+        >;
 
         /// <summary>
         /// Base class for HUD elements to which other elements are parented. Types deriving from this class cannot be
-        /// parented to other elements; only types of <see cref="IHudNode"/> can be parented.
+        /// parented to other elements; only types of <see cref="HudNodeBase"/> can be parented.
         /// </summary>
-        public abstract class HudParentBase : IHudParent
+        public abstract class HudParentBase : IReadOnlyHudParent
         {
             /// <summary>
             /// Determines whether or not an element will be drawn or process input. Visible by default.
@@ -36,174 +35,199 @@ namespace RichHudFramework
             public virtual bool Visible { get; set; }
 
             /// <summary>
-            /// Unique identifer.
+            /// Scales the size and offset of an element. Any offset or size set at a given
+            /// be increased or decreased with scale. Defaults to 1f. Includes parent scale.
             /// </summary>
-            public object ID => this;
+            public virtual float Scale { get; set; }
 
-            protected HudLayers _zOffset;
-            protected readonly List<IHudNode> children;
+            /// <summary>
+            /// Determines whether the UI element will be drawn in the Back, Mid or Foreground
+            /// </summary>
+            public virtual sbyte ZOffset 
+            { 
+                get { return _zOffset; } 
+                set { _zOffset = value; } 
+            }
+
+            /// <summary>
+            /// Used internally to indicate when normal parent registration should be bypassed.
+            /// Child-side registration unaffected.
+            /// </summary>
+            protected bool blockChildRegistration;
+
+            protected readonly List<HudNodeBase> children;
+
+            protected readonly HudInputDelegate DepthTestAction;
+            protected readonly HudInputDelegate InputAction;
+            protected readonly HudLayoutDelegate LayoutAction;
+            protected readonly HudDrawDelegate DrawAction;
+
+            protected sbyte _zOffset;
+
+            /// <summary>
+            /// Additional zOffset range used internally; primarily for determining window draw order.
+            /// Don't use this unless you have a good reason for it.
+            /// </summary>
+            protected byte zOffsetInner;
+            protected ushort fullZOffset;
 
             public HudParentBase()
             {
                 Visible = true;
-                children = new List<IHudNode>();
+                Scale = 1f;
+                children = new List<HudNodeBase>();
+
+                this.DepthTestAction = InputDepth;
+                LayoutAction = BeginLayout;
+                DrawAction = BeginDraw;
+                InputAction = BeginInput;
             }
 
             /// <summary>
-            /// Updates input for the element and its children.
+            /// Used to calculate the distance between the screen and HUD space plane and update
+            /// the element accordingly.
             /// </summary>
-            public virtual void BeforeInput(HudLayers layer)
+            protected virtual MyTuple<Vector3, HudSpaceDelegate> InputDepth(Vector3 cursorPos, HudSpaceDelegate GetHudSpaceFunc)
             {
-                for (int n = children.Count - 1; n >= 0; n--)
-                {
-                    if (children[n].Visible)
-                        children[n].BeforeInput(layer);
-                }
-
-                if (_zOffset == layer)
-                    HandleInput();
+                return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);
             }
 
+            /// <summary>
+            /// Updates input for the element and its children. Don't override this
+            /// unless you know what you're doing. If you need to update input, use 
+            /// HandleInput().
+            /// </summary>
+            protected virtual MyTuple<Vector3, HudSpaceDelegate> BeginInput(Vector3 cursorPos, HudSpaceDelegate GetHudSpaceFunc)
+            {
+                if (Visible)
+                    HandleInput();
+
+                return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);
+            }
+
+            /// <summary>
+            /// Updates the input of this UI element.
+            /// </summary>
             protected virtual void HandleInput() { }
 
             /// <summary>
-            /// Updates before draw for the element and its children.
+            /// Updates layout for the element and its children. Don't override this
+            /// unless you know what you're doing. If you need to update layout, use 
+            /// Layout().
             /// </summary>
-            public virtual void BeforeLayout(bool refresh)
+            protected virtual bool BeginLayout(bool refresh)
             {
-                Layout();
+                if (Visible || refresh)
+                    Layout();
 
-                for (int n = 0; n < children.Count; n++)
-                {
-                    if (children[n].Visible || refresh)
-                        children[n].BeforeLayout(refresh);
-                }
+                return refresh;
             }
 
+            /// <summary>
+            /// Updates the layout of this UI element.
+            /// </summary>
             protected virtual void Layout() { }
 
             /// <summary>
-            /// Draws the element and its children.
+            /// Used to immediately draw billboards. Don't override unless that's what you're
+            /// doing.
             /// </summary>
-            public virtual void BeforeDraw(HudLayers layer)
+            protected virtual object BeginDraw(object matrix)
             {
-                if (_zOffset == layer)
-                    Draw();
+                if (Visible)
+                    Draw(matrix);
 
-                for (int n = 0; n < children.Count; n++)
-                {
-                    if (children[n].Visible)
-                        children[n].BeforeDraw(layer);
-                }
+                return matrix;
             }
 
-            protected virtual void Draw() { }
+            /// <summary>
+            /// Draws the UI element.
+            /// </summary>
+            protected virtual void Draw(object matrix) { }
 
             /// <summary>
-            /// Moves the specified child element to the end of the update list in
-            /// order to ensure that it's drawn on top/updated last.
+            /// Adds update delegates for members in the order dictated by the UI tree
             /// </summary>
-            public void SetFocus(IHudNode child) =>
-                SetFocus(child.ID);
-
-            private void SetFocus(object childID)
+            public virtual void GetUpdateAccessors(List<HudUpdateAccessors> DrawActions, byte treeDepth)
             {
-                int last = children.Count - 1,
-                    childIndex = children.FindIndex(x => x.ID == childID);
+                fullZOffset = GetFullZOffset(this);
 
-                children.Swap(last, childIndex);
+                DrawActions.EnsureCapacity(DrawActions.Count + children.Count + 1);
+                DrawActions.Add(new HudUpdateAccessors(fullZOffset, treeDepth, DepthTestAction, InputAction, LayoutAction, DrawAction));
+
+                treeDepth++;
+
+                for (int n = 0; n < children.Count; n++)
+                    children[n].GetUpdateAccessors(DrawActions, treeDepth);
             }
 
             /// <summary>
             /// Registers a child node to the object.
             /// </summary>
-            public virtual void RegisterChild(IHudNode child)
+            public virtual void RegisterChild(HudNodeBase child)
             {
-                if (child.Parent?.ID == ID && !child.Registered)
-                    children.Add(child);
-                else if (child.Parent?.ID == null)
-                    child.Register(this);
+                if (!blockChildRegistration)
+                {
+                    if (child.Parent == this && !child.Registered)
+                        children.Add(child);
+                    else if (child.Parent == null)
+                        child.Register(this);
+                }
             }
 
             /// <summary>
             /// Registers a collection of child nodes to the object.
             /// </summary>
-            public void RegisterChildren(IEnumerable<IHudNode> newChildren)
+            public virtual void RegisterChildren(IReadOnlyList<HudNodeBase> newChildren)
             {
-                foreach (IHudNode child in newChildren)
-                    child.Register(this);
+                blockChildRegistration = true;
+
+                for (int n = 0; n < newChildren.Count; n++)
+                {
+                    newChildren[n].Register(this);
+
+                    if (newChildren[n].Parent != this)
+                        throw new Exception("HUD Element Registration Failed.");
+                }
+
+                children.AddRange(newChildren);
+                blockChildRegistration = false;
             }
 
             /// <summary>
             /// Unregisters the specified node from the parent.
             /// </summary>
-            public virtual void RemoveChild(IHudNode child)
-            {
-                if (child.Parent?.ID == ID)
-                    child.Unregister();
-                else if (child.Parent == null)
-                    children.Remove(child);
-            }
+            public virtual void RemoveChild(HudNodeBase child) 
+            { 
+                if (!blockChildRegistration)
+                {
+                    int index = children.FindIndex(x => x == child);
 
-            private void RemoveChild(object childID)
-            {
-                IHudNode node = children.Find(x => x.ID == childID);
-                RemoveChild(node);
+                    if (index != -1)
+                    {
+                        if (children[index].Parent == this)
+                            children[index].Unregister();
+                        else if (children[index].Parent == null)
+                            children.RemoveAt(index);
+                    }
+                }
             }
 
             /// <summary>
-            /// Retrieves the information necessary to access the <see cref="IHudParent"/> through the API.
+            /// Calculates the full z-offset using the public offset and inner offset.
             /// </summary>
-            public HudElementMembers GetApiData()
+            public static ushort GetFullZOffset(HudParentBase element, HudParentBase parent = null)
             {
-                return new HudElementMembers()
+                byte outerOffset = (byte)(element._zOffset - sbyte.MinValue);
+                ushort innerOffset = (ushort)(element.zOffsetInner << 8);
+
+                if (parent != null)
                 {
-                    Item1 = GetApiVisible,
-                    Item2 = this,
-                    Item3 = BeforeApiLayout,
-                    Item4 = BeforeApiDraw,
-                    Item5 = BeforeApiInput,
-                    Item6 = GetOrSetMember
-                };
-            }
-
-            private bool GetApiVisible() =>
-                !ExceptionHandler.ClientsPaused && Visible;
-
-            private void BeforeApiLayout(bool refresh)
-            {
-                if (!ExceptionHandler.ClientsPaused)
-                    ExceptionHandler.Run(BeforeLayout, refresh);
-            }
-
-            private void BeforeApiDraw(int layer)
-            {
-                if (!ExceptionHandler.ClientsPaused)
-                    ExceptionHandler.Run(BeforeDraw, (HudLayers)layer);
-            }
-
-            private void BeforeApiInput(int layer)
-            {
-                if (!ExceptionHandler.ClientsPaused)
-                    ExceptionHandler.Run(BeforeInput, (HudLayers)layer);
-            }
-
-            protected virtual object GetOrSetMember(object data, int memberEnum)
-            {
-                switch ((HudParentAccessors)memberEnum)
-                {
-                    case HudParentAccessors.Add:
-                        RegisterChild(new HudNodeData((HudElementMembers)data));
-                        break;
-                    case HudParentAccessors.RemoveChild:
-                        RemoveChild(data);
-                        break;
-                    case HudParentAccessors.SetFocus:
-                        SetFocus(data);
-                        break;
+                    outerOffset += (byte)(parent.fullZOffset & 0x00FF);
+                    innerOffset += (ushort)(parent.fullZOffset & 0xFF00);
                 }
 
-                return null;
+                return (ushort)(innerOffset | outerOffset);
             }
         }
     }
