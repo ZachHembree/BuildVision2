@@ -41,6 +41,16 @@ namespace RichHudFramework
         public interface ITextPage : ITerminalPage
         {
             /// <summary>
+            /// Gets/sets header text
+            /// </summary>
+            RichText HeaderText { get; set; }
+
+            /// <summary>
+            /// Gets/sets subheader text
+            /// </summary>
+            RichText SubHeaderText { get; set; }
+
+            /// <summary>
             /// Contents of the text box.
             /// </summary>
             RichText Text { get; set; }
