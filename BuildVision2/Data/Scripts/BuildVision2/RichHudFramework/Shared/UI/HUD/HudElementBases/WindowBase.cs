@@ -11,7 +11,7 @@ namespace RichHudFramework.UI
     /// <summary>
     /// Base type for HUD windows. Supports dragging/resizing like pretty much every other window ever.
     /// </summary>
-    public abstract class WindowBase : HudElementBase
+    public abstract class WindowBase : HudElementBase, IClickableElement
     {
         public RichText HeaderText { get { return Header.GetText(); } set { Header.SetText(value); } }
 
@@ -33,7 +33,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Determines the color of the body of the window.
         /// </summary>
-        public virtual Color BodyColor { get { return body.Color; } set { body.Color = value; } }
+        public virtual Color BodyColor { get { return bodyBg.Color; } set { bodyBg.Color = value; } }
 
         /// <summary>
         /// Position of the window relative to its origin. Clamped to prevent the window from moving
@@ -70,6 +70,10 @@ namespace RichHudFramework.UI
 
         public bool WindowActive { get; protected set; }
 
+        public override bool IsMousedOver => inputMain.IsMousedOver;
+
+        public IMouseInput MouseInput => inputMain;
+
         /// <summary>
         /// Window header element.
         /// </summary>
@@ -78,14 +82,16 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Textured background. Body of the window.
         /// </summary>
-        public readonly TexturedBox body;
+        public readonly HudElementBase body;
 
         /// <summary>
         /// Window border.
         /// </summary>
         public readonly BorderBox border;
 
-        private readonly MouseInputElement resizeLeft, resizeTop, resizeRight, resizeBottom;
+        private readonly MouseInputElement resizeInput, inputMain;
+        private readonly TexturedBox bodyBg;
+
         protected readonly Action<byte> LoseFocusCallback;
         protected float cornerSize = 8f;
         protected bool canMoveWindow, canResize;
@@ -99,34 +105,46 @@ namespace RichHudFramework.UI
                 Format = GlyphFormat.White.WithAlignment(TextAlignment.Center),
                 DimAlignment = DimAlignments.Width,
                 ParentAlignment = ParentAlignments.Top | ParentAlignments.Inner,
+                ZOffset = 1,
                 HighlightEnabled = false,
                 Height = 32f,
                 AutoResize = false
             };
 
-            body = new TexturedBox(header)
+            body = new EmptyHudElement(header)
             {
                 DimAlignment = DimAlignments.Width,
                 ParentAlignment = ParentAlignments.Bottom,
             };
 
+            bodyBg = new TexturedBox(body)
+            {
+                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                ZOffset = -1
+            };
+
             border = new BorderBox(this)
-            { Thickness = 1f, DimAlignment = DimAlignments.Both, };
+            { 
+                ZOffset = 1, 
+                Thickness = 1f, 
+                DimAlignment = DimAlignments.Both, 
+            };
 
-            resizeBottom = new MouseInputElement(this) 
-            { Height = 1f, DimAlignment = DimAlignments.Width, ParentAlignment = ParentAlignments.Bottom };
+            resizeInput = new MouseInputElement(this) 
+            { 
+                ZOffset = 2, 
+                Padding = new Vector2(4f),
+                DimAlignment = DimAlignments.Both, 
+                ShareCursor = true 
+            };
 
-            resizeTop = new MouseInputElement(this) 
-            { Height = 1f, DimAlignment = DimAlignments.Width, ParentAlignment = ParentAlignments.Top };
+            inputMain = new MouseInputElement(resizeInput) 
+            { 
+                ZOffset = sbyte.MaxValue, 
+                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                ShareCursor = true 
+            };
 
-            resizeLeft = new MouseInputElement(this) 
-            { Width = 1f, DimAlignment = DimAlignments.Height, ParentAlignment = ParentAlignments.Left };
-
-            resizeRight = new MouseInputElement(this) 
-            { Width = 1f, DimAlignment = DimAlignments.Height, ParentAlignment = ParentAlignments.Right };
-
-            UseCursor = true;
-            ShareCursor = false;
             AllowResizing = true;
             CanDrag = true;
             MinimumSize = new Vector2(200f, 200f);
@@ -187,7 +205,7 @@ namespace RichHudFramework.UI
             Offset = newOffset;
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             if (IsMousedOver)
             {
@@ -195,13 +213,13 @@ namespace RichHudFramework.UI
                     GetFocus();
             }
 
-            if (CanDrag && header.MouseInput.IsLeftClicked)
+            if (CanDrag && header.MouseInput.IsNewLeftClicked)
             {
                 canMoveWindow = true;
                 cursorOffset = (Origin + Offset) - HudMain.Cursor.ScreenPos;
             }
 
-            if (AllowResizing && IsBorderClicked())
+            if (AllowResizing && resizeInput.IsLeftClicked && !inputMain.IsMousedOver)
             {
                 Vector2 pos = Origin + Offset;
                 canResize = true;
@@ -228,21 +246,14 @@ namespace RichHudFramework.UI
         {
             zOffsetInner = HudMain.GetFocusOffset(LoseFocusCallback);
             WindowActive = true;
+            inputMain.ShareCursor = true;
         }
 
         protected virtual void LoseFocus(byte newOffset)
         {
             zOffsetInner = newOffset;
             WindowActive = false;
-        }
-
-        /// <summary>
-        /// Returns true if the border is clicked.
-        /// </summary>
-        /// <returns></returns>
-        protected bool IsBorderClicked()
-        {
-            return resizeBottom.IsLeftClicked || resizeTop.IsLeftClicked || resizeLeft.IsLeftClicked || resizeRight.IsLeftClicked;
+            inputMain.ShareCursor = false;
         }
 
         protected virtual void HeaderReleased()
@@ -253,6 +264,12 @@ namespace RichHudFramework.UI
         protected virtual void ResizeStopped()
         {
             canResize = false;
+        }
+
+        private class EmptyHudElement : HudElementBase
+        {
+            public EmptyHudElement(HudParentBase parent = null) : base(parent)
+            { }
         }
     }
 }

@@ -12,7 +12,7 @@ namespace RichHudFramework.UI
     /// <summary>
     /// Collapsable list box. Designed to mimic the appearance of the dropdown in the SE terminal.
     /// </summary>
-    public class Dropdown<T> : HudElementBase, IClickableElement, IEnumerable<ListBoxEntry<T>>
+    public class Dropdown<T> : HudElementBase, IEntryBox<T>, IClickableElement
     {
         /// <summary>
         /// Invoked when a member of the list is selected.
@@ -30,6 +30,9 @@ namespace RichHudFramework.UI
         /// </summary>
         public Dropdown<T> ListContainer => this;
 
+        /// <summary>
+        /// Height of the dropdown list
+        /// </summary>
         public float DropdownHeight { get { return listBox.Height; } set { listBox.Height = value; } }
 
         /// <summary>
@@ -48,7 +51,7 @@ namespace RichHudFramework.UI
         public GlyphFormat Format { get { return listBox.Format; } set { listBox.Format = value; } }
 
         /// <summary>
-        /// Background color
+        /// Background color of the dropdown list
         /// </summary>
         public Color Color { get { return listBox.Color; } set { listBox.Color = value; } }
 
@@ -112,9 +115,12 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool Open => listBox.Visible;
 
+        public HudElementBase Display => display;
+
+        public readonly ListBox<T> listBox;
+
         protected readonly DropdownDisplay display;
         protected readonly TexturedBox highlight;
-        protected readonly ListBox<T> listBox;
 
         public Dropdown(HudParentBase parent = null) : base(parent)
         {
@@ -122,6 +128,7 @@ namespace RichHudFramework.UI
             {
                 Padding = new Vector2(10f, 0f),
                 DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                Text = "None"
             };
 
             highlight = new TexturedBox(display)
@@ -134,21 +141,20 @@ namespace RichHudFramework.UI
             listBox = new ListBox<T>(display)
             {
                 Visible = false,
-                //ZOffset = -1,
+                ZOffset = 1,
                 MinVisibleCount = 4,
-                DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
+                DimAlignment = DimAlignments.Width,
                 ParentAlignment = ParentAlignments.Bottom,
                 TabColor = new Color(0, 0, 0, 0),
             };
 
             Size = new Vector2(331f, 43f);
-            display.Text = "Empty";
 
             display.MouseInput.OnLeftClick += ToggleList;
             OnSelectionChanged += UpdateDisplay;
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             if (SharedBinds.LeftButton.IsNewPressed && !IsMousedOver)
             {
@@ -310,7 +316,6 @@ namespace RichHudFramework.UI
 
                 Color = new Color(41, 54, 62);
                 Format = GlyphFormat.White;
-                Text = "NewDropdown";
             }
 
             protected override void Layout()

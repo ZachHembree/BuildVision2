@@ -37,14 +37,19 @@ namespace RichHudFramework.UI.Server
         public override bool AutoResize { get { return textBox.AutoResize; } set { textBox.AutoResize = value; } }
 
         /// <summary>
-        /// Determines whether or not this element will accept input from the mouse.
+        /// Determines whether or not the textbox will allow the user to edit its contents
         /// </summary>
-        public bool UseMouseInput { get { return textBox.UseMouseInput; } set { textBox.UseMouseInput = value; } }
+        public bool EnableEditing { get { return textBox.EnableEditing; } set { textBox.EnableEditing = value; } }
+
+        /// <summary>
+        /// Determines whether the user will be allowed to highlight text
+        /// </summary>
+        public bool EnableHighlighting { get { return textBox.EnableHighlighting; } set { textBox.EnableHighlighting = value; } }
 
         /// <summary>
         /// Indicates whether or not the text field will accept input
         /// </summary>
-        public bool InputOpen { get { return textBox.InputOpen; } }
+        public bool InputOpen { get { return textBox.EnableEditing; } }
 
         /// <summary>
         /// Used to restrict the range of characters allowed for input.
@@ -81,7 +86,9 @@ namespace RichHudFramework.UI.Server
         /// </summary>
         public float BorderThickness { get { return border.Thickness; } set { border.Thickness = value; } }
 
-        public IMouseInput MouseInput { get; }
+        public IMouseInput MouseInput => textBox.MouseInput;
+
+        public override bool IsMousedOver => textBox.IsMousedOver;
 
         private readonly TextBox textBox;
         private readonly TexturedBox highlight;
@@ -113,8 +120,7 @@ namespace RichHudFramework.UI.Server
                 Visible = false,
             };
 
-            Padding = new Vector2(40f, 0f);
-            Size = new Vector2(319f, 62f);
+            Size = new Vector2(319f, 40);
 
             textBox.TextBoard.OnTextChanged += TextChanged;
         }
@@ -124,7 +130,7 @@ namespace RichHudFramework.UI.Server
             OnTextChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             if (textBox.IsMousedOver)
             {

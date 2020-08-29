@@ -20,12 +20,16 @@ namespace RichHudFramework
             {
                 int count = GetCountFunc();
 
-                if (wrapperList.Count < count)
+                if (index >= count)
+                    throw new Exception($"Index ({index}) was out of Range. Must be non-negative and less than {count}.");
+
+                while (wrapperList.Count < count)
                 {
                     for (int n = wrapperList.Count; wrapperList.Count < count; n++)
                         wrapperList.Add(GetNewWrapperFunc(n));
                 }
-                else if (count > 9 && wrapperList.Count > count * 3)
+
+                if (count > 9 && wrapperList.Count > count * 3)
                 {
                     wrapperList.RemoveRange(count, wrapperList.Count - count);
                     wrapperList.TrimExcess();

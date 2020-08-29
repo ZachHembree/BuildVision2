@@ -6,11 +6,12 @@ using VRage;
 namespace RichHudFramework.UI
 {
     using Rendering;
+    using System.Collections;
 
     /// <summary>
     /// Indented, collapsable list. Designed to fit in with SE UI elements.
     /// </summary>
-    public class TreeBox<T> : HudElementBase, IClickableElement
+    public class TreeBox<T> : HudElementBase, IEntryBox<T>, IClickableElement
     {
         /// <summary>
         /// Invoked when a list member is selected.
@@ -23,13 +24,24 @@ namespace RichHudFramework.UI
         public IReadOnlyList<ListBoxEntry<T>> ListEntries => entryChain.ChainEntries;
 
         /// <summary>
+        /// Used to allow the addition of list entries using collection-initializer syntax in
+        /// conjunction with normal initializers.
+        /// </summary>
+        public TreeBox<T> ListContainer => this;
+
+        /// <summary>
+        /// If true, then the dropdown list will be open
+        /// </summary>
+        public bool ListOpen { get; set; }
+
+        /// <summary>
         /// Height of the treebox in pixels.
         /// </summary>
         public override float Height
         {
             get
             {
-                if (!entryChain.Visible)
+                if (!ListOpen)
                     return display.Height + Padding.Y;
                 else
                     return display.Height + entryChain.Height + Padding.Y;
@@ -37,13 +49,12 @@ namespace RichHudFramework.UI
             set
             {
                 if (Padding.Y < value)
-                    value = (value - Padding.Y) / Scale;
-                else
-                    value = (value / Scale);
+                    value -= Padding.Y;
 
-                if (!entryChain.Visible)
+                if (!ListOpen)
                 {
-                    display.Height = value;                   
+                    display.Height = value;
+                    entryChain.MemberMaxSize = new Vector2(entryChain.MemberMaxSize.X, value);
                 }
             }
         }
@@ -81,18 +92,27 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Determines how far to the right list members should be offset from the position of the header.
         /// </summary>
-        public float IndentSize { get { return indent * Scale; } set { indent = value / Scale; } }
+        public float IndentSize 
+        { 
+            get { return entryChain.Padding.X; } 
+            set 
+            {
+                entryChain.Padding = new Vector2(value, entryChain.Padding.Y);
+                entryChain.Offset = entryChain.Padding / 2f;
+            } 
+         }
 
         /// <summary>
         /// Handles mouse input for the header.
         /// </summary>
         public IMouseInput MouseInput => display.MouseInput;
 
+        public HudElementBase Display => display;
+
+        public readonly HudChain<ListBoxEntry<T>, LabelButton> entryChain;
+
         protected readonly TreeBoxDisplay display;
         protected readonly HighlightBox highlight, selectionBox;
-        protected readonly HudChain<ListBoxEntry<T>, LabelButton> entryChain;
-        protected float indent;
-
         private readonly ObjectPool<ListBoxEntry<T>> entryPool;
 
         public TreeBox(HudParentBase parent = null) : base(parent)
@@ -101,26 +121,25 @@ namespace RichHudFramework.UI
 
             display = new TreeBoxDisplay(this)
             {
-                Size = new Vector2(200f, 32f),
-                Offset = new Vector2(3f, 0f),
-                ParentAlignment = ParentAlignments.Top | ParentAlignments.InnerV,
+                ParentAlignment = ParentAlignments.Top | ParentAlignments.InnerV | ParentAlignments.UsePadding,
                 DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding
             };
+
+            selectionBox = new HighlightBox(display)
+            { Color = new Color(34, 44, 53) };
+
+            highlight = new HighlightBox(display)
+            { Color = new Color(34, 44, 53) };
 
             entryChain = new HudChain<ListBoxEntry<T>, LabelButton>(true, display)
             {
                 Visible = false,
+                DimAlignment = DimAlignments.Width,
                 SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.FitChainBoth,
                 ParentAlignment = ParentAlignments.Bottom | ParentAlignments.Right | ParentAlignments.InnerH | ParentAlignments.UsePadding,
             };
 
-            selectionBox = new HighlightBox(entryChain)
-            { Color = new Color(34, 44, 53) };
-
-            highlight = new HighlightBox(entryChain)
-            { Color = new Color(34, 44, 53) };
-
-            Size = new Vector2(200f, 32f);
+            Size = new Vector2(200f, 34f);
             IndentSize = 40f;
 
             Format = GlyphFormat.Blueish;
@@ -262,7 +281,7 @@ namespace RichHudFramework.UI
 
         private void ToggleList(object sender, EventArgs args)
         {
-            if (!entryChain.Visible)
+            if (!ListOpen)
                 OpenList();
             else
                 CloseList();
@@ -272,30 +291,35 @@ namespace RichHudFramework.UI
         {
             entryChain.Visible = true;
             display.Open = true;
+            ListOpen = true;
         }
 
         private void CloseList()
         {
             entryChain.Visible = false;
             display.Open = false;
+            ListOpen = false;
         }
 
         protected override void Layout()
         {
-            entryChain.Width = Width - IndentSize;
-            entryChain.MemberMaxSize = new Vector2(entryChain.MemberMaxSize.X, display.Height);
-
             if (Selection != null)
             {
-                selectionBox.Offset = Selection.Element.Offset;
+                selectionBox.Offset = Selection.Element.Position - selectionBox.Origin;
                 selectionBox.Size = Selection.Element.Size;
                 selectionBox.Visible = Selection.Element.Visible;
             }
             else
                 selectionBox.Visible = false;
+
+            for (int n = 0; n < entryChain.ChainEntries.Count; n++)
+            {
+                ListBoxEntry<T> entry = entryChain.ChainEntries[n];
+                entry.Element.Visible = entry.Enabled;
+            }
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             highlight.Visible = false;
 
@@ -307,9 +331,9 @@ namespace RichHudFramework.UI
                 {
                     highlight.Visible = true;
                     highlight.Size = entry.Element.Size;
-                    highlight.Offset = entry.Element.Offset;
+                    highlight.Offset = entry.Element.Position - highlight.Origin;
 
-                    if (entry.Element.MouseInput.IsLeftClicked)
+                    if (entry.Element.MouseInput.IsNewLeftClicked)
                     {
                         Selection = entry;
                         OnSelectionChanged?.Invoke(this, EventArgs.Empty);
@@ -317,6 +341,12 @@ namespace RichHudFramework.UI
                 }
             }
         }
+
+        public IEnumerator<ListBoxEntry<T>> GetEnumerator() =>
+            entryChain.ChainEntries.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() =>
+            entryChain.ChainEntries.GetEnumerator();
 
         /// <summary>
         /// A textured box with a white tab positioned on the left hand side.
@@ -331,7 +361,6 @@ namespace RichHudFramework.UI
             {
                 tabBoard = new MatBoard() { Color = new Color(223, 230, 236) };
                 Color = Color = new Color(34, 44, 53);
-                ZOffset = -1;
             }
 
             protected override void Layout()
@@ -362,24 +391,6 @@ namespace RichHudFramework.UI
         /// </summary>
         protected class TreeBoxDisplay : HudElementBase
         {
-            public override float Width
-            {
-                get { return layout.Width; }
-                set 
-                {
-                    if (value > Padding.X)
-                        value -= Padding.X;
-
-                    name.Width = value - arrow.Width - divider.Width; 
-                }
-            }
-
-            public override Vector2 Padding
-            {
-                get { return layout.Padding; }
-                set { layout.Padding = value; }
-            }
-
             public RichText Name { get { return name.Text; } set { name.Text = value; } }
 
             public GlyphFormat Format { get { return name.Format; } set { name.Format = value; } }
@@ -415,16 +426,22 @@ namespace RichHudFramework.UI
 
             public TreeBoxDisplay(HudParentBase parent = null) : base(parent)
             {
+                background = new TexturedBox(this)
+                {
+                    Color = new Color(41, 54, 62),
+                    DimAlignment = DimAlignments.Both,
+                };
+
                 name = new Label()
                 {
                     AutoResize = false,
+                    Padding = new Vector2(10f, 0f),
                     Format = GlyphFormat.Blueish.WithSize(1.1f),
                 };
 
                 divider = new TexturedBox()
                 {
-                    DimAlignment = DimAlignments.Height,
-                    Padding = new Vector2(4f, 6f),
+                    Padding = new Vector2(2f, 6f),
                     Size = new Vector2(2f, 39f),
                     Color = new Color(104, 113, 120),
                 };
@@ -432,22 +449,16 @@ namespace RichHudFramework.UI
                 arrow = new TexturedBox()
                 {
                     Width = 20f,
-                    DimAlignment = DimAlignments.Height,
+                    Padding = new Vector2(8f, 0f),
                     MatAlignment = MaterialAlignment.FitHorizontal,
                     Color = new Color(227, 230, 233),
                     Material = rightArrow,
                 };
 
-                background = new TexturedBox(this)
-                {
-                    Color = new Color(41, 54, 62),
-                    DimAlignment = DimAlignments.Both,
-                };
-
                 layout = new HudChain(false, this)
                 {
-                    SizingMode = HudChainSizingModes.FitMembersBoth,
-                    DimAlignment = DimAlignments.Height,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
+                    DimAlignment = DimAlignments.Height | DimAlignments.IgnorePadding,
                     ChainContainer = { arrow, divider, name }
                 };
 
@@ -455,6 +466,11 @@ namespace RichHudFramework.UI
                 {
                     DimAlignment = DimAlignments.Both
                 };
+            }
+
+            protected override void Layout()
+            {
+                name.Width = (Width - Padding.X) - divider.Width - arrow.Width;
             }
         }
     }

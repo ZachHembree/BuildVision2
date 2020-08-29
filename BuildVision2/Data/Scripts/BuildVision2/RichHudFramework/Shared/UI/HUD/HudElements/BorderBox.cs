@@ -43,24 +43,24 @@ namespace RichHudFramework.UI
             {
                 var ptw = (MatrixD)matrix;
 
-                float height = _absoluteHeight * Scale, width = _absoluteWidth * Scale, 
-                    thickness = _thickness * Scale;
+                float thickness = _thickness * Scale, 
+                    height = _absoluteHeight * Scale, width = _absoluteWidth * Scale;
 
                 // Left
                 hudBoard.Size = new Vector2(thickness, height);
-                hudBoard.Draw(cachedPosition + new Vector2(-width / 2f, 0f), ref ptw);
+                hudBoard.Draw(cachedPosition + new Vector2(-width / 2f, -thickness / 2f), ref ptw);
 
                 // Top
-                hudBoard.Size = new Vector2(width, thickness);
-                hudBoard.Draw(cachedPosition + new Vector2(0f, height / 2f), ref ptw);
+                hudBoard.Size = new Vector2(width + thickness / 2f, thickness);
+                hudBoard.Draw(cachedPosition + new Vector2(-thickness / 2f, height / 2f), ref ptw);
 
                 // Right
-                hudBoard.Size = new Vector2(thickness, height);
-                hudBoard.Draw(cachedPosition + new Vector2(width / 2f, 0f), ref ptw);
+                hudBoard.Size = new Vector2(thickness, height + thickness / 2f);
+                hudBoard.Draw(cachedPosition + new Vector2(width / 2f, thickness / 2f), ref ptw);
 
                 // Bottom
                 hudBoard.Size = new Vector2(width, thickness);
-                hudBoard.Draw(cachedPosition + new Vector2(0f, -height / 2f), ref ptw);
+                hudBoard.Draw(cachedPosition + new Vector2(thickness / 2f, -height / 2f), ref ptw);
             }
         }
     }

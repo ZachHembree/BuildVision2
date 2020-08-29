@@ -239,6 +239,11 @@ namespace RichHudFramework
                 /// in/out: Vector2
                 /// </summary>
                 TextOffset = 134,
+
+                /// <summary>
+                /// out: Vector2I
+                /// </summary>
+                VisibleLineRange = 135,
             }
 
             public interface ITextBoard : ITextBuilder
@@ -267,6 +272,11 @@ namespace RichHudFramework
                 /// Used to change the position of the text within the text element. AutoResize must be disabled for this to work.
                 /// </summary>
                 Vector2 TextOffset { get; set; }
+
+                /// <summary>
+                /// Returns the range of lines visible.
+                /// </summary>
+                Vector2I VisibleLineRange { get; }
 
                 /// <summary>
                 /// Size of the text box when AutoResize is set to false. Does nothing otherwise.

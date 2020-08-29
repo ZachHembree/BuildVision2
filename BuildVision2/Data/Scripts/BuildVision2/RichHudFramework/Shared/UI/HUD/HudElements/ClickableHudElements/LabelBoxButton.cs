@@ -33,7 +33,7 @@ namespace RichHudFramework.UI
 
         public LabelBoxButton(HudParentBase parent = null) : base(parent)
         {
-            _mouseInput = new MouseInputElement(this) { DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding };
+            _mouseInput = new MouseInputElement(this);
             _mouseInput.OnCursorEnter += CursorEntered;
             _mouseInput.OnCursorExit += CursorExited;
         }

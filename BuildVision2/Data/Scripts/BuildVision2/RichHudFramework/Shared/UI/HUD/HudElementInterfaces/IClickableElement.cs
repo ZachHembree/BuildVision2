@@ -53,6 +53,16 @@ namespace RichHudFramework
             bool IsRightClicked { get; }
 
             /// <summary>
+            /// True if the element was just with the left mouse button
+            /// </summary>
+            bool IsNewLeftClicked { get; }
+
+            /// <summary>
+            /// True if the element was just with the right mouse button
+            /// </summary>
+            bool IsNewRightClicked { get; }
+
+            /// <summary>
             /// Indicates whether or not the cursor is currently over this element.
             /// </summary>
             bool HasFocus { get; }

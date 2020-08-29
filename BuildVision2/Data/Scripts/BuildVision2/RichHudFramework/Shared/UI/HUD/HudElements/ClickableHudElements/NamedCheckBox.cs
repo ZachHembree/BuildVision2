@@ -43,47 +43,28 @@ namespace RichHudFramework.UI.Server
         /// </summary>
         public bool VertCenterText { get { return name.VertCenterText; } set { name.VertCenterText = value; } }
 
-        /// <summary>
-        /// If true, then the background will resize to match the size of the text plus padding. Otherwise,
-        /// size will be clamped such that the element will not be smaller than the text element.
-        /// </summary>
-        public bool FitToTextElement { get; set; }
-
         public override float Width
         {
-            get { return FitToTextElement ? chain.Width + Padding.X : base.Width; }
+            get { return layout.Width + Padding.X; }
             set 
             {
-                if (!FitToTextElement)
-                    value = MathHelper.Max(chain.Width, value);
-
                 if (value > Padding.X)
                     value -= Padding.X;
 
-                if (FitToTextElement)
-                    name.Width = value - checkbox.Width - chain.Spacing;
-                else
-                    base.Width = value;
+                name.Width = value - checkbox.Width - 17f * Scale;
             }
         }
 
         public override float Height 
         { 
-            get { return FitToTextElement ? chain.Height + Padding.Y : base.Height; } 
+            get { return layout.Height + Padding.Y; } 
             set 
             {
-                if (!FitToTextElement)
-                    value = MathHelper.Max(chain.Height, value);
+                if (value > Padding.X)
+                    value -= Padding.X;
 
-                if (value > Padding.Y)
-                    value -= Padding.Y;
-
-                if (FitToTextElement)
-                    chain.Height = value;
-                else
-                    base.Height = value;
-
-                checkbox.Height = value;
+                layout.Height = value;
+                checkbox.Width = value;
             } 
         }
 
@@ -104,7 +85,7 @@ namespace RichHudFramework.UI.Server
 
         private readonly Label name;
         private readonly BorderedCheckBox checkbox;
-        private readonly HudChain chain;
+        private readonly HudChain layout;
 
         public NamedCheckBox(HudParentBase parent = null) : base(parent)
         {
@@ -117,28 +98,14 @@ namespace RichHudFramework.UI.Server
 
             checkbox = new BorderedCheckBox();
 
-            chain = new HudChain(false, this)
+            layout = new HudChain(false, this)
             {
-                SizingMode = HudChainSizingModes.FitChainOffAxis | HudChainSizingModes.FitChainBoth,
+                SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
                 Spacing = 17f,
-                ChainContainer =
-                {
-                    name,
-                    checkbox,
-                }
+                ChainContainer = { name, checkbox }
             };
 
-            Height = 36f;
-        }
-
-        protected override void Layout()
-        {
-            // The element may not be smaller than the text
-            if (!FitToTextElement)
-            {
-                _absoluteWidth = MathHelper.Max(TextSize.Y, _absoluteWidth * Scale) / Scale;
-                _absoluteHeight = MathHelper.Max(TextSize.X, _absoluteHeight * Scale) / Scale;
-            }
+            Height = 37f;
         }
     }
 }

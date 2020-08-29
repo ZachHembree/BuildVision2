@@ -82,13 +82,14 @@ namespace RichHudFramework
             {
                 parentScale = 1f;
                 localScale = 1f;
+                parentVisible = true;
 
                 Register(parent);
             }
 
             protected override bool BeginLayout(bool refresh)
             {
-                if (Visible)
+                if (Visible || refresh)
                 {
                     parentScale = _parent == null ? 1f : _parent.Scale;
                     Layout();

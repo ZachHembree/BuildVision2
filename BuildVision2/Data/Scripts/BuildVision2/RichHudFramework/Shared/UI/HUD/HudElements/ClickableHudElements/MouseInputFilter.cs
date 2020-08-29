@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using VRageMath;
 
 namespace RichHudFramework.UI
 {
@@ -24,7 +25,7 @@ namespace RichHudFramework.UI
             ShareCursor = true;
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             IsControlPressed = false;
 

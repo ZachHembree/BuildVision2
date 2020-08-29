@@ -65,14 +65,19 @@ namespace RichHudFramework
             Enabled = 3,
 
             /// <summary>
-            /// MemberAccessor
+            /// out: ControlMembers
             /// </summary>
             Selection = 4,
 
             /// <summary>
-            /// MemberAccessor
+            /// in: TerminalPageBase
             /// </summary>
             AddPage = 5,
+
+            /// <summary>
+            /// in: IReadOnlyList<TerminalPageBase>
+            /// </summary>
+            AddRange = 6,
         }
 
         /// <summary>
@@ -117,6 +122,11 @@ namespace RichHudFramework
             /// Adds the given <see cref="TerminalPageBase"/> to the object.
             /// </summary>
             void Add(TerminalPageBase page);
+
+            /// <summary>
+            /// Adds the given ranges of pages to the control root.
+            /// </summary>
+            void AddRange(IReadOnlyList<TerminalPageBase> terminalPageBases);
 
             /// <summary>
             /// Retrieves data used by the Framework API

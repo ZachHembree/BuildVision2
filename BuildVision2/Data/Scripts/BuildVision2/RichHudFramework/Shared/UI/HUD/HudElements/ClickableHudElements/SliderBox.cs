@@ -34,6 +34,8 @@ namespace RichHudFramework.UI
         /// </summary>
         public override Vector2 Padding { get { return slide.Padding; } set { slide.Padding = value; } }
 
+        public override bool IsMousedOver => slide.IsMousedOver;
+
         public readonly TexturedBox background;
         public readonly BorderBox border;
         public readonly SliderBar slide;
@@ -70,7 +72,7 @@ namespace RichHudFramework.UI
             Size = new Vector2(317f, 47f);
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             if (IsMousedOver)
             {

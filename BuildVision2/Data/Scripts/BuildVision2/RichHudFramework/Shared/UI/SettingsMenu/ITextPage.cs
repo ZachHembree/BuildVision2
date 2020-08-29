@@ -12,6 +12,29 @@ namespace RichHudFramework
         using Client;
         using Server;
 
+        public enum TextPageAccessors : int
+        {
+            /// <summary>
+            /// in/out: IList(RichStringMembers)
+            /// </summary>
+            GetOrSetHeader = 10,
+
+            /// <summary>
+            /// in/out: IList(RichStringMembers)
+            /// </summary>
+            GetOrSetSubheader = 11,
+
+            /// <summary>
+            /// in/out: IList(RichStringMembers)
+            /// </summary>
+            GetOrSetText = 12,
+
+            /// <summary>
+            /// out: TextBuilderMembers
+            /// </summary>
+            GetTextBuilder = 13,
+        }
+
         /// <summary>
         /// Scrollable text page used in the terminal.
         /// </summary>

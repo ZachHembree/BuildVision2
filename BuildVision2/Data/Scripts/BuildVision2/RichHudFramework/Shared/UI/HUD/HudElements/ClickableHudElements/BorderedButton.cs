@@ -38,7 +38,7 @@ namespace RichHudFramework.UI.Server
             highlight = new TexturedBox(this)
             {
                 Color = TerminalFormatting.HighlightOverlayColor,
-                DimAlignment = DimAlignments.Both,
+                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
                 Visible = false,
             };
 
@@ -50,11 +50,12 @@ namespace RichHudFramework.UI.Server
             TextPadding = new Vector2(32f, 0f);
             Padding = new Vector2(37f, 0f);
             Size = new Vector2(253f, 50f);
+            HighlightEnabled = true;
         }
 
         protected override void CursorEntered(object sender, EventArgs args)
         {
-            if (IsMousedOver && HighlightEnabled)
+            if (HighlightEnabled)
             {
                 highlight.Visible = true;
             }

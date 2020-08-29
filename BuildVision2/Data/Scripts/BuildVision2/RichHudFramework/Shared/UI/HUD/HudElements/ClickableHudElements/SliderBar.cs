@@ -246,7 +246,7 @@ namespace RichHudFramework.UI
             canMoveSlider = true;
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             if (canMoveSlider && !SharedBinds.LeftButton.IsPressed)
             {

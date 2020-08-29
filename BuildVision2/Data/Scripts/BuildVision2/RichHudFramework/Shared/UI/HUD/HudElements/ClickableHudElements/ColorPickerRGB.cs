@@ -161,7 +161,7 @@ namespace RichHudFramework.UI.Server
             };
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             _color = new Color()
             {

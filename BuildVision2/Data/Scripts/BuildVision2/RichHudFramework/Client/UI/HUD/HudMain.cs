@@ -176,8 +176,6 @@ namespace RichHudFramework
             private readonly ApiMemberAccessor GetOrSetMemberFunc;
             private readonly Action UnregisterAction;
 
-            private readonly Utils.Stopwatch testTimer;
-
             private HudMain() : base(ApiModuleTypes.HudMain, false, true)
             {
                 var members = GetApiData();
@@ -188,9 +186,6 @@ namespace RichHudFramework
                 UnregisterAction = members.Item4;
 
                 root = new HudClientRoot();
-
-                testTimer = new Utils.Stopwatch();
-                testTimer.Start();
 
                 // Register update delegate
                 GetOrSetMemberFunc(new Action<List<HudUpdateAccessors>, byte>(root.GetUpdateAccessors), (int)HudMainAccessors.GetUpdateAccessors);
@@ -237,12 +232,6 @@ namespace RichHudFramework
 
                 enableCursorLast = EnableCursor;
                 refreshLast = RefreshDrawList;
-
-                if (testTimer.ElapsedMilliseconds > 2000)
-                {
-                    Internal.ExceptionHandler.SendChatMessage($"HudMain Cache update");
-                    testTimer.Reset();
-                }
             }
 
             public override void Close()

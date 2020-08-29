@@ -80,6 +80,11 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
+                /// Full text size including any text outside the visible range.
+                /// </summary>
+                public Vector2I VisibleLineRange => (Vector2I)GetOrSetMemberFunc(null, (int)TextBoardAccessors.VisibleLineRange);
+
+                /// <summary>
                 /// Size of the text box when AutoResize is set to false. Does nothing otherwise.
                 /// </summary>
                 public Vector2 FixedSize { get { return GetFixedSizeFunc(); } set { SetFixedSizeAction(value); } }

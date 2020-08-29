@@ -100,7 +100,7 @@ namespace RichHudFramework
             protected virtual MyTuple<Vector3, HudSpaceDelegate> BeginInput(Vector3 cursorPos, HudSpaceDelegate GetHudSpaceFunc)
             {
                 if (Visible)
-                    HandleInput();
+                    HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
 
                 return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);
             }
@@ -108,7 +108,7 @@ namespace RichHudFramework
             /// <summary>
             /// Updates the input of this UI element.
             /// </summary>
-            protected virtual void HandleInput() { }
+            protected virtual void HandleInput(Vector2 cursorPos) { }
 
             /// <summary>
             /// Updates layout for the element and its children. Don't override this
@@ -223,7 +223,7 @@ namespace RichHudFramework
 
                 if (parent != null)
                 {
-                    outerOffset += (byte)(parent.fullZOffset & 0x00FF);
+                    outerOffset += (byte)((parent.fullZOffset & 0x00FF) + sbyte.MinValue);
                     innerOffset += (ushort)(parent.fullZOffset & 0xFF00);
                 }
 

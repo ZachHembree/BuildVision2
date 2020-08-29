@@ -482,6 +482,18 @@ namespace RichHudFramework
                 }
             }
 
+            protected override bool BeginLayout(bool refresh)
+            {
+                if (Visible)
+                {
+                    UpdateCache();
+                    Layout();
+                    UpdateCache();
+                }
+
+                return refresh;
+            }
+
             protected override void Layout()
             {
                 ClampElementSizeRange();

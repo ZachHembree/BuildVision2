@@ -163,6 +163,19 @@ namespace RichHudFramework
                     GetOrSetMemberFunc(page.ID, (int)ModControlRootAccessors.AddPage);
 
                 /// <summary>
+                /// Adds the given ranges of pages to the control root.
+                /// </summary>
+                public void AddRange(IReadOnlyList<TerminalPageBase> pages)
+                {
+                    var idList = new object[pages.Count];
+
+                    for (int n = 0; n < pages.Count; n++)
+                        idList[n] = pages[n].ID;
+
+                    GetOrSetMemberFunc(idList, (int)ModControlRootAccessors.AddRange);
+                }
+
+                /// <summary>
                 /// Retrieves data used by the Framework API
                 /// </summary>
                 public ControlContainerMembers GetApiData() =>

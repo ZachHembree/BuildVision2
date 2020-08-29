@@ -83,7 +83,7 @@ namespace RichHudFramework
                     cursorPos = CursorPos;
                     GetHudSpaceFunc = this.GetHudSpaceFunc;
 
-                    HandleInput();
+                    HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
                 }
 
                 return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);

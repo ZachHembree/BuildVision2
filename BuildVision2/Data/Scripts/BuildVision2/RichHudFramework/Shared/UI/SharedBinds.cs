@@ -31,7 +31,9 @@ namespace RichHudFramework.UI
         public static IBind LeftArrow { get { return BindGroup[14]; } }
         public static IBind RightArrow { get { return BindGroup[15]; } }
 
-        public static IBind Shift { get { return BindGroup[16]; } }
+        public static IBind PageUp { get { return BindGroup[16]; } }
+        public static IBind PageDown { get { return BindGroup[17]; } }
+        public static IBind Shift { get { return BindGroup[18]; } }
 
         public static IBindGroup BindGroup { get { return Instance.sharedBinds; } }
 
@@ -68,6 +70,8 @@ namespace RichHudFramework.UI
                 { "leftarrow", MyKeys.Left },
                 { "rightarrow", MyKeys.Right },
 
+                { "pageup", MyKeys.PageUp },
+                { "pagedown", MyKeys.PageDown },
                 { "shift", MyKeys.Shift },
             });
         }

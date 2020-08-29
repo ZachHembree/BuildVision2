@@ -37,11 +37,11 @@ namespace RichHudFramework.UI.Server
             box = new TexturedBox(this)
             {
                 DimAlignment = DimAlignments.Both,
-                Padding = new Vector2(16f, 16f),
+                Padding = new Vector2(16f),
                 Color = BoxColor,
             };
 
-            Size = new Vector2(37f, 36f);
+            Size = new Vector2(37f);
             Color = new Color(39, 52, 60);
             highlightColor = new Color(50, 60, 70);
             highlightEnabled = false;
@@ -54,7 +54,7 @@ namespace RichHudFramework.UI.Server
             BoxChecked = !BoxChecked;
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             if (IsMousedOver)
             {
