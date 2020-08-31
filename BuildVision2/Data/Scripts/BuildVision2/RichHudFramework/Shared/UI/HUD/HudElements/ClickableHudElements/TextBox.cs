@@ -25,6 +25,11 @@ namespace RichHudFramework.UI
         public bool EnableHighlighting { get; set; }
 
         /// <summary>
+        /// Indicates whether or not the textbox will accept input
+        /// </summary>
+        public bool InputOpen => allowInput;
+
+        /// <summary>
         /// Used to restrict the range of characters allowed for input.
         /// </summary>
         public Func<char, bool> CharFilterFunc { get; set; }
@@ -61,10 +66,11 @@ namespace RichHudFramework.UI
 
             caret.OnCaretMoved += CaretMoved;
 
-            UseCursor = true;
+            base.UseCursor = true;
             ShareCursor = true;
             EnableEditing = true;
             EnableHighlighting = true;
+            UseCursor = true;
         }
 
         /// <summary>
@@ -116,9 +122,9 @@ namespace RichHudFramework.UI
 
         protected override void HandleInput(Vector2 cursorPos)
         {
-            allowInput = (MouseInput.HasFocus && HudMain.Cursor.Visible);
+            bool useInput = allowInput && (MouseInput.HasFocus && HudMain.Cursor.Visible);
 
-            if (allowInput && EnableEditing)
+            if (useInput && EnableEditing)
             {
                 caret.Visible = true;
                 textInput.HandleInput();
@@ -151,20 +157,24 @@ namespace RichHudFramework.UI
                 caret.Visible = false;
             }
 
-            caret.Visible = allowInput && (EnableHighlighting || EnableEditing);
+            caret.Visible = useInput && (EnableHighlighting || EnableEditing);
 
-            if (allowInput && EnableHighlighting)
+            if (useInput && EnableHighlighting)
             {
-                if (SharedBinds.LeftButton.IsNewPressed)
+                if (UseCursor)
                 {
-                    canHighlight = true;
-                    selectionBox.ClearSelection();
+                    if (SharedBinds.LeftButton.IsNewPressed)
+                    {
+                        canHighlight = true;
+                        selectionBox.ClearSelection();
+                    }
+                    else if (SharedBinds.LeftButton.IsReleased)
+                    {
+                        canHighlight = false;
+                    }
                 }
-                else if (SharedBinds.LeftButton.IsReleased)
-                {
-                    canHighlight = false;
-                }
-                else if (SharedBinds.SelectAll.IsNewPressed)
+
+                if (SharedBinds.SelectAll.IsNewPressed)
                     selectionBox.SetSelection(Vector2I.Zero, new Vector2I(TextBoard.Count - 1, TextBoard[TextBoard.Count - 1].Count - 1));
                 else if (SharedBinds.Escape.IsNewPressed)
                     selectionBox.ClearSelection();
@@ -257,14 +267,14 @@ namespace RichHudFramework.UI
 
             public event Action OnCaretMoved;
 
-            private readonly Label textElement;
+            private readonly TextBox textElement;
             private readonly ITextBoard text;
             private readonly Utils.Stopwatch blinkTimer;
             private bool blink;
             private int caretOffset;
             private Vector2 lastCursorPos;
 
-            public TextCaret(Label textElement) : base(textElement)
+            public TextCaret(TextBox textElement) : base(textElement)
             {
                 this.textElement = textElement;
                 text = textElement.TextBoard;
@@ -415,10 +425,13 @@ namespace RichHudFramework.UI
                 if (SharedBinds.LeftArrow.IsPressedAndHeld || SharedBinds.LeftArrow.IsNewPressed)
                     Move(new Vector2I(0, -1), true);
 
-                if (SharedBinds.LeftButton.IsPressed)
-                    GetClickedChar(cursorPos);
-                else if (SharedBinds.LeftButton.IsReleased)
-                    lastCursorPos = Vector2.PositiveInfinity;
+                if (textElement.UseCursor)
+                {
+                    if (SharedBinds.LeftButton.IsPressed)
+                        GetClickedChar(cursorPos);
+                    else if (SharedBinds.LeftButton.IsReleased)
+                        lastCursorPos = Vector2.PositiveInfinity;
+                }
             }
 
             /// <summary>

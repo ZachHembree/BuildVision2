@@ -49,7 +49,7 @@ namespace RichHudFramework.UI.Server
         /// <summary>
         /// Indicates whether or not the text field will accept input
         /// </summary>
-        public bool InputOpen { get { return textBox.EnableEditing; } }
+        public bool InputOpen => textBox.InputOpen;
 
         /// <summary>
         /// Used to restrict the range of characters allowed for input.
