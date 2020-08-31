@@ -18,6 +18,15 @@ namespace RichHudFramework
             object // ID
         >;
 
+        public enum TerminalAccessors : int
+        {
+            ToggleMenu = 0,
+            OpenMenu = 1,
+            CloseMenu = 2,
+            OpenToPage = 3,
+            SetPage = 4
+        }
+
         /// <summary>
         /// Used by the API to specify to request a given type of settings menu control
         /// </summary>

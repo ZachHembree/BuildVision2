@@ -51,7 +51,7 @@ namespace RichHudFramework
             public RichText Text
             {
                 get { return new RichText(GetOrSetMemberFunc(null, (int)TextPageAccessors.GetOrSetText) as IList<RichStringMembers>); }
-                set { GetOrSetMemberFunc(value.ApiData, (int)ControlCatAccessors.HeaderText); }
+                set { GetOrSetMemberFunc(value.ApiData, (int)TextPageAccessors.GetOrSetText); }
             }
 
             /// <summary>
@@ -59,7 +59,7 @@ namespace RichHudFramework
             /// </summary>
             public ITextBuilder TextBuilder { get; }
 
-            public TextPage() : base(ModPages.ControlPage)
+            public TextPage() : base(ModPages.TextPage)
             {
                 TextBuilder = new BasicTextBuilder((TextBuilderMembers)GetOrSetMemberFunc(null, (int)TextPageAccessors.GetTextBuilder));
             }

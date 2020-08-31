@@ -44,10 +44,10 @@ namespace RichHudFramework
 
             private static RichHudTerminal Instance
             {
-                get { Init(); return instance; }
-                set { instance = value; }
+                get { Init(); return _instance; }
+                set { _instance = value; }
             }
-            private static RichHudTerminal instance;
+            private static RichHudTerminal _instance;
 
             private readonly ModControlRoot menuRoot;
             private readonly ApiMemberAccessor GetOrSetMembersFunc;
@@ -69,15 +69,64 @@ namespace RichHudFramework
 
             public static void Init()
             {
-                if (instance == null)
+                if (_instance == null)
                 {
-                    instance = new RichHudTerminal();
+                    _instance = new RichHudTerminal();
                 }
+            }
+
+            /// <summary>
+            /// Toggles the menu between open and closed
+            /// </summary>
+            public static void ToggleMenu()
+            {
+                if (_instance == null)
+                    Init();
+
+                _instance.GetOrSetMembersFunc(null, (int)TerminalAccessors.ToggleMenu);
+            }
+
+            /// <summary>
+            /// Open the menu if chat is visible
+            /// </summary>
+            public static void OpenMenu()
+            {
+                if (_instance == null)
+                    Init();
+
+                _instance.GetOrSetMembersFunc(null, (int)TerminalAccessors.OpenMenu);
+            }
+
+            /// <summary>
+            /// Close the menu
+            /// </summary>
+            public static void CloseMenu()
+            {
+                if (_instance == null)
+                    Init();
+
+                _instance.GetOrSetMembersFunc(null, (int)TerminalAccessors.CloseMenu);
+            }
+
+            /// <summary>
+            /// Sets the current page to the one given
+            /// </summary>
+            public static void OpenToPage(TerminalPageBase newPage)
+            {
+                _instance.GetOrSetMembersFunc(new MyTuple<object, object>(_instance.menuRoot.ID, newPage.ID), (int)TerminalAccessors.OpenToPage);
+            }
+
+            /// <summary>
+            /// Sets the current page to the one given
+            /// </summary>
+            public static void SetPage(TerminalPageBase newPage)
+            {
+                _instance.GetOrSetMembersFunc(new MyTuple<object, object>(_instance.menuRoot.ID, newPage.ID), (int)TerminalAccessors.SetPage);
             }
 
             public override void Close()
             {
-                instance = null;
+                _instance = null;
             }
 
             public static ControlMembers GetNewMenuControl(MenuControls controlEnum) =>
@@ -129,7 +178,21 @@ namespace RichHudFramework
                 /// </summary>
                 public ITerminalPage Selection
                 {
-                    get { return new TerminalPage((ControlMembers)GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Selection)); }
+                    get 
+                    {
+                        object id = GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Selection);
+
+                        if (id != null)
+                        {
+                            for (int n = 0; n < Pages.Count; n++)
+                            {
+                                if (id == Pages[n].ID)
+                                    return Pages[n];
+                            }
+                        }
+
+                        return null;
+                    }
                 }
 
                 /// <summary>
@@ -181,16 +244,16 @@ namespace RichHudFramework
                 public ControlContainerMembers GetApiData() =>
                     data;
 
+                protected void ModRootCallback()
+                {
+                    OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+                }
+
                 IEnumerator<ITerminalPage> IEnumerable<ITerminalPage>.GetEnumerator() =>
                     Pages.GetEnumerator();
 
                 IEnumerator IEnumerable.GetEnumerator() =>
                     Pages.GetEnumerator();
-
-                protected void ModRootCallback()
-                {
-                    OnSelectionChanged?.Invoke(this, EventArgs.Empty);
-                }
 
                 private class TerminalPage : TerminalPageBase
                 {

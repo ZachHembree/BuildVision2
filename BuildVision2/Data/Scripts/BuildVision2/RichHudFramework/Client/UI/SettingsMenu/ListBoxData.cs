@@ -12,7 +12,24 @@ namespace RichHudFramework.UI
 
     public class ListBoxData<T> : ReadOnlyApiCollection<EntryData<T>>
     {
-        public EntryData<T> Selection => new EntryData<T>((ApiMemberAccessor)GetOrSetMemberFunc(null, (int)ListBoxAccessors.Selection));
+        public EntryData<T> Selection 
+        {
+            get 
+            {
+                object id = GetOrSetMemberFunc(null, (int)ListBoxAccessors.Selection);
+
+                if (id != null)
+                {
+                    for (int n = 0; n < Count; n++)
+                    {
+                        if (this[n].ID == id)
+                            return this[n];
+                    }
+                }
+
+                return null;
+            }
+        }
 
         private readonly ApiMemberAccessor GetOrSetMemberFunc;
 
