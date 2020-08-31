@@ -12,30 +12,52 @@ namespace DarkHelmet.BuildVision2
 {
     public sealed partial class BvMain
     {
+        private TextPage helpMain, bindHelp;
+
         private void InitSettingsMenu()
         {
             RichHudTerminal.Root.Enabled = true;
 
-            RichHudTerminal.Root.Add(new ControlPage()
+            helpMain = new TextPage()
             {
-                Name = "Settings",
-                CategoryContainer =
-                {
-                    GetTargetingSettings(),
-                    GetGuiSettings(),
-                    GetPropertySettings(),
-                    GetHelpSettings(),
-                },
-            });
+                Name = "Help",
+                HeaderText = "Build Vision Help",
+                SubHeaderText = "",
+                Text = HelpText.GetHelpMessage(),
+            };
 
-            RichHudTerminal.Root.Add(new RebindPage()
+            bindHelp = new TextPage()
             {
-                Name = "Binds",
-                GroupContainer =
+                Name = "Bind Help",
+                HeaderText = "Bind Help",
+                SubHeaderText = "",
+                Text = HelpText.GetBindHelpMessage(),
+            };
+
+            RichHudTerminal.Root.AddRange(new TerminalPageBase[] 
+            { 
+                new ControlPage()
                 {
-                    { BvBinds.OpenGroup, BindsConfig.DefaultOpen },
-                    { BvBinds.MainGroup, BindsConfig.DefaultMain },
-                }
+                    Name = "Settings",
+                    CategoryContainer =
+                    {
+                        GetTargetingSettings(),
+                        GetGuiSettings(),
+                        GetPropertySettings(),
+                        GetHelpSettings(),
+                    },
+                },
+                new RebindPage()
+                {
+                    Name = "Binds",
+                    GroupContainer =
+                    {
+                        { BvBinds.OpenGroup, BindsConfig.DefaultOpen },
+                        { BvBinds.MainGroup, BindsConfig.DefaultMain },
+                    }
+                },
+                helpMain,
+                bindHelp,
             });
         }
 
@@ -425,13 +447,13 @@ namespace DarkHelmet.BuildVision2
             var openHelp = new TerminalButton()
             {
                 Name = "Open help menu",
-                ControlChangedHandler = (sender, args) => ExceptionHandler.ShowMessageScreen("Help", GetHelpMessage())
+                ControlChangedHandler = (sender, args) => RichHudTerminal.OpenToPage(helpMain)
             };
 
             var openBindHelp = new TerminalButton()
             {
                 Name = "Open bind help",
-                ControlChangedHandler = (sender, args) => ExceptionHandler.ShowMessageScreen("Bind Help", GetBindHelpMessage()),
+                ControlChangedHandler = (sender, args) => RichHudTerminal.OpenToPage(bindHelp),
             };
 
             var tile1 = new ControlTile()

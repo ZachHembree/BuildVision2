@@ -152,7 +152,7 @@ namespace DarkHelmet.BuildVision2
                 AutoResize = false,
                 VertCenterText = false,
                 Color = bodyColor,
-                Padding = new Vector2(48f, 16f),
+                TextPadding = new Vector2(48f, 16f),
                 BuilderMode = TextBuilderModes.Lined,
             };
 
@@ -187,7 +187,7 @@ namespace DarkHelmet.BuildVision2
             footer = new DoubleLabelBox()
             {
                 AutoResize = false,
-                Padding = new Vector2(48f, 0f),
+                TextPadding = new Vector2(48f, 0f),
                 Size = new Vector2(300f, 24f),
                 Color = headerColor,
             };
@@ -374,7 +374,7 @@ namespace DarkHelmet.BuildVision2
             };
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             if (MenuMode != ScrollMenuModes.Peek && !BvBinds.Open.IsPressed)
             {
@@ -441,7 +441,7 @@ namespace DarkHelmet.BuildVision2
             {
                 for (int n = 0; n < scrollBody.ChainEntries.Count; n++)
                 {
-                    var entry = scrollBody.ChainEntries[Count];
+                    var entry = scrollBody.ChainEntries[n];
                     entry.Enabled = false;
                     entry.Element.Clear();
                 }
@@ -531,7 +531,7 @@ namespace DarkHelmet.BuildVision2
 
                 copyIndicator = new SelectionBox();
                 name = new Label();
-                valueText = new TextBox() { UseMouseInput = false };
+                valueText = new TextBox() { UseCursor = false };
                 postfix = new Label();
 
                 layout = new HudChain(false, this)
