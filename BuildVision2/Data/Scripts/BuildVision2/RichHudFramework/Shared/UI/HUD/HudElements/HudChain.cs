@@ -1,29 +1,11 @@
-﻿using System.Collections.Generic;
-using VRageMath;
+﻿using System;
 using VRage;
-using System;
-using System.Collections;
-using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
-using HudLayoutDelegate = System.Func<bool, bool>;
-using HudDrawDelegate = System.Func<object, object>;
+using VRageMath;
 
 namespace RichHudFramework
 {
-    using HudInputDelegate = Func<Vector3, HudSpaceDelegate, MyTuple<Vector3, HudSpaceDelegate>>;
-
     namespace UI
     {
-        using Server;
-        using Client;
-        using HudUpdateAccessors = MyTuple<
-            ushort, // ZOffset
-            byte, // Depth
-            HudInputDelegate, // DepthTest
-            HudInputDelegate, // HandleInput
-            HudLayoutDelegate, // BeforeLayout
-            HudDrawDelegate // BeforeDraw
-        >;
-
         /// <summary>
         /// Used to control sizing behavior of HudChain members and the containing chain element itself. The align axis
         /// is the axis chain elements are arranged on; the off axis is the other axis. When vertically aligned, Y is 
@@ -117,22 +99,11 @@ namespace RichHudFramework
             2) Members must be positioned within the chain's bounds.
             3) Members are assumed to be compatible with the specified sizing mode. Otherwise the behavior is undefined
             and incorrect positioning and sizing will occur.
-         */
-        public class HudChain<TElementContainer, TElement> : HudElementBase, IEnumerable<TElementContainer>
+        */
+        public class HudChain<TElementContainer, TElement> : HudCollection<TElementContainer, TElement>
             where TElementContainer : IHudElementContainer<TElement>, new()
             where TElement : HudElementBase
         {
-            /// <summary>
-            /// UI elements in the chain
-            /// </summary>
-            public IReadOnlyList<TElementContainer> ChainEntries => chainElements;
-
-            /// <summary>
-            /// Used to allow the addition of child elements using collection-initializer syntax in
-            /// conjunction with normal initializers.
-            /// </summary>
-            public HudChain<TElementContainer, TElement> ChainContainer => this;
-
             /// <summary>
             /// Width of the chain
             /// </summary>
@@ -193,11 +164,6 @@ namespace RichHudFramework
             /// </summary>
             public bool AlignVertical => alignAxis == 1;
 
-            /// <summary>
-            /// UI elements in the chain
-            /// </summary>
-            protected readonly List<TElementContainer> chainElements;
-
             protected float _spacing;
             protected int alignAxis, offAxis;
             protected Vector2 _absMaxSize, _absMinSize;
@@ -205,7 +171,6 @@ namespace RichHudFramework
             public HudChain(bool alignVertical, HudParentBase parent = null) : base(parent)
             {
                 Spacing = 0f;
-                chainElements = new List<TElementContainer>();
                 SizingMode = HudChainSizingModes.FitChainBoth;
 
                 if (alignVertical)
@@ -217,268 +182,6 @@ namespace RichHudFramework
                 {
                     alignAxis = 0;
                     offAxis = 1;
-                }
-            }
-
-            public IEnumerator<TElementContainer> GetEnumerator() =>
-                chainElements.GetEnumerator();
-
-            IEnumerator IEnumerable.GetEnumerator() =>
-                GetEnumerator();
-
-            /// <summary>
-            /// Adds an element of type <see cref="TElement"/> to the chain.
-            /// </summary>
-            public virtual void Add(TElement element) =>
-                Add(new TElementContainer { Element = element });
-
-            /// <summary>
-            /// Adds an element of type <see cref="TElementContainer"/> to the chain.
-            /// </summary>
-            public void Add(TElementContainer container)
-            {
-                blockChildRegistration = true;
-
-                if (container.Element.Parent == this)
-                    throw new Exception("HUD Element already registered.");
-
-                container.Element.Register(this);
-
-                if (container.Element.Parent != this)
-                    throw new Exception("HUD Element registration failed.");
-
-                chainElements.Add(container);
-
-                blockChildRegistration = false;
-            }
-
-            /// <summary>
-            /// Add the given range to the end of the chain.
-            /// </summary>
-            public void AddRange(IReadOnlyList<TElementContainer> newChainEntries)
-            {
-                blockChildRegistration = true;
-
-                for (int n = 0; n < newChainEntries.Count; n++)
-                {
-                    if (newChainEntries[n].Element.Parent == this)
-                        throw new Exception("HUD Element already registered.");
-
-                    newChainEntries[n].Element.Register(this);
-
-                    if (newChainEntries[n].Element.Parent != this)
-                        throw new Exception("HUD Element registration failed.");
-                }
-
-                chainElements.AddRange(newChainEntries);
-                blockChildRegistration = false;
-            }
-
-            /// <summary>
-            /// Adds an element of type <see cref="TElement"/> at the given index.
-            /// </summary>
-            public void Insert(int index, TElement element) =>
-                Insert(index, new TElementContainer { Element = element });
-
-            /// <summary>
-            /// Adds an element of type <see cref="TElementContainer"/> at the given index.
-            /// </summary>
-            public void Insert(int index, TElementContainer container)
-            {
-                blockChildRegistration = true;
-
-                if (container.Element.Parent == this)
-                    throw new Exception("HUD Element already registered.");
-
-                container.Element.Register(this);
-
-                if (container.Element.Parent != this)
-                    throw new Exception("HUD Element registration failed.");
-
-                chainElements.Insert(index, container);
-
-                blockChildRegistration = false;
-            }
-
-            /// <summary>
-            /// Insert the given range into the chain.
-            /// </summary>
-            public void InsertRange(int index, IReadOnlyList<TElementContainer> newChainEntries)
-            {
-                blockChildRegistration = true;
-
-                for (int n = 0; n < newChainEntries.Count; n++)
-                {
-                    if (newChainEntries[n].Element.Parent == this)
-                        throw new Exception("HUD Element already registered.");
-
-                    newChainEntries[n].Element.Register(this);
-
-                    if (newChainEntries[n].Element.Parent != this)
-                        throw new Exception("HUD Element registration failed.");
-                }
-
-                chainElements.InsertRange(index, newChainEntries);
-                blockChildRegistration = false;
-            }
-
-            /// <summary>
-            /// Removes the specified element from the chain.
-            /// </summary>
-            public void Remove(TElement chainElement)
-            {
-                if (chainElement.Parent == this)
-                {
-                    int index = chainElements.FindIndex(x => x.Element == chainElement);
-
-                    if (index != -1)
-                    {
-                        chainElement.Unregister();
-                        chainElements.RemoveAt(index);
-                    }
-                }
-            }
-
-            /// <summary>
-            /// Removes the specified element from the chain.
-            /// </summary>
-            public void Remove(TElementContainer entry)
-            {
-                if (entry.Element.Parent == this)
-                {
-                    int index = chainElements.FindIndex(x => x.Equals(entry));
-
-                    if (index != -1)
-                    {
-                        entry.Element.Unregister();
-                        chainElements.RemoveAt(index);
-                    }
-                }
-            }
-
-            /// <summary>
-            /// Removes the chain member that meets the conditions required by the predicate.
-            /// </summary>
-            public void Remove(Func<TElement, bool> predicate)
-            {
-                int index = chainElements.FindIndex(x => predicate(x.Element));
-                RemoveAt(index);
-            }
-
-            /// <summary>
-            /// Removes the chain member that meets the conditions required by the predicate.
-            /// </summary>
-            public void Remove(Func<TElementContainer, bool> predicate)
-            {
-                int index = chainElements.FindIndex(x => predicate(x));
-                RemoveAt(index);
-            }
-
-            /// <summary>
-            /// Remove the chain element at the given index.
-            /// </summary>
-            public void RemoveAt(int index)
-            {
-                if (chainElements[index].Element.Parent == this)
-                {
-                    blockChildRegistration = true;
-
-                    chainElements[index].Element.Unregister();
-                    chainElements.RemoveAt(index);
-
-                    blockChildRegistration = false;
-                }
-            }
-
-            /// <summary>
-            /// Removes the specfied range from the chain. Normal child elements not affected.
-            /// </summary>
-            public void RemoveRange(int index, int count)
-            {
-                blockChildRegistration = true;
-
-                for (int n = index; n < index + count; n++)
-                    chainElements[n].Element.Unregister();
-
-                chainElements.RemoveRange(index, count);
-                blockChildRegistration = false;
-            }
-
-            /// <summary>
-            /// Remove all elements in the HudChain. Does not affect normal child elements.
-            /// </summary>
-            public void ClearChain()
-            {
-                blockChildRegistration = true;
-
-                for (int n = 0; n < chainElements.Count; n++)
-                    chainElements[n].Element.Unregister();
-
-                chainElements.Clear();
-                blockChildRegistration = false;
-            }
-
-            /// <summary>
-            /// Finds the chain member that meets the conditions required by the predicate.
-            /// </summary>
-            public TElementContainer Find(Func<TElementContainer, bool> predicate)
-            {
-                return chainElements.Find(x => predicate(x));
-            }
-
-            /// <summary>
-            /// Finds the index of the chain member that meets the conditions required by the predicate.
-            /// </summary>
-            public int FindIndex(Func<TElementContainer, bool> predicate)
-            {
-                return chainElements.FindIndex(x => predicate(x));
-            }
-
-            public override void RemoveChild(HudNodeBase child)
-            {
-                if (!blockChildRegistration)
-                {
-                    int index = children.FindIndex(x => x == child);
-
-                    if (index != -1)
-                    {
-                        if (children[index].Parent == child)
-                            children[index].Unregister();
-                        else if (children[index].Parent == null)
-                            children.RemoveAt(index);
-                    }
-                    else
-                    {
-                        index = chainElements.FindIndex(x => x.Element == child);
-
-                        if (index != -1)
-                        {
-                            if (chainElements[index].Element.Parent == child)
-                                chainElements[index].Element.Unregister();
-                            else if (chainElements[index].Element.Parent == null)
-                                chainElements.RemoveAt(index);
-                        }
-                    }
-                }
-            }
-
-            public override void GetUpdateAccessors(List<HudUpdateAccessors> DrawActions, byte treeDepth)
-            {
-                fullZOffset = GetFullZOffset(this, _parent);
-
-                DrawActions.EnsureCapacity(DrawActions.Count + children.Count + chainElements.Count + 1);
-                DrawActions.Add(new HudUpdateAccessors(fullZOffset, treeDepth, DepthTestAction, InputAction, LayoutAction, DrawAction));
-
-                treeDepth++;
-
-                for (int n = 0; n < chainElements.Count; n++)
-                {
-                    chainElements[n].Element.GetUpdateAccessors(DrawActions, treeDepth);
-                }
-
-                for (int n = 0; n < children.Count; n++)
-                {
-                    children[n].GetUpdateAccessors(DrawActions, treeDepth);
                 }
             }
 

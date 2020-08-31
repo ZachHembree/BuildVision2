@@ -66,7 +66,6 @@ namespace RichHudFramework.UI
 
             caret.OnCaretMoved += CaretMoved;
 
-            base.UseCursor = true;
             ShareCursor = true;
             EnableEditing = true;
             EnableHighlighting = true;
@@ -122,7 +121,7 @@ namespace RichHudFramework.UI
 
         protected override void HandleInput(Vector2 cursorPos)
         {
-            bool useInput = allowInput && (MouseInput.HasFocus && HudMain.Cursor.Visible);
+            bool useInput = allowInput || (MouseInput.HasFocus && HudMain.Cursor.Visible);
 
             if (useInput && EnableEditing)
             {

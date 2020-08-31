@@ -258,7 +258,7 @@ namespace RichHudFramework.UI
             for (int n = 0; n < entryChain.ChainEntries.Count; n++)
                 entryPool.Return(entryChain.ChainEntries[n]);
 
-            entryChain.ClearChain();
+            entryChain.Clear();
         }
 
         private ListBoxEntry<T> GetNewEntry()

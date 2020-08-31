@@ -133,17 +133,14 @@ namespace RichHudFramework
 
             protected override MyTuple<Vector3, HudSpaceDelegate> InputDepth(Vector3 cursorPos, HudSpaceDelegate GetHudSpaceFunc)
             {
-                if (Visible)
+                if (Visible && UseCursor)
                 {
-                    if (UseCursor)
-                    {
-                        Vector2 offset = Vector2.Max(cachedSize, new Vector2(minMouseBounds)) / 2f;
-                        BoundingBox2 box = new BoundingBox2(cachedPosition - offset, cachedPosition + offset);
-                        mouseInBounds = box.Contains(new Vector2(cursorPos.X, cursorPos.Y)) == ContainmentType.Contains;
+                    Vector2 offset = Vector2.Max(cachedSize, new Vector2(minMouseBounds)) / 2f;
+                    BoundingBox2 box = new BoundingBox2(cachedPosition - offset, cachedPosition + offset);
+                    mouseInBounds = box.Contains(new Vector2(cursorPos.X, cursorPos.Y)) == ContainmentType.Contains;
 
-                        if (mouseInBounds)
-                            HudMain.Cursor.TryCaptureHudSpace(cursorPos.Z, GetHudSpaceFunc);
-                    }
+                    if (mouseInBounds)
+                        HudMain.Cursor.TryCaptureHudSpace(cursorPos.Z, GetHudSpaceFunc);
                 }
 
                 return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);

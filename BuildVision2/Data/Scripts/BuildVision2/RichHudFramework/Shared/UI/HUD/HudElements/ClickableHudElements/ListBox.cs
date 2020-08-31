@@ -261,7 +261,7 @@ namespace RichHudFramework.UI
             for (int n = 0; n < scrollBox.ChainEntries.Count; n++)
                 entryPool.Return(scrollBox.ChainEntries[n]);
 
-            scrollBox.ClearChain();
+            scrollBox.Clear();
         }
 
         /// <summary>
