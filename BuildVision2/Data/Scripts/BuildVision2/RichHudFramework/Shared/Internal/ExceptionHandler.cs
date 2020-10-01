@@ -6,6 +6,7 @@ using System.Text;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.Game;
+using VRage.Utils;
 
 namespace RichHudFramework.Internal
 {
@@ -301,6 +302,18 @@ namespace RichHudFramework.Internal
                 try
                 {
                     MyAPIGateway.Utilities.ShowMessage(ModName, message);
+                }
+                catch { }
+            }
+        }
+
+        public static void WriteLineAndConsole(string message)
+        {
+            if (!Unloading)
+            {
+                try
+                {
+                    MyLog.Default.WriteLineAndConsole($"[{ModName}] {message}");
                 }
                 catch { }
             }

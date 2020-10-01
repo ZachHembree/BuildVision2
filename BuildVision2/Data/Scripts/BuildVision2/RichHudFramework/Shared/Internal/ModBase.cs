@@ -17,7 +17,12 @@ namespace RichHudFramework.Internal
         /// <summary>
         /// If true, the mod is currently running on a client.
         /// </summary>
-        public static bool IsClient => !IsDedicated;
+        public static bool IsClient { get; private set; }
+
+        /// <summary>
+        /// If true, the mod is currently running on a server.
+        /// </summary>
+        public static bool IsServer { get; private set; }
 
         /// <summary>
         /// If true, the mod is currently running on a dedicated server.
@@ -68,9 +73,10 @@ namespace RichHudFramework.Internal
         {
             if (!Loaded && !ExceptionHandler.Unloading && !closing)
             {
-                bool isServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
-                IsDedicated = (MyAPIGateway.Utilities.IsDedicated && isServer);
-                CanUpdate = (RunOnClient && IsClient) || (RunOnServer && IsDedicated);
+                IsDedicated = MyAPIGateway.Utilities.IsDedicated;
+                IsServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer || IsDedicated;
+                IsClient = !IsDedicated;
+                CanUpdate = true;
 
                 ExceptionHandler.RegisterClient(this);
 

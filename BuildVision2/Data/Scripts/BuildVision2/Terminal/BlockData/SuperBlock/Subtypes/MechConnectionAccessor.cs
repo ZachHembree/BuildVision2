@@ -1,7 +1,13 @@
 ﻿using Sandbox.ModAPI;
 using System;
+using System.Collections.Generic;
 using VRage;
-using RichHudFramework;
+using VRage.ModAPI;
+using VRageMath;
+using VRage.Game;
+using VRage.Game.ModAPI;
+using VRage.Game.Entity;
+using RichHudFramework.Internal;
 using RichHudFramework.UI;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
@@ -30,14 +36,20 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Attempts to attach a nearby head.
             /// </summary>
-            public void AttachHead() =>
-                subtype.Attach();
+            public void AttachHead()
+            {
+                //subtype.Attach();
+                BvMain.SendBlockActionToServer(new BlockActionMsg(subtype.EntityId, EntitySubtypes.MyMechanicalConnection, MechBlockActions.Attach));
+            }
 
             /// <summary>
             /// Detaches the head.
             /// </summary>
-            public void DetachHead() =>
-                subtype.Detach();
+            public void DetachHead()
+            {
+                //subtype.Detach(); -- This isn't being synchronized with the DS, yet Attach() is.
+                BvMain.SendBlockActionToServer(new BlockActionMsg(subtype.EntityId, EntitySubtypes.MyMechanicalConnection, MechBlockActions.Detach));
+            }
 
             /// <summary>
             /// Returns head attachment status as a localized string.
