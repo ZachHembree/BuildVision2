@@ -6,13 +6,6 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    public enum ScrollMenuModes
-    {
-        Peek = 0,
-        Control = 1,
-        Copy = 2
-    }
-
     /// <summary>
     /// Scrollable list menu; the selection box position is based on the selection index.
     /// </summary>

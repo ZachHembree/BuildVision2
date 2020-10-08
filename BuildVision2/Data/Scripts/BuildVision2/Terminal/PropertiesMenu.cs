@@ -29,6 +29,11 @@ namespace DarkHelmet.BuildVision2
         public static bool Open { get { return Instance.scrollMenu.Visible; } set { Instance.scrollMenu.Visible = value; } }
 
         /// <summary>
+        /// Returns the menu's current mode (peek/control/copy)
+        /// </summary>
+        public static ScrollMenuModes MenuMode => Instance.scrollMenu.MenuMode;
+
+        /// <summary>
         /// Draws the bounding box of the target. Used for debugging.
         /// </summary>
         public static bool DrawBoundingBox { get; set; }
