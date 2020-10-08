@@ -3,64 +3,84 @@ Build Vision 2 is a recreation and improvement upon the [original Build Vision b
 
 This mod can be found on the Steam Workshop [here](https://steamcommunity.com/sharedfiles/filedetails/?id=1697184408).
 
-## What's New in 2.4:
-* Migrated to the Rich HUD Framework.
-	* New settings menu
-	* New text renderer
-* No longer using the Text HUD API
-* Text fields:
-  * The caret can be moved using arrow keys
-  * Numerical values can be typed in
-  * Pressing Ctrl + A will select all text in the field
-  * Text can be copied/cut/pasted using (Ctrl + C/X/V)
-    * Note: The clipboard the text is stored to only works between mods
-    using the Rich Hud Framework. Copy/pasting from in-game fields or from
-    outside the game is not supported.
-* Power consumption/production, battery charge and tank fill pct. are now
-* displayed in the menu.
-* Rotor and piston positions are now displayed in the menu.
-* Menu scrolling now wraps around. If you attempt to scroll off either edge of the menu, it
-* will jump to the other end of the list.
-* Holding down Ctrl (MultX) while scrolling will allow you to scroll through the menu faster
-* Improved block targeting. Block targeting now checks the neighboring block as well as the bounding box of the models.
-* The fallback GUI has been removed.
-* Support for custom UI colors has been removed. Opacity is still configurable.
+## Controls:
+All keybinds are configurable via the Rich Hud Terminal and through chat commands. To access the terminal, open chat, press F1, click "Build Vision" and then click on "Binds." If you're completely mad and just _have_ to use chat commands, see the /bv2 bind cmd in the Chat Commands section. A list of supported controls can be found [here](https://pastebin.com/mGNq3u1T).  
+  
+**Main Binds:**
 
-## Binds:
-All keybinds are configurable via the Rich Hud Terminal and through chat commands. To access the terminal, open chat, press ~ (tilde), click "Build Vision" and then click on "Binds." If you're completely mad and just HAVE to use chat commands, see the /bv2 bind cmd below.
+If you don't need to change any settings, holding down the peek bind will show you a summary of the status/configuration of the block you're targeting, including information like its name, power and inventory usage. Just hold it down, aim at the block you want to check and release when you're done.  
+  
+|Name|Controls|
+|--|--|
+|Peek|Control|
+|Open|Control + Middle Button|
+|Close|Shift + MiddleButton|
+|Select|MiddleButton|
+|Scroll Up|MouseWheelUp|
+|Scroll Down|MouseWheelDown|
+  
+Text fields are opened/closed by opening/closing chat and support the usage of the usual Ctrl+A/X/C/V binds to select, cut, copy and paste text. Fair warning: you'll only be able to copy text within Build Vision; it won't work with the terminal or anything else.  
+  
+Numerical fields can be changed either by using the scroll wheel to increment/decrement their values or by opening them like a text field and typing in a value.  
+  
+**Multiplier Binds:**  
 
-#### Default Binds:
-* Open: Control + MiddleButton
-* Close: Shift + MiddleButton
-* Select: Middlebutton
-* Scroll Up: MouseWheelUp
-* Scroll Down: MouseWheelDown
-* MultX: Control (0.1 for float values, x8 for colors)
-* MultY: Shift (x5 for float values, x16 for colors)
-* MultZ: Control + Shift (x10 for float values, x64 for colors)
+The multiplier binds are used to change the speed a selected property will change with each tick of the scroll wheel, **1/10th** normal, **5x** normal, **10x**, etc. The base rate is proportional to the maximum value of the selected property. If you have a thruster override selected (probably with a maximum in the millions) that’s going to change in much larger increments than the targeting range of a turret (with a max around 800 meters, usually).  
+  
+The MultX bind, Ctrl by default, can also be used to scroll through the list faster. Just hold it down while scrolling.  
 
-The “Mult” binds or multiplier binds are used to increase the speed a selected property will change with each tick of the scroll wheel, ten times normal, **1/10th** normal, **5** times, **10** times, etc. The base rate is proportional to the maximum value of the selected property. If you have a thruster override selected (probably with a max value in the millions) that’s going to change in much larger increments than the targeting range of a turret (with a max around 800 meters, usually).
+|Name|Control|
+|--|--|
+|MultX (x0.1 for float values, x8 for colors)|Control|
+|MultY (x5 for float values, x16 for colors)|Shift|
+|MultZ (x10 for float values, x64 for colors)|Control + Shift|
 
-## Settings Menu:
-This mod is using the Rich Hud Terminal for its settings menu and is accessed by opening chat and pressing ~. Through this menu, you can configure block targeting, change UI settings and configure your keybinds.
+
+**Copy/Paste Binds:**  
+
+These binds are used to copy settings between compatible block types. When in this mode, you can either select/deselect properties one at a time using the Scroll and Select binds or you can select them all at once using the Select All bind. Pressing Select All will also automatically change the menu to copy mode if not it's already enabled.  
+  
+|Name|Controls|
+|--|--|
+|Toggle Copy Mode|Home|
+|Select All|Insert|
+|Copy Selection|PageUp|
+|Paste Copied Properties|PageDown|
+|Undo Paste|Delete|
+
+**Settings Menu:**
+
+This mod is using the Rich Hud Terminal for its settings menu and is accessed by opening chat and pressing F1. Through this menu, you can configure block targeting, change UI settings and configure your keybinds.  
+  
 
 ## Chat Commands:
-All chat commands must begin with “/bv2” and are not case-sensitive. The arguments following “/bv2” can be separated either by whitespace, a comma, semicolon or pipe character. Whatever floats your boat, just make sure there’s something between them.
+The chat commands in this mod are largely redundant; the functionality they provide is also provided by the settings menu. If you prefer to use the chat commands for whatever reason, here they are:  
+  
+All chat commands must begin with “/bv2” and are not case-sensitive. The arguments following “/bv2” can be separated either by whitespace, a comma, semicolon or pipe character. Whatever floats your boat; just make sure there’s something between them.  
+  
+|Command|Description|
+|--|--|
+|help|Opens help menu|
+|bindHelp|Help menu for changing key binds|
+|printBinds|Prints your current key binds to chat|
+|bind|[bindName] [control1] [control2] [control3]|
+|save|For manually saving the configuration|
+|load|For manually loading the config file|
+|resetBinds|Resets all key binds to default|
+|resetConfig|Resets all of your settings to default|
 
-* help – It’s a help menu
-* bindHelp – Help menu for changing key binds
-* printBinds – Prints your current key binds to chat
-* bind [bindName] [control1] [control2] [control3]
-* save – For manually saving the configuration
-* load – For manually loading the config file
-* resetConfig – Resets all of your settings to default
-* resetBinds – Resets all key binds to default
-* toggleAutoclose – If enabled, the menu will close if it goes off your screen
-* toggleOpenWhileHolding -- If enabled, you'll be able to open the menu while holding a tool or weapon
-
-Example: "/bv2 bind open control shift"
+  
+Example: "/bv2 bind open control shift"  
+  
 
 ## Editing the Config File:
-The config file can be found in **%AppData%\Roaming\SpaceEngineers\Storage\1697184408.sbm_BuildVision2.** At the risk of stating the obvious, improperly formatted XML will not be interpreted correctly and will result in the default settings being loaded instead (unless a set of valid settings are already loaded). The config file will not be generated until you run the mod at least once.
+The config file can be found in **%AppData%\Roaming\SpaceEngineers\Storage\1697184408.sbm_BuildVision2**. At the risk of stating the obvious, improperly formatted XML will not be interpreted correctly and will result in the default settings being loaded instead (unless a set of valid settings are already loaded). The config file will not be generated until you run the mod at least once.  
+  
+Any formatting errors or general IO errors will be saved to bvLog.txt in the same directory. If the error log isn't working, you might have a problem with your file access permissions. The log file won't be created unless there was an error to log at some point.  
+  
 
-Any formatting errors or general IO errors will be saved to **bvLog.txt** in the same directory. If the error log isn't working, you might have a problem with your file access permissions. The log file won't be created unless there was an error to log at some point.
+**Troubleshooting and Bug Reports:**
+
+If you're having trouble getting this mod to work, see the [Troubleshooting Guide](https://steamcommunity.com/workshop/filedetails/discussion/1697184408/2259060348521461027).  
+  
+If you have a bug to report, see the [instructions](https://steamcommunity.com/workshop/filedetails/discussion/1697184408/1769259642874284751) for submitting bug reports in the discussions section.
