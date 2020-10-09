@@ -145,7 +145,7 @@ namespace DarkHelmet.BuildVision2
                 registered = true;
 
                 ExceptionHandler.WriteLineAndConsole($"{debugName} successfully registered with the API.");
-                SendData(BvApiStates.RegistrationSuccessful, new ServerData(() => ExceptionHandler.Run(Unregister), instance.GetOrSetMembers, versionID));
+                SendData(BvApiStates.RegistrationSuccessful, new ServerData(Unregister, instance.GetOrSetMembers, versionID));
             }
 
             /// <summary>
@@ -156,12 +156,14 @@ namespace DarkHelmet.BuildVision2
 
             public void Unregister()
             {
-                if (registered)
+                if (registered && !ExceptionHandler.Unloading)
                 {
-                    registered = false;
-                    instance.clients.Remove(this);
-
-                    ReloadAction();
+                    ExceptionHandler.Run(() => 
+                    {
+                        registered = false;
+                        instance.clients.Remove(this);
+                        ReloadAction();
+                    });
                 }
             }
         }
