@@ -274,7 +274,7 @@ namespace DarkHelmet.BuildVision2
                 if (notificationTimer.ElapsedMilliseconds > notifTime)
                     notification = null;
             }
-            else if (MenuMode == ScrollMenuModes.Copy)
+            else if (MenuMode == ScrollMenuModes.Dupe)
             {
                 int copyCount = 0;
 
@@ -310,7 +310,7 @@ namespace DarkHelmet.BuildVision2
 
         protected override void Layout()
         {
-            if (MenuMode == ScrollMenuModes.Control || MenuMode == ScrollMenuModes.Copy)
+            if (MenuMode == ScrollMenuModes.Control || MenuMode == ScrollMenuModes.Dupe)
             {
                 scrollBody.Visible = true;
                 peekBody.Visible = false;
@@ -351,12 +351,12 @@ namespace DarkHelmet.BuildVision2
             if (MenuMode != ScrollMenuModes.Peek && !BvBinds.Open.IsPressed)
             {
                 if (BvBinds.ToggleSelectMode.IsNewPressed || (MenuMode == ScrollMenuModes.Control && BvBinds.SelectAll.IsNewPressed))
-                    ToggleReplicationMode();
+                    ToggleDuplicationMode();
 
                 HandleSelectionInput();
 
-                if (MenuMode == ScrollMenuModes.Copy)
-                    HandleReplicatorInput();
+                if (MenuMode == ScrollMenuModes.Dupe)
+                    HandleDuplicatorInput();
                 else if (MenuMode == ScrollMenuModes.Control)
                     HandlePropertyInput();
             }

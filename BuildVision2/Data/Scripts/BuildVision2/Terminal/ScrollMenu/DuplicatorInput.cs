@@ -10,7 +10,7 @@ namespace DarkHelmet.BuildVision2
 {
     public sealed partial class BvScrollMenu : HudElementBase
     {
-        private void HandleReplicatorInput()
+        private void HandleDuplicatorInput()
         {
             if (BvBinds.SelectAll.IsNewPressed)
                 SelectAllProperties();
@@ -19,7 +19,7 @@ namespace DarkHelmet.BuildVision2
                 Selection.Replicating = !Selection.Replicating;
         }
 
-        public List<PropertyData> GetReplicationRange()
+        public List<PropertyData> GetDuplicationRange()
         {
             var propertyData = new List<PropertyData>();
 
@@ -37,16 +37,16 @@ namespace DarkHelmet.BuildVision2
             return propertyData;
         }
 
-        private void ToggleReplicationMode()
+        private void ToggleDuplicationMode()
         {
-            if (MenuMode == ScrollMenuModes.Copy)
+            if (MenuMode == ScrollMenuModes.Dupe)
             {
                 MenuMode = ScrollMenuModes.Control;
                 DeselectAllProperties();
             }
             else
             {
-                MenuMode = ScrollMenuModes.Copy;                
+                MenuMode = ScrollMenuModes.Dupe;                
                 CloseProp();
             }
         }
