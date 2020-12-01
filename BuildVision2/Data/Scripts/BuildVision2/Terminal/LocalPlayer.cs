@@ -1,22 +1,45 @@
-﻿using Sandbox.Definitions;
+﻿using RichHudFramework.Internal;
+using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
-using VRage.Game;
-using VRage.Game.ModAPI;
-using VRage.Game.Entity;
-using VRageMath;
-using VRage.ModAPI;
 using System;
-using RichHudFramework.Internal;
+using System.Collections.Generic;
+using System.Linq;
+using VRage.Game;
+using VRage.Game.Components;
+using VRage.Game.Entity;
+using VRage.Game.ModAPI;
+using VRage.ModAPI;
+using VRageMath;
 using CollisionLayers = Sandbox.Engine.Physics.MyPhysics.CollisionLayers;
 
 namespace DarkHelmet.BuildVision2
 {
+    [Flags]
+    public enum TerminalPermissionStates : int
+    {
+        None = 0x0,
+        Denied = 0x1,
+        Granted = 0x2,
+
+        GridUnowned = 0x4,
+        GridUnfriendly = 0x8,
+        GridFriendly = 0x10,
+        
+        BlockUnfriendly = 0x20,
+        BlockFriendly = 0x40
+    }
+
     /// <summary>
     /// Wrapper for various local player related fields and methods.
     /// </summary>
     public static partial class LocalPlayer
     {
+        /// <summary>
+        /// Returns the local human player
+        /// </summary>
+        public static IMyPlayer Player { get { return MyAPIGateway.Session.LocalHumanPlayer; } }
+
         /// <summary>
         /// Returns the currently controlled object as an IMyCharacter
         /// </summary>
@@ -153,6 +176,65 @@ namespace DarkHelmet.BuildVision2
             }
 
             return grid != null;
+        }
+
+        /// <summary>
+        /// Returns true if the local player can access the given terminal block. Blocks without ownership
+        /// permissions require the player to have at least neutral relations with the grid owner's faction.
+        /// </summary>
+        public static TerminalPermissionStates GetBlockAccessPermissions(IMyTerminalBlock block)
+        {
+            long plyID = Player.IdentityId;
+            IMyCubeGrid grid = block.CubeGrid;
+            var accessState = TerminalPermissionStates.None;
+
+            // Ensure owners are up to date
+            grid.UpdateOwnership(0, false);
+
+            List<long> bigOwners = grid.BigOwners;
+            var def = MyDefinitionManager.Static.GetDefinition(block.BlockDefinition) as MyCubeBlockDefinition;
+
+            // Terminal blocks with computers are ownership permissions. If there are no bigOwners, the grid
+            // is unowned.
+            bool ownable = def?.Components.Any(x => x.Definition.Id.SubtypeName == "Computer") ?? false,
+                gridUnowned = bigOwners.Count == 0;
+
+            if (ownable)
+            {
+                if (block.HasPlayerAccess(plyID))
+                    accessState |= TerminalPermissionStates.Granted | TerminalPermissionStates.BlockFriendly;
+                else
+                    accessState |= TerminalPermissionStates.Denied | TerminalPermissionStates.BlockUnfriendly;
+            }
+            else if (gridUnowned)
+            {
+                accessState |= TerminalPermissionStates.Granted | TerminalPermissionStates.GridUnowned;
+            }
+            else
+            {
+                bool gridFriendly = bigOwners.Contains(plyID);
+
+                if (!gridFriendly)
+                {
+                    foreach (long owner in bigOwners)
+                    {
+                        IMyFaction ownerFaction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(owner);
+
+                        if (ownerFaction != null && (!ownerFaction.IsEnemy(plyID) || ownerFaction.IsMember(plyID)))
+                        {
+                            gridFriendly = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (gridFriendly)
+                    accessState |= TerminalPermissionStates.Granted | TerminalPermissionStates.GridFriendly;
+                else
+                    accessState |= TerminalPermissionStates.Denied | TerminalPermissionStates.GridUnfriendly;
+            }
+
+            return accessState;
         }
     }
 }
