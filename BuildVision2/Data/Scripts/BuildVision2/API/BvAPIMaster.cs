@@ -96,14 +96,17 @@ namespace DarkHelmet.BuildVision2
 
         private object GetOrSetMembers(object data, int memberEnum)
         {
-            switch ((BvApiAccessors)memberEnum)
+            if (BvMain.Instance?.CanUpdate ?? false)
             {
-                case BvApiAccessors.Open:
-                    return PropertiesMenu.Open;
-                case BvApiAccessors.MenuMode:
-                    return PropertiesMenu.MenuMode;
-                case BvApiAccessors.Target:
-                    return PropertiesMenu.Target?.TBlock;
+                switch ((BvApiAccessors)memberEnum)
+                {
+                    case BvApiAccessors.Open:
+                        return PropertiesMenu.Open;
+                    case BvApiAccessors.MenuMode:
+                        return PropertiesMenu.MenuMode;
+                    case BvApiAccessors.Target:
+                        return PropertiesMenu.Target?.TBlock;
+                }
             }
 
             return null;

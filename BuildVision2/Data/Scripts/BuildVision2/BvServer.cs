@@ -135,10 +135,9 @@ namespace DarkHelmet.BuildVision2
                     MyAPIGateway.Multiplayer.SendMessageToServer(serverHandlerID, protoMessages);
                 else
                     ExceptionHandler.WriteLineAndConsole($"Unable to serialize server message: {exception.ToString()}");
-            }
 
-            if (!ExceptionHandler.IsServer)
                 serverMessages.Clear();
+            }
         }
 
         /// <summary>
