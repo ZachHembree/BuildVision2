@@ -204,7 +204,7 @@ namespace RichHudFramework.Internal
             protected ModBase Parent { get; private set; }
 
             /// <summary>
-            /// Determines whether or not this component will run on a dedicated server.
+            /// Determines whether or not this component will run on a dedicated server and/or client.
             /// </summary>
             public readonly bool runOnServer, runOnClient;
 

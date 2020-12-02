@@ -25,7 +25,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Returns the range of properties selected as a serialized list of data.
         /// </summary>
-        public List<PropertyData> GetReplicationRange()
+        public List<PropertyData> GetDuplicationRange()
         {
             var propertyData = new List<PropertyData>();
 
@@ -48,16 +48,16 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Toggles the menu between copying and property control
         /// </summary>
-        private void ToggleReplicationMode()
+        private void ToggleDuplicationMode()
         {
-            if (MenuMode == ScrollMenuModes.Copy)
+            if (MenuMode == ScrollMenuModes.Dupe)
             {
                 MenuMode = ScrollMenuModes.Control;
                 DeselectAllProperties();
             }
             else
             {
-                MenuMode = ScrollMenuModes.Copy;                
+                MenuMode = ScrollMenuModes.Dupe;                
                 CloseProp();
             }
         }

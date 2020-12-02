@@ -160,9 +160,9 @@ namespace DarkHelmet.BuildVision2
 
             if (targetBlock != null && Open && scrollMenu.MenuMode != ScrollMenuModes.Peek)
             {
-                if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Copy)
+                if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Dupe)
                 {
-                    clipboard = new BlockData(targetBlock.TypeID, scrollMenu.GetReplicationRange());
+                    clipboard = new BlockData(targetBlock.TypeID, scrollMenu.GetDuplicationRange());
                     scrollMenu.ShowNotification($"Copied {clipboard.terminalProperties.Count} Properties");
                 }
 
@@ -289,12 +289,14 @@ namespace DarkHelmet.BuildVision2
         private bool TryGetTarget()
         {
             IMyTerminalBlock block;
-
+            
             if ((BvConfig.Current.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && TryGetTargetedBlock(BvConfig.Current.general.maxOpenRange, out block))
             {
                 if (block != null)
                 {
-                    if (block.HasLocalPlayerAccess())
+                    TerminalPermissionStates permissions = LocalPlayer.GetBlockAccessPermissions(block);
+
+                    if ((permissions & TerminalPermissionStates.Granted) > 0)
                     {
                         if (targetBlock == null || block != targetBlock.TBlock)
                         {
@@ -305,7 +307,12 @@ namespace DarkHelmet.BuildVision2
                         return true;
                     }
                     else if (scrollMenu.MenuMode != ScrollMenuModes.Peek)
-                        MyAPIGateway.Utilities.ShowNotification("Access denied", 1000, MyFontEnum.Red);
+                    {
+                        if ((permissions & TerminalPermissionStates.GridUnfriendly) > 0)
+                            MyAPIGateway.Utilities.ShowNotification($"Access denied. Grid unfriendly.", 1000, MyFontEnum.Red);
+                        else
+                            MyAPIGateway.Utilities.ShowNotification("Access denied", 1000, MyFontEnum.Red);
+                    }
                 }
             }
 

@@ -41,7 +41,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Menu currently copying/pasting properties
         /// </summary>
-        Copy = 2
+        Dupe = 2
     }
 
     /// <summary>

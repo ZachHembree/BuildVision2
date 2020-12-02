@@ -15,6 +15,8 @@ using Sandbox.ModAPI;
 using VRage.Game.Components;
 using RichHudFramework;
 using ProtoBuf;
+using SecureMessageHandler = System.Action<ushort, byte[], ulong, bool>;
+using SecureClientMessage = VRage.MyTuple<ushort, byte[], ulong, bool>;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -56,16 +58,17 @@ namespace DarkHelmet.BuildVision2
     public sealed class BvServer : BvComponentBase
     {
         private const ushort serverHandlerID = 16971;
-        private readonly List<BlockActionMsg> serverMessages;
-        private readonly List<byte[]> messageData;
+        private readonly List<BlockActionMsg> clientOutgoing, clientParsed;
+        private readonly List<SecureClientMessage> serverIncoming;
 
         private static BvServer instance;
-        private static Action<byte[]> messageHandler;
+        private static SecureMessageHandler messageHandler;
 
         private BvServer() : base(true, true)
         {
-            serverMessages = new List<BlockActionMsg>();
-            messageData = new List<byte[]>();
+            clientOutgoing = new List<BlockActionMsg>();
+            clientParsed = new List<BlockActionMsg>();
+            serverIncoming = new List<SecureClientMessage>();
         }
 
         public static void Init()
@@ -75,10 +78,10 @@ namespace DarkHelmet.BuildVision2
                 instance = new BvServer();
             }
 
-            if (!ExceptionHandler.IsClient)
+            if (ExceptionHandler.IsServer)
             {
-                messageHandler = new Action<byte[]>(instance.ServerMessageHandler);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(serverHandlerID, messageHandler);
+                messageHandler = new SecureMessageHandler(instance.ServerMessageHandler);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(serverHandlerID, messageHandler);
             }
         }
 
@@ -87,7 +90,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static void SendBlockActionToServer(BlockActionMsg message)
         {
-            instance.serverMessages.Add(message);
+            instance.clientOutgoing.Add(message);
         }
 
         /// <summary>
@@ -95,7 +98,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public override void Close()
         {
-            MyAPIGateway.Multiplayer.UnregisterMessageHandler(serverHandlerID, messageHandler);
+            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(serverHandlerID, messageHandler);
             instance = null;
         }
 
@@ -110,68 +113,68 @@ namespace DarkHelmet.BuildVision2
             // Process messages from clients
             if (ExceptionHandler.IsServer)
             {
-                ReceiveServerMessages();
+                ProcessServerMessages();
             }
         }
 
         /// <summary>
-        /// Sends data to the server as a protobuf serialized byte array
+        /// Receives serialized data sent to the server
         /// </summary>
-        private void ServerMessageHandler(byte[] message)
+        private void ServerMessageHandler(ushort id, byte[] message, ulong plyID, bool sentFromServer)
         {
-            messageData.Add(message);
+            serverIncoming.Add(new SecureClientMessage(id, message, plyID, sentFromServer));
         }
 
+        /// <summary>
+        /// Serializes client messages and sends them to the server.
+        /// </summary>
         private void SendServerMessages()
         {
-            if (serverMessages.Count > 0)
+            if (clientOutgoing.Count > 0)
             {
-                ExceptionHandler.WriteLineAndConsole($"Sending {serverMessages.Count} message(s) to server.");
+                ExceptionHandler.WriteLineAndConsole($"Sending {clientOutgoing.Count} message(s) to server.");
 
                 byte[] protoMessages;
-                KnownException exception = Utils.ProtoBuf.TrySerialize(serverMessages, out protoMessages);
+                KnownException exception = Utils.ProtoBuf.TrySerialize(clientOutgoing, out protoMessages);
 
                 if (exception == null)
                     MyAPIGateway.Multiplayer.SendMessageToServer(serverHandlerID, protoMessages);
                 else
-                    ExceptionHandler.WriteLineAndConsole($"Unable to serialize server message: {exception.ToString()}");
-            }
+                    ExceptionHandler.WriteLineAndConsole($"Unable to serialize server message: {exception}");
 
-            if (!ExceptionHandler.IsServer)
-                serverMessages.Clear();
+                clientOutgoing.Clear();
+            }
         }
 
         /// <summary>
-        /// Processes serialized messages from clients
+        /// Processes serialized messages from clients.
         /// </summary>
-        private void ReceiveServerMessages()
+        private void ProcessServerMessages()
         {
             int errCount = 0;
 
             // Deserialize client messages and keep a running count of errors
-            for (int n = 0; n < messageData.Count; n++)
+            for (int n = 0; n < serverIncoming.Count; n++)
             {
-                var clientActions = new List<BlockActionMsg>();
-                KnownException exception = Utils.ProtoBuf.TryDeserialize(messageData[n], out clientActions);
+                List<BlockActionMsg> clientActions;
+                KnownException exception = Utils.ProtoBuf.TryDeserialize(serverIncoming[n].Item2, out clientActions);
 
                 if (exception != null)
                     errCount++;
                 else
-                {
-                    serverMessages.AddRange(clientActions);
-                }
+                    clientParsed.AddRange(clientActions);
             }
 
             // Process successfully parsed client messages
-            if (errCount < serverMessages.Count)
+            if (errCount < clientParsed.Count)
             {
-                ExceptionHandler.WriteLineAndConsole($"Recieved {serverMessages.Count} message(s) from client(s).");
+                ExceptionHandler.WriteLineAndConsole($"Recieved {clientParsed.Count} message(s) from client(s).");
 
-                for (int n = 0; n < serverMessages.Count; n++)
+                for (int n = 0; n < clientParsed.Count; n++)
                 {
-                    IMyEntity entity = MyAPIGateway.Entities.GetEntityById(serverMessages[n].entID);
+                    IMyEntity entity = MyAPIGateway.Entities.GetEntityById(clientParsed[n].entID);
 
-                    switch ((EntitySubtypes)serverMessages[n].subtypeID)
+                    switch (clientParsed[n].subtypeID)
                     {
                         case EntitySubtypes.None:
                             break;
@@ -181,7 +184,7 @@ namespace DarkHelmet.BuildVision2
 
                                 if (mechBlock != null)
                                 {
-                                    switch (serverMessages[n].actionID)
+                                    switch (clientParsed[n].actionID)
                                     {
                                         case MechBlockActions.Attach:
                                             mechBlock.Attach(); break;
@@ -197,12 +200,10 @@ namespace DarkHelmet.BuildVision2
             }
 
             if (errCount > 0)
-            {
-                ExceptionHandler.WriteLineAndConsole($"Unable to parse {errCount} of {messageData.Count} client message(s).");
-            }
+                ExceptionHandler.WriteLineAndConsole($"Unable to parse {errCount} of {serverIncoming.Count} client message(s).");
 
-            messageData.Clear();
-            serverMessages.Clear();
+            serverIncoming.Clear();
+            clientParsed.Clear();
         }
     }
 }
