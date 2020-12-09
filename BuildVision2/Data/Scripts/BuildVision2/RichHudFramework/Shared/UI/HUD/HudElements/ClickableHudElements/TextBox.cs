@@ -1,6 +1,7 @@
 ﻿using RichHudFramework.UI.Rendering;
 using Sandbox.ModAPI;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using VRageMath;
 
@@ -543,20 +544,24 @@ namespace RichHudFramework.UI
             /// <summary>
             /// If true, then the current selection is empty.
             /// </summary>
-            public bool Empty => top == null || (Start == -Vector2I.One || End == -Vector2I.One);
+            public bool Empty => (Start == -Vector2I.One || End == -Vector2I.One);
 
             private readonly TextCaret caret;
             private readonly ITextBoard text;
             private readonly MatBoard highlightBoard;
-
-            private HighlightBox top, middle, bottom;
+            private readonly List<HighlightBox> highlightList;
+            private Vector2 lastTextSize;
+            private Vector2I lastVisRange;
+            private bool highlightStale;
 
             public SelectionBox(TextCaret caret, Label parent) : base(parent)
             {
-                highlightBoard = new MatBoard();
                 text = parent.TextBoard;
                 this.caret = caret;
+
                 Start = -Vector2I.One;
+                highlightBoard = new MatBoard();
+                highlightList = new List<HighlightBox>();
             }
 
             public void SetSelection(Vector2I start, Vector2I end)
@@ -564,14 +569,14 @@ namespace RichHudFramework.UI
                 Start = start;
                 End = end;
 
-                UpdateHighlight();
+                highlightStale = true;
             }
 
             public void ClearSelection()
             {
-                top = null;
                 Start = -Vector2I.One;
                 End = -Vector2I.One;
+                highlightList.Clear();
             }
 
             public void UpdateSelection()
@@ -605,7 +610,7 @@ namespace RichHudFramework.UI
                     if (End.Y == -1)
                         End += new Vector2I(0, 1);
 
-                    UpdateHighlight();
+                    highlightStale = true;
                 }
                 else
                 {
@@ -614,149 +619,112 @@ namespace RichHudFramework.UI
                 }
             }
 
+            protected override void Draw(object matrix)
+            {
+                if (lastTextSize != text.Size)
+                {
+                    lastTextSize = text.Size;
+                    ClearSelection();
+                }
+
+                if (!Empty)
+                {
+                    if (highlightStale || text.VisibleLineRange != lastVisRange)
+                    {
+                        lastVisRange = text.VisibleLineRange;
+                        UpdateHighlight();
+                    }
+
+                    var ptw = (MatrixD)matrix;
+                    Vector2 tbOffset = text.TextOffset, bounds = new Vector2(-text.Size.X / 2f, text.Size.X / 2f);
+
+                    for (int n = 0; n < highlightList.Count; n++)
+                        highlightList[n].Draw(highlightBoard, Origin, tbOffset, bounds, ref ptw);
+                }
+            }
 
             /// <summary>
             /// Calculates the size and offsets for the boxes highlighting the selection.
             /// </summary>
             private void UpdateHighlight()
             {
-                IRichChar left = text[ClampIndex(Start)], right = text[ClampIndex(End)];
-                Vector2 lastOffset;
+                highlightStale = false;
+                highlightList.Clear();
 
-                text.MoveToChar(Start);
-                lastOffset = text.TextOffset;
-                text.MoveToChar(End);
+                int startLine = Math.Max(Start.X, text.VisibleLineRange.X),
+                    endLine = Math.Min(End.X, text.VisibleLineRange.Y);
 
-                if (text.TextOffset != lastOffset)
+                // Add start and end
+                if (Start.X == End.X && Start.X == startLine)
+                    AddHighlightBox(Start.X, Start.Y, End.Y);
+                else
                 {
-                    caret.SetPosition(End);
-                    top = new HighlightBox() 
-                    { 
+                    for (int line = startLine; line <= endLine; line++)
+                    {
+                        if (line == Start.X)
+                            AddHighlightBox(Start.X, Start.Y, text[Start.X].Count - 1); // Top
+                        else if (line == End.X)
+                            AddHighlightBox(End.X, 0, End.Y); // Bottom
+                        else
+                            AddHighlightBox(line, 0, text[line].Count - 1); // Middle
+                    }
+                }
+
+                if (highlightList.Count > 0 && highlightList.Capacity > 3 * highlightList.Count)
+                    highlightList.TrimExcess();
+            }
+
+            /// <summary>
+            /// Adds an appropriately sized highlight box for the range of characters on the given line.
+            /// Does not take into account text clipping or text offset.
+            /// </summary>
+            private void AddHighlightBox(int line, int startCh, int endCh)
+            {
+                if (text[line].Count > 0)
+                {
+                    if (startCh < 0 || endCh < 0 || startCh >= text[line].Count || endCh >= text[line].Count)
+                        throw new Exception($"Char out of range. Line: {line} StartCh: {startCh}, EndCh: {endCh}, Count: {text[line].Count}");
+
+                    IRichChar left = text[line][startCh], right = text[line][endCh];
+                    var highlightBox = new HighlightBox
+                    {
                         size = new Vector2()
-                        { 
-                            X = Math.Min(text.Size.X, text.TextSize.X),
-                            Y = Math.Min(text.Size.Y, text.TextSize.Y),
+                        {
+                            X = right.Offset.X - left.Offset.X + (left.Size.X + right.Size.X) / 2f,
+                            Y = text[line].Size.Y
+                        },
+                        offset = new Vector2()
+                        {
+                            X = (right.Offset.X + left.Offset.X) / 2f - 2f,
+                            Y = text[line].VerticalOffset - text[line].Size.Y / 2f
                         }
                     };
 
-                    middle = null;
-                    bottom = null;
-                }
-                else
-                {
-                    if (End.X != Start.X)
-                    {
-                        IRichChar firstLineEnd = text[Start.X][text[Start.X].Count - 1],
-                            lastLineStart = text[End.X][0];
+                    if (highlightBox.size.X > 1f)
+                        highlightBox.size.X += 4f;
 
-                        top = GetEndBar(left, firstLineEnd);
-                        bottom = GetEndBar(lastLineStart, right);
-
-                        if (End.X - Start.X > 1)
-                            middle = GetMiddleBar();
-                        else
-                            middle = null;
-                    }
-                    else
-                    {
-                        top = GetEndBar(left, right);
-
-                        middle = null;
-                        bottom = null;
-                    }
+                    highlightList.Add(highlightBox);
                 }
             }
 
-            /// <summary>
-            /// Clamps the given index within the range of existing characters.
-            /// </summary>
-            private Vector2I ClampIndex(Vector2I index)
-            {
-                if (text.Count > 0)
-                {
-                    index.X = MathHelper.Clamp(index.X, 0, text.Count - 1);
-                    index.Y = MathHelper.Clamp(index.Y, 0, text[index.X].Count - 1);
-
-                    return index;
-                }
-                else
-                    return Vector2I.Zero;
-            }
-
-            /// <summary>
-            /// Returns a highlight box that is appropriately sized or positioned to fit between
-            /// two <see cref="IRichChar"/>s.
-            /// </summary>
-            private HighlightBox GetEndBar(IRichChar left, IRichChar right)
-            {
-                HighlightBox box = new HighlightBox();
-                float leftBound = left.Offset.X  - left.Size.X / 2f,
-                    rightBound = right.Offset.X + right.Size.X / 2f;
-
-                box.size = new Vector2()
-                {
-                    X = Math.Min(rightBound - leftBound, text.Size.X),
-                    Y = text[Start.X].Size.Y
-                };
-
-                box.offset = new Vector2()
-                {
-                    X = (rightBound + leftBound) / 2f,
-                    Y = left.Offset.Y
-                } + text.TextOffset;
-
-                return box;
-            }
-
-            /// <summary>
-            /// Returns a highlight box that is sized and positioned to fit between the top and bottom
-            /// highlight boxes.
-            /// </summary>
-            private HighlightBox GetMiddleBar()
-            {
-                HighlightBox box = new HighlightBox();
-                float upperBound = top.offset.Y - top.size.Y / 2f,
-                    lowerBound = bottom.offset.Y + bottom.size.Y / 2f;
-
-                box.size = new Vector2()
-                {
-                    X = Math.Min(text.Size.X, text.TextSize.X),
-                    Y = upperBound - lowerBound
-                };
-
-                box.offset = new Vector2()
-                {
-                    X = 0f,
-                    Y = (upperBound + lowerBound) / 2f
-                };
-
-                return box;
-            }
-
-            protected override void Draw(object matrix)
-            {
-                if (!Empty)
-                {
-                    var ptw = (MatrixD)matrix;
-
-                    top.Draw(highlightBoard, Origin, ref ptw);
-
-                    if (middle != null)
-                        middle.Draw(highlightBoard, Origin, ref ptw);
-
-                    if (bottom != null)
-                        bottom.Draw(highlightBoard, Origin, ref ptw);
-                }
-            }
-
-            private class HighlightBox
+            private struct HighlightBox
             {
                 public Vector2 size, offset;
 
-                public void Draw(MatBoard matBoard, Vector2 origin, ref MatrixD matrix)
+                public void Draw(MatBoard matBoard, Vector2 origin, Vector2 tbOffset, Vector2 xBounds, ref MatrixD matrix)
                 {
-                    matBoard.Size = size;
-                    matBoard.Draw(origin + offset, ref matrix);
+                    Vector2 drawSize = size, drawOffset = offset + tbOffset;
+
+                    // Determine the visible extents of the highlight box within the bounds of the textboard
+                    float leftBound = Math.Max(drawOffset.X - drawSize.X / 2f, xBounds.X),
+                        rightBound = Math.Min(drawOffset.X + drawSize.X / 2f, xBounds.Y);
+
+                    // Adjust highlight size and offset to compensate for textboard clipping and offset
+                    drawSize.X = Math.Max(0, rightBound - leftBound);
+                    drawOffset.X = (rightBound + leftBound) / 2f;
+
+                    matBoard.Size = drawSize;
+                    matBoard.Draw(origin + drawOffset, ref matrix);
                 }
             }
         }

@@ -7,9 +7,20 @@ namespace RichHudFramework.UI.Rendering
     public enum FontStyles : int
     {
         Regular = 0,
+
         Bold = 1,
+
+        /// <summary>
+        /// Font effect, always available
+        /// </summary>
         Italic = 2,
-        BoldItalic = 3
+
+        BoldItalic = 3,
+
+        /// <summary>
+        /// Font effect, always available
+        /// </summary>
+        Underline = 4
     }
 
     /// <summary>

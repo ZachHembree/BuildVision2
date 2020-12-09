@@ -154,7 +154,7 @@ namespace RichHudFramework.UI
                 ZOffset = -1,
             };
 
-            scrollBar = new ScrollBar(this);
+            scrollBar = new ScrollBar(this) { Vertical = alignVertical };
             divider = new TexturedBox(scrollBar) { Color = new Color(53, 66, 75) };
 
             if (alignVertical)

@@ -75,7 +75,7 @@ namespace RichHudFramework
             /// <summary>
             /// Starting position of the hud element.
             /// </summary>
-            public Vector2 Origin => (_parentFull == null) ? Vector2.Zero : _parentFull.cachedPosition;
+            public Vector2 Origin => (_parentFull == null) ? Vector2.Zero : _parentFull.cachedPosition + originAlignment;
 
             /// <summary>
             /// Position of the element relative to its origin.

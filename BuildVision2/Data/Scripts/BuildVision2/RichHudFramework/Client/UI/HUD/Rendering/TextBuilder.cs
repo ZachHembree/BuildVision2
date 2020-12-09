@@ -177,6 +177,7 @@ namespace RichHudFramework
                     public IRichChar this[int ch] => characters[ch];
                     public int Count => (int)parent.GetLineMemberFunc(index, (int)LineAccessors.Count);
                     public Vector2 Size => (Vector2)parent.GetLineMemberFunc(index, (int)LineAccessors.Size);
+                    public float VerticalOffset => (float)parent.GetLineMemberFunc(index, (int)LineAccessors.VerticalOffset);
 
                     private readonly TextBuilder parent;
                     private readonly int index;

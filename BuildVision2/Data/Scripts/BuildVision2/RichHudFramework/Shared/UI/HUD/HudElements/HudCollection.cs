@@ -173,15 +173,9 @@ namespace RichHudFramework
             /// </summary>
             public void Remove(TElement chainElement)
             {
-                if (chainElement.Parent == this)
+                if (chainElement.Parent == this && chainElements.Count > 0)
                 {
-                    int index = chainElements.FindIndex(x => x.Element == chainElement);
-
-                    if (index != -1)
-                    {
-                        chainElement.Unregister();
-                        chainElements.RemoveAt(index);
-                    }
+                    chainElement.Unregister();
                 }
             }
 
@@ -190,20 +184,14 @@ namespace RichHudFramework
             /// </summary>
             public bool Remove(TElementContainer entry)
             {
-                if (entry.Element.Parent == this)
+                if (entry.Element.Parent == this && chainElements.Count > 0)
                 {
-                    int index = chainElements.FindIndex(x => x.Equals(entry));
+                    entry.Element.Unregister();
 
-                    if (index != -1)
-                    {
-                        entry.Element.Unregister();
-                        chainElements.RemoveAt(index);
-
-                        return true;
-                    }
+                    return true;
                 }
-
-                return false;
+                else
+                    return false;
             }
 
             /// <summary>
@@ -211,8 +199,13 @@ namespace RichHudFramework
             /// </summary>
             public void Remove(Func<TElement, bool> predicate)
             {
-                int index = chainElements.FindIndex(x => predicate(x.Element));
-                RemoveAt(index);
+                if (chainElements.Count > 0)
+                {
+                    int index = chainElements.FindIndex(x => predicate(x.Element));
+
+                    if (index != -1)
+                        chainElements[index].Element.Unregister();
+                }
             }
 
             /// <summary>
@@ -220,8 +213,13 @@ namespace RichHudFramework
             /// </summary>
             public void Remove(Func<TElementContainer, bool> predicate)
             {
-                int index = chainElements.FindIndex(x => predicate(x));
-                RemoveAt(index);
+                if (chainElements.Count > 0)
+                {
+                    int index = chainElements.FindIndex(x => predicate(x));
+
+                    if (index != -1)
+                        chainElements[index].Element.Unregister();
+                }
             }
 
             /// <summary>
@@ -229,7 +227,7 @@ namespace RichHudFramework
             /// </summary>
             public void RemoveAt(int index)
             {
-                if (chainElements[index].Element.Parent == this)
+                if (chainElements[index].Element.Parent == this && chainElements.Count > 0)
                 {
                     blockChildRegistration = true;
 

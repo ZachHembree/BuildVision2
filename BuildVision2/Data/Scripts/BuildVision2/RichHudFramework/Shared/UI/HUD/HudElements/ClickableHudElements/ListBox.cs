@@ -382,7 +382,7 @@ namespace RichHudFramework.UI
                 case ListBoxAccessors.Selection:
                     {
                         if (data == null)
-                            return (ApiMemberAccessor)Selection.GetOrSetMember;
+                            return Selection;
                         else
                             SetSelection(data as ListBoxEntry<T>);
 

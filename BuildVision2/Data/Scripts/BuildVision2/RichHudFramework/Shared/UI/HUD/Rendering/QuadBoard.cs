@@ -19,6 +19,8 @@ namespace RichHudFramework
             /// </summary>
             public struct QuadBoard
             {
+                public static readonly QuadBoard Default;
+
                 /// <summary>
                 /// Material ID used by the billboard.
                 /// </summary>
@@ -34,18 +36,31 @@ namespace RichHudFramework
                 /// </summary>
                 public FlatQuad matFit;
 
-                public QuadBoard(MyStringId textureID, FlatQuad matFit, Vector4 bbColor)
+                /// <summary>
+                /// Determines the extent to which the quad will be rhombused
+                /// </summary>
+                public float skewRatio;
+
+                static QuadBoard()
+                {
+                    var matFit = new FlatQuad(new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 1f));
+                    Default = new QuadBoard(Material.Default.TextureID, matFit, default(Color));
+                }
+
+                public QuadBoard(MyStringId textureID, FlatQuad matFit, Vector4 bbColor, float skewRatio = 0f)
                 {
                     this.textureID = textureID;
                     this.matFit = matFit;
                     this.bbColor = bbColor;
+                    this.skewRatio = skewRatio;
                 }
 
-                public QuadBoard(MyStringId textureID, FlatQuad matFit, Color color)
+                public QuadBoard(MyStringId textureID, FlatQuad matFit, Color color, float skewRatio = 0f)
                 {
                     this.textureID = textureID;
                     this.matFit = matFit;
                     bbColor = GetQuadBoardColor(color);
+                    this.skewRatio = skewRatio;
                 }
 
                 /// <summary>
@@ -67,6 +82,17 @@ namespace RichHudFramework
                     Vector3D.TransformNoProjection(ref origin, ref matrix, out origin);
                     MyUtils.GenerateQuad(out quad, ref origin, size.X / 2f, size.Y / 2f, ref matrix);
 
+                    if (skewRatio != 0f)
+                    {
+                        Vector3D start = quad.Point0, end = quad.Point3,
+                            offset = (end - start) * skewRatio * .5;
+
+                        quad.Point0 = Vector3D.Lerp(start, end, skewRatio) - offset;
+                        quad.Point3 = Vector3D.Lerp(start, end, 1d + skewRatio) - offset;
+                        quad.Point1 -= offset;
+                        quad.Point2 -= offset;
+                    }
+
                     AddBillboard(ref quad, textureID, ref matFit, bbColor);
                 }
 
@@ -81,6 +107,17 @@ namespace RichHudFramework
 
                     Vector3D.TransformNoProjection(ref worldPos, ref matrix, out worldPos);
                     MyUtils.GenerateQuad(out quad, ref worldPos, size.X / 2f, size.Y / 2f, ref matrix);
+
+                    if (skewRatio != 0f)
+                    {
+                        Vector3D start = quad.Point0, end = quad.Point3,
+                            offset = (end - start) * skewRatio * .5;
+
+                        quad.Point0 = Vector3D.Lerp(start, end, skewRatio) - offset;
+                        quad.Point3 = Vector3D.Lerp(start, end, 1d + skewRatio) - offset;
+                        quad.Point1 -= offset;
+                        quad.Point2 -= offset;
+                    }
 
                     AddBillboard(ref quad, textureID, ref matFit, bbColor);
                 }
@@ -97,11 +134,22 @@ namespace RichHudFramework
                     Vector3D.TransformNoProjection(ref worldPos, ref ptw, out worldPos);
                     MyUtils.GenerateQuad(out quad, ref worldPos, size.X / 2f, size.Y / 2f, ref ptw);
 
+                    if (skewRatio != 0f)
+                    {
+                        Vector3D start = quad.Point0, end = quad.Point3,
+                            offset = (end - start) * skewRatio * .5;
+
+                        quad.Point0 = Vector3D.Lerp(start, end, skewRatio) - offset;
+                        quad.Point3 = Vector3D.Lerp(start, end, 1d + skewRatio) - offset;
+                        quad.Point1 -= offset;
+                        quad.Point2 -= offset;
+                    }
+
                     AddBillboard(ref quad, textureID, ref matFit, bbColor);
                 }
 
                 public static Vector4 GetQuadBoardColor(Color color)
-                {
+                {   
                     float opacity = color.A / 255f;
 
                     color.R = (byte)(color.R * opacity);
