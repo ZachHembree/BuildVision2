@@ -118,7 +118,7 @@ namespace RichHudFramework.Internal
             }
             catch (Exception e)
             {
-                instance.ReportException(e);
+                instance.ReportExceptionInternal(e);
             }
         }
 
@@ -136,7 +136,7 @@ namespace RichHudFramework.Internal
             }
             catch (Exception e)
             {
-                instance.ReportException(e);
+                instance.ReportExceptionInternal(e);
             }
 
             return value;
@@ -145,7 +145,13 @@ namespace RichHudFramework.Internal
         /// <summary>
         /// Records exceptions to be handled. Duplicate stack traces are excluded from the log entry.
         /// </summary>
-        private void ReportException(Exception e)
+        public static void ReportException(Exception e) =>
+            instance.ReportExceptionInternal(e);
+
+        /// <summary>
+        /// Records exceptions to be handled. Duplicate stack traces are excluded from the log entry.
+        /// </summary>
+        private void ReportExceptionInternal(Exception e)
         {
             string message = e.ToString();
 

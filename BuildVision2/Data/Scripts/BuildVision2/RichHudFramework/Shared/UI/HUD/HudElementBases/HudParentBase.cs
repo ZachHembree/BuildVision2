@@ -77,10 +77,10 @@ namespace RichHudFramework
                 Scale = 1f;
                 children = new List<HudNodeBase>();
 
-                this.DepthTestAction = InputDepth;
-                LayoutAction = BeginLayout;
-                DrawAction = BeginDraw;
-                InputAction = BeginInput;
+                this.DepthTestAction = SafeInputDepth;
+                LayoutAction = SafeBeginLayout;
+                DrawAction = SafeBeginDraw;
+                InputAction = SafeBeginInput;
             }
 
             /// <summary>
@@ -228,6 +228,74 @@ namespace RichHudFramework
                 }
 
                 return (ushort)(innerOffset | outerOffset);
+            }
+
+            private MyTuple<Vector3, HudSpaceDelegate> SafeInputDepth(Vector3 cursorPos, HudSpaceDelegate GetHudSpaceFunc)
+            {
+                if (!ExceptionHandler.ClientsPaused)
+                {
+                    try
+                    {
+                        return InputDepth(cursorPos, GetHudSpaceFunc);
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
+                }
+
+                return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);
+            }
+
+            private bool SafeBeginLayout(bool refresh)
+            {
+                if (!ExceptionHandler.ClientsPaused)
+                {
+                    try
+                    {
+                        return BeginLayout(refresh);
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
+                }
+
+                return refresh;
+            }
+
+            private object SafeBeginDraw(object matrix)
+            {
+                if (!ExceptionHandler.ClientsPaused)
+                {
+                    try
+                    {
+                        return BeginDraw(matrix);
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
+                }
+
+                return matrix;
+            }
+
+            private MyTuple<Vector3, HudSpaceDelegate> SafeBeginInput(Vector3 cursorPos, HudSpaceDelegate GetHudSpaceFunc)
+            {
+                if (!ExceptionHandler.ClientsPaused)
+                {
+                    try
+                    {
+                        return BeginInput(cursorPos, GetHudSpaceFunc);
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
+                }
+
+                return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);
             }
         }
     }
