@@ -42,6 +42,11 @@ namespace RichHudFramework
             /// </summary>
             public static IModControlRoot Root => Instance.menuRoot;
 
+            /// <summary>
+            /// Determines whether or not the terminal is currently open.
+            /// </summary>
+            public static bool Open => (bool)Instance.GetOrSetMembersFunc(null, (int)TerminalAccessors.GetMenuOpen);
+
             private static RichHudTerminal Instance
             {
                 get { Init(); return _instance; }

@@ -24,7 +24,8 @@ namespace RichHudFramework
             OpenMenu = 1,
             CloseMenu = 2,
             OpenToPage = 3,
-            SetPage = 4
+            SetPage = 4,
+            GetMenuOpen = 5
         }
 
         /// <summary>
