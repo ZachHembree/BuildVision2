@@ -105,20 +105,29 @@ namespace RichHudFramework
             /// Returns the bind group with the given name and/or creates one with the name given
             /// if one doesn't exist.
             /// </summary>
-            public static IBindGroup GetOrCreateGroup(string name) =>
-                new BindGroup((int)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetOrCreateGroup));
+            public static IBindGroup GetOrCreateGroup(string name)
+            {
+                var index = (int)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetOrCreateGroup);
+                return index != -1 ? Groups[index] : null;
+            }
 
             /// <summary>
             /// Returns the bind group with the name igven.
             /// </summary>
-            public static IBindGroup GetBindGroup(string name) =>
-                new BindGroup((int)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetBindGroup));
+            public static IBindGroup GetBindGroup(string name)
+            {
+                var index = (int)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetBindGroup);
+                return index != -1 ? Groups[index] : null;
+            }
 
             /// <summary>
             /// Returns the control associated with the given name.
             /// </summary>
-            public static IControl GetControl(string name) =>
-                new Control((int)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetControlByName));
+            public static IControl GetControl(string name)
+            {
+                var index = (int)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetControlByName);
+                return index != -1 ? Controls[index] : null;
+            }
 
             /// <summary>
             /// Generates a list of controls from a list of control names.
@@ -141,12 +150,7 @@ namespace RichHudFramework
                 IControl[] combo = new IControl[indices.Count];
 
                 for (int n = 0; n < indices.Count; n++)
-                {
-                    int index = indices[n];
-
-                    if (index < Controls.Count)
-                        combo[n] = new Control(index);
-                }
+                    combo[n] = Controls[indices[n].index];
 
                 return combo;
             }
@@ -159,12 +163,7 @@ namespace RichHudFramework
                 IControl[] combo = new IControl[indices.Count];
 
                 for (int n = 0; n < indices.Count; n++)
-                {
-                    int index = indices[n];
-
-                    if (index < Controls.Count)
-                        combo[n] = new Control(index);
-                }
+                    combo[n] = Controls[indices[n]];
 
                 return combo;
             }
@@ -179,13 +178,13 @@ namespace RichHudFramework
             /// Returns the control associated with the given <see cref="MyKeys"/> enum.
             /// </summary>
             public static IControl GetControl(MyKeys seKey) =>
-                new Control((int)seKey);
+                Controls[(int)seKey];
 
             /// <summary>
             /// Returns the control associated with the given custom <see cref="RichHudControls"/> enum.
             /// </summary>
             public static IControl GetControl(RichHudControls rhdKey) =>
-                new Control((int)rhdKey);
+                Controls[(int)rhdKey];
 
             /// <summary>
             /// Generates a list of control indices from a list of controls.

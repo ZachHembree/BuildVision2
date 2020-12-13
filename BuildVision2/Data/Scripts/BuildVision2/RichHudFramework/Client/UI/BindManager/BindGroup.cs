@@ -127,20 +127,29 @@ namespace RichHudFramework
                 /// <summary>
                 /// Returns the bind with the name given, if it exists.
                 /// </summary>
-                public IBind GetBind(string name) =>
-                    new Bind((Vector2I)_instance.GetOrSetGroupMemberFunc(Index, name, (int)BindGroupAccessors.GetBindFromName));
+                public IBind GetBind(string name)
+                {
+                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, name, (int)BindGroupAccessors.GetBindFromName);
+                    return index.Y != -1 ? wrapperList[index.Y] : null;
+                }
 
                 /// <summary>
                 /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
                 /// </summary>
-                public IBind AddBind(string bindName, IReadOnlyList<int> combo) =>
-                    new Bind((Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, combo), (int)BindGroupAccessors.AddBindWithIndices));
+                public IBind AddBind(string bindName, IReadOnlyList<int> combo)
+                {
+                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, combo), (int)BindGroupAccessors.AddBindWithIndices);
+                    return wrapperList[index.Y];
+                }
 
                 /// <summary>
                 /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
                 /// </summary>
-                public IBind AddBind(string bindName, IReadOnlyList<string> combo) =>
-                    new Bind((Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<string>>(bindName, combo), (int)BindGroupAccessors.AddBindWithNames));
+                public IBind AddBind(string bindName, IReadOnlyList<string> combo)
+                {
+                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<string>>(bindName, combo), (int)BindGroupAccessors.AddBindWithNames);
+                    return wrapperList[index.Y];
+                }
 
                 /// <summary>
                 /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
@@ -152,7 +161,8 @@ namespace RichHudFramework
                     for (int n = 0; n < combo.Count; n++)
                         indices[n] = combo[n].index;
 
-                    return new Bind((Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, indices), (int)BindGroupAccessors.AddBindWithIndices));
+                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, indices), (int)BindGroupAccessors.AddBindWithIndices);
+                    return wrapperList[index.Y];
                 }
 
                 /// <summary>
@@ -165,7 +175,8 @@ namespace RichHudFramework
                     for (int n = 0; n < combo.Count; n++)
                         indices[n] = combo[n].Index;
 
-                    return new Bind((Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, indices), (int)BindGroupAccessors.AddBindWithIndices));
+                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, indices), (int)BindGroupAccessors.AddBindWithIndices);
+                    return wrapperList[index.Y];
                 }
 
                 /// <summary>
@@ -177,7 +188,7 @@ namespace RichHudFramework
 
                     if (index != -1)
                     {
-                        newBind = new Bind(new Vector2I(Index, index));
+                        newBind = wrapperList[index];
                         return true;
                     }
                     else
@@ -196,7 +207,7 @@ namespace RichHudFramework
 
                     if (index != -1)
                     {
-                        newBind = new Bind(new Vector2I(Index, index));
+                        newBind = wrapperList[index];
                         return true;
                     }
                     else
@@ -215,7 +226,7 @@ namespace RichHudFramework
 
                     if (index != -1)
                     {
-                        newBind = new Bind(new Vector2I(Index, index));
+                        newBind = wrapperList[index];
                         return true;
                     }
                     else
@@ -234,7 +245,7 @@ namespace RichHudFramework
 
                     if (index != -1)
                     {
-                        bind = new Bind(new Vector2I(Index, index));
+                        bind = wrapperList[index];
                         return true;
                     }
                     else
@@ -258,7 +269,7 @@ namespace RichHudFramework
 
                     if (index != -1)
                     {
-                        newBind = new Bind(new Vector2I(Index, index));
+                        newBind = wrapperList[index];
                         return true;
                     }
                     else

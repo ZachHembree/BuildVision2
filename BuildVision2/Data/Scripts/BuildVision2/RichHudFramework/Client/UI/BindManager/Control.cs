@@ -30,7 +30,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Returns true if the control is being pressed
                 /// </summary>
-                public bool IsPressed => (bool)_instance.GetControlMember(Index, (int)ControlAccessors.IsPressed);
+                public bool IsPressed => (bool)(_instance.GetControlMember(Index, (int)ControlAccessors.IsPressed) ?? false);
 
                 // <summary>
                 /// Returns true if the control doesn't represent a boolean value. For example, MwUp/Dn

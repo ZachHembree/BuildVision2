@@ -93,7 +93,7 @@ namespace RichHudFramework
                         var combo = new List<IControl>(indices.Count);
 
                         for (int n = 0; n < indices.Count; n++)
-                            combo.Add(new Control(indices[n]));
+                            combo.Add(_instance.controls[indices[n]]);
 
                         return combo;
                     }
