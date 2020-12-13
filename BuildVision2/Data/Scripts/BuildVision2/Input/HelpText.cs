@@ -108,6 +108,7 @@ namespace DarkHelmet.BuildVision2
         {
             string bindHelp =
                 "\n---Build Vision 2 Binds---\n" +
+                $"Peek: [{GetBindString(BvBinds.Peek)}]\n" +
                 $"Open: [{GetBindString(BvBinds.Open)}]\n" +
                 $"Close: [{GetBindString(BvBinds.Hide)}]\n" +
                 $"Select: [{GetBindString(BvBinds.Select)}]\n" +
