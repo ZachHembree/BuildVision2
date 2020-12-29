@@ -190,6 +190,7 @@ namespace RichHudFramework.UI
             UseCursor = true;
             ShareCursor = false;
             EnableScrolling = true;
+            ZOffset = 1;
         }
 
         /// <summary>

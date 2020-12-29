@@ -4,25 +4,20 @@ using VRage;
 using VRageMath;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
-using HudLayoutDelegate = System.Func<bool, bool>;
-using HudDrawDelegate = System.Func<object, object>;
 
 namespace RichHudFramework
 {
-    using HudInputDelegate = Func<Vector3, HudSpaceDelegate, MyTuple<Vector3, HudSpaceDelegate>>;
-
     namespace UI
     {
         using Client;
         using Server;
-
         using HudUpdateAccessors = MyTuple<
-            ushort, // ZOffset
-            byte, // Depth
-            HudInputDelegate, // DepthTest
-            HudInputDelegate, // HandleInput
-            HudLayoutDelegate, // BeforeLayout
-            HudDrawDelegate // BeforeDraw
+            ApiMemberAccessor,
+            MyTuple<Func<ushort>, Func<Vector3D>>, // ZOffset + GetOrigin
+            Action, // DepthTest
+            Action, // HandleInput
+            Action<bool>, // BeforeLayout
+            Action // BeforeDraw
         >;
 
         /// <summary>
@@ -41,12 +36,17 @@ namespace RichHudFramework
             public virtual HudParentBase Parent { get { return _parent; } protected set { _parent = value; } }
 
             /// <summary>
+            /// Node defining the coordinate space used to render the UI element
+            /// </summary>
+            public override IReadOnlyHudSpaceNode HudSpace => _hudSpace;
+
+            /// <summary>
             /// Determines whether or not an element will be drawn or process input. Visible by default.
             /// </summary>
-            public override bool Visible 
-            { 
-                get { return _visible && parentVisible; } 
-                set { _visible = value; } 
+            public override bool Visible
+            {
+                get { return _visible && parentVisible; }
+                set { _visible = value; }
             }
 
             /// <summary>
@@ -71,9 +71,10 @@ namespace RichHudFramework
             /// <summary>
             /// Indicates whether or not the element has been registered to a parent.
             /// </summary>
-            public bool Registered { get; private set; }
+            public bool Registered { get { return _registered; }  private set { _registered = value; } }
 
             protected HudParentBase _parent;
+            protected IReadOnlyHudSpaceNode _hudSpace;
             protected float localScale, parentScale;
             protected bool _visible, parentVisible;
             protected sbyte parentZOffset;
@@ -83,25 +84,26 @@ namespace RichHudFramework
                 parentScale = 1f;
                 localScale = 1f;
                 parentVisible = true;
+                _registered = false;
 
                 Register(parent);
             }
 
-            protected override bool BeginLayout(bool refresh)
+            protected override void BeginLayout(bool refresh)
             {
+                fullZOffset = GetFullZOffset(this, _parent);
+
                 if (Visible || refresh)
                 {
                     parentScale = _parent == null ? 1f : _parent.Scale;
                     Layout();
                 }
-
-                return refresh;
             }
 
-            protected override object BeginDraw(object matrix)
+            protected override void BeginDraw()
             {
                 if (Visible)
-                    Draw(matrix);
+                    Draw();
 
                 if (_parent == null)
                 {
@@ -113,30 +115,37 @@ namespace RichHudFramework
                     parentVisible = _parent.Visible;
                     parentZOffset = _parent.ZOffset;
                 }
-
-                return matrix;
             }
 
             /// <summary>
             /// Adds update delegates for members in the order dictated by the UI tree
             /// </summary>
-            public override void GetUpdateAccessors(List<HudUpdateAccessors> DrawActions, byte treeDepth)
+            public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
             {
-                fullZOffset = GetFullZOffset(this, _parent);
+                _hudSpace = _parent?.HudSpace;
 
-                DrawActions.EnsureCapacity(DrawActions.Count + children.Count + 1);
-                DrawActions.Add(new HudUpdateAccessors(fullZOffset, treeDepth, DepthTestAction, InputAction, LayoutAction, DrawAction));
+                UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + 1);
+                var accessors = new HudUpdateAccessors()
+                {
+                    Item1 = GetOrSetMemberFunc,
+                    Item2 = new MyTuple<Func<ushort>, Func<Vector3D>>(GetZOffsetFunc, HudSpace.GetNodeOriginFunc),
+                    Item3 = DepthTestAction,
+                    Item4 = InputAction,
+                    Item5 = LayoutAction,
+                    Item6 = DrawAction
+                };
 
+                UpdateActions.Add(accessors);
                 treeDepth++;
 
                 for (int n = 0; n < children.Count; n++)
-                    children[n].GetUpdateAccessors(DrawActions, treeDepth);
+                    children[n].GetUpdateAccessors(UpdateActions, treeDepth);
             }
 
             /// <summary>
             /// Registers the element to the given parent object.
             /// </summary>
-            public virtual void Register(HudParentBase parent)
+            public void Register(HudParentBase parent)
             {
                 if (parent != null && parent == this)
                     throw new Exception("Types of HudNodeBase cannot be parented to themselves!");
@@ -159,7 +168,7 @@ namespace RichHudFramework
             /// <summary>
             /// Unregisters the element from its parent, if it has one.
             /// </summary>
-            public virtual void Unregister()
+            public void Unregister()
             {
                 if (Parent != null)
                 {

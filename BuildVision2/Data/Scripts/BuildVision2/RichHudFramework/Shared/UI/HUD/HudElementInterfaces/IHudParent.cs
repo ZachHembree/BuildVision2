@@ -3,30 +3,26 @@ using System.Collections.Generic;
 using VRage;
 using VRageMath;
 using ApiMemberAccessor = System.Func<object, int, object>;
-using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
-using HudLayoutDelegate = System.Func<bool, bool>;
-using HudDrawDelegate = System.Func<object, object>;
 
 namespace RichHudFramework
 {
-    using HudInputDelegate = Func<Vector3, HudSpaceDelegate, MyTuple<Vector3, HudSpaceDelegate>>;
-
     namespace UI
     {
         using HudUpdateAccessors = MyTuple<
-            ushort, // ZOffset
-            byte, // Depth
-            HudInputDelegate, // DepthTest
-            HudInputDelegate, // HandleInput
-            HudLayoutDelegate, // BeforeLayout
-            HudDrawDelegate // BeforeDraw
+            ApiMemberAccessor,
+            MyTuple<Func<ushort>, Func<Vector3D>>, // ZOffset + GetOrigin
+            Action, // DepthTest
+            Action, // HandleInput
+            Action<bool>, // BeforeLayout
+            Action // BeforeDraw
         >;
 
-        public enum HudParentAccessors : int
+        public enum HudElementAccessors : int
         {
-            Add = 1,
-            RemoveChild = 2,
-            SetFocus = 3,
+            /// <summary>
+            /// out: System.Type
+            /// </summary>
+            GetType = 1,
         }
 
         /// <summary>
@@ -34,6 +30,11 @@ namespace RichHudFramework
         /// </summary>
         public interface IReadOnlyHudParent
         {
+            /// <summary>
+            /// Node defining the coordinate space used to render the UI element
+            /// </summary>
+            IReadOnlyHudSpaceNode HudSpace { get; }
+
             /// <summary>
             /// Determines whether or not the element will be drawn and/or accept
             /// input.
@@ -50,12 +51,12 @@ namespace RichHudFramework
             /// Used to change the draw order of the UI element. Lower offsets place the element
             /// further in the background. Higher offsets draw later and on top.
             /// </summary>
-            sbyte ZOffset { get; set; }
+            sbyte ZOffset { get; }
 
             /// <summary>
             /// Adds update delegates for members in the order dictated by the UI tree
             /// </summary>
-            void GetUpdateAccessors(List<HudUpdateAccessors> DrawActions, byte treeDepth);
+            void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth);
         }
     }
 }

@@ -185,16 +185,16 @@ namespace RichHudFramework
                 }
             }
 
-            protected override bool BeginLayout(bool refresh)
+            protected override void BeginLayout(bool refresh)
             {
+                fullZOffset = GetFullZOffset(this, _parent);
+
                 if (Visible)
                 {
                     UpdateCache();
                     Layout();
                     UpdateCache();
                 }
-
-                return refresh;
             }
 
             protected override void Layout()

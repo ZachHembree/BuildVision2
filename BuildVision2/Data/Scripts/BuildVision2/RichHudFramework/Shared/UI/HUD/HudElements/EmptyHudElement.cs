@@ -5,7 +5,10 @@
     /// </summary>
     public class EmptyHudElement : HudElementBase
     {
-        public EmptyHudElement(HudParentBase parent = null) : base(parent)
+        public EmptyHudElement(HudParentBase parent) : base(parent)
+        { }
+
+        public EmptyHudElement() : this(null)
         { }
     }
 }

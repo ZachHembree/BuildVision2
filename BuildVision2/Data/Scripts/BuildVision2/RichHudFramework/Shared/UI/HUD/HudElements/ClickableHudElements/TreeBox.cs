@@ -115,7 +115,7 @@ namespace RichHudFramework.UI
         protected readonly HighlightBox highlight, selectionBox;
         private readonly ObjectPool<ListBoxEntry<T>> entryPool;
 
-        public TreeBox(HudParentBase parent = null) : base(parent)
+        public TreeBox(HudParentBase parent) : base(parent)
         {
             entryPool = new ObjectPool<ListBoxEntry<T>>(GetNewEntry, ResetEntry);
 
@@ -147,6 +147,9 @@ namespace RichHudFramework.UI
 
             display.MouseInput.OnLeftClick += ToggleList;
         }
+
+        public TreeBox() : this(null)
+        { }
 
         /// <summary>
         /// Sets the selection to the member associated with the given object.
@@ -301,7 +304,7 @@ namespace RichHudFramework.UI
             ListOpen = false;
         }
 
-        protected override void Layout()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             if (Selection != null)
             {
@@ -317,10 +320,7 @@ namespace RichHudFramework.UI
                 ListBoxEntry<T> entry = entryChain.ChainEntries[n];
                 entry.Element.Visible = entry.Enabled;
             }
-        }
 
-        protected override void HandleInput(Vector2 cursorPos)
-        {
             highlight.Visible = false;
 
             for (int n = 0; n < entryChain.ChainEntries.Count; n++)
@@ -369,9 +369,9 @@ namespace RichHudFramework.UI
                 tabBoard.Size = new Vector2(4f * Scale, cachedSize.Y - cachedPadding.Y);
             }
 
-            protected override void Draw(object matrix)
+            protected override void Draw()
             {
-                var ptw = (MatrixD)matrix;
+                var ptw = HudSpace.PlaneToWorld;
 
                 if (hudBoard.Color.A > 0)
                     hudBoard.Draw(cachedPosition, ref ptw);

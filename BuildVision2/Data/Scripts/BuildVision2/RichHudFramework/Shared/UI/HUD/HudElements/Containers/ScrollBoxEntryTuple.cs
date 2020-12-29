@@ -6,7 +6,10 @@
     /// </summary>
     public class ScrollBoxEntryTuple<TElement, TData> : ScrollBoxEntry<TElement> where TElement : HudElementBase
     {
-        public virtual TData AssocData { get; set; }
+        /// <summary>
+        /// Object associated with the entry
+        /// </summary>
+        public virtual TData AssocMember { get; set; }
 
         public ScrollBoxEntryTuple()
         { }

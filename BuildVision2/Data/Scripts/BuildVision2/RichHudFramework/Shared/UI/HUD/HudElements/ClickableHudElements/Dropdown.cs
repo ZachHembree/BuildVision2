@@ -122,7 +122,7 @@ namespace RichHudFramework.UI
         protected readonly DropdownDisplay display;
         protected readonly TexturedBox highlight;
 
-        public Dropdown(HudParentBase parent = null) : base(parent)
+        public Dropdown(HudParentBase parent) : base(parent)
         {
             display = new DropdownDisplay(this)
             {
@@ -153,6 +153,9 @@ namespace RichHudFramework.UI
             display.MouseInput.OnLeftClick += ToggleList;
             OnSelectionChanged += UpdateDisplay;
         }
+
+        public Dropdown() : this(null)
+        { }
 
         protected override void HandleInput(Vector2 cursorPos)
         {
@@ -215,6 +218,12 @@ namespace RichHudFramework.UI
         /// </summary>
         public void RemoveAt(int index) =>
             listBox.RemoveAt(index);
+
+        /// <summary>
+        /// Removes the member at the given index from the dropdown.
+        /// </summary>
+        public bool Remove(ListBoxEntry<T> entry) =>
+            listBox.Remove(entry);
 
         /// <summary>
         /// Removes the specified range of indices from the dropdown.

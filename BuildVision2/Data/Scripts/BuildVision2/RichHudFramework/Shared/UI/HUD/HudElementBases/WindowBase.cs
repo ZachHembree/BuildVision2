@@ -36,24 +36,6 @@ namespace RichHudFramework.UI
         public virtual Color BodyColor { get { return bodyBg.Color; } set { bodyBg.Color = value; } }
 
         /// <summary>
-        /// Position of the window relative to its origin. Clamped to prevent the window from moving
-        /// off screen.
-        /// </summary>
-        public override Vector2 Offset
-        {
-            set
-            {
-                Vector2 bounds = new Vector2(HudMain.ScreenWidth, HudMain.ScreenHeight) / 2f,
-                    newPos = value + Origin;
-
-                newPos.X = MathHelper.Clamp(newPos.X, -bounds.X, bounds.X);
-                newPos.Y = MathHelper.Clamp(newPos.Y, -bounds.Y, bounds.Y);
-
-                base.Offset = newPos - Origin;
-            }
-        }
-
-        /// <summary>
         /// Minimum allowable size for the window.
         /// </summary>
         public Vector2 MinimumSize { get { return minimumSize * Scale; } set { minimumSize = value / Scale; } }
@@ -165,17 +147,28 @@ namespace RichHudFramework.UI
         {
             body.Height = Height - header.Height;
 
-            if (canMoveWindow)
-                Offset = HudMain.Cursor.ScreenPos + cursorOffset - Origin;
+            if (Visible && WindowActive)
+            {
+                if (canMoveWindow)
+                {
+                    Vector3 cursorPos = HudSpace.CursorPos;
+                    Offset = new Vector2(cursorPos.X, cursorPos.Y) + cursorOffset - Origin;
+                }
 
-            if (canResize)
-                Resize();
+                if (canResize)
+                    Resize();
+            }
+            else
+            {
+                canMoveWindow = false;
+                canResize = false;
+            }
         }
 
         protected void Resize()
         {
-            Vector2 center = Origin + Offset,
-                cursorPos = HudMain.Cursor.ScreenPos, newOffset = Offset;
+            Vector3 cursorPos = HudSpace.CursorPos;
+            Vector2 center = Origin + Offset, newOffset = Offset;
             float newWidth, newHeight;
 
             // 1 == horizontal, 3 == both
@@ -227,16 +220,16 @@ namespace RichHudFramework.UI
                 canResize = true;
                 resizeDir = 0;
 
-                if (Width - (2f * Scale) * Math.Abs(pos.X - HudMain.Cursor.ScreenPos.X) <= cornerSize * Scale)
+                if (Width - (2f * Scale) * Math.Abs(pos.X - cursorPos.X) <= cornerSize * Scale)
                     resizeDir += 1;
 
-                if (Height - (2f * Scale) * Math.Abs(pos.Y - HudMain.Cursor.ScreenPos.Y) <= cornerSize * Scale)
+                if (Height - (2f * Scale) * Math.Abs(pos.Y - cursorPos.Y) <= cornerSize * Scale)
                     resizeDir += 2;
             }
             else if (CanDrag && header.MouseInput.IsNewLeftClicked)
             {
                 canMoveWindow = true;
-                cursorOffset = (Origin + Offset) - HudMain.Cursor.ScreenPos;
+                cursorOffset = (Origin + Offset) - cursorPos;
             }
 
             if (canResize || canMoveWindow)

@@ -28,7 +28,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Indicates whether or not the textbox will accept input
         /// </summary>
-        public bool InputOpen => allowInput;
+        public bool InputOpen { get; private set; }
 
         /// <summary>
         /// Used to restrict the range of characters allowed for input.
@@ -57,7 +57,7 @@ namespace RichHudFramework.UI
         private readonly SelectionBox selectionBox;
         private bool canHighlight, allowInput;
 
-        public TextBox(HudParentBase parent = null) : base(parent)
+        public TextBox(HudParentBase parent) : base(parent)
         {
             MouseInput = new MouseInputElement(this) { ShareCursor = true };
             textInput = new TextInput(AddChar, RemoveLastChar, TextInputFilter);
@@ -72,6 +72,9 @@ namespace RichHudFramework.UI
             EnableHighlighting = true;
             UseCursor = true;
         }
+
+        public TextBox() : this(null)
+        { }
 
         /// <summary>
         /// Opens the textbox for input and moves the caret to the end.
@@ -116,8 +119,8 @@ namespace RichHudFramework.UI
 
         private void CaretMoved()
         {
-            if (canHighlight)
-                selectionBox.UpdateSelection();
+            if (!SharedBinds.LeftButton.IsPressed)
+                selectionBox.ClearSelection();
         }
 
         protected override void HandleInput(Vector2 cursorPos)
@@ -126,7 +129,6 @@ namespace RichHudFramework.UI
 
             if (useInput && EnableEditing)
             {
-                caret.Visible = true;
                 textInput.HandleInput();
 
                 if (SharedBinds.Cut.IsNewPressed && !selectionBox.Empty && EnableHighlighting)
@@ -152,12 +154,9 @@ namespace RichHudFramework.UI
                     }
                 }
             }
-            else
-            {
-                caret.Visible = false;
-            }
 
-            caret.Visible = useInput && (EnableHighlighting || EnableEditing);
+            InputOpen = useInput && (EnableHighlighting || EnableEditing);
+            caret.Visible = InputOpen;
 
             if (useInput && EnableHighlighting)
             {
@@ -347,7 +346,7 @@ namespace RichHudFramework.UI
                     OnCaretMoved?.Invoke();
             }
 
-            protected override void Draw(object matrix)
+            protected override void Draw()
             {
                 if (ShowCaret)
                 {
@@ -356,7 +355,7 @@ namespace RichHudFramework.UI
                         Index = ClampIndex(Index);
                         UpdateOffset();
 
-                        base.Draw(matrix);
+                        base.Draw();
                     }
 
                     if (blinkTimer.ElapsedMilliseconds > 500)
@@ -399,7 +398,7 @@ namespace RichHudFramework.UI
                     else if (text.Format.Alignment == TextAlignment.Right)
                         offset.X = textElement.Size.X / 2f - (2f * Scale);
 
-                    offset.X += Padding.X / 2f;
+                    offset += _parentFull.Padding / 2f;
 
                     if (!text.VertCenterText)
                         offset.Y = (text.Size.Y - Height) / 2f - (4f * Scale);
@@ -619,7 +618,7 @@ namespace RichHudFramework.UI
                 }
             }
 
-            protected override void Draw(object matrix)
+            protected override void Draw()
             {
                 if (lastTextSize != text.Size)
                 {
@@ -635,7 +634,7 @@ namespace RichHudFramework.UI
                         UpdateHighlight();
                     }
 
-                    var ptw = (MatrixD)matrix;
+                    var ptw = HudSpace.PlaneToWorld;
                     Vector2 tbOffset = text.TextOffset, bounds = new Vector2(-text.Size.X / 2f, text.Size.X / 2f);
 
                     for (int n = 0; n < highlightList.Count; n++)

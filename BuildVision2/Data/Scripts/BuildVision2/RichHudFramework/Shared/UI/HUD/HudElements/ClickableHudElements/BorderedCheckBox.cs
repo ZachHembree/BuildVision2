@@ -18,7 +18,7 @@ namespace RichHudFramework.UI.Server
 
         private static readonly Color BoxColor = new Color(114, 121, 139);
 
-        public BorderedCheckBox(HudParentBase parent = null) : base(parent)
+        public BorderedCheckBox(HudParentBase parent) : base(parent)
         {
             var border = new BorderBox(this)
             {
@@ -48,6 +48,9 @@ namespace RichHudFramework.UI.Server
 
             MouseInput.OnLeftClick += ToggleValue;
         }
+
+        public BorderedCheckBox() : this(null)
+        { }
 
         private void ToggleValue(object sender, EventArgs args)
         {

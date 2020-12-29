@@ -69,14 +69,14 @@ namespace RichHudFramework.UI.Server
         protected readonly HudChain buttonChain;
         protected readonly BorderBox selectionHighlight;
 
-        public OnOffButton(HudParentBase parent = null) : base(parent)
+        public OnOffButton(HudParentBase parent) : base(parent)
         {
             on = new BorderedButton()
             {
                 Text = "On",
                 Padding = Vector2.Zero,
                 Size = new Vector2(71f, 49f),
-                HighlightEnabled = false,
+                HighlightEnabled = true,
             };
 
             on.BorderThickness = 2f;
@@ -86,7 +86,7 @@ namespace RichHudFramework.UI.Server
                 Text = "Off",
                 Padding = Vector2.Zero,
                 Size = new Vector2(71f, 49f),
-                HighlightEnabled = false,
+                HighlightEnabled = true,
             };
 
             off.BorderThickness = 2f;
@@ -108,6 +108,9 @@ namespace RichHudFramework.UI.Server
 
             Size = new Vector2(250f, 50f);
         }
+
+        public OnOffButton() : this(null)
+        { }
 
         private void ToggleValue(object sender, EventArgs args)
         {

@@ -31,12 +31,15 @@ namespace RichHudFramework.UI
         protected MouseInputElement _mouseInput;
         private Color oldColor;
 
-        public LabelBoxButton(HudParentBase parent = null) : base(parent)
+        public LabelBoxButton(HudParentBase parent) : base(parent)
         {
             _mouseInput = new MouseInputElement(this);
             _mouseInput.OnCursorEnter += CursorEntered;
             _mouseInput.OnCursorExit += CursorExited;
         }
+
+        public LabelBoxButton() : this(null)
+        { }
 
         protected virtual void CursorEntered(object sender, EventArgs args)
         {

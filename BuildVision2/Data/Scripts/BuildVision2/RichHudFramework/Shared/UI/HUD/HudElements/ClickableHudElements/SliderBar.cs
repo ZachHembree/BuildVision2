@@ -218,7 +218,7 @@ namespace RichHudFramework.UI
         private float _min, _max, _current, _percent;
         private bool canMoveSlider;
 
-        public SliderBar(HudParentBase parent = null) : base(parent)
+        public SliderBar(HudParentBase parent) : base(parent)
         {
             mouseInput = new MouseInputElement(this) { DimAlignment = DimAlignments.Both };
             mouseInput.OnLeftClick += BarClicked;
@@ -240,6 +240,9 @@ namespace RichHudFramework.UI
             Current = 0f;
             Percent = 0f;
         }
+
+        public SliderBar() : this(null)
+        { }
 
         private void BarClicked(object sender, EventArgs args)
         {

@@ -3,23 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using VRage;
 using VRageMath;
-using HudDrawDelegate = System.Func<object, object>;
-using HudLayoutDelegate = System.Func<bool, bool>;
 using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
+using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
-    using HudInputDelegate = Func<Vector3, HudSpaceDelegate, MyTuple<Vector3, HudSpaceDelegate>>;
-
     namespace UI
     {
         using HudUpdateAccessors = MyTuple<
-            ushort, // ZOffset
-            byte, // Depth
-            HudInputDelegate, // DepthTest
-            HudInputDelegate, // HandleInput
-            HudLayoutDelegate, // BeforeLayout
-            HudDrawDelegate // BeforeDraw
+            ApiMemberAccessor,
+            MyTuple<Func<ushort>, Func<Vector3D>>, // ZOffset + GetOrigin
+            Action, // DepthTest
+            Action, // HandleInput
+            Action<bool>, // BeforeLayout
+            Action // BeforeDraw
         >;
 
         /// <summary>
@@ -61,10 +58,13 @@ namespace RichHudFramework
             /// </summary>
             protected readonly List<TElementContainer> chainElements;
 
-            public HudCollection(HudParentBase parent = null) : base(parent)
+            public HudCollection(HudParentBase parent) : base(parent)
             {
                 chainElements = new List<TElementContainer>();
             }
+
+            public HudCollection() : this(null)
+            { }
 
             public IEnumerator<TElementContainer> GetEnumerator() =>
                 chainElements.GetEnumerator();
@@ -334,23 +334,33 @@ namespace RichHudFramework
             public void CopyTo(TElementContainer[] array, int arrayIndex) =>
                 chainElements.CopyTo(array, arrayIndex);
 
-            public override void GetUpdateAccessors(List<HudUpdateAccessors> DrawActions, byte treeDepth)
+            public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
             {
+                _hudSpace = _parent?.HudSpace;
                 fullZOffset = GetFullZOffset(this, _parent);
 
-                DrawActions.EnsureCapacity(DrawActions.Count + children.Count + chainElements.Count + 1);
-                DrawActions.Add(new HudUpdateAccessors(fullZOffset, treeDepth, DepthTestAction, InputAction, LayoutAction, DrawAction));
+                UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + chainElements.Count + 1);
+                var accessors = new HudUpdateAccessors()
+                {
+                    Item1 = GetOrSetMemberFunc,
+                    Item2 = new MyTuple<Func<ushort>, Func<Vector3D>>(GetZOffsetFunc, HudSpace.GetNodeOriginFunc),
+                    Item3 = DepthTestAction,
+                    Item4 = InputAction,
+                    Item5 = LayoutAction,
+                    Item6 = DrawAction
+                };
 
+                UpdateActions.Add(accessors);
                 treeDepth++;
 
                 for (int n = 0; n < chainElements.Count; n++)
                 {
-                    chainElements[n].Element.GetUpdateAccessors(DrawActions, treeDepth);
+                    chainElements[n].Element.GetUpdateAccessors(UpdateActions, treeDepth);
                 }
 
                 for (int n = 0; n < children.Count; n++)
                 {
-                    children[n].GetUpdateAccessors(DrawActions, treeDepth);
+                    children[n].GetUpdateAccessors(UpdateActions, treeDepth);
                 }
             }
         }

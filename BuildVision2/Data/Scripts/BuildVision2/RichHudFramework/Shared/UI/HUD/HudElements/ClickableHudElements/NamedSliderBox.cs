@@ -68,7 +68,7 @@ namespace RichHudFramework.UI.Server
         protected readonly Label name, current;
         protected readonly SliderBox sliderBox;
 
-        public NamedSliderBox(HudParentBase parent = null) : base(parent)
+        public NamedSliderBox(HudParentBase parent) : base(parent)
         {
             sliderBox = new SliderBox(this)
             {
@@ -94,5 +94,8 @@ namespace RichHudFramework.UI.Server
 
             Padding = new Vector2(40f, 0f);
         }
+
+        public NamedSliderBox() : this(null)
+        { }
     }
 }

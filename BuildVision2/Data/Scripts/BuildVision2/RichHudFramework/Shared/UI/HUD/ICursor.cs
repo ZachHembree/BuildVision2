@@ -8,6 +8,34 @@ namespace RichHudFramework
 {
     namespace UI
     {
+        public enum HudCursorAccessors : int
+        {
+            /// <summary>
+            /// out: bool
+            /// </summary>
+            Visible = 0,
+
+            /// <summary>
+            /// out: bool
+            /// </summary>
+            IsCaptured = 1,
+
+            /// <summary>
+            /// out: Vector2
+            /// </summary>
+            ScreenPos = 2, 
+
+            /// <summary>
+            /// out: Vector3D
+            /// </summary>
+            WorldPos = 3,
+
+            /// <summary>
+            /// out: LineD
+            /// </summary>
+            WorldLine = 4
+        }
+
         /// <summary>
         /// Interface for the cursor rendered by the Rich HUD Framework
         /// </summary>
@@ -34,6 +62,12 @@ namespace RichHudFramework
             Vector3D WorldPos { get; }
 
             /// <summary>
+            /// Line projected from the cursor into world space on the -Z axis 
+            /// correcting for apparent warping due to perspective projection.
+            /// </summary>
+            LineD WorldLine { get; }
+
+            /// <summary>
             /// Returns true if the given HUD space is being captured by the cursor
             /// </summary>
             bool IsCapturingSpace(HudSpaceDelegate GetHudSpaceFunc);
@@ -42,13 +76,13 @@ namespace RichHudFramework
             /// Attempts to capture the cursor at the given depth with the given HUD space. If drawInHudSpace
             /// is true, then the cursor will be drawn in the given space.
             /// </summary>
-            bool TryCaptureHudSpace(float depth, HudSpaceDelegate GetHudSpaceFunc);
+            bool TryCaptureHudSpace(float depthSquared, HudSpaceDelegate GetHudSpaceFunc);
 
             /// <summary>
             /// Attempts to capture the cursor at the given depth with the given HUD space. If drawInHudSpace
             /// is true, then the cursor will be drawn in the given space.
             /// </summary>
-            void CaptureHudSpace(float depth, HudSpaceDelegate GetHudSpaceFunc);
+            void CaptureHudSpace(float depthSquared, HudSpaceDelegate GetHudSpaceFunc);
 
             /// <summary>
             /// Attempts to capture the cursor with the given object

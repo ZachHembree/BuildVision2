@@ -41,7 +41,7 @@ namespace RichHudFramework.UI
         public readonly SliderBar slide;
         public readonly TexturedBox highlight;
 
-        public SliderBox(HudParentBase parent = null) : base(parent)
+        public SliderBox(HudParentBase parent) : base(parent)
         {
             background = new TexturedBox(this)
             { Color = new Color(41, 54, 62), DimAlignment = DimAlignments.Both };
@@ -71,6 +71,9 @@ namespace RichHudFramework.UI
             Padding = new Vector2(18f, 18f);
             Size = new Vector2(317f, 47f);
         }
+
+        public SliderBox() : this(null)
+        { }
 
         protected override void HandleInput(Vector2 cursorPos)
         {

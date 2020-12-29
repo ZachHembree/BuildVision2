@@ -19,11 +19,14 @@ namespace RichHudFramework.UI
         /// </summary>
         public IReadOnlyList<IBind> Binds { get; set; }
         
-        public MouseInputFilter(HudParentBase parent = null) : base(parent)
+        public MouseInputFilter(HudParentBase parent) : base(parent)
         {
             UseCursor = true;
             ShareCursor = true;
         }
+
+        public MouseInputFilter() : this(null)
+        { }
 
         protected override void HandleInput(Vector2 cursorPos)
         {

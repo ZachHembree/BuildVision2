@@ -94,7 +94,7 @@ namespace RichHudFramework.UI.Server
         private readonly TexturedBox highlight;
         private readonly BorderBox border;
 
-        public TextField(HudParentBase parent = null) : base(parent)
+        public TextField(HudParentBase parent) : base(parent)
         {
             background.Color = new Color(42, 55, 63);
 
@@ -124,6 +124,9 @@ namespace RichHudFramework.UI.Server
 
             textBox.TextBoard.OnTextChanged += TextChanged;
         }
+
+        public TextField() : this(null)
+        { }
 
         private void TextChanged()
         {

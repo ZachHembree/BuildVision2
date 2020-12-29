@@ -10,20 +10,6 @@ namespace RichHudFramework.UI.Server
     /// </summary>
     public class NamedOnOffButton : HudElementBase
     {
-        public override float Width { get { return layout.Width; } set { layout.Width = value; } }
-
-        public override float Height 
-        { 
-            get { return layout.Height; } 
-            set 
-            {
-                if (value > Padding.Y)
-                    value -= Padding.Y;
-
-                layout.Height = value - name.Height; 
-            } 
-        }
-
         public override Vector2 Padding { get { return layout.Padding; } set { layout.Padding = value; } }
 
         /// <summary>
@@ -35,6 +21,11 @@ namespace RichHudFramework.UI.Server
         /// Distance between the on and off buttons
         /// </summary>
         public float ButtonSpacing { get { return onOffButton.ButtonSpacing; } set { onOffButton.ButtonSpacing = value; } }
+
+        /// <summary>
+        /// Padding around on/off button block
+        /// </summary>
+        public Vector2 ButtonPadding { get { return onOffButton.Padding; } set { onOffButton.Padding = value; } }
 
         /// <summary>
         /// Color of the border surrounding the on and off buttons
@@ -70,27 +61,39 @@ namespace RichHudFramework.UI.Server
         protected readonly OnOffButton onOffButton;
         protected readonly HudChain layout;
 
-        public NamedOnOffButton(HudParentBase parent = null) : base(parent)
+        public NamedOnOffButton(HudParentBase parent) : base(parent)
         {
             name = new Label()
             {
-                Format = TerminalFormatting.ControlFormat,
+                Format = TerminalFormatting.ControlFormat.WithAlignment(TextAlignment.Center),
                 Text = "NewOnOffButton",
                 AutoResize = false,
                 Height = 22f,
             };
 
-            onOffButton = new OnOffButton();
+            onOffButton = new OnOffButton() 
+            { 
+                Padding = new Vector2(90f, 0f),
+            };
 
             layout = new HudChain(true, this)
             {
                 SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
-                Spacing = 8f,
+                DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
+                Spacing = 2f,
                 ChainContainer = { name, onOffButton }
             };
 
             Padding = new Vector2(20f, 0f);
-            Size = new Vector2(250f, 72f);
+            Size = new Vector2(250f, 74f);
+        }
+
+        public NamedOnOffButton() : this(null)
+        { }
+
+        protected override void Layout()
+        {
+            onOffButton.Height = Height - name.Height - Padding.Y - layout.Spacing;
         }
     }
 }

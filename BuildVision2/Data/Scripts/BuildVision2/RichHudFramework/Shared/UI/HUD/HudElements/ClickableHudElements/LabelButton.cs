@@ -17,9 +17,12 @@
 
         protected MouseInputElement _mouseInput;
 
-        public LabelButton(HudParentBase parent = null) : base(parent)
+        public LabelButton(HudParentBase parent) : base(parent)
         {
             _mouseInput = new MouseInputElement(this);
         }
+
+        public LabelButton() : this(null)
+        { }
     }
 }

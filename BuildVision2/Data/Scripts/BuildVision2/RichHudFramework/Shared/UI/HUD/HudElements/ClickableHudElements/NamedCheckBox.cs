@@ -87,7 +87,7 @@ namespace RichHudFramework.UI.Server
         private readonly BorderedCheckBox checkbox;
         private readonly HudChain layout;
 
-        public NamedCheckBox(HudParentBase parent = null) : base(parent)
+        public NamedCheckBox(HudParentBase parent) : base(parent)
         {
             name = new Label()
             {
@@ -107,5 +107,8 @@ namespace RichHudFramework.UI.Server
 
             Height = 37f;
         }
+
+        public NamedCheckBox() : this(null)
+        { }
     }
 }

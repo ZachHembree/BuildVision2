@@ -5,22 +5,18 @@ using VRage;
 using VRageMath;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
-using HudLayoutDelegate = System.Func<bool, bool>;
-using HudDrawDelegate = System.Func<object, object>;
 
 namespace RichHudFramework
 {
-    using HudInputDelegate = Func<Vector3, HudSpaceDelegate, MyTuple<Vector3, HudSpaceDelegate>>;
-
     namespace UI
     {
         using HudUpdateAccessors = MyTuple<
-            ushort, // ZOffset
-            byte, // Depth
-            HudInputDelegate, // DepthTest
-            HudInputDelegate, // HandleInput
-            HudLayoutDelegate, // BeforeLayout
-            HudDrawDelegate // BeforeDraw
+            ApiMemberAccessor,
+            MyTuple<Func<ushort>, Func<Vector3D>>, // ZOffset + GetOrigin
+            Action, // DepthTest
+            Action, // HandleInput
+            Action<bool>, // BeforeLayout
+            Action // BeforeDraw
         >;
 
         /// <summary>
@@ -29,6 +25,11 @@ namespace RichHudFramework
         /// </summary>
         public abstract class HudParentBase : IReadOnlyHudParent
         {
+            /// <summary>
+            /// Node defining the coordinate space used to render the UI element
+            /// </summary>
+            public abstract IReadOnlyHudSpaceNode HudSpace { get; }
+
             /// <summary>
             /// Determines whether or not an element will be drawn or process input. Visible by default.
             /// </summary>
@@ -57,12 +58,15 @@ namespace RichHudFramework
 
             protected readonly List<HudNodeBase> children;
 
-            protected readonly HudInputDelegate DepthTestAction;
-            protected readonly HudInputDelegate InputAction;
-            protected readonly HudLayoutDelegate LayoutAction;
-            protected readonly HudDrawDelegate DrawAction;
+            protected readonly ApiMemberAccessor GetOrSetMemberFunc;
+            protected readonly Func<ushort> GetZOffsetFunc;
+            protected readonly Action DepthTestAction;
+            protected readonly Action InputAction;
+            protected readonly Action<bool> LayoutAction;
+            protected readonly Action DrawAction;
 
             protected sbyte _zOffset;
+            protected bool _registered;
 
             /// <summary>
             /// Additional zOffset range used internally; primarily for determining window draw order.
@@ -75,9 +79,12 @@ namespace RichHudFramework
             {
                 Visible = true;
                 Scale = 1f;
+                _registered = true;
                 children = new List<HudNodeBase>();
 
-                this.DepthTestAction = SafeInputDepth;
+                GetOrSetMemberFunc = GetOrSetApiMember;
+                GetZOffsetFunc = () => fullZOffset;
+                DepthTestAction = SafeInputDepth;
                 LayoutAction = SafeBeginLayout;
                 DrawAction = SafeBeginDraw;
                 InputAction = SafeBeginInput;
@@ -87,22 +94,20 @@ namespace RichHudFramework
             /// Used to calculate the distance between the screen and HUD space plane and update
             /// the element accordingly.
             /// </summary>
-            protected virtual MyTuple<Vector3, HudSpaceDelegate> InputDepth(Vector3 cursorPos, HudSpaceDelegate GetHudSpaceFunc)
-            {
-                return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);
-            }
+            protected virtual void InputDepth() { }
 
             /// <summary>
             /// Updates input for the element and its children. Don't override this
             /// unless you know what you're doing. If you need to update input, use 
             /// HandleInput().
             /// </summary>
-            protected virtual MyTuple<Vector3, HudSpaceDelegate> BeginInput(Vector3 cursorPos, HudSpaceDelegate GetHudSpaceFunc)
+            protected virtual void BeginInput()
             {
                 if (Visible)
+                {
+                    Vector3 cursorPos = HudSpace.CursorPos;
                     HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
-
-                return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);
+                }
             }
 
             /// <summary>
@@ -115,12 +120,12 @@ namespace RichHudFramework
             /// unless you know what you're doing. If you need to update layout, use 
             /// Layout().
             /// </summary>
-            protected virtual bool BeginLayout(bool refresh)
+            protected virtual void BeginLayout(bool refresh)
             {
+                fullZOffset = GetFullZOffset(this);
+
                 if (Visible || refresh)
                     Layout();
-
-                return refresh;
             }
 
             /// <summary>
@@ -132,33 +137,34 @@ namespace RichHudFramework
             /// Used to immediately draw billboards. Don't override unless that's what you're
             /// doing.
             /// </summary>
-            protected virtual object BeginDraw(object matrix)
-            {
-                if (Visible)
-                    Draw(matrix);
-
-                return matrix;
-            }
+            protected virtual void BeginDraw() { }
 
             /// <summary>
             /// Draws the UI element.
             /// </summary>
-            protected virtual void Draw(object matrix) { }
+            protected virtual void Draw() { }
 
             /// <summary>
             /// Adds update delegates for members in the order dictated by the UI tree
             /// </summary>
-            public virtual void GetUpdateAccessors(List<HudUpdateAccessors> DrawActions, byte treeDepth)
+            public virtual void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
             {
-                fullZOffset = GetFullZOffset(this);
+                UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + 1);
+                var accessors = new HudUpdateAccessors()
+                {
+                    Item1 = GetOrSetMemberFunc,
+                    Item2 = new MyTuple<Func<ushort>, Func<Vector3D>>(GetZOffsetFunc, HudSpace.GetNodeOriginFunc),
+                    Item3 = DepthTestAction, 
+                    Item4 = InputAction,
+                    Item5 = LayoutAction,
+                    Item6 = DrawAction
+                };
 
-                DrawActions.EnsureCapacity(DrawActions.Count + children.Count + 1);
-                DrawActions.Add(new HudUpdateAccessors(fullZOffset, treeDepth, DepthTestAction, InputAction, LayoutAction, DrawAction));
-
+                UpdateActions.Add(accessors);
                 treeDepth++;
 
                 for (int n = 0; n < children.Count; n++)
-                    children[n].GetUpdateAccessors(DrawActions, treeDepth);
+                    children[n].GetUpdateAccessors(UpdateActions, treeDepth);
             }
 
             /// <summary>
@@ -230,72 +236,75 @@ namespace RichHudFramework
                 return (ushort)(innerOffset | outerOffset);
             }
 
-            private MyTuple<Vector3, HudSpaceDelegate> SafeInputDepth(Vector3 cursorPos, HudSpaceDelegate GetHudSpaceFunc)
+            protected object GetOrSetApiMember(object data, int memberEnum)
             {
-                if (!ExceptionHandler.ClientsPaused)
+                switch((HudElementAccessors)memberEnum)
                 {
-                    try
-                    {
-                        return InputDepth(cursorPos, GetHudSpaceFunc);
-                    }
-                    catch (Exception e)
-                    {
-                        ExceptionHandler.ReportException(e);
-                    }
+                    case HudElementAccessors.GetType:
+                        return GetType();
                 }
 
-                return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);
+                return null;
             }
 
-            private bool SafeBeginLayout(bool refresh)
+            private void SafeInputDepth()
             {
-                if (!ExceptionHandler.ClientsPaused)
+                if (!ExceptionHandler.ClientsPaused && _registered)
                 {
                     try
                     {
-                        return BeginLayout(refresh);
+                        InputDepth();
                     }
                     catch (Exception e)
                     {
                         ExceptionHandler.ReportException(e);
                     }
                 }
-
-                return refresh;
             }
 
-            private object SafeBeginDraw(object matrix)
+            private void SafeBeginLayout(bool refresh)
             {
-                if (!ExceptionHandler.ClientsPaused)
+                if (!ExceptionHandler.ClientsPaused && _registered)
                 {
                     try
                     {
-                        return BeginDraw(matrix);
+                        BeginLayout(refresh);
                     }
                     catch (Exception e)
                     {
                         ExceptionHandler.ReportException(e);
                     }
                 }
-
-                return matrix;
             }
 
-            private MyTuple<Vector3, HudSpaceDelegate> SafeBeginInput(Vector3 cursorPos, HudSpaceDelegate GetHudSpaceFunc)
+            private void SafeBeginDraw()
             {
-                if (!ExceptionHandler.ClientsPaused)
+                if (!ExceptionHandler.ClientsPaused && _registered)
                 {
                     try
                     {
-                        return BeginInput(cursorPos, GetHudSpaceFunc);
+                        BeginDraw();
                     }
                     catch (Exception e)
                     {
                         ExceptionHandler.ReportException(e);
                     }
                 }
+            }
 
-                return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);
+            private void SafeBeginInput()
+            {
+                if (!ExceptionHandler.ClientsPaused && _registered)
+                {
+                    try
+                    {
+                        BeginInput();
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
+                }
             }
         }
     }

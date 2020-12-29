@@ -26,7 +26,7 @@ namespace RichHudFramework.UI.Server
         private readonly BorderBox border;
         private readonly TexturedBox highlight;
 
-        public BorderedButton(HudParentBase parent = null) : base(parent)
+        public BorderedButton(HudParentBase parent) : base(parent)
         {
             border = new BorderBox(this)
             {
@@ -52,6 +52,9 @@ namespace RichHudFramework.UI.Server
             Size = new Vector2(253f, 50f);
             HighlightEnabled = true;
         }
+
+        public BorderedButton() : this(null)
+        { }
 
         protected override void CursorEntered(object sender, EventArgs args)
         {

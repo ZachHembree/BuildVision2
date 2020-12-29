@@ -20,7 +20,6 @@ namespace RichHudFramework
             /// </summary>
             public sealed override HudParentBase Parent
             {
-                get { return base.Parent; }
                 protected set
                 {
                     _parent = value;
@@ -131,26 +130,27 @@ namespace RichHudFramework
                 ParentAlignment = ParentAlignments.Center;
             }
 
-            protected override MyTuple<Vector3, HudSpaceDelegate> InputDepth(Vector3 cursorPos, HudSpaceDelegate GetHudSpaceFunc)
+            protected override void InputDepth()
             {
                 if (Visible && UseCursor)
                 {
+                    Vector3 cursorPos = _hudSpace.CursorPos;
                     Vector2 offset = Vector2.Max(cachedSize, new Vector2(minMouseBounds)) / 2f;
                     BoundingBox2 box = new BoundingBox2(cachedPosition - offset, cachedPosition + offset);
                     mouseInBounds = box.Contains(new Vector2(cursorPos.X, cursorPos.Y)) == ContainmentType.Contains;
 
                     if (mouseInBounds)
-                        HudMain.Cursor.TryCaptureHudSpace(cursorPos.Z, GetHudSpaceFunc);
+                        HudMain.Cursor.TryCaptureHudSpace(cursorPos.Z, _hudSpace.GetHudSpaceFunc);
                 }
-
-                return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);
             }
 
-            protected override MyTuple<Vector3, HudSpaceDelegate> BeginInput(Vector3 cursorPos, HudSpaceDelegate GetHudSpaceFunc)
+            protected override void BeginInput()
             {
                 if (Visible)
                 {
-                    if (UseCursor && mouseInBounds && !HudMain.Cursor.IsCaptured && HudMain.Cursor.IsCapturingSpace(GetHudSpaceFunc))
+                    Vector3 cursorPos = _hudSpace.CursorPos;
+
+                    if (UseCursor && mouseInBounds && !HudMain.Cursor.IsCaptured && HudMain.Cursor.IsCapturingSpace(_hudSpace.GetHudSpaceFunc))
                     {
                         _isMousedOver = mouseInBounds;
 
@@ -167,20 +167,18 @@ namespace RichHudFramework
                 }
                 else
                     _isMousedOver = false;
-
-                return new MyTuple<Vector3, HudSpaceDelegate>(cursorPos, GetHudSpaceFunc);
             }
 
-            protected override bool BeginLayout(bool refresh)
+            protected override void BeginLayout(bool refresh)
             {
+                fullZOffset = GetFullZOffset(this, _parent);
+
                 if (Visible || refresh)
                 {
                     UpdateCache();
                     Layout();
                     UpdateCache();
                 }
-
-                return refresh;
             }
 
             protected void UpdateCache()

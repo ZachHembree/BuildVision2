@@ -24,13 +24,12 @@ namespace RichHudFramework.UI.Server
 
         public override float Width
         {
-            get { return mainChain.Width; }
-
             set
             {
                 if (value > Padding.X)
                     value -= Padding.X;
 
+                _absoluteWidth = (value / Scale);
                 display.Width = value - name.Width;
                 colorSliderColumn.Width = display.Width;
             }
@@ -38,14 +37,13 @@ namespace RichHudFramework.UI.Server
 
         public override float Height
         {
-            get { return mainChain.Height; }
-
             set
             {
                 if (value > Padding.Y)
                     value -= Padding.Y;
 
-                value = (value - headerChain.Height) / 3f;
+                _absoluteHeight = (value / Scale);
+                value = (value - headerChain.Height - 15f) / 3f;
                 colorNameColumn.MemberMaxSize = new Vector2(colorNameColumn.MemberMaxSize.X, value);
                 colorSliderColumn.MemberMaxSize = new Vector2(colorSliderColumn.MemberMaxSize.X, value);
             }
@@ -66,8 +64,6 @@ namespace RichHudFramework.UI.Server
             }
         }
 
-        public override Vector2 Padding { get { return mainChain.Padding; } set { mainChain.Padding = value; } }
-
         // Header
         private readonly Label name;
         private readonly TexturedBox display;
@@ -82,7 +78,7 @@ namespace RichHudFramework.UI.Server
         private readonly HudChain mainChain, colorChain;
         private Color _color;
 
-        public ColorPickerRGB(HudParentBase parent = null) : base(parent)
+        public ColorPickerRGB(HudParentBase parent) : base(parent)
         {
             // Header
             name = new Label()
@@ -151,7 +147,6 @@ namespace RichHudFramework.UI.Server
             mainChain = new HudChain(true, this)
             {
                 SizingMode = HudChainSizingModes.FitChainBoth,
-                Size = new Vector2(318f, 171f),
                 Spacing = 5f,
                 ChainContainer =
                 {
@@ -159,7 +154,12 @@ namespace RichHudFramework.UI.Server
                     colorChain,
                 }
             };
+
+            Size = new Vector2(318f, 163f);
         }
+
+        public ColorPickerRGB() : this(null)
+        { }
 
         protected override void HandleInput(Vector2 cursorPos)
         {

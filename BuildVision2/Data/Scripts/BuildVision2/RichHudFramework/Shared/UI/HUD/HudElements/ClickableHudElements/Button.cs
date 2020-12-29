@@ -31,7 +31,7 @@ namespace RichHudFramework.UI
         private readonly MouseInputElement _mouseInput;
         private Color oldColor;
 
-        public Button(HudParentBase parent = null) : base(parent)
+        public Button(HudParentBase parent) : base(parent)
         {
             _mouseInput = new MouseInputElement(this);
             highlightColor = new Color(255, 255, 255, 125);
@@ -40,6 +40,9 @@ namespace RichHudFramework.UI
             _mouseInput.OnCursorEnter += CursorEntered;
             _mouseInput.OnCursorExit += CursorExited;
         }
+
+        public Button() : this(null)
+        { }
 
         protected void CursorEntered(object sender, EventArgs args)
         {

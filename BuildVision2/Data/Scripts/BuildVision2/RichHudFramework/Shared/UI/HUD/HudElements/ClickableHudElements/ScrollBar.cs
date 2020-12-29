@@ -86,7 +86,7 @@ namespace RichHudFramework.UI
 
         public readonly SliderBar slide;
 
-        public ScrollBar(HudParentBase parent = null) : base(parent)
+        public ScrollBar(HudParentBase parent) : base(parent)
         {
             slide = new SliderBar(this) 
             { 
@@ -104,6 +104,9 @@ namespace RichHudFramework.UI
             Padding = new Vector2(18f, 18f);
             Size = new Vector2(317f, 47f);
         }
+
+        public ScrollBar() : this(null)
+        { }
 
         protected override void Layout()
         {
