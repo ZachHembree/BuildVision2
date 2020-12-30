@@ -228,13 +228,10 @@ namespace RichHudFramework
             protected void ClampElementSizeRange()
             {
                 _absMinSize = Vector2.Max(Vector2.Zero, _absMinSize);
-                _absMaxSize = Vector2.Max(Vector2.Zero, _absMaxSize);
 
-                Vector2 newMin, newMax;
-                newMin = Vector2.Min(_absMinSize, _absMaxSize);
+                Vector2 newMax;
                 newMax = Vector2.Max(_absMinSize, _absMaxSize);
 
-                _absMinSize = newMin;
                 _absMaxSize = newMax;
             }
 
