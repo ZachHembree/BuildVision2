@@ -236,12 +236,24 @@ namespace RichHudFramework
                 return (ushort)(innerOffset | outerOffset);
             }
 
-            protected object GetOrSetApiMember(object data, int memberEnum)
+            protected virtual object GetOrSetApiMember(object data, int memberEnum)
             {
-                switch((HudElementAccessors)memberEnum)
+                switch ((HudElementAccessors)memberEnum)
                 {
                     case HudElementAccessors.GetType:
                         return GetType();
+                    case HudElementAccessors.ZOffset:
+                        return ZOffset;
+                    case HudElementAccessors.FullZOffset:
+                        return fullZOffset;
+                    case HudElementAccessors.Position:
+                        return Vector2.Zero;
+                    case HudElementAccessors.Size:
+                        return Vector2.Zero;
+                    case HudElementAccessors.GetHudSpaceFunc:
+                        return HudSpace?.GetHudSpaceFunc;
+                    case HudElementAccessors.ModName:
+                        return ExceptionHandler.ModName;
                 }
 
                 return null;

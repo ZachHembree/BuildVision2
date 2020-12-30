@@ -279,6 +279,29 @@ namespace RichHudFramework
 
                 return alignment;
             }
+
+            protected override object GetOrSetApiMember(object data, int memberEnum)
+            {
+                switch ((HudElementAccessors)memberEnum)
+                {
+                    case HudElementAccessors.GetType:
+                        return GetType();
+                    case HudElementAccessors.ZOffset:
+                        return ZOffset;
+                    case HudElementAccessors.FullZOffset:
+                        return fullZOffset;
+                    case HudElementAccessors.Position:
+                        return cachedPosition;
+                    case HudElementAccessors.Size:
+                        return cachedSize;
+                    case HudElementAccessors.GetHudSpaceFunc:
+                        return HudSpace?.GetHudSpaceFunc;
+                    case HudElementAccessors.ModName:
+                        return Internal.ExceptionHandler.ModName;
+                }
+
+                return null;
+            }
         }
     }
 }

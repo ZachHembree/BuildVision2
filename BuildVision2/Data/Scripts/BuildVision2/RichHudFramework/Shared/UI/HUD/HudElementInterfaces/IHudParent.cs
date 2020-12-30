@@ -23,6 +23,36 @@ namespace RichHudFramework
             /// out: System.Type
             /// </summary>
             GetType = 1,
+
+            /// <summary>
+            /// out: byte
+            /// </summary>
+            ZOffset = 2,
+
+            /// <summary>
+            /// out: ushort
+            /// </summary>
+            FullZOffset = 3,
+
+            /// <summary>
+            /// out: Vector2
+            /// </summary>
+            Position = 4,
+
+            /// <summary>
+            /// out: Vector2
+            /// </summary>
+            Size = 5,
+
+            /// <summary>
+            /// out: HudSpaceDelegate
+            /// </summary>
+            GetHudSpaceFunc = 6,
+
+            /// <summary>
+            /// out: string
+            /// </summary>
+            ModName = 7
         }
 
         /// <summary>
