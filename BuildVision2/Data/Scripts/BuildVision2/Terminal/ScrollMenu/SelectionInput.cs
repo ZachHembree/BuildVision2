@@ -12,7 +12,7 @@ namespace DarkHelmet.BuildVision2
     {
         private void HandleSelectionInput()
         {
-            if (!Selection.valueText.InputOpen)
+            if (!Selection.InputOpen)
             {
                 if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
                     Scroll(-1);

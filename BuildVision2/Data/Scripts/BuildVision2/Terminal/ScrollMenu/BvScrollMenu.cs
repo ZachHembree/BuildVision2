@@ -153,10 +153,9 @@ namespace DarkHelmet.BuildVision2
             {
                 Color = bodyColor,
                 EnableScrolling = false,
-                SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.ClampChainOffAxis | HudChainSizingModes.FitChainAlignAxis,
+                SizingMode = HudChainSizingModes.ClampChainOffAxis | HudChainSizingModes.FitChainAlignAxis,
                 MinVisibleCount = 10,
                 Padding = new Vector2(48f, 16f),
-                MemberMinSize = new Vector2(300f, 0f),
             };
 
             scrollBody.scrollBar.Padding = new Vector2(12f, 16f);
@@ -271,7 +270,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (n == index)
                 {
-                    if ((!PropOpen || updateSelection) && !propertyBox.valueText.InputOpen)
+                    if ((!PropOpen || updateSelection) && !propertyBox.InputOpen)
                         propertyBox.UpdateText(true, PropOpen);
                 }
                 else
@@ -331,8 +330,21 @@ namespace DarkHelmet.BuildVision2
             {
                 scrollBody.Visible = true;
                 peekBody.Visible = false;
-                // Assigns scrollBody width from last frame
-                layout.Width = scrollBody.Width;
+
+                float memberWidth = 0f;
+                int start = scrollBody.VisStart;
+                var entries = scrollBody.ChainEntries;
+
+                for (int n = 0; n < scrollBody.VisCount; n++)
+                {
+                    HudElementBase element = entries[start + n].Element;
+
+                    if (element.Visible)
+                        memberWidth = Math.Max(memberWidth, element.Width);
+                }
+
+                memberWidth += scrollBody.Padding.X + scrollBody.scrollBar.Width + scrollBody.divider.Width;
+                layout.Width = memberWidth;
             }
             else if (MenuMode == ScrollMenuModes.Peek)
             {
@@ -345,19 +357,19 @@ namespace DarkHelmet.BuildVision2
 
             if (AlignToEdge)
             {
-                if (base.Offset.X < 0)
-                    alignment.X = Width / 2f;
-                else
+                if (base.Offset.X > 0f)
                     alignment.X = -Width / 2f;
-
-                if (base.Offset.Y < 0)
-                    alignment.Y = Height / 2f;
                 else
+                    alignment.X = Width / 2f;
+
+                if (base.Offset.Y > 0f)
                     alignment.Y = -Height / 2f;
+                else
+                    alignment.Y = Height / 2f;
             }
         }
 
-        protected override void Draw(object matrix)
+        protected override void Draw()
         {
             if (Selection != null)
             {
@@ -451,30 +463,6 @@ namespace DarkHelmet.BuildVision2
         private class BvPropertyBox : HudElementBase
         {
             /// <summary>
-            /// Width of the property box
-            /// </summary>
-            public override float Width 
-            { 
-                get { return layout.Width; } 
-                set 
-                {
-                    /*value = Math.Max(value - (layout.Width - valueText.Width), 0f);
-
-                    if (value > layout.Padding.X)
-                        value -= layout.Padding.X;
-
-                    valueText.Width = value; */
-                } 
-            }
-
-            /// <summary>
-            /// Height of the property box
-            /// </summary>
-            public override float Height { get { return layout.Height; } set { /*layout.Height = value;*/ } }
-
-            public override Vector2 Padding { get { return layout.Padding; } set { layout.Padding = value; } }
-
-            /// <summary>
             /// Indicates whether or not the property is currently being copied.
             /// </summary>
             public bool Copying { get { return copyIndicator.Visible; } set { copyIndicator.Visible = value && (_blockMember is IBlockProperty); } }
@@ -495,9 +483,9 @@ namespace DarkHelmet.BuildVision2
                         var textMember = _blockMember as IBlockTextMember;
 
                         if (textMember != null)
-                            this.valueText.CharFilterFunc = textMember.CharFilterFunc;
+                            this.valueBox.CharFilterFunc = textMember.CharFilterFunc;
                         else
-                            this.valueText.CharFilterFunc = null;
+                            this.valueBox.CharFilterFunc = null;
 
                         name.Format = bodyText;
 
@@ -509,10 +497,20 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public readonly int index;
-            public readonly Label name, postfix;
-            public readonly TextBox valueText;
+            public RichText Name { get { return name.Text; } set { name.Text = value; } }
 
+            public RichText Value { get { return valueBox.Text; } set { valueBox.Text = value; } }
+
+            public RichText Postfix { get { return postfix.Text; } set { postfix.Text = value; } }
+
+            public ITextBoard ValueBoard => valueBox.TextBoard;
+
+            public bool InputOpen => valueBox.InputOpen;
+
+            public readonly int index;
+
+            private readonly Label name, postfix;
+            private readonly TextBox valueBox;
             private readonly SelectionBox copyIndicator;
             private readonly HudChain layout;
             private IBlockMember _blockMember;
@@ -524,15 +522,21 @@ namespace DarkHelmet.BuildVision2
 
                 copyIndicator = new SelectionBox();
                 name = new Label();
-                valueText = new TextBox() { UseCursor = false };
+                valueBox = new TextBox() { UseCursor = false };
                 postfix = new Label();
 
                 layout = new HudChain(false, this)
                 {
-                    ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH,
-                    ChainContainer = { copyIndicator, name, valueText, postfix }
+                    ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH | ParentAlignments.UsePadding,
+                    ChainContainer = { copyIndicator, name, valueBox, postfix }
                 };
             }
+
+            public void OpenInput() =>
+                valueBox.OpenInput();
+
+            public void CloseInput() =>
+                valueBox.CloseInput();
 
             /// <summary>
             /// Clears property information from the property box
@@ -541,14 +545,13 @@ namespace DarkHelmet.BuildVision2
             {
                 name.TextBoard.Clear();
                 postfix.TextBoard.Clear();
-                valueText.CloseInput();
+                valueBox.CloseInput();
                 BlockMember = null;
             }
 
             protected override void Layout()
             {
-                float textHeight = Math.Max(name.TextBoard.TextSize.Y, Math.Max(name.TextBoard.TextSize.Y, name.TextBoard.TextSize.Y));
-                layout.Height = Math.Max(textHeight + layout.Padding.Y, layout.Height);
+                Size = layout.Size;
             }
 
             /// <summary>
@@ -561,14 +564,14 @@ namespace DarkHelmet.BuildVision2
                 if (highlighted)
                 {
                     if (selected)
-                        valueText.Format = selectedText;
+                        valueBox.Format = selectedText;
                     else
-                        valueText.Format = highlightText;
+                        valueBox.Format = highlightText;
                 }
                 else
-                    valueText.Format = BvScrollMenu.valueText;
+                    valueBox.Format = BvScrollMenu.valueText;
 
-                valueText.Text = _blockMember.Display;
+                valueBox.Text = _blockMember.Display;
                 postfix.Text = $" {_blockMember.Status}";
             }
 
