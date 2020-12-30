@@ -37,9 +37,9 @@ namespace RichHudFramework
 
             /// <summary>
             /// Scales the size and offset of an element. Any offset or size set at a given
-            /// be increased or decreased with scale. Defaults to 1f. Includes parent scale.
+            /// be increased or decreased with scale. Defaults to 1f.
             /// </summary>
-            public virtual float Scale { get; set; }
+            public virtual float Scale { get; }
 
             /// <summary>
             /// Determines whether the UI element will be drawn in the Back, Mid or Foreground

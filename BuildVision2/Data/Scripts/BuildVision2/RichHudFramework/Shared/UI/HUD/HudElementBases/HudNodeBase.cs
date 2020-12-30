@@ -62,11 +62,12 @@ namespace RichHudFramework
             /// Scales the size and offset of an element. Any offset or size set at a given
             /// be increased or decreased with scale. Defaults to 1f. Includes parent scale.
             /// </summary>
-            public override float Scale
-            {
-                get { return localScale * parentScale; }
-                set { localScale = value / parentScale; }
-            }
+            public sealed override float Scale => LocalScale * parentScale;
+
+            /// <summary>
+            /// Element scaling without parent scaling.
+            /// </summary>
+            public virtual float LocalScale { get; set; }
 
             /// <summary>
             /// Indicates whether or not the element has been registered to a parent.
@@ -75,14 +76,14 @@ namespace RichHudFramework
 
             protected HudParentBase _parent;
             protected IReadOnlyHudSpaceNode _hudSpace;
-            protected float localScale, parentScale;
+            protected float parentScale;
             protected bool _visible, parentVisible;
             protected sbyte parentZOffset;
 
             public HudNodeBase(HudParentBase parent)
             {
                 parentScale = 1f;
-                localScale = 1f;
+                LocalScale = 1f;
                 parentVisible = true;
                 _registered = false;
 

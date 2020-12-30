@@ -13,6 +13,11 @@
             IReadOnlyHudParent Parent { get; }
 
             /// <summary>
+            /// Element scaling without parent scaling.
+            /// </summary>
+            float LocalScale { get; }
+
+            /// <summary>
             /// Indicates whether or not the node has been registered to its parent.
             /// </summary>
             bool Registered { get; }

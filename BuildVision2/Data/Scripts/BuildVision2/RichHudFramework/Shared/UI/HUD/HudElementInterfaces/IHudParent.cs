@@ -43,7 +43,7 @@ namespace RichHudFramework
 
             /// <summary>
             /// Scales the size and offset of an element. Any offset or size set at a given
-            /// be increased or decreased with scale. Defaults to 1f. Includes parent scale.
+            /// be increased or decreased with scale. Defaults to 1f.
             /// </summary>
             float Scale { get; }
 

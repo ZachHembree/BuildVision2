@@ -300,7 +300,10 @@ namespace RichHudFramework
                 public Action CustomDrawAction;
 
                 public HudClientRoot()
-                { }
+                {
+                    GetHudSpaceFunc = () => new MyTuple<bool, float, MatrixD>(true, 1f, PixelToWorld);
+                    GetNodeOriginFunc = () => PixelToWorld.Translation;
+                }
 
                 protected override void Layout()
                 {

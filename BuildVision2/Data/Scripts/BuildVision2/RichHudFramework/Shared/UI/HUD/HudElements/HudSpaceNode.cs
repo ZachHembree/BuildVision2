@@ -83,6 +83,8 @@ namespace RichHudFramework
             {
                 if (UpdateMatrixFunc != null)
                     PlaneToWorld = UpdateMatrixFunc();
+                else
+                    PlaneToWorld = HudMain.PixelToWorld;
 
                 // Determine whether the node is in front of the camera and pointed toward it
                 MatrixD camMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
