@@ -9,9 +9,9 @@ namespace RichHudFramework
     using CursorMembers = MyTuple<
         Func<HudSpaceDelegate, bool>, // IsCapturingSpace
         Func<float, HudSpaceDelegate, bool>, // TryCaptureHudSpace
-        Func<object, bool>, // IsCapturing
-        Func<object, bool>, // TryCapture
-        Func<object, bool>, // TryRelease
+        Func<ApiMemberAccessor, bool>, // IsCapturing
+        Func<ApiMemberAccessor, bool>, // TryCapture
+        Func<ApiMemberAccessor, bool>, // TryRelease
         ApiMemberAccessor // GetOrSetMember
     >;
 
@@ -48,9 +48,9 @@ namespace RichHudFramework
 
                 private readonly Func<HudSpaceDelegate, bool> IsCapturingSpaceFunc;
                 private readonly Func<float, HudSpaceDelegate, bool> TryCaptureHudSpaceFunc;
-                private readonly Func<object, bool> IsCapturingFunc;
-                private readonly Func<object, bool> TryCaptureFunc;
-                private readonly Func<object, bool> TryReleaseFunc;
+                private readonly Func<ApiMemberAccessor, bool> IsCapturingFunc;
+                private readonly Func<ApiMemberAccessor, bool> TryCaptureFunc;
+                private readonly Func<ApiMemberAccessor, bool> TryReleaseFunc;
                 private readonly ApiMemberAccessor GetOrSetMemberFunc;
 
                 public HudCursor(CursorMembers members)
@@ -95,26 +95,26 @@ namespace RichHudFramework
                 /// <summary>
                 /// Attempts to capture the cursor with the given object
                 /// </summary>
-                public void Capture(object capturedElement) =>
+                public void Capture(ApiMemberAccessor capturedElement) =>
                     TryCaptureFunc(capturedElement);
 
                 /// <summary>
                 /// Indicates whether the cursor is being captured by the given element.
                 /// </summary>
-                public bool IsCapturing(object capturedElement) =>
+                public bool IsCapturing(ApiMemberAccessor capturedElement) =>
                     IsCapturingFunc(capturedElement);
 
                 /// <summary>
                 /// Attempts to capture the cursor using the given object. Returns true on success.
                 /// </summary>
-                public bool TryCapture(object capturedElement) =>
+                public bool TryCapture(ApiMemberAccessor capturedElement) =>
                     TryCaptureFunc(capturedElement);
 
                 /// <summary>
                 /// Attempts to release the cursor from the given element. Returns false if
                 /// not capture or if not captured by the object given.
                 /// </summary>
-                public bool TryRelease(object capturedElement) =>
+                public bool TryRelease(ApiMemberAccessor capturedElement) =>
                     TryReleaseFunc(capturedElement);
             }
         }

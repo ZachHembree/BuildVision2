@@ -157,7 +157,7 @@ namespace RichHudFramework
                         HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
 
                         if (!ShareCursor)
-                            HudMain.Cursor.Capture(this);
+                            HudMain.Cursor.Capture(GetOrSetMemberFunc);
                     }
                     else
                     {

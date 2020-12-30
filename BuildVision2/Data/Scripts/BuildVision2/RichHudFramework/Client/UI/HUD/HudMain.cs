@@ -14,9 +14,9 @@ namespace RichHudFramework
     using CursorMembers = MyTuple<
         Func<HudSpaceDelegate, bool>, // IsCapturingSpace
         Func<float, HudSpaceDelegate, bool>, // TryCaptureHudSpace
-        Func<object, bool>, // IsCapturing
-        Func<object, bool>, // TryCapture
-        Func<object, bool>, // TryRelease
+        Func<ApiMemberAccessor, bool>, // IsCapturing
+        Func<ApiMemberAccessor, bool>, // TryCapture
+        Func<ApiMemberAccessor, bool>, // TryRelease
         ApiMemberAccessor // GetOrSetMember
     >;
     using TextBoardMembers = MyTuple<

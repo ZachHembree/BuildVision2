@@ -87,23 +87,23 @@ namespace RichHudFramework
             /// <summary>
             /// Attempts to capture the cursor with the given object
             /// </summary>
-            void Capture(object capturedElement);
+            void Capture(ApiMemberAccessor capturedElement);
 
             /// <summary>
             /// Indicates whether the cursor is being captured by the given element.
             /// </summary>
-            bool IsCapturing(object capturedElement);
+            bool IsCapturing(ApiMemberAccessor capturedElement);
 
             /// <summary>
             /// Attempts to capture the cursor using the given object. Returns true on success.
             /// </summary>
-            bool TryCapture(object capturedElement);
+            bool TryCapture(ApiMemberAccessor capturedElement);
 
             /// <summary>
             /// Attempts to release the cursor from the given element. Returns false if
             /// not capture or if not captured by the object given.
             /// </summary>
-            bool TryRelease(object capturedElement);
+            bool TryRelease(ApiMemberAccessor capturedElement);
         }
     }
 }
