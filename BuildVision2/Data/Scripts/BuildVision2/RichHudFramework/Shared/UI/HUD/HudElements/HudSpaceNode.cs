@@ -36,7 +36,7 @@ namespace RichHudFramework
             /// <summary>
             /// Returns true if the space node is visible and rendering.
             /// </summary>
-            public override bool Visible => _visible && parentVisible && isFacingCamera;
+            public override bool Visible => _visible && parentVisible && IsFacingCamera;
 
             /// <summary>
             /// Returns the current draw matrix
@@ -70,7 +70,15 @@ namespace RichHudFramework
             /// </summary>
             public Func<Vector3D> GetNodeOriginFunc { get; protected set; }
 
-            protected bool isFacingCamera;
+            /// <summary>
+            /// True if the origin of the HUD space is in front of the camera
+            /// </summary>
+            public bool IsInFront { get; protected set; }
+
+            /// <summary>
+            /// True if the XY plane of the HUD space is in front and facing toward the camera
+            /// </summary>
+            public bool IsFacingCamera { get; protected set; }
 
             public HudSpaceNode(HudParentBase parent = null) : base(parent)
             {
@@ -93,8 +101,8 @@ namespace RichHudFramework
                     nodeOrigin = PlaneToWorld.Translation,
                     nodeForward = PlaneToWorld.Forward;
 
-                bool isInFront = Vector3D.Dot((nodeOrigin - camOrigin), camForward) > 0;
-                isFacingCamera = isInFront && Vector3D.Dot(nodeForward, camForward) > 0;
+                IsInFront = Vector3D.Dot((nodeOrigin - camOrigin), camForward) > 0;
+                IsFacingCamera = IsInFront && Vector3D.Dot(nodeForward, camForward) > 0;
 
                 if (Visible)
                 {
@@ -107,11 +115,11 @@ namespace RichHudFramework
                     Vector3D planePos;
                     Vector3D.TransformNoProjection(ref worldPos, ref worldToPlane, out planePos);
 
-                    CursorPos = new Vector3() 
-                    { 
-                        X = (float)planePos.X, 
-                        Y = (float)planePos.Y, 
-                        Z = (float)Math.Round(Vector3D.DistanceSquared(worldPos, cursorLine.From), 6) 
+                    CursorPos = new Vector3()
+                    {
+                        X = (float)planePos.X,
+                        Y = (float)planePos.Y,
+                        Z = (float)Math.Round(Vector3D.DistanceSquared(worldPos, cursorLine.From), 6)
                     };
                 }
 
@@ -120,6 +128,7 @@ namespace RichHudFramework
 
             public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
             {
+                fullZOffset = GetFullZOffset(this, _parent);
                 _hudSpace = _parent?.HudSpace;
 
                 UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + 1);

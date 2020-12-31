@@ -44,10 +44,10 @@ namespace RichHudFramework
             /// <summary>
             /// Determines whether the UI element will be drawn in the Back, Mid or Foreground
             /// </summary>
-            public virtual sbyte ZOffset 
-            { 
-                get { return _zOffset; } 
-                set { _zOffset = value; } 
+            public virtual sbyte ZOffset
+            {
+                get { return _zOffset; }
+                set { _zOffset = value; }
             }
 
             /// <summary>
@@ -137,7 +137,11 @@ namespace RichHudFramework
             /// Used to immediately draw billboards. Don't override unless that's what you're
             /// doing.
             /// </summary>
-            protected virtual void BeginDraw() { }
+            protected virtual void BeginDraw()
+            {
+                if (Visible)
+                    Draw();
+            }
 
             /// <summary>
             /// Draws the UI element.
@@ -149,12 +153,14 @@ namespace RichHudFramework
             /// </summary>
             public virtual void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
             {
+                fullZOffset = GetFullZOffset(this);
+
                 UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + 1);
                 var accessors = new HudUpdateAccessors()
                 {
                     Item1 = GetOrSetMemberFunc,
                     Item2 = new MyTuple<Func<ushort>, Func<Vector3D>>(GetZOffsetFunc, HudSpace.GetNodeOriginFunc),
-                    Item3 = DepthTestAction, 
+                    Item3 = DepthTestAction,
                     Item4 = InputAction,
                     Item5 = LayoutAction,
                     Item6 = DrawAction
@@ -203,8 +209,8 @@ namespace RichHudFramework
             /// <summary>
             /// Unregisters the specified node from the parent.
             /// </summary>
-            public virtual void RemoveChild(HudNodeBase child) 
-            { 
+            public virtual void RemoveChild(HudNodeBase child)
+            {
                 if (!blockChildRegistration)
                 {
                     int index = children.FindIndex(x => x == child);
@@ -254,6 +260,18 @@ namespace RichHudFramework
                         return HudSpace?.GetHudSpaceFunc;
                     case HudElementAccessors.ModName:
                         return ExceptionHandler.ModName;
+                    case HudElementAccessors.LocalCursorPos:
+                        return HudSpace?.CursorPos ?? Vector3.Zero;
+                    case HudElementAccessors.DrawCursorInHudSpace:
+                        return HudSpace?.DrawCursorInHudSpace ?? false;
+                    case HudElementAccessors.PlaneToWorld:
+                        return HudSpace?.PlaneToWorld ?? default(MatrixD);
+                    case HudElementAccessors.IsInFront:
+                        return HudSpace?.IsInFront ?? false;
+                    case HudElementAccessors.IsFacingCamera:
+                        return HudSpace?.IsFacingCamera ?? false;
+                    case HudElementAccessors.NodeOrigin:
+                        return HudSpace?.PlaneToWorld.Translation ?? Vector3D.Zero;
                 }
 
                 return null;

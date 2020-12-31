@@ -43,6 +43,16 @@ namespace RichHudFramework
             /// Returns the world space position of the node's origin.
             /// </summary>
             Func<Vector3D> GetNodeOriginFunc { get; }
+
+            /// <summary>
+            /// True if the origin of the HUD space is in front of the camera
+            /// </summary>
+            bool IsInFront { get; }
+
+            /// <summary>
+            /// True if the XY plane of the HUD space is in front and facing toward the camera
+            /// </summary>
+            bool IsFacingCamera { get; }
         }
     }
 }

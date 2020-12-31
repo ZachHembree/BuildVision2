@@ -72,7 +72,7 @@ namespace RichHudFramework
             /// <summary>
             /// Indicates whether or not the element has been registered to a parent.
             /// </summary>
-            public bool Registered { get { return _registered; }  private set { _registered = value; } }
+            public bool Registered { get { return _registered; } private set { _registered = value; } }
 
             protected HudParentBase _parent;
             protected IReadOnlyHudSpaceNode _hudSpace;
@@ -118,12 +118,14 @@ namespace RichHudFramework
                 }
             }
 
+
             /// <summary>
             /// Adds update delegates for members in the order dictated by the UI tree
             /// </summary>
             public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
             {
                 _hudSpace = _parent?.HudSpace;
+                fullZOffset = GetFullZOffset(this, _parent);
 
                 UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + 1);
                 var accessors = new HudUpdateAccessors()

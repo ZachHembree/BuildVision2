@@ -20,6 +20,11 @@ namespace RichHudFramework
         public enum HudElementAccessors : int
         {
             /// <summary>
+            /// out: string
+            /// </summary>
+            ModName = 0,
+
+            /// <summary>
             /// out: System.Type
             /// </summary>
             GetType = 1,
@@ -45,14 +50,39 @@ namespace RichHudFramework
             Size = 5,
 
             /// <summary>
-            /// out: HudSpaceDelegate
+            /// out: Vector3
             /// </summary>
-            GetHudSpaceFunc = 6,
+            LocalCursorPos = 6,
 
             /// <summary>
-            /// out: string
+            /// out: bool
             /// </summary>
-            ModName = 7
+            DrawCursorInHudSpace = 7,
+
+            /// <summary>
+            /// out: HudSpaceDelegate
+            /// </summary>
+            GetHudSpaceFunc = 8,
+
+            /// <summary>
+            /// out: Vector3D
+            /// </summary>
+            NodeOrigin = 9,
+
+            /// <summary>
+            /// out: MatrixD
+            /// </summary>
+            PlaneToWorld = 10,
+
+            /// <summary>
+            /// out: bool
+            /// </summary>
+            IsInFront = 11,
+
+            /// <summary>
+            /// out: bool
+            /// </summary>
+            IsFacingCamera = 12,
         }
 
         /// <summary>

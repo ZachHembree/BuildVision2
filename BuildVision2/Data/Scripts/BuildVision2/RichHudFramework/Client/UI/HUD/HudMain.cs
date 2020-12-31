@@ -283,30 +283,42 @@ namespace RichHudFramework
             {
                 public override bool Visible => true;
 
-                public bool DrawCursorInHudSpace => true;
+                public bool DrawCursorInHudSpace { get; }
 
-                public override IReadOnlyHudSpaceNode HudSpace => this;
+                public override IReadOnlyHudSpaceNode HudSpace { get; }
 
-                public Vector3 CursorPos => new Vector3(Cursor.ScreenPos.X, Cursor.ScreenPos.Y, 0f);
+                public Vector3 CursorPos { get; private set; }
 
                 public HudSpaceDelegate GetHudSpaceFunc { get; }
 
-                public MatrixD PlaneToWorld => PixelToWorld;
+                public MatrixD PlaneToWorld { get; private set; }
 
-                public Func<MatrixD> UpdateMatrixFunc => null;
+                public Func<MatrixD> UpdateMatrixFunc { get; }
 
                 public Func<Vector3D> GetNodeOriginFunc { get; }
+
+                public bool IsInFront { get; }
+
+                public bool IsFacingCamera { get; }
 
                 public Action CustomDrawAction;
 
                 public HudClientRoot()
                 {
+                    DrawCursorInHudSpace = true;
+                    HudSpace = this;
+                    IsInFront = true;
+                    IsFacingCamera = true;
+
                     GetHudSpaceFunc = () => new MyTuple<bool, float, MatrixD>(true, 1f, PixelToWorld);
                     GetNodeOriginFunc = () => PixelToWorld.Translation;
                 }
 
                 protected override void Layout()
                 {
+                    PlaneToWorld = PixelToWorld;
+                    CursorPos = new Vector3(Cursor.ScreenPos.X, Cursor.ScreenPos.Y, 0f);
+
                     CustomDrawAction?.Invoke();
                 }
             }

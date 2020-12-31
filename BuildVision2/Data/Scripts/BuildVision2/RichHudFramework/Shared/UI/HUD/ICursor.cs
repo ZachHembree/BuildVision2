@@ -23,7 +23,7 @@ namespace RichHudFramework
             /// <summary>
             /// out: Vector2
             /// </summary>
-            ScreenPos = 2, 
+            ScreenPos = 2,
 
             /// <summary>
             /// out: Vector3D
