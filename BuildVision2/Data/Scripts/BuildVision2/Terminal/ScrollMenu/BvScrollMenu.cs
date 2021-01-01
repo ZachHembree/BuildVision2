@@ -95,7 +95,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Currently highlighted property. Null if none selected.
         /// </summary>
-        private BvPropertyBox Selection => (index < scrollBody.ChainEntries.Count) ? scrollBody.ChainEntries[index].Element : null;
+        private BvPropertyBox Selection => (index < scrollBody.Collection.Count) ? scrollBody.Collection[index].Element : null;
 
         /// <summary>
         /// Returns the block currently targeted
@@ -190,7 +190,7 @@ namespace DarkHelmet.BuildVision2
             {
                 MemberMinSize = new Vector2(300f, 0f),
                 SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
-                ChainContainer =
+                CollectionContainer =
                 {
                     header,
                     peekBody,
@@ -264,7 +264,7 @@ namespace DarkHelmet.BuildVision2
         {
             for (int n = 0; n < Count; n++)
             {
-                var entry = scrollBody.ChainEntries[n];
+                var entry = scrollBody.Collection[n];
                 BvPropertyBox propertyBox = entry.Element;
                 entry.Enabled = propertyBox.BlockMember.Enabled;
 
@@ -296,7 +296,7 @@ namespace DarkHelmet.BuildVision2
 
                 for (int n = 0; n < Count; n++)
                 {
-                    if (scrollBody.ChainEntries[n].Element.Copying)
+                    if (scrollBody.Collection[n].Element.Copying)
                         copyCount++;
                 }
 
@@ -333,7 +333,7 @@ namespace DarkHelmet.BuildVision2
 
                 float memberWidth = 0f;
                 int start = scrollBody.VisStart;
-                var entries = scrollBody.ChainEntries;
+                var entries = scrollBody.Collection;
 
                 for (int n = 0; n < scrollBody.VisCount; n++)
                 {
@@ -425,12 +425,12 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void AddMember(IBlockMember blockMember)
         {
-            if (scrollBody.ChainEntries.Count <= Count)
+            if (scrollBody.Collection.Count <= Count)
             {
                 scrollBody.Add(new BvPropertyBox(Count));
             }
 
-            var entry = scrollBody.ChainEntries[Count];
+            var entry = scrollBody.Collection[Count];
             entry.Enabled = true;
             entry.Element.BlockMember = blockMember;
 
@@ -444,9 +444,9 @@ namespace DarkHelmet.BuildVision2
         {
             if (Count != 0)
             {
-                for (int n = 0; n < scrollBody.ChainEntries.Count; n++)
+                for (int n = 0; n < scrollBody.Collection.Count; n++)
                 {
-                    var entry = scrollBody.ChainEntries[n];
+                    var entry = scrollBody.Collection[n];
                     entry.Enabled = false;
                     entry.Element.Clear();
                 }
@@ -528,7 +528,7 @@ namespace DarkHelmet.BuildVision2
                 layout = new HudChain(false, this)
                 {
                     ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH | ParentAlignments.UsePadding,
-                    ChainContainer = { copyIndicator, name, valueBox, postfix }
+                    CollectionContainer = { copyIndicator, name, valueBox, postfix }
                 };
             }
 

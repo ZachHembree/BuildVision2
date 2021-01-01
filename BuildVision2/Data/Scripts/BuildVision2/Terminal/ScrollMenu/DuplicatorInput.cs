@@ -31,7 +31,7 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = 0; n < Count; n++)
             {
-                BvPropertyBox propertyBox = scrollBody.ChainEntries[n].Element;
+                BvPropertyBox propertyBox = scrollBody.Collection[n].Element;
 
                 if (propertyBox.Copying)
                 {
@@ -69,8 +69,8 @@ namespace DarkHelmet.BuildVision2
         {
             for (int n = 0; n < Count; n++)
             {
-                if (scrollBody.ChainEntries[n].Enabled)
-                    scrollBody.ChainEntries[n].Element.Copying = true;
+                if (scrollBody.Collection[n].Enabled)
+                    scrollBody.Collection[n].Element.Copying = true;
             }
         }
 
@@ -80,7 +80,7 @@ namespace DarkHelmet.BuildVision2
         private void DeselectAllProperties()
         {
             for (int n = 0; n < Count; n++)
-                scrollBody.ChainEntries[n].Element.Copying = false;
+                scrollBody.Collection[n].Element.Copying = false;
         }
     }
 }

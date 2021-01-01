@@ -60,7 +60,7 @@ namespace DarkHelmet.BuildVision2
 
                 for (int y = index; (y <= max && y >= min); y += dir)
                 {
-                    if (scrollBody.ChainEntries[y].Enabled)
+                    if (scrollBody.Collection[y].Enabled)
                     {
                         index = y;
                         break;
@@ -102,7 +102,7 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = 0; n < Count; n++)
             {
-                if (scrollBody.ChainEntries[n].Enabled)
+                if (scrollBody.Collection[n].Enabled)
                 {
                     first = n;
                     break;
@@ -122,7 +122,7 @@ namespace DarkHelmet.BuildVision2
 
             for (int n = Count - 1; n >= 0; n--)
             {
-                if (scrollBody.ChainEntries[n].Enabled)
+                if (scrollBody.Collection[n].Enabled)
                 {
                     last = n;
                     break;
