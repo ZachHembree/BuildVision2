@@ -102,7 +102,7 @@ namespace RichHudFramework.UI.Server
             {
                 SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
                 Spacing = 17f,
-                ChainContainer = { name, checkbox }
+                CollectionContainer = { name, checkbox }
             };
 
             Height = 37f;

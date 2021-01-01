@@ -50,7 +50,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Read-only collection of list entries.
         /// </summary>
-        public IReadOnlyList<ListBoxEntry<T>> ListEntries => scrollBox.ChainEntries;
+        public IReadOnlyList<ListBoxEntry<T>> ListEntries => scrollBox.Collection;
 
         /// <summary>
         /// Background color
@@ -113,8 +113,8 @@ namespace RichHudFramework.UI
             {
                 _memberPadding = value;
 
-                for (int n = 0; n < scrollBox.ChainEntries.Count; n++)
-                    scrollBox.ChainEntries[n].Element.Padding = value;
+                for (int n = 0; n < scrollBox.Collection.Count; n++)
+                    scrollBox.Collection[n].Element.Padding = value;
             }
         }
 
@@ -186,7 +186,7 @@ namespace RichHudFramework.UI
         { }
 
         public IEnumerator<ListBoxEntry<T>> GetEnumerator() =>
-            scrollBox.ChainEntries.GetEnumerator();
+            scrollBox.Collection.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() =>
             GetEnumerator();
@@ -241,8 +241,8 @@ namespace RichHudFramework.UI
         /// </summary>
         public void RemoveAt(int index)
         {
-            ListBoxEntry<T> entry = scrollBox.ChainEntries[index];
-            scrollBox.RemoveAt(index);
+            ListBoxEntry<T> entry = scrollBox.Collection[index];
+            scrollBox.RemoveAt(index, true);
             entryPool.Return(entry);
         }
 
@@ -251,7 +251,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool Remove(ListBoxEntry<T> entry)
         {
-            if (scrollBox.Remove(entry))
+            if (scrollBox.Remove(entry, true))
             {
                 entryPool.Return(entry);
                 return true;
@@ -266,9 +266,9 @@ namespace RichHudFramework.UI
         public void RemoveRange(int index, int count)
         {
             for (int n = index; n < index + count; n++)
-                entryPool.Return(scrollBox.ChainEntries[n]);
+                entryPool.Return(scrollBox.Collection[n]);
 
-            scrollBox.RemoveRange(index, count);
+            scrollBox.RemoveRange(index, count, true);
         }
 
         /// <summary>
@@ -276,10 +276,10 @@ namespace RichHudFramework.UI
         /// </summary>
         public void ClearEntries()
         {
-            for (int n = 0; n < scrollBox.ChainEntries.Count; n++)
-                entryPool.Return(scrollBox.ChainEntries[n]);
+            for (int n = 0; n < scrollBox.Collection.Count; n++)
+                entryPool.Return(scrollBox.Collection[n]);
 
-            scrollBox.Clear();
+            scrollBox.Clear(true);
         }
 
         /// <summary>
@@ -287,9 +287,9 @@ namespace RichHudFramework.UI
         /// </summary>
         public void SetSelection(int index)
         {
-            if (index > 0 && index < scrollBox.ChainEntries.Count)
+            if (index > 0 && index < scrollBox.Collection.Count)
             {
-                Selection = scrollBox.ChainEntries[index];
+                Selection = scrollBox.Collection[index];
                 Selection.Enabled = true;
                 OnSelectionChanged?.Invoke(this, EventArgs.Empty);
             }
@@ -304,7 +304,7 @@ namespace RichHudFramework.UI
 
             if (index != -1)
             {
-                Selection = scrollBox.ChainEntries[index];
+                Selection = scrollBox.Collection[index];
                 Selection.Enabled = true;
                 OnSelectionChanged?.Invoke(this, EventArgs.Empty);
             }
@@ -319,7 +319,7 @@ namespace RichHudFramework.UI
 
             if (index != -1)
             {
-                Selection = scrollBox.ChainEntries[index];
+                Selection = scrollBox.Collection[index];
                 Selection.Enabled = true;
                 OnSelectionChanged?.Invoke(this, EventArgs.Empty);
             }
@@ -360,9 +360,9 @@ namespace RichHudFramework.UI
 
             highlight.Visible = false;
 
-            for (int n = 0; n < scrollBox.ChainEntries.Count; n++)
+            for (int n = 0; n < scrollBox.Collection.Count; n++)
             {
-                ListBoxEntry<T> entry = scrollBox.ChainEntries[n];
+                ListBoxEntry<T> entry = scrollBox.Collection[n];
 
                 if (entry.Element.IsMousedOver)
                 {
@@ -388,8 +388,8 @@ namespace RichHudFramework.UI
                 case ListBoxAccessors.ListMembers:
                     return new CollectionData
                     (
-                        x => scrollBox.ChainEntries[x].GetOrSetMember, 
-                        () => scrollBox.ChainEntries.Count
+                        x => scrollBox.Collection[x].GetOrSetMember, 
+                        () => scrollBox.Collection.Count
                      );
                 case ListBoxAccessors.Add:
                     {

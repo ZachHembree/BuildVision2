@@ -272,9 +272,9 @@ namespace RichHudFramework
                     right = (ParentAlignments)((int)ParentAlignments.Right * (2 - alignAxis)),
                     bitmask = left | right;
 
-                for (int n = 0; n < chainElements.Count; n++)
+                for (int n = 0; n < hudCollection.Count; n++)
                 {
-                    TElement element = chainElements[n].Element;
+                    TElement element = hudCollection[n].Element;
 
                     if (element.Visible)
                     {
@@ -315,9 +315,9 @@ namespace RichHudFramework
                 Vector2 minSize = MemberMinSize,
                     maxSize = MemberMaxSize;
 
-                for (int n = 0; n < chainElements.Count; n++)
+                for (int n = 0; n < hudCollection.Count; n++)
                 {
-                    TElement element = chainElements[n].Element;
+                    TElement element = hudCollection[n].Element;
 
                     if (element.Visible)
                     {
@@ -347,9 +347,9 @@ namespace RichHudFramework
             {
                 Vector2 newSize = new Vector2();
 
-                for (int n = 0; n < chainElements.Count; n++)
+                for (int n = 0; n < hudCollection.Count; n++)
                 {
-                    TElement element = chainElements[n].Element;
+                    TElement element = hudCollection[n].Element;
 
                     if (element.Visible)
                     {

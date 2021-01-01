@@ -81,7 +81,7 @@ namespace RichHudFramework.UI.Server
                 SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
                 DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
                 Spacing = 2f,
-                ChainContainer = { name, onOffButton }
+                CollectionContainer = { name, onOffButton }
             };
 
             Padding = new Vector2(20f, 0f);

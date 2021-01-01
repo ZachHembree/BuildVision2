@@ -1,52 +1,43 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using VRage;
 using VRageMath;
-using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
 using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
     namespace UI
     {
-        using HudUpdateAccessors = MyTuple<
-            ApiMemberAccessor,
-            MyTuple<Func<ushort>, Func<Vector3D>>, // ZOffset + GetOrigin
-            Action, // DepthTest
-            Action, // HandleInput
-            Action<bool>, // BeforeLayout
-            Action // BeforeDraw
-        >;
-
         /// <summary>
         /// A collection of UI elements wrapped in container objects. UI elements in the containers are parented
         /// to the collection, like any other HUD element.
         /// </summary>
-        public class HudCollection<TElementContainer, TElement> : HudElementBase, IHudCollection<TElementContainer, TElement> 
+        public class HudCollection<TElementContainer, TElement> : HudElementBase, IHudCollection<TElementContainer, TElement>
             where TElementContainer : IHudElementContainer<TElement>, new()
             where TElement : HudElementBase
         {
             /// <summary>
             /// UI elements in the collection
             /// </summary>
-            public IReadOnlyList<TElementContainer> ChainEntries => chainElements;
+            public IReadOnlyList<TElementContainer> Collection => hudCollection;
 
             /// <summary>
             /// Used to allow the addition of child elements using collection-initializer syntax in
             /// conjunction with normal initializers.
             /// </summary>
-            public HudCollection<TElementContainer, TElement> ChainContainer => this;
+            public HudCollection<TElementContainer, TElement> CollectionContainer => this;
 
             /// <summary>
             /// Retrieves the element container at the given index.
             /// </summary>
-            public TElementContainer this[int index] => chainElements[index];
+            public TElementContainer this[int index] => hudCollection[index];
 
             /// <summary>
             /// Returns the number of containers in the collection.
             /// </summary>
-            public int Count => chainElements.Count;
+            public int Count => hudCollection.Count;
 
             /// <summary>
             /// Indicates whether the collection is read-only
@@ -56,18 +47,23 @@ namespace RichHudFramework
             /// <summary>
             /// UI elements in the chain
             /// </summary>
-            protected readonly List<TElementContainer> chainElements;
+            protected readonly List<TElementContainer> hudCollection;
+
+            /// <summary>
+            /// Used internally by HUD collection for bulk entry removal
+            /// </summary>
+            protected bool fastRemove;
 
             public HudCollection(HudParentBase parent) : base(parent)
             {
-                chainElements = new List<TElementContainer>();
+                hudCollection = new List<TElementContainer>();
             }
 
             public HudCollection() : this(null)
             { }
 
             public IEnumerator<TElementContainer> GetEnumerator() =>
-                chainElements.GetEnumerator();
+                hudCollection.GetEnumerator();
 
             IEnumerator IEnumerable.GetEnumerator() =>
                 GetEnumerator();
@@ -75,7 +71,7 @@ namespace RichHudFramework
             /// <summary>
             /// Adds an element of type <see cref="TElement"/> to the chain.
             /// </summary>
-            public virtual void Add(TElement element) =>
+            public void Add(TElement element) =>
                 Add(new TElementContainer { Element = element });
 
             /// <summary>
@@ -83,187 +79,174 @@ namespace RichHudFramework
             /// </summary>
             public void Add(TElementContainer container)
             {
-                blockChildRegistration = true;
+                if (container.Element.Registered)
+                    throw new Exception("HUD Element already registered!");
 
-                if (container.Element.Parent == this)
-                    throw new Exception("HUD Element already registered.");
-
-                container.Element.Register(this);
-
-                if (container.Element.Parent != this)
+                if (container.Element.Register(this))
+                    hudCollection.Add(container);
+                else
                     throw new Exception("HUD Element registration failed.");
-
-                chainElements.Add(container);
-
-                blockChildRegistration = false;
             }
 
             /// <summary>
             /// Add the given range to the end of the chain.
             /// </summary>
-            public void AddRange(IReadOnlyList<TElementContainer> newChainEntries)
+            public void AddRange(IReadOnlyList<TElementContainer> newContainers)
             {
-                blockChildRegistration = true;
+                children.EnsureCapacity(children.Count + newContainers.Count);
+                hudCollection.EnsureCapacity(hudCollection.Count + newContainers.Count);
 
-                for (int n = 0; n < newChainEntries.Count; n++)
+                for (int n = 0; n < newContainers.Count; n++)
                 {
-                    if (newChainEntries[n].Element.Parent == this)
-                        throw new Exception("HUD Element already registered.");
-
-                    newChainEntries[n].Element.Register(this);
-
-                    if (newChainEntries[n].Element.Parent != this)
+                    if (newContainers[n].Element.Register(this))
+                        hudCollection.Add(newContainers[n]);
+                    else
                         throw new Exception("HUD Element registration failed.");
                 }
-
-                chainElements.AddRange(newChainEntries);
-                blockChildRegistration = false;
             }
-
-            /// <summary>
-            /// Adds an element of type <see cref="TElement"/> at the given index.
-            /// </summary>
-            public void Insert(int index, TElement element) =>
-                Insert(index, new TElementContainer { Element = element });
 
             /// <summary>
             /// Adds an element of type <see cref="TElementContainer"/> at the given index.
             /// </summary>
             public void Insert(int index, TElementContainer container)
             {
-                blockChildRegistration = true;
-
-                if (container.Element.Parent == this)
-                    throw new Exception("HUD Element already registered.");
-
-                container.Element.Register(this);
-
-                if (container.Element.Parent != this)
+                if (container.Element.Register(this))
+                    hudCollection.Insert(index, container);
+                else
                     throw new Exception("HUD Element registration failed.");
-
-                chainElements.Insert(index, container);
-
-                blockChildRegistration = false;
             }
 
             /// <summary>
             /// Insert the given range into the chain.
             /// </summary>
-            public void InsertRange(int index, IReadOnlyList<TElementContainer> newChainEntries)
+            public void InsertRange(int index, IReadOnlyList<TElementContainer> newContainers)
             {
-                blockChildRegistration = true;
+                children.EnsureCapacity(children.Count + newContainers.Count);
+                hudCollection.EnsureCapacity(hudCollection.Count + newContainers.Count);
 
-                for (int n = 0; n < newChainEntries.Count; n++)
+                for (int n = 0; n < newContainers.Count; n++)
                 {
-                    if (newChainEntries[n].Element.Parent == this)
-                        throw new Exception("HUD Element already registered.");
-
-                    newChainEntries[n].Element.Register(this);
-
-                    if (newChainEntries[n].Element.Parent != this)
+                    if (newContainers[n].Element.Register(this))
+                        hudCollection.Add(newContainers[n]);
+                    else
                         throw new Exception("HUD Element registration failed.");
                 }
 
-                chainElements.InsertRange(index, newChainEntries);
-                blockChildRegistration = false;
-            }
-
-            /// <summary>
-            /// Removes the specified element from the chain.
-            /// </summary>
-            public void Remove(TElement chainElement)
-            {
-                if (chainElement.Parent == this && chainElements.Count > 0)
-                {
-                    chainElement.Unregister();
-                }
+                hudCollection.InsertRange(index, newContainers);
             }
 
             /// <summary>
             /// Removes the specified element from the collection.
             /// </summary>
-            public bool Remove(TElementContainer entry)
-            {
-                if (entry.Element.Parent == this && chainElements.Count > 0)
-                {
-                    entry.Element.Unregister();
-
-                    return true;
-                }
-                else
-                    return false;
-            }
+            /// <param name="fast">Prevents registration from triggering a draw list
+            /// update. Meant to be used in conjunction with pooled elements being
+            /// unregistered/reregistered to the same parent.</param>
+            public bool Remove(TElementContainer entry) =>
+                Remove(entry, false);
 
             /// <summary>
-            /// Removes the member that meets the conditions required by the predicate.
+            /// Removes the specified element from the collection.
             /// </summary>
-            public void Remove(Func<TElement, bool> predicate)
+            /// <param name="fast">Prevents registration from triggering a draw list
+            /// update. Meant to be used in conjunction with pooled elements being
+            /// unregistered/reregistered to the same parent.</param>
+            public bool Remove(TElementContainer entry, bool fast)
             {
-                if (chainElements.Count > 0)
+                if (entry.Element.Parent == this && hudCollection.Count > 0)
                 {
-                    int index = chainElements.FindIndex(x => predicate(x.Element));
-
-                    if (index != -1)
-                        chainElements[index].Element.Unregister();
+                    if (hudCollection.Remove(entry))
+                        return entry.Element.Unregister(fast);
                 }
+
+                return false;
             }
 
             /// <summary>
             /// Removes the chain member that meets the conditions required by the predicate.
             /// </summary>
-            public void Remove(Func<TElementContainer, bool> predicate)
+            /// <param name="fast">Prevents registration from triggering a draw list
+            /// update. Meant to be used in conjunction with pooled elements being
+            /// unregistered/reregistered to the same parent.</param>
+            public bool Remove(Func<TElementContainer, bool> predicate, bool fast = false)
             {
-                if (chainElements.Count > 0)
+                if (hudCollection.Count > 0)
                 {
-                    int index = chainElements.FindIndex(x => predicate(x));
+                    int index = hudCollection.FindIndex(x => predicate(x));
+                    TElement element = hudCollection[index].Element;
 
-                    if (index != -1)
-                        chainElements[index].Element.Unregister();
+                    if (index != -1 && hudCollection.Remove(hudCollection[index]))
+                        return element.Unregister(fast);
                 }
+
+                return false;
             }
 
             /// <summary>
             /// Remove the element at the given index.
             /// </summary>
-            public void RemoveAt(int index)
+            /// <param name="fast">Prevents registration from triggering a draw list
+            /// update. Meant to be used in conjunction with pooled elements being
+            /// unregistered/reregistered to the same parent.</param>
+            public bool RemoveAt(int index, bool fast = false)
             {
-                if (chainElements[index].Element.Parent == this && chainElements.Count > 0)
+                if (hudCollection[index].Element.Parent == this && hudCollection.Count > 0)
                 {
-                    blockChildRegistration = true;
+                    TElement element = hudCollection[index].Element;
+                    hudCollection.RemoveAt(index);
+                    fastRemove = true;
 
-                    chainElements[index].Element.Unregister();
-                    chainElements.RemoveAt(index);
+                    bool success = element.Unregister(fast);
+                    fastRemove = false;
 
-                    blockChildRegistration = false;
+                    return success;
                 }
+
+                return false;
             }
 
             /// <summary>
             /// Removes the specfied range from the collection. Normal child elements not affected.
             /// </summary>
-            public void RemoveRange(int index, int count)
+            /// <param name="fast">Prevents registration from triggering a draw list
+            /// update. Meant to be used in conjunction with pooled elements being
+            /// unregistered/reregistered to the same parent.</param>
+            public void RemoveRange(int index, int count, bool fast = false)
             {
-                blockChildRegistration = true;
+                int end = index + count;
 
-                for (int n = index; n < index + count; n++)
-                    chainElements[n].Element.Unregister();
+                if (!(index >= 0 && count >= 0 && index < hudCollection.Count && end <= hudCollection.Count))
+                    throw new Exception("Specified indices are out of range.");
 
-                chainElements.RemoveRange(index, count);
-                blockChildRegistration = false;
+                fastRemove = true;
+
+                for (int n = index; n < end; n++)
+                    hudCollection[n].Element.Unregister(fast);
+
+                hudCollection.RemoveRange(index, count);
+                fastRemove = false;
             }
 
             /// <summary>
             /// Remove all elements in the collection. Does not affect normal child elements.
             /// </summary>
-            public void Clear()
+            public void Clear() =>
+                Clear(false);
+
+            /// <summary>
+            /// Remove all elements in the collection. Does not affect normal child elements.
+            /// </summary>
+            /// <param name="fast">Prevents registration from triggering a draw list
+            /// update. Meant to be used in conjunction with pooled elements being
+            /// unregistered/reregistered to the same parent.</param>
+            public void Clear(bool fast)
             {
-                blockChildRegistration = true;
+                fastRemove = true;
 
-                for (int n = 0; n < chainElements.Count; n++)
-                    chainElements[n].Element.Unregister();
+                for (int n = 0; n < hudCollection.Count; n++)
+                    hudCollection[n].Element.Unregister(fast);
 
-                chainElements.Clear();
-                blockChildRegistration = false;
+                hudCollection.Clear();
+                fastRemove = false;
             }
 
             /// <summary>
@@ -271,7 +254,7 @@ namespace RichHudFramework
             /// </summary>
             public TElementContainer Find(Func<TElementContainer, bool> predicate)
             {
-                return chainElements.Find(x => predicate(x));
+                return hudCollection.Find(x => predicate(x));
             }
 
             /// <summary>
@@ -279,90 +262,77 @@ namespace RichHudFramework
             /// </summary>
             public int FindIndex(Func<TElementContainer, bool> predicate)
             {
-                return chainElements.FindIndex(x => predicate(x));
-            }
-
-            public override void RemoveChild(HudNodeBase child)
-            {
-                if (!blockChildRegistration)
-                {
-                    int index = children.FindIndex(x => x == child);
-
-                    if (index != -1)
-                    {
-                        if (children[index].Parent == child)
-                            children[index].Unregister();
-                        else if (children[index].Parent == null)
-                            children.RemoveAt(index);
-                    }
-                    else
-                    {
-                        index = chainElements.FindIndex(x => x.Element == child);
-
-                        if (index != -1)
-                        {
-                            if (chainElements[index].Element.Parent == child)
-                                chainElements[index].Element.Unregister();
-                            else if (chainElements[index].Element.Parent == null)
-                                chainElements.RemoveAt(index);
-                        }
-                    }
-                }
+                return hudCollection.FindIndex(x => predicate(x));
             }
 
             /// <summary>
             /// Sorts the entries using the given comparer.
             /// </summary>
             public void Sort(Func<TElementContainer, TElementContainer, int> comparison) =>
-                chainElements.Sort((x, y) => comparison(x, y));
+                hudCollection.Sort((x, y) => comparison(x, y));
 
             /// <summary>
             /// Sorts the entires using the default comparer.
             /// </summary>
             public void Sort() =>
-                chainElements.Sort();
+                hudCollection.Sort();
 
             /// <summary>
             /// Returns true if the given element is in the collection.
             /// </summary>
             public bool Contains(TElementContainer item) =>
-                chainElements.Contains(item);
+                hudCollection.Contains(item);
 
             /// <summary>
             /// Copies the contents of the collection to the given array starting at the index specified in the target array.
             /// </summary>
             public void CopyTo(TElementContainer[] array, int arrayIndex) =>
-                chainElements.CopyTo(array, arrayIndex);
+                hudCollection.CopyTo(array, arrayIndex);
 
-            public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
+            public override bool RemoveChild(HudNodeBase child, bool fast = false)
             {
-                _hudSpace = _parent?.HudSpace;
-                fullZOffset = GetFullZOffset(this, _parent);
-
-                UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + chainElements.Count + 1);
-                var accessors = new HudUpdateAccessors()
+                if (child.Parent == this)
+                    return child.Unregister(fast);
+                else if (child.Parent == null && children.Remove(child))
                 {
-                    Item1 = GetOrSetMemberFunc,
-                    Item2 = new MyTuple<Func<ushort>, Func<Vector3D>>(GetZOffsetFunc, HudSpace.GetNodeOriginFunc),
-                    Item3 = DepthTestAction,
-                    Item4 = InputAction,
-                    Item5 = LayoutAction,
-                    Item6 = DrawAction
-                };
+                    if (!fastRemove)
+                    {
+                        for (int n = 0; n < hudCollection.Count; n++)
+                        {
+                            if (hudCollection[n].Element == child)
+                            {
+                                hudCollection.RemoveAt(n);
+                                break;
+                            }
+                        }
+                    }
 
-                UpdateActions.Add(accessors);
-                treeDepth++;
-
-                for (int n = 0; n < chainElements.Count; n++)
-                {
-                    chainElements[n].Element.GetUpdateAccessors(UpdateActions, treeDepth);
+                    return true;
                 }
-
-                for (int n = 0; n < children.Count; n++)
-                {
-                    children[n].GetUpdateAccessors(UpdateActions, treeDepth);
-                }
+                else
+                    return false;
             }
+        }
+
+        /// <summary>
+        /// A collection of UI elements wrapped in container objects. UI elements in the containers are parented
+        /// to the collection, like any other HUD element.
+        /// </summary>
+        public class HudCollection<TElementContainer> : HudCollection<TElementContainer, HudElementBase>
+            where TElementContainer : IHudElementContainer<HudElementBase>, new()
+        {
+            public HudCollection(HudParentBase parent = null) : base(parent)
+            { }
+        }
+
+        /// <summary>
+        /// A collection of UI elements wrapped in container objects. UI elements in the containers are parented
+        /// to the collection, like any other HUD element.
+        /// </summary>
+        public class HudCollection : HudCollection<HudElementContainer<HudElementBase>, HudElementBase>
+        {
+            public HudCollection(HudParentBase parent = null) : base(parent)
+            { }
         }
     }
 }

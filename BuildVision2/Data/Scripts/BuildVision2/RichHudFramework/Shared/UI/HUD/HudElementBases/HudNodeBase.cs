@@ -10,6 +10,7 @@ namespace RichHudFramework
     namespace UI
     {
         using Client;
+        using EmptyKeys.UserInterface.Generated.StoreBlockView_Bindings;
         using Server;
         using HudUpdateAccessors = MyTuple<
             ApiMemberAccessor,
@@ -36,16 +37,11 @@ namespace RichHudFramework
             public virtual HudParentBase Parent { get { return _parent; } protected set { _parent = value; } }
 
             /// <summary>
-            /// Node defining the coordinate space used to render the UI element
-            /// </summary>
-            public override IReadOnlyHudSpaceNode HudSpace => _hudSpace;
-
-            /// <summary>
             /// Determines whether or not an element will be drawn or process input. Visible by default.
             /// </summary>
             public override bool Visible
             {
-                get { return _visible && parentVisible; }
+                get { return _visible && parentVisible && _registered; }
                 set { _visible = value; }
             }
 
@@ -74,10 +70,9 @@ namespace RichHudFramework
             /// </summary>
             public bool Registered { get { return _registered; } private set { _registered = value; } }
 
-            protected HudParentBase _parent;
-            protected IReadOnlyHudSpaceNode _hudSpace;
+            protected HudParentBase _parent, reregParent;
             protected float parentScale;
-            protected bool _visible, parentVisible;
+            protected bool _visible, parentVisible, wasFastUnregistered;
             protected sbyte parentZOffset;
 
             public HudNodeBase(HudParentBase parent)
@@ -124,7 +119,7 @@ namespace RichHudFramework
             /// </summary>
             public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
             {
-                _hudSpace = _parent?.HudSpace;
+                HudSpace = _parent?.HudSpace ?? reregParent?.HudSpace;
                 fullZOffset = GetFullZOffset(this, _parent);
 
                 UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + 1);
@@ -148,46 +143,84 @@ namespace RichHudFramework
             /// <summary>
             /// Registers the element to the given parent object.
             /// </summary>
-            public void Register(HudParentBase parent)
+            /// <param name="fast">Prevents registration from triggering a draw list
+            /// update. Meant to be used in conjunction with pooled elements being
+            /// unregistered/reregistered to the same parent.</param>
+            public virtual bool Register(HudParentBase newParent)
             {
-                if (parent != null && parent == this)
+                if (newParent == this)
                     throw new Exception("Types of HudNodeBase cannot be parented to themselves!");
 
-                if (parent != null && _parent == null)
+                if (wasFastUnregistered && newParent != reregParent)
+                    throw new Exception("Types of HudNodeBase using fast unregister cannot be reregistered to different parents.");
+
+                if (newParent != null && (reregParent == null || wasFastUnregistered))
                 {
-                    Parent = parent;
-                    _parent.RegisterChild(this);
+                    reregParent = null;
 
-                    parentZOffset = _parent.ZOffset;
-                    parentScale = _parent.Scale;
-                    parentVisible = _parent.Visible;
+                    if (wasFastUnregistered)
+                    {
+                        Parent = newParent;
+                        _registered = true;
+                    }
+                    else
+                    {
+                        Parent = newParent;
+                        _registered = _parent.RegisterChild(this);
+                    }
 
-                    Registered = true;
+                    if (_registered)
+                    {
+                        if (!wasFastUnregistered)
+                            HudMain.RefreshDrawList = true;
+
+                        parentZOffset = _parent.ZOffset;
+                        parentScale = _parent.Scale;
+                        parentVisible = _parent.Visible;
+                    }
+
+                    wasFastUnregistered = false;
                 }
 
-                HudMain.RefreshDrawList = true;
+                return _registered;
             }
 
             /// <summary>
             /// Unregisters the element from its parent, if it has one.
             /// </summary>
-            public void Unregister()
+            /// <param name="fast">Prevents registration from triggering a draw list
+            /// update. Meant to be used in conjunction with pooled elements being
+            /// unregistered/reregistered to the same parent.</param>
+            public virtual bool Unregister(bool fast = false)
             {
-                if (Parent != null)
+                if (Parent != null || (wasFastUnregistered && !fast))
                 {
-                    HudParentBase lastParent = _parent;
-
+                    reregParent = _parent;
                     Parent = null;
-                    lastParent.RemoveChild(this);
 
-                    Registered = false;
+                    if (!fast)
+                    {
+                        _registered = !reregParent.RemoveChild(this, false);
+
+                        if (_registered)
+                            Parent = reregParent;
+                        else
+                            HudMain.RefreshDrawList = true;
+
+                        reregParent = null;
+                    }
+                    else
+                    {
+                        _registered = false;
+                        wasFastUnregistered = true;
+                    }
+
+                    parentZOffset = 0;
+                    parentScale = 1f;
+                    parentVisible = true;
                 }
 
-                parentZOffset = 0;
-                parentScale = 1f;
-                parentVisible = true;
-
-                HudMain.RefreshDrawList = true;
+                return !_registered;
             }
         }
     }

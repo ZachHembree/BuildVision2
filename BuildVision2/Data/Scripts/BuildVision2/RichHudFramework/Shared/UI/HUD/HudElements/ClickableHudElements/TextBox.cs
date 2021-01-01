@@ -119,8 +119,8 @@ namespace RichHudFramework.UI
 
         private void CaretMoved()
         {
-            if (!SharedBinds.LeftButton.IsPressed)
-                selectionBox.ClearSelection();
+            if (canHighlight)
+                selectionBox.UpdateSelection();
         }
 
         protected override void HandleInput(Vector2 cursorPos)
@@ -269,7 +269,7 @@ namespace RichHudFramework.UI
             private readonly TextBox textElement;
             private readonly ITextBoard text;
             private readonly Utils.Stopwatch blinkTimer;
-            private bool blink;
+            private bool blink, caretMoved;
             private int caretOffset;
             private Vector2 lastCursorPos;
 
@@ -326,7 +326,7 @@ namespace RichHudFramework.UI
                 }
 
                 Index = ClampIndex(newIndex);
-                OnCaretMoved?.Invoke();
+                caretMoved = true;
 
                 if (Index.Y >= 0)
                     text.MoveToChar(Index);
@@ -343,7 +343,18 @@ namespace RichHudFramework.UI
                 caretOffset = Math.Max(GetOffsetFromIndex(Index), 0);
 
                 if (Index != index)
+                    caretMoved = true;
+            }
+
+            protected override void Layout()
+            {
+                base.Layout();
+
+                if (caretMoved)
+                {
                     OnCaretMoved?.Invoke();
+                    caretMoved = false;
+                }
             }
 
             protected override void Draw()
@@ -453,7 +464,7 @@ namespace RichHudFramework.UI
 
                     blink = true;
                     blinkTimer.Reset();
-                    OnCaretMoved?.Invoke();
+                    caretMoved = true;
                 }
             }
 

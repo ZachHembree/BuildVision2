@@ -184,12 +184,12 @@ namespace RichHudFramework.UI
                 CloseList();
         }
 
-        private void OpenList()
+        public void OpenList()
         {
             listBox.Visible = true;
         }
 
-        private void CloseList()
+        public void CloseList()
         {
             listBox.Visible = false;
         }
@@ -315,7 +315,7 @@ namespace RichHudFramework.UI
                 {
                     SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
                     DimAlignment = DimAlignments.Height | DimAlignments.IgnorePadding,
-                    ChainContainer = { name, divider, arrow }
+                    CollectionContainer = { name, divider, arrow }
                 };
 
                 mouseInput = new MouseInputElement(this) 

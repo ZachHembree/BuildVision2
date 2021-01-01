@@ -285,8 +285,6 @@ namespace RichHudFramework
 
                 public bool DrawCursorInHudSpace { get; }
 
-                public override IReadOnlyHudSpaceNode HudSpace { get; }
-
                 public Vector3 CursorPos { get; private set; }
 
                 public HudSpaceDelegate GetHudSpaceFunc { get; }

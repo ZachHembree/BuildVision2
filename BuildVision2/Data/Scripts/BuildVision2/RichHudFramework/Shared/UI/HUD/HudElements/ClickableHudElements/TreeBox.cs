@@ -21,7 +21,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// List of entries in the treebox.
         /// </summary>
-        public IReadOnlyList<ListBoxEntry<T>> ListEntries => entryChain.ChainEntries;
+        public IReadOnlyList<ListBoxEntry<T>> ListEntries => entryChain.Collection;
 
         /// <summary>
         /// Used to allow the addition of list entries using collection-initializer syntax in
@@ -32,7 +32,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// If true, then the dropdown list will be open
         /// </summary>
-        public bool ListOpen { get; set; }
+        public bool ListOpen { get; protected set; }
 
         /// <summary>
         /// Height of the treebox in pixels.
@@ -87,7 +87,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Size of the collection.
         /// </summary>
-        public int Count => entryChain.ChainEntries.Count;
+        public int Count => entryChain.Collection.Count;
 
         /// <summary>
         /// Determines how far to the right list members should be offset from the position of the header.
@@ -237,8 +237,8 @@ namespace RichHudFramework.UI
         /// </summary>
         public void RemoveAt(int index)
         {
-            ListBoxEntry<T> entry = entryChain.ChainEntries[index];
-            entryChain.RemoveAt(index);
+            ListBoxEntry<T> entry = entryChain.Collection[index];
+            entryChain.RemoveAt(index, true);
             entryPool.Return(entry);
         }
 
@@ -248,9 +248,9 @@ namespace RichHudFramework.UI
         public void RemoveRange(int index, int count)
         {
             for (int n = index; n < index + count; n++)
-                entryPool.Return(entryChain.ChainEntries[n]);
+                entryPool.Return(entryChain.Collection[n]);
 
-            entryChain.RemoveRange(index, count);
+            entryChain.RemoveRange(index, count, true);
         }
 
         /// <summary>
@@ -258,10 +258,10 @@ namespace RichHudFramework.UI
         /// </summary>
         public void ClearEntries()
         {
-            for (int n = 0; n < entryChain.ChainEntries.Count; n++)
-                entryPool.Return(entryChain.ChainEntries[n]);
+            for (int n = 0; n < entryChain.Collection.Count; n++)
+                entryPool.Return(entryChain.Collection[n]);
 
-            entryChain.Clear();
+            entryChain.Clear(true);
         }
 
         private ListBoxEntry<T> GetNewEntry()
@@ -290,14 +290,14 @@ namespace RichHudFramework.UI
                 CloseList();
         }
 
-        private void OpenList()
+        public void OpenList()
         {
             entryChain.Visible = true;
             display.Open = true;
             ListOpen = true;
         }
 
-        private void CloseList()
+        public void CloseList()
         {
             entryChain.Visible = false;
             display.Open = false;
@@ -315,17 +315,17 @@ namespace RichHudFramework.UI
             else
                 selectionBox.Visible = false;
 
-            for (int n = 0; n < entryChain.ChainEntries.Count; n++)
+            for (int n = 0; n < entryChain.Collection.Count; n++)
             {
-                ListBoxEntry<T> entry = entryChain.ChainEntries[n];
+                ListBoxEntry<T> entry = entryChain.Collection[n];
                 entry.Element.Visible = entry.Enabled;
             }
 
             highlight.Visible = false;
 
-            for (int n = 0; n < entryChain.ChainEntries.Count; n++)
+            for (int n = 0; n < entryChain.Collection.Count; n++)
             {
-                ListBoxEntry<T> entry = entryChain.ChainEntries[n];
+                ListBoxEntry<T> entry = entryChain.Collection[n];
 
                 if (entry.Element.IsMousedOver)
                 {
@@ -343,10 +343,10 @@ namespace RichHudFramework.UI
         }
 
         public IEnumerator<ListBoxEntry<T>> GetEnumerator() =>
-            entryChain.ChainEntries.GetEnumerator();
+            entryChain.Collection.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() =>
-            entryChain.ChainEntries.GetEnumerator();
+            entryChain.Collection.GetEnumerator();
 
         /// <summary>
         /// A textured box with a white tab positioned on the left hand side.
@@ -459,7 +459,7 @@ namespace RichHudFramework.UI
                 {
                     SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
                     DimAlignment = DimAlignments.Height | DimAlignments.IgnorePadding,
-                    ChainContainer = { arrow, divider, name }
+                    CollectionContainer = { arrow, divider, name }
                 };
 
                 mouseInput = new MouseInputElement(this)

@@ -106,7 +106,7 @@ namespace RichHudFramework.UI.Server
                 SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
                 Height = 22f,
                 Spacing = 0f,
-                ChainContainer = { name, display }
+                CollectionContainer = { name, display }
             };
 
             // Color picker
@@ -119,7 +119,7 @@ namespace RichHudFramework.UI.Server
                 SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.FitChainBoth,
                 Width = 87f,
                 Spacing = 5f,
-                ChainContainer = { rText, gText, bText }
+                CollectionContainer = { rText, gText, bText }
             };
 
             r = new SliderBox() { Min = 0f, Max = 255f, Height = 47f };
@@ -131,13 +131,13 @@ namespace RichHudFramework.UI.Server
                 SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.FitChainBoth,
                 Width = 231f,
                 Spacing = 5f,
-                ChainContainer = { r, g, b }
+                CollectionContainer = { r, g, b }
             };
 
             colorChain = new HudChain(false)
             {
                 SizingMode = HudChainSizingModes.FitChainBoth,
-                ChainContainer =
+                CollectionContainer =
                 {
                     colorNameColumn,
                     colorSliderColumn,
@@ -148,7 +148,7 @@ namespace RichHudFramework.UI.Server
             {
                 SizingMode = HudChainSizingModes.FitChainBoth,
                 Spacing = 5f,
-                ChainContainer =
+                CollectionContainer =
                 {
                     headerChain,
                     colorChain,

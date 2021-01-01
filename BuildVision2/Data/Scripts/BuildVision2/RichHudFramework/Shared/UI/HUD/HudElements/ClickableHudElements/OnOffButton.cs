@@ -95,7 +95,7 @@ namespace RichHudFramework.UI.Server
             {
                 SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.FitChainBoth,
                 Spacing = 9f,
-                ChainContainer = { on, off }
+                CollectionContainer = { on, off }
             };
 
             on.MouseInput.OnLeftClick += ToggleValue;

@@ -28,7 +28,7 @@ namespace RichHudFramework
             /// <summary>
             /// Node defining the coordinate space used to render the UI element
             /// </summary>
-            public abstract IReadOnlyHudSpaceNode HudSpace { get; }
+            public virtual IReadOnlyHudSpaceNode HudSpace { get; protected set; }
 
             /// <summary>
             /// Determines whether or not an element will be drawn or process input. Visible by default.
@@ -49,12 +49,6 @@ namespace RichHudFramework
                 get { return _zOffset; }
                 set { _zOffset = value; }
             }
-
-            /// <summary>
-            /// Used internally to indicate when normal parent registration should be bypassed.
-            /// Child-side registration unaffected.
-            /// </summary>
-            protected bool blockChildRegistration;
 
             protected readonly List<HudNodeBase> children;
 
@@ -176,53 +170,33 @@ namespace RichHudFramework
             /// <summary>
             /// Registers a child node to the object.
             /// </summary>
-            public virtual void RegisterChild(HudNodeBase child)
+            public virtual bool RegisterChild(HudNodeBase child)
             {
-                if (!blockChildRegistration)
+                if (child.Parent == this && !child.Registered)
                 {
-                    if (child.Parent == this && !child.Registered)
-                        children.Add(child);
-                    else if (child.Parent == null)
-                        child.Register(this);
+                    children.Add(child);
+                    return true;
                 }
-            }
-
-            /// <summary>
-            /// Registers a collection of child nodes to the object.
-            /// </summary>
-            public virtual void RegisterChildren(IReadOnlyList<HudNodeBase> newChildren)
-            {
-                blockChildRegistration = true;
-
-                for (int n = 0; n < newChildren.Count; n++)
-                {
-                    newChildren[n].Register(this);
-
-                    if (newChildren[n].Parent != this)
-                        throw new Exception("HUD Element Registration Failed.");
-                }
-
-                children.AddRange(newChildren);
-                blockChildRegistration = false;
+                else if (child.Parent == null)
+                    return child.Register(this);
+                else
+                    return false;
             }
 
             /// <summary>
             /// Unregisters the specified node from the parent.
             /// </summary>
-            public virtual void RemoveChild(HudNodeBase child)
+            /// <param name="fast">Prevents registration from triggering a draw list
+            /// update. Meant to be used in conjunction with pooled elements being
+            /// unregistered/reregistered to the same parent.</param>
+            public virtual bool RemoveChild(HudNodeBase child, bool fast = false)
             {
-                if (!blockChildRegistration)
-                {
-                    int index = children.FindIndex(x => x == child);
-
-                    if (index != -1)
-                    {
-                        if (children[index].Parent == this)
-                            children[index].Unregister();
-                        else if (children[index].Parent == null)
-                            children.RemoveAt(index);
-                    }
-                }
+                if (child.Parent == this)
+                    return child.Unregister(fast);
+                else if (child.Parent == null)
+                    return children.Remove(child);
+                else
+                    return false;
             }
 
             /// <summary>
