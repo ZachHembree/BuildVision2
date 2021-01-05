@@ -96,13 +96,6 @@ namespace RichHudFramework.Internal
             }
         }
 
-        public void Reload()
-        {
-            ExceptionHandler.Run(BeforeClose);
-            Close();
-            ManualStart();
-        }
-
         public override void Draw()
         {
             if (Loaded && CanUpdate)

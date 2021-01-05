@@ -54,7 +54,7 @@ namespace DarkHelmet.BuildVision2
             if (ExceptionHandler.IsClient)
             {
                 CanUpdate = false;
-                RichHudClient.Init(ExceptionHandler.ModName, HudInit, Reload);
+                RichHudClient.Init(ExceptionHandler.ModName, HudInit, ExceptionHandler.ReloadClients);
             }
         }
 

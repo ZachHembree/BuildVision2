@@ -213,7 +213,7 @@ namespace RichHudFramework.Internal
                 else
                 {
                     if (RecoveryAttempts < RecoveryLimit)
-                        ReloadClients();
+                        ReloadClientsInternal();
                     else
                         UnloadClients();
                 }
@@ -284,10 +284,13 @@ namespace RichHudFramework.Internal
         private void AllowReload(ResultEnum response)
         {
             if (response == ResultEnum.OK)
-                ReloadClients();
+                ReloadClientsInternal();
             else
                 UnloadClients();
         }
+
+        public static void ReloadClients() =>
+            instance.ReloadClientsInternal();
 
         /// <summary>
         /// Creates a message window using the mod name, a given subheading and a message.
@@ -356,24 +359,27 @@ namespace RichHudFramework.Internal
         /// <summary>
         /// Restarts all registered clients
         /// </summary>
-        private void ReloadClients()
+        private void ReloadClientsInternal()
         {
-            Reloading = true;
-
-            for (int n = 0; n < clients.Count; n++)
+            if (!Reloading)
             {
-                if (clients[n].Loaded && clients[n].CanUpdate)
-                    Run(clients[n].BeforeClose);
+                Reloading = true;
+
+                for (int n = 0; n < clients.Count; n++)
+                {
+                    if (clients[n].Loaded && clients[n].CanUpdate)
+                        Run(clients[n].BeforeClose);
+                }
+
+                for (int n = 0; n < clients.Count; n++)
+                    clients[n].Close();
+
+                for (int n = 0; n < clients.Count; n++)
+                    clients[n].ManualStart();
+
+                ClientsPaused = false;
+                Reloading = false;
             }
-
-            for (int n = 0; n < clients.Count; n++)
-                clients[n].Close();
-
-            for (int n = 0; n < clients.Count; n++)
-                clients[n].ManualStart();
-
-            ClientsPaused = false;
-            Reloading = false;
         }
 
         /// <summary>

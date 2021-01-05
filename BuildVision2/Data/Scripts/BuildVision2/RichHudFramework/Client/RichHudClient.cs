@@ -71,7 +71,7 @@ namespace RichHudFramework.Client
         public static void Reset()
         {
             if (Registered)
-                RichHudCore.Instance.Reload();
+                ExceptionHandler.ReloadClients();
         }
 
         /// <summary>
@@ -155,7 +155,7 @@ namespace RichHudFramework.Client
         {
             if (registered)
             {
-                Parent.Reload();
+                ExceptionHandler.ReloadClients();
                 ReloadAction();
             }
         }
