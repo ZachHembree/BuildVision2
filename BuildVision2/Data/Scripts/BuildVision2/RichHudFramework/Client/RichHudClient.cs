@@ -1,4 +1,4 @@
-using RichHudFramework;
+﻿using RichHudFramework;
 using RichHudFramework.Internal;
 using RichHudFramework.IO;
 using Sandbox.ModAPI;
@@ -26,23 +26,23 @@ namespace RichHudFramework.Client
         private static RichHudClient Instance { get; set; }
 
         private readonly ClientData regMessage;
-        private readonly Action InitAction, ReloadAction;
+        private readonly Action InitAction, OnResetAction;
 
         private bool regFail, registered, inQueue;
         private Func<int, object> GetApiDataFunc;
         private Action UnregisterAction;
 
-        private RichHudClient(string modName, Action InitCallback, Action ReloadCallback) : base(false, true)
+        private RichHudClient(string modName, Action InitCallback, Action ResetCallback) : base(false, true)
         {
             InitAction = InitCallback;
-            ReloadAction = ReloadCallback;
+            OnResetAction = ResetCallback;
 
             ExceptionHandler.ModName = modName;
 
             if (LogIO.FileName == null || LogIO.FileName == "modLog.txt")
                 LogIO.FileName = $"richHudLog.txt";
 
-            regMessage = new ClientData(modName, MessageHandler, () => ExceptionHandler.Run(RemoteReload), versionID);
+            regMessage = new ClientData(modName, MessageHandler, RemoteReset, versionID);
         }
 
         /// <summary>
@@ -50,12 +50,12 @@ namespace RichHudFramework.Client
         /// </summary>
         /// <param name="modName">Name of the mod as it appears in the settings menu and in diagnostics</param>
         /// <param name="InitCallback">Invoked upon successfully registering with the API.</param>
-        /// <param name="ReloadCallback">Invoked on client reload.</param>
-        public static void Init(string modName, Action InitCallback, Action ReloadCallback)
+        /// <param name="ResetCallback">Invoked on client reset.</param>
+        public static void Init(string modName, Action InitCallback, Action ResetCallback)
         {
             if (Instance == null)
             {
-                Instance = new RichHudClient(modName, InitCallback, ReloadCallback);
+                Instance = new RichHudClient(modName, InitCallback, ResetCallback);
                 Instance.RequestRegistration();
 
                 if (!Registered && !Instance.regFail)
@@ -151,13 +151,16 @@ namespace RichHudFramework.Client
             Instance = null;
         }
 
-        private void RemoteReload()
+        private void RemoteReset()
         {
-            if (registered)
+            ExceptionHandler.Run(() => 
             {
-                ExceptionHandler.ReloadClients();
-                ReloadAction();
-            }
+                if (registered)
+                {
+                    ExceptionHandler.ReloadClients();
+                    OnResetAction();
+                }
+            });  
         }
 
         /// <summary>
