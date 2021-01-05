@@ -1,4 +1,4 @@
-﻿using RichHudFramework;
+using RichHudFramework;
 using RichHudFramework.Internal;
 using RichHudFramework.IO;
 using Sandbox.ModAPI;
@@ -126,9 +126,9 @@ namespace RichHudFramework.Client
                 else if (msgType == MsgTypes.RegistrationFailed)
                 {
                     if (message is string)
-                        LogIO.WriteToLogStart($"Rich HUD API registration failed. Message: {message as string}");
+                        ExceptionHandler.WriteToLogAndConsole($"Rich HUD API registration failed. Message: {message as string}");
                     else
-                        LogIO.WriteToLogStart($"Rich HUD API registration failed.");
+                        ExceptionHandler.WriteToLogAndConsole($"Rich HUD API registration failed.");
 
                     regFail = true;
                 }

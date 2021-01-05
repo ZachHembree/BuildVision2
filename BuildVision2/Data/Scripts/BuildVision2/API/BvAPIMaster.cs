@@ -147,7 +147,7 @@ namespace DarkHelmet.BuildVision2
 
                 registered = true;
 
-                ExceptionHandler.WriteLineAndConsole($"{debugName} successfully registered with the API.");
+                ExceptionHandler.WriteToLogAndConsole($"{debugName} successfully registered with the API.");
                 SendData(BvApiStates.RegistrationSuccessful, new ServerData(Unregister, instance.GetOrSetMembers, versionID));
             }
 

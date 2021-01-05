@@ -1,4 +1,4 @@
-﻿using RichHudFramework.IO;
+using RichHudFramework.IO;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -189,14 +189,14 @@ namespace RichHudFramework.Internal
         /// </summary>
         private void HandleExceptions()
         {
+            string exceptionText = GetExceptionText();
+            exceptionCount = 0;
+
+            WriteToLog("Mod encountered an unhandled exception.\n" + exceptionText + '\n');
+            exceptionMessages.Clear();
+
             if (!Unloading && !Reloading)
             {
-                string exceptionText = GetExceptionText();
-                exceptionCount = 0;
-
-                LogIO.TryWriteToLog(ModName + " encountered an unhandled exception.\n" + exceptionText + '\n');
-                exceptionMessages.Clear();
-
                 if (IsClient && PromptForReload)
                 {
                     if (RecoveryAttempts < RecoveryLimit)
@@ -322,16 +322,40 @@ namespace RichHudFramework.Internal
             }
         }
 
-        public static void WriteLineAndConsole(string message)
+        /// <summary>
+        /// Writes text to SE log with the mod name prepended to it.
+        /// </summary>
+        public static void WriteToLog(string message)
         {
-            if (!Unloading)
+            try
             {
-                try
-                {
-                    MyLog.Default.WriteLineAndConsole($"[{ModName}] {message}");
-                }
-                catch { }
+                MyLog.Default.WriteLine($"[{ModName}] {message}");
             }
+            catch { }
+        }
+
+        /// <summary>
+        /// Writes text to SE console with mod name prepended to it.
+        /// </summary>
+        public static void WriteToConsole(string message)
+        {
+            try
+            {
+                MyLog.Default.WriteLineToConsole($"[{ModName}] {message}");
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Writes text to SE log with the mod name prepended to it.
+        /// </summary>
+        public static void WriteToLogAndConsole(string message)
+        {
+            try
+            {
+                MyLog.Default.WriteLineAndConsole($"[{ModName}] {message}");
+            }
+            catch { }
         }
 
         /// <summary>
@@ -398,12 +422,13 @@ namespace RichHudFramework.Internal
             ClientsPaused = true;
 
             for (int n = 0; n < clients.Count; n++)
-                clients[n].Close();
+                clients[n].Close(); 
         }
 
         protected override void UnloadData()
         {
             UnloadClients();
+            HandleExceptions();
             instance = null;
         }
     }
