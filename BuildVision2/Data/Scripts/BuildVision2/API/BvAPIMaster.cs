@@ -94,19 +94,18 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private object GetOrSetMembers(object data, int memberEnum)
+        private static object GetOrSetMembers(object data, int memberEnum)
         {
-            if (BvMain.Instance?.CanUpdate ?? false)
+            bool running = BvMain.Instance?.CanUpdate ?? false;
+
+            switch ((BvApiAccessors)memberEnum)
             {
-                switch ((BvApiAccessors)memberEnum)
-                {
-                    case BvApiAccessors.Open:
-                        return PropertiesMenu.Open;
-                    case BvApiAccessors.MenuMode:
-                        return PropertiesMenu.MenuMode;
-                    case BvApiAccessors.Target:
-                        return PropertiesMenu.Target?.TBlock;
-                }
+                case BvApiAccessors.Open:
+                    return running ? PropertiesMenu.Open : false;
+                case BvApiAccessors.MenuMode:
+                    return running ? PropertiesMenu.MenuMode : default(ScrollMenuModes);
+                case BvApiAccessors.Target:
+                    return running ? PropertiesMenu.Target?.TBlock : null;
             }
 
             return null;
@@ -148,7 +147,7 @@ namespace DarkHelmet.BuildVision2
                 registered = true;
 
                 ExceptionHandler.WriteToLogAndConsole($"{debugName} successfully registered with the API.");
-                SendData(BvApiStates.RegistrationSuccessful, new ServerData(Unregister, instance.GetOrSetMembers, versionID));
+                SendData(BvApiStates.RegistrationSuccessful, new ServerData(Unregister, GetOrSetMembers, versionID));
             }
 
             /// <summary>
