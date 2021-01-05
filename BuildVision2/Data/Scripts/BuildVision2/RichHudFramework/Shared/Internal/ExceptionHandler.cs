@@ -1,4 +1,4 @@
-using RichHudFramework.IO;
+﻿using RichHudFramework.IO;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -180,6 +180,9 @@ namespace RichHudFramework.Internal
                 lastMissionScreen();
                 lastMissionScreen = null;
             }
+
+            if (Reloading)
+                FinishReload();
         }
 
         /// <summary>
@@ -213,7 +216,7 @@ namespace RichHudFramework.Internal
                 else
                 {
                     if (RecoveryAttempts < RecoveryLimit)
-                        ReloadClientsInternal();
+                        StartReload();
                     else
                         UnloadClients();
                 }
@@ -284,13 +287,13 @@ namespace RichHudFramework.Internal
         private void AllowReload(ResultEnum response)
         {
             if (response == ResultEnum.OK)
-                ReloadClientsInternal();
+                StartReload();
             else
                 UnloadClients();
         }
 
         public static void ReloadClients() =>
-            instance.ReloadClientsInternal();
+            instance.StartReload();
 
         /// <summary>
         /// Creates a message window using the mod name, a given subheading and a message.
@@ -381,9 +384,9 @@ namespace RichHudFramework.Internal
         }
 
         /// <summary>
-        /// Restarts all registered clients
+        /// Closes all clients in preparation for reload
         /// </summary>
-        private void ReloadClientsInternal()
+        private void StartReload()
         {
             if (!Reloading)
             {
@@ -395,13 +398,24 @@ namespace RichHudFramework.Internal
                         Run(clients[n].BeforeClose);
                 }
 
-                for (int n = 0; n < clients.Count; n++)
-                    clients[n].Close();
+                PauseClients();
 
                 for (int n = 0; n < clients.Count; n++)
-                    clients[n].ManualStart();
+                    Run(clients[n].Close);
+            }
+        }
 
-                ClientsPaused = false;
+        /// <summary>
+        /// Restarts clients after reload start
+        /// </summary>
+        private void FinishReload()
+        {
+            if (Reloading)
+            {
+                for (int n = 0; n < clients.Count; n++)
+                    Run(clients[n].ManualStart);
+
+                UnpauseClients();
                 Reloading = false;
             }
         }
@@ -411,18 +425,21 @@ namespace RichHudFramework.Internal
         /// </summary>
         private void UnloadClients()
         {
-            Unloading = true;
-
-            for (int n = 0; n < clients.Count; n++)
+            if (!Unloading)
             {
-                if (clients[n].Loaded && clients[n].CanUpdate)
-                    Run(clients[n].BeforeClose);
+                Unloading = true;
+
+                for (int n = 0; n < clients.Count; n++)
+                {
+                    if (clients[n].Loaded && clients[n].CanUpdate)
+                        Run(clients[n].BeforeClose);
+                }
+
+                PauseClients();
+
+                for (int n = 0; n < clients.Count; n++)
+                    Run(clients[n].Close);
             }
-
-            ClientsPaused = true;
-
-            for (int n = 0; n < clients.Count; n++)
-                clients[n].Close(); 
         }
 
         protected override void UnloadData()
