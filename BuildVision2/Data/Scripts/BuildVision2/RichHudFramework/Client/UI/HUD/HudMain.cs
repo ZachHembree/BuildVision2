@@ -169,6 +169,10 @@ namespace RichHudFramework
 
             private HudMain() : base(ApiModuleTypes.HudMain, false, true)
             {
+                if (_instance != null)
+                    throw new Exception("Only one instance of HudMain can exist at any give time!");
+
+                _instance = this;
                 var members = GetApiData();
 
                 cursor = new HudCursor(members.Item1);
@@ -180,16 +184,15 @@ namespace RichHudFramework
 
                 // Register update delegate
                 GetOrSetMemberFunc(new Action<List<HudUpdateAccessors>, byte>(root.GetUpdateAccessors), (int)HudMainAccessors.GetUpdateAccessors);
+
+                root.CustomDrawAction = HudMasterDraw;
+                UpdateCache();
             }
 
             private static void Init()
             {
                 if (_instance == null)
-                {
-                    _instance = new HudMain();
-                    _instance.root.CustomDrawAction = _instance.HudMasterDraw;
-                    _instance.UpdateCache();
-                }
+                    new HudMain();
             }
 
             /// <summary>
@@ -308,8 +311,8 @@ namespace RichHudFramework
                     IsInFront = true;
                     IsFacingCamera = true;
 
-                    GetHudSpaceFunc = () => new MyTuple<bool, float, MatrixD>(true, 1f, PixelToWorld);
-                    GetNodeOriginFunc = () => PixelToWorld.Translation;
+                    GetHudSpaceFunc = _instance.GetOrSetMemberFunc(null, (int)HudMainAccessors.GetPixelSpaceFunc) as HudSpaceDelegate;
+                    GetNodeOriginFunc = _instance.GetOrSetMemberFunc(null, (int)HudMainAccessors.GetPixelSpaceOriginFunc) as Func<Vector3D>;
                 }
 
                 protected override void Layout()

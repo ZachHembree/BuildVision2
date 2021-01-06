@@ -36,7 +36,7 @@ namespace RichHudFramework
             /// <summary>
             /// Returns true if the space node is visible and rendering.
             /// </summary>
-            public override bool Visible => _visible && parentVisible && IsFacingCamera;
+            public override bool Visible => _visible && parentVisible && IsInFront;
 
             /// <summary>
             /// Returns the current draw matrix

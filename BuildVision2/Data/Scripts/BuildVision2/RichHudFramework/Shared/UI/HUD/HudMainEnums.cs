@@ -68,6 +68,16 @@
             /// out: byte, in: Action{byte}
             /// </summary>
             GetFocusOffset = 13,
+
+            /// <summary>
+            /// out: HudSpaceDelegate
+            /// </summary>
+            GetPixelSpaceFunc = 14,
+
+            /// <summary>
+            /// out: Func{Vector3D}
+            /// </summary>
+            GetPixelSpaceOriginFunc = 15
         }
     }
 }

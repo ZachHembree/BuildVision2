@@ -143,16 +143,18 @@ namespace RichHudFramework
             /// <summary>
             /// Registers the element to the given parent object.
             /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
             public virtual bool Register(HudParentBase newParent)
             {
                 if (newParent == this)
                     throw new Exception("Types of HudNodeBase cannot be parented to themselves!");
 
+                // Complete unregistration from previous parent if being registered to a different node
                 if (wasFastUnregistered && newParent != reregParent)
-                    throw new Exception("Types of HudNodeBase using fast unregister cannot be reregistered to different parents.");
+                {
+                    reregParent.RemoveChild(this);
+                    wasFastUnregistered = false;
+                    reregParent = null;
+                }
 
                 if (newParent != null && (reregParent == null || wasFastUnregistered))
                 {
