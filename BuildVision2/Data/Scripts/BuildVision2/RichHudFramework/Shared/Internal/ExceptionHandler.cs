@@ -118,7 +118,10 @@ namespace RichHudFramework.Internal
             }
             catch (Exception e)
             {
-                instance.ReportExceptionInternal(e);
+                if (instance != null)
+                    instance.ReportExceptionInternal(e);
+                else
+                    WriteToLog("Mod encountered an unhandled exception.\n" + e.ToString() + '\n');
             }
         }
 
@@ -136,7 +139,10 @@ namespace RichHudFramework.Internal
             }
             catch (Exception e)
             {
-                instance.ReportExceptionInternal(e);
+                if (instance != null)
+                    instance.ReportExceptionInternal(e);
+                else
+                    WriteToLog("Mod encountered an unhandled exception.\n" + e.ToString() + '\n');
             }
 
             return value;
