@@ -83,10 +83,10 @@ namespace DarkHelmet.BuildVision2
 
                     if (clientData.Item4 != versionID)
                     {
-                        string error = $"Error: Client version for {clientData.Item1} does not match. API vID: {versionID}, Client vID: {clientData.Item4}";
+                        string error = $" [BV2] Error: Client version for {clientData.Item1} does not match. API vID: {versionID}, Client vID: {clientData.Item4}";
 
                         SendMsgAction((int)BvApiStates.RegistrationFailed, error);
-                        ExceptionHandler.SendChatMessage(error);
+                        ExceptionHandler.WriteToLogAndConsole(error);
                     }
                     else
                         SendMsgAction((int)BvApiStates.RegistrationFailed, "Client already registered.");

@@ -122,13 +122,14 @@ namespace RichHudFramework.Client
                     registered = true;
 
                     ExceptionHandler.Run(InitAction);
+                    ExceptionHandler.WriteToLog($" [RHF] Successfully registered with Rich HUD Master.");
                 }
                 else if (msgType == MsgTypes.RegistrationFailed)
                 {
                     if (message is string)
-                        ExceptionHandler.WriteToLogAndConsole($"Rich HUD API registration failed. Message: {message as string}");
+                        ExceptionHandler.WriteToLog($" [RHF] Failed to register with Rich HUD Master. Message: {message as string}");
                     else
-                        ExceptionHandler.WriteToLogAndConsole($"Rich HUD API registration failed.");
+                        ExceptionHandler.WriteToLog($" [RHF] Failed to register with Rich HUD Master.");
 
                     regFail = true;
                 }
