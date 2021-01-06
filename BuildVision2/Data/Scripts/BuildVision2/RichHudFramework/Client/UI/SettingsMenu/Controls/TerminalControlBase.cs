@@ -60,8 +60,11 @@ namespace RichHudFramework.UI.Client
 
         protected virtual void ControlChangedCallback()
         {
-            OnControlChanged?.Invoke(this, EventArgs.Empty);
-            ControlChangedHandler?.Invoke(this, EventArgs.Empty);
+            Internal.ExceptionHandler.Run(() => 
+            {
+                OnControlChanged?.Invoke(this, EventArgs.Empty);
+                ControlChangedHandler?.Invoke(this, EventArgs.Empty);
+            });
         }
 
         public TerminalControlBase(ControlMembers data)
