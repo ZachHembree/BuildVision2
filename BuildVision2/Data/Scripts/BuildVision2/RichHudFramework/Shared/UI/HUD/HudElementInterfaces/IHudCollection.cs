@@ -18,12 +18,12 @@ namespace RichHudFramework
             IReadOnlyList<TElementContainer> Collection { get; }
 
             /// <summary>
-            /// Finds the chain member that meets the conditions required by the predicate.
+            /// Finds the collection member that meets the conditions required by the predicate.
             /// </summary>
             TElementContainer Find(Func<TElementContainer, bool> predicate);
 
             /// <summary>
-            /// Finds the index of the chain member that meets the conditions required by the predicate.
+            /// Finds the index of the collection member that meets the conditions required by the predicate.
             /// </summary>
             int FindIndex(Func<TElementContainer, bool> predicate);
         }
@@ -49,14 +49,19 @@ namespace RichHudFramework
             where TElement : HudElementBase
         {
             /// <summary>
-            /// Adds an element of type <see cref="TElement"/> to the chain.
+            /// Adds an element of type <see cref="TElement"/> to the collection.
             /// </summary>
             void Add(TElement element);
 
             /// <summary>
-            /// Add the given range to the end of the chain.
+            /// Adds an element of type <see cref="TElementContainer"/> to the collection.
             /// </summary>
-            void AddRange(IReadOnlyList<TElementContainer> newChainEntries);
+            void Add(TElementContainer element);
+
+            /// <summary>
+            /// Add the given range to the end of the collection.
+            /// </summary>
+            void AddRange(IReadOnlyList<TElementContainer> newContainers);
 
             /// <summary>
             /// Adds an element of type <see cref="TElementContainer"/> at the given index.
@@ -64,17 +69,17 @@ namespace RichHudFramework
             void Insert(int index, TElementContainer container);
 
             /// <summary>
-            /// Insert the given range into the chain.
+            /// Insert the given range into the collection.
             /// </summary>
-            void InsertRange(int index, IReadOnlyList<TElementContainer> newChainEntries);
+            void InsertRange(int index, IReadOnlyList<TElementContainer> newContainers);
 
             /// <summary>
-            /// Removes the specified element from the chain.
+            /// Removes the specified element from the collection.
             /// </summary>
             /// <param name="fast">Prevents registration from triggering a draw list
             /// update. Meant to be used in conjunction with pooled elements being
             /// unregistered/reregistered to the same parent.</param>
-            bool Remove(TElementContainer chainElement, bool fast);
+            bool Remove(TElementContainer collectionElement, bool fast);
 
             /// <summary>
             /// Removes the collection member that meets the conditions required by the predicate.
@@ -85,7 +90,7 @@ namespace RichHudFramework
             bool Remove(Func<TElementContainer, bool> predicate, bool fast = false);
 
             /// <summary>
-            /// Remove the chain element at the given index.
+            /// Remove the collection element at the given index.
             /// </summary>
             /// <param name="fast">Prevents registration from triggering a draw list
             /// update. Meant to be used in conjunction with pooled elements being
@@ -93,7 +98,7 @@ namespace RichHudFramework
             bool RemoveAt(int index, bool fast = false);
 
             /// <summary>
-            /// Removes the specfied range from the chain. Normal child elements not affected.
+            /// Removes the specfied range from the collection. Normal child elements not affected.
             /// </summary>
             /// <param name="fast">Prevents registration from triggering a draw list
             /// update. Meant to be used in conjunction with pooled elements being

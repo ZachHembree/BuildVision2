@@ -5,6 +5,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using VRage;
+using VRage.Game;
+using VRage.Game.Components;
 
 namespace RichHudFramework.UI
 {
@@ -49,38 +51,35 @@ namespace RichHudFramework.UI
     }
 
     /// <summary>
-    /// Manages chat commands; singleton
+    /// Manages chat commands. Independent session component. Use only after load data.
     /// </summary>
-    public sealed class CmdManager : RichHudComponentBase
+    [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate, 0)]
+    public sealed class CmdManager : MySessionComponentBase
     {
-        public static IReadOnlyList<ICommandGroup> CommandGroups => Instance.commandGroups;
-
-        private static CmdManager Instance
-        {
-            get { Init(); return instance; }
-            set { instance = value; }
-        }
+        /// <summary>
+        /// List of command groups registered;
+        /// </summary>
+        public static IReadOnlyList<ICommandGroup> CommandGroups => instance?.commandGroups;
 
         private static CmdManager instance;
         private readonly Regex cmdParser;
         private readonly List<CommandGroup> commandGroups;
         private readonly Dictionary<string, Command> commands;
 
-        private CmdManager() : base(false, true)
+        public CmdManager()
         {
+            if (instance == null)
+                instance = this;
+            else
+                throw new Exception("Only one instance of CmdManager can exist at any given time.");
+
             commandGroups = new List<CommandGroup>();
             commands = new Dictionary<string, Command>();
             cmdParser = new Regex(@"((\s*?[\s,;|]\s*?)((\w+)|("".+"")))+");
             RichHudCore.LateMessageEntered += MessageHandler;
         }
 
-        private static void Init()
-        {
-            if (instance == null && !ExceptionHandler.Unloading)
-                instance = new CmdManager();
-        }
-
-        public override void Close()
+        protected override void UnloadData()
         {
             RichHudCore.LateMessageEntered -= MessageHandler;
             instance = null;
@@ -89,12 +88,12 @@ namespace RichHudFramework.UI
         public static ICommandGroup GetOrCreateGroup(string prefix, CmdGroupInitializer groupInitializer = null)
         {
             prefix = prefix.ToLower();
-            CommandGroup group = Instance.commandGroups.Find(x => x.Prefix == prefix);
+            CommandGroup group = instance.commandGroups.Find(x => x.Prefix == prefix);
 
             if (group == null)
             {
                 group = new CommandGroup(prefix);
-                Instance.commandGroups.Add(group);
+                instance.commandGroups.Add(group);
                 group.AddCommands(groupInitializer);
             }
 
@@ -121,7 +120,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public static bool TryParseCommand(string cmd, out string[] matches)
         {
-            Match match = Instance.cmdParser.Match(cmd);
+            Match match = instance.cmdParser.Match(cmd);
             CaptureCollection captures = match.Groups[3].Captures;
             matches = new string[captures.Count];
 
@@ -161,7 +160,7 @@ namespace RichHudFramework.UI
                     string cmdName = matches[0];
                     Command command;
 
-                    if (Instance.commands.TryGetValue($"{Prefix}.{cmdName}", out command))
+                    if (instance.commands.TryGetValue($"{Prefix}.{cmdName}", out command))
                     {
                         string[] args = matches.GetSubarray(1);
                         cmdFound = true;
