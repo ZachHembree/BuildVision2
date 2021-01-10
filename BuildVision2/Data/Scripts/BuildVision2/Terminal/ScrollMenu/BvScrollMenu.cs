@@ -1,8 +1,10 @@
-using RichHudFramework;
+﻿using RichHudFramework;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using RichHudFramework.UI.Rendering;
+using Sandbox.ModAPI;
 using System;
+using VRage.Game.ModAPI;
 using VRageMath;
 
 namespace DarkHelmet.BuildVision2
@@ -32,17 +34,6 @@ namespace DarkHelmet.BuildVision2
         public override float Height { get { return layout.Height; } set { layout.Height = value; } }
 
         public override Vector2 Padding { get { return layout.Padding; } set { layout.Padding = value; } }
-
-        public override Vector2 Offset
-        {
-            get
-            {
-                if (AlignToEdge)
-                    return base.Offset + alignment;
-                else
-                    return base.Offset;
-            }
-        }
 
         /// <summary>
         /// Opacity between 0 and 1
@@ -123,7 +114,6 @@ namespace DarkHelmet.BuildVision2
         private int index;
 
         private float _bgOpacity;
-        private Vector2 alignment;
         private bool targetChanged, waitingForChat;
 
         private string notification;
@@ -332,19 +322,22 @@ namespace DarkHelmet.BuildVision2
                 peekBody.Visible = false;
 
                 float memberWidth = 0f;
-                int start = scrollBody.VisStart;
+                int visCount = 0;
                 var entries = scrollBody.Collection;
 
-                for (int n = 0; n < scrollBody.VisCount; n++)
+                for (int n = 0; n < entries.Count && visCount < scrollBody.VisCount; n++)
                 {
-                    HudElementBase element = entries[start + n].Element;
+                    HudElementBase element = entries[scrollBody.VisStart + n].Element;
 
                     if (element.Visible)
+                    {
                         memberWidth = Math.Max(memberWidth, element.Width);
+                        visCount++;
+                    }
                 }
 
                 memberWidth += scrollBody.Padding.X + scrollBody.scrollBar.Width + scrollBody.divider.Width;
-                layout.Width = memberWidth;
+                layout.Width = Math.Max(memberWidth, layout.MemberMinSize.X);
             }
             else if (MenuMode == ScrollMenuModes.Peek)
             {
@@ -357,16 +350,22 @@ namespace DarkHelmet.BuildVision2
 
             if (AlignToEdge)
             {
-                if (base.Offset.X > 0f)
-                    alignment.X = -Width / 2f;
-                else
-                    alignment.X = Width / 2f;
+                Vector2 alignment = Vector2.Zero;
 
-                if (base.Offset.Y > 0f)
-                    alignment.Y = -Height / 2f;
+                if (Offset.X > 0f)
+                    alignment.X = -layout.Width / 2f;
                 else
-                    alignment.Y = Height / 2f;
+                    alignment.X = layout.Width / 2f;
+
+                if (Offset.Y > 0f)
+                    alignment.Y = -layout.Height / 2f;
+                else
+                    alignment.Y = layout.Height / 2f;
+
+                layout.Offset = alignment;
             }
+            else
+                layout.Offset = Vector2.Zero;
         }
 
         protected override void Draw()
@@ -456,7 +455,7 @@ namespace DarkHelmet.BuildVision2
                     entry.Element.Clear();
                 }
             }
-            
+
             waitingForChat = false;
             PropOpen = false;
             index = 0;
