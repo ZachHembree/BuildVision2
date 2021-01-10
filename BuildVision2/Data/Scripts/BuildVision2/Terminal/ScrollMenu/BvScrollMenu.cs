@@ -1,4 +1,4 @@
-﻿using RichHudFramework;
+using RichHudFramework;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using RichHudFramework.UI.Rendering;
@@ -383,15 +383,20 @@ namespace DarkHelmet.BuildVision2
         {
             if (MenuMode != ScrollMenuModes.Peek && !BvBinds.Open.IsPressed)
             {
-                if (BvBinds.ToggleSelectMode.IsNewPressed || (MenuMode == ScrollMenuModes.Control && BvBinds.SelectAll.IsNewPressed))
-                    ToggleDuplicationMode();
+                if (!HudMain.Cursor.Visible)
+                {
+                    if (BvBinds.ToggleSelectMode.IsNewPressed || (MenuMode == ScrollMenuModes.Control && BvBinds.SelectAll.IsNewPressed))
+                        ToggleDuplicationMode();
 
-                HandleSelectionInput();
+                    HandleSelectionInput();
 
-                if (MenuMode == ScrollMenuModes.Dupe)
-                    HandleDuplicatorInput();
-                else if (MenuMode == ScrollMenuModes.Control)
-                    HandlePropertyInput();
+                    if (MenuMode == ScrollMenuModes.Dupe)
+                        HandleDuplicatorInput();
+                    else if (MenuMode == ScrollMenuModes.Control)
+                        HandlePropertyInput();
+                }
+                else
+                    CloseProp();
             }
         }
 

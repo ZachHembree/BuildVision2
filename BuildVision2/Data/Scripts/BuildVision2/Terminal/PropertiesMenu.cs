@@ -1,4 +1,4 @@
-﻿using RichHudFramework;
+using RichHudFramework;
 using RichHudFramework.Internal;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
@@ -114,54 +114,57 @@ namespace DarkHelmet.BuildVision2
 
         public override void HandleInput()
         {
-            if (BvBinds.Open.IsNewPressed && BvBinds.Hide.IsNewPressed)
-                ToggleOpen();
-            else if (BvBinds.Open.IsNewPressed)
-                TryOpen();
-            else if (BvBinds.Hide.IsNewPressed)
-                Hide();
-
-            if (BvConfig.Current.general.enablePeek)
+            if (!HudMain.Cursor.Visible)
             {
-                if (BvBinds.Peek.IsPressed && (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peek))
-                {
-                    if (BvBinds.Peek.IsNewPressed || peekRefresh.ElapsedTicks > peekTime)
-                    {
-                        TryPeek();
-                        peekRefresh.Reset();
-                    }
-                }
-                else if (BvBinds.Peek.IsReleased && Open && scrollMenu.MenuMode == ScrollMenuModes.Peek)
+                if (BvBinds.Open.IsNewPressed && BvBinds.Hide.IsNewPressed)
+                    ToggleOpen();
+                else if (BvBinds.Open.IsNewPressed)
+                    TryOpen();
+                else if (BvBinds.Hide.IsNewPressed)
                     Hide();
-            }
 
-            if (targetBlock != null && Open && scrollMenu.MenuMode != ScrollMenuModes.Peek)
-            {
-                if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Dupe)
+                if (BvConfig.Current.general.enablePeek)
                 {
-                    clipboard = new BlockData(targetBlock.TypeID, scrollMenu.GetDuplicationRange());
-                    scrollMenu.ShowNotification($"Copied {clipboard.terminalProperties.Count} Properties");
-                }
-
-                if (BvBinds.PasteProperties.IsNewPressed && !clipboard.Equals(default(BlockData)) && clipboard.terminalProperties.Count > 0)
-                {
-                    if (clipboard.blockTypeID == targetBlock.TypeID)
+                    if (BvBinds.Peek.IsPressed && (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peek))
                     {
-                        pasteBackup = targetBlock.ExportSettings();
-                        lastPastedTarget = targetBlock.TBlock;
-
-                        int importCount = targetBlock.ImportSettings(clipboard);
-                        scrollMenu.ShowNotification($"Pasted {importCount} Properties");
+                        if (BvBinds.Peek.IsNewPressed || peekRefresh.ElapsedTicks > peekTime)
+                        {
+                            TryPeek();
+                            peekRefresh.Reset();
+                        }
                     }
-                    else
-                        scrollMenu.ShowNotification($"Paste Incompatible");
+                    else if (BvBinds.Peek.IsReleased && Open && scrollMenu.MenuMode == ScrollMenuModes.Peek)
+                        Hide();
                 }
 
-                if (BvBinds.UndoPaste.IsNewPressed && targetBlock.TBlock == lastPastedTarget)
+                if (targetBlock != null && Open && scrollMenu.MenuMode != ScrollMenuModes.Peek)
                 {
-                    targetBlock.ImportSettings(pasteBackup);
-                    scrollMenu.ShowNotification("Paste Undone");
-                    lastPastedTarget = null;
+                    if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Dupe)
+                    {
+                        clipboard = new BlockData(targetBlock.TypeID, scrollMenu.GetDuplicationRange());
+                        scrollMenu.ShowNotification($"Copied {clipboard.terminalProperties.Count} Properties");
+                    }
+
+                    if (BvBinds.PasteProperties.IsNewPressed && !clipboard.Equals(default(BlockData)) && clipboard.terminalProperties.Count > 0)
+                    {
+                        if (clipboard.blockTypeID == targetBlock.TypeID)
+                        {
+                            pasteBackup = targetBlock.ExportSettings();
+                            lastPastedTarget = targetBlock.TBlock;
+
+                            int importCount = targetBlock.ImportSettings(clipboard);
+                            scrollMenu.ShowNotification($"Pasted {importCount} Properties");
+                        }
+                        else
+                            scrollMenu.ShowNotification($"Paste Incompatible");
+                    }
+
+                    if (BvBinds.UndoPaste.IsNewPressed && targetBlock.TBlock == lastPastedTarget)
+                    {
+                        targetBlock.ImportSettings(pasteBackup);
+                        scrollMenu.ShowNotification("Paste Undone");
+                        lastPastedTarget = null;
+                    }
                 }
             }
         }
