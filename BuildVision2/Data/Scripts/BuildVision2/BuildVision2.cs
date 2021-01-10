@@ -79,15 +79,13 @@ namespace DarkHelmet.BuildVision2
             {
                 BvConfig.Save();
 
-                if (!ExceptionHandler.Unloading)
-                    RichHudClient.Reset();
-                else
+                if (ExceptionHandler.Unloading)
                     Instance = null;
             }
         }
     }
 
-    public abstract class BvComponentBase : ModBase.ComponentBase
+    public abstract class BvComponentBase : ModBase.ModuleBase
     {
         public BvComponentBase(bool runOnServer, bool runOnClient) : base(runOnServer, runOnClient, BvMain.Instance)
         { }

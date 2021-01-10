@@ -10,6 +10,8 @@ namespace DarkHelmet.BuildVision2
     [XmlRoot, XmlType(TypeName = "BuildVisionSettings")]
     public class BvConfig : ConfigRoot<BvConfig>
     {
+        private const int vID = 9;
+
         [XmlElement(ElementName = "GeneralSettings")]
         public TargetingConfig general;
 
@@ -26,7 +28,7 @@ namespace DarkHelmet.BuildVision2
         {
             return new BvConfig
             {
-                VersionID = 9,
+                VersionID = vID,
                 general = TargetingConfig.Defaults,
                 hudConfig = HudConfig.Defaults,
                 block = PropBlockConfig.Defaults,
@@ -36,36 +38,35 @@ namespace DarkHelmet.BuildVision2
 
         public override void Validate()
         {
-            if (VersionID < 9)
+            if (VersionID < vID)
             {
                 general = TargetingConfig.Defaults;
                 hudConfig = HudConfig.Defaults;
                 block = PropBlockConfig.Defaults;
                 binds = BindsConfig.Defaults;
             }
-
-            if (general != null)
-                general.Validate();
             else
-                general = TargetingConfig.Defaults;
+            {
+                if (general != null)
+                    general.Validate();
+                else
+                    general = TargetingConfig.Defaults;
 
-            if (hudConfig != null)
-                hudConfig.Validate();
-            else
-                hudConfig = HudConfig.Defaults;
+                if (hudConfig != null)
+                    hudConfig.Validate();
+                else
+                    hudConfig = HudConfig.Defaults;
 
-            if (binds != null)
-                binds.Validate();
-            else
-                binds = BindsConfig.Defaults;
+                if (binds != null)
+                    binds.Validate();
+                else
+                    binds = BindsConfig.Defaults;
 
-            if (block != null)
-                block.Validate();
-            else
-                block = PropBlockConfig.Defaults;
-
-            if (VersionID != Defaults.VersionID)
-                VersionID = Defaults.VersionID;
+                if (block != null)
+                    block.Validate();
+                else
+                    block = PropBlockConfig.Defaults;
+            }
         }
     }
 
@@ -171,7 +172,7 @@ namespace DarkHelmet.BuildVision2
                 maxVisible = 14,
                 clampHudPos = true,
                 useCustomPos = false,
-                hudPos = new Vector2(-0.97083337604999542f, 0.95370364189147949f)
+                hudPos = new Vector2(-0.483125f, 0.47f)
             };
         }
 
