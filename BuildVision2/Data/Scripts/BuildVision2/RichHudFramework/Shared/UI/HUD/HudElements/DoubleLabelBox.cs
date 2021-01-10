@@ -14,7 +14,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public override Vector2 TextSize
         {
-            get { return new Vector2(left.Size.X + right.Size.X, Math.Max(left.Size.Y, right.Size.Y)); }
+            get { return new Vector2(left.Width + right.Width, Math.Max(left.Height, right.Height)); }
             set
             {
                 left.Width = value.X * .5f;
@@ -43,14 +43,15 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Text rendered by the left label.
         /// </summary>
-        public RichText LeftText { get { return LeftTextBoard.GetText(); } set { LeftTextBoard.SetText(value); } }
+        public RichText LeftText { get { return left.TextBoard.GetText(); } set { left.TextBoard.SetText(value); } }
 
         /// <summary>
         /// Text rendered by the right label.
         /// </summary>
-        public RichText RightText { get { return RightTextBoard.GetText(); } set { RightTextBoard.SetText(value); } }
+        public RichText RightText { get { return right.TextBoard.GetText(); } set { right.TextBoard.SetText(value); } }
 
         public ITextBuilder LeftTextBoard => left.TextBoard;
+
         public ITextBuilder RightTextBoard => right.TextBoard;
 
         protected readonly Label left, right;
@@ -63,5 +64,30 @@ namespace RichHudFramework.UI
 
         public DoubleLabelBox() : this(null)
         { }
+
+        protected override void Layout()
+        {
+            base.Layout();
+
+            if (!AutoResize)
+            {
+                float xPadding = left.Padding.X,
+                    leftWidthMin = left.TextBoard.TextSize.X + xPadding,
+                    rightWidthMin = right.TextBoard.TextSize.X + xPadding,
+                    fullWidth = left.Width + right.Width;
+
+                if (leftWidthMin + rightWidthMin < fullWidth)
+                {
+                    float newLeft = fullWidth - rightWidthMin;
+                    left.Width = newLeft;
+                    right.Width = fullWidth - newLeft;
+                }
+                else
+                {
+                    left.Width = fullWidth / 2f;
+                    right.Width = fullWidth / 2f;
+                }
+            }
+        }
     }
 }
