@@ -1,4 +1,4 @@
-using RichHudFramework;
+﻿using RichHudFramework;
 using RichHudFramework.Internal;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
@@ -137,7 +137,7 @@ namespace DarkHelmet.BuildVision2
                         Hide();
                 }
 
-                if (targetBlock != null && Open && scrollMenu.MenuMode != ScrollMenuModes.Peek)
+                if (targetBlock != null && Open)
                 {
                     if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Dupe)
                     {
