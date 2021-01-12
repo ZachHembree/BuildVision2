@@ -5,6 +5,9 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
+    /// <summary>
+    /// Rectangular prisim made of billboards used to draw the bounding box of <see cref="IMyEntity"/> objects.
+    /// </summary>
     public class BoundingBoard : BlockBoard
     {
         public BoundingBoard()

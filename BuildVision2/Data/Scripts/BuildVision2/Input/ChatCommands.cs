@@ -17,7 +17,6 @@ namespace DarkHelmet.BuildVision2
             CmdManager.GetOrCreateGroup("/bv2", new CmdGroupInitializer 
             {
                 { "help", x => RichHudTerminal.OpenToPage(helpMain) },
-                { "bindHelp", x => RichHudTerminal.OpenToPage(bindHelp) },
                 { "printBinds", x => ExceptionHandler.SendChatMessage(HelpText.GetPrintBindsMessage()) },
                 { "bind", x => UpdateBind(x[0], x.GetSubarray(1)), 2 },
                 { "resetBinds", x => BvBinds.Cfg = BindsConfig.Defaults },
@@ -34,10 +33,11 @@ namespace DarkHelmet.BuildVision2
                 { "crash", x => Crash() },
                 { "printControlsToLog", x => LogIO.WriteToLogStart($"Control List:\n{HelpText.controlList}") },
                 { "export", x => ExportBlockData() },
-                { "import", x=> TryImportBlockData() },
+                { "import", x => TryImportBlockData() },
                 { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(PropertiesMenu.Target?.SubtypeId.ToString() ?? "No Target")}") },
                 { "toggleBoundingBox", x => PropertiesMenu.DrawBoundingBox = !PropertiesMenu.DrawBoundingBox },
-                 { "toggleWorldDraw", x => PropertiesMenu.EnableWorldDraw = !PropertiesMenu.EnableWorldDraw },
+                { "toggleWorldDraw", x => PropertiesMenu.EnableWorldDraw = !PropertiesMenu.EnableWorldDraw },
+                { "refreshDrawList", x => HudMain.RefreshDrawList = true },
                 { "targetBench", TargetBench, 1 },
                 { "getTargetPermissions", x => GetTargetPermissions() },
                 { "echo", x => ExceptionHandler.SendChatMessage($"echo: {x[0]}") },

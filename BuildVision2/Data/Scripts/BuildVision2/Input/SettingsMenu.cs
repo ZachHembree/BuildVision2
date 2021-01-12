@@ -12,7 +12,7 @@ namespace DarkHelmet.BuildVision2
 {
     public sealed partial class BvMain
     {
-        private TextPage helpMain, bindHelp;
+        private TextPage helpMain;
 
         private void InitSettingsMenu()
         {
@@ -24,14 +24,6 @@ namespace DarkHelmet.BuildVision2
                 HeaderText = "Build Vision Help",
                 SubHeaderText = "",
                 Text = HelpText.GetHelpMessage(),
-            };
-
-            bindHelp = new TextPage()
-            {
-                Name = "Bind Help",
-                HeaderText = "Bind Help",
-                SubHeaderText = "",
-                Text = HelpText.GetBindHelpMessage(),
             };
 
             RichHudTerminal.Root.AddRange(new TerminalPageBase[] 
@@ -57,18 +49,17 @@ namespace DarkHelmet.BuildVision2
                     }
                 },
                 helpMain,
-                bindHelp,
             });
         }
 
         private ControlCategory GetTargetingSettings()
         {
-            var peekToggleBox = new TerminalCheckbox()
+            var peekToggleBox = new TerminalOnOffButton()
             {
-                Name = "Enable peek",
+                Name = "Peek",
                 Value = Cfg.general.enablePeek,
                 CustomValueGetter = () => Cfg.general.enablePeek,
-                ControlChangedHandler = ((sender, args) => Cfg.general.enablePeek = (sender as TerminalCheckbox).Value),
+                ControlChangedHandler = ((sender, args) => Cfg.general.enablePeek = (sender as TerminalOnOffButton).Value),
             };
 
             // Close if not in view
@@ -446,20 +437,13 @@ namespace DarkHelmet.BuildVision2
         {
             var openHelp = new TerminalButton()
             {
-                Name = "Open help menu",
+                Name = "Open help",
                 ControlChangedHandler = (sender, args) => RichHudTerminal.OpenToPage(helpMain)
-            };
-
-            var openBindHelp = new TerminalButton()
-            {
-                Name = "Open bind help",
-                ControlChangedHandler = (sender, args) => RichHudTerminal.OpenToPage(bindHelp),
             };
 
             var tile1 = new ControlTile()
             {
                 openHelp,
-                openBindHelp,
             };
 
             var loadCfg = new TerminalButton()
