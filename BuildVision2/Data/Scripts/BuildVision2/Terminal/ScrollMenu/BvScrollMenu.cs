@@ -1,4 +1,4 @@
-﻿using RichHudFramework;
+using RichHudFramework;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using RichHudFramework.UI.Rendering;
@@ -325,10 +325,11 @@ namespace DarkHelmet.BuildVision2
                 int visCount = 0;
                 var entries = scrollBody.Collection;
 
-                for (int n = 0; n < entries.Count && visCount < scrollBody.VisCount; n++)
+                for (int i = 0; i < entries.Count && visCount < scrollBody.VisCount; i++)
                 {
-                    HudElementBase element = entries[scrollBody.VisStart + n].Element;
+                    int j = Math.Min(scrollBody.VisStart + i, entries.Count - 1);
 
+                    HudElementBase element = entries[j].Element;
                     if (element.Visible)
                     {
                         memberWidth = Math.Max(memberWidth, element.Width);
