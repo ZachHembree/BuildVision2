@@ -27,7 +27,7 @@ namespace RichHudFramework.UI
 
                 if (offAxis == 0)
                 {
-                    if ((SizingMode & (HudChainSizingModes.ClampMembersOffAxis | HudChainSizingModes.FitMembersOffAxis)) > 0)
+                    if (value > 0f && (SizingMode & (HudChainSizingModes.ClampMembersOffAxis | HudChainSizingModes.FitMembersOffAxis)) > 0)
                         _absMaxSize.X = (value - scrollBarPadding) / Scale;
                 }
                 else
@@ -49,7 +49,7 @@ namespace RichHudFramework.UI
 
                 if (offAxis == 1)
                 {
-                    if ((SizingMode & (HudChainSizingModes.ClampMembersOffAxis | HudChainSizingModes.FitMembersOffAxis)) > 0)
+                    if (value > 0f && (SizingMode & (HudChainSizingModes.ClampMembersOffAxis | HudChainSizingModes.FitMembersOffAxis)) > 0)
                         _absMaxSize.Y = (value - scrollBarPadding) / Scale;
                 }
                 else
@@ -233,14 +233,14 @@ namespace RichHudFramework.UI
             UpdateElementRange(rangeLength);
             UpdateElementVisibility();
 
-            Vector2 visibleTotalSize = GetVisibleTotalSize(),
-                newSize = GetNewSize(cachedSize - effectivePadding, visibleTotalSize);
+            Vector2 size = cachedSize, 
+                visibleTotalSize = GetVisibleTotalSize(),
+                listSize = GetListSize(size - effectivePadding, visibleTotalSize);
 
-            cachedSize = newSize;
-            cachedSize[offAxis] += scrollBarPadding;
-            _absoluteWidth = cachedSize.X / Scale;
-            _absoluteHeight = cachedSize.Y / Scale;
-            cachedSize += cachedPadding;
+            size = listSize;
+            size[offAxis] += scrollBarPadding;
+            _absoluteWidth = size.X / Scale;
+            _absoluteHeight = size.Y / Scale;
 
             // Snap slider to integer offsets
             scrollBar.Current = (int)Math.Round(scrollBar.Current);
@@ -250,9 +250,9 @@ namespace RichHudFramework.UI
             Vector2 startOffset;
 
             if (alignAxis == 1)
-                startOffset = new Vector2(-scrollBarPadding, newSize.Y) * .5f;
+                startOffset = new Vector2(-scrollBarPadding, listSize.Y) * .5f;
             else
-                startOffset = new Vector2(-newSize.X, scrollBarPadding) * .5f;
+                startOffset = new Vector2(-listSize.X, scrollBarPadding) * .5f;
 
             UpdateMemberOffsets(startOffset, effectivePadding);
         }
@@ -460,7 +460,7 @@ namespace RichHudFramework.UI
         private void UpdateSliderSize(float visRatio)
         {
             Vector2 sliderSize = scrollBar.slide.BarSize;
-            sliderSize[alignAxis] = (cachedSize[alignAxis] - scrollBar.Padding[alignAxis]) * visRatio;
+            sliderSize[alignAxis] = (Size[alignAxis] - scrollBar.Padding[alignAxis]) * visRatio;
             scrollBar.slide.SliderSize = sliderSize;
         }
     }

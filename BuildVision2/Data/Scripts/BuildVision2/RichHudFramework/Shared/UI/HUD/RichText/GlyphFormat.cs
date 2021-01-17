@@ -129,8 +129,15 @@ namespace RichHudFramework
             /// </summary>
             public override bool Equals(object obj)
             {
-                if (obj is GlyphFormat)
-                    return data.Equals(((GlyphFormat)obj).data);
+                var format = obj as GlyphFormat;
+
+                if (format != null)
+                {
+                    return data.Item1 == format.data.Item1
+                        && data.Item2 == format.data.Item2
+                        && data.Item3 == format.data.Item3
+                        && data.Item4 == format.data.Item4;
+                }
                 else
                     return false;
             }

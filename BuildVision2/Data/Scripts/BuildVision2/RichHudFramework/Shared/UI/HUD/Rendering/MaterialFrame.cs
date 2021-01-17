@@ -44,6 +44,7 @@ namespace RichHudFramework
 
                 public MaterialFrame()
                 {
+                    material = Material.Default;
                     alignment = MaterialAlignment.StretchToFit;
                     uvOffset = Vector2.Zero;
                 }

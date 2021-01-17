@@ -103,6 +103,7 @@ namespace RichHudFramework.UI
 
             Padding = new Vector2(18f, 18f);
             Size = new Vector2(317f, 47f);
+            slide.SliderVisible = false;
         }
 
         public ScrollBar() : this(null)

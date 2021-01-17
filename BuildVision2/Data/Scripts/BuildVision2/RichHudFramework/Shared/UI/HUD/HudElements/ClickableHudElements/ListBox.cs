@@ -160,7 +160,7 @@ namespace RichHudFramework.UI
 
             scrollBox = new ScrollBox<ListBoxEntry<T>, LabelButton>(true, this)
             {
-                SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.FitChainOffAxis,
+                SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.ClampChainOffAxis,
                 DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
             };
 
@@ -442,7 +442,7 @@ namespace RichHudFramework.UI
                 // Left align the tab
                 Vector2 tabPos = cachedPosition;
                 tabPos.X += (-hudBoard.Size.X + tabBoard.Size.X) / 2f;
-                
+
                 if (tabBoard.Color.A > 0)
                     tabBoard.Draw(tabPos, ref ptw);
             }

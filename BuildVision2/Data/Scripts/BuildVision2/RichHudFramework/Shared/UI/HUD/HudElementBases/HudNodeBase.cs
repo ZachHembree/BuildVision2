@@ -10,7 +10,6 @@ namespace RichHudFramework
     namespace UI
     {
         using Client;
-        using EmptyKeys.UserInterface.Generated.StoreBlockView_Bindings;
         using Server;
         using HudUpdateAccessors = MyTuple<
             ApiMemberAccessor,
@@ -39,11 +38,7 @@ namespace RichHudFramework
             /// <summary>
             /// Determines whether or not an element will be drawn or process input. Visible by default.
             /// </summary>
-            public override bool Visible
-            {
-                get { return _visible && parentVisible && _registered; }
-                set { _visible = value; }
-            }
+            public override bool Visible => _visible && parentVisible && _registered;
 
             /// <summary>
             /// Determines whether the UI element will be drawn in the Back, Mid or Foreground
@@ -68,11 +63,11 @@ namespace RichHudFramework
             /// <summary>
             /// Indicates whether or not the element has been registered to a parent.
             /// </summary>
-            public bool Registered { get { return _registered; } private set { _registered = value; } }
+            public bool Registered => _registered;
 
             protected HudParentBase _parent, reregParent;
             protected float parentScale;
-            protected bool _visible, parentVisible, wasFastUnregistered;
+            protected bool parentVisible, wasFastUnregistered;
             protected sbyte parentZOffset;
 
             public HudNodeBase(HudParentBase parent)
@@ -85,34 +80,30 @@ namespace RichHudFramework
                 Register(parent);
             }
 
+            /// <summary>
+            /// Updates layout for the element and its children. Overriding this method is rarely necessary. 
+            /// If you need to update layout, use Layout().
+            /// </summary>
             protected override void BeginLayout(bool refresh)
             {
                 fullZOffset = GetFullZOffset(this, _parent);
 
-                if (Visible || refresh)
-                {
-                    parentScale = _parent == null ? 1f : _parent.Scale;
-                    Layout();
-                }
-            }
-
-            protected override void BeginDraw()
-            {
-                if (Visible)
-                    Draw();
-
                 if (_parent == null)
                 {
-                    parentVisible = true;
-                    parentZOffset = 0;
+                    parentVisible = false;
                 }
                 else
                 {
                     parentVisible = _parent.Visible;
+                    parentScale = _parent.Scale;
                     parentZOffset = _parent.ZOffset;
                 }
-            }
 
+                if (Visible || refresh)
+                {
+                    Layout();
+                }
+            }
 
             /// <summary>
             /// Adds update delegates for members in the order dictated by the UI tree
@@ -143,7 +134,8 @@ namespace RichHudFramework
             /// <summary>
             /// Registers the element to the given parent object.
             /// </summary>
-            public virtual bool Register(HudParentBase newParent)
+            /// <param name="preregister">Adds the element to the update tree without registering.</param>
+            public virtual bool Register(HudParentBase newParent, bool preregister = false)
             {
                 if (newParent == this)
                     throw new Exception("Types of HudNodeBase cannot be parented to themselves!");
@@ -176,15 +168,28 @@ namespace RichHudFramework
                         if (!wasFastUnregistered)
                             HudMain.RefreshDrawList = true;
 
-                        parentZOffset = _parent.ZOffset;
-                        parentScale = _parent.Scale;
-                        parentVisible = _parent.Visible;
+                        if (preregister)
+                        {
+                            reregParent = newParent;
+                            Parent = null;
+                            _registered = false;
+                            wasFastUnregistered = true;
+                        }
+                        else
+                        {
+                            parentZOffset = _parent.ZOffset;
+                            parentScale = _parent.Scale;
+                            parentVisible = _parent.Visible;
+                            wasFastUnregistered = false;
+                        }
+
+                        return true;
                     }
-
-                    wasFastUnregistered = false;
+                    else
+                        return false;
                 }
-
-                return _registered;
+                else
+                    return false;
             }
 
             /// <summary>
@@ -218,8 +223,7 @@ namespace RichHudFramework
                     }
 
                     parentZOffset = 0;
-                    parentScale = 1f;
-                    parentVisible = true;
+                    parentVisible = false;
                 }
 
                 return !_registered;

@@ -44,7 +44,7 @@ namespace RichHudFramework
                 static QuadBoard()
                 {
                     var matFit = new FlatQuad(new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 1f));
-                    Default = new QuadBoard(Material.Default.TextureID, matFit, default(Color));
+                    Default = new QuadBoard(Material.Default.TextureID, matFit, Color.White);
                 }
 
                 public QuadBoard(MyStringId textureID, FlatQuad matFit, Vector4 bbColor, float skewRatio = 0f)

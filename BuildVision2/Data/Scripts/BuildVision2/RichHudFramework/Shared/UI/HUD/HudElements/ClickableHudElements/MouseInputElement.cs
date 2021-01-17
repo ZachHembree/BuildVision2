@@ -98,20 +98,19 @@ namespace RichHudFramework.UI
 
         protected override void InputDepth()
         {
-            if (Visible)
+            if (UseCursor && Visible && (HudSpace?.IsFacingCamera ?? false))
             {
-                if (UseCursor)
-                {
-                    Vector3 cursorPos = HudSpace.CursorPos;
-                    Vector2 offset = Vector2.Max(cachedSize, new Vector2(minMouseBounds)) / 2f;
-                    BoundingBox2 box = new BoundingBox2(cachedPosition - offset, cachedPosition + offset);
-                    mouseInBounds = box.Contains(new Vector2(cursorPos.X, cursorPos.Y)) == ContainmentType.Contains
+                Vector3 cursorPos = HudSpace.CursorPos;
+                Vector2 offset = Vector2.Max(cachedSize, new Vector2(minMouseBounds)) / 2f;
+                BoundingBox2 box = new BoundingBox2(cachedPosition - offset, cachedPosition + offset);
+                mouseInBounds = box.Contains(new Vector2(cursorPos.X, cursorPos.Y)) == ContainmentType.Contains
                         || (IsLeftClicked || IsRightClicked);
 
-                    if (mouseInBounds)
-                        HudMain.Cursor.TryCaptureHudSpace(cursorPos.Z, HudSpace.GetHudSpaceFunc);
-                }
+                if (mouseInBounds)
+                    HudMain.Cursor.TryCaptureHudSpace(cursorPos.Z, HudSpace.GetHudSpaceFunc);
             }
+            else
+                mouseInBounds = false;
         }
 
         protected override void BeginInput()

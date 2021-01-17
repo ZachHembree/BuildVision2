@@ -1,4 +1,4 @@
-﻿using RichHudFramework.Internal;
+using RichHudFramework.Internal;
 using System;
 using System.Collections.Generic;
 using VRage;
@@ -33,7 +33,7 @@ namespace RichHudFramework
             /// <summary>
             /// Determines whether or not an element will be drawn or process input. Visible by default.
             /// </summary>
-            public virtual bool Visible { get; set; }
+            public virtual bool Visible { get { return _visible; } set { _visible = value; } }
 
             /// <summary>
             /// Scales the size and offset of an element. Any offset or size set at a given
@@ -68,6 +68,7 @@ namespace RichHudFramework
             /// </summary>
             protected byte zOffsetInner;
             protected ushort fullZOffset;
+            protected bool _visible;
 
             public HudParentBase()
             {
@@ -85,15 +86,90 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// Used to calculate the distance between the screen and HUD space plane and update
-            /// the element accordingly.
+            /// Starts cursor depth check in a try-catch block. Useful for manually updating UI elements.
+            /// Exceptions are reported client-side.
+            /// </summary>
+            public void SafeInputDepth()
+            {
+                if (!ExceptionHandler.ClientsPaused)
+                {
+                    try
+                    {
+                        InputDepth();
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Starts layout update in a try-catch block. Useful for manually updating UI elements.
+            /// Exceptions are reported client-side.
+            /// </summary>
+            public void SafeBeginLayout(bool refresh)
+            {
+                if (!ExceptionHandler.ClientsPaused)
+                {
+                    try
+                    {
+                        BeginLayout(refresh);
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Starts UI draw in a try-catch block. Useful for manually updating UI elements.
+            /// Exceptions are reported client-side.
+            /// </summary>
+            public void SafeBeginDraw()
+            {
+                if (!ExceptionHandler.ClientsPaused && _registered)
+                {
+                    try
+                    {
+                        BeginDraw();
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Starts input update in a try-catch block. Useful for manually updating UI elements.
+            /// Exceptions are reported client-side.
+            /// </summary>
+            public void SafeBeginInput()
+            {
+                if (!ExceptionHandler.ClientsPaused && _registered)
+                {
+                    try
+                    {
+                        BeginInput();
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Used to check whether the cursor is moused over the element and whether its being
+            /// obstructed by another element.
             /// </summary>
             protected virtual void InputDepth() { }
 
             /// <summary>
-            /// Updates input for the element and its children. Don't override this
-            /// unless you know what you're doing. If you need to update input, use 
-            /// HandleInput().
+            /// Updates input for the element and its children. Overriding this method is rarely necessary.
+            /// If you need to update input, use HandleInput().
             /// </summary>
             protected virtual void BeginInput()
             {
@@ -105,14 +181,13 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// Updates the input of this UI element.
+            /// Updates the input of this UI element. Invocation order affected by z-Offset and depth sorting.
             /// </summary>
             protected virtual void HandleInput(Vector2 cursorPos) { }
 
             /// <summary>
-            /// Updates layout for the element and its children. Don't override this
-            /// unless you know what you're doing. If you need to update layout, use 
-            /// Layout().
+            /// Updates layout for the element and its children. Overriding this method is rarely necessary. 
+            /// If you need to update layout, use Layout().
             /// </summary>
             protected virtual void BeginLayout(bool refresh)
             {
@@ -123,13 +198,14 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// Updates the layout of this UI element.
+            /// Updates the layout of this UI element. Not affected by depth or z-Offset sorting.
+            /// Executes before input and draw.
             /// </summary>
             protected virtual void Layout() { }
 
             /// <summary>
-            /// Used to immediately draw billboards. Don't override unless that's what you're
-            /// doing.
+            /// Used to immediately draw billboards. Overriding this method is rarely necessary. 
+            /// If you need to draw something, use Draw().
             /// </summary>
             protected virtual void BeginDraw()
             {
@@ -138,7 +214,7 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// Draws the UI element.
+            /// Used to immediately draw billboards. Invocation order affected by z-Offset and depth sorting.
             /// </summary>
             protected virtual void Draw() { }
 
@@ -170,7 +246,8 @@ namespace RichHudFramework
             /// <summary>
             /// Registers a child node to the object.
             /// </summary>
-            public virtual bool RegisterChild(HudNodeBase child)
+            /// <param name="preregister">Adds the element to the update tree without registering.</param>
+            public virtual bool RegisterChild(HudNodeBase child, bool preregister = false)
             {
                 if (child.Parent == this && !child.Registered)
                 {
@@ -178,7 +255,7 @@ namespace RichHudFramework
                     return true;
                 }
                 else if (child.Parent == null)
-                    return child.Register(this);
+                    return child.Register(this, preregister);
                 else
                     return false;
             }
@@ -216,6 +293,15 @@ namespace RichHudFramework
                 return (ushort)(innerOffset | outerOffset);
             }
 
+            /// <summary>
+            /// Returns the visibility set for the given <see cref="HudParentBase"/> without including
+            /// parent visibility.
+            /// </summary>
+            protected static bool IsSetVisible(HudParentBase node)
+            {
+                return node._visible && node._registered;
+            }
+
             protected virtual object GetOrSetApiMember(object data, int memberEnum)
             {
                 switch ((HudElementAccessors)memberEnum)
@@ -251,65 +337,6 @@ namespace RichHudFramework
                 return null;
             }
 
-            private void SafeInputDepth()
-            {
-                if (!ExceptionHandler.ClientsPaused && _registered)
-                {
-                    try
-                    {
-                        InputDepth();
-                    }
-                    catch (Exception e)
-                    {
-                        ExceptionHandler.ReportException(e);
-                    }
-                }
-            }
-
-            private void SafeBeginLayout(bool refresh)
-            {
-                if (!ExceptionHandler.ClientsPaused && _registered)
-                {
-                    try
-                    {
-                        BeginLayout(refresh);
-                    }
-                    catch (Exception e)
-                    {
-                        ExceptionHandler.ReportException(e);
-                    }
-                }
-            }
-
-            private void SafeBeginDraw()
-            {
-                if (!ExceptionHandler.ClientsPaused && _registered)
-                {
-                    try
-                    {
-                        BeginDraw();
-                    }
-                    catch (Exception e)
-                    {
-                        ExceptionHandler.ReportException(e);
-                    }
-                }
-            }
-
-            private void SafeBeginInput()
-            {
-                if (!ExceptionHandler.ClientsPaused && _registered)
-                {
-                    try
-                    {
-                        BeginInput();
-                    }
-                    catch (Exception e)
-                    {
-                        ExceptionHandler.ReportException(e);
-                    }
-                }
-            }
         }
     }
 }
