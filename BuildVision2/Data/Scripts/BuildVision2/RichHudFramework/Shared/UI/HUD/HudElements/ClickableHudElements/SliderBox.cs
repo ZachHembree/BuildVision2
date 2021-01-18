@@ -2,6 +2,8 @@
 
 namespace RichHudFramework.UI
 {
+    using Server;
+
     /// <summary>
     /// Horizontal slider designed to mimic the appearance of the slider in the SE terminal.
     /// </summary>
@@ -32,11 +34,14 @@ namespace RichHudFramework.UI
         /// </summary>
         public override Vector2 Padding { get { return slide.Padding; } set { slide.Padding = value; } }
 
+        public override bool IsMousedOver => slide.IsMousedOver;
+
         public readonly TexturedBox background;
         public readonly BorderBox border;
         public readonly SliderBar slide;
+        public readonly TexturedBox highlight;
 
-        public SliderBox(IHudParent parent = null) : base(parent)
+        public SliderBox(HudParentBase parent) : base(parent)
         {
             background = new TexturedBox(this)
             { Color = new Color(41, 54, 62), DimAlignment = DimAlignments.Both };
@@ -56,8 +61,30 @@ namespace RichHudFramework.UI
                 BarHighlight = new Color(181, 185, 190),
             };
 
+            highlight = new TexturedBox(background)
+            {
+                Color = TerminalFormatting.HighlightOverlayColor,
+                DimAlignment = DimAlignments.Both,
+                Visible = false
+            };
+
             Padding = new Vector2(18f, 18f);
             Size = new Vector2(317f, 47f);
+        }
+
+        public SliderBox() : this(null)
+        { }
+
+        protected override void HandleInput(Vector2 cursorPos)
+        {
+            if (IsMousedOver)
+            {
+                highlight.Visible = true;
+            }
+            else
+            {
+                highlight.Visible = false;
+            }
         }
     }
 }

@@ -102,6 +102,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public BlockData ExportSettings()
         {
+            if (blockProperties == null)
+                GenerateProperties();
+
             var propData = new List<PropertyData>(blockProperties.Count);
 
             for (int n = 0; n < blockProperties.Count; n++)

@@ -1,24 +1,65 @@
-﻿using System;
-using VRage;
-using ApiMemberAccessor = System.Func<object, int, object>;
-
-namespace RichHudFramework
+﻿namespace RichHudFramework
 {
-    using ControlMembers = MyTuple<string, string, int, Func<bool>, bool, ApiMemberAccessor>;
-
     namespace UI
     {
         /// <summary>
-        /// Interface for anything used as a control
+        /// Interface for controls used by the bind manager
         /// </summary> 
         public interface IControl
         {
+            /// <summary>
+            /// Name of the control
+            /// </summary>
             string Name { get; }
+
+            /// <summary>
+            /// Name of the control as displayed in bind menu
+            /// </summary>
             string DisplayName { get; }
+
+            /// <summary>
+            /// Index of the control in the bind manager
+            /// </summary>
             int Index { get; }
+
+            /// <summary>
+            /// Returns true if the control is being pressed
+            /// </summary>
             bool IsPressed { get; }
+
+            // <summary>
+            /// Returns true if the control doesn't represent a boolean value. For example, MwUp/Dn
+            /// represent scroll wheel movement, but don't return an exact position/displacement.
+            /// </summary>
             bool Analog { get; }
-            ControlMembers GetApiData();
+        }
+
+        public enum ControlAccessors : int
+        {
+            /// <summary>
+            /// out: string
+            /// </summary>
+            Name = 1,
+
+            /// <summary>
+            /// out: string
+            /// </summary>
+            DisplayName = 2,
+
+            /// <summary>
+            /// out: int
+            /// </summary>
+            Index = 3,
+
+            /// <summary>
+            /// out: bool
+            /// </summary>
+            IsPressed = 4,
+
+            /// <summary>
+            /// out: bool
+            /// </summary>
+            Analog = 5
         }
     }
 }

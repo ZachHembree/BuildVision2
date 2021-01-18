@@ -1,4 +1,5 @@
 ﻿using VRageMath;
+using System;
 
 namespace RichHudFramework.UI
 {
@@ -7,16 +8,6 @@ namespace RichHudFramework.UI
     /// </summary>
     public class Button : TexturedBox, IClickableElement
     {
-        /// <summary>
-        /// Width of the button in pixels.
-        /// </summary>
-        public override float Width { get { return base.Width; } set { base.Width = value; _mouseInput.Width = value; } }
-
-        /// <summary>
-        /// Height of the button in pixels.
-        /// </summary>
-        public override float Height { get { return base.Height; } set { base.Height = value; _mouseInput.Height = value; } }
-
         /// <summary>
         /// Indicates whether or not the cursor is currently positioned over the button.
         /// </summary>
@@ -40,7 +31,7 @@ namespace RichHudFramework.UI
         private readonly MouseInputElement _mouseInput;
         private Color oldColor;
 
-        public Button(IHudParent parent = null) : base(parent)
+        public Button(HudParentBase parent) : base(parent)
         {
             _mouseInput = new MouseInputElement(this);
             highlightColor = new Color(255, 255, 255, 125);
@@ -50,7 +41,10 @@ namespace RichHudFramework.UI
             _mouseInput.OnCursorExit += CursorExited;
         }
 
-        protected void CursorEntered()
+        public Button() : this(null)
+        { }
+
+        protected void CursorEntered(object sender, EventArgs args)
         {
             if (highlightEnabled)
             {
@@ -59,7 +53,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected void CursorExited()
+        protected void CursorExited(object sender, EventArgs args)
         {
             if (highlightEnabled)
             {

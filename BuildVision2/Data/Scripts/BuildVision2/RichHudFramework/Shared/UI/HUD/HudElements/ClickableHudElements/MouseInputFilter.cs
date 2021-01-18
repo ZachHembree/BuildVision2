@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using VRageMath;
 
 namespace RichHudFramework.UI
 {
@@ -16,15 +17,18 @@ namespace RichHudFramework.UI
         /// <summary>
         /// List of binds used in filtering input
         /// </summary>
-        public IList<IBind> Binds { get; set; }
+        public IReadOnlyList<IBind> Binds { get; set; }
         
-        public MouseInputFilter(IHudParent parent = null) : base(parent)
+        public MouseInputFilter(HudParentBase parent) : base(parent)
         {
-            CaptureCursor = true;
+            UseCursor = true;
             ShareCursor = true;
         }
 
-        protected override void HandleInput()
+        public MouseInputFilter() : this(null)
+        { }
+
+        protected override void HandleInput(Vector2 cursorPos)
         {
             IsControlPressed = false;
 

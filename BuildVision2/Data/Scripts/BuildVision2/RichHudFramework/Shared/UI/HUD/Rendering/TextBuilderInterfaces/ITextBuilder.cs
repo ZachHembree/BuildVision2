@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using VRage;
-using VRageMath;
+﻿using VRageMath;
 
 namespace RichHudFramework
 {
@@ -31,71 +27,6 @@ namespace RichHudFramework
 
         namespace Rendering
         {
-            public enum RichCharAccessors : int
-            {
-                /// <summary>
-                /// out: char
-                /// </summary>
-                Ch = 1,
-
-                /// <summary>
-                /// out: GlyphFormatMembers
-                /// </summary>
-                Format = 2,
-
-                /// <summary>
-                /// out: Vector2
-                /// </summary>
-                Size = 3,
-
-                /// <summary>
-                /// out: Vector2
-                /// </summary>
-                Offset = 4
-            }
-
-            public interface IRichChar
-            {
-                /// <summary>
-                /// Character assocated with the glyph
-                /// </summary>
-                char Ch { get; }
-
-                /// <summary>
-                /// Text format used by the character
-                /// </summary>
-                GlyphFormat Format { get; }
-
-                /// <summary>
-                /// Size of the glyph as rendered
-                /// </summary>
-                Vector2 Size { get; }
-
-                /// <summary>
-                /// Position of the glyph relative to the center of its parent text element. Does not include the 
-                /// parent's TextOffset.
-                /// </summary>
-                Vector2 Offset { get; }
-            }
-
-            public enum LineAccessors : int
-            {
-                /// <summary>
-                /// out: int
-                /// </summary>
-                Count = 1,
-
-                /// <summary>
-                /// out: Vector2
-                /// </summary>
-                Size = 2
-            }
-
-            public interface ILine : IIndexedCollection<IRichChar>
-            {
-                Vector2 Size { get; }
-            }
-
             public enum TextBuilderAccessors : int
             {
                 /// <summary>
@@ -206,93 +137,6 @@ namespace RichHudFramework
                 /// Clears all existing text.
                 /// </summary>
                 void Clear();
-            }
-
-            public enum TextBoardAccessors : int
-            {
-                /// <summary>
-                /// in/out: bool
-                /// </summary>
-                AutoResize = 129,
-
-                /// <summary>
-                /// in/out: bool
-                /// </summary>
-                VertAlign = 130,
-
-                /// <summary>
-                /// in: Vector2I
-                /// </summary>
-                MoveToChar = 131,
-
-                /// <summary>
-                /// out: Vector2I
-                /// </summary>
-                GetCharAtOffset = 132,
-
-                /// <summary>
-                /// Action event
-                /// </summary>
-                OnTextChanged = 133,
-
-                /// <summary>
-                /// in/out: Vector2
-                /// </summary>
-                TextOffset = 134,
-            }
-
-            public interface ITextBoard : ITextBuilder
-            {
-                /// <summary>
-                /// Invoked whenever a change is made to the text.
-                /// </summary>
-                event Action OnTextChanged;
-
-                /// <summary>
-                /// Scale of the text board. Applied after scaling specified in GlyphFormat.
-                /// </summary>
-                float Scale { get; set; }
-
-                /// <summary>
-                /// Size of the text box as rendered
-                /// </summary>
-                Vector2 Size { get; }
-
-                /// <summary>
-                /// Full text size including any text outside the visible range.
-                /// </summary>
-                Vector2 TextSize { get; }
-
-                /// <summary>
-                /// Used to change the position of the text within the text element. AutoResize must be disabled for this to work.
-                /// </summary>
-                Vector2 TextOffset { get; set; }
-
-                /// <summary>
-                /// Size of the text box when AutoResize is set to false. Does nothing otherwise.
-                /// </summary>
-                Vector2 FixedSize { get; set; }
-
-                /// <summary>
-                /// If true, the text board will automatically resize to fit the text.
-                /// </summary>
-                bool AutoResize { get; set; }
-
-                /// <summary>
-                /// If true, the text will be vertically aligned to the center of the text board.
-                /// </summary>
-                bool VertCenterText { get; set; }
-
-                /// <summary>
-                /// Calculates and applies the minimum offset needed to ensure that the character at the specified index
-                /// is within the visible range.
-                /// </summary>
-                void MoveToChar(Vector2I index);
-
-                /// <summary>
-                /// Returns the index of the character at the given offset.
-                /// </summary>
-                Vector2I GetCharAtOffset(Vector2 localPos);
             }
         }
     }

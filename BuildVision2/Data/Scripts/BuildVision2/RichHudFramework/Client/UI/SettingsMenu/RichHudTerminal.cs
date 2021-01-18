@@ -42,12 +42,17 @@ namespace RichHudFramework
             /// </summary>
             public static IModControlRoot Root => Instance.menuRoot;
 
+            /// <summary>
+            /// Determines whether or not the terminal is currently open.
+            /// </summary>
+            public static bool Open => (bool)Instance.GetOrSetMembersFunc(null, (int)TerminalAccessors.GetMenuOpen);
+
             private static RichHudTerminal Instance
             {
-                get { Init(); return instance; }
-                set { instance = value; }
+                get { Init(); return _instance; }
+                set { _instance = value; }
             }
-            private static RichHudTerminal instance;
+            private static RichHudTerminal _instance;
 
             private readonly ModControlRoot menuRoot;
             private readonly ApiMemberAccessor GetOrSetMembersFunc;
@@ -69,15 +74,64 @@ namespace RichHudFramework
 
             public static void Init()
             {
-                if (instance == null)
+                if (_instance == null)
                 {
-                    instance = new RichHudTerminal();
+                    _instance = new RichHudTerminal();
                 }
+            }
+
+            /// <summary>
+            /// Toggles the menu between open and closed
+            /// </summary>
+            public static void ToggleMenu()
+            {
+                if (_instance == null)
+                    Init();
+
+                _instance.GetOrSetMembersFunc(null, (int)TerminalAccessors.ToggleMenu);
+            }
+
+            /// <summary>
+            /// Open the menu if chat is visible
+            /// </summary>
+            public static void OpenMenu()
+            {
+                if (_instance == null)
+                    Init();
+
+                _instance.GetOrSetMembersFunc(null, (int)TerminalAccessors.OpenMenu);
+            }
+
+            /// <summary>
+            /// Close the menu
+            /// </summary>
+            public static void CloseMenu()
+            {
+                if (_instance == null)
+                    Init();
+
+                _instance.GetOrSetMembersFunc(null, (int)TerminalAccessors.CloseMenu);
+            }
+
+            /// <summary>
+            /// Sets the current page to the one given
+            /// </summary>
+            public static void OpenToPage(TerminalPageBase newPage)
+            {
+                _instance.GetOrSetMembersFunc(new MyTuple<object, object>(_instance.menuRoot.ID, newPage.ID), (int)TerminalAccessors.OpenToPage);
+            }
+
+            /// <summary>
+            /// Sets the current page to the one given
+            /// </summary>
+            public static void SetPage(TerminalPageBase newPage)
+            {
+                _instance.GetOrSetMembersFunc(new MyTuple<object, object>(_instance.menuRoot.ID, newPage.ID), (int)TerminalAccessors.SetPage);
             }
 
             public override void Close()
             {
-                instance = null;
+                _instance = null;
             }
 
             public static ControlMembers GetNewMenuControl(MenuControls controlEnum) =>
@@ -101,11 +155,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Invoked when a new page is selected
                 /// </summary>
-                public event Action OnSelectionChanged
-                {
-                    add { GetOrSetMemberFunc(new EventAccessor(true, value), (int)ModControlRootAccessors.OnSelectionChanged); }
-                    remove { GetOrSetMemberFunc(new EventAccessor(false, value), (int)ModControlRootAccessors.OnSelectionChanged); }
-                }
+                public event EventHandler OnSelectionChanged;
 
                 /// <summary>
                 /// Name of the mod as it appears in the <see cref="RichHudTerminal"/> mod list
@@ -119,7 +169,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Read only collection of <see cref="ITerminalPage"/>s assigned to this object.
                 /// </summary>
-                public IReadOnlyCollection<ITerminalPage> Pages { get; }
+                public IReadOnlyList<ITerminalPage> Pages { get; }
 
                 public IModControlRoot PageContainer => this;
 
@@ -133,7 +183,21 @@ namespace RichHudFramework
                 /// </summary>
                 public ITerminalPage Selection
                 {
-                    get { return new TerminalPage((ControlMembers)GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Selection)); }
+                    get 
+                    {
+                        object id = GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Selection);
+
+                        if (id != null)
+                        {
+                            for (int n = 0; n < Pages.Count; n++)
+                            {
+                                if (id == Pages[n].ID)
+                                    return Pages[n];
+                            }
+                        }
+
+                        return null;
+                    }
                 }
 
                 /// <summary>
@@ -155,15 +219,10 @@ namespace RichHudFramework
 
                     var GetPageDataFunc = data.Item2.Item1 as Func<int, ControlMembers>;
                     Func<int, ITerminalPage> GetPageFunc = (x => new TerminalPage(GetPageDataFunc(x)));
+                    Pages = new ReadOnlyApiCollection<ITerminalPage>(GetPageFunc, data.Item2.Item2);
 
-                    Pages = new ReadOnlyCollectionData<ITerminalPage>(GetPageFunc, data.Item2.Item2);
+                    GetOrSetMemberFunc(new Action(ModRootCallback), (int)ModControlRootAccessors.GetOrSetCallback);
                 }
-
-                IEnumerator<ITerminalPage> IEnumerable<ITerminalPage>.GetEnumerator() =>
-                    Pages.GetEnumerator();
-
-                IEnumerator IEnumerable.GetEnumerator() =>
-                    Pages.GetEnumerator();
 
                 /// <summary>
                 /// Adds the given <see cref="TerminalPageBase"/> to the object.
@@ -172,10 +231,34 @@ namespace RichHudFramework
                     GetOrSetMemberFunc(page.ID, (int)ModControlRootAccessors.AddPage);
 
                 /// <summary>
+                /// Adds the given ranges of pages to the control root.
+                /// </summary>
+                public void AddRange(IReadOnlyList<TerminalPageBase> pages)
+                {
+                    var idList = new object[pages.Count];
+
+                    for (int n = 0; n < pages.Count; n++)
+                        idList[n] = pages[n].ID;
+
+                    GetOrSetMemberFunc(idList, (int)ModControlRootAccessors.AddRange);
+                }
+
+                /// <summary>
                 /// Retrieves data used by the Framework API
                 /// </summary>
                 public ControlContainerMembers GetApiData() =>
                     data;
+
+                protected void ModRootCallback()
+                {
+                    OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+                }
+
+                IEnumerator<ITerminalPage> IEnumerable<ITerminalPage>.GetEnumerator() =>
+                    Pages.GetEnumerator();
+
+                IEnumerator IEnumerable.GetEnumerator() =>
+                    Pages.GetEnumerator();
 
                 private class TerminalPage : TerminalPageBase
                 {

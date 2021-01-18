@@ -56,7 +56,6 @@ namespace RichHudFramework.Internal
         public override void Close()
         {
             base.Close();
-            LateMessageEntered = null;
 
             if (ExceptionHandler.Unloading)
             {
@@ -64,15 +63,20 @@ namespace RichHudFramework.Internal
                 Instance = null;
             }
         }
+
+        protected override void UnloadData()
+        {
+            LateMessageEntered = null;
+        }
     }
 
-    public abstract class RichHudComponentBase : ModBase.ComponentBase
+    public abstract class RichHudComponentBase : ModBase.ModuleBase
     {
         public RichHudComponentBase(bool runOnServer, bool runOnClient) : base(runOnServer, runOnClient, RichHudCore.Instance)
         { }
     }
 
-    public abstract class RichHudParallelComponentBase : ModBase.ParallelComponentBase
+    public abstract class RichHudParallelComponentBase : ModBase.ParallelModuleBase
     {
         public RichHudParallelComponentBase(bool runOnServer, bool runOnClient) : base(runOnServer, runOnClient, RichHudCore.Instance)
         { }

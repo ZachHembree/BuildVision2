@@ -83,10 +83,10 @@ namespace DarkHelmet.BuildVision2
 
                     if (clientData.Item4 != versionID)
                     {
-                        string error = $"Error: Client version for {clientData.Item1} does not match. API vID: {versionID}, Client vID: {clientData.Item4}";
+                        string error = $" [BV2] Error: Client version for {clientData.Item1} does not match. API vID: {versionID}, Client vID: {clientData.Item4}";
 
                         SendMsgAction((int)BvApiStates.RegistrationFailed, error);
-                        ExceptionHandler.SendChatMessage(error);
+                        ExceptionHandler.WriteToLogAndConsole(error);
                     }
                     else
                         SendMsgAction((int)BvApiStates.RegistrationFailed, "Client already registered.");
@@ -94,19 +94,18 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private object GetOrSetMembers(object data, int memberEnum)
+        private static object GetOrSetMembers(object data, int memberEnum)
         {
-            if (BvMain.Instance?.CanUpdate ?? false)
+            bool running = BvMain.Instance?.CanUpdate ?? false;
+
+            switch ((BvApiAccessors)memberEnum)
             {
-                switch ((BvApiAccessors)memberEnum)
-                {
-                    case BvApiAccessors.Open:
-                        return PropertiesMenu.Open;
-                    case BvApiAccessors.MenuMode:
-                        return PropertiesMenu.MenuMode;
-                    case BvApiAccessors.Target:
-                        return PropertiesMenu.Target?.TBlock;
-                }
+                case BvApiAccessors.Open:
+                    return running ? PropertiesMenu.Open : false;
+                case BvApiAccessors.MenuMode:
+                    return running ? PropertiesMenu.MenuMode : default(ScrollMenuModes);
+                case BvApiAccessors.Target:
+                    return running ? PropertiesMenu.Target?.TBlock : null;
             }
 
             return null;
@@ -147,8 +146,8 @@ namespace DarkHelmet.BuildVision2
 
                 registered = true;
 
-                ExceptionHandler.WriteLineAndConsole($"{debugName} successfully registered with the API.");
-                SendData(BvApiStates.RegistrationSuccessful, new ServerData(Unregister, instance.GetOrSetMembers, versionID));
+                ExceptionHandler.WriteToLogAndConsole($"{debugName} successfully registered with the API.");
+                SendData(BvApiStates.RegistrationSuccessful, new ServerData(Unregister, GetOrSetMembers, versionID));
             }
 
             /// <summary>

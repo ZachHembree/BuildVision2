@@ -1,6 +1,7 @@
 ﻿using RichHudFramework.UI.Rendering;
 using Sandbox.ModAPI;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using VRageMath;
 
@@ -15,9 +16,14 @@ namespace RichHudFramework.UI
     public class TextBox : Label, IClickableElement
     {
         /// <summary>
-        /// Determines whether or not this element will accept input from the mouse.
+        /// Determines whether or not the textbox will allow the user to edit its contents
         /// </summary>
-        public bool UseMouseInput { get { return ShareCursor; } set { ShareCursor = value; } }
+        public bool EnableEditing { get { return caret.ShowCaret; } set { caret.ShowCaret = value; } }
+
+        /// <summary>
+        /// Determines whether the user will be allowed to highlight text
+        /// </summary>
+        public bool EnableHighlighting { get; set; }
 
         /// <summary>
         /// Indicates whether or not the textbox will accept input
@@ -51,19 +57,24 @@ namespace RichHudFramework.UI
         private readonly SelectionBox selectionBox;
         private bool canHighlight, allowInput;
 
-        public TextBox(IHudParent parent = null) : base(parent)
+        public TextBox(HudParentBase parent) : base(parent)
         {
-            CaptureCursor = true;
-            ShareCursor = true;
-
-            MouseInput = new MouseInputElement(this) { DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding };
+            MouseInput = new MouseInputElement(this) { ShareCursor = true };
             textInput = new TextInput(AddChar, RemoveLastChar, TextInputFilter);
 
             caret = new TextCaret(this) { Visible = false };
             selectionBox = new SelectionBox(caret, this) { Color = new Color(255, 255, 255, 140) };
 
             caret.OnCaretMoved += CaretMoved;
+
+            ShareCursor = true;
+            EnableEditing = true;
+            EnableHighlighting = true;
+            UseCursor = true;
         }
+
+        public TextBox() : this(null)
+        { }
 
         /// <summary>
         /// Opens the textbox for input and moves the caret to the end.
@@ -112,33 +123,15 @@ namespace RichHudFramework.UI
                 selectionBox.UpdateSelection();
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
-            InputOpen = (UseMouseInput && MouseInput.HasFocus && HudMain.Cursor.Visible) || allowInput;
+            bool useInput = allowInput || (MouseInput.HasFocus && HudMain.Cursor.Visible);
 
-            if (InputOpen)
+            if (useInput && EnableEditing)
             {
-                caret.Visible = true;
                 textInput.HandleInput();
 
-                if (SharedBinds.LeftButton.IsNewPressed)
-                {
-                    canHighlight = true;
-                    selectionBox.ClearSelection();
-                }
-                else if (SharedBinds.LeftButton.IsReleased)
-                {
-                    canHighlight = false;
-                }
-                else if (SharedBinds.SelectAll.IsNewPressed)
-                    selectionBox.SetSelection(Vector2I.Zero, new Vector2I(TextBoard.Count - 1, TextBoard[TextBoard.Count - 1].Count - 1));
-                else if (SharedBinds.Escape.IsNewPressed)
-                    selectionBox.ClearSelection();
-
-                if (SharedBinds.Copy.IsNewPressed && !selectionBox.Empty)
-                    HudMain.ClipBoard = TextBoard.GetTextRange(selectionBox.Start, selectionBox.End);
-
-                if (SharedBinds.Cut.IsNewPressed && !selectionBox.Empty)
+                if (SharedBinds.Cut.IsNewPressed && !selectionBox.Empty && EnableHighlighting)
                 {
                     RichText text = TextBoard.GetTextRange(selectionBox.Start, selectionBox.End);
                     DeleteSelection();
@@ -161,10 +154,36 @@ namespace RichHudFramework.UI
                     }
                 }
             }
+
+            InputOpen = useInput && (EnableHighlighting || EnableEditing);
+            caret.Visible = InputOpen;
+
+            if (useInput && EnableHighlighting)
+            {
+                if (UseCursor)
+                {
+                    if (SharedBinds.LeftButton.IsNewPressed)
+                    {
+                        canHighlight = true;
+                        selectionBox.ClearSelection();
+                    }
+                    else if (SharedBinds.LeftButton.IsReleased)
+                    {
+                        canHighlight = false;
+                    }
+                }
+
+                if (SharedBinds.SelectAll.IsNewPressed)
+                    selectionBox.SetSelection(Vector2I.Zero, new Vector2I(TextBoard.Count - 1, TextBoard[TextBoard.Count - 1].Count - 1));
+                else if (SharedBinds.Escape.IsNewPressed)
+                    selectionBox.ClearSelection();
+
+                if (SharedBinds.Copy.IsNewPressed && !selectionBox.Empty)
+                    HudMain.ClipBoard = TextBoard.GetTextRange(selectionBox.Start, selectionBox.End);
+            }
             else
             {
                 canHighlight = false;
-                caret.Visible = false;
             }
         }
 
@@ -240,16 +259,21 @@ namespace RichHudFramework.UI
             /// </summary>
             public Vector2I Index { get; private set; }
 
+            /// <summary>
+            /// Determines whether the caret will be visible
+            /// </summary>
+            public bool ShowCaret { get; set; }
+
             public event Action OnCaretMoved;
 
-            private readonly Label textElement;
+            private readonly TextBox textElement;
             private readonly ITextBoard text;
             private readonly Utils.Stopwatch blinkTimer;
-            private bool blink;
+            private bool blink, caretMoved;
             private int caretOffset;
             private Vector2 lastCursorPos;
 
-            public TextCaret(Label textElement) : base(textElement)
+            public TextCaret(TextBox textElement) : base(textElement)
             {
                 this.textElement = textElement;
                 text = textElement.TextBoard;
@@ -302,7 +326,7 @@ namespace RichHudFramework.UI
                 }
 
                 Index = ClampIndex(newIndex);
-                OnCaretMoved?.Invoke();
+                caretMoved = true;
 
                 if (Index.Y >= 0)
                     text.MoveToChar(Index);
@@ -319,23 +343,37 @@ namespace RichHudFramework.UI
                 caretOffset = Math.Max(GetOffsetFromIndex(Index), 0);
 
                 if (Index != index)
+                    caretMoved = true;
+            }
+
+            protected override void Layout()
+            {
+                base.Layout();
+
+                if (caretMoved)
+                {
                     OnCaretMoved?.Invoke();
+                    caretMoved = false;
+                }
             }
 
             protected override void Draw()
             {
-                if (blink)
+                if (ShowCaret)
                 {
-                    Index = ClampIndex(Index);
-                    UpdateOffset();
+                    if (blink)
+                    {
+                        Index = ClampIndex(Index);
+                        UpdateOffset();
 
-                    base.Draw();
-                }
+                        base.Draw();
+                    }
 
-                if (blinkTimer.ElapsedMilliseconds > 500)
-                {
-                    blink = !blink;
-                    blinkTimer.Reset();
+                    if (blinkTimer.ElapsedMilliseconds > 500)
+                    {
+                        blink = !blink;
+                        blinkTimer.Reset();
+                    }
                 }
             }
 
@@ -349,32 +387,32 @@ namespace RichHudFramework.UI
                 if (text.Count > 0 && text[Index.X].Count > 0)
                 {
                     IRichChar ch;
-                    Height = text[Index.X].Size.Y - 2f;
+                    Height = text[Index.X].Size.Y - (2f * Scale);
                     
                     if (Index.Y == -1)
                     {
                         ch = text[Index + new Vector2I(0, 1)];
                         offset = ch.Offset + text.TextOffset;
-                        offset.X -= ch.Size.X / 2f + 1f;
+                        offset.X -= ch.Size.X / 2f + (1f * Scale);
                     }
                     else
                     {
                         ch = text[Index];
                         offset = ch.Offset + text.TextOffset;
-                        offset.X += ch.Size.X / 2f + 1f;
+                        offset.X += ch.Size.X / 2f + (1f * Scale);
                     }
                 }
                 else
                 {
                     if (text.Format.Alignment == TextAlignment.Left)
-                        offset.X = -textElement.Size.X / 2f + 2f;
+                        offset.X = -textElement.Size.X / 2f + (2f * Scale);
                     else if (text.Format.Alignment == TextAlignment.Right)
-                        offset.X = textElement.Size.X / 2f - 2f;
+                        offset.X = textElement.Size.X / 2f - (2f * Scale);
 
-                    offset.X += Padding.X / 2f;
+                    offset += _parentFull.Padding / 2f;
 
                     if (!text.VertCenterText)
-                        offset.Y = (text.Size.Y - Height) / 2f - 4f;
+                        offset.Y = (text.Size.Y - Height) / 2f - (4f * Scale);
                 }
 
                 Offset = offset;
@@ -383,7 +421,7 @@ namespace RichHudFramework.UI
             /// <summary>
             /// Handles input for moving the caret.
             /// </summary>
-            protected override void HandleInput()
+            protected override void HandleInput(Vector2 cursorPos)
             {
                 if (SharedBinds.DownArrow.IsPressedAndHeld || SharedBinds.DownArrow.IsNewPressed)
                     Move(new Vector2I(1, 0), true);
@@ -397,20 +435,23 @@ namespace RichHudFramework.UI
                 if (SharedBinds.LeftArrow.IsPressedAndHeld || SharedBinds.LeftArrow.IsNewPressed)
                     Move(new Vector2I(0, -1), true);
 
-                if (SharedBinds.LeftButton.IsPressed)
-                    GetClickedChar();
-                else if (SharedBinds.LeftButton.IsReleased)
-                    lastCursorPos = Vector2.PositiveInfinity;
+                if (textElement.UseCursor)
+                {
+                    if (SharedBinds.LeftButton.IsPressed)
+                        GetClickedChar(cursorPos);
+                    else if (SharedBinds.LeftButton.IsReleased)
+                        lastCursorPos = Vector2.PositiveInfinity;
+                }
             }
 
             /// <summary>
             /// Sets the index of the caret to that of the character closest to the cursor.
             /// </summary>
-            private void GetClickedChar()
+            private void GetClickedChar(Vector2 cursorPos)
             {
-                if ((HudMain.Cursor.Origin - lastCursorPos).LengthSquared() > 4f)
+                if ((cursorPos - lastCursorPos).LengthSquared() > 4f * Scale)
                 {
-                    Vector2 offset = HudMain.Cursor.Origin - textElement.Position;
+                    Vector2 offset = cursorPos - textElement.Position;
                     Vector2I newIndex = text.GetCharAtOffset(offset);
 
                     Index = ClampIndex(newIndex);
@@ -419,11 +460,11 @@ namespace RichHudFramework.UI
                         Index -= new Vector2I(0, 1);
 
                     caretOffset = GetOffsetFromIndex(Index);
-                    lastCursorPos = HudMain.Cursor.Origin;         
+                    lastCursorPos = cursorPos;         
 
                     blink = true;
                     blinkTimer.Reset();
-                    OnCaretMoved?.Invoke();
+                    caretMoved = true;
                 }
             }
 
@@ -513,20 +554,24 @@ namespace RichHudFramework.UI
             /// <summary>
             /// If true, then the current selection is empty.
             /// </summary>
-            public bool Empty => top == null || (Start == -Vector2I.One || End == -Vector2I.One);
+            public bool Empty => (Start == -Vector2I.One || End == -Vector2I.One);
 
             private readonly TextCaret caret;
             private readonly ITextBoard text;
             private readonly MatBoard highlightBoard;
-
-            private HighlightBox top, middle, bottom;
+            private readonly List<HighlightBox> highlightList;
+            private Vector2 lastTextSize;
+            private Vector2I lastVisRange;
+            private bool highlightStale;
 
             public SelectionBox(TextCaret caret, Label parent) : base(parent)
             {
-                highlightBoard = new MatBoard();
                 text = parent.TextBoard;
                 this.caret = caret;
+
                 Start = -Vector2I.One;
+                highlightBoard = new MatBoard();
+                highlightList = new List<HighlightBox>();
             }
 
             public void SetSelection(Vector2I start, Vector2I end)
@@ -534,189 +579,162 @@ namespace RichHudFramework.UI
                 Start = start;
                 End = end;
 
-                UpdateHighlight();
+                highlightStale = true;
             }
 
             public void ClearSelection()
             {
-                top = null;
                 Start = -Vector2I.One;
                 End = -Vector2I.One;
+                highlightList.Clear();
             }
 
             public void UpdateSelection()
             {
                 Vector2I caretIndex = caret.Index;
 
-                if (Start == -Vector2I.One)
+                if (text.Count > 0)
                 {
-                    Start = caretIndex;
-                    End = Start;
-
-                    if (Start.Y < text[Start.X].Count - 1)
-                        Start += new Vector2I(0, 1);
-                }
-                else
-                {
-                    // If caret after start
-                    if (caretIndex.X > Start.X || (caretIndex.X == Start.X && caretIndex.Y >= Start.Y))
-                        End = caretIndex;
-                    else
+                    if (Start == -Vector2I.One)
                     {
                         Start = caretIndex;
+                        End = Start;
 
                         if (Start.Y < text[Start.X].Count - 1)
                             Start += new Vector2I(0, 1);
                     }
+                    else
+                    {
+                        // If caret after start
+                        if (caretIndex.X > Start.X || (caretIndex.X == Start.X && caretIndex.Y >= Start.Y))
+                            End = caretIndex;
+                        else
+                        {
+                            Start = caretIndex;
+
+                            if (Start.Y < text[Start.X].Count - 1)
+                                Start += new Vector2I(0, 1);
+                        }
+                    }
+
+                    if (End.Y == -1)
+                        End += new Vector2I(0, 1);
+
+                    highlightStale = true;
                 }
-
-                if (End.Y == -1)
-                    End += new Vector2I(0, 1);
-
-                UpdateHighlight();
+                else
+                {
+                    Start = -Vector2I.One;
+                    End = -Vector2I.One;
+                }
             }
 
+            protected override void Draw()
+            {
+                if (lastTextSize != text.Size)
+                {
+                    lastTextSize = text.Size;
+                    ClearSelection();
+                }
+
+                if (!Empty)
+                {
+                    if (highlightStale || text.VisibleLineRange != lastVisRange)
+                    {
+                        lastVisRange = text.VisibleLineRange;
+                        UpdateHighlight();
+                    }
+
+                    var ptw = HudSpace.PlaneToWorld;
+                    Vector2 tbOffset = text.TextOffset, bounds = new Vector2(-text.Size.X / 2f, text.Size.X / 2f);
+
+                    for (int n = 0; n < highlightList.Count; n++)
+                        highlightList[n].Draw(highlightBoard, Origin, tbOffset, bounds, ref ptw);
+                }
+            }
 
             /// <summary>
             /// Calculates the size and offsets for the boxes highlighting the selection.
             /// </summary>
             private void UpdateHighlight()
             {
-                IRichChar left = text[ClampIndex(Start)], right = text[ClampIndex(End)];
-                Vector2 lastOffset;
+                highlightStale = false;
+                highlightList.Clear();
 
-                text.MoveToChar(Start);
-                lastOffset = text.TextOffset;
-                text.MoveToChar(End);
+                int startLine = Math.Max(Start.X, text.VisibleLineRange.X),
+                    endLine = Math.Min(End.X, text.VisibleLineRange.Y);
 
-                if (text.TextOffset != lastOffset)
+                // Add start and end
+                if (Start.X == End.X && Start.X == startLine)
+                    AddHighlightBox(Start.X, Start.Y, End.Y);
+                else
                 {
-                    caret.SetPosition(End);
-                    top = new HighlightBox() 
-                    { 
+                    for (int line = startLine; line <= endLine; line++)
+                    {
+                        if (line == Start.X)
+                            AddHighlightBox(Start.X, Start.Y, text[Start.X].Count - 1); // Top
+                        else if (line == End.X)
+                            AddHighlightBox(End.X, 0, End.Y); // Bottom
+                        else
+                            AddHighlightBox(line, 0, text[line].Count - 1); // Middle
+                    }
+                }
+
+                if (highlightList.Count > 0 && highlightList.Capacity > 3 * highlightList.Count)
+                    highlightList.TrimExcess();
+            }
+
+            /// <summary>
+            /// Adds an appropriately sized highlight box for the range of characters on the given line.
+            /// Does not take into account text clipping or text offset.
+            /// </summary>
+            private void AddHighlightBox(int line, int startCh, int endCh)
+            {
+                if (text[line].Count > 0)
+                {
+                    if (startCh < 0 || endCh < 0 || startCh >= text[line].Count || endCh >= text[line].Count)
+                        throw new Exception($"Char out of range. Line: {line} StartCh: {startCh}, EndCh: {endCh}, Count: {text[line].Count}");
+
+                    IRichChar left = text[line][startCh], right = text[line][endCh];
+                    var highlightBox = new HighlightBox
+                    {
                         size = new Vector2()
-                        { 
-                            X = Math.Min(text.Size.X, text.TextSize.X),
-                            Y = Math.Min(text.Size.Y, text.TextSize.Y),
+                        {
+                            X = right.Offset.X - left.Offset.X + (left.Size.X + right.Size.X) / 2f,
+                            Y = text[line].Size.Y
+                        },
+                        offset = new Vector2()
+                        {
+                            X = (right.Offset.X + left.Offset.X) / 2f - 2f,
+                            Y = text[line].VerticalOffset - text[line].Size.Y / 2f
                         }
                     };
 
-                    middle = null;
-                    bottom = null;
-                }
-                else
-                {
-                    if (End.X != Start.X)
-                    {
-                        IRichChar firstLineEnd = text[Start.X][text[Start.X].Count - 1],
-                            lastLineStart = text[End.X][0];
+                    if (highlightBox.size.X > 1f)
+                        highlightBox.size.X += 4f;
 
-                        top = GetEndBar(left, firstLineEnd);
-                        bottom = GetEndBar(lastLineStart, right);
-
-                        if (End.X - Start.X > 1)
-                            middle = GetMiddleBar();
-                        else
-                            middle = null;
-                    }
-                    else
-                    {
-                        top = GetEndBar(left, right);
-
-                        middle = null;
-                        bottom = null;
-                    }
+                    highlightList.Add(highlightBox);
                 }
             }
 
-            /// <summary>
-            /// Clamps the given index within the range of existing characters.
-            /// </summary>
-            private Vector2I ClampIndex(Vector2I index)
-            {
-                if (text.Count > 0)
-                {
-                    index.X = MathHelper.Clamp(index.X, 0, text.Count - 1);
-                    index.Y = MathHelper.Clamp(index.Y, 0, text[index.X].Count - 1);
-
-                    return index;
-                }
-                else
-                    return Vector2I.Zero;
-            }
-
-            /// <summary>
-            /// Returns a highlight box that is appropriately sized or positioned to fit between
-            /// two <see cref="IRichChar"/>s.
-            /// </summary>
-            private HighlightBox GetEndBar(IRichChar left, IRichChar right)
-            {
-                HighlightBox box = new HighlightBox();
-                float leftBound = left.Offset.X  - left.Size.X / 2f,
-                    rightBound = right.Offset.X + right.Size.X / 2f;
-
-                box.size = new Vector2()
-                {
-                    X = Math.Min(rightBound - leftBound, text.Size.X),
-                    Y = text[Start.X].Size.Y
-                };
-
-                box.offset = new Vector2()
-                {
-                    X = (rightBound + leftBound) / 2f,
-                    Y = left.Offset.Y
-                } + text.TextOffset;
-
-                return box;
-            }
-
-            /// <summary>
-            /// Returns a highlight box that is sized and positioned to fit between the top and bottom
-            /// highlight boxes.
-            /// </summary>
-            private HighlightBox GetMiddleBar()
-            {
-                HighlightBox box = new HighlightBox();
-                float upperBound = top.offset.Y - top.size.Y / 2f,
-                    lowerBound = bottom.offset.Y + bottom.size.Y / 2f;
-
-                box.size = new Vector2()
-                {
-                    X = Math.Min(text.Size.X, text.TextSize.X),
-                    Y = upperBound - lowerBound
-                };
-
-                box.offset = new Vector2()
-                {
-                    X = 0f,
-                    Y = (upperBound + lowerBound) / 2f
-                };
-
-                return box;
-            }
-
-            protected override void Draw()
-            {
-                if (!Empty)
-                {
-                    top.Draw(highlightBoard, Origin);
-
-                    if (middle != null)
-                        middle.Draw(highlightBoard, Origin);
-
-                    if (bottom != null)
-                        bottom.Draw(highlightBoard, Origin);
-                }
-            }
-
-            private class HighlightBox
+            private struct HighlightBox
             {
                 public Vector2 size, offset;
 
-                public void Draw(MatBoard matBoard, Vector2 origin)
+                public void Draw(MatBoard matBoard, Vector2 origin, Vector2 tbOffset, Vector2 xBounds, ref MatrixD matrix)
                 {
-                    matBoard.Size = size;
-                    matBoard.Draw(origin + offset);
+                    Vector2 drawSize = size, drawOffset = offset + tbOffset;
+
+                    // Determine the visible extents of the highlight box within the bounds of the textboard
+                    float leftBound = Math.Max(drawOffset.X - drawSize.X / 2f, xBounds.X),
+                        rightBound = Math.Min(drawOffset.X + drawSize.X / 2f, xBounds.Y);
+
+                    // Adjust highlight size and offset to compensate for textboard clipping and offset
+                    drawSize.X = Math.Max(0, rightBound - leftBound);
+                    drawOffset.X = (rightBound + leftBound) / 2f;
+
+                    matBoard.Size = drawSize;
+                    matBoard.Draw(origin + drawOffset, ref matrix);
                 }
             }
         }

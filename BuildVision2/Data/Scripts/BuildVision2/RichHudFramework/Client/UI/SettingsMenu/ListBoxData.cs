@@ -10,9 +10,26 @@ namespace RichHudFramework.UI
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
     using CollectionData = MyTuple<Func<int, ApiMemberAccessor>, Func<int>>;
 
-    public class ListBoxData<T> : ReadOnlyCollectionData<EntryData<T>>
+    public class ListBoxData<T> : ReadOnlyApiCollection<EntryData<T>>
     {
-        public EntryData<T> Selection => new EntryData<T>((ApiMemberAccessor)GetOrSetMemberFunc(null, (int)ListBoxAccessors.Selection));
+        public EntryData<T> Selection 
+        {
+            get 
+            {
+                object id = GetOrSetMemberFunc(null, (int)ListBoxAccessors.Selection);
+
+                if (id != null)
+                {
+                    for (int n = 0; n < Count; n++)
+                    {
+                        if (this[n].ID == id)
+                            return this[n];
+                    }
+                }
+
+                return null;
+            }
+        }
 
         private readonly ApiMemberAccessor GetOrSetMemberFunc;
 
@@ -58,7 +75,7 @@ namespace RichHudFramework.UI
             get { return (bool)GetOrSetMemberFunc(null, (int)ListBoxEntryAccessors.Enabled); }
             set { GetOrSetMemberFunc(value, (int)ListBoxEntryAccessors.Enabled); }
         }
-
+        
         /// <summary>
         /// Object paired with the entry
         /// </summary>

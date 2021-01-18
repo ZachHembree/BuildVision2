@@ -33,7 +33,7 @@ namespace RichHudFramework
                 Func<Vector2>, // Size
                 Func<Vector2>, // TextSize
                 Vec2Prop, // FixedSize
-                Action<Vector2> // UpdateText, Draw 
+                Action<Vector2, MatrixD> // UpdateText, Draw 
             >;
 
             public class TextBoard : TextBuilder, ITextBoard
@@ -58,7 +58,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Scale of the text board. Applied after scaling specified in GlyphFormat.
                 /// </summary>
-                public float Scale { get { return ScaleProp.Getter(); } set { ScaleProp.Setter(value); } }
+                public float Scale { get { return GetScaleFunc(); } set { SetScaleAction(value); } }
 
                 /// <summary>
                 /// Size of the text box as rendered
@@ -80,9 +80,14 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
+                /// Full text size including any text outside the visible range.
+                /// </summary>
+                public Vector2I VisibleLineRange => (Vector2I)GetOrSetMemberFunc(null, (int)TextBoardAccessors.VisibleLineRange);
+
+                /// <summary>
                 /// Size of the text box when AutoResize is set to false. Does nothing otherwise.
                 /// </summary>
-                public Vector2 FixedSize { get { return FixedSizeProp.Getter(); } set { FixedSizeProp.Setter(value); } }
+                public Vector2 FixedSize { get { return GetFixedSizeFunc(); } set { SetFixedSizeAction(value); } }
 
                 /// <summary>
                 /// If true, the text board will automatically resize to fit the text.
@@ -102,11 +107,13 @@ namespace RichHudFramework
                     set { GetOrSetMemberFunc(value, (int)TextBoardAccessors.VertAlign); }
                 }
 
-                private readonly PropWrapper<float> ScaleProp;
+                private readonly Func<float> GetScaleFunc;
+                private readonly Action<float> SetScaleAction;
                 private readonly Func<Vector2> GetSizeFunc;
                 private readonly Func<Vector2> GetTextSizeFunc;
-                private readonly PropWrapper<Vector2> FixedSizeProp;
-                private readonly Action<Vector2> DrawAction;
+                private readonly Func<Vector2> GetFixedSizeFunc;
+                private readonly Action<Vector2> SetFixedSizeAction;
+                private readonly Action<Vector2, MatrixD> DrawAction;
 
                 public TextBoard() : this(HudMain.GetTextBoardData())
                 { }
@@ -114,15 +121,34 @@ namespace RichHudFramework
                 private TextBoard(TextBoardMembers members) : base(members.Item1)
                 {
                     Format = GlyphFormat.Black;
-                    ScaleProp = new PropWrapper<float>(members.Item2);
+                    GetScaleFunc = members.Item2.Item1;
+                    SetScaleAction = members.Item2.Item2;
                     GetSizeFunc = members.Item3;
                     GetTextSizeFunc = members.Item4;
-                    FixedSizeProp = new PropWrapper<Vector2>(members.Item5);
+                    GetFixedSizeFunc = members.Item5.Item1;
+                    SetFixedSizeAction = members.Item5.Item2;
                     DrawAction = members.Item6;
                 }
 
+                /// <summary>
+                /// Draws the text board in screen space with an offset given in pixels.
+                /// </summary>
                 public void Draw(Vector2 origin) =>
-                    DrawAction(origin);
+                    DrawAction(origin, HudMain.PixelToWorld);
+
+                /// <summary>
+                /// Draws the text board in world space on the XY plane of the matrix, facing in the +Z
+                /// direction.
+                /// </summary>
+                public void Draw(Vector2 origin, ref MatrixD matrix) =>
+                    DrawAction(origin, matrix);
+
+                /// <summary>
+                /// Draws the text board in world space on the XY plane of the matrix, facing in the +Z
+                /// direction.
+                /// </summary>
+                public void Draw(Vector2 origin, MatrixD matrix) =>
+                    DrawAction(origin, matrix);
 
                 /// <summary>
                 /// Calculates and applies the minimum offset needed to ensure that the character at the specified index

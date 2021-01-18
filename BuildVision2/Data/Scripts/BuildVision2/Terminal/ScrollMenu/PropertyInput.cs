@@ -22,13 +22,13 @@ namespace DarkHelmet.BuildVision2
             {
                 if (MyAPIGateway.Gui.ChatEntryVisible)
                 {
-                    if (waitingForChat && !Selection.value.InputOpen)
+                    if (waitingForChat && !Selection.InputOpen)
                     {
                         OpenProp();
                         waitingForChat = false;
                     }
                 }
-                else if (!waitingForChat && Selection.value.InputOpen)
+                else if (!waitingForChat && Selection.InputOpen)
                     CloseProp();
             }
         }
@@ -54,12 +54,12 @@ namespace DarkHelmet.BuildVision2
             {
                 if (!PropOpen)
                 {
-                    if (!Selection.value.InputOpen)
+                    if (!Selection.InputOpen)
                         waitingForChat = true;
                 }
                 else
                 {
-                    if (Selection.value.InputOpen)
+                    if (Selection.InputOpen)
                         waitingForChat = false;
                 }
             }
@@ -86,8 +86,8 @@ namespace DarkHelmet.BuildVision2
 
                         if (!(Selection.BlockMember is IBlockScrollable))
                         {
-                            Selection.value.TextBoard.Format = selectedText;
-                            Selection.value.Text = "Open chat to continue";
+                            Selection.ValueBoard.Format = selectedText;
+                            Selection.Value = "Open chat to continue";
                             updateSelection = false;
                         }
                         else
@@ -108,9 +108,9 @@ namespace DarkHelmet.BuildVision2
             updateSelection = false;
             waitingForChat = false;
 
-            Selection.value.TextBoard.Format = selectedText;
-            Selection.value.Text = Selection.BlockMember.Value;
-            Selection.value.OpenInput();
+            Selection.ValueBoard.Format = selectedText;
+            Selection.Value = Selection.BlockMember.Value;
+            Selection.OpenInput();
         }
 
         /// <summary>
@@ -128,11 +128,11 @@ namespace DarkHelmet.BuildVision2
             {
                 var textMember = Selection.BlockMember as IBlockTextMember;
 
-                if (textMember != null && Selection.value.InputOpen)
-                    textMember.SetValueText(Selection.value.Text.ToString());
+                if (textMember != null && Selection.InputOpen)
+                    textMember.SetValueText(Selection.Value.ToString());
 
                 waitingForChat = false;
-                Selection.value.CloseInput();
+                Selection.CloseInput();
             }
         }
 

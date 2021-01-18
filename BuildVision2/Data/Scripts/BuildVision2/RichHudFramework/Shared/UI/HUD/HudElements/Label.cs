@@ -68,20 +68,24 @@ namespace RichHudFramework.UI
 
         protected readonly TextBoard _textBoard;
 
-        public Label(IHudParent parent = null) : base(parent)
+        public Label(HudParentBase parent) : base(parent)
         {
             _textBoard = new TextBoard();
         }
 
+        public Label() : this(null)
+        { }
+
         protected override void Layout()
         {
-            if (_textBoard.Scale != _scale)
-                _textBoard.Scale = _scale;
+            if (_textBoard.Scale != Scale)
+                _textBoard.Scale = Scale;
         }
 
         protected override void Draw()
         {
-            _textBoard.Draw(cachedPosition);
+            var matrix = HudSpace.PlaneToWorld;
+            _textBoard.Draw(cachedPosition, ref matrix);
         }
     }
 }

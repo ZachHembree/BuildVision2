@@ -1,42 +1,13 @@
 ﻿using VRageMath;
+using System;
 
 namespace RichHudFramework.UI
 {
     /// <summary>
     /// Clickable scrollbar. Designed to mimic the appearance of the scrollbars used in SE.
     /// </summary>
-    public class ScrollBar : HudElementBase
+    public class ScrollBar : HudElementBase, IClickableElement
     {
-        /// <summary>
-        /// Width of the scrollbar in pixels.
-        /// </summary>
-        public override float Width
-        {
-            get { return slide.Width + Padding.X; }
-            set
-            {
-                if (value > Padding.X)
-                    value -= Padding.X;
-
-                slide.BarWidth = value;
-            }
-        }
-
-        /// <summary>
-        /// Height of the scrollbar in pixels.
-        /// </summary>
-        public override float Height
-        {
-            get { return slide.Height + Padding.Y; }
-            set
-            {
-                if (value > Padding.Y)
-                    value -= Padding.Y;
-
-                slide.BarHeight = value;
-            }
-        }
-
         /// <summary>
         /// Minimum allowable value.
         /// </summary>
@@ -75,9 +46,11 @@ namespace RichHudFramework.UI
         /// </summary>
         public override bool IsMousedOver => slide.IsMousedOver;
 
+        public IMouseInput MouseInput => slide.MouseInput;
+
         public readonly SliderBar slide;
 
-        public ScrollBar(IHudParent parent = null) : base(parent)
+        public ScrollBar(HudParentBase parent) : base(parent)
         {
             slide = new SliderBar(this) 
             { 
@@ -94,18 +67,25 @@ namespace RichHudFramework.UI
 
             Padding = new Vector2(18f, 18f);
             Size = new Vector2(317f, 47f);
+            slide.SliderVisible = false;
         }
+
+        public ScrollBar() : this(null)
+        { }
 
         protected override void Layout()
         {
+            Vector2 size = cachedSize - cachedPadding;
+            slide.BarSize = size;
+
             if (Vertical)
             {
-                slide.SliderWidth = slide.BarWidth;
+                slide.SliderWidth = size.X;
                 slide.SliderVisible = slide.SliderHeight < slide.BarHeight;
             }
             else
             {
-                slide.SliderHeight = slide.BarHeight;
+                slide.SliderHeight = size.Y;
                 slide.SliderVisible = slide.SliderWidth < slide.BarWidth;
             }
         }

@@ -33,17 +33,17 @@ namespace RichHudFramework
                 /// <summary>
                 /// Returns the character at the index specified.
                 /// </summary>
-                public IRichChar this[Vector2I index] => new RichCharData(this, index);
+                public IRichChar this[Vector2I index] => lines[index.X][index.Y];
 
                 /// <summary>
                 /// Returns the line at the index given.
                 /// </summary>
-                public ILine this[int index] => new LineData(this, index);
+                public ILine this[int index] => lines[index];
 
                 /// <summary>
                 /// Returns the current number of lines.
                 /// </summary>
-                public int Count => GetCountFunc();
+                public int Count => GetLineCountFunc();
 
                 /// <summary>
                 /// Default text format. Applied to strings added without any other formatting specified.
@@ -75,22 +75,26 @@ namespace RichHudFramework
 
                 protected readonly Func<object, int, object> GetOrSetMemberFunc;
                 private readonly Func<int, int, object> GetLineMemberFunc;
-                private readonly Func<int> GetCountFunc;
+                private readonly Func<int> GetLineCountFunc;
                 private readonly Func<Vector2I, int, object> GetCharMemberFunc;
                 private readonly Action<IList<RichStringMembers>, Vector2I> InsertTextAction;
                 private readonly Action<IList<RichStringMembers>> SetTextAction;
                 private readonly Action ClearAction;
 
+                private readonly ReadOnlyApiCollection<ILine> lines;
+
                 public TextBuilder(TextBuilderMembers data)
                 {
                     GetLineMemberFunc = data.Item1.Item1;
-                    GetCountFunc = data.Item1.Item2;
+                    GetLineCountFunc = data.Item1.Item2;
 
                     GetCharMemberFunc = data.Item2;
                     GetOrSetMemberFunc = data.Item3;
                     InsertTextAction = data.Item4;
                     SetTextAction = data.Item5;
                     ClearAction = data.Item6;
+
+                    lines = new ReadOnlyApiCollection<ILine>(x => new LineData(this, x), GetLineCountFunc);
                 }
 
                 /// <summary>
@@ -170,17 +174,25 @@ namespace RichHudFramework
 
                 protected class LineData : ILine
                 {
-                    public IRichChar this[int ch] => new RichCharData(parent, new Vector2I(index, ch));
+                    public IRichChar this[int ch] => characters[ch];
                     public int Count => (int)parent.GetLineMemberFunc(index, (int)LineAccessors.Count);
                     public Vector2 Size => (Vector2)parent.GetLineMemberFunc(index, (int)LineAccessors.Size);
+                    public float VerticalOffset => (float)parent.GetLineMemberFunc(index, (int)LineAccessors.VerticalOffset);
 
                     private readonly TextBuilder parent;
                     private readonly int index;
+                    private readonly ReadOnlyApiCollection<IRichChar> characters;
 
                     public LineData(TextBuilder parent, int index)
                     {
                         this.parent = parent;
                         this.index = index;
+
+                        characters = new ReadOnlyApiCollection<IRichChar>
+                        (
+                            x => new RichCharData(parent, new Vector2I(index, x)),
+                            () => (int)parent.GetLineMemberFunc(index, (int)LineAccessors.Count)
+                        );
                     }
                 }
 

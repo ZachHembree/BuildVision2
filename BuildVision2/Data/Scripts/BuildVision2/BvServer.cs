@@ -132,7 +132,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (clientOutgoing.Count > 0)
             {
-                ExceptionHandler.WriteLineAndConsole($"Sending {clientOutgoing.Count} message(s) to server.");
+                ExceptionHandler.WriteToConsole($"Sending {clientOutgoing.Count} message(s) to server.");
 
                 byte[] protoMessages;
                 KnownException exception = Utils.ProtoBuf.TrySerialize(clientOutgoing, out protoMessages);
@@ -140,7 +140,7 @@ namespace DarkHelmet.BuildVision2
                 if (exception == null)
                     MyAPIGateway.Multiplayer.SendMessageToServer(serverHandlerID, protoMessages);
                 else
-                    ExceptionHandler.WriteLineAndConsole($"Unable to serialize server message: {exception}");
+                    ExceptionHandler.WriteToConsole($"Unable to serialize server message: {exception}");
 
                 clientOutgoing.Clear();
             }
@@ -168,7 +168,7 @@ namespace DarkHelmet.BuildVision2
             // Process successfully parsed client messages
             if (errCount < clientParsed.Count)
             {
-                ExceptionHandler.WriteLineAndConsole($"Recieved {clientParsed.Count} message(s) from client(s).");
+                ExceptionHandler.WriteToConsole($"Recieved {clientParsed.Count} message(s) from client(s).");
 
                 for (int n = 0; n < clientParsed.Count; n++)
                 {
@@ -200,7 +200,7 @@ namespace DarkHelmet.BuildVision2
             }
 
             if (errCount > 0)
-                ExceptionHandler.WriteLineAndConsole($"Unable to parse {errCount} of {serverIncoming.Count} client message(s).");
+                ExceptionHandler.WriteToConsole($"Unable to parse {errCount} of {serverIncoming.Count} client message(s).");
 
             serverIncoming.Clear();
             clientParsed.Clear();

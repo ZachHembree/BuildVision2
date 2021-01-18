@@ -1,230 +1,194 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System;
 using VRage;
 using VRageMath;
 using BindDefinitionData = VRage.MyTuple<string, string[]>;
-using BindMembers = VRage.MyTuple<
-    System.Func<object, int, object>, // GetOrSetMember
-    System.Func<bool>, // IsPressed
-    System.Func<bool>, // IsPressedAndHeld
-    System.Func<bool>, // IsNewPressed
-    System.Func<bool> // IsReleased
->;
-using ControlMembers = VRage.MyTuple<string, int, System.Func<bool>, bool>;
-using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
-    using BindGroupMembers = MyTuple<
-        string, // Name                
-        BindMembers[], // Binds
-        Action, // HandleInput
-        ApiMemberAccessor // GetOrSetMember
-    >;
-
     namespace UI.Client
     {
         public sealed partial class BindManager
         {
-            private partial class BindGroup : IBindGroup
+            // <summary>
+            /// A collection of unique keybinds.
+            /// </summary>
+            private partial class BindGroup : ReadOnlyApiCollection<IBind>, IBindGroup
             {
-                public string Name { get; }
-                public IBind this[int index] => binds[index];
-                public int Count => binds.Count;
-                public object ID => GetOrSetMemberFunc(null, (int)BindGroupAccessors.ID);
-
-                private readonly List<IBind> binds;
-                private readonly Action HandleInputAction;
-                private readonly ApiMemberAccessor GetOrSetMemberFunc;
-
-                public BindGroup(BindGroupMembers groupData)
-                {
-                    binds = new List<IBind>();
-                    AddBinds(groupData.Item2);
-
-                    Name = groupData.Item1;
-                    HandleInputAction = groupData.Item3;
-                    GetOrSetMemberFunc = groupData.Item4;
-                }
-
-                private void AddBinds(BindMembers[] data)
-                {
-                    for (int n = 0; n < data.Length; n++)
-                        binds.Add(new Bind(data[n]));
-                }
+                /// <summary>
+                /// Bind group name
+                /// </summary>
+                public string Name => _instance.GetOrSetGroupMemberFunc(Index, null, (int)BindGroupAccessors.Name) as string;
 
                 /// <summary>
-                /// Updates input state
+                /// Index of the bind group in its associated client
                 /// </summary>
-                public void HandleInput() =>
-                    HandleInputAction();
+                public int Index { get; }
 
                 /// <summary>
-                /// Returns the bind with the name given, if it exists.
+                /// Unique identifer
                 /// </summary>
-                public IBind GetBind(string name)
+                public object ID => _instance.GetOrSetGroupMemberFunc(Index, null, (int)BindGroupAccessors.ID);
+
+                public BindGroup(int index) 
+                    : base(x => new Bind(new Vector2I(index, x)), () => _instance.GetBindCountFunc(index))
                 {
-                    name = name.ToLower();
-                    return binds.Find(x => x.Name.ToLower() == name);
+                    Index = index;
                 }
 
                 /// <summary>
                 /// Returns true if the group contains a bind with the given name.
                 /// </summary>
                 public bool DoesBindExist(string name) =>
-                    GetBind(name) != null;
+                    (bool)_instance.GetOrSetGroupMemberFunc(Index, name, (int)BindGroupAccessors.DoesBindExist);
 
                 /// <summary>
                 /// Returns true if the given list of controls conflicts with any existing binds.
                 /// </summary>
-                public bool DoesComboConflict(IList<IControl> newCombo, IBind exception = null)
+                public bool DoesComboConflict(IReadOnlyList<IControl> newCombo, IBind exception = null)
                 {
-                    int[] indices = new int[newCombo.Count];
+                    var indices = new int[newCombo.Count];
 
                     for (int n = 0; n < newCombo.Count; n++)
                         indices[n] = newCombo[n].Index;
 
-                    var args = new MyTuple<IList<int>, int>(indices, exception.Index);
-                    return (bool)GetOrSetMemberFunc(args, (int)BindGroupAccessors.DoesComboConflict);
+                    var data = new MyTuple<IReadOnlyList<int>, int>(indices, exception?.Index ?? -1);
+                    return (bool)_instance.GetOrSetGroupMemberFunc(Index, data, (int)BindGroupAccessors.DoesComboConflict);
                 }
+
+                /// <summary>
+                /// Determines if given combo is equivalent to any existing binds.
+                /// </summary>
+                public bool DoesComboConflict(IReadOnlyList<int> newCombo, int exception = -1)
+                {
+                    var data = new MyTuple<IReadOnlyList<int>, int>(newCombo, exception);
+                    return (bool)_instance.GetOrSetGroupMemberFunc(Index, data, (int)BindGroupAccessors.DoesComboConflict);
+                }
+
+                /// <summary>
+                /// Replaces current bind combos with combos based on the given <see cref="BindDefinition"/>[]. Does not register new binds.
+                /// </summary>
+                public bool TryLoadBindData(IReadOnlyList<BindDefinitionData> bindData) =>
+                    (bool)_instance.GetOrSetGroupMemberFunc(Index, bindData, (int)BindGroupAccessors.TryLoadBindData);
 
                 /// <summary>
                 /// Attempts to load bind combinations from bind data. Will not register new binds.
                 /// </summary>
-                public bool TryLoadBindData(IList<BindDefinition> bindData)
+                public bool TryLoadBindData(IReadOnlyList<BindDefinition> bindData)
                 {
-                    var newBinds = GetOrSetMemberFunc(GetBindDefinitionData(bindData), (int)BindGroupAccessors.TryLoadBindData) as BindMembers[];
-
-                    if (newBinds != null)
-                    {
-                        binds.Clear();
-                        AddBinds(newBinds);
-                        return true;
-                    }
-                    else
-                        return false;
-                }
-
-                /// <summary>
-                /// Converts a list of BindDefinitions into an array of BindDefinitionData to allow bind registration via the API
-                /// </summary>
-                private static BindDefinitionData[] GetBindDefinitionData(IList<BindDefinition> binds)
-                {
-                    BindDefinitionData[] data = new BindDefinitionData[binds.Count];
-
-                    for (int n = 0; n < binds.Count; n++)
-                        data[n] = binds[n];
-
-                    return data;
-                }
-
-                /// <summary>
-                /// Attempts to register a set of binds with the given names.
-                /// </summary>
-                public void RegisterBinds(IEnumerable<MyTuple<string, IList<int>>> bindData)
-                {
-                    foreach (var bind in bindData)
-                        AddBind(bind.Item1, bind.Item2);
-                }
-
-                /// <summary>
-                /// Registers and loads bind combinations from BindDefinitions.
-                /// </summary>
-                public void RegisterBinds(IList<BindDefinition> bindData)
-                {
-                    IBind newBind;
+                    var defData = new BindDefinitionData[bindData.Count];
 
                     for (int n = 0; n < bindData.Count; n++)
-                    {
-                        TryRegisterBind(bindData[n].name, out newBind, bindData[n].controlNames);
-                    }
+                        defData[n] = new BindDefinitionData(bindData[n].name, bindData[n].controlNames);
+
+                    return (bool)_instance.GetOrSetGroupMemberFunc(Index, defData, (int)BindGroupAccessors.TryLoadBindData);
                 }
 
                 /// <summary>
                 /// Registers a list of binds using the names given.
                 /// </summary>
-                public void RegisterBinds(IList<string> bindNames)
-                {
-                    IBind newBind;
+                public void RegisterBinds(IReadOnlyList<string> bindNames) =>
+                    _instance.GetOrSetGroupMemberFunc(Index, bindNames, (int)BindGroupAccessors.RegisterBindNames);
 
-                    for (int n = 0; n < bindNames.Count; n++)
+                /// <summary>
+                /// Attempts to register a set of binds with the given names.
+                /// </summary>
+                public void RegisterBinds(BindGroupInitializer bindData)
+                {
+                    foreach (var bind in bindData)
+                        _instance.GetOrSetGroupMemberFunc(Index, bind, (int)BindGroupAccessors.AddBindWithIndices);
+                }
+
+                /// <summary>
+                /// Registers a list of binds using the names given paired with associated control indices.
+                /// </summary>
+                public void RegisterBinds(IReadOnlyList<MyTuple<string, IReadOnlyList<int>>> bindData) =>
+                    _instance.GetOrSetGroupMemberFunc(Index, bindData, (int)BindGroupAccessors.RegisterBindIndices);
+
+                /// <summary>
+                /// Registers and loads bind combinations from BindDefinitions.
+                /// </summary>
+                public void RegisterBinds(IReadOnlyList<BindDefinition> bindData)
+                {
+                    var defData = new BindDefinitionData[bindData.Count];
+
+                    for (int n = 0; n < bindData.Count; n++)
+                        defData[n] = new BindDefinitionData(bindData[n].name, bindData[n].controlNames);
+
+                    _instance.GetOrSetGroupMemberFunc(Index, defData, (int)BindGroupAccessors.RegisterBindDefinitions);
+                }
+
+                /// <summary>
+                /// Registers and loads bind combinations from BindDefinitionData.
+                /// </summary>
+                public void RegisterBinds(IReadOnlyList<BindDefinitionData> bindData) =>
+                    _instance.GetOrSetGroupMemberFunc(Index, bindData, (int)BindGroupAccessors.RegisterBindDefinitions);
+
+                /// <summary>
+                /// Returns the bind with the name given, if it exists.
+                /// </summary>
+                public IBind GetBind(string name)
+                {
+                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, name, (int)BindGroupAccessors.GetBindFromName);
+                    return index.Y != -1 ? wrapperList[index.Y] : null;
+                }
+
+                /// <summary>
+                /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
+                /// </summary>
+                public IBind AddBind(string bindName, IReadOnlyList<int> combo)
+                {
+                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, combo), (int)BindGroupAccessors.AddBindWithIndices);
+                    return wrapperList[index.Y];
+                }
+
+                /// <summary>
+                /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
+                /// </summary>
+                public IBind AddBind(string bindName, IReadOnlyList<string> combo)
+                {
+                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<string>>(bindName, combo), (int)BindGroupAccessors.AddBindWithNames);
+                    return wrapperList[index.Y];
+                }
+
+                /// <summary>
+                /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
+                /// </summary>
+                public IBind AddBind(string bindName, IReadOnlyList<ControlData> combo = null)
+                {
+                    var indices = new int[combo.Count];
+
+                    for (int n = 0; n < combo.Count; n++)
+                        indices[n] = combo[n].index;
+
+                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, indices), (int)BindGroupAccessors.AddBindWithIndices);
+                    return wrapperList[index.Y];
+                }
+
+                /// <summary>
+                /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
+                /// </summary>
+                public IBind AddBind(string bindName, IReadOnlyList<IControl> combo = null)
+                {
+                    var indices = new int[combo.Count];
+
+                    for (int n = 0; n < combo.Count; n++)
+                        indices[n] = combo[n].Index;
+
+                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, indices), (int)BindGroupAccessors.AddBindWithIndices);
+                    return wrapperList[index.Y];
+                }
+
+                /// <summary>
+                /// Tries to register an empty bind using the given name.
+                /// </summary>
+                public bool TryRegisterBind(string bindName, out IBind newBind)
+                {
+                    int index = (int)_instance.GetOrSetGroupMemberFunc(Index, bindName, (int)BindGroupAccessors.TryRegisterBindName);
+
+                    if (index != -1)
                     {
-                        TryRegisterBind(bindNames[n], out newBind);
-                    }
-                }
-
-                /// <summary>
-                /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
-                /// </summary>
-                public IBind AddBind(string bindName, IList<string> combo)
-                {
-                    IBind bind;
-
-                    if (TryRegisterBind(bindName, out bind, combo))
-                        return bind;
-                    else
-                        throw new Exception($"Bind {Name}.{bindName} is invalid. Bind names and key combinations must be unique.");
-                }
-
-                /// <summary>
-                /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
-                /// </summary>
-                public IBind AddBind(string bindName, IList<ControlData> combo = null) =>
-                    AddBind(bindName, (combo != null) ? GetComboIndices(combo) : null);
-
-                /// <summary>
-                /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
-                /// </summary>
-                public IBind AddBind(string bindName, IList<IControl> combo = null) =>
-                    AddBind(bindName, (combo != null) ? GetComboIndices(combo) : null);
-
-                /// <summary>
-                /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
-                /// </summary>
-                public IBind AddBind(string bindName, IList<int> combo)
-                {
-                    IBind bind;
-
-                    if (TryRegisterBind(bindName, combo, out bind))
-                        return bind;
-                    else
-                        throw new Exception($"Bind {Name}.{bindName} is invalid. Bind names and key combinations must be unique.");
-                }
-
-                /// <summary>
-                /// Tries to register a bind using the given name and the given key combo. Shows an error message in chat upon failure.
-                /// </summary>
-                public bool TryRegisterBind(string bindName, out IBind newBind, IList<string> combo = null)
-                {
-                    var args = new MyTuple<string, IList<string>, bool>(bindName, combo, false);
-                    var bindData = (BindMembers?)GetOrSetMemberFunc(args, (int)BindGroupAccessors.TryRegisterBind2);
-
-                    return TryRegisterBind(bindData, out newBind);
-                }
-
-                /// <summary>
-                /// Tries to register a bind using the given name and the given key combo. Shows an error message in chat upon failure.
-                /// </summary>
-                public bool TryRegisterBind(string bindName, IList<IControl> combo, out IBind newBind) =>
-                    TryRegisterBind(bindName, GetComboIndices(combo), out newBind);
-
-                /// <summary>
-                /// Tries to register a bind using the given name and the given key combo. Shows an error message in chat upon failure.
-                /// </summary>
-                public bool TryRegisterBind(string bindName, IList<int> combo, out IBind newBind)
-                {
-                    var args = new MyTuple<string, IList<int>, bool>(bindName, combo, false);
-                    BindMembers? bindData = (BindMembers?)GetOrSetMemberFunc(args, (int)BindGroupAccessors.TryRegisterBind);
-
-                    return TryRegisterBind(bindData, out newBind);
-                }
-
-                private bool TryRegisterBind(BindMembers? bindData, out IBind newBind)
-                {
-                    if (bindData != null)
-                    {
-                        newBind = new Bind(bindData.Value);
-                        binds.Add(newBind);
+                        newBind = wrapperList[index];
                         return true;
                     }
                     else
@@ -235,50 +199,120 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
-                /// Retrieves the set of key binds as an array of BindDefinitions.
+                /// Tries to register a bind using the given name and the given key combo.
+                /// </summary>
+                public bool TryRegisterBind(string bindName, IReadOnlyList<int> combo, out IBind newBind)
+                {
+                    int index = (int)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, combo), (int)BindGroupAccessors.TryRegisterBindWithIndices);
+
+                    if (index != -1)
+                    {
+                        newBind = wrapperList[index];
+                        return true;
+                    }
+                    else
+                    {
+                        newBind = null;
+                        return false;
+                    }
+                }
+
+                /// <summary>
+                /// Tries to register a bind using the given name and the given key combo.
+                /// </summary>
+                public bool TryRegisterBind(string bindName, out IBind newBind, IReadOnlyList<int> combo)
+                {
+                    int index = (int)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, combo), (int)BindGroupAccessors.TryRegisterBindWithIndices);
+
+                    if (index != -1)
+                    {
+                        newBind = wrapperList[index];
+                        return true;
+                    }
+                    else
+                    {
+                        newBind = null;
+                        return false;
+                    }
+                }
+
+                /// <summary>
+                /// Tries to register a bind using the given name and the given key combo.
+                /// </summary>
+                public bool TryRegisterBind(string bindName, out IBind bind, IReadOnlyList<string> combo)
+                {
+                    int index = (int)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<string>>(bindName, combo), (int)BindGroupAccessors.TryRegisterBindWithNames);
+
+                    if (index != -1)
+                    {
+                        bind = wrapperList[index];
+                        return true;
+                    }
+                    else
+                    {
+                        bind = null;
+                        return false;
+                    }
+                }
+
+                /// <summary>
+                /// Tries to register a bind using the given name and the given key combo.
+                /// </summary>
+                public bool TryRegisterBind(string bindName, out IBind newBind, IReadOnlyList<IControl> combo)
+                {
+                    var indices = new int[combo.Count];
+
+                    for (int n = 0; n < combo.Count; n++)
+                        indices[n] = combo[n].Index;
+
+                    int index = (int)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, indices), (int)BindGroupAccessors.TryRegisterBindWithIndices);
+
+                    if (index != -1)
+                    {
+                        newBind = wrapperList[index];
+                        return true;
+                    }
+                    else
+                    {
+                        newBind = null;
+                        return false;
+                    }
+                }
+
+                /// <summary>
+                /// Retrieves the set of key binds as an array of BindDefinition
                 /// </summary>
                 public BindDefinition[] GetBindDefinitions()
                 {
-                    var data = GetOrSetMemberFunc(null, (int)BindGroupAccessors.GetBindData) as BindDefinitionData[];
-                    BindDefinition[] definitions = new BindDefinition[data.Length];
+                    var bindData = _instance.GetOrSetGroupMemberFunc(Index, null, (int)BindGroupAccessors.GetBindData) as BindDefinitionData[];
+                    var definitions = new BindDefinition[bindData.Length];
 
-                    for (int n = 0; n < data.Length; n++)
-                        definitions[n] = data[n];
+                    for (int n = 0; n < bindData.Length; n++)
+                        definitions[n] = new BindDefinition(bindData[n].Item1, bindData[n].Item2);
 
                     return definitions;
                 }
 
                 /// <summary>
-                /// Clears all event subscribers from binds.
+                /// Retrieves the set of key binds as an array of BindDefinition
                 /// </summary>
-                private void ClearSubscribers() =>
-                    GetOrSetMemberFunc(null, (int)BindGroupAccessors.ClearSubscribers);
+                public BindDefinitionData[] GetBindData() =>
+                    _instance.GetOrSetGroupMemberFunc(Index, null, (int)BindGroupAccessors.GetBindData) as BindDefinitionData[];
 
                 /// <summary>
-                /// Builds a collection Bind API accessors for all cached keybinds.
+                /// Clears bind subscribers for the entire group
                 /// </summary>
-                private BindMembers[] GetBindMembers()
+                public void ClearSubscribers() =>
+                    _instance.GetOrSetGroupMemberFunc(Index, null, (int)BindGroupAccessors.ClearSubscribers);
+
+                public override bool Equals(object obj)
                 {
-                    BindMembers[] bindData = new BindMembers[binds.Count];
-
-                    for (int n = 0; n < binds.Count; n++)
-                        bindData[n] = binds[n].GetApiData();
-
-                    return bindData;
+                    return Index.Equals(obj);
                 }
 
-                /// <summary>
-                /// Retreives information needed to access the BindGroup via the API.
-                /// </summary>
-                public BindGroupMembers GetApiData()
+                public override int GetHashCode()
                 {
-                    return new BindGroupMembers()
-                    {
-                        Item1 = Name,
-                        Item2 = GetBindMembers(),
-                        Item3 = HandleInputAction,
-                        Item4 = GetOrSetMemberFunc,
-                    };
+                    return Index.GetHashCode();
                 }
             }
         }

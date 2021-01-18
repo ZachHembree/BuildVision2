@@ -71,38 +71,6 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
-                /// Distance of the material from the MatBoard's center.
-                /// </summary>
-                public Vector2 MatOffset
-                {
-                    get { return matFrame.offset; }
-                    set
-                    {
-                        if (value != matFrame.offset)
-                        {
-                            updateMatFit = true;
-                            matFrame.offset = value;
-                        }
-                    }
-                }
-
-                /// <summary>
-                /// Material scale.
-                /// </summary>
-                public float MatScale
-                {
-                    get { return matFrame.scale; }
-                    set
-                    {
-                        if (value != matFrame.scale)
-                        {
-                            updateMatFit = true;
-                            matFrame.scale = value;
-                        }
-                    }
-                }
-
-                /// <summary>
                 /// Texture applied to the billboard.
                 /// </summary>
                 public Material Material
@@ -140,18 +108,17 @@ namespace RichHudFramework
                 private bool updateMatFit;
 
                 private QuadBoard minBoard;
-                private MaterialFrame matFrame;
+                private readonly MaterialFrame matFrame;
 
                 /// <summary>
                 /// Initializes a new matboard with a size of 0 and a blank, white material.
                 /// </summary>
                 public MatBoard()
                 {
-                    minBoard = new QuadBoard();
                     matFrame = new MaterialFrame();
+                    minBoard = QuadBoard.Default;
 
-                    Material = Material.Default;
-                    Color = Color.White;
+                    color = Color.White;
                     updateMatFit = true;
                 }
 
@@ -160,9 +127,9 @@ namespace RichHudFramework
                 /// </summary>
                 public void Draw(ref MyQuadD quad)
                 {
-                    if (updateMatFit)
+                    if (updateMatFit && matFrame.material != Material.Default)
                     {
-                        minBoard.matFit = matFrame.GetMaterialAlignment(size);
+                        minBoard.matFit = matFrame.GetMaterialAlignment(size.X / size.Y);
                         updateMatFit = false;
                     }
 
@@ -170,14 +137,14 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
-                /// Draws a billboard in world space facing the +Z direction of the matrix given. Units in meters.
-                /// Dont forget to compensate for perspective scaling!
+                /// Draws a billboard in world space facing the +Z direction of the matrix given. Units in meters,
+                /// matrix transform notwithstanding. Dont forget to compensate for perspective scaling!
                 /// </summary>
                 public void Draw(Vector3D offset, ref MatrixD matrix)
                 {
-                    if (updateMatFit)
+                    if (updateMatFit && matFrame.material != Material.Default)
                     {
-                        minBoard.matFit = matFrame.GetMaterialAlignment(size);
+                        minBoard.matFit = matFrame.GetMaterialAlignment(size.X / size.Y);
                         updateMatFit = false;
                     }
 
@@ -185,14 +152,14 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
-                /// Draws a billboard in world space facing the +Z direction of the matrix given. Units in meters.
-                /// Dont forget to compensate for perspective scaling!
+                /// Draws a billboard in world space facing the +Z direction of the matrix given. Units in meters,
+                /// matrix transform notwithstanding. Dont forget to compensate for perspective scaling!
                 /// </summary>
                 public void Draw(Vector2 offset, ref MatrixD matrix)
                 {
-                    if (updateMatFit)
+                    if (updateMatFit && matFrame.material != Material.Default)
                     {
-                        minBoard.matFit = matFrame.GetMaterialAlignment(size);
+                        minBoard.matFit = matFrame.GetMaterialAlignment(size.X / size.Y);
                         updateMatFit = false;
                     }
 
@@ -204,9 +171,9 @@ namespace RichHudFramework
                 /// </summary>
                 public void Draw(Vector2 origin)
                 {
-                    if (updateMatFit)
+                    if (updateMatFit && matFrame.material != Material.Default)
                     {
-                        minBoard.matFit = matFrame.GetMaterialAlignment(size);
+                        minBoard.matFit = matFrame.GetMaterialAlignment(size.X / size.Y);
                         updateMatFit = false;
                     }
 

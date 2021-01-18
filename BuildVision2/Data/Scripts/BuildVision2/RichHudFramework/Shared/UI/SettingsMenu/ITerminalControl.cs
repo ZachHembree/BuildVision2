@@ -19,9 +19,9 @@ namespace RichHudFramework
         public enum TerminalControlAccessors : int
         {
             /// <summary>
-            /// MyTuple<bool, Action>
+            /// Action
             /// </summary>
-            OnSettingChanged = 1,
+            GetOrSetControlCallback = 1,
 
             /// <summary>
             /// string
@@ -52,7 +52,7 @@ namespace RichHudFramework
             /// <summary>
             /// Raised whenever the control's value is changed.
             /// </summary>
-            event Action OnControlChanged;
+            event EventHandler OnControlChanged;
 
             /// <summary>
             /// Name of the control as it appears in the menu.
@@ -69,6 +69,8 @@ namespace RichHudFramework
             /// </summary>
             object ID { get; }
 
+            EventHandler ControlChangedHandler { get; set; }
+
             /// <summary>
             /// Retrieves data used by the Framework API
             /// </summary>
@@ -76,20 +78,9 @@ namespace RichHudFramework
         }
 
         /// <summary>
-        /// Clickable control used in conjunction by the settings menu.
-        /// </summary>
-        public interface ITerminalControl<T> : ITerminalControl where T : ITerminalControl<T>
-        {
-            /// <summary>
-            /// Invoked when the control is changed. Passes in a reference to the control.
-            /// </summary>
-            Action<T> ControlChangedAction { get; set; }
-        }
-
-        /// <summary>
         /// Settings menu control associated with a value of a given type.
         /// </summary>
-        public interface ITerminalValue<TValue, TCon> : ITerminalControl<TCon> where TCon : ITerminalControl<TCon>
+        public interface ITerminalValue<TValue> : ITerminalControl
         {
             /// <summary>
             /// Value associated with the control.

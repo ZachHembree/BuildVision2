@@ -54,7 +54,7 @@ namespace DarkHelmet.BuildVision2
             if (ExceptionHandler.IsClient)
             {
                 CanUpdate = false;
-                RichHudClient.Init(ExceptionHandler.ModName, HudInit, Reload);
+                RichHudClient.Init(ExceptionHandler.ModName, HudInit, OnHudReset);
             }
         }
 
@@ -64,12 +64,14 @@ namespace DarkHelmet.BuildVision2
             {
                 CanUpdate = true;
 
-                BvConfig.Load(true);
+                BvConfig.Load();
                 AddChatCommands();
                 InitSettingsMenu();
                 PropertiesMenu.Init();
             }
         }
+
+        private void OnHudReset() { }
 
         public override void BeforeClose()
         {
@@ -77,15 +79,13 @@ namespace DarkHelmet.BuildVision2
             {
                 BvConfig.Save();
 
-                if (!ExceptionHandler.Unloading)
-                    RichHudClient.Reset();
-                else
+                if (ExceptionHandler.Unloading)
                     Instance = null;
             }
         }
     }
 
-    public abstract class BvComponentBase : ModBase.ComponentBase
+    public abstract class BvComponentBase : ModBase.ModuleBase
     {
         public BvComponentBase(bool runOnServer, bool runOnClient) : base(runOnServer, runOnClient, BvMain.Instance)
         { }

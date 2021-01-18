@@ -1,6 +1,7 @@
 ﻿using System;
 using VRageMath;
 using RichHudFramework.UI.Rendering;
+using RichHudFramework.Internal;
 
 namespace RichHudFramework.UI
 {
@@ -10,7 +11,7 @@ namespace RichHudFramework.UI
     /// <summary>
     /// Base type for HUD windows. Supports dragging/resizing like pretty much every other window ever.
     /// </summary>
-    public abstract class WindowBase : HudElementBase
+    public abstract class WindowBase : HudElementBase, IClickableElement
     {
         public RichText HeaderText { get { return Header.GetText(); } set { Header.SetText(value); } }
 
@@ -32,25 +33,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Determines the color of the body of the window.
         /// </summary>
-        public virtual Color BodyColor { get { return body.Color; } set { body.Color = value; } }
-
-        /// <summary>
-        /// Position of the window relative to its origin. Clamped to prevent the window from moving
-        /// off screen.
-        /// </summary>
-        public override Vector2 Offset
-        {
-            set
-            {
-                Vector2 bounds = new Vector2(HudMain.ScreenWidth, HudMain.ScreenHeight) / 2f,
-                    newPos = value + Origin;
-
-                newPos.X = MathHelper.Clamp(newPos.X, -bounds.X, bounds.X);
-                newPos.Y = MathHelper.Clamp(newPos.Y, -bounds.Y, bounds.Y);
-
-                base.Offset = newPos - Origin;
-            }
-        }
+        public virtual Color BodyColor { get { return bodyBg.Color; } set { bodyBg.Color = value; } }
 
         /// <summary>
         /// Minimum allowable size for the window.
@@ -68,6 +51,21 @@ namespace RichHudFramework.UI
         public bool CanDrag { get; set; }
 
         /// <summary>
+        /// Returns true if the window has focus and is accepting input
+        /// </summary>
+        public bool WindowActive { get; protected set; }
+
+        /// <summary>
+        /// Returns true if the cursor is over the window
+        /// </summary>
+        public override bool IsMousedOver => resizeInput.IsMousedOver;
+
+        /// <summary>
+        /// Mouse input element for the window
+        /// </summary>
+        public IMouseInput MouseInput => resizeInput;
+
+        /// <summary>
         /// Window header element.
         /// </summary>
         public readonly LabelBoxButton header;
@@ -75,105 +73,102 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Textured background. Body of the window.
         /// </summary>
-        public readonly TexturedBox body;
+        public readonly HudElementBase body;
 
         /// <summary>
         /// Window border.
         /// </summary>
         public readonly BorderBox border;
 
-        private readonly MouseInputElement resizeLeft, resizeTop, resizeRight, resizeBottom;
-        protected float cornerSize = 8f;
+        private readonly MouseInputElement inputInner, resizeInput;
+        private readonly TexturedBox bodyBg;
+
+        protected readonly Action<byte> LoseFocusCallback;
+        protected float cornerSize = 16f;
         protected bool canMoveWindow, canResize;
         protected int resizeDir;
         protected Vector2 cursorOffset, minimumSize;
 
-        public WindowBase(IHudParent parent) : base(parent)
+        public WindowBase(HudParentBase parent) : base(parent)
         {
-            CaptureCursor = true;
-            ShareCursor = false;
-            AllowResizing = true;
-            CanDrag = true;
-            MinimumSize = new Vector2(200f, 200f);
-
             header = new LabelBoxButton(this)
             {
                 DimAlignment = DimAlignments.Width,
+                Height = 32f,
                 ParentAlignment = ParentAlignments.Top | ParentAlignments.Inner,
+                ZOffset = 1,
+                Format = GlyphFormat.White.WithAlignment(TextAlignment.Center),
                 HighlightEnabled = false,
-                Height = 24f,
-                AutoResize = false
+                AutoResize = false,
             };
 
-            body = new TexturedBox(header)
+            body = new EmptyHudElement(header)
             {
                 DimAlignment = DimAlignments.Width,
                 ParentAlignment = ParentAlignments.Bottom,
             };
 
+            bodyBg = new TexturedBox(body)
+            {
+                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                ZOffset = -2
+            };
+
             border = new BorderBox(this)
-            { Thickness = 1f, DimAlignment = DimAlignments.Both, };
-
-            resizeBottom = new MouseInputElement(this) 
-            { Height = 1f, DimAlignment = DimAlignments.Width, ParentAlignment = ParentAlignments.Bottom };
-
-            resizeTop = new MouseInputElement(this) 
-            { Height = 1f, DimAlignment = DimAlignments.Width, ParentAlignment = ParentAlignments.Top };
-
-            resizeLeft = new MouseInputElement(this) 
-            { Width = 1f, DimAlignment = DimAlignments.Height, ParentAlignment = ParentAlignments.Left };
-
-            resizeRight = new MouseInputElement(this) 
-            { Width = 1f, DimAlignment = DimAlignments.Height, ParentAlignment = ParentAlignments.Right };
-
-            header.MouseInput.OnLeftClick += HeaderClicked;
-
-            resizeBottom.OnLeftClick += ResizeClicked;
-            resizeTop.OnLeftClick += ResizeClicked;
-            resizeLeft.OnLeftClick += ResizeClicked;
-            resizeRight.OnLeftClick += ResizeClicked;
-        }
-
-        protected virtual void HeaderClicked()
-        {
-            if (CanDrag)
             {
-                canMoveWindow = true;
-                cursorOffset = (Origin + Offset) - HudMain.Cursor.Origin;
-            }
-        }
+                ZOffset = 1,
+                Thickness = 1f,
+                DimAlignment = DimAlignments.Both,
+            };
 
-        protected virtual void ResizeClicked()
-        {
-            if (AllowResizing)
+            resizeInput = new MouseInputElement(this)
             {
-                Vector2 pos = Origin + Offset;
-                canResize = true;
-                resizeDir = 0;
+                ZOffset = sbyte.MaxValue,
+                Padding = new Vector2(16f),
+                DimAlignment = DimAlignments.Both,
+            };
 
-                if (Width - 2d * Math.Abs(pos.X - HudMain.Cursor.Origin.X) <= cornerSize)
-                    resizeDir += 1;
+            inputInner = new MouseInputElement(resizeInput)
+            {
+                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+            };
 
-                if (Height - 2d * Math.Abs(pos.Y - HudMain.Cursor.Origin.Y) <= cornerSize)
-                    resizeDir += 2;
-            }
+            AllowResizing = true;
+            CanDrag = true;
+            UseCursor = true;
+            ShareCursor = false;
+            MinimumSize = new Vector2(200f, 200f);
+
+            LoseFocusCallback = LoseFocus;
+            GetFocus();
         }
 
         protected override void Layout()
         {
             body.Height = Height - header.Height;
 
-            if (canMoveWindow)
-                Offset = HudMain.Cursor.Origin + cursorOffset - Origin;
+            if (Visible && WindowActive)
+            {
+                if (canMoveWindow)
+                {
+                    Vector3 cursorPos = HudSpace.CursorPos;
+                    Offset = new Vector2(cursorPos.X, cursorPos.Y) + cursorOffset - Origin;
+                }
 
-            if (canResize)
-                Resize();            
+                if (canResize)
+                    Resize();
+            }
+            else
+            {
+                canMoveWindow = false;
+                canResize = false;
+            }
         }
 
         protected void Resize()
         {
-            Vector2 center = Origin + Offset,
-                cursorPos = HudMain.Cursor.Origin, newOffset = Offset;
+            Vector3 cursorPos = HudSpace.CursorPos;
+            Vector2 center = Origin + Offset, newOffset = Offset;
             float newWidth, newHeight;
 
             // 1 == horizontal, 3 == both
@@ -211,32 +206,55 @@ namespace RichHudFramework.UI
             Offset = newOffset;
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             if (IsMousedOver)
             {
-                if (SharedBinds.LeftButton.IsNewPressed)
+                if (SharedBinds.LeftButton.IsNewPressed && !WindowActive)
                     GetFocus();
             }
-            
+
+            if (AllowResizing && resizeInput.IsNewLeftClicked && !inputInner.IsMousedOver)
+            {
+                Vector2 pos = Origin + Offset;
+                canResize = true;
+                resizeDir = 0;
+
+                if (Width - (2f * Scale) * Math.Abs(pos.X - cursorPos.X) <= cornerSize * Scale)
+                    resizeDir += 1;
+
+                if (Height - (2f * Scale) * Math.Abs(pos.Y - cursorPos.Y) <= cornerSize * Scale)
+                    resizeDir += 2;
+            }
+            else if (CanDrag && header.MouseInput.IsNewLeftClicked)
+            {
+                canMoveWindow = true;
+                cursorOffset = (Origin + Offset) - cursorPos;
+            }
+
             if (canResize || canMoveWindow)
             {
                 if (!SharedBinds.LeftButton.IsPressed)
                 {
-                    HeaderReleased();
-                    ResizeStopped();
+                    canMoveWindow = false;
+                    canResize = false;
                 }
             }
         }
 
-        protected virtual void HeaderReleased()
+        /// <summary>
+        /// Brings the window into the foreground
+        /// </summary>
+        public virtual void GetFocus()
         {
-            canMoveWindow = false;
+            zOffsetInner = HudMain.GetFocusOffset(LoseFocusCallback);
+            WindowActive = true;
         }
 
-        protected virtual void ResizeStopped()
+        protected virtual void LoseFocus(byte newOffset)
         {
-            canResize = false;
+            zOffsetInner = newOffset;
+            WindowActive = false;
         }
     }
 }

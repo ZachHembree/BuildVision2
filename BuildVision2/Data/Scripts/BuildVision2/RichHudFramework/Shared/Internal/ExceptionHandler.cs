@@ -62,7 +62,15 @@ namespace RichHudFramework.Internal
         /// </summary>
         public static bool IsDedicated { get; private set; }
 
+        /// <summary>
+        /// If true, then clients will not be updated (draw/sim/input).
+        /// </summary>
         public static bool ClientsPaused { get; private set; }
+
+        /// <summary>
+        /// If enabled, then debug messages will appear in the SE log.
+        /// </summary>
+        public static bool DebugLogging { get; set; }
 
         private static ExceptionHandler instance;
         private const long exceptionReportInterval = 100, exceptionLoopTime = 50;
@@ -95,6 +103,8 @@ namespace RichHudFramework.Internal
             IsDedicated = MyAPIGateway.Utilities.IsDedicated;
             IsServer = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer || IsDedicated;
             IsClient = !IsDedicated;
+
+            WriteToLogAndConsole($"Exception Handler Init. Dedicated: {IsDedicated}, IsServer: {IsServer}, IsClient: {IsClient}", true);
         }
 
         /// <summary>
@@ -103,7 +113,27 @@ namespace RichHudFramework.Internal
         public static void RegisterClient(ModBase client)
         {
             if (!instance.clients.Contains(client))
+            {
                 instance.clients.Add(client);
+                WriteToLog($"[{client.GetType().Name}] Session component registered.", true);
+            }
+        }
+
+        public override void Draw()
+        {
+            if (errorTimer.ElapsedMilliseconds > exceptionReportInterval)
+                HandleExceptions();
+
+            // This is a workaround. If you try to create a mission screen while the chat is open, 
+            // the UI will become unresponsive.
+            if (lastMissionScreen != null && !MyAPIGateway.Gui.ChatEntryVisible)
+            {
+                lastMissionScreen();
+                lastMissionScreen = null;
+            }
+
+            if (Reloading)
+                FinishReload();
         }
 
         /// <summary>
@@ -118,23 +148,10 @@ namespace RichHudFramework.Internal
             }
             catch (Exception e)
             {
-                instance.ReportException(e);
-            }
-        }
-
-        /// <summary>
-        /// Executes a given <see cref="Action{T}"/> in a try-catch block. If an exception occurs, it will attempt
-        /// to log it, display an error message to the user and reload or unload the mod depending on the configuration.
-        /// </summary>
-        public static void Run<T>(Action<T> Action, T argument)
-        {
-            try
-            {
-                Action(argument);
-            }
-            catch (Exception e)
-            {
-                instance.ReportException(e);
+                if (instance != null)
+                    instance.ReportExceptionInternal(e);
+                else
+                    WriteToLog("Mod encountered an unhandled exception.\n" + e.ToString() + '\n');
             }
         }
 
@@ -152,7 +169,10 @@ namespace RichHudFramework.Internal
             }
             catch (Exception e)
             {
-                instance.ReportException(e);
+                if (instance != null)
+                    instance.ReportExceptionInternal(e);
+                else
+                    WriteToLog("Mod encountered an unhandled exception.\n" + e.ToString() + '\n');
             }
 
             return value;
@@ -161,7 +181,13 @@ namespace RichHudFramework.Internal
         /// <summary>
         /// Records exceptions to be handled. Duplicate stack traces are excluded from the log entry.
         /// </summary>
-        private void ReportException(Exception e)
+        public static void ReportException(Exception e) =>
+            instance.ReportExceptionInternal(e);
+
+        /// <summary>
+        /// Records exceptions to be handled. Duplicate stack traces are excluded from the log entry.
+        /// </summary>
+        private void ReportExceptionInternal(Exception e)
         {
             string message = e.ToString();
 
@@ -178,20 +204,6 @@ namespace RichHudFramework.Internal
                 PauseClients();
         }
 
-        public override void Draw()
-        {
-            if (exceptionCount > 0 && errorTimer.ElapsedMilliseconds > exceptionReportInterval)
-                HandleExceptions();
-
-            // This is a workaround. If you try to create a mission screen while the chat is open, 
-            // the UI will become unresponsive.
-            if (lastMissionScreen != null && !MyAPIGateway.Gui.ChatEntryVisible)
-            {
-                lastMissionScreen();
-                lastMissionScreen = null;
-            }
-        }
-
         /// <summary>
         /// Generates an single log entry from the stack traces recorded within the logging interval
         /// and reloads or unloads the clients depending on the handler's current configuration and
@@ -199,36 +211,39 @@ namespace RichHudFramework.Internal
         /// </summary>
         private void HandleExceptions()
         {
-            if (!Unloading && !Reloading)
+            if (exceptionCount > 0)
             {
                 string exceptionText = GetExceptionText();
                 exceptionCount = 0;
 
-                LogIO.TryWriteToLog(ModName + " encountered an unhandled exception.\n" + exceptionText + '\n');
+                WriteToLog("Mod encountered an unhandled exception.\n" + exceptionText + '\n');
                 exceptionMessages.Clear();
 
-                if (IsClient && PromptForReload)
+                if (!Unloading && !Reloading)
                 {
-                    if (RecoveryAttempts < RecoveryLimit)
+                    if (IsClient && PromptForReload)
                     {
-                        PauseClients();
-                        ShowErrorPrompt(exceptionText, true);
+                        if (RecoveryAttempts < RecoveryLimit)
+                        {
+                            PauseClients();
+                            ShowErrorPrompt(exceptionText, true);
+                        }
+                        else
+                        {
+                            UnloadClients();
+                            ShowErrorPrompt(exceptionText, false);
+                        }
                     }
                     else
                     {
-                        UnloadClients();
-                        ShowErrorPrompt(exceptionText, false);
+                        if (RecoveryAttempts < RecoveryLimit)
+                            StartReload();
+                        else
+                            UnloadClients();
                     }
-                }
-                else
-                {
-                    if (RecoveryAttempts < RecoveryLimit)
-                        ReloadClients();
-                    else
-                        UnloadClients();
-                }
 
-                RecoveryAttempts++;
+                    RecoveryAttempts++;
+                }
             }
         }
 
@@ -294,10 +309,13 @@ namespace RichHudFramework.Internal
         private void AllowReload(ResultEnum response)
         {
             if (response == ResultEnum.OK)
-                ReloadClients();
+                StartReload();
             else
                 UnloadClients();
         }
+
+        public static void ReloadClients() =>
+            instance.StartReload();
 
         /// <summary>
         /// Creates a message window using the mod name, a given subheading and a message.
@@ -329,9 +347,42 @@ namespace RichHudFramework.Internal
             }
         }
 
-        public static void WriteLineAndConsole(string message)
+        /// <summary>
+        /// Writes text to SE log with the mod name prepended to it.
+        /// </summary>
+        public static void WriteToLog(string message, bool debugOnly = false)
         {
-            if (!Unloading)
+            if (!(debugOnly && !DebugLogging))
+            {
+                try
+                {
+                    MyLog.Default.WriteLine($"[{ModName}] {message}");
+                }
+                catch { }
+            }
+        }
+
+        /// <summary>
+        /// Writes text to SE console with mod name prepended to it.
+        /// </summary>
+        public static void WriteToConsole(string message, bool debugOnly = false)
+        {
+            if (!(debugOnly && !DebugLogging))
+            {
+                try
+                {
+                    MyLog.Default.WriteLineToConsole($"[{ModName}] {message}");
+                }
+                catch { }
+            }
+        }
+
+        /// <summary>
+        /// Writes text to SE log with the mod name prepended to it.
+        /// </summary>
+        public static void WriteToLogAndConsole(string message, bool debugOnly = false)
+        {
+            if (!(debugOnly && !DebugLogging))
             {
                 try
                 {
@@ -364,26 +415,48 @@ namespace RichHudFramework.Internal
         }
 
         /// <summary>
-        /// Restarts all registered clients
+        /// Closes all clients in preparation for reload
         /// </summary>
-        private void ReloadClients()
+        private void StartReload()
         {
-            Reloading = true;
-
-            for (int n = 0; n < clients.Count; n++)
+            if (!Reloading)
             {
-                if (clients[n].Loaded && clients[n].CanUpdate)
-                    Run(clients[n].BeforeClose);
+                WriteToLog("Reloading mod...");
+                Reloading = true;
+
+                CloseClients();
             }
+        }
 
-            for (int n = 0; n < clients.Count; n++)
-                clients[n].Close();
+        /// <summary>
+        /// Restarts clients after reload start
+        /// </summary>
+        private void FinishReload()
+        {
+            if (Reloading)
+            {
+                for (int n = 0; n < clients.Count; n++)
+                {
+                    bool success = true;
+                    string typeName = clients[n].GetType().Name;
 
-            for (int n = 0; n < clients.Count; n++)
-                clients[n].ManualStart();
+                    Run(() => 
+                    {
+                        WriteToLog($"[{typeName}] Restarting session component...", true);
+                        clients[n].ManualStart();
+                        success = clients[n].Loaded;
+                    });
 
-            ClientsPaused = false;
-            Reloading = false;
+                    if (success)
+                        WriteToLog($"[{typeName}] Session component started.", true);
+                    else
+                        WriteToLog($"[{typeName}] Failed to start session component.");
+                }
+
+                Reloading = false;
+                ClientsPaused = false;
+                WriteToLog("Mod reloaded.");
+            }
         }
 
         /// <summary>
@@ -391,24 +464,67 @@ namespace RichHudFramework.Internal
         /// </summary>
         private void UnloadClients()
         {
-            Unloading = true;
+            if (!Unloading)
+            {
+                WriteToLog("Unloading mod...");
+                Unloading = true;
+                Reloading = false;
 
+                CloseClients();
+            }
+
+            WriteToLog("Mod unloaded.");
+        }
+
+        private void CloseClients()
+        {
             for (int n = 0; n < clients.Count; n++)
             {
-                if (clients[n].Loaded && clients[n].CanUpdate)
-                    Run(clients[n].BeforeClose);
+                bool success = false;
+                string typeName = clients[n].GetType().Name;
+                WriteToLog($"[{typeName}] Stopping session component...", true);
+
+                Run(() =>
+                {
+                    clients[n].CanUpdate = false;
+                    clients[n].BeforeClose();
+                    success = true;
+                });
+
+                if (success)
+                    WriteToLog($"[{typeName}] Session component stopped.", true);
+                else
+                    WriteToLog($"[{typeName}] Failed to stop session component.");
             }
 
             ClientsPaused = true;
 
             for (int n = 0; n < clients.Count; n++)
-                clients[n].Close();
+            {
+                bool success = false;
+                string typeName = clients[n].GetType().Name;
+                WriteToLog($"[{typeName}] Closing session component...", true);
+
+                Run(() =>
+                {
+                    clients[n].Close();
+                    success = true;
+                });
+
+                if (success)
+                    WriteToLog($"[{typeName}] Session component closed.", true);
+                else
+                    WriteToLog($"[{typeName}] Failed to close session component.");
+            }
         }
 
         protected override void UnloadData()
         {
             UnloadClients();
+            HandleExceptions();
             instance = null;
+
+            WriteToLog("Exception Handler unloaded.", true);
         }
     }
 }

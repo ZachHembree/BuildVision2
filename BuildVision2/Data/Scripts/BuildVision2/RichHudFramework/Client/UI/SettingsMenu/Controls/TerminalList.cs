@@ -18,7 +18,7 @@ namespace RichHudFramework.UI.Client
     /// <summary>
     /// A fixed size list box with a label. Designed to mimic the appearance of the list box in the SE terminal.
     /// </summary>
-    public class TerminalList<T> : TerminalValue<EntryData<T>, TerminalList<T>>
+    public class TerminalList<T> : TerminalValue<EntryData<T>>
     {
         /// <summary>
         /// Currently selected list member.

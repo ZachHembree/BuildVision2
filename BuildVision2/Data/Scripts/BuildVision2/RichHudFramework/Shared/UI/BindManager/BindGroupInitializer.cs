@@ -14,20 +14,20 @@ namespace RichHudFramework
         /// <summary>
         /// Bind data container used to simplify bind registration.
         /// </summary>
-        public class BindGroupData : IReadOnlyCollection<MyTuple<string, IList<int>>>
+        public class BindGroupInitializer : IReadOnlyList<MyTuple<string, IReadOnlyList<int>>>
         {
-            public MyTuple<string, IList<int>> this[int index] => bindData[index];
+            public MyTuple<string, IReadOnlyList<int>> this[int index] => bindData[index];
 
             public int Count => bindData.Count;
 
-            private readonly List<MyTuple<string, IList<int>>> bindData;
+            private readonly List<MyTuple<string, IReadOnlyList<int>>> bindData;
 
-            public BindGroupData()
+            public BindGroupInitializer()
             {
-                bindData = new List<MyTuple<string, IList<int>>>();
+                bindData = new List<MyTuple<string, IReadOnlyList<int>>>();
             }
 
-            public IEnumerator<MyTuple<string, IList<int>>> GetEnumerator() =>
+            public IEnumerator<MyTuple<string, IReadOnlyList<int>>> GetEnumerator() =>
                 bindData.GetEnumerator();
 
             IEnumerator IEnumerable.GetEnumerator() =>
@@ -48,7 +48,7 @@ namespace RichHudFramework
                 if (con3 != null)
                     names.Add(con3);
 
-                bindData.Add(new MyTuple<string, IList<int>>(bindName, BindManager.GetComboIndices(names)));
+                bindData.Add(new MyTuple<string, IReadOnlyList<int>>(bindName, BindManager.GetComboIndices(names)));
             }
 
             /// <summary>
@@ -66,7 +66,7 @@ namespace RichHudFramework
                 if (con3 != -1)
                     indices.Add(con3);
 
-                bindData.Add(new MyTuple<string, IList<int>>(bindName, indices));
+                bindData.Add(new MyTuple<string, IReadOnlyList<int>>(bindName, indices));
             }
 
             /// <summary>
@@ -84,7 +84,7 @@ namespace RichHudFramework
                 if (con3 != null)
                     indices.Add(con3);
 
-                bindData.Add(new MyTuple<string, IList<int>>(bindName, indices));
+                bindData.Add(new MyTuple<string, IReadOnlyList<int>>(bindName, indices));
             }
 
             /// <summary>

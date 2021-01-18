@@ -1,6 +1,7 @@
 ﻿using System;
 using VRage;
 using VRageMath;
+using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
 
 namespace RichHudFramework
 {
@@ -12,37 +13,24 @@ namespace RichHudFramework
         /// <summary>
         /// Base type for all hud elements with definite size and position. Inherits from HudParentBase and HudNodeBase.
         /// </summary>
-        public abstract class HudElementBase : HudNodeBase, IHudElement
+        public abstract class HudElementBase : HudNodeBase, IReadOnlyHudElement
         {
+            protected const float minMouseBounds = 8f;
+
             /// <summary>
             /// Parent object of the node.
             /// </summary>
-            public sealed override IHudParent Parent
+            public sealed override HudParentBase Parent
             {
-                get { return base.Parent; }
                 protected set
                 {
-                    base.Parent = value;
-                    _parent = value as HudElementBase;
+                    _parent = value;
+                    _parentFull = value as HudElementBase;
                 }
             }
 
             /// <summary>
-            /// Scales the size and offset of an element. Any offset or size set at a given
-            /// be increased or decreased with scale. Defaults to 1f. Includes parent scale.
-            /// </summary>
-            public float Scale
-            {
-                get { return _scale; }
-                set
-                {
-                    localScale = value;
-                    _scale = (_parent == null || ignoreParentScale) ? value : (value * _parent._scale);
-                }
-            }
-
-            /// <summary>
-            /// Size of the element in pixels.
+            /// Size of the element. Units in pixels by default.
             /// </summary>
             public Vector2 Size
             {
@@ -51,52 +39,60 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// Width of the hud element in pixels.
+            /// Width of the hud element. Units in pixels by default.
             /// </summary>
             public virtual float Width
             {
-                get { return (_width * _scale) + Padding.X; }
+                get { return (_absoluteWidth * Scale) + Padding.X; }
                 set
                 {
-                    if (Padding.X < value)
-                        _width = (value - Padding.X) / _scale;
-                    else
-                        _width = (value / _scale);
+                    if (value > Padding.X)
+                        value -= Padding.X;
+
+                    _absoluteWidth = (value / Scale);
                 }
             }
 
             /// <summary>
-            /// Height of the hud element in pixels.
+            /// Height of the hud element. Units in pixels by default.
             /// </summary>
             public virtual float Height
             {
-                get { return (_height * _scale) + Padding.Y; }
+                get { return (_absoluteHeight * Scale) + Padding.Y; }
                 set
                 {
-                    if (Padding.Y < value)
-                        _height = (value - Padding.Y) / _scale;
-                    else
-                        _height = (value / _scale);
+                    if (value > Padding.Y)
+                        value -= Padding.Y;
+
+                    _absoluteHeight = (value / Scale);
                 }
             }
 
             /// <summary>
             /// Border size. Included in total element size.
             /// </summary>
-            public virtual Vector2 Padding { get { return _padding * _scale; } set { _padding = value / _scale; } }
+            public virtual Vector2 Padding
+            {
+                get { return _absolutePadding * Scale; }
+                set { _absolutePadding = value / Scale; }
+            }
 
             /// <summary>
-            /// Starting position of the hud element on the screen in pixels.
+            /// Starting position of the hud element.
             /// </summary>
-            public Vector2 Origin => (_parent == null) ? Vector2.Zero : (_parent.Origin + _parent.Offset + originAlignment);
+            public Vector2 Origin => (_parentFull == null) ? Vector2.Zero : _parentFull.cachedPosition + originAlignment;
 
             /// <summary>
             /// Position of the element relative to its origin.
             /// </summary>
-            public virtual Vector2 Offset { get { return _offset * _scale; } set { _offset = value / _scale; } }
+            public virtual Vector2 Offset
+            {
+                get { return _absoluteOffset * Scale; }
+                set { _absoluteOffset = value / Scale; }
+            }
 
             /// <summary>
-            /// Absolute position of the hud element. Origin + Offset.
+            /// Current position of the hud element. Origin + Offset.
             /// </summary>
             public Vector2 Position => Origin + Offset;
 
@@ -113,7 +109,7 @@ namespace RichHudFramework
             /// <summary>
             /// If set to true the hud element will be allowed to capture the cursor.
             /// </summary>
-            public bool CaptureCursor { get; set; }
+            public bool UseCursor { get; set; }
 
             /// <summary>
             /// If set to true the hud element will share the cursor with other elements.
@@ -123,128 +119,156 @@ namespace RichHudFramework
             /// <summary>
             /// Indicates whether or not the element is capturing the cursor.
             /// </summary>
-            public virtual bool IsMousedOver => Visible && isMousedOver;
+            public virtual bool IsMousedOver => _isMousedOver;
 
             /// <summary>
-            /// Determines whether or not the scale of the parent element should be used in the calculation
-            /// of the final scale. True by default.
+            /// Unscaled element size;
             /// </summary>
-            public bool ignoreParentScale;
+            protected float _absoluteWidth, _absoluteHeight;
 
-            private const float minMouseBounds = 8f;
-            private bool isMousedOver;
-            private Vector2 _offset, _padding, originAlignment;
+            /// <summary>
+            /// Unscaled element offset.
+            /// </summary>
+            protected Vector2 _absoluteOffset;
 
-            protected float localScale = 1f, _scale = 1f;
-            protected float _width, _height;
-            protected HudElementBase _parent;
+            /// <summary>
+            /// Unscaled element padding.
+            /// </summary>
+            protected Vector2 _absolutePadding;
 
-            protected Vector2 cachedOrigin, cachedPosition, cachedSize;
+            /// <summary>
+            /// Values used internaly for mouse bounds checking. Do not use.
+            /// </summary>
+            protected bool _isMousedOver, mouseInBounds;
+
+            /// <summary>
+            /// Values used internally to minimize property calls. Should be treated as read only.
+            /// </summary>
+            protected Vector2 cachedOrigin, cachedPosition, cachedSize, cachedPadding;
+
+            protected HudElementBase _parentFull;
+            private Vector2 originAlignment;
 
             /// <summary>
             /// Initializes a new hud element with cursor sharing enabled and scaling set to 1f.
             /// </summary>
-            public HudElementBase(IHudParent parent) : base(parent)
+            public HudElementBase(HudParentBase parent) : base(parent)
             {
                 DimAlignment = DimAlignments.None;
                 ParentAlignment = ParentAlignments.Center;
-                ShareCursor = true;
-            }
-
-            public override void Register(IHudParent parent)
-            {
-                base.Register(parent);
-
-                if (_parent != null)
-                {
-                    _zOffset = _parent.ZOffset;
-                    _scale = (ignoreParentScale) ? localScale : (localScale * _parent._scale);
-                }
-                else
-                    _scale = localScale;
-            }
-
-            public override void Unregister()
-            {
-                base.Unregister();
-                _scale = localScale;
-            }
-
-            public sealed override void BeforeInput(HudLayers layer)
-            {
-                if (Visible)
-                {
-                    for (int n = children.Count - 1; n >= 0; n--)
-                    {
-                        if (children[n].Visible)
-                            children[n].BeforeInput(layer);
-                    }
-
-                    if (_zOffset == layer)
-                    {
-                        if (CaptureCursor && HudMain.Cursor.Visible && !HudMain.Cursor.IsCaptured)
-                        {
-                            isMousedOver = IsMouseInBounds();
-                            HandleInput();
-
-                            if (!ShareCursor && isMousedOver)
-                                HudMain.Cursor.Capture(ID);
-                        }
-                        else
-                        {
-                            isMousedOver = false;
-                            HandleInput();
-                        }
-                    }
-                }
-                else
-                    isMousedOver = false;
             }
 
             /// <summary>
-            /// Determines whether or not the cursor is within the bounds of the hud element.
+            /// Used to check whether the cursor is moused over the element and whether its being
+            /// obstructed by another element.
             /// </summary>
-            private bool IsMouseInBounds()
+            protected override void InputDepth()
             {
-                Vector2 cursorPos = HudMain.Cursor.Origin;
-                float
-                    width = Math.Max(minMouseBounds, cachedSize.X),
-                    height = Math.Max(minMouseBounds, cachedSize.Y),
-                    leftBound = cachedPosition.X - width / 2f,
-                    rightBound = cachedPosition.X + width / 2f,
-                    upperBound = cachedPosition.Y + height / 2f,
-                    lowerBound = cachedPosition.Y - height / 2f;
+                if (UseCursor && Visible && (HudSpace?.IsFacingCamera ?? false))
+                {
+                    Vector3 cursorPos = HudSpace.CursorPos;
+                    Vector2 offset = Vector2.Max(cachedSize, new Vector2(minMouseBounds)) / 2f;
+                    BoundingBox2 box = new BoundingBox2(cachedPosition - offset, cachedPosition + offset);
+                    mouseInBounds = box.Contains(new Vector2(cursorPos.X, cursorPos.Y)) == ContainmentType.Contains;
 
-                return
-                    (cursorPos.X >= leftBound && cursorPos.X < rightBound) &&
-                    (cursorPos.Y >= lowerBound && cursorPos.Y < upperBound);
+                    if (mouseInBounds)
+                        HudMain.Cursor.TryCaptureHudSpace(cursorPos.Z, HudSpace.GetHudSpaceFunc);
+                }
+                else
+                    mouseInBounds = false;
             }
 
-            public sealed override void BeforeLayout(bool refresh)
+            /// <summary>
+            /// Updates input for the element and its children. Overriding this method is rarely necessary.
+            /// If you need to update input, use HandleInput().
+            /// </summary>
+            protected override void BeginInput()
             {
-                UpdateCache();
-                Layout();
-
-                for (int n = 0; n < children.Count; n++)
+                if (Visible)
                 {
-                    if (children[n].Visible || refresh)
-                        children[n].BeforeLayout(refresh);
+                    Vector3 cursorPos = HudSpace.CursorPos;
+
+                    if (UseCursor && mouseInBounds && !HudMain.Cursor.IsCaptured && HudMain.Cursor.IsCapturingSpace(HudSpace.GetHudSpaceFunc))
+                    {
+                        _isMousedOver = mouseInBounds;
+
+                        HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
+
+                        if (!ShareCursor)
+                            HudMain.Cursor.Capture(GetOrSetMemberFunc);
+                    }
+                    else
+                    {
+                        _isMousedOver = false;
+                        HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
+                    }
+                }
+                else
+                    _isMousedOver = false;
+            }
+
+            /// <summary>
+            /// Updates layout for the element and its children. Overriding this method is rarely necessary. 
+            /// If you need to update layout, use Layout().
+            /// </summary>
+            protected override void BeginLayout(bool refresh)
+            {
+                fullZOffset = GetFullZOffset(this, _parent);
+
+                if (_parent == null)
+                {
+                    parentVisible = false;
+                }
+                else
+                {
+                    parentVisible = _parent.Visible;
+                    parentScale = _parent.Scale;
+                    parentZOffset = _parent.ZOffset;
+                }
+
+                if (Visible || refresh)
+                {
+                    UpdateCache();
+                    Layout();
+
+                    // Update cached values for use on draw and by child nodes
+                    cachedPadding = Padding;
+                    cachedSize = new Vector2(Width, Height);
+                    cachedPosition = cachedOrigin + Offset;
                 }
             }
 
-            private void UpdateCache()
+            /// <summary>
+            /// Used to immediately draw billboards. Overriding this method is rarely necessary. 
+            /// If you need to draw something, use Draw().
+            /// </summary>
+            protected override void BeginDraw()
             {
-                _scale = (_parent == null || ignoreParentScale) ? localScale : (localScale * _parent._scale);
-                cachedSize = new Vector2(Width, Height);
+                if (Visible)
+                {
+                    UpdateCache();
+                    Draw();
+                }
+            }
 
-                if (_parent != null)
+            /// <summary>
+            /// Updates cached values as well as parent and dim alignment.
+            /// </summary>
+            protected void UpdateCache()
+            {
+                cachedPadding = Padding;
+
+                if (_parentFull != null)
                 {
                     GetDimAlignment();
                     originAlignment = GetParentAlignment();
-                    cachedOrigin = _parent.cachedOrigin + _parent.Offset + originAlignment;
+                    cachedOrigin = _parentFull.cachedPosition + originAlignment;
                 }
                 else
+                {
+                    cachedSize = new Vector2(Width, Height);
                     cachedOrigin = Vector2.Zero;
+                }
 
                 cachedPosition = cachedOrigin + Offset;
             }
@@ -255,33 +279,36 @@ namespace RichHudFramework
             /// </summary>
             private void GetDimAlignment()
             {
+                float width = Width, height = Height;
+
                 if (DimAlignment != DimAlignments.None)
                 {
-                    float width = cachedSize.X, height = cachedSize.Y,
-                        parentWidth = _parent.cachedSize.X, parentHeight = _parent.cachedSize.Y;
+                    float parentWidth = _parentFull.cachedSize.X, parentHeight = _parentFull.cachedSize.Y;
 
-                    if (DimAlignment.HasFlag(DimAlignments.IgnorePadding))
+                    if ((DimAlignment & DimAlignments.IgnorePadding) == DimAlignments.IgnorePadding)
                     {
-                        Vector2 parentPadding = _parent.Padding;
+                        Vector2 parentPadding = _parentFull.cachedPadding;
 
-                        if (DimAlignment.HasFlag(DimAlignments.Width))
+                        if ((DimAlignment & DimAlignments.Width) == DimAlignments.Width)
                             width = parentWidth - parentPadding.X;
 
-                        if (DimAlignment.HasFlag(DimAlignments.Height))
+                        if ((DimAlignment & DimAlignments.Height) == DimAlignments.Height)
                             height = parentHeight - parentPadding.Y;
                     }
                     else
                     {
-                        if (DimAlignment.HasFlag(DimAlignments.Width))
+                        if ((DimAlignment & DimAlignments.Width) == DimAlignments.Width)
                             width = parentWidth;
 
-                        if (DimAlignment.HasFlag(DimAlignments.Height))
+                        if ((DimAlignment & DimAlignments.Height) == DimAlignments.Height)
                             height = parentHeight;
                     }
 
                     Width = width;
                     Height = height;
                 }
+
+                cachedSize = new Vector2(width, height);
             }
 
             /// <summary>
@@ -291,40 +318,73 @@ namespace RichHudFramework
             private Vector2 GetParentAlignment()
             {
                 Vector2 alignment = Vector2.Zero,
-                    max = (_parent.cachedSize + cachedSize) / 2f,
+                    max = (_parentFull.cachedSize + cachedSize) / 2f,
                     min = -max;
 
-                if (ParentAlignment.HasFlag(ParentAlignments.UsePadding))
+                if ((ParentAlignment & ParentAlignments.UsePadding) == ParentAlignments.UsePadding)
                 {
-                    Vector2 parentPadding = _parent.Padding;
-
-                    min += parentPadding / 2f;
-                    max -= parentPadding / 2f;
+                    min += _parentFull.cachedPadding / 2f;
+                    max -= _parentFull.cachedPadding / 2f;
                 }
 
-                if (ParentAlignment.HasFlag(ParentAlignments.InnerV))
+                if ((ParentAlignment & ParentAlignments.InnerV) == ParentAlignments.InnerV)
                 {
                     min.Y += cachedSize.Y;
                     max.Y -= cachedSize.Y;
                 }
 
-                if (ParentAlignment.HasFlag(ParentAlignments.InnerH))
+                if ((ParentAlignment & ParentAlignments.InnerH) == ParentAlignments.InnerH)
                 {
                     min.X += cachedSize.X;
                     max.X -= cachedSize.X;
                 }
 
-                if (ParentAlignment.HasFlag(ParentAlignments.Bottom))
+                if ((ParentAlignment & ParentAlignments.Bottom) == ParentAlignments.Bottom)
                     alignment.Y = min.Y;
-                else if (ParentAlignment.HasFlag(ParentAlignments.Top))
+                else if ((ParentAlignment & ParentAlignments.Top) == ParentAlignments.Top)
                     alignment.Y = max.Y;
 
-                if (ParentAlignment.HasFlag(ParentAlignments.Left))
+                if ((ParentAlignment & ParentAlignments.Left) == ParentAlignments.Left)
                     alignment.X = min.X;
-                else if (ParentAlignment.HasFlag(ParentAlignments.Right))
+                else if ((ParentAlignment & ParentAlignments.Right) == ParentAlignments.Right)
                     alignment.X = max.X;
 
                 return alignment;
+            }
+
+            protected override object GetOrSetApiMember(object data, int memberEnum)
+            {
+                switch ((HudElementAccessors)memberEnum)
+                {
+                    case HudElementAccessors.GetType:
+                        return GetType();
+                    case HudElementAccessors.ZOffset:
+                        return ZOffset;
+                    case HudElementAccessors.FullZOffset:
+                        return fullZOffset;
+                    case HudElementAccessors.Position:
+                        return Position;
+                    case HudElementAccessors.Size:
+                        return Size;
+                    case HudElementAccessors.GetHudSpaceFunc:
+                        return HudSpace?.GetHudSpaceFunc;
+                    case HudElementAccessors.ModName:
+                        return Internal.ExceptionHandler.ModName;
+                    case HudElementAccessors.LocalCursorPos:
+                        return HudSpace?.CursorPos ?? Vector3.Zero;
+                    case HudElementAccessors.DrawCursorInHudSpace:
+                        return HudSpace?.DrawCursorInHudSpace ?? false;
+                    case HudElementAccessors.PlaneToWorld:
+                        return HudSpace?.PlaneToWorld ?? default(MatrixD);
+                    case HudElementAccessors.IsInFront:
+                        return HudSpace?.IsInFront ?? false;
+                    case HudElementAccessors.IsFacingCamera:
+                        return HudSpace?.IsFacingCamera ?? false;
+                    case HudElementAccessors.NodeOrigin:
+                        return HudSpace?.PlaneToWorld.Translation ?? Vector3D.Zero;
+                }
+
+                return null;
             }
         }
     }

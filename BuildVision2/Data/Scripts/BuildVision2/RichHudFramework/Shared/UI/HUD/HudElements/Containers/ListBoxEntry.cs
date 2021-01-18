@@ -9,19 +9,6 @@ namespace RichHudFramework.UI
 {
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
 
-    public interface IListBoxEntry : IHudElement
-    {
-        /// <summary>
-        /// Indicates whether or not the element will appear in the list
-        /// </summary>
-        bool Enabled { get; }
-
-        /// <summary>
-        /// Resets the state of the entry so the object can be reused.
-        /// </summary>
-        void Reset();
-    }
-
     public enum ListBoxEntryAccessors : int
     {
         /// <summary>
@@ -30,7 +17,7 @@ namespace RichHudFramework.UI
         Name = 1,
 
         /// <summary>
-        /// Bool
+        /// bool
         /// </summary>
         Enabled = 2,
 
@@ -46,47 +33,20 @@ namespace RichHudFramework.UI
     }
 
     /// <summary>
-    /// Text button assocated with an object of type T. Used in conjunction with list boxes. Implements IListBoxEntry.
+    /// Label button assocated with an object of type T. Used in conjunction with list boxes.
     /// </summary>
-    public class ListBoxEntry<T> : LabelButton, IListBoxEntry
+    public class ListBoxEntry<T> : ScrollBoxEntryTuple<LabelButton, T>
     {
-        /// <summary>
-        /// Invoked on left click
-        /// </summary>
-        public event Action<ListBoxEntry<T>> OnMemberSelected;
+        private readonly LabelButton button;
 
-        /// <summary>
-        /// Determines whether or not the entry will be visible
-        /// </summary>
-        public bool Enabled { get; set; }
-
-        /// <summary>
-        /// Object associated with the entry
-        /// </summary>
-        public T AssocMember { get; set; }
-
-        public ListBoxEntry(T assocMember, IHudParent parent = null) : base(parent)
+        public ListBoxEntry()
         {
-            this.AssocMember = assocMember;
-            AutoResize = false;
-            Enabled = true;
-
-            MouseInput.OnLeftClick += SelectMember;
+            button = new LabelButton() { AutoResize = false };
+            Element = button;
+            Element.ZOffset = 1;
         }
 
-        public void Reset()
-        {
-            OnMemberSelected = null;
-            Enabled = false;
-            AssocMember = default(T);
-        }
-
-        private void SelectMember()
-        {
-            OnMemberSelected?.Invoke(this);
-        }
-
-        public new object GetOrSetMember(object data, int memberEnum)
+        public object GetOrSetMember(object data, int memberEnum)
         {
             var member = (ListBoxEntryAccessors)memberEnum;
 
@@ -95,9 +55,9 @@ namespace RichHudFramework.UI
                 case ListBoxEntryAccessors.Name:
                     {
                         if (data == null)
-                            TextBoard.SetText(new RichText(data as IList<RichStringMembers>));
+                            Element.Text = new RichText(data as IList<RichStringMembers>);
                         else
-                            return TextBoard.GetText().ApiData;
+                            return Element.Text.ApiData;
 
                         break;
                     }

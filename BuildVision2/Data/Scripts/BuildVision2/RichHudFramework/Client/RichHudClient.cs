@@ -7,38 +7,42 @@ using VRage;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRageMath;
+using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework.Client
 {
     using ClientData = MyTuple<string, Action<int, object>, Action, int>;
     using ServerData = MyTuple<Action, Func<int, object>, int>;
 
+    /// <summary>
+    /// API Client for the Rich HUD Framework 
+    /// </summary>
     public sealed class RichHudClient : RichHudComponentBase
     {
         private const long modID = 1965654081, queueID = 1314086443;
-        private const int versionID = 6;
+        private const int versionID = 7;
 
         public static bool Registered => Instance != null ? Instance.registered : false;
         private static RichHudClient Instance { get; set; }
 
         private readonly ClientData regMessage;
-        private readonly Action InitAction, ReloadAction;
+        private readonly Action InitAction, OnResetAction;
 
         private bool regFail, registered, inQueue;
         private Func<int, object> GetApiDataFunc;
         private Action UnregisterAction;
 
-        private RichHudClient(string modName, Action InitCallback, Action ReloadCallback) : base(false, true)
+        private RichHudClient(string modName, Action InitCallback, Action ResetCallback) : base(false, true)
         {
             InitAction = InitCallback;
-            ReloadAction = ReloadCallback;
+            OnResetAction = ResetCallback;
 
             ExceptionHandler.ModName = modName;
 
             if (LogIO.FileName == null || LogIO.FileName == "modLog.txt")
                 LogIO.FileName = $"richHudLog.txt";
 
-            regMessage = new ClientData(modName, MessageHandler, () => ExceptionHandler.Run(RemoteReload), versionID);
+            regMessage = new ClientData(modName, MessageHandler, RemoteReset, versionID);
         }
 
         /// <summary>
@@ -46,12 +50,12 @@ namespace RichHudFramework.Client
         /// </summary>
         /// <param name="modName">Name of the mod as it appears in the settings menu and in diagnostics</param>
         /// <param name="InitCallback">Invoked upon successfully registering with the API.</param>
-        /// <param name="ReloadCallback">Invoked on client reload.</param>
-        public static void Init(string modName, Action InitCallback, Action ReloadCallback)
+        /// <param name="ResetCallback">Invoked on client reset.</param>
+        public static void Init(string modName, Action InitCallback, Action ResetCallback)
         {
             if (Instance == null)
             {
-                Instance = new RichHudClient(modName, InitCallback, ReloadCallback);
+                Instance = new RichHudClient(modName, InitCallback, ResetCallback);
                 Instance.RequestRegistration();
 
                 if (!Registered && !Instance.regFail)
@@ -67,7 +71,7 @@ namespace RichHudFramework.Client
         public static void Reset()
         {
             if (Registered)
-                RichHudCore.Instance.Reload();
+                ExceptionHandler.ReloadClients();
         }
 
         /// <summary>
@@ -114,16 +118,18 @@ namespace RichHudFramework.Client
                     var data = (ServerData)message;
                     UnregisterAction = data.Item1;
                     GetApiDataFunc = data.Item2;
+
                     registered = true;
 
                     ExceptionHandler.Run(InitAction);
+                    ExceptionHandler.WriteToLog($" [RHF] Successfully registered with Rich HUD Master.");
                 }
                 else if (msgType == MsgTypes.RegistrationFailed)
                 {
                     if (message is string)
-                        LogIO.WriteToLogStart($"Rich HUD API registration failed. Message: {message as string}");
+                        ExceptionHandler.WriteToLog($" [RHF] Failed to register with Rich HUD Master. Message: {message as string}");
                     else
-                        LogIO.WriteToLogStart($"Rich HUD API registration failed.");
+                        ExceptionHandler.WriteToLog($" [RHF] Failed to register with Rich HUD Master.");
 
                     regFail = true;
                 }
@@ -146,13 +152,16 @@ namespace RichHudFramework.Client
             Instance = null;
         }
 
-        private void RemoteReload()
+        private void RemoteReset()
         {
-            if (registered)
+            ExceptionHandler.Run(() => 
             {
-                Parent.Reload();
-                ReloadAction();
-            }
+                if (registered)
+                {
+                    ExceptionHandler.ReloadClients();
+                    OnResetAction();
+                }
+            });  
         }
 
         /// <summary>

@@ -1,5 +1,4 @@
-﻿
-using RichHudFramework.UI;
+﻿using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using VRage.Input;
 
@@ -12,15 +11,15 @@ namespace DarkHelmet.BuildVision2
     {
         public static BindsConfig Cfg
         {
-            get 
+            get
             {
-                return new BindsConfig 
+                return new BindsConfig
                 {
                     openGroup = OpenGroup.GetBindDefinitions(),
                     mainGroup = MainGroup.GetBindDefinitions(),
                 };
             }
-            set 
+            set
             {
                 Instance.openGroup.TryLoadBindData(value.openGroup);
                 Instance.mainGroup.TryLoadBindData(value.mainGroup);
@@ -50,7 +49,7 @@ namespace DarkHelmet.BuildVision2
 
         private static BvBinds Instance
         {
-            get 
+            get
             {
                 if (_instance == null)
                     Init();

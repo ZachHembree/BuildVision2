@@ -2,97 +2,103 @@
 using System;
 using System.Collections.Generic;
 using VRage;
+using VRageMath;
 using VRage.Input;
 using BindDefinitionData = VRage.MyTuple<string, string[]>;
-using BindMembers = VRage.MyTuple<
-    System.Func<object, int, object>, // GetOrSetMember
-    System.Func<bool>, // IsPressed
-    System.Func<bool>, // IsPressedAndHeld
-    System.Func<bool>, // IsNewPressed
-    System.Func<bool> // IsReleased
->;
 using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
     using Client;
     using UI;
-    using ControlMembers = MyTuple<string, string, int, Func<bool>, bool, ApiMemberAccessor>;
-    using BindGroupMembers = MyTuple<
-        string, // Name                
-        BindMembers[], // Binds
-        Action, // HandleInput
-        ApiMemberAccessor // GetOrSetMember
-    >;
 
     namespace UI.Client
     {
         using BindClientMembers = MyTuple<
-            MyTuple<Func<int, ControlMembers?>, Func<int>>, // Control List
-            Action, // HandleInput
             ApiMemberAccessor, // GetOrSetMember
+            MyTuple<Func<int, object, int, object>, Func<int>>, // GetOrSetGroupMember, GetGroupCount
+            MyTuple<Func<Vector2I, object, int, object>, Func<int, int>>, // GetOrSetBindMember, GetBindCount
+            Func<Vector2I, int, bool>, // IsBindPressed
+            MyTuple<Func<int, int, object>, Func<int>>, // GetControlMember, GetControlCount
             Action // Unload
         >;
 
+        /// <summary>
+        /// Manages custom keybinds; singleton
+        /// </summary>
         public sealed partial class BindManager : RichHudClient.ApiModule<BindClientMembers>
         {
-            public static IReadOnlyCollection<IBindGroup> Groups => Instance.groups;
-            public static IReadOnlyCollection<IControl> Controls => Instance.controls;
+            /// <summary>
+            /// Read-only collection of bind groups registered
+            /// </summary>
+            public static IReadOnlyList<IBindGroup> Groups => Instance.groups;
+
+            /// <summary>
+            /// Read-only collection of all available controls for use with key binds
+            /// </summary
+            public static IReadOnlyList<IControl> Controls => Instance.controls;
 
             private static BindManager Instance
             {
-                get { Init(); return instance; }
-                set { instance = value; }
+                get { Init(); return _instance; }
             }
-            private static BindManager instance;
+            private static BindManager _instance;
 
-            private readonly IReadOnlyCollection<IBindGroup> groups;
-            private readonly IReadOnlyCollection<IControl> controls;
+            // Group list
+            private readonly Func<int, object, int, object> GetOrSetGroupMemberFunc;
+            private readonly Func<int> GetGroupCountFunc;
 
-            private readonly List<IBindGroup> bindGroups;
+            // Bind lists
+            private readonly Func<Vector2I, object, int, object> GetOrSetBindMemberFunc;
+            private readonly Func<Vector2I, int, bool> IsBindPressedFunc;
+            private readonly Func<int, int> GetBindCountFunc;
+
+            // Control list
+            private readonly Func<int, int, object> GetControlMember;
+            private readonly Func<int> GetControlCountFunc;
+
             private readonly ApiMemberAccessor GetOrSetMemberFunc;
-            private readonly Action HandleInputAction, UnloadAction;
+            private readonly Action UnloadAction;
+
+            private readonly ReadOnlyApiCollection<IBindGroup> groups;
+            private readonly ReadOnlyApiCollection<IControl> controls;
 
             private BindManager() : base(ApiModuleTypes.BindManager, false, true)
             {
                 var clientData = GetApiData();
 
-                Func<int, ControlMembers?> conData = clientData.Item1.Item1;
-                Func<int> ConCount = clientData.Item1.Item2;
+                GetOrSetMemberFunc = clientData.Item1;
+                UnloadAction = clientData.Item6;
 
-                Func<int, IControl> ControlGetter = (x => (conData(x) != null) ? new Control(conData(x).Value) : null);
-                controls = new ReadOnlyCollectionData<IControl>(ControlGetter, ConCount);
+                // Group list
+                GetOrSetGroupMemberFunc = clientData.Item2.Item1;
+                GetGroupCountFunc = clientData.Item2.Item2;
 
-                HandleInputAction = clientData.Item2;
-                GetOrSetMemberFunc = clientData.Item3;
-                UnloadAction = clientData.Item4;
+                // Bind lists
+                IsBindPressedFunc = clientData.Item4;
+                GetOrSetBindMemberFunc = clientData.Item3.Item1;
+                GetBindCountFunc = clientData.Item3.Item2;
 
-                bindGroups = new List<IBindGroup>();
-                this.groups = new ReadOnlyCollection<IBindGroup>(bindGroups);
+                // Control list
+                GetControlMember = clientData.Item5.Item1;
+                GetControlCountFunc = clientData.Item5.Item2;
 
-                var groups = GetOrSetMemberFunc(null, (int)BindClientAccessors.GetGroupData) as BindGroupMembers[];
-
-                foreach (BindGroupMembers group in groups)
-                    AddGroupData(group);
+                groups = new ReadOnlyApiCollection<IBindGroup>(x => new BindGroup(x), GetGroupCountFunc);
+                controls = new ReadOnlyApiCollection<IControl>(x => new Control(x), GetControlCountFunc);
             }
 
-            private static void Init()
+            public static void Init()
             {
-                if (instance == null)
+                if (_instance == null)
                 {
-                    instance = new BindManager();
+                    _instance = new BindManager();
                 }
-            }
-
-            public override void HandleInput()
-            {
-                HandleInputAction();
             }
 
             public override void Close()
             {
                 UnloadAction();
-                instance = null;
+                _instance = null;
             }
 
             /// <summary>
@@ -101,26 +107,17 @@ namespace RichHudFramework
             /// </summary>
             public static IBindGroup GetOrCreateGroup(string name)
             {
-                IBindGroup group = Instance.bindGroups.Find(x => (x.Name.ToLower() == name.ToLower()));
-
-                if (group == null)
-                {
-                    var groupData = (BindGroupMembers)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetOrCreateGroup);
-                    group = Instance.AddGroupData(groupData);
-                }
-
-                return group;
+                var index = (int)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetOrCreateGroup);
+                return index != -1 ? Groups[index] : null;
             }
 
             /// <summary>
-            /// Adds a new group wrapper
+            /// Returns the bind group with the name igven.
             /// </summary>
-            private IBindGroup AddGroupData(BindGroupMembers groupData)
+            public static IBindGroup GetBindGroup(string name)
             {
-                IBindGroup group = new BindGroup(groupData);
-                bindGroups.Add(group);
-
-                return group;
+                var index = (int)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetBindGroup);
+                return index != -1 ? Groups[index] : null;
             }
 
             /// <summary>
@@ -128,29 +125,8 @@ namespace RichHudFramework
             /// </summary>
             public static IControl GetControl(string name)
             {
-                var controlData = (ControlMembers)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetControlByName);
-                return new Control(controlData);
-            }
-
-            /// <summary>
-            /// Returns the control associated with the given <see cref="MyKeys"/> enum.
-            /// </summary>
-            public static IControl GetControl(MyKeys seKey) =>
-                Controls[(int)seKey];
-
-            /// <summary>
-            /// Returns the control associated with the given custom <see cref="RichHudControls"/> enum.
-            /// </summary>
-            public static IControl GetControl(RichHudControls rhdKey) =>
-                Controls[(int)rhdKey];
-
-            /// <summary>
-            /// Returns the bind group with the name igven.
-            /// </summary>
-            public static IBindGroup GetBindGroup(string name)
-            {
-                name = name.ToLower();
-                return Instance.bindGroups.Find(x => (x.Name == name));
+                var index = (int)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetControlByName);
+                return index != -1 ? Controls[index] : null;
             }
 
             /// <summary>
@@ -174,12 +150,7 @@ namespace RichHudFramework
                 IControl[] combo = new IControl[indices.Count];
 
                 for (int n = 0; n < indices.Count; n++)
-                {
-                    int index = indices[n];
-
-                    if (index < Controls.Count)
-                        combo[n] = Controls[index];
-                }
+                    combo[n] = Controls[indices[n].index];
 
                 return combo;
             }
@@ -192,12 +163,7 @@ namespace RichHudFramework
                 IControl[] combo = new IControl[indices.Count];
 
                 for (int n = 0; n < indices.Count; n++)
-                {
-                    int index = indices[n];
-
-                    if (index < Controls.Count)
-                        combo[n] = Controls[index];
-                }
+                    combo[n] = Controls[indices[n]];
 
                 return combo;
             }
@@ -207,6 +173,18 @@ namespace RichHudFramework
             /// </summary>
             public static int[] GetComboIndices(IList<string> controlNames) =>
                 Instance.GetOrSetMemberFunc(controlNames, (int)BindClientAccessors.GetComboIndices) as int[];
+
+            /// <summary>
+            /// Returns the control associated with the given <see cref="MyKeys"/> enum.
+            /// </summary>
+            public static IControl GetControl(MyKeys seKey) =>
+                Controls[(int)seKey];
+
+            /// <summary>
+            /// Returns the control associated with the given custom <see cref="RichHudControls"/> enum.
+            /// </summary>
+            public static IControl GetControl(RichHudControls rhdKey) =>
+                Controls[(int)rhdKey];
 
             /// <summary>
             /// Generates a list of control indices from a list of controls.

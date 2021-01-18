@@ -26,7 +26,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Size of the text element including TextPadding.
         /// </summary>
-        public override Vector2 TextSize { get { return textElement.Size; } protected set { textElement.Size = value; } }
+        public override Vector2 TextSize { get { return textElement.Size; } set { textElement.Size = value; } }
 
         /// <summary>
         /// If true, the element will automatically resize to fit the text.
@@ -53,9 +53,12 @@ namespace RichHudFramework.UI
         /// </summary>
         public readonly Label textElement;
 
-        public LabelBox(IHudParent parent = null) : base(parent)
+        public LabelBox(HudParentBase parent) : base(parent)
         {
             textElement = new Label(this);
         }
+
+        public LabelBox() : this(null)
+        { }
     }
 }

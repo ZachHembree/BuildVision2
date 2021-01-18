@@ -37,6 +37,11 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public float? Output => powerProducer?.CurrentOutput;
 
+            /// <summary>
+            /// Returns maximum block power output in megawatts if the underlying fat block implements <see cref="IMyPowerProducer"/>.
+            /// </summary>
+            public float? MaxOutput => powerProducer?.MaxOutput;
+
             private readonly MyDefinitionId resourceId;
             private readonly MyResourceSinkComponentBase sink;
             private readonly IMyPowerProducer powerProducer;
@@ -77,6 +82,15 @@ namespace DarkHelmet.BuildVision2
                         { $"{MyTexts.GetString(Enabled.Value ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)} ", valueFormat },
                         { $"({GetPowerDisplay()})\n", nameFormat },
                     };
+
+                    if (powerProducer != null)
+                    {
+                        summary += new RichText() 
+                        {
+                            { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxOutput)} ", nameFormat },
+                            { $"{TerminalUtilities.GetPowerDisplay(powerProducer.MaxOutput)}\n", valueFormat },
+                        };
+                    }
                 }
                 else if (Enabled != null)
                 {

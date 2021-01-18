@@ -3,39 +3,44 @@ using VRage;
 
 namespace RichHudFramework
 {
+    public delegate void EventHandler(object sender, EventArgs e);
+
     namespace UI
     {
-        public interface IMouseInput : IHudElement
+        /// <summary>
+        /// Interface for mouse input of a UI element.
+        /// </summary>
+        public interface IMouseInput
         {
             /// <summary>
             /// Invoked when the cursor enters the element's bounds
             /// </summary>
-            event Action OnCursorEnter;
+            event EventHandler OnCursorEnter;
 
             /// <summary>
             /// Invoked when the cursor leaves the element's bounds
             /// </summary>
-            event Action OnCursorExit;
+            event EventHandler OnCursorExit;
 
             /// <summary>
             /// Invoked when the element is clicked with the left mouse button
             /// </summary>
-            event Action OnLeftClick;
+            event EventHandler OnLeftClick;
 
             /// <summary>
             /// Invoked when the left click is released
             /// </summary>
-            event Action OnLeftRelease;
+            event EventHandler OnLeftRelease;
 
             /// <summary>
             /// Invoked when the element is clicked with the right mouse button
             /// </summary>
-            event Action OnRightClick;
+            event EventHandler OnRightClick;
 
             /// <summary>
             /// Invoked when the right click is released
             /// </summary>
-            event Action OnRightRelease;
+            event EventHandler OnRightRelease;
 
             /// <summary>
             /// True if the element is being clicked with the left mouse button
@@ -47,10 +52,28 @@ namespace RichHudFramework
             /// </summary>
             bool IsRightClicked { get; }
 
+            /// <summary>
+            /// True if the element was just with the left mouse button
+            /// </summary>
+            bool IsNewLeftClicked { get; }
+
+            /// <summary>
+            /// True if the element was just with the right mouse button
+            /// </summary>
+            bool IsNewRightClicked { get; }
+
+            /// <summary>
+            /// Indicates whether or not the cursor is currently over this element.
+            /// </summary>
             bool HasFocus { get; }
+
+            /// <summary>
+            /// Clears all subscribers to mouse input events.
+            /// </summary>
+            void ClearSubscribers();
         }
 
-        public interface IClickableElement : IHudElement
+        public interface IClickableElement : IReadOnlyHudElement
         {
             IMouseInput MouseInput { get; }
         }

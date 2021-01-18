@@ -9,6 +9,7 @@ namespace RichHudFramework
         {
             /// <summary>
             /// Used to determine how a given <see cref="Material"/> is scaled on a given Billboard.
+            /// Note: texture colors are clamped to their edges.
             /// </summary>
             public enum MaterialAlignment : int
             {
@@ -18,20 +19,22 @@ namespace RichHudFramework
                 StretchToFit = 0,
 
                 /// <summary>
-                ///  Rescales the material so that it matches the height of the Billboard while maintaining its aspect ratio
+                ///  Rescales the material so that it matches the height of the Billboard while maintaining its aspect ratio.
+                ///  Material will be clipped as needed.
                 /// </summary>
                 FitVertical = 1,
 
                 /// <summary>
-                /// Rescales the material so that it matches the width of the Billboard while maintaining its aspect ratio
+                /// Rescales the material so that it matches the width of the Billboard while maintaining its aspect ratio.
+                /// Material will be clipped as needed.
                 /// </summary>
                 FitHorizontal = 2,
 
                 /// <summary>
-                /// Maintains the material's aspect ratio and size at the given scale without regard
-                /// to the size of the billboard.
+                /// Rescales the material so that such that it maintains it's aspect ratio while filling as much of the billboard
+                /// as possible
                 /// </summary>
-                Fixed = 3,
+                FitAuto = 3,
             }
 
             /// <summary>
@@ -52,40 +55,52 @@ namespace RichHudFramework
                 /// <summary>
                 /// The dimensions of the <see cref="Material"/> relative to the size of the texture its based on.
                 /// </summary>
-                public readonly Vector2 scaledSize;
+                public readonly Vector2 uvSize;
                 /// <summary>
                 /// Center of the <see cref="Material"/> on the texture scaled relative to the size of the texture.
                 /// </summary>
-                public readonly Vector2 scaledOrigin;
+                public readonly Vector2 uvOffset;
 
                 /// <summary>
                 /// Creates a <see cref="Material"/> using the name of the Texture's ID and its size in pixels.
                 /// </summary>
+                /// <param name="TextureName">Name of the texture ID</param>
+                /// <param name="size">Size of the material in pixels</param>
                 public Material(string TextureName, Vector2 size) : this(MyStringId.GetOrCompute(TextureName), size)
                 { }
 
                 /// <summary>
                 /// Creates a <see cref="Material"/> based on a Texture Atlas/Sprite with a given offset and size.
                 /// </summary>
-                public Material(string TextureName, Vector2 textureSize, Vector2 offset, Vector2 size)
-                    : this(MyStringId.GetOrCompute(TextureName), textureSize, offset, size)
+                /// <param name="TextureName">Name of the texture ID</param>
+                /// <param name="texSize">Size of the texture associated with the texture ID in pixels</param>
+                /// <param name="texCoords">UV offset starting from the upper left hand corner in pixels</param>
+                /// <param name="size">Size of the material starting from the given offset</param>
+                public Material(string TextureName, Vector2 texSize, Vector2 texCoords, Vector2 size)
+                    : this(MyStringId.GetOrCompute(TextureName), texSize, texCoords, size)
                 { }
 
                 /// <summary>
-                /// Creates a <see cref="Material"/> using the <see cref="MyStringId"/> of the texture and its size in pixels.
+                /// Creates a <see cref="Material"/> using the name of the Texture's ID and its size in pixels.
                 /// </summary>
+                /// <param name="TextureID">MyStringID associated with the texture</param>
+                /// <param name="size">Size of the material in pixels</param>
                 public Material(MyStringId TextureID, Vector2 size)
                 {
                     this.TextureID = TextureID;
                     this.size = size;
 
-                    scaledSize = Vector2.One;
-                    scaledOrigin = scaledSize / 2f;
+                    uvSize = Vector2.One;
+                    uvOffset = uvSize / 2f;
                 }
 
                 /// <summary>
-                /// Creates a <see cref="Material"/> based on an Atlas/Sprite with a given offset and size.
+                /// Creates a <see cref="Material"/> based on a Texture Atlas/Sprite with a given offset and size.
                 /// </summary>
+                /// <param name="TextureID">MyStringID associated with the texture</param>
+                /// <param name="texSize">Size of the texture associated with the texture ID in pixels</param>
+                /// <param name="texCoords">UV offset starting from the upper left hand corner in pixels</param>
+                /// <param name="size">Size of the material starting from the given offset</param>
                 public Material(MyStringId TextureID, Vector2 textureSize, Vector2 offset, Vector2 size)
                 {
                     this.TextureID = TextureID;
@@ -94,12 +109,12 @@ namespace RichHudFramework
                     size.X /= textureSize.X;
                     size.Y /= textureSize.Y;
 
-                    scaledSize = size;
+                    uvSize = size;
 
                     offset.X /= textureSize.X;
                     offset.Y /= textureSize.Y;
 
-                    scaledOrigin = offset + (scaledSize / 2f);
+                    uvOffset = offset + (uvSize / 2f);
                 }
             }
 

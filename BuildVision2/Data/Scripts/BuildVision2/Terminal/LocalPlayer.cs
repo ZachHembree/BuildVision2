@@ -118,7 +118,6 @@ namespace DarkHelmet.BuildVision2
         public static bool TryGetTargetedGrid(LineD line, out IMyCubeGrid grid)
         {
             IHitInfo rayInfo;
-            grid = null;
 
             if (PlyEnt != null)
             {
@@ -127,7 +126,6 @@ namespace DarkHelmet.BuildVision2
             }
             else
             {
-                rayInfo = null;
                 grid = null;
             }
 
@@ -158,7 +156,6 @@ namespace DarkHelmet.BuildVision2
         {
             Vector3D start, end;
             IHitInfo rayInfo;
-            grid = null;
 
             if (PlyEnt != null)
             {

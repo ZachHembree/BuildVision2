@@ -1,17 +1,12 @@
 ﻿using RichHudFramework;
 using RichHudFramework.Internal;
 using RichHudFramework.UI;
-using RichHudFramework.UI.Rendering;
 using RichHudFramework.UI.Client;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using VRage.Collections;
 using VRage.Game;
-using VRage.Game.Components;
 using VRage.Game.ModAPI;
-using VRage.ModAPI;
 using VRageMath;
 
 namespace DarkHelmet.BuildVision2
@@ -34,9 +29,14 @@ namespace DarkHelmet.BuildVision2
         public static ScrollMenuModes MenuMode => Instance.scrollMenu.MenuMode;
 
         /// <summary>
-        /// Draws the bounding box of the target. Used for debugging.
+        /// If true, then the bounding box of the target block will be drawn. Used for debugging.
         /// </summary>
         public static bool DrawBoundingBox { get; set; }
+
+        /// <summary>
+        /// If true, then the menu will draw on the target block in world space. Used for debugging.
+        /// </summary>
+        public static bool EnableWorldDraw { get; set; }
 
         private static PropertiesMenu Instance
         {
@@ -47,33 +47,29 @@ namespace DarkHelmet.BuildVision2
         private const long peekTime = 100 * TimeSpan.TicksPerMillisecond;
 
         private readonly BvScrollMenu scrollMenu;
+        private readonly HudSpaceNode hudSpace;
         private readonly TerminalGrid targetGrid;
+        private readonly BoundingBoard boundingBox;
         private PropertyBlock targetBlock;
         private IMyTerminalBlock lastPastedTarget;
         private BlockData clipboard, pasteBackup;
         private Utils.Stopwatch peekRefresh;
 
-        private readonly BlockBoard boundsTest;
-
         private PropertiesMenu() : base(false, true)
         {
             DrawBoundingBox = false;
-            scrollMenu = new BvScrollMenu() { Visible = false };
+            EnableWorldDraw = false;
+
+            hudSpace = new HudSpaceNode(HudMain.Root) { UpdateMatrixFunc = UpdateHudSpace };
+            scrollMenu = new BvScrollMenu(hudSpace) { Visible = false };
             targetGrid = new TerminalGrid();
+            boundingBox = new BoundingBoard();
 
             RichHudCore.LateMessageEntered += MessageHandler;
             peekRefresh = new Utils.Stopwatch();
             peekRefresh.Start();
 
             SharedBinds.Escape.OnNewPress += Hide;
-
-            boundsTest = new BlockBoard();
-            boundsTest.Front.Color = Color.Blue.SetAlphaPct(0.7f);
-            boundsTest.Back.Color = Color.LightBlue.SetAlphaPct(0.7f);
-            boundsTest.Top.Color = Color.Red.SetAlphaPct(0.7f);
-            boundsTest.Bottom.Color = Color.Orange.SetAlphaPct(0.7f);
-            boundsTest.Left.Color = Color.Green.SetAlphaPct(0.7f);
-            boundsTest.Right.Color = Color.DarkOliveGreen.SetAlphaPct(0.7f);
         }
 
         public static void Init()
@@ -118,107 +114,119 @@ namespace DarkHelmet.BuildVision2
 
         public override void HandleInput()
         {
-            if (BvBinds.Open.IsNewPressed && BvBinds.Hide.IsNewPressed)
-                ToggleOpen();
-            else if (BvBinds.Open.IsNewPressed)
-                TryOpen();
-            else if (BvBinds.Hide.IsNewPressed)
-                Hide();
-
-            if (BvConfig.Current.general.enablePeek)
+            if (!HudMain.Cursor.Visible)
             {
-                if (BvBinds.Peek.IsPressed && (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peek))
-                {
-                    if (BvBinds.Peek.IsNewPressed || peekRefresh.ElapsedTicks > peekTime)
-                    {
-                        TryPeek();
-                        peekRefresh.Reset();
-                    }
-                }
-                else if (BvBinds.Peek.IsReleased && Open && scrollMenu.MenuMode == ScrollMenuModes.Peek)
+                if (BvBinds.Open.IsNewPressed && BvBinds.Hide.IsNewPressed)
+                    ToggleOpen();
+                else if (BvBinds.Open.IsNewPressed)
+                    TryOpen();
+                else if (BvBinds.Hide.IsNewPressed)
                     Hide();
-            }
 
-            if (targetBlock != null && Open && scrollMenu.MenuMode != ScrollMenuModes.Peek)
-            {
-                if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Dupe)
+                if (BvConfig.Current.general.enablePeek)
                 {
-                    clipboard = new BlockData(targetBlock.TypeID, scrollMenu.GetDuplicationRange());
-                    scrollMenu.ShowNotification($"Copied {clipboard.terminalProperties.Count} Properties");
-                }
-
-                if (BvBinds.PasteProperties.IsNewPressed && !clipboard.Equals(default(BlockData)) && clipboard.terminalProperties.Count > 0)
-                {
-                    if (clipboard.blockTypeID == targetBlock.TypeID)
+                    if (BvBinds.Peek.IsPressed && (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peek))
                     {
-                        pasteBackup = targetBlock.ExportSettings();
-                        lastPastedTarget = targetBlock.TBlock;
-
-                        int importCount = targetBlock.ImportSettings(clipboard);
-                        scrollMenu.ShowNotification($"Pasted {importCount} Properties");
+                        if (BvBinds.Peek.IsNewPressed || peekRefresh.ElapsedTicks > peekTime)
+                        {
+                            TryPeek();
+                            peekRefresh.Reset();
+                        }
                     }
-                    else
-                        scrollMenu.ShowNotification($"Paste Incompatible");
+                    else if (BvBinds.Peek.IsReleased && Open && scrollMenu.MenuMode == ScrollMenuModes.Peek)
+                        Hide();
                 }
 
-                if (BvBinds.UndoPaste.IsNewPressed && targetBlock.TBlock == lastPastedTarget)
+                if (targetBlock != null && Open)
                 {
-                    targetBlock.ImportSettings(pasteBackup);
-                    scrollMenu.ShowNotification("Paste Undone");
-                    lastPastedTarget = null;
+                    if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Dupe)
+                    {
+                        clipboard = new BlockData(targetBlock.TypeID, scrollMenu.GetDuplicationRange());
+                        scrollMenu.ShowNotification($"Copied {clipboard.terminalProperties.Count} Properties");
+                    }
+
+                    if (BvBinds.PasteProperties.IsNewPressed && !clipboard.Equals(default(BlockData)) && clipboard.terminalProperties.Count > 0)
+                    {
+                        if (clipboard.blockTypeID == targetBlock.TypeID)
+                        {
+                            pasteBackup = targetBlock.ExportSettings();
+                            lastPastedTarget = targetBlock.TBlock;
+
+                            int importCount = targetBlock.ImportSettings(clipboard);
+                            scrollMenu.ShowNotification($"Pasted {importCount} Properties");
+                        }
+                        else
+                            scrollMenu.ShowNotification($"Paste Incompatible");
+                    }
+
+                    if (BvBinds.UndoPaste.IsNewPressed && targetBlock.TBlock == lastPastedTarget)
+                    {
+                        targetBlock.ImportSettings(pasteBackup);
+                        scrollMenu.ShowNotification("Paste Undone");
+                        lastPastedTarget = null;
+                    }
                 }
             }
         }
 
-        public override void Draw()
+        private MatrixD UpdateHudSpace()
         {
-            if (BvConfig.Current.hudConfig.resolutionScaling)
-                scrollMenu.Scale = BvConfig.Current.hudConfig.hudScale * HudMain.ResScale;
-            else
-                scrollMenu.Scale = BvConfig.Current.hudConfig.hudScale;
-
-            scrollMenu.BgOpacity = BvConfig.Current.hudConfig.hudOpacity;
-            scrollMenu.MaxVisible = BvConfig.Current.hudConfig.maxVisible;
-
             if (targetBlock != null && Open)
             {
-                Vector3D targetPos, worldPos;
-                Vector2 screenPos, screenBounds = Vector2.One / 2f;
+                if (DrawBoundingBox)
+                    boundingBox.Draw(targetBlock.TBlock);
 
-                if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !BvConfig.Current.hudConfig.useCustomPos)
+                scrollMenu.BgOpacity = BvConfig.Current.hudConfig.hudOpacity;
+                scrollMenu.MaxVisible = BvConfig.Current.hudConfig.maxVisible;
+
+                if (BvConfig.Current.hudConfig.resolutionScaling)
+                    scrollMenu.LocalScale = BvConfig.Current.hudConfig.hudScale * HudMain.ResScale;
+                else
+                    scrollMenu.LocalScale = BvConfig.Current.hudConfig.hudScale;
+
+                if (EnableWorldDraw)
                 {
-                    targetPos = Target.Position + Target.modelOffset * .75;
-                    worldPos = LocalPlayer.GetWorldToScreenPos(targetPos) / 2d;
+                    BoundingBox box = targetBlock.TBlock.LocalAABB;
+                    MatrixD matrix = targetBlock.TBlock.WorldMatrix;
+                    matrix.Translation += new Vector3D(0d, 0d, box.Size.Z * .5f + 0.1f);
 
-                    screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
-                    screenBounds -= HudMain.GetRelativeVector(scrollMenu.Size / 2f);
-                    scrollMenu.AlignToEdge = false;
+                    hudSpace.LocalScale = 0.01f;
+                    scrollMenu.Offset = Vector2.Zero;
+
+                    return matrix;
                 }
                 else
                 {
-                    screenPos = BvConfig.Current.hudConfig.hudPos;
-                    scrollMenu.AlignToEdge = true;
+                    Vector3D targetPos, worldPos;
+                    Vector2 screenPos, screenBounds = Vector2.One / 2f;
+
+                    if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !BvConfig.Current.hudConfig.useCustomPos)
+                    {
+                        targetPos = Target.Position + Target.modelOffset * .75d;
+                        worldPos = LocalPlayer.GetWorldToScreenPos(targetPos) / 2d;
+
+                        screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
+                        screenBounds -= HudMain.GetAbsoluteVector(scrollMenu.Size / 2f);
+                        scrollMenu.AlignToEdge = false;
+                    }
+                    else
+                    {
+                        screenPos = BvConfig.Current.hudConfig.hudPos;
+                        scrollMenu.AlignToEdge = true;
+                    }
+
+                    if (BvConfig.Current.hudConfig.clampHudPos)
+                    {
+                        screenPos.X = MathHelper.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
+                        screenPos.Y = MathHelper.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
+                    }
+
+                    hudSpace.LocalScale = 1f;
+                    scrollMenu.Offset = HudMain.GetPixelVector(screenPos);
                 }
-
-                if (BvConfig.Current.hudConfig.clampHudPos)
-                {
-                    screenPos.X = MathHelper.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
-                    screenPos.Y = MathHelper.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
-                }
-
-                scrollMenu.Offset = HudMain.GetPixelVector(screenPos);
-
-                if (DrawBoundingBox)
-                    DrawTestCube();
             }
-        }
 
-        private void DrawTestCube()
-        {
-            BoundingBoxD box = targetBlock.TBlock.WorldAABB;
-            MatrixD matrix = MatrixD.Orthogonalize(box.Matrix);
-            boundsTest.Size = box.Size;
-            boundsTest.Draw(ref matrix);
+            return HudMain.PixelToWorld;
         }
 
         private void ToggleOpen()
@@ -270,7 +278,7 @@ namespace DarkHelmet.BuildVision2
         private bool TryGetTarget()
         {
             IMyTerminalBlock block;
-            
+
             if ((BvConfig.Current.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && TryGetTargetedBlock(BvConfig.Current.general.maxOpenRange, out block))
             {
                 if (block != null)

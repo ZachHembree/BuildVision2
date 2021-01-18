@@ -18,6 +18,16 @@ namespace RichHudFramework
             object // ID
         >;
 
+        public enum TerminalAccessors : int
+        {
+            ToggleMenu = 0,
+            OpenMenu = 1,
+            CloseMenu = 2,
+            OpenToPage = 3,
+            SetPage = 4,
+            GetMenuOpen = 5
+        }
+
         /// <summary>
         /// Used by the API to specify to request a given type of settings menu control
         /// </summary>
@@ -44,14 +54,15 @@ namespace RichHudFramework
         {
             ControlPage = 1,
             RebindPage = 2,
+            TextPage = 3,
         }
 
         public enum ModControlRootAccessors : int
         {
             /// <summary>
-            /// MyTuple<bool, Action>
+            /// Action
             /// </summary>
-            OnSelectionChanged = 1,
+            GetOrSetCallback = 1,
 
             /// <summary>
             /// string
@@ -64,14 +75,19 @@ namespace RichHudFramework
             Enabled = 3,
 
             /// <summary>
-            /// MemberAccessor
+            /// out: ControlMembers
             /// </summary>
             Selection = 4,
 
             /// <summary>
-            /// MemberAccessor
+            /// in: TerminalPageBase
             /// </summary>
             AddPage = 5,
+
+            /// <summary>
+            /// in: IReadOnlyList<TerminalPageBase>
+            /// </summary>
+            AddRange = 6,
         }
 
         /// <summary>
@@ -83,18 +99,22 @@ namespace RichHudFramework
             /// <summary>
             /// Invoked when a new page is selected
             /// </summary>
-            event Action OnSelectionChanged;
+            event EventHandler OnSelectionChanged;
 
             /// <summary>
-            /// Name of the mod as it appears in the <see cref="RichHudTerminal"/> mod list
+            /// Name of the mod as it appears in the <see cref="TerminalFormatting"/> mod list
             /// </summary>
             string Name { get; set; }
 
             /// <summary>
             /// Read only collection of <see cref="ITerminalPage"/>s assigned to this object.
             /// </summary>
-            IReadOnlyCollection<ITerminalPage> Pages { get; }
+            IReadOnlyList<ITerminalPage> Pages { get; }
 
+            /// <summary>
+            /// Used to allow the addition of page elements using collection-initializer syntax in
+            /// conjunction with normal initializers.
+            /// </summary>
             IModControlRoot PageContainer { get; }
 
             /// <summary>
@@ -112,6 +132,11 @@ namespace RichHudFramework
             /// Adds the given <see cref="TerminalPageBase"/> to the object.
             /// </summary>
             void Add(TerminalPageBase page);
+
+            /// <summary>
+            /// Adds the given ranges of pages to the control root.
+            /// </summary>
+            void AddRange(IReadOnlyList<TerminalPageBase> terminalPageBases);
 
             /// <summary>
             /// Retrieves data used by the Framework API

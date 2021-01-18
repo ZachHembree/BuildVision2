@@ -40,9 +40,44 @@
             PixelToWorldTransform = 7,
 
             /// <summary>
-            /// out: RichText, in: RichText
+            /// in/out: RichText
             /// </summary>
-            ClipBoard = 8
+            ClipBoard = 8,
+
+            /// <summary>
+            /// out: float
+            /// </summary>
+            UiBkOpacity = 9,
+
+            /// <summary>
+            /// in/out: bool
+            /// </summary>
+            EnableCursor = 10,
+
+            /// <summary>
+            /// in/out: bool
+            /// </summary>
+            RefreshDrawList = 11,
+
+            /// <summary>
+            /// in/out: Action<List<HudUpdateAccessors>, byte>
+            /// </summary>
+            GetUpdateAccessors = 12,
+
+            /// <summary>
+            /// out: byte, in: Action{byte}
+            /// </summary>
+            GetFocusOffset = 13,
+
+            /// <summary>
+            /// out: HudSpaceDelegate
+            /// </summary>
+            GetPixelSpaceFunc = 14,
+
+            /// <summary>
+            /// out: Func{Vector3D}
+            /// </summary>
+            GetPixelSpaceOriginFunc = 15
         }
     }
 }

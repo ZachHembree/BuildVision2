@@ -1,23 +1,19 @@
-﻿using RichHudFramework;
-using RichHudFramework.IO;
+﻿using RichHudFramework.IO;
 using RichHudFramework.UI;
-using System.Xml.Serialization;
-using VRageMath;
-using VRage.Input;
 using System;
-using System.Collections.Generic;
+using System.Xml.Serialization;
+using VRage.Input;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
     [XmlRoot, XmlType(TypeName = "BuildVisionSettings")]
     public class BvConfig : ConfigRoot<BvConfig>
     {
+        private const int vID = 9;
+
         [XmlElement(ElementName = "GeneralSettings")]
         public TargetingConfig general;
-
-        [Obsolete]
-        [XmlElement(ElementName = "GuiSettings")]
-        public PropMenuConfig menu;
 
         [XmlElement(ElementName = "HudConfig")]
         public HudConfig hudConfig;
@@ -32,9 +28,8 @@ namespace DarkHelmet.BuildVision2
         {
             return new BvConfig
             {
-                VersionID = 9,
+                VersionID = vID,
                 general = TargetingConfig.Defaults,
-                menu = null,
                 hudConfig = HudConfig.Defaults,
                 block = PropBlockConfig.Defaults,
                 binds = BindsConfig.Defaults
@@ -43,48 +38,35 @@ namespace DarkHelmet.BuildVision2
 
         public override void Validate()
         {
-            if (VersionID < 5)
-                block = PropBlockConfig.Defaults;
-
-            if (VersionID < 6)
-                menu = PropMenuConfig.Defaults;
-
-            if (VersionID < 7 && menu?.hudConfig != null)
-                menu.hudConfig.hudOpacity = HudConfig.Defaults.hudOpacity;
-
-            if (VersionID < 9)
+            if (VersionID < vID)
             {
-                general.enablePeek = true;
-                binds = BindsConfig.Defaults;
-
-                if (menu?.hudConfig != null)
-                    hudConfig = menu.hudConfig;
-
-                menu = null;
-            }
-
-            if (general != null)
-                general.Validate();
-            else
                 general = TargetingConfig.Defaults;
-
-            if (hudConfig != null)
-                hudConfig.Validate();
-            else
                 hudConfig = HudConfig.Defaults;
-
-            if (binds != null)
-                binds.Validate();
-            else
-                binds = BindsConfig.Defaults;
-
-            if (block != null)
-                block.Validate();
-            else
                 block = PropBlockConfig.Defaults;
+                binds = BindsConfig.Defaults;
+            }
+            else
+            {
+                if (general != null)
+                    general.Validate();
+                else
+                    general = TargetingConfig.Defaults;
 
-            if (VersionID != Defaults.VersionID)
-                VersionID = Defaults.VersionID;
+                if (hudConfig != null)
+                    hudConfig.Validate();
+                else
+                    hudConfig = HudConfig.Defaults;
+
+                if (binds != null)
+                    binds.Validate();
+                else
+                    binds = BindsConfig.Defaults;
+
+                if (block != null)
+                    block.Validate();
+                else
+                    block = PropBlockConfig.Defaults;
+            }
         }
     }
 
@@ -190,7 +172,7 @@ namespace DarkHelmet.BuildVision2
                 maxVisible = 14,
                 clampHudPos = true,
                 useCustomPos = false,
-                hudPos = new Vector2(-0.97083337604999542f, 0.95370364189147949f)
+                hudPos = new Vector2(-0.483125f, 0.47f)
             };
         }
 
@@ -275,13 +257,13 @@ namespace DarkHelmet.BuildVision2
 
         public static BindDefinition[] DefaultMain => defaultMain.Clone() as BindDefinition[];
 
-        private static readonly BindDefinition[] 
-            defaultOpen = new BindGroupData 
+        private static readonly BindDefinition[]
+            defaultOpen = new BindGroupInitializer
             {
                 { "Peek", MyKeys.Control },
                 { "Open", MyKeys.Control, MyKeys.MiddleButton },
             }.GetBindDefinitions(),
-            defaultMain = new BindGroupData
+            defaultMain = new BindGroupInitializer
             {
                 { "Close", MyKeys.Shift, MyKeys.MiddleButton },
                 { "Select", MyKeys.MiddleButton },

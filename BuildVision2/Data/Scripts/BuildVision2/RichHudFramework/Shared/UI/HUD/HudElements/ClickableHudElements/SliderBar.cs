@@ -13,49 +13,65 @@ namespace RichHudFramework.UI
     public class SliderBar : HudElementBase, IClickableElement
     {
         /// <summary>
-        /// Width of the sliderbar in pixels.
+        /// Width of the sliderbar.
         /// </summary>
         public override float Width
         {
-            get { return Math.Max(bar.Width, slider.Width) + Padding.X; }
+            get 
+            {
+                if (Vertical)
+                    return (Math.Max(_barSize.X, _sliderSize.X) + _absolutePadding.X) * Scale;
+                else
+                    return _barSize.X * Scale;
+            }
             set
             {
-                if (value > Padding.X)
-                    value -= Padding.X;
+                value /= Scale;
 
-                if (bar.Width >= slider.Width)
+                if (value > _absolutePadding.X)
+                    value -= _absolutePadding.X;
+
+                if (_barSize.X >= _sliderSize.X)
                 {
-                    bar.Width = value;
-                    slider.Width = Math.Min(slider.Width, bar.Width);
+                    _barSize.X = value;
+                    _sliderSize.X = Math.Min(_sliderSize.X, _barSize.X);
                 }
                 else
                 {
-                    slider.Width = value;
-                    bar.Width = Math.Min(slider.Width, bar.Width);
+                    _sliderSize.X = value;
+                    _barSize.X = Math.Min(_sliderSize.X, _barSize.X);
                 }
             }
         }
 
         /// <summary>
-        /// Height of the sliderbar in pixels.
+        /// Height of the sliderbar.
         /// </summary>
         public override float Height
         {
-            get { return Math.Max(bar.Height, slider.Height) + Padding.Y; }
+            get
+            {
+                if (Vertical)
+                    return _barSize.Y * Scale;
+                else
+                    return (Math.Max(_barSize.Y, _sliderSize.Y) + _absolutePadding.Y) * Scale;
+            }
             set
             {
-                if (value > Padding.Y)
-                    value -= Padding.Y;
+                value /= Scale;
 
-                if (bar.Height >= slider.Height)
+                if (value > _absolutePadding.Y)
+                    value -= _absolutePadding.Y;
+
+                if (_barSize.Y >= _sliderSize.Y)
                 {
-                    bar.Height = value;
-                    slider.Height = Math.Min(slider.Height, bar.Height);
+                    _barSize.Y = value;
+                    _sliderSize.Y = Math.Min(_sliderSize.Y, _barSize.Y);
                 }
                 else
                 {
-                    slider.Height = value;
-                    bar.Height = Math.Min(slider.Height, bar.Height);
+                    _sliderSize.Y = value;
+                    _barSize.Y = Math.Min(_sliderSize.Y, _barSize.Y);
                 }
             }
         }
@@ -65,13 +81,13 @@ namespace RichHudFramework.UI
         /// </summary>
         public float Min
         {
-            get { return min; }
+            get { return _min; }
             set
             {
-                min = value;
+                _min = value;
 
-                if (max - min != 0)
-                    Percent = (current - min) / (max - min);
+                if (_max - _min != 0)
+                    Percent = (_current - _min) / (_max - _min);
                 else
                     Percent = 0;
             }
@@ -82,13 +98,13 @@ namespace RichHudFramework.UI
         /// </summary>
         public float Max
         {
-            get { return max; }
+            get { return _max; }
             set
             {
-                max = value;
+                _max = value;
 
-                if (max - min != 0)
-                    Percent = (current - min) / (max - min);
+                if (_max - _min != 0)
+                    Percent = (_current - _min) / (_max - _min);
                 else
                     Percent = 0;
             }
@@ -99,11 +115,11 @@ namespace RichHudFramework.UI
         /// </summary>
         public float Current
         {
-            get { return current; }
+            get { return _current; }
             set
             {
-                if (max - min != 0)
-                    Percent = (value - min) / (max - min);
+                if (_max - _min != 0)
+                    Percent = (value - _min) / (_max - _min);
                 else
                     Percent = 0;
             }
@@ -115,11 +131,11 @@ namespace RichHudFramework.UI
         /// </summary>
         public float Percent
         {
-            get { return percent; }
+            get { return _percent; }
             set
             {
-                percent = MathHelper.Clamp(value, 0f, 1f);
-                current = percent * (Max - Min) + Min;
+                _percent = MathHelper.Clamp(value, 0f, 1f);
+                _current = _percent * (Max - Min) + Min;
 
                 UpdateButtonOffset();
             }
@@ -148,37 +164,37 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Size of the slider bar
         /// </summary>
-        public Vector2 BarSize { get { return bar.Size; } set { bar.Size = value; } }
+        public Vector2 BarSize { get { return _barSize * Scale; } set { _barSize = value / Scale; } }
 
         /// <summary>
         /// Width of the slider bar
         /// </summary>
-        public float BarWidth { get { return bar.Width; } set { bar.Width = value; } }
+        public float BarWidth { get { return _barSize.X * Scale; } set { _barSize.X = value / Scale; } }
 
         /// <summary>
         /// Height of the slider bar
         /// </summary>
-        public float BarHeight { get { return bar.Height; } set { bar.Height = value; } }
+        public float BarHeight { get { return _barSize.Y * Scale; } set { _barSize.Y = value / Scale; } }
 
         /// <summary>
         /// Size of the slider button
         /// </summary>
-        public Vector2 SliderSize { get { return slider.Size; } set { slider.Size = value; } }
+        public Vector2 SliderSize { get { return _sliderSize * Scale; } set { _sliderSize = value / Scale; } }
 
         /// <summary>
         /// Width of the slider button.
         /// </summary>
-        public float SliderWidth { get { return slider.Width; } set { slider.Width = value; } }
+        public float SliderWidth { get { return _sliderSize.X * Scale; } set { _sliderSize.X = value / Scale; } }
 
         /// <summary>
         /// Height of the slider button
         /// </summary>
-        public float SliderHeight { get { return slider.Height; } set { slider.Height = value; } }
+        public float SliderHeight { get { return _sliderSize.Y * Scale; } set { _sliderSize.Y = value / Scale; } }
 
         /// <summary>
         /// Determines whether or not the slider button is currently visible
         /// </summary>
-        public bool SliderVisible { get { return slider.Visible; } set { slider.Visible = value; } }
+        public bool SliderVisible { get; set; }
 
         /// <summary>
         /// If true, the slider will be oriented vertically s.t. the slider moves up and down.
@@ -200,13 +216,14 @@ namespace RichHudFramework.UI
         /// </summary>
         public IMouseInput MouseInput => mouseInput;
 
-        private readonly TexturedBox slider, bar;
-        private readonly MouseInputElement mouseInput;
+        protected readonly TexturedBox slider, bar;
+        protected readonly MouseInputElement mouseInput;
+        protected Vector2 _barSize, _sliderSize;
 
-        private float min, max, current, percent;
-        private bool canMoveSlider;
+        protected float _min, _max, _current, _percent;
+        protected bool canMoveSlider;
 
-        public SliderBar(IHudParent parent = null) : base(parent)
+        public SliderBar(HudParentBase parent) : base(parent)
         {
             mouseInput = new MouseInputElement(this) { DimAlignment = DimAlignments.Both };
             mouseInput.OnLeftClick += BarClicked;
@@ -214,32 +231,46 @@ namespace RichHudFramework.UI
             bar = new TexturedBox(this);
             slider = new TexturedBox(bar);
 
-            bar.Size = new Vector2(100f, 12f);
-            slider.Size = new Vector2(6f, 12f);
+            _barSize = new Vector2(100f, 12f);
+            _sliderSize = new Vector2(6f, 12f);
+            SliderVisible = true;
+
+            bar.Size = _barSize;
+            slider.Size = _sliderSize;
 
             SliderColor = new Color(180, 180, 180, 255);
             BarColor = new Color(140, 140, 140, 255);
-
             SliderHighlight = new Color(200, 200, 200, 255);
 
-            min = 0f;
-            max = 1f;
+            _min = 0f;
+            _max = 1f;
 
             Current = 0f;
             Percent = 0f;
         }
 
-        private void BarClicked()
+        public SliderBar() : this(null)
+        { }
+
+        private void BarClicked(object sender, EventArgs args)
         {
             canMoveSlider = true;
         }
 
-        protected override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             if (canMoveSlider && !SharedBinds.LeftButton.IsPressed)
             {
                 canMoveSlider = false;
             }
+        }
+
+        protected override void Layout()
+        {
+            float scale = Scale;
+            bar.Size = _barSize * scale;
+            slider.Size = _sliderSize * scale;
+            slider.Visible = SliderVisible;
 
             if (IsMousedOver || canMoveSlider)
             {
@@ -253,30 +284,28 @@ namespace RichHudFramework.UI
                 slider.Color = SliderColor;
                 bar.Color = BarColor;
             }
-        }
 
-        protected override void Layout()
-        {
             if (canMoveSlider)
             {
                 float minOffset, maxOffset, pos;
+                Vector3 cursorPos = HudSpace.CursorPos;
 
                 if (Vertical)
                 {
-                    minOffset = -(bar.Height - slider.Height) / 2f;
+                    minOffset = -((_barSize.Y - _sliderSize.Y) / 2f) * scale;
                     maxOffset = -minOffset;
-                    pos = MathHelper.Clamp(HudMain.Cursor.Origin.Y - Origin.Y, minOffset, maxOffset);
+                    pos = MathHelper.Clamp(cursorPos.Y - Origin.Y, minOffset, maxOffset);
                 }
                 else
                 {
-                    minOffset = -(bar.Width - slider.Width) / 2f;
+                    minOffset = -((_barSize.X - _sliderSize.X) / 2f) * scale;
                     maxOffset = -minOffset;
-                    pos = MathHelper.Clamp(HudMain.Cursor.Origin.X - Origin.X, minOffset, maxOffset);
+                    pos = MathHelper.Clamp(cursorPos.X - Origin.X, minOffset, maxOffset);
                 }
 
                 if (Reverse)
                     Percent = 1f - ((pos - minOffset) / (maxOffset - minOffset));
-                else
+                else 
                     Percent = (pos - minOffset) / (maxOffset - minOffset);
             }
 
@@ -288,16 +317,16 @@ namespace RichHudFramework.UI
             if (Vertical)
             {
                 if (Reverse)
-                    slider.Offset = new Vector2(0f, -(Percent - .5f) * (bar.Height - slider.Height));
+                    slider.Offset = new Vector2(0f, -(Percent - .5f) * (_barSize.Y - _sliderSize.Y) * Scale);
                 else
-                    slider.Offset = new Vector2(0f, (Percent - .5f) * (bar.Height - slider.Height));
+                    slider.Offset = new Vector2(0f, (Percent - .5f) * (_barSize.Y - _sliderSize.Y) * Scale);
             }
             else
             {
                 if (Reverse)
-                    slider.Offset = new Vector2(-(Percent - .5f) * (bar.Width - slider.Width), 0f);
+                    slider.Offset = new Vector2(-(Percent - .5f) * (_barSize.X - _sliderSize.X) * Scale, 0f);
                 else
-                    slider.Offset = new Vector2((Percent - .5f) * (bar.Width - slider.Width), 0f);
+                    slider.Offset = new Vector2((Percent - .5f) * (_barSize.X - _sliderSize.X) * Scale, 0f);
             }
         }
     }

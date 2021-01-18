@@ -5,7 +5,7 @@ using RichHudFramework.Internal;
 namespace RichHudFramework.IO
 {
     /// <summary>
-    /// Handles logging
+    /// Handles logging to separate file in local storage
     /// </summary>
     public sealed class LogIO : RichHudParallelComponentBase
     {

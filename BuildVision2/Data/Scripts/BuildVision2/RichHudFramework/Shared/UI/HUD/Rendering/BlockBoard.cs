@@ -59,7 +59,6 @@ namespace RichHudFramework
 
                 private readonly MatBoard[] faces;
                 private readonly Vector3D[] octant;
-                private MyQuadD faceQuad;
 
                 public BlockBoard()
                 {
@@ -77,24 +76,6 @@ namespace RichHudFramework
                 {
                     for (int n = 0; n < 6; n++)
                         faces[n].Color = color;
-                }
-
-                /// <summary>
-                /// Sets the material offset for each face.
-                /// </summary>
-                public void SetMaterialOffset(Vector2 offset)
-                {
-                    for (int n = 0; n < 6; n++)
-                        faces[n].MatOffset = offset;
-                }
-
-                /// <summary>
-                /// Sets the material scale for each face.
-                /// </summary>
-                public void SetMatScale(float scale)
-                {
-                    for (int n = 0; n < 6; n++)
-                        faces[n].MatScale = scale;
                 }
 
                 /// <summary>
@@ -120,6 +101,7 @@ namespace RichHudFramework
                 /// </summary>
                 public void Draw(ref MatrixD matrix)
                 {
+                    MyQuadD faceQuad;
                     UpdateOctant(ref matrix);
 
                     // -Z/+Z

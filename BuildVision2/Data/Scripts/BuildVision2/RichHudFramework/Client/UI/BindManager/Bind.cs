@@ -1,14 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using VRage;
-using BindDefinitionData = VRage.MyTuple<string, string[]>;
-using BindMembers = VRage.MyTuple<
-    System.Func<object, int, object>, // GetOrSetMember
-    System.Func<bool>, // IsPressed
-    System.Func<bool>, // IsPressedAndHeld
-    System.Func<bool>, // IsNewPressed
-    System.Func<bool> // IsReleased
->;
+using VRageMath;
 
 namespace RichHudFramework
 {
@@ -20,50 +13,50 @@ namespace RichHudFramework
         {
             private partial class BindGroup
             {
-                private class Bind : IBind
+                public class Bind : IBind
                 {
                     /// <summary>
                     /// Name of the keybind
                     /// </summary>
-                    public string Name { get; }
+                    public string Name => _instance.GetOrSetBindMemberFunc(index, null, (int)BindAccesssors.Name) as string;
 
                     /// <summary>
                     /// Index of the bind within its group
                     /// </summary>
-                    public int Index { get; }
+                    public int Index => index.Y;
 
                     /// <summary>
                     /// True if any controls in the bind are marked analog. For these types of binds, IsPressed == IsNewPressed.
                     /// </summary>
-                    public bool Analog => (bool)GetOrSetMemberFunc(null, (int)BindAccesssors.Analog);
+                    public bool Analog => (bool)_instance.GetOrSetBindMemberFunc(index, null, (int)BindAccesssors.Analog);
 
                     /// <summary>
                     /// True if currently pressed.
                     /// </summary>
-                    public bool IsPressed => IsPressedFunc();
+                    public bool IsPressed => _instance.IsBindPressedFunc(index, (int)BindAccesssors.IsPressed);
 
                     /// <summary>
                     /// True after being held for more than 500ms.
                     /// </summary>
-                    public bool IsPressedAndHeld => IsPressedAndHeldFunc();
+                    public bool IsPressedAndHeld => _instance.IsBindPressedFunc(index, (int)BindAccesssors.IsPressedAndHeld);
 
                     /// <summary>
                     /// True if just pressed.
                     /// </summary>
-                    public bool IsNewPressed => IsNewPressedFunc();
+                    public bool IsNewPressed => _instance.IsBindPressedFunc(index, (int)BindAccesssors.IsNewPressed);
 
                     /// <summary>
                     /// True if just released.
                     /// </summary>
-                    public bool IsReleased => IsReleasedFunc();
+                    public bool IsReleased => _instance.IsBindPressedFunc(index, (int)BindAccesssors.IsReleased);
 
                     /// <summary>
                     /// Invoked when the bind is first pressed.
                     /// </summary>
                     public event Action OnNewPress
                     {
-                        add { GetOrSetMemberFunc(new EventData(true, value), (int)BindAccesssors.OnNewPress); }
-                        remove { GetOrSetMemberFunc(new EventData(false, value), (int)BindAccesssors.OnNewPress); }
+                        add { _instance.GetOrSetBindMemberFunc(index, new EventData(true, value), (int)BindAccesssors.OnNewPress); }
+                        remove { _instance.GetOrSetBindMemberFunc(index, new EventData(false, value), (int)BindAccesssors.OnNewPress); }
                     }
 
                     /// <summary>
@@ -71,8 +64,8 @@ namespace RichHudFramework
                     /// </summary>
                     public event Action OnPressAndHold
                     {
-                        add { GetOrSetMemberFunc(new EventData(true, value), (int)BindAccesssors.OnPressAndHold); }
-                        remove { GetOrSetMemberFunc(new EventData(false, value), (int)BindAccesssors.OnPressAndHold); }
+                        add { _instance.GetOrSetBindMemberFunc(index, new EventData(true, value), (int)BindAccesssors.OnPressAndHold); }
+                        remove { _instance.GetOrSetBindMemberFunc(index, new EventData(false, value), (int)BindAccesssors.OnPressAndHold); }
                     }
 
                     /// <summary>
@@ -80,64 +73,89 @@ namespace RichHudFramework
                     /// </summary>
                     public event Action OnRelease
                     {
-                        add { GetOrSetMemberFunc(new EventData(true, value), (int)BindAccesssors.OnRelease); }
-                        remove { GetOrSetMemberFunc(new EventData(false, value), (int)BindAccesssors.OnRelease); }
+                        add { _instance.GetOrSetBindMemberFunc(index, new EventData(true, value), (int)BindAccesssors.OnRelease); }
+                        remove { _instance.GetOrSetBindMemberFunc(index, new EventData(false, value), (int)BindAccesssors.OnRelease); }
                     }
 
-                    private readonly Func<object, int, object> GetOrSetMemberFunc;
-                    private readonly Func<bool> IsPressedFunc, IsPressedAndHeldFunc, IsNewPressedFunc, IsReleasedFunc;
+                    private readonly Vector2I index;
 
-                    public Bind(BindMembers data)
+                    public Bind(Vector2I index)
                     {
-                        GetOrSetMemberFunc = data.Item1;
-                        IsPressedFunc = data.Item2;
-                        IsNewPressedFunc = data.Item3;
-                        IsPressedAndHeldFunc = data.Item4;
-                        IsReleasedFunc = data.Item5;
-
-                        Name = (string)GetOrSetMemberFunc(null, (int)BindAccesssors.Name);
-                        Index = (int)GetOrSetMemberFunc(null, (int)BindAccesssors.Index);
+                        this.index = index;
                     }
 
                     /// <summary>
                     /// Returns a list of the current key combo for this bind.
                     /// </summary>
-                    public IList<IControl> GetCombo() =>
-                        BindManager.GetCombo((IList<int>)GetOrSetMemberFunc(null, (int)BindAccesssors.GetCombo));
+                    public List<IControl> GetCombo() 
+                    {
+                        var indices = _instance.GetOrSetBindMemberFunc(index, null, (int)BindAccesssors.GetCombo) as List<int>;
+                        var combo = new List<IControl>(indices.Count);
+
+                        for (int n = 0; n < indices.Count; n++)
+                            combo.Add(_instance.controls[indices[n]]);
+
+                        return combo;
+                    }
+
+                    /// <summary>
+                    /// Returns a list of control indices for the current bind combo
+                    /// </summary>
+                    public List<int> GetComboIndices() =>
+                        _instance.GetOrSetBindMemberFunc(index, null, (int)BindAccesssors.GetCombo) as List<int>;
 
                     /// <summary>
                     /// Attempts to set the binds combo to the given controls. Returns true if successful.
                     /// </summary>
-                    public bool TrySetCombo(IList<string> combo, bool strict = true, bool silent = false) =>
-                        TrySetCombo(GetComboIndices(combo), strict, silent);
+                    public bool TrySetCombo(IReadOnlyList<IControl> combo, bool strict = true, bool silent = true)
+                    {
+                        var indices = new int[combo.Count];
+
+                        for (int n = 0; n < combo.Count; n++)
+                            indices[n] = combo[n].Index;
+
+                        var comboData = new MyTuple<IReadOnlyList<int>, bool, bool>(indices, strict, silent);
+                        return (bool)_instance.GetOrSetBindMemberFunc(index, comboData, (int)BindAccesssors.TrySetComboWithIndices);
+                    }
 
                     /// <summary>
                     /// Attempts to set the binds combo to the given controls. Returns true if successful.
                     /// </summary>
-                    public bool TrySetCombo(IList<IControl> combo, bool strict = true, bool silent = false) =>
-                        TrySetCombo(GetComboIndices(combo), strict, silent);
+                    public bool TrySetCombo(IReadOnlyList<int> combo, bool strict = true, bool silent = true)
+                    {
+                        var comboData = new MyTuple<IReadOnlyList<int>, bool, bool>(combo, strict, silent);
+                        return (bool)_instance.GetOrSetBindMemberFunc(index, comboData, (int)BindAccesssors.TrySetComboWithIndices);
+                    }
 
                     /// <summary>
                     /// Attempts to set the binds combo to the given controls. Returns true if successful.
                     /// </summary>
-                    public bool TrySetCombo(IList<int> combo, bool strict = true, bool silent = false) =>
-                        (bool)GetOrSetMemberFunc(new MyTuple<IList<int>, bool, bool>(combo, strict, silent), (int)BindAccesssors.SetCombo);
+                    public bool TrySetCombo(IReadOnlyList<string> combo, bool strict = true, bool silent = true)
+                    {
+                        var comboData = new MyTuple<IReadOnlyList<string>, bool, bool>(combo, strict, silent);
+                        return (bool)_instance.GetOrSetBindMemberFunc(index, comboData, (int)BindAccesssors.TrySetComboWithNames);
+                    }
 
                     /// <summary>
                     /// Clears the current key combination.
                     /// </summary>
                     public void ClearCombo() =>
-                        GetOrSetMemberFunc(null, (int)BindAccesssors.ClearCombo);
+                        _instance.GetOrSetBindMemberFunc(index, null, (int)BindAccesssors.ClearCombo);
 
                     /// <summary>
                     /// Clears all event subscibers for this bind.
                     /// </summary>
                     public void ClearSubscribers() =>
-                        GetOrSetMemberFunc(null, (int)BindAccesssors.ClearSubscribers);
+                        _instance.GetOrSetBindMemberFunc(index, null, (int)BindAccesssors.ClearSubscribers);
 
-                    public BindMembers GetApiData()
+                    public override bool Equals(object obj)
                     {
-                        return new BindMembers();
+                        return ((Bind)obj).index == index;
+                    }
+
+                    public override int GetHashCode()
+                    {
+                        return index.GetHashCode();
                     }
                 }
             }
