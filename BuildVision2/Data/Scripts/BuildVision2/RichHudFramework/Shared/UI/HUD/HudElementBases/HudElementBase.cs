@@ -71,10 +71,10 @@ namespace RichHudFramework
             /// <summary>
             /// Border size. Included in total element size.
             /// </summary>
-            public virtual Vector2 Padding 
-            { 
-                get { return _absolutePadding * Scale; } 
-                set { _absolutePadding = value / Scale; } 
+            public virtual Vector2 Padding
+            {
+                get { return _absolutePadding * Scale; }
+                set { _absolutePadding = value / Scale; }
             }
 
             /// <summary>
@@ -85,10 +85,10 @@ namespace RichHudFramework
             /// <summary>
             /// Position of the element relative to its origin.
             /// </summary>
-            public virtual Vector2 Offset 
+            public virtual Vector2 Offset
             {
-                get { return _absoluteOffset * Scale; } 
-                set { _absoluteOffset = value / Scale; } 
+                get { return _absoluteOffset * Scale; }
+                set { _absoluteOffset = value / Scale; }
             }
 
             /// <summary>
@@ -236,9 +236,19 @@ namespace RichHudFramework
                     cachedSize = new Vector2(Width, Height);
                     cachedPosition = cachedOrigin + Offset;
                 }
+            }
 
-                fullZOffset = GetFullZOffset(this, _parent);
-                parentZOffset = _parent?.ZOffset ?? 0;
+            /// <summary>
+            /// Used to immediately draw billboards. Overriding this method is rarely necessary. 
+            /// If you need to draw something, use Draw().
+            /// </summary>
+            protected override void BeginDraw()
+            {
+                if (Visible)
+                {
+                    UpdateCache();
+                    Draw();
+                }
             }
 
             /// <summary>

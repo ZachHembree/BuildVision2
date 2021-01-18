@@ -43,31 +43,6 @@ namespace RichHudFramework.UI.Server
         /// </summary>
         public bool VertCenterText { get { return name.VertCenterText; } set { name.VertCenterText = value; } }
 
-        public override float Width
-        {
-            get { return layout.Width + Padding.X; }
-            set 
-            {
-                if (value > Padding.X)
-                    value -= Padding.X;
-
-                name.Width = value - checkbox.Width - 17f * Scale;
-            }
-        }
-
-        public override float Height 
-        { 
-            get { return layout.Height + Padding.Y; } 
-            set 
-            {
-                if (value > Padding.X)
-                    value -= Padding.X;
-
-                layout.Height = value;
-                checkbox.Width = value;
-            } 
-        }
-
         /// <summary>
         /// TextBoard backing the label element.
         /// </summary>
@@ -100,12 +75,18 @@ namespace RichHudFramework.UI.Server
 
             layout = new HudChain(false, this)
             {
-                SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
                 Spacing = 17f,
                 CollectionContainer = { name, checkbox }
             };
 
-            Height = 37f;
+            Size = new Vector2(250f, 37f);
+        }
+
+        protected override void Layout()
+        {
+            Vector2 size = cachedSize - cachedPadding;
+            checkbox.Size = new Vector2(size.Y);
+            name.Width = size.X - checkbox.Width - layout.Spacing;
         }
 
         public NamedCheckBox() : this(null)

@@ -7,29 +7,11 @@ using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageM
 namespace RichHudFramework.UI.Server
 {
     /// <summary>
-    /// A pair of horizontally aligned on and off bordered buttons used to indicate a boolean value.
+    /// A pair of horizontally aligned on and off bordered buttons used to indicate a boolean value. Made to
+    /// resemble on/off button used in the SE terminal, sans name tag.
     /// </summary>
     public class OnOffButton : HudElementBase
     {   
-        public override float Width 
-        { 
-            get { return buttonChain.Width; } 
-            set 
-            {
-                if (value > Padding.X)
-                    value -= Padding.X;
-
-                value -= buttonChain.Spacing;
-                value /= 2f;
-
-                buttonChain.MemberMaxSize = new Vector2(value, buttonChain.MemberMaxSize.Y);
-            } 
-        }
-
-        public override float Height { get { return buttonChain.Height; } set { buttonChain.Height = value; } }
-
-        public override Vector2 Padding { get { return buttonChain.Padding; } set { buttonChain.Padding = value; } }
-
         /// <summary>
         /// Distance between the on and off buttons
         /// </summary>
@@ -119,14 +101,18 @@ namespace RichHudFramework.UI.Server
 
         protected override void Layout()
         {
+            Vector2 buttonSize = cachedSize - cachedPadding;
+            buttonSize.X = buttonSize.X / 2f - buttonChain.Spacing;
+            buttonChain.MemberMaxSize = buttonSize;
+
             if (Value)
             {
-                selectionHighlight.Size = on.Size;
+                selectionHighlight.Size = buttonSize;
                 selectionHighlight.Offset = on.Offset;
             }
             else
             {
-                selectionHighlight.Size = off.Size;
+                selectionHighlight.Size = buttonSize;
                 selectionHighlight.Offset = off.Offset;
             }
         }

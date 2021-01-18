@@ -7,7 +7,8 @@ using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageM
 namespace RichHudFramework.UI.Server
 {
     /// <summary>
-    /// Horizontal sliderbox with a name and value label. Value label is not updated automatically.
+    /// Horizontal sliderbox with a name and value label. Value label is not updated automatically. Made to
+    /// resemble sliders used in the SE terminal.
     /// </summary>
     public class NamedSliderBox : HudElementBase
     {
@@ -19,7 +20,7 @@ namespace RichHudFramework.UI.Server
         /// <summary>
         /// Text indicating the current value of the slider. Does not automatically reflect changes to the slider value.
         /// </summary>
-        public RichText ValueText { get { return current.TextBoard.ToString(); } set { current.TextBoard.SetText(value); } }
+        public RichText ValueText { get { return current.TextBoard.GetText(); } set { current.TextBoard.SetText(value); } }
 
         /// <summary>
         /// Minimum configurable value for the slider.
@@ -41,30 +42,6 @@ namespace RichHudFramework.UI.Server
         /// </summary>
         public float Percent { get { return sliderBox.Percent; } set { sliderBox.Percent = value; } }
 
-        public override float Width
-        {
-            get { return sliderBox.Width + Padding.X; }
-            set
-            {
-                if (value > Padding.X)
-                    value -= Padding.X;
-
-                sliderBox.Width = value;
-            }
-        }
-
-        public override float Height
-        {
-            get { return sliderBox.Height + Math.Max(name.Height, current.Height) + Padding.Y; }
-            set
-            {
-                if (value > Padding.Y)
-                    value -= Padding.Y;
-
-                sliderBox.Height = value - Math.Max(name.Height, current.Height);
-            }
-        }
-
         protected readonly Label name, current;
         protected readonly SliderBox sliderBox;
 
@@ -72,6 +49,7 @@ namespace RichHudFramework.UI.Server
         {
             sliderBox = new SliderBox(this)
             {
+                DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
                 ParentAlignment = ParentAlignments.Bottom | ParentAlignments.InnerV,
                 UseCursor = true,
             };
@@ -93,9 +71,16 @@ namespace RichHudFramework.UI.Server
             };
 
             Padding = new Vector2(40f, 0f);
+            Size = new Vector2(317f, 70f);
         }
 
         public NamedSliderBox() : this(null)
         { }
+
+        protected override void Layout()
+        {
+            Vector2 size = cachedSize - cachedPadding;
+            sliderBox.Height = size.Y - Math.Max(name.Height, current.Height);
+        }
     }
 }

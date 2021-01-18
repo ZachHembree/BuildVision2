@@ -244,7 +244,13 @@ namespace RichHudFramework.UI
 
             // Snap slider to integer offsets
             scrollBar.Current = (int)Math.Round(scrollBar.Current);
-            UpdateSliderSize((float)Math.Round(VisCount / (double)EnabledCount, 2));
+
+            // Update slider size
+            float visRatio = ((float)Math.Round(VisCount / (double)EnabledCount, 2));
+            Vector2 sliderSize = scrollBar.slide.BarSize;
+
+            sliderSize[alignAxis] = (Size[alignAxis] - scrollBar.Padding[alignAxis]) * visRatio;
+            scrollBar.slide.SliderSize = sliderSize;
 
             // Calculate member start offset
             Vector2 startOffset;
@@ -452,16 +458,6 @@ namespace RichHudFramework.UI
             }
 
             return size;
-        }
-
-        /// <summary>
-        /// Recalculates and updates the height of the scroll bar.
-        /// </summary>
-        private void UpdateSliderSize(float visRatio)
-        {
-            Vector2 sliderSize = scrollBar.slide.BarSize;
-            sliderSize[alignAxis] = (Size[alignAxis] - scrollBar.Padding[alignAxis]) * visRatio;
-            scrollBar.slide.SliderSize = sliderSize;
         }
     }
 

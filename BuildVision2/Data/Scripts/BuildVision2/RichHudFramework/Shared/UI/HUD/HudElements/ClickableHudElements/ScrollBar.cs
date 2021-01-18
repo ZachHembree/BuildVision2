@@ -9,42 +9,6 @@ namespace RichHudFramework.UI
     public class ScrollBar : HudElementBase, IClickableElement
     {
         /// <summary>
-        /// Width of the scrollbar.
-        /// </summary>
-        public override float Width
-        {
-            get { return slide.Width + Padding.X; }
-            set
-            {
-                if (value > Padding.X)
-                    value -= Padding.X;
-
-                slide.BarWidth = value;
-
-                if (Vertical)
-                    slide.SliderWidth = value;
-            }
-        }
-
-        /// <summary>
-        /// Height of the scrollbar.
-        /// </summary>
-        public override float Height
-        {
-            get { return slide.Height + Padding.Y; }
-            set
-            {
-                if (value > Padding.Y)
-                    value -= Padding.Y;
-
-                slide.BarHeight = value;
-
-                if (!Vertical)
-                    slide.SliderHeight = value;
-            }
-        }
-
-        /// <summary>
         /// Minimum allowable value.
         /// </summary>
         public float Min
@@ -111,12 +75,17 @@ namespace RichHudFramework.UI
 
         protected override void Layout()
         {
+            Vector2 size = cachedSize - cachedPadding;
+            slide.BarSize = size;
+
             if (Vertical)
             {
+                slide.SliderWidth = size.X;
                 slide.SliderVisible = slide.SliderHeight < slide.BarHeight;
             }
             else
             {
+                slide.SliderHeight = size.Y;
                 slide.SliderVisible = slide.SliderWidth < slide.BarWidth;
             }
         }
