@@ -24,7 +24,14 @@ namespace DarkHelmet.BuildVision2
             public BoolProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, SuperBlock block) : base(name, property, control, block)
             {
                 if (property.Id == "OnOff" && block.SubtypeId.UsesSubtype(TBlockSubtypes.Powered)) // Insert power draw / output info
-                    GetPostfixFunc = () => $"({block.Power.GetPowerDisplay()})";
+                {
+                    GetPostfixFunc = () => 
+                    {
+                        PowerAccessor power = block.Power;
+                        float? input = power.Input, output = power.Output;
+                        return $"({PowerAccessor.GetPowerDisplay(input, output)})"; 
+                    };
+                }
                 else if (property.Id == "Stockpile" && block.SubtypeId.UsesSubtype(TBlockSubtypes.GasTank)) // Insert gas tank info
                     GetPostfixFunc = GetGasTankFillPercent;
 

@@ -77,7 +77,7 @@ namespace DarkHelmet.BuildVision2
 
                     $"• help -- You are here.\n" +
                     $"• printBinds -- Prints your current key binds to chat.\n" +
-                    $"• bind [bindName] [control1] [control2] [control3] (see bindHelp for more info)\n" +
+                    $"• bind [bindName] [control1] [control2] [control3]\n" +
                     $"• save -– Saves the current configuration\n" +
                     $"• load -- Loads configuration from the config file\n" +
                     $"• resetBinds -- Resets all keybinds\n" +

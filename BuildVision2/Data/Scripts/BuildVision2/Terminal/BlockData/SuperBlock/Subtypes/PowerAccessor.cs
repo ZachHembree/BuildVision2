@@ -28,9 +28,29 @@ namespace DarkHelmet.BuildVision2
             }
 
             /// <summary>
-            /// Returns block power input in megawatts if it has a <see cref="MyResourceSinkComponentBase"/>.
+            /// Returns true if the block can draw power from the grid.
             /// </summary>
-            public float? Input => sink?.CurrentInputByType(resourceId);
+            public bool IsPowerSink => sink != null && sink.MaxRequiredInputByType(resourceId) > 0f;
+
+            /// <summary>
+            /// Returns true if the block can contribute power to the grid.
+            /// </summary>
+            public bool IsPowerProducer => powerProducer != null;
+
+            /// <summary>
+            /// Returns current block power draw in megawatts, if defined.
+            /// </summary>
+            public float? Input => IsPowerSink ? sink?.CurrentInputByType(resourceId) : null;
+
+            /// <summary>
+            /// Returns power input required for the block to function, if defined. Units in megawatts.
+            /// </summary>
+            public float? RequiredInput => IsPowerSink ? sink?.RequiredInputByType(resourceId) : null;
+
+            /// <summary>
+            /// Returns the blocks maximum possible power draw, if defined. Units in megawatts.
+            /// </summary>
+            public float? MaxInput => IsPowerSink ? sink?.MaxRequiredInputByType(resourceId) : null;
 
             /// <summary>
             /// Returns block power output in megawatts if the underlying fat block implements <see cref="IMyPowerProducer"/>.
@@ -72,40 +92,40 @@ namespace DarkHelmet.BuildVision2
 
             public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                RichText summary;
+                RichText summary = null;
 
-                if (Enabled != null && (Input != null || Output != null))
+                if (IsPowerSink || IsPowerProducer) // not functional, but powered
                 {
-                    summary = new RichText
+                    if (functionalBlock != null) // functional w/ measurable power input/output
                     {
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat },
-                        { $"{MyTexts.GetString(Enabled.Value ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)} ", valueFormat },
-                        { $"({GetPowerDisplay()})\n", nameFormat },
-                    };
-
-                    if (powerProducer != null)
-                    {
-                        summary += new RichText() 
+                        summary = new RichText
                         {
-                            { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxOutput)} ", nameFormat },
-                            { $"{TerminalUtilities.GetPowerDisplay(powerProducer.MaxOutput)}\n", valueFormat },
+                            { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat },
+                            { $"{MyTexts.GetString(Enabled.Value ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)} ", valueFormat },
+                            { $"({GetPowerDisplay(Input, Output)})\n", nameFormat },
                         };
                     }
+                    else // not functional
+                    {
+                        summary = new RichText
+                        {
+                            { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat },
+                            { $"{GetPowerDisplay(Input, Output)}\n", valueFormat },
+                        };
+                    }
+
+                    summary += new RichText()
+                    {
+                        { $"{MyTexts.TrySubstitute("Max Power:")} ", nameFormat },
+                        { $"{GetPowerDisplay(MaxInput, MaxOutput)}\n", valueFormat },
+                    };
                 }
-                else if (Enabled != null)
+                else if (functionalBlock != null) // not a sink or producer, but functional
                 {
                     summary = new RichText
                     {
                         { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat },
                         { $"{MyTexts.GetString(Enabled.Value ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)}\n", valueFormat },
-                    };
-                }
-                else
-                {
-                    summary = new RichText
-                    {
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat },
-                        { $"{GetPowerDisplay()}\n", valueFormat },
                     };
                 }
 
@@ -115,28 +135,28 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns a one-line summary of the power input/output in the format -Input/+Output
             /// </summary>
-            public string GetPowerDisplay()
+            public static string GetPowerDisplay(float? input, float? output)
             {
                 float scale, total = 0f;
                 string suffix, disp = "";
 
-                if (Input != null)
-                    total += Input.Value;
+                if (input != null)
+                    total += input.Value;
 
-                if (Output != null)
-                    total += Output.Value;
+                if (output != null)
+                    total += output.Value;
 
                 TerminalUtilities.GetPowerScale(total, out scale, out suffix);
 
-                if (Input != null)
-                    disp += "-" + (Input * scale).Value.ToString("G4");
+                if (input != null)
+                    disp += "-" + (input * scale).Value.ToString("G4");
 
-                if (Output != null)
+                if (output != null)
                 {
-                    if (Input != null)
+                    if (input != null)
                         disp += " / ";
 
-                    disp += "+" + (Output * scale).Value.ToString("G4");
+                    disp += "+" + (output * scale).Value.ToString("G4");
                 }
 
                 return $"{disp} {suffix}";
