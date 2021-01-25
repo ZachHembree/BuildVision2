@@ -489,22 +489,21 @@ namespace DarkHelmet.BuildVision2
                             this.valueBox.CharFilterFunc = null;
 
                         name.Format = bodyText;
+                        Name.Clear();
 
                         if (_blockMember.Name != null && _blockMember.Name.Length > 0)
-                            name.Text = $"{_blockMember.Name}: ";
-                        else
-                            name.TextBoard.Clear();
+                        {
+                            Name.Add($"{_blockMember.Name}: ");
+                        }
                     }
                 }
             }
 
-            public RichText Name { get { return name.Text; } set { name.Text = value; } }
+            public RichText Name { get; }
 
-            public RichText Value { get { return valueBox.Text; } set { valueBox.Text = value; } }
+            public RichText Value { get; private set; }
 
-            public RichText Postfix { get { return postfix.Text; } set { postfix.Text = value; } }
-
-            public ITextBoard ValueBoard => valueBox.TextBoard;
+            public RichText Postfix { get; }
 
             public bool InputOpen => valueBox.InputOpen;
 
@@ -531,13 +530,23 @@ namespace DarkHelmet.BuildVision2
                     ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH | ParentAlignments.UsePadding,
                     CollectionContainer = { copyIndicator, name, valueBox, postfix }
                 };
+
+                Name = new RichText();
+                Value = new RichText();
+                Postfix = new RichText();
             }
 
-            public void OpenInput() =>
+            public void OpenInput()
+            {
+                valueBox.Text = Value;
                 valueBox.OpenInput();
+            }
 
-            public void CloseInput() =>
+            public void CloseInput()
+            {
                 valueBox.CloseInput();
+                Value = valueBox.Text;
+            }
 
             /// <summary>
             /// Clears property information from the property box
@@ -565,15 +574,22 @@ namespace DarkHelmet.BuildVision2
                 if (highlighted)
                 {
                     if (selected)
-                        valueBox.Format = selectedText;
+                        Value.defaultFormat = selectedText;
                     else
-                        valueBox.Format = highlightText;
+                        Value.defaultFormat = highlightText;
                 }
                 else
-                    valueBox.Format = BvScrollMenu.valueText;
+                    Value.defaultFormat = BvScrollMenu.valueText;
 
-                valueBox.Text = _blockMember.Display;
-                postfix.Text = $" {_blockMember.Status}";
+                Value.Clear();
+                Postfix.Clear();
+
+                Value.Add(_blockMember.Display);
+                Postfix.Add($" {_blockMember.Status}");
+
+                name.Text = Name;
+                valueBox.Text = Value;
+                postfix.Text = Postfix;
             }
 
             private class SelectionBox : Label

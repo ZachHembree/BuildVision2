@@ -86,8 +86,8 @@ namespace DarkHelmet.BuildVision2
 
                         if (!(Selection.BlockMember is IBlockScrollable))
                         {
-                            Selection.ValueBoard.Format = selectedText;
-                            Selection.Value = "Open chat to continue";
+                            Selection.Value.Clear();
+                            Selection.Value.Add("Open chat to continue", selectedText);
                             updateSelection = false;
                         }
                         else
@@ -108,8 +108,8 @@ namespace DarkHelmet.BuildVision2
             updateSelection = false;
             waitingForChat = false;
 
-            Selection.ValueBoard.Format = selectedText;
-            Selection.Value = Selection.BlockMember.Value;
+            Selection.Value.Clear();
+            Selection.Value.Add(Selection.BlockMember.Value, selectedText);
             Selection.OpenInput();
         }
 
