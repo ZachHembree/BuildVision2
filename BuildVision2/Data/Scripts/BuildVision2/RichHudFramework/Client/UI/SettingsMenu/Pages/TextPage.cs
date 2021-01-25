@@ -32,8 +32,8 @@ namespace RichHudFramework
             /// </summary>
             public RichText HeaderText
             {
-                get { return new RichText(GetOrSetMemberFunc(null, (int)TextPageAccessors.GetOrSetHeader) as IList<RichStringMembers>); }
-                set { GetOrSetMemberFunc(value.ApiData, (int)TextPageAccessors.GetOrSetHeader); }
+                get { return new RichText(GetOrSetMemberFunc(null, (int)TextPageAccessors.GetOrSetHeader) as List<RichStringMembers>); }
+                set { GetOrSetMemberFunc(value.apiData, (int)TextPageAccessors.GetOrSetHeader); }
             }
 
             /// <summary>
@@ -41,8 +41,8 @@ namespace RichHudFramework
             /// </summary>
             public RichText SubHeaderText
             {
-                get { return new RichText(GetOrSetMemberFunc(null, (int)TextPageAccessors.GetOrSetSubheader) as IList<RichStringMembers>); }
-                set { GetOrSetMemberFunc(value.ApiData, (int)TextPageAccessors.GetOrSetSubheader); }
+                get { return new RichText(GetOrSetMemberFunc(null, (int)TextPageAccessors.GetOrSetSubheader) as List<RichStringMembers>); }
+                set { GetOrSetMemberFunc(value.apiData, (int)TextPageAccessors.GetOrSetSubheader); }
             }
 
             /// <summary>
@@ -50,8 +50,8 @@ namespace RichHudFramework
             /// </summary>
             public RichText Text
             {
-                get { return new RichText(GetOrSetMemberFunc(null, (int)TextPageAccessors.GetOrSetText) as IList<RichStringMembers>); }
-                set { GetOrSetMemberFunc(value.ApiData, (int)TextPageAccessors.GetOrSetText); }
+                get { return new RichText(GetOrSetMemberFunc(null, (int)TextPageAccessors.GetOrSetText) as List<RichStringMembers>); }
+                set { GetOrSetMemberFunc(value.apiData, (int)TextPageAccessors.GetOrSetText); }
             }
 
             /// <summary>
