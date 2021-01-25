@@ -4,6 +4,7 @@ using RichHudFramework.UI.Client;
 using RichHudFramework.UI.Rendering;
 using Sandbox.ModAPI;
 using System;
+using System.Diagnostics;
 using VRage.Game.ModAPI;
 using VRageMath;
 
@@ -106,7 +107,7 @@ namespace DarkHelmet.BuildVision2
         private readonly ScrollBox<ScrollBoxEntry<BvPropertyBox>, BvPropertyBox> scrollBody;
         private readonly HudChain layout;
 
-        private readonly Utils.Stopwatch peekUpdateTimer, listWrapTimer, notificationTimer;
+        private readonly Stopwatch peekUpdateTimer, listWrapTimer, notificationTimer;
 
         /// <summary>
         /// Index of the currently selected property
@@ -194,9 +195,9 @@ namespace DarkHelmet.BuildVision2
             MenuMode = ScrollMenuModes.Peek;
             Count = 0;
 
-            peekUpdateTimer = new Utils.Stopwatch();
-            notificationTimer = new Utils.Stopwatch();
-            listWrapTimer = new Utils.Stopwatch();
+            peekUpdateTimer = new Stopwatch();
+            notificationTimer = new Stopwatch();
+            listWrapTimer = new Stopwatch();
 
             peekUpdateTimer.Start();
             listWrapTimer.Start();

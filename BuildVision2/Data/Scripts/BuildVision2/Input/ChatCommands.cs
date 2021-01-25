@@ -5,6 +5,7 @@ using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Sandbox.ModAPI;
 
@@ -94,7 +95,7 @@ namespace DarkHelmet.BuildVision2
                 if (args.Length > 1)
                     bool.TryParse(args[1], out getProperties);
 
-                Utils.Stopwatch timer = new Utils.Stopwatch();
+                Stopwatch timer = new Stopwatch();
                 timer.Start();
 
                 TerminalGrid grid = new TerminalGrid();
@@ -116,6 +117,7 @@ namespace DarkHelmet.BuildVision2
                     $"Target Bench:\n" +
                     $"\tGetProperties: {getProperties}\n" +
                     $"\tTime: {(timer.ElapsedTicks / (double)TimeSpan.TicksPerMillisecond):G6} ms\n" +
+                    $"\tIsHighResolution: {Stopwatch.IsHighResolution}\n" +
                     $"\tIterations: {iterations}"
                 );
             }

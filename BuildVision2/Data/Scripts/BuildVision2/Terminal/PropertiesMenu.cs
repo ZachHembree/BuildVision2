@@ -4,6 +4,7 @@ using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using Sandbox.ModAPI;
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using VRage.Game;
 using VRage.Game.ModAPI;
@@ -47,29 +48,29 @@ namespace DarkHelmet.BuildVision2
         private const long peekTime = 100 * TimeSpan.TicksPerMillisecond;
 
         private readonly BvScrollMenu scrollMenu;
-        private readonly HudSpaceNode hudSpace;
+        private readonly CustomSpaceNode hudSpace;
         private readonly TerminalGrid targetGrid;
         private readonly BoundingBoard boundingBox;
         private PropertyBlock targetBlock;
         private IMyTerminalBlock lastPastedTarget;
         private BlockData clipboard, pasteBackup;
-        private Utils.Stopwatch peekRefresh;
+        private Stopwatch peekRefresh;
 
         private PropertiesMenu() : base(false, true)
         {
             DrawBoundingBox = false;
             EnableWorldDraw = false;
 
-            hudSpace = new HudSpaceNode(HudMain.Root) { UpdateMatrixFunc = UpdateHudSpace };
+            hudSpace = new CustomSpaceNode(HudMain.Root) { UpdateMatrixFunc = UpdateHudSpace };
             scrollMenu = new BvScrollMenu(hudSpace) { Visible = false };
             targetGrid = new TerminalGrid();
             boundingBox = new BoundingBoard();
 
             RichHudCore.LateMessageEntered += MessageHandler;
-            peekRefresh = new Utils.Stopwatch();
+            peekRefresh = new Stopwatch();
             peekRefresh.Start();
 
-            SharedBinds.Escape.OnNewPress += Hide;
+            SharedBinds.Escape.NewPressed += Hide;
         }
 
         public static void Init()
