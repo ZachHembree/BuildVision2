@@ -39,7 +39,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Invoked when an entry is selected.
         /// </summary>
-        public event EventHandler OnSelectionChanged;
+        public event EventHandler SelectionChanged;
 
         /// <summary>
         /// Used to allow the addition of list entries using collection-initializer syntax in
@@ -51,6 +51,11 @@ namespace RichHudFramework.UI
         /// Read-only collection of list entries.
         /// </summary>
         public IReadOnlyList<ListBoxEntry<T>> ListEntries => scrollBox.Collection;
+
+        /// <summary>
+        /// Read-only collection of list entries.
+        /// </summary>
+        public IReadOnlyHudCollection<ListBoxEntry<T>, LabelButton> HudCollection => scrollBox;
 
         /// <summary>
         /// Background color
@@ -147,8 +152,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public ListBoxEntry<T> Selection { get; private set; }
 
-        public readonly ScrollBox<ListBoxEntry<T>, LabelButton> scrollBox;
-
+        protected readonly ScrollBox<ListBoxEntry<T>, LabelButton> scrollBox;
         protected readonly HighlightBox selectionBox, highlight;
         protected readonly BorderBox border;
         protected Vector2 _memberPadding;
@@ -285,14 +289,11 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Sets the selection to the member associated with the given object.
         /// </summary>
-        public void SetSelection(int index)
+        public void SetSelectionAt(int index)
         {
-            if (index > 0 && index < scrollBox.Collection.Count)
-            {
-                Selection = scrollBox.Collection[index];
-                Selection.Enabled = true;
-                OnSelectionChanged?.Invoke(this, EventArgs.Empty);
-            }
+            Selection = scrollBox.Collection[index];
+            Selection.Enabled = true;
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -306,7 +307,7 @@ namespace RichHudFramework.UI
             {
                 Selection = scrollBox.Collection[index];
                 Selection.Enabled = true;
-                OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+                SelectionChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -321,7 +322,7 @@ namespace RichHudFramework.UI
             {
                 Selection = scrollBox.Collection[index];
                 Selection.Enabled = true;
-                OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+                SelectionChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -373,7 +374,7 @@ namespace RichHudFramework.UI
                     if (SharedBinds.LeftButton.IsNewPressed)
                     {
                         Selection = entry;
-                        OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+                        SelectionChanged?.Invoke(this, EventArgs.Empty);
                     }
                 }
             }
@@ -393,9 +394,17 @@ namespace RichHudFramework.UI
                      );
                 case ListBoxAccessors.Add:
                     {
-                        var entryData = (MyTuple<IList<RichStringMembers>, T>)data;
-
-                        return (ApiMemberAccessor)Add(new RichText(entryData.Item1), entryData.Item2).GetOrSetMember;
+                        if (data is MyTuple<IList<RichStringMembers>, T>)
+                        {
+                            var entryData = (MyTuple<IList<RichStringMembers>, T>)data;
+                            var stringList = entryData.Item1 as List<RichStringMembers>;
+                            return (ApiMemberAccessor)Add(new RichText(stringList), entryData.Item2).GetOrSetMember;
+                        }
+                        else
+                        {
+                            var entryData = (MyTuple<List<RichStringMembers>, T>)data;
+                            return (ApiMemberAccessor)Add(new RichText(entryData.Item1), entryData.Item2).GetOrSetMember;
+                        }
                     }
                 case ListBoxAccessors.Selection:
                     {

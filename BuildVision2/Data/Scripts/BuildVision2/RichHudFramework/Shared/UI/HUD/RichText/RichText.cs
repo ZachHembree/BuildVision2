@@ -1,129 +1,305 @@
 ﻿using RichHudFramework.UI.Rendering;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using System;
 using VRage;
 using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
 namespace RichHudFramework
 {
+    using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
+
     namespace UI
     {
-        using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
-
         /// <summary>
-        /// A collection of rich strings. <see cref="RichString"/>s and <see cref="string"/>s can be implicitly
-        /// cast to this type. Collection-initializer syntax can be used with this type.
+        /// Reusable rich text builder
         /// </summary>
-        public class RichText : IEnumerable<RichString>
+        public class RichText : IEnumerable<RichStringMembers>
         {
+            /// <summary>
+            /// Default text formatting. Applied to strings with no other formatting given.
+            /// Optional.
+            /// </summary>
             public GlyphFormat defaultFormat;
-            public List<RichStringMembers> ApiData { get; }
+
+            public readonly List<RichStringMembers> apiData;
+            private ObjectPool<StringBuilder> sbPool;
 
             /// <summary>
-            /// Initializes a <see cref="RichText"/> object with the given default format.
+            /// Initializes an empty RichText object with the given formatting.
             /// </summary>
             public RichText(GlyphFormat defaultFormat = null)
             {
-                ApiData = new List<RichStringMembers>();
-                this.defaultFormat = defaultFormat;
+                this.defaultFormat = defaultFormat ?? GlyphFormat.Empty;
+                apiData = new List<RichStringMembers>();
             }
 
             /// <summary>
-            /// Initializes a <see cref="RichText"/> object using a collection of rich string data.
-            /// Used in conjunction with the Framework API.
+            /// Initializes a new RichText instance backed by the given List.
             /// </summary>
-            public RichText(IList<RichStringMembers> richStrings)
+            public RichText(List<RichStringMembers> apiData, bool copy = false)
             {
-                ApiData = new List<RichStringMembers>(richStrings);
+                this.apiData = copy ? GetDataCopy(apiData) : apiData;
                 defaultFormat = GlyphFormat.Empty;
             }
 
             /// <summary>
-            /// Initializes a <see cref="RichText"/> object with a <see cref="RichString"/> and sets the default format
-            /// to that of the string.
+            /// Initializes a new RichText object and copies the contents of the one given
             /// </summary>
-            public RichText(RichString text)
+            public RichText(RichText original)
             {
-                this.defaultFormat = text.Format;
-                this.ApiData = new List<RichStringMembers>();
-                Add(text);
+                apiData = new List<RichStringMembers>();
+                defaultFormat = original.defaultFormat;
+                Add(original);
             }
 
             /// <summary>
-            /// Initializes a <see cref="RichText"/> object with the given string and formatting.
+            /// Initializes a new RichText object with the given text and formatting.
             /// </summary>
             public RichText(string text, GlyphFormat defaultFormat = null)
             {
-                if (defaultFormat != null)
-                    this.defaultFormat = defaultFormat;
-                else
-                    this.defaultFormat = GlyphFormat.Empty;
-
-                ApiData = new List<RichStringMembers>();
-                Add(defaultFormat, text);
+                this.defaultFormat = defaultFormat ?? GlyphFormat.Empty;
+                apiData = new List<RichStringMembers>();
+                apiData.Add(new RichStringMembers(new StringBuilder(text), this.defaultFormat.data));
             }
 
-            public IEnumerator<RichString> GetEnumerator()
+            /// <summary>
+            /// Initializes a new RichText object with the given text and formatting.
+            /// </summary>
+            public RichText(StringBuilder text, GlyphFormat defaultFormat = null)
             {
-                throw new Exception("Enumerator not implemented for RichText.");
+                this.defaultFormat = defaultFormat ?? GlyphFormat.Empty;
+                apiData = new List<RichStringMembers>();
+                Add(text);
             }
+
+            public IEnumerator<RichStringMembers> GetEnumerator() =>
+                apiData.GetEnumerator();
 
             IEnumerator IEnumerable.GetEnumerator() =>
-                GetEnumerator();
+                apiData.GetEnumerator();
 
             /// <summary>
-            /// Adds a <see cref="string"/> to the text using the default format.
+            /// Copies and appends the contents of the given RichText object.
             /// </summary>
-            public void Add(string text) =>
-                ApiData.Add(new RichStringMembers(new StringBuilder(text), defaultFormat?.data ?? default(GlyphFormatMembers)));
+            public void Add(RichText text)
+            {
+                if (sbPool == null)
+                    sbPool = new ObjectPool<StringBuilder>(new StringBuilderPoolPolicy());
+
+                List<RichStringMembers> currentStrings = apiData,
+                    newStrings = text.apiData;
+
+                if (newStrings.Count > 0)
+                {
+                    int index = 0, end = newStrings.Count - 1;
+
+                    // Attempt to use last StringBuilder if the formatting matches
+                    if (currentStrings.Count > 0)
+                    {
+                        GlyphFormatMembers newFormat = newStrings[0].Item2;
+                        StringBuilder sb;
+                        bool formatEqual;
+
+                        GetNextStringBuilder(newFormat, out sb, out formatEqual);
+
+                        if (formatEqual)
+                        {
+                            StringBuilder newSb = newStrings[0].Item1;
+                            sb.EnsureCapacity(sb.Length + newSb.Length);
+
+                            for (int i = 0; i < newSb.Length; i++)
+                                sb.Append(newSb[i]);
+
+                            index++;
+                        }
+                    }
+
+                    // Copy the remaining text
+                    for (int i = index; i <= end; i++)
+                    {
+                        StringBuilder sb = sbPool.Get(),
+                            newSb = newStrings[i].Item1;
+
+                        sb.EnsureCapacity(sb.Length + newSb.Length);
+                        currentStrings.Add(new RichStringMembers(sb, newStrings[i].Item2));
+
+                        for (int j = 0; j < newSb.Length; j++)
+                            sb.Append(newSb[j]);
+                    }
+                }
+            }
 
             /// <summary>
-            /// Adds a <see cref="RichText"/> to the collection using the formatting specified in the <see cref="RichText"/>.
+            /// Appends a copy of the given <see cref="StringBuilder"/> to the RichText instance.
             /// </summary>
-            public void Add(RichText text) =>
-                ApiData.AddRange(text.ApiData);
+            public void Add(StringBuilder text, GlyphFormat newFormat = null)
+            {
+                if (sbPool == null)
+                    sbPool = new ObjectPool<StringBuilder>(new StringBuilderPoolPolicy());
+
+                List<RichStringMembers> richStrings = apiData;
+                GlyphFormatMembers format = newFormat?.data ?? GlyphFormat.Empty.data;
+                StringBuilder sb;
+                bool formatEqual;
+
+                GetNextStringBuilder(newFormat?.data ?? GlyphFormat.Empty.data, out sb, out formatEqual);
+
+                // If format is equal, reuse last StringBuilder
+                if (!formatEqual)
+                {
+                    var richString = new RichStringMembers(sb, format);
+                    richStrings.Add(richString);
+                }
+
+                sb.EnsureCapacity(sb.Length + text.Length);
+
+                for (int i = 0; i < text.Length; i++)
+                    sb.Append(text[i]);
+            }
 
             /// <summary>
-            /// Adds a <see cref="RichString"/> to the collection using the formatting specified in the <see cref="RichString"/>.
+            /// Appends a copy of the given <see cref="StringBuilder"/> to the RichText instance.
             /// </summary>
-            public void Add(RichString text) =>
-                ApiData.Add(text.ApiData);
+            public void Add(GlyphFormat newFormat, StringBuilder text) =>
+                Add(text, newFormat);
 
             /// <summary>
-            /// Adds a <see cref="string"/> using the given <see cref="GlyphFormat"/>.
+            /// Appends a string to the end of the text. If the formatting given is equivalent to 
+            /// that of the last string appended, then it will use the same StringBuilder.
             /// </summary>
-            public void Add(GlyphFormat formatting, string text) =>
-                ApiData.Add(new RichStringMembers(new StringBuilder(text), formatting.data));
+            public void Add(string text, GlyphFormat newFormat = null)
+            {
+                if (sbPool == null)
+                    sbPool = new ObjectPool<StringBuilder>(new StringBuilderPoolPolicy());
+
+                List<RichStringMembers> richStrings = apiData;
+                GlyphFormatMembers format = newFormat?.data ?? GlyphFormat.Empty.data;
+                StringBuilder sb;
+                bool formatEqual;
+
+                GetNextStringBuilder(newFormat?.data ?? GlyphFormat.Empty.data, out sb, out formatEqual);
+
+                // If format is equal, reuse last StringBuilder
+                if (!formatEqual)
+                { 
+                    var richString = new RichStringMembers(sb, format);
+                    richStrings.Add(richString);
+                }
+
+                sb.Append(text);
+            }
+
+            private void GetNextStringBuilder(GlyphFormatMembers newFormat, out StringBuilder sb, out bool formatEqual)
+            {
+                List<RichStringMembers> richStrings = apiData;
+                int last = richStrings.Count - 1;
+                formatEqual = false;
+
+                // Test formatting
+                if (richStrings.Count > 0)
+                {
+                    GlyphFormatMembers lastFormat = richStrings[last].Item2;
+                    formatEqual = newFormat.Item1 == lastFormat.Item1
+                        && newFormat.Item2 == lastFormat.Item2
+                        && newFormat.Item3 == lastFormat.Item3
+                        && newFormat.Item4 == lastFormat.Item4;
+                }
+
+                sb = formatEqual ? richStrings[last].Item1 : sbPool.Get();
+            }
 
             /// <summary>
-            /// Adds a <see cref="string"/> using the given <see cref="GlyphFormat"/>.
+            /// Appends a string to the end of the text. If the formatting given is equivalent to 
+            /// that of the last string appended, then it will use the same StringBuilder.
             /// </summary>
-            public void Add(string text, GlyphFormat formatting) =>
-                Add(formatting, text);
+            public void Add(GlyphFormat newFormat, string text) =>
+                Add(text, newFormat);
 
             /// <summary>
-            /// Returns the contents of the <see cref="RichText"/> as an unformatted <see cref="string"/>.
+            /// Sets the capacity of the StringBuilders and object pool to match their current
+            /// lengths.
+            /// </summary>
+            public void TrimExcess()
+            {
+                if (sbPool == null)
+                    sbPool = new ObjectPool<StringBuilder>(new StringBuilderPoolPolicy());
+
+                List<RichStringMembers> text = apiData;
+
+                for (int n = 0; n < text.Count; n++)
+                    text[n].Item1.Capacity = text[n].Item1.Length;
+
+                sbPool.TrimExcess();
+                text.TrimExcess();
+            }
+
+            /// <summary>
+            /// Clears current text
+            /// </summary>
+            public void Clear()
+            {
+                if (sbPool == null)
+                    sbPool = new ObjectPool<StringBuilder>(new StringBuilderPoolPolicy());
+
+                List<RichStringMembers> text = apiData;
+                sbPool.ReturnRange(text, 0, text.Count);
+                text.Clear();
+            }
+
+            /// <summary>
+            /// Returns a copy of the contents of the <see cref="RichText"/> as an unformatted 
+            /// <see cref="string"/>.
             /// </summary>
             public override string ToString()
             {
                 StringBuilder rawText = new StringBuilder();
+                List<RichStringMembers> richText = apiData;
 
-                for (int a = 0; a < ApiData.Count; a++)
+                for (int a = 0; a < richText.Count; a++)
                 {
-                    rawText.EnsureCapacity(rawText.Length + ApiData[a].Item1.Length);
+                    rawText.EnsureCapacity(rawText.Length + richText[a].Item1.Length);
 
-                    for (int b = 0; b < ApiData[a].Item1.Length; b++)
-                        rawText.Append(ApiData[a].Item1[b]);
+                    for (int b = 0; b < richText[a].Item1.Length; b++)
+                        rawText.Append(richText[a].Item1[b]);
                 }
-
+                
                 return rawText.ToString();
             }
 
             /// <summary>
-            /// Adds a <see cref="string"/> to the text using the default format.
+            /// Returns a copy of the rich text object
             /// </summary>
+            public RichText GetCopy() =>
+                new RichText(GetDataCopy(apiData));
+
+            /// <summary>
+            /// Returns a copy of the api data backing the rich text object
+            /// <returns></returns>
+            public static List<RichStringMembers> GetDataCopy(List<RichStringMembers> original)
+            {
+                var newData = new List<RichStringMembers>(original.Count);
+
+                for (int i = 0; i < original.Count; i++)
+                {
+                    StringBuilder oldSb = original[i].Item1, 
+                        sb = new StringBuilder(oldSb.Length);
+
+                    for (int j = 0; j < oldSb.Length; j++)
+                        sb.Append(oldSb[j]);
+
+                    newData.Add(new RichStringMembers(sb, original[i].Item2));
+                }
+
+                return newData;
+            }
+
+            /// <summary>
+            /// Appends a <see cref="string"/> to the end of the left RichText object. If the formatting given 
+            /// is equivalent to that of the last string appended, then it will use the same 
+            /// StringBuilder.
+            /// </summary>>
             public static RichText operator +(RichText left, string right)
             {
                 left.Add(right);
@@ -131,17 +307,18 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// Adds a <see cref="RichString"/> to the collection using the formatting specified in the <see cref="RichString"/>.
-            /// </summary>
-            /// <param name="text"></param>
-            public static RichText operator +(RichText left, RichString right)
+            /// Appends a <see cref="StringBuilder"/> to the end of the left RichText object. If the formatting given 
+            /// is equivalent to that of the last string appended, then it will use the same 
+            /// StringBuilder.
+            /// </summary>>
+            public static RichText operator +(RichText left, StringBuilder right)
             {
                 left.Add(right);
                 return left;
             }
 
             /// <summary>
-            /// Adds a <see cref="RichText"/> to the collection using the formatting specified in the <see cref="RichText"/>.
+            /// Copies and appends the contents of the right RichText to the left RichText object.
             /// </summary>
             public static RichText operator +(RichText left, RichText right)
             {
@@ -150,9 +327,12 @@ namespace RichHudFramework
             }
 
             public static implicit operator RichText(string text) =>
-                new RichText(text, GlyphFormat.Empty);
+                new RichText(text);
 
-            public static implicit operator RichText(RichString text) =>
+            public static implicit operator RichText(StringBuilder text) =>
+                new RichText(text);
+
+            public static implicit operator RichText(List<RichStringMembers> text) =>
                 new RichText(text);
         }
     }

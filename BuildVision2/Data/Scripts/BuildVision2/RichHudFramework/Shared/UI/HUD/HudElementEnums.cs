@@ -105,14 +105,5 @@ namespace RichHudFramework
             Center = 1,
             Right = 2,
         }
-
-        /// <summary>
-        /// TBD
-        /// </summary>
-        public enum CoordinateSpace
-        {
-            Screen,
-            World
-        }
     }
 }

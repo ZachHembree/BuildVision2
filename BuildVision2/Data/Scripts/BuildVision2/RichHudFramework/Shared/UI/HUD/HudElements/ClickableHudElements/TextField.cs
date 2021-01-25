@@ -13,7 +13,7 @@ namespace RichHudFramework.UI.Server
         /// <summary>
         /// Invoked whenever a change is made to the text. Invokes once every 500ms, at most.
         /// </summary>
-        public event EventHandler OnTextChanged;
+        public event EventHandler TextChanged;
 
         /// <summary>
         /// Text rendered by the text field.
@@ -122,15 +122,16 @@ namespace RichHudFramework.UI.Server
 
             Size = new Vector2(319f, 40);
 
-            textBox.TextBoard.OnTextChanged += TextChanged;
+            textBox.TextBoard.TextChanged += OnTextChanged;
+            textBox.Text = "NewTextField";
         }
 
         public TextField() : this(null)
         { }
 
-        private void TextChanged()
+        private void OnTextChanged()
         {
-            OnTextChanged?.Invoke(this, EventArgs.Empty);
+            TextChanged?.Invoke(this, EventArgs.Empty);
         }
 
         protected override void HandleInput(Vector2 cursorPos)

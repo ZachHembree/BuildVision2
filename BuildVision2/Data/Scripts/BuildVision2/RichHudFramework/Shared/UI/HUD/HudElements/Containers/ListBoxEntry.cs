@@ -42,7 +42,7 @@ namespace RichHudFramework.UI
         public ListBoxEntry()
         {
             button = new LabelButton() { AutoResize = false };
-            Element = button;
+            SetElement(button);
             Element.ZOffset = 1;
         }
 
@@ -55,9 +55,9 @@ namespace RichHudFramework.UI
                 case ListBoxEntryAccessors.Name:
                     {
                         if (data == null)
-                            Element.Text = new RichText(data as IList<RichStringMembers>);
+                            Element.Text = new RichText(data as List<RichStringMembers>);
                         else
-                            return Element.Text.ApiData;
+                            return Element.Text.apiData;
 
                         break;
                     }

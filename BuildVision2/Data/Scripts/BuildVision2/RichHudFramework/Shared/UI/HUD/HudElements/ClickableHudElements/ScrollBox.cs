@@ -77,7 +77,7 @@ namespace RichHudFramework.UI
             get { return _start; }
             set 
             {
-                _start = MathHelper.Clamp(value, 0, hudCollection.Count - 1);
+                _start = MathHelper.Clamp(value, 0, hudCollectionList.Count - 1);
                 updateRangeReverse = false;
             }
         }
@@ -90,7 +90,7 @@ namespace RichHudFramework.UI
             get { return _end; } 
             set 
             {
-                _end = MathHelper.Clamp(value, 0, hudCollection.Count - 1);
+                _end = MathHelper.Clamp(value, 0, hudCollectionList.Count - 1);
                 updateRangeReverse = true;
             } 
         }
@@ -268,9 +268,9 @@ namespace RichHudFramework.UI
         /// </summary>
         private int GetFirstEnabled()
         {
-            for (int n = 0; n < hudCollection.Count; n++)
+            for (int n = 0; n < hudCollectionList.Count; n++)
             {
-                if (hudCollection[n].Enabled)
+                if (hudCollectionList[n].Enabled)
                     return n;
             }
 
@@ -284,11 +284,11 @@ namespace RichHudFramework.UI
         {
             int start = 0, visCount = 0;
 
-            for (int n = hudCollection.Count - 1; n >= 0; n--)
+            for (int n = hudCollectionList.Count - 1; n >= 0; n--)
             {
-                if (hudCollection[n].Enabled)
+                if (hudCollectionList[n].Enabled)
                 {
-                    TElement element = hudCollection[n].Element;
+                    TElement element = hudCollectionList[n].Element;
 
                     if (length >= element.Size[alignAxis] || VisCount < MinVisibleCount)
                     {
@@ -313,7 +313,7 @@ namespace RichHudFramework.UI
         /// </summary>
         private void UpdateElementRange(float length)
         {
-            EnabledCount = GetVisibleIndex(hudCollection.Count);
+            EnabledCount = GetVisibleIndex(hudCollectionList.Count);
             _start = MathHelper.Clamp(_start, scrollMin, scrollMax);
 
             if (updateRangeReverse)
@@ -333,11 +333,11 @@ namespace RichHudFramework.UI
             Vector2I range = new Vector2I(_start);
             VisCount = 0;
 
-            for (int n = _start; n < hudCollection.Count; n++)
+            for (int n = _start; n < hudCollectionList.Count; n++)
             {
-                if (hudCollection[n].Enabled)
+                if (hudCollectionList[n].Enabled)
                 {
-                    TElement element = hudCollection[n].Element;
+                    TElement element = hudCollectionList[n].Element;
 
                     if (length >= element.Size[alignAxis] || VisCount < MinVisibleCount)
                     {
@@ -357,7 +357,7 @@ namespace RichHudFramework.UI
                 // Move starting index back until minimum visible requirment is met
                 for (int n = _start - 1; (n >= scrollMin && VisCount < MinVisibleCount); n--)
                 {
-                    if (hudCollection[n].Enabled)
+                    if (hudCollectionList[n].Enabled)
                     {
                         range.X = n;
                         VisCount++;
@@ -379,9 +379,9 @@ namespace RichHudFramework.UI
 
             for (int n = _end; n >= scrollMin; n--)
             {
-                if (hudCollection[n].Enabled)
+                if (hudCollectionList[n].Enabled)
                 {
-                    TElement element = hudCollection[n].Element;
+                    TElement element = hudCollectionList[n].Element;
 
                     if (length >= element.Size[alignAxis] || VisCount < MinVisibleCount)
                     {
@@ -399,9 +399,9 @@ namespace RichHudFramework.UI
             if (EnabledCount > VisCount)
             {
                 // Move ending index up until minimum visible requirment is met
-                for (int n = _end + 1; (n < hudCollection.Count && VisCount < MinVisibleCount); n++)
+                for (int n = _end + 1; (n < hudCollectionList.Count && VisCount < MinVisibleCount); n++)
                 {
-                    if (hudCollection[n].Enabled)
+                    if (hudCollectionList[n].Enabled)
                     {
                         range.Y = n;
                         VisCount++;
@@ -418,13 +418,13 @@ namespace RichHudFramework.UI
         /// </summary>
         private void UpdateElementVisibility()
         {
-            if (hudCollection.Count > 0)
+            if (hudCollectionList.Count > 0)
             {
-                for (int n = 0; n < hudCollection.Count; n++)
-                    hudCollection[n].Element.Visible = false;
+                for (int n = 0; n < hudCollectionList.Count; n++)
+                    hudCollectionList[n].Element.Visible = false;
 
                 for (int n = _start; n <= _end; n++)
-                    hudCollection[n].Element.Visible = hudCollection[n].Enabled;
+                    hudCollectionList[n].Element.Visible = hudCollectionList[n].Enabled;
             }
         }
 
@@ -437,7 +437,7 @@ namespace RichHudFramework.UI
 
             for (int n = 0; n < index; n++)
             {
-                if (hudCollection[n].Enabled)
+                if (hudCollectionList[n].Enabled)
                     count++;
             }
 
@@ -451,10 +451,10 @@ namespace RichHudFramework.UI
         {
             Vector2 size = new Vector2();
 
-            for (int n = 0; n < hudCollection.Count; n++)
+            for (int n = 0; n < hudCollectionList.Count; n++)
             {
-                if (hudCollection[n].Enabled)
-                    size = Vector2.Max(size, hudCollection[n].Element.Size);
+                if (hudCollectionList[n].Enabled)
+                    size = Vector2.Max(size, hudCollectionList[n].Element.Size);
             }
 
             return size;

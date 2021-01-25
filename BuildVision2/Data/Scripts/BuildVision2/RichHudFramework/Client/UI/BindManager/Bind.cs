@@ -53,7 +53,7 @@ namespace RichHudFramework
                     /// <summary>
                     /// Invoked when the bind is first pressed.
                     /// </summary>
-                    public event Action OnNewPress
+                    public event Action NewPressed
                     {
                         add { _instance.GetOrSetBindMemberFunc(index, new EventData(true, value), (int)BindAccesssors.OnNewPress); }
                         remove { _instance.GetOrSetBindMemberFunc(index, new EventData(false, value), (int)BindAccesssors.OnNewPress); }
@@ -62,7 +62,7 @@ namespace RichHudFramework
                     /// <summary>
                     /// Invoked after the bind has been held and pressed for at least 500ms.
                     /// </summary>
-                    public event Action OnPressAndHold
+                    public event Action PressedAndHeld
                     {
                         add { _instance.GetOrSetBindMemberFunc(index, new EventData(true, value), (int)BindAccesssors.OnPressAndHold); }
                         remove { _instance.GetOrSetBindMemberFunc(index, new EventData(false, value), (int)BindAccesssors.OnPressAndHold); }
@@ -71,7 +71,7 @@ namespace RichHudFramework
                     /// <summary>
                     /// Invoked after the bind has been released.
                     /// </summary>
-                    public event Action OnRelease
+                    public event Action Released
                     {
                         add { _instance.GetOrSetBindMemberFunc(index, new EventData(true, value), (int)BindAccesssors.OnRelease); }
                         remove { _instance.GetOrSetBindMemberFunc(index, new EventData(false, value), (int)BindAccesssors.OnRelease); }

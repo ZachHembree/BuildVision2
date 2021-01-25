@@ -45,17 +45,17 @@ namespace RichHudFramework
             /// <summary>
             /// Invoked when the bind is first pressed.
             /// </summary>
-            event Action OnNewPress;
+            event Action NewPressed;
 
             /// <summary>
             /// Invoked after the bind has been held and pressed for at least 500ms.
             /// </summary>
-            event Action OnPressAndHold;
+            event Action PressedAndHeld;
 
             /// <summary>
             /// Invoked after the bind has been released.
             /// </summary>
-            event Action OnRelease;
+            event Action Released;
 
             /// <summary>
             /// Returns a list of the current key combo for this bind.

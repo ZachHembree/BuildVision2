@@ -30,6 +30,7 @@ namespace RichHudFramework.UI
         {
             hudBoard = new MatBoard();
             lastScale = Scale;
+            Size = new Vector2(50f);
         }
 
         public TexturedBox() : this(null)

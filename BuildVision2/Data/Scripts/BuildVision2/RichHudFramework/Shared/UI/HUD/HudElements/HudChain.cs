@@ -257,9 +257,9 @@ namespace RichHudFramework
                     right = (ParentAlignments)((int)ParentAlignments.Right * (2 - alignAxis)),
                     bitmask = left | right;
 
-                for (int n = 0; n < hudCollection.Count; n++)
+                for (int n = 0; n < hudCollectionList.Count; n++)
                 {
-                    TElement element = hudCollection[n].Element;
+                    TElement element = hudCollectionList[n].Element;
 
                     // Calculate element size
                     Vector2 elementSize = element.Size;
@@ -283,7 +283,7 @@ namespace RichHudFramework
                     // Apply changes
                     element.Offset = newOffset;
 
-                    if (IsSetVisible(element))
+                    if (ParentUtils.IsSetVisible(element))
                     {
                         // Move offset down for the next element
                         elementSize[alignAxis] += Spacing;
@@ -300,9 +300,9 @@ namespace RichHudFramework
                 Vector2 minSize = MemberMinSize,
                     maxSize = MemberMaxSize;
 
-                for (int n = 0; n < hudCollection.Count; n++)
+                for (int n = 0; n < hudCollectionList.Count; n++)
                 {
-                    TElement element = hudCollection[n].Element;
+                    TElement element = hudCollectionList[n].Element;
                     Vector2 elementSize = element.Size;
 
                     // Adjust element size based on sizing mode
@@ -328,11 +328,11 @@ namespace RichHudFramework
             {
                 Vector2 newSize = new Vector2();
 
-                for (int n = 0; n < hudCollection.Count; n++)
+                for (int n = 0; n < hudCollectionList.Count; n++)
                 {
-                    TElement element = hudCollection[n].Element;
+                    TElement element = hudCollectionList[n].Element;
                     
-                    if (IsSetVisible(element))
+                    if (ParentUtils.IsSetVisible(element))
                     {
                         Vector2 elementSize = element.Size;
 

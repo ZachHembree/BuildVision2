@@ -51,7 +51,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Invoked whenever a change is made to the text. Invokes once every 500ms, at most.
                 /// </summary>
-                event Action OnTextChanged;
+                event Action TextChanged;
 
                 /// <summary>
                 /// Scale of the text board. Applied after scaling specified in GlyphFormat.

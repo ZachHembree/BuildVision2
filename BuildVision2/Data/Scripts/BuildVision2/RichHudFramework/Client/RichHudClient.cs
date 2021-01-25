@@ -8,11 +8,12 @@ using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRageMath;
 using ApiMemberAccessor = System.Func<object, int, object>;
+using ClientData = VRage.MyTuple<string, System.Action<int, object>, System.Action, int>;
+using ServerData = VRage.MyTuple<System.Action, System.Func<int, object>, int>;
 
 namespace RichHudFramework.Client
 {
-    using ClientData = MyTuple<string, Action<int, object>, Action, int>;
-    using ServerData = MyTuple<Action, Func<int, object>, int>;
+    using ExtendedClientData = MyTuple<ClientData, Action<Action>, ApiMemberAccessor>;
 
     /// <summary>
     /// API Client for the Rich HUD Framework 
@@ -25,7 +26,7 @@ namespace RichHudFramework.Client
         public static bool Registered => Instance != null ? Instance.registered : false;
         private static RichHudClient Instance { get; set; }
 
-        private readonly ClientData regMessage;
+        private readonly ExtendedClientData regMessage;
         private readonly Action InitAction, OnResetAction;
 
         private bool regFail, registered, inQueue;
@@ -42,7 +43,8 @@ namespace RichHudFramework.Client
             if (LogIO.FileName == null || LogIO.FileName == "modLog.txt")
                 LogIO.FileName = $"richHudLog.txt";
 
-            regMessage = new ClientData(modName, MessageHandler, RemoteReset, versionID);
+            var clientData = new ClientData(modName, MessageHandler, RemoteReset, versionID);
+            regMessage = new ExtendedClientData(clientData, ExceptionHandler.Run, GetOrSetMember);
         }
 
         /// <summary>
@@ -75,6 +77,46 @@ namespace RichHudFramework.Client
         }
 
         /// <summary>
+        /// Handles registration response.
+        /// </summary>
+        private void MessageHandler(int typeValue, object message)
+        {
+            MsgTypes msgType = (MsgTypes)typeValue;
+
+            if (!regFail)
+            {
+                if (!Registered)
+                {
+                    if ((msgType == MsgTypes.RegistrationSuccessful) && message is ServerData)
+                    {
+                        var data = (ServerData)message;
+                        UnregisterAction = data.Item1;
+                        GetApiDataFunc = data.Item2;
+
+                        registered = true;
+
+                        ExceptionHandler.Run(InitAction);
+                        ExceptionHandler.WriteToLog($" [RHF] Successfully registered with Rich HUD Master.");
+                    }
+                    else if (msgType == MsgTypes.RegistrationFailed)
+                    {
+                        if (message is string)
+                            ExceptionHandler.WriteToLog($" [RHF] Failed to register with Rich HUD Master. Message: {message as string}");
+                        else
+                            ExceptionHandler.WriteToLog($" [RHF] Failed to register with Rich HUD Master.");
+
+                        regFail = true;
+                    }
+                }
+            }
+        }
+
+        private object GetOrSetMember(object data, int memberEnum)
+        {
+            return null;
+        }
+
+        /// <summary>
         /// Attempts to register the client with the API
         /// </summary>
         private void RequestRegistration() =>
@@ -101,38 +143,6 @@ namespace RichHudFramework.Client
             {
                 inQueue = true;
                 RequestRegistration();
-            }
-        }
-
-        /// <summary>
-        /// Handles registration response.
-        /// </summary>
-        private void MessageHandler(int typeValue, object message)
-        {
-            if (!Registered && !regFail)
-            {
-                MsgTypes msgType = (MsgTypes)typeValue;
-
-                if ((msgType == MsgTypes.RegistrationSuccessful) && message is ServerData)
-                {
-                    var data = (ServerData)message;
-                    UnregisterAction = data.Item1;
-                    GetApiDataFunc = data.Item2;
-
-                    registered = true;
-
-                    ExceptionHandler.Run(InitAction);
-                    ExceptionHandler.WriteToLog($" [RHF] Successfully registered with Rich HUD Master.");
-                }
-                else if (msgType == MsgTypes.RegistrationFailed)
-                {
-                    if (message is string)
-                        ExceptionHandler.WriteToLog($" [RHF] Failed to register with Rich HUD Master. Message: {message as string}");
-                    else
-                        ExceptionHandler.WriteToLog($" [RHF] Failed to register with Rich HUD Master.");
-
-                    regFail = true;
-                }
             }
         }
 

@@ -13,7 +13,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Invoked when a member of the list is selected.
         /// </summary>
-        event EventHandler OnSelectionChanged;
+        event EventHandler SelectionChanged;
 
         /// <summary>
         /// Read-only collection of list entries.

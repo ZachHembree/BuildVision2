@@ -52,7 +52,7 @@ namespace RichHudFramework
             /// <summary>
             /// Raised whenever the control's value is changed.
             /// </summary>
-            event EventHandler OnControlChanged;
+            event EventHandler ControlChanged;
 
             /// <summary>
             /// Name of the control as it appears in the menu.

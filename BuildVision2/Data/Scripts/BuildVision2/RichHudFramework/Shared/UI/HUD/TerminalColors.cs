@@ -5,7 +5,7 @@ using VRageMath;
 namespace RichHudFramework.UI
 {
     /// <summary>
-    /// Contains colors and text formatting used in styling the Rich HUD Termianl
+    /// Contains colors and text formatting used in styling the Rich HUD Terminal
     /// </summary>
     public static class TerminalFormatting
     {

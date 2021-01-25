@@ -1,5 +1,6 @@
 ﻿using Sandbox.ModAPI;
 using System;
+using System.Diagnostics;
 using VRage;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
@@ -13,7 +14,7 @@ namespace RichHudFramework.Internal
         public static RichHudCore Instance { get; private set; }
         public static event MessageEnteredDel LateMessageEntered;
 
-        private readonly Utils.Stopwatch handlerRegTimer;
+        private readonly Stopwatch handlerRegTimer;
 
         public RichHudCore() : base(false, true)
         {
@@ -22,7 +23,7 @@ namespace RichHudFramework.Internal
             else
                 throw new Exception("Only one instance of RichHudCore can exist at any given time.");
 
-            handlerRegTimer = new Utils.Stopwatch();
+            handlerRegTimer = new Stopwatch();
         }
 
         public override void BeforeStart()
@@ -46,7 +47,7 @@ namespace RichHudFramework.Internal
             base.Draw();
 
             // Because some people are just bad neighbors
-            if (handlerRegTimer.Enabled && handlerRegTimer.ElapsedMilliseconds > 10000)
+            if (handlerRegTimer.IsRunning && handlerRegTimer.ElapsedMilliseconds > 10000)
             {
                 MyAPIGateway.Utilities.MessageEntered += MessageHandler;
                 handlerRegTimer.Stop();

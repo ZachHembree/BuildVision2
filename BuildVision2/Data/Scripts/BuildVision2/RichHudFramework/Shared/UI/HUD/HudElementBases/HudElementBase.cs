@@ -9,6 +9,7 @@ namespace RichHudFramework
     {
         using Server;
         using Client;
+        using Internal;
 
         /// <summary>
         /// Base type for all hud elements with definite size and position. Inherits from HudParentBase and HudNodeBase.
@@ -164,7 +165,7 @@ namespace RichHudFramework
             /// </summary>
             protected override void InputDepth()
             {
-                if (UseCursor && Visible && (HudSpace?.IsFacingCamera ?? false))
+                if (UseCursor && (HudSpace?.IsFacingCamera ?? false))
                 {
                     Vector3 cursorPos = HudSpace.CursorPos;
                     Vector2 offset = Vector2.Max(cachedSize, new Vector2(minMouseBounds)) / 2f;
@@ -182,59 +183,79 @@ namespace RichHudFramework
             /// Updates input for the element and its children. Overriding this method is rarely necessary.
             /// If you need to update input, use HandleInput().
             /// </summary>
-            protected override void BeginInput()
-            {
-                if (Visible)
+            public override void BeginInput()
+            {                
+                if (!ExceptionHandler.ClientsPaused)
                 {
-                    Vector3 cursorPos = HudSpace.CursorPos;
-
-                    if (UseCursor && mouseInBounds && !HudMain.Cursor.IsCaptured && HudMain.Cursor.IsCapturingSpace(HudSpace.GetHudSpaceFunc))
+                    try
                     {
-                        _isMousedOver = mouseInBounds;
+                        if (Visible)
+                        {
+                            Vector3 cursorPos = HudSpace.CursorPos;
 
-                        HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
+                            if (UseCursor && mouseInBounds && !HudMain.Cursor.IsCaptured && HudMain.Cursor.IsCapturingSpace(HudSpace.GetHudSpaceFunc))
+                            {
+                                _isMousedOver = mouseInBounds;
 
-                        if (!ShareCursor)
-                            HudMain.Cursor.Capture(GetOrSetMemberFunc);
+                                HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
+
+                                if (!ShareCursor)
+                                    HudMain.Cursor.Capture(GetOrSetMemberFunc);
+                            }
+                            else
+                            {
+                                _isMousedOver = false;
+                                HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
+                            }
+                        }
+                        else
+                            _isMousedOver = false;
                     }
-                    else
+                    catch (Exception e)
                     {
-                        _isMousedOver = false;
-                        HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
+                        ExceptionHandler.ReportException(e);
                     }
                 }
-                else
-                    _isMousedOver = false;
             }
 
             /// <summary>
             /// Updates layout for the element and its children. Overriding this method is rarely necessary. 
             /// If you need to update layout, use Layout().
             /// </summary>
-            protected override void BeginLayout(bool refresh)
+            public override void BeginLayout(bool refresh)
             {
-                fullZOffset = GetFullZOffset(this, _parent);
-
-                if (_parent == null)
+                if (!ExceptionHandler.ClientsPaused)
                 {
-                    parentVisible = false;
-                }
-                else
-                {
-                    parentVisible = _parent.Visible;
-                    parentScale = _parent.Scale;
-                    parentZOffset = _parent.ZOffset;
-                }
+                    try
+                    {
+                        fullZOffset = ParentUtils.GetFullZOffset(this, _parent);
 
-                if (Visible || refresh)
-                {
-                    UpdateCache();
-                    Layout();
+                        if (_parent == null)
+                        {
+                            parentVisible = false;
+                        }
+                        else
+                        {
+                            parentVisible = _parent.Visible;
+                            parentScale = _parent.Scale;
+                            parentZOffset = _parent.ZOffset;
+                        }
 
-                    // Update cached values for use on draw and by child nodes
-                    cachedPadding = Padding;
-                    cachedSize = new Vector2(Width, Height);
-                    cachedPosition = cachedOrigin + Offset;
+                        if (Visible || refresh)
+                        {
+                            UpdateCache();
+                            Layout();
+
+                            // Update cached values for use on draw and by child nodes
+                            cachedPadding = Padding;
+                            cachedSize = new Vector2(Width, Height);
+                            cachedPosition = cachedOrigin + Offset;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
                 }
             }
 
@@ -242,12 +263,22 @@ namespace RichHudFramework
             /// Used to immediately draw billboards. Overriding this method is rarely necessary. 
             /// If you need to draw something, use Draw().
             /// </summary>
-            protected override void BeginDraw()
+            public override void BeginDraw()
             {
-                if (Visible)
+                if (!ExceptionHandler.ClientsPaused && _registered)
                 {
-                    UpdateCache();
-                    Draw();
+                    try
+                    {
+                        if (Visible)
+                        {
+                            UpdateCache();
+                            Draw();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
                 }
             }
 

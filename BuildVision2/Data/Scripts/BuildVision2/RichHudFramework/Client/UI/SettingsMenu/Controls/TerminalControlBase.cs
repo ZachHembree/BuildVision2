@@ -23,7 +23,7 @@ namespace RichHudFramework.UI.Client
         /// Invoked whenver a change occurs to a control that requires a response, like a change
         /// to a value.
         /// </summary>
-        public event EventHandler OnControlChanged;
+        public event EventHandler ControlChanged;
 
         /// <summary>
         /// The name of the control as it appears in the terminal.
@@ -62,7 +62,7 @@ namespace RichHudFramework.UI.Client
         {
             Internal.ExceptionHandler.Run(() => 
             {
-                OnControlChanged?.Invoke(this, EventArgs.Empty);
+                ControlChanged?.Invoke(this, EventArgs.Empty);
                 ControlChangedHandler?.Invoke(this, EventArgs.Empty);
             });
         }

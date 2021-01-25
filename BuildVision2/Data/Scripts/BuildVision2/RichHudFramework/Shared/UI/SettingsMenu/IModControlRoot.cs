@@ -99,7 +99,7 @@ namespace RichHudFramework
             /// <summary>
             /// Invoked when a new page is selected
             /// </summary>
-            event EventHandler OnSelectionChanged;
+            event EventHandler SelectionChanged;
 
             /// <summary>
             /// Name of the mod as it appears in the <see cref="TerminalFormatting"/> mod list

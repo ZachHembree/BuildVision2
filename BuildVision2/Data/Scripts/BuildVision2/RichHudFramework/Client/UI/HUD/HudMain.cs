@@ -93,11 +93,11 @@ namespace RichHudFramework
                     object value = Instance.GetOrSetMemberFunc(null, (int)HudMainAccessors.ClipBoard);
 
                     if (value != null)
-                        return new RichText(value as IList<RichStringMembers>);
+                        return new RichText(value as List<RichStringMembers>);
                     else
                         return default(RichText);
                 }
-                set { Instance.GetOrSetMemberFunc(value.ApiData, (int)HudMainAccessors.ClipBoard); }
+                set { Instance.GetOrSetMemberFunc(value.apiData, (int)HudMainAccessors.ClipBoard); }
             }
 
             /// <summary>

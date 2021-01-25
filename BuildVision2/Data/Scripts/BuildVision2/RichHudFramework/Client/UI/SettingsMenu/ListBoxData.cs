@@ -54,7 +54,7 @@ namespace RichHudFramework.UI
         {
             var data = new MyTuple<IList<RichStringMembers>, object>()
             {
-                Item1 = text.ApiData,
+                Item1 = text.apiData,
                 Item2 = assocObject
             };
 

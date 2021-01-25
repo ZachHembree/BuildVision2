@@ -21,7 +21,7 @@ namespace RichHudFramework.UI.Server
         /// <summary>
         /// Color of the button's highlight overlay
         /// </summary>
-        public override Color HighlightColor { get { return highlight.Color; } set { highlight.Color = value; } }
+        public override Color HighlightColor { get; set; }
 
         private readonly BorderBox border;
         private readonly TexturedBox highlight;
@@ -37,16 +37,16 @@ namespace RichHudFramework.UI.Server
 
             highlight = new TexturedBox(this)
             {
-                Color = TerminalFormatting.HighlightOverlayColor,
                 DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
                 Visible = false,
             };
 
             AutoResize = false;
             Format = TerminalFormatting.ControlFormat.WithAlignment(TextAlignment.Center);
-            Text = "NewTerminalButton";
+            Text = "NewBorderedButton";
 
             Color = new Color(42, 55, 63);
+            HighlightColor = TerminalFormatting.HighlightOverlayColor;
             TextPadding = new Vector2(32f, 0f);
             Padding = new Vector2(37f, 0f);
             Size = new Vector2(253f, 50f);
@@ -60,13 +60,17 @@ namespace RichHudFramework.UI.Server
         {
             if (HighlightEnabled)
             {
+                highlight.Color = HighlightColor;
                 highlight.Visible = true;
             }
         }
 
         protected override void CursorExited(object sender, EventArgs args)
         {
-            highlight.Visible = false;
+            if (HighlightEnabled)
+            {
+                highlight.Visible = false;
+            }
         }
     }
 }

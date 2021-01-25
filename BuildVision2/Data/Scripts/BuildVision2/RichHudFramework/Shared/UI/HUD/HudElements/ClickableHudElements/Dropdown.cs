@@ -17,12 +17,17 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Invoked when a member of the list is selected.
         /// </summary>
-        public event EventHandler OnSelectionChanged { add { listBox.OnSelectionChanged += value; } remove { listBox.OnSelectionChanged -= value; } }
+        public event EventHandler SelectionChanged { add { listBox.SelectionChanged += value; } remove { listBox.SelectionChanged -= value; } }
 
         /// <summary>
         /// List of entries in the dropdown.
         /// </summary>
         public IReadOnlyList<ListBoxEntry<T>> ListEntries => listBox.ListEntries;
+
+        /// <summary>
+        /// Read-only collection of list entries.
+        /// </summary>
+        public IReadOnlyHudCollection<ListBoxEntry<T>, LabelButton> HudCollection => listBox.HudCollection;
 
         /// <summary>
         /// Used to allow the addition of list entries using collection-initializer syntax in
@@ -117,8 +122,7 @@ namespace RichHudFramework.UI
 
         public HudElementBase Display => display;
 
-        public readonly ListBox<T> listBox;
-
+        protected readonly ListBox<T> listBox;
         protected readonly DropdownDisplay display;
         protected readonly TexturedBox highlight;
 
@@ -150,8 +154,8 @@ namespace RichHudFramework.UI
 
             Size = new Vector2(331f, 43f);
 
-            display.MouseInput.OnLeftClick += ToggleList;
-            OnSelectionChanged += UpdateDisplay;
+            display.MouseInput.LeftClicked += ToggleList;
+            SelectionChanged += UpdateDisplay;
         }
 
         public Dropdown() : this(null)
@@ -236,6 +240,12 @@ namespace RichHudFramework.UI
         /// </summary>
         public void ClearEntries() =>
             listBox.ClearEntries();
+
+        /// <summary>
+        /// Sets the selection to the member associated with the given object.
+        /// </summary>
+        public void SetSelectionAt(int index) =>
+            listBox.SetSelectionAt(index);
 
         /// <summary>
         /// Sets the selection to the member associated with the given object.

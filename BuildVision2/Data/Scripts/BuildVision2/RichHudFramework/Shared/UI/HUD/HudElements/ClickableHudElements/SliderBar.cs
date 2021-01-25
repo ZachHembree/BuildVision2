@@ -226,7 +226,7 @@ namespace RichHudFramework.UI
         public SliderBar(HudParentBase parent) : base(parent)
         {
             mouseInput = new MouseInputElement(this) { DimAlignment = DimAlignments.Both };
-            mouseInput.OnLeftClick += BarClicked;
+            mouseInput.LeftClicked += BarClicked;
 
             bar = new TexturedBox(this);
             slider = new TexturedBox(bar);

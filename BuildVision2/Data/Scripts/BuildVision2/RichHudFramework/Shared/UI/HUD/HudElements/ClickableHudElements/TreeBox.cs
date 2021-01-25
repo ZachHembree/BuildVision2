@@ -16,7 +16,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Invoked when a list member is selected.
         /// </summary>
-        public event EventHandler OnSelectionChanged;
+        public event EventHandler SelectionChanged;
 
         /// <summary>
         /// List of entries in the treebox.
@@ -145,7 +145,7 @@ namespace RichHudFramework.UI
             Format = GlyphFormat.Blueish;
             display.Name = "NewTreeBox";
 
-            display.MouseInput.OnLeftClick += ToggleList;
+            display.MouseInput.LeftClicked += ToggleList;
         }
 
         public TreeBox() : this(null)
@@ -161,7 +161,7 @@ namespace RichHudFramework.UI
             if (result != null)
             {
                 Selection = result;
-                OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+                SelectionChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -175,7 +175,7 @@ namespace RichHudFramework.UI
             if (result != null)
             {
                 Selection = result;
-                OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+                SelectionChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -336,7 +336,7 @@ namespace RichHudFramework.UI
                     if (entry.Element.MouseInput.IsNewLeftClicked)
                     {
                         Selection = entry;
-                        OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+                        SelectionChanged?.Invoke(this, EventArgs.Empty);
                     }
                 }
             }

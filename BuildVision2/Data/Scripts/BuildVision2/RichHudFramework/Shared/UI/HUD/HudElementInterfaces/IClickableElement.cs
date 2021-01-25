@@ -15,32 +15,32 @@ namespace RichHudFramework
             /// <summary>
             /// Invoked when the cursor enters the element's bounds
             /// </summary>
-            event EventHandler OnCursorEnter;
+            event EventHandler CursorEntered;
 
             /// <summary>
             /// Invoked when the cursor leaves the element's bounds
             /// </summary>
-            event EventHandler OnCursorExit;
+            event EventHandler CursorExited;
 
             /// <summary>
             /// Invoked when the element is clicked with the left mouse button
             /// </summary>
-            event EventHandler OnLeftClick;
+            event EventHandler LeftClicked;
 
             /// <summary>
             /// Invoked when the left click is released
             /// </summary>
-            event EventHandler OnLeftRelease;
+            event EventHandler LeftReleased;
 
             /// <summary>
             /// Invoked when the element is clicked with the right mouse button
             /// </summary>
-            event EventHandler OnRightClick;
+            event EventHandler RightClicked;
 
             /// <summary>
             /// Invoked when the right click is released
             /// </summary>
-            event EventHandler OnRightRelease;
+            event EventHandler RightReleased;
 
             /// <summary>
             /// True if the element is being clicked with the left mouse button

@@ -34,12 +34,6 @@ namespace RichHudFramework
             MatrixD PlaneToWorld { get; }
 
             /// <summary>
-            /// Used to update the current draw matrix. If no delegate is set, the node will default
-            /// to the matrix supplied by its parent.
-            /// </summary>
-            Func<MatrixD> UpdateMatrixFunc { get; }
-
-            /// <summary>
             /// Returns the world space position of the node's origin.
             /// </summary>
             Func<Vector3D> GetNodeOriginFunc { get; }

@@ -80,15 +80,15 @@ namespace RichHudFramework.UI.Server
                 CollectionContainer = { on, off }
             };
 
-            on.MouseInput.OnLeftClick += ToggleValue;
-            off.MouseInput.OnLeftClick += ToggleValue;
+            on.MouseInput.LeftClicked += ToggleValue;
+            off.MouseInput.LeftClicked += ToggleValue;
 
             selectionHighlight = new BorderBox(buttonChain)
             { 
                 Color = Color.White 
             };
 
-            Size = new Vector2(250f, 50f);
+            Size = new Vector2(200f, 50f);
         }
 
         public OnOffButton() : this(null)

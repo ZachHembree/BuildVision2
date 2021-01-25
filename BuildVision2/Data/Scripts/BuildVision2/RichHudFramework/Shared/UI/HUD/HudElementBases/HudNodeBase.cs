@@ -11,6 +11,7 @@ namespace RichHudFramework
     {
         using Client;
         using Server;
+        using Internal;
         using HudUpdateAccessors = MyTuple<
             ApiMemberAccessor,
             MyTuple<Func<ushort>, Func<Vector3D>>, // ZOffset + GetOrigin
@@ -23,7 +24,7 @@ namespace RichHudFramework
         /// <summary>
         /// Base class for hud elements that can be parented to other elements.
         /// </summary>
-        public abstract class HudNodeBase : HudParentBase, IReadOnlyHudNode
+        public abstract partial class HudNodeBase : HudParentBase, IReadOnlyHudNode
         {
             /// <summary>
             /// Read-only parent object of the node.
@@ -84,24 +85,32 @@ namespace RichHudFramework
             /// Updates layout for the element and its children. Overriding this method is rarely necessary. 
             /// If you need to update layout, use Layout().
             /// </summary>
-            protected override void BeginLayout(bool refresh)
+            public override void BeginLayout(bool refresh)
             {
-                fullZOffset = GetFullZOffset(this, _parent);
+                if (!ExceptionHandler.ClientsPaused)
+                {
+                    try
+                    {
+                        fullZOffset = ParentUtils.GetFullZOffset(this, _parent);
 
-                if (_parent == null)
-                {
-                    parentVisible = false;
-                }
-                else
-                {
-                    parentVisible = _parent.Visible;
-                    parentScale = _parent.Scale;
-                    parentZOffset = _parent.ZOffset;
-                }
+                        if (_parent == null)
+                        {
+                            parentVisible = false;
+                        }
+                        else
+                        {
+                            parentVisible = _parent.Visible;
+                            parentScale = _parent.Scale;
+                            parentZOffset = _parent.ZOffset;
+                        }
 
-                if (Visible || refresh)
-                {
-                    Layout();
+                        if (Visible || refresh)
+                            Layout();
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
                 }
             }
 
@@ -111,7 +120,7 @@ namespace RichHudFramework
             public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
             {
                 HudSpace = _parent?.HudSpace ?? reregParent?.HudSpace;
-                fullZOffset = GetFullZOffset(this, _parent);
+                fullZOffset = ParentUtils.GetFullZOffset(this, _parent);
 
                 UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + 1);
                 var accessors = new HudUpdateAccessors()

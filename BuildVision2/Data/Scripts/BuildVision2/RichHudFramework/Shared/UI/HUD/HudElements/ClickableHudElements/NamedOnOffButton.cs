@@ -85,7 +85,7 @@ namespace RichHudFramework.UI.Server
             };
 
             Padding = new Vector2(20f, 0f);
-            Size = new Vector2(250f, 74f);
+            Size = new Vector2(300f, 74f);
         }
 
         public NamedOnOffButton() : this(null)

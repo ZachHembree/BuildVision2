@@ -52,12 +52,12 @@ namespace RichHudFramework.UI
 
         public ScrollBar(HudParentBase parent) : base(parent)
         {
-            slide = new SliderBar(this) 
-            { 
-                Reverse = true, 
+            slide = new SliderBar(this)
+            {
+                Reverse = true,
                 Vertical = true,
-                SliderWidth = 12f,
-                BarWidth = 12f,
+                SliderWidth = 20f,
+                BarWidth = 20f,
 
                 SliderColor = new Color(103, 109, 124),
                 SliderHighlight = new Color(137, 140, 149),
@@ -65,8 +65,8 @@ namespace RichHudFramework.UI
                 BarColor = new Color(41, 51, 61),
             };
 
+            Size = new Vector2(20f, 300f);
             Padding = new Vector2(18f, 18f);
-            Size = new Vector2(317f, 47f);
             slide.SliderVisible = false;
         }
 

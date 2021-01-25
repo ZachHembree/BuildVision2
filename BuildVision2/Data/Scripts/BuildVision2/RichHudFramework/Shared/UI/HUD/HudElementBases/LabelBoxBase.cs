@@ -89,6 +89,7 @@ namespace RichHudFramework
                 };
 
                 FitToTextElement = true;
+                Color = Color.Gray;
             }
 
             protected override void Layout()

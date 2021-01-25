@@ -20,7 +20,7 @@ namespace RichHudFramework.UI
 
     public interface IChatCommand
     {
-        event Action<string[]> OnCommandInvoke;
+        event Action<string[]> CommandInvoked;
 
         string CmdName { get; }
         int ArgsRequired { get; }
@@ -194,7 +194,7 @@ namespace RichHudFramework.UI
                     instance.commands.Add(key, command);
 
                     if (callback != null)
-                        command.OnCommandInvoke += callback;
+                        command.CommandInvoked += callback;
 
                     return true;
                 }
@@ -214,7 +214,7 @@ namespace RichHudFramework.UI
 
         private class Command : IChatCommand
         {
-            public event Action<string[]> OnCommandInvoke;
+            public event Action<string[]> CommandInvoked;
             public string CmdName { get; }
             public int ArgsRequired { get; }
 
@@ -225,7 +225,7 @@ namespace RichHudFramework.UI
             }
 
             public void InvokeCommand(string[] args) =>
-                OnCommandInvoke?.Invoke(args);
+                CommandInvoked?.Invoke(args);
         }
     }
 }

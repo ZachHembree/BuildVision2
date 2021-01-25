@@ -71,6 +71,8 @@ namespace RichHudFramework.UI
         public Label(HudParentBase parent) : base(parent)
         {
             _textBoard = new TextBoard();
+            _textBoard.Format = GlyphFormat.White;
+            _textBoard.SetText("NewLabel");
         }
 
         public Label() : this(null)

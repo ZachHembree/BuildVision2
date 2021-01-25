@@ -75,13 +75,13 @@ namespace RichHudFramework
                 /// </summary>
                 public Material Material
                 {
-                    get { return matFrame.material; }
+                    get { return matFrame.Material; }
                     set
                     {
-                        if (value != matFrame.material)
+                        if (value != matFrame.Material)
                         {
                             updateMatFit = true;
-                            matFrame.material = value;
+                            matFrame.Material = value;
                             minBoard.textureID = value.TextureID;
                         }
                     }
@@ -92,13 +92,13 @@ namespace RichHudFramework
                 /// </summary>
                 public MaterialAlignment MatAlignment
                 {
-                    get { return matFrame.alignment; }
+                    get { return matFrame.Alignment; }
                     set
                     {
-                        if (value != matFrame.alignment)
+                        if (value != matFrame.Alignment)
                         {
                             updateMatFit = true;
-                            matFrame.alignment = value;
+                            matFrame.Alignment = value;
                         }
                     }
                 }
@@ -127,7 +127,7 @@ namespace RichHudFramework
                 /// </summary>
                 public void Draw(ref MyQuadD quad)
                 {
-                    if (updateMatFit && matFrame.material != Material.Default)
+                    if (updateMatFit && matFrame.Material != Material.Default)
                     {
                         minBoard.matFit = matFrame.GetMaterialAlignment(size.X / size.Y);
                         updateMatFit = false;
@@ -142,7 +142,7 @@ namespace RichHudFramework
                 /// </summary>
                 public void Draw(Vector3D offset, ref MatrixD matrix)
                 {
-                    if (updateMatFit && matFrame.material != Material.Default)
+                    if (updateMatFit && matFrame.Material != Material.Default)
                     {
                         minBoard.matFit = matFrame.GetMaterialAlignment(size.X / size.Y);
                         updateMatFit = false;
@@ -157,7 +157,7 @@ namespace RichHudFramework
                 /// </summary>
                 public void Draw(Vector2 offset, ref MatrixD matrix)
                 {
-                    if (updateMatFit && matFrame.material != Material.Default)
+                    if (updateMatFit && matFrame.Material != Material.Default)
                     {
                         minBoard.matFit = matFrame.GetMaterialAlignment(size.X / size.Y);
                         updateMatFit = false;
@@ -171,7 +171,7 @@ namespace RichHudFramework
                 /// </summary>
                 public void Draw(Vector2 origin)
                 {
-                    if (updateMatFit && matFrame.material != Material.Default)
+                    if (updateMatFit && matFrame.Material != Material.Default)
                     {
                         minBoard.matFit = matFrame.GetMaterialAlignment(size.X / size.Y);
                         updateMatFit = false;

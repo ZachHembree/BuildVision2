@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Sandbox.ModAPI;
+using System;
 using VRage;
-using VRageMath;
-using Sandbox.ModAPI;
 using VRage.ModAPI;
+using VRageMath;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
 
@@ -10,6 +10,9 @@ namespace RichHudFramework
 {
     namespace UI
     {
+        using Client;
+        using Server;
+        using System.Collections.Generic;
         using HudUpdateAccessors = MyTuple<
             ApiMemberAccessor,
             MyTuple<Func<ushort>, Func<Vector3D>>, // ZOffset + GetOrigin
@@ -18,15 +21,12 @@ namespace RichHudFramework
             Action<bool>, // BeforeLayout
             Action // BeforeDraw
         >;
-        using Client;
-        using Server;
-        using System.Collections.Generic;
 
         /// <summary>
-        /// HUD node used to replace the standard Pixel to World matrix with an arbitrary
-        /// world matrix transform. Typically parented to HudMain.Root.
+        /// Base class for hud nodes used to replace standard Pixel to World matrix with an arbitrary
+        /// world matrix transform.
         /// </summary>
-        public class HudSpaceNode : HudNodeBase, IReadOnlyHudSpaceNode
+        public abstract class HudSpaceNodeBase : HudNodeBase, IReadOnlyHudSpaceNode
         {
             /// <summary>
             /// Node defining the coordinate space used to render the UI element
@@ -42,12 +42,6 @@ namespace RichHudFramework
             /// Returns the current draw matrix
             /// </summary>
             public MatrixD PlaneToWorld { get; protected set; }
-
-            /// <summary>
-            /// Used to update the current draw matrix. If no delegate is set, the node will default
-            /// to the matrix supplied by its parent.
-            /// </summary>
-            public Func<MatrixD> UpdateMatrixFunc { get; set; }
 
             /// <summary>
             /// Cursor position on the XY plane defined by the HUD space. Z == dist from screen.
@@ -80,20 +74,15 @@ namespace RichHudFramework
             /// </summary>
             public bool IsFacingCamera { get; protected set; }
 
-            public HudSpaceNode(HudParentBase parent = null) : base(parent)
+            public HudSpaceNodeBase(HudParentBase parent = null) : base(parent)
             {
                 GetHudSpaceFunc = () => new MyTuple<bool, float, MatrixD>(DrawCursorInHudSpace, Scale, PlaneToWorld);
                 DrawCursorInHudSpace = true;
                 GetNodeOriginFunc = () => PlaneToWorld.Translation;
             }
 
-            protected override void BeginLayout(bool refresh)
+            protected override void Layout()
             {
-                if (UpdateMatrixFunc != null)
-                    PlaneToWorld = UpdateMatrixFunc();
-                else
-                    PlaneToWorld = HudMain.PixelToWorld;
-
                 // Determine whether the node is in front of the camera and pointed toward it
                 MatrixD camMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
                 Vector3D camOrigin = camMatrix.Translation,
@@ -122,20 +111,17 @@ namespace RichHudFramework
                         Z = (float)Math.Round(Vector3D.DistanceSquared(worldPos, cursorLine.From), 6)
                     };
                 }
-
-                base.BeginLayout(refresh);
             }
 
             public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
             {
-                fullZOffset = GetFullZOffset(this, _parent);
-                HudSpace = _parent?.HudSpace ?? reregParent?.HudSpace;
-
+                fullZOffset = ParentUtils.GetFullZOffset(this, _parent);
                 UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + 1);
+
                 var accessors = new HudUpdateAccessors()
                 {
                     Item1 = GetOrSetMemberFunc,
-                    Item2 = new MyTuple<Func<ushort>, Func<Vector3D>>(GetZOffsetFunc, HudSpace.GetNodeOriginFunc),
+                    Item2 = new MyTuple<Func<ushort>, Func<Vector3D>>(GetZOffsetFunc, GetNodeOriginFunc),
                     Item3 = DepthTestAction,
                     Item4 = InputAction,
                     Item5 = LayoutAction,

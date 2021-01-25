@@ -41,7 +41,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Invoked whenever a change is made to the text.
                 /// </summary>
-                public event Action OnTextChanged
+                public event Action TextChanged
                 {
                     add
                     {

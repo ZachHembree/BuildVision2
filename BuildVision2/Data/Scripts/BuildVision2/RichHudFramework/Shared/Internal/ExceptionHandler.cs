@@ -2,6 +2,7 @@
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
@@ -79,7 +80,7 @@ namespace RichHudFramework.Internal
         private int exceptionCount;
         private readonly List<ModBase> clients;
         private readonly List<string> exceptionMessages;
-        private readonly Utils.Stopwatch errorTimer;
+        private readonly Stopwatch errorTimer;
 
         private Action lastMissionScreen;
 
@@ -94,7 +95,7 @@ namespace RichHudFramework.Internal
             RecoveryLimit = 1;
 
             exceptionMessages = new List<string>();
-            errorTimer = new Utils.Stopwatch();
+            errorTimer = new Stopwatch();
             clients = new List<ModBase>();
         }
 

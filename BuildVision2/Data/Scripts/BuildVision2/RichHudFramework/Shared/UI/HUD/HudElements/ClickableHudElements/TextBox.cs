@@ -2,6 +2,7 @@
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using VRageMath;
 
@@ -65,12 +66,14 @@ namespace RichHudFramework.UI
             caret = new TextCaret(this) { Visible = false };
             selectionBox = new SelectionBox(caret, this) { Color = new Color(255, 255, 255, 140) };
 
-            caret.OnCaretMoved += CaretMoved;
+            caret.CaretMoved += CaretMoved;
 
             ShareCursor = true;
             EnableEditing = true;
             EnableHighlighting = true;
             UseCursor = true;
+
+            Size = new Vector2(60f, 200f);
         }
 
         public TextBox() : this(null)
@@ -112,7 +115,7 @@ namespace RichHudFramework.UI
         private bool TextInputFilter(char ch)
         {
             if (CharFilterFunc == null)
-                return ch >= ' ' || ch == '\n';
+                return ch >= ' ' || ch == '\n' || ch == '\t';
             else
                 return CharFilterFunc(ch) && (ch >= ' ' || ch == '\n');
         }
@@ -135,7 +138,7 @@ namespace RichHudFramework.UI
                 {
                     RichText text = TextBoard.GetTextRange(selectionBox.Start, selectionBox.End);
                     DeleteSelection();
-                    caret.Move(new Vector2I(0, -GetRichTextLength(text)));
+                    caret.Move(new Vector2I(0, -GetRichTextMinLength(text)));
                     HudMain.ClipBoard = text;
                 }
 
@@ -145,7 +148,7 @@ namespace RichHudFramework.UI
                     {
                         DeleteSelection();
                         TextBoard.Insert(HudMain.ClipBoard, caret.Index + new Vector2I(0, 1));
-                        int length = GetRichTextLength(HudMain.ClipBoard);
+                        int length = GetRichTextMinLength(HudMain.ClipBoard);
 
                         if (caret.Index.Y == -1)
                             length++;
@@ -241,12 +244,12 @@ namespace RichHudFramework.UI
                 return Vector2I.Zero;
         }
 
-        private static int GetRichTextLength(RichText text)
+        private static int GetRichTextMinLength(RichText text)
         {
             int length = 0;
 
-            for (int n = 0; n < text.ApiData.Count; n++)
-                length += text.ApiData[n].Item1.Length;
+            for (int n = 0; n < text.apiData.Count; n++)
+                length += text.apiData[n].Item1.Length;
 
             return length;
         }
@@ -264,11 +267,11 @@ namespace RichHudFramework.UI
             /// </summary>
             public bool ShowCaret { get; set; }
 
-            public event Action OnCaretMoved;
+            public event Action CaretMoved;
 
             private readonly TextBox textElement;
             private readonly ITextBoard text;
-            private readonly Utils.Stopwatch blinkTimer;
+            private readonly Stopwatch blinkTimer;
             private bool blink, caretMoved;
             private int caretOffset;
             private Vector2 lastCursorPos;
@@ -280,7 +283,7 @@ namespace RichHudFramework.UI
                 Size = new Vector2(1f, 16f);
                 Color = new Color(240, 240, 230);
 
-                blinkTimer = new Utils.Stopwatch();
+                blinkTimer = new Stopwatch();
                 blinkTimer.Start();
             }
 
@@ -352,7 +355,7 @@ namespace RichHudFramework.UI
 
                 if (caretMoved)
                 {
-                    OnCaretMoved?.Invoke();
+                    CaretMoved?.Invoke();
                     caretMoved = false;
                 }
             }

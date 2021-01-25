@@ -155,7 +155,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Invoked when a new page is selected
                 /// </summary>
-                public event EventHandler OnSelectionChanged;
+                public event EventHandler SelectionChanged;
 
                 /// <summary>
                 /// Name of the mod as it appears in the <see cref="RichHudTerminal"/> mod list
@@ -251,7 +251,7 @@ namespace RichHudFramework
 
                 protected void ModRootCallback()
                 {
-                    OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+                    SelectionChanged?.Invoke(this, EventArgs.Empty);
                 }
 
                 IEnumerator<ITerminalPage> IEnumerable<ITerminalPage>.GetEnumerator() =>

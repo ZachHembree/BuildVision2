@@ -4,7 +4,7 @@ using System;
 namespace RichHudFramework.UI
 {
     /// <summary>
-    /// Clickable label box. 
+    /// Clickable button with text and a textured background. 
     /// </summary>
     public class LabelBoxButton : LabelBox, IClickableElement
     {
@@ -29,13 +29,17 @@ namespace RichHudFramework.UI
         public IMouseInput MouseInput => _mouseInput;
 
         protected MouseInputElement _mouseInput;
-        private Color oldColor;
+        protected Color oldColor;
 
         public LabelBoxButton(HudParentBase parent) : base(parent)
         {
             _mouseInput = new MouseInputElement(this);
-            _mouseInput.OnCursorEnter += CursorEntered;
-            _mouseInput.OnCursorExit += CursorExited;
+            Color = Color.DarkGray;
+            HighlightColor = Color.Gray;
+            HighlightEnabled = true;
+
+            _mouseInput.CursorEntered += CursorEntered;
+            _mouseInput.CursorExited += CursorExited;
         }
 
         public LabelBoxButton() : this(null)
