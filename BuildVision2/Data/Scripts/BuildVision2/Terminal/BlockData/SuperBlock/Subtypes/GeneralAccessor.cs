@@ -24,24 +24,16 @@ namespace DarkHelmet.BuildVision2
                 groupString = GetGroupString();
             }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                var summary = new RichText
-                {
-                    { $"{MyTexts.TrySubstitute("Name")}: ", nameFormat },
-                    { $"{CustomName}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.TrySubstitute("Name")}: ", nameFormat);
+                builder.Add($"{CustomName}\n", valueFormat);
 
                 if (groupString.Length > 0)
                 {
-                    summary.Add(new RichText 
-                    {
-                        { $"{MyTexts.TrySubstitute("Groups")}: ", nameFormat },
-                        { $"{groupString}\n", valueFormat },
-                    });
+                    builder.Add($"{MyTexts.TrySubstitute("Groups")}: ", nameFormat);
+                    builder.Add($"{groupString}\n", valueFormat);
                 }
-
-                return summary;
             }
 
             private string GetGroupString()

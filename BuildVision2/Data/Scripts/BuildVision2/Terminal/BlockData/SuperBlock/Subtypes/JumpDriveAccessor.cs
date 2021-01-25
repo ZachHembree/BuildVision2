@@ -40,20 +40,17 @@ namespace DarkHelmet.BuildVision2
             public string GetLocalizedDriveStatus() =>
                 (Charge == Capacity && Status == MyJumpDriveStatus.Charging) ? MyTexts.TrySubstitute(MyJumpDriveStatus.Ready.ToString()) : MyTexts.TrySubstitute(Status.ToString());
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText 
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
-                    { $"{GetLocalizedDriveStatus()}\n", valueFormat },
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat);
+                builder.Add($"{GetLocalizedDriveStatus()}\n", valueFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", nameFormat },
-                    { $"{TerminalUtilities.GetPowerDisplay(Charge)}", valueFormat },
-                    { $" ({((Charge / Capacity) * 100f).Round(1)}%)\n", nameFormat },
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", nameFormat);
+                builder.Add($"{TerminalUtilities.GetPowerDisplay(Charge)}", valueFormat);
+                builder.Add($" ({((Charge / Capacity) * 100f).Round(1)}%)\n", nameFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat },
-                    { $"{TerminalUtilities.GetPowerDisplay(Capacity)}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat);
+                builder.Add($"{TerminalUtilities.GetPowerDisplay(Capacity)}\n", valueFormat);
             }
         }
     }

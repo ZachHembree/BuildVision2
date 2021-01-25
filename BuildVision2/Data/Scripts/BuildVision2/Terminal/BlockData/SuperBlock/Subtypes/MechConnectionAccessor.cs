@@ -62,12 +62,10 @@ namespace DarkHelmet.BuildVision2
                     return MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorDetached);
             }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText {
-                    { $"{MyTexts.TrySubstitute(block.SubtypeId.UsesSubtype(TBlockSubtypes.Suspension) ? "Wheel" : "Head")}: ", nameFormat },
-                    { $"{GetLocalizedAttachStatus()}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.TrySubstitute(block.SubtypeId.UsesSubtype(TBlockSubtypes.Suspension) ? "Wheel" : "Head")}: ", nameFormat);
+                builder.Add($"{GetLocalizedAttachStatus()}\n", valueFormat);
             }
         }
     }

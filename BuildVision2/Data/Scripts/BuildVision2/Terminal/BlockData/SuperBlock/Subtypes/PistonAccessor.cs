@@ -30,17 +30,13 @@ namespace DarkHelmet.BuildVision2
             public void Reverse() =>
                 subtype.Reverse();
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
                 if (subtype.IsAttached)
                 {
-                    return new RichText {
-                        { $"{MyTexts.GetString(MySpaceTexts.TerminalDistance)}: ", nameFormat },
-                        { $"{TerminalUtilities.GetDistanceDisplay(ExtensionDist)}\n", valueFormat },
-                    };
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalDistance)}: ", nameFormat);
+                    builder.Add($"{TerminalUtilities.GetDistanceDisplay(ExtensionDist)}\n", valueFormat);
                 }
-                else
-                    return null;
             }
         }
     }

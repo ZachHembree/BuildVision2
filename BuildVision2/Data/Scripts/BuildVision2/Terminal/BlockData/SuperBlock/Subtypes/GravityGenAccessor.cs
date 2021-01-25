@@ -42,38 +42,27 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                var summary = new RichText 
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityAcceleration)}: ", nameFormat },
-                    { $"{Acceleration.ToString("G4")} m/s²\n", valueFormat }
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityAcceleration)}: ", nameFormat);
+                builder.Add($"{Acceleration.ToString("G4")} m/s²\n", valueFormat);
 
                 if (IsSpherical)
                 {
-                    summary.Add(new RichText 
-                    {
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldRadius)}: ", nameFormat },
-                        { $"{TerminalUtilities.GetDistanceDisplay(Radius)}\n", valueFormat },
-                    });
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldRadius)}: ", nameFormat);
+                    builder.Add($"{TerminalUtilities.GetDistanceDisplay(Radius)}\n", valueFormat);
                 }
                 else
                 {
-                    summary.Add(new RichText
-                    {
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldWidth)}: ", nameFormat },
-                        { $"{TerminalUtilities.GetDistanceDisplay(FieldSize.X)}\n", valueFormat },
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldWidth)}: ", nameFormat);
+                    builder.Add($"{TerminalUtilities.GetDistanceDisplay(FieldSize.X)}\n", valueFormat);
 
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldHeight)}: ", nameFormat },
-                        { $"{TerminalUtilities.GetDistanceDisplay(FieldSize.Y)}\n", valueFormat },
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldHeight)}: ", nameFormat);
+                    builder.Add($"{TerminalUtilities.GetDistanceDisplay(FieldSize.Y)}\n", valueFormat);
 
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldDepth)}: ", nameFormat },
-                        { $"{TerminalUtilities.GetDistanceDisplay(FieldSize.Z)}\n", valueFormat },
-                    });
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldDepth)}: ", nameFormat);
+                    builder.Add($"{TerminalUtilities.GetDistanceDisplay(FieldSize.Z)}\n", valueFormat);
                 }
-
-                return summary;
             }
         }
     }

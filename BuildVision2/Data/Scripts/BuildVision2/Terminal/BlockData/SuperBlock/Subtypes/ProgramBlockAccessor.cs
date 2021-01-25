@@ -27,13 +27,10 @@ namespace DarkHelmet.BuildVision2
             public void Recompile() =>
                 subtype.Recompile();
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalControlPanel_RunArgument)}: ", nameFormat },
-                    { $"{Argument ?? ""}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalControlPanel_RunArgument)}: ", nameFormat);
+                builder.Add($"{Argument ?? ""}\n", valueFormat);
             }
         }
     }

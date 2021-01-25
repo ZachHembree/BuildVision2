@@ -45,12 +45,10 @@ namespace DarkHelmet.BuildVision2
                     return MyTexts.GetString(MySpaceTexts.BlockAction_DoorOpen);
             }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText {
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
-                    { $"{GetLocalizedStatus()}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat);
+                builder.Add($"{GetLocalizedStatus()}\n", valueFormat);
             }
         }
     }

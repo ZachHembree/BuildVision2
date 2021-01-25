@@ -15,13 +15,10 @@ namespace DarkHelmet.BuildVision2
             public SensorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Sensor)
             { }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText 
-                {
-                    { $"{MyTexts.TrySubstitute("Detected")}: ", nameFormat },
-                    { $"{MyTexts.TrySubstitute(IsEntityDetected.ToString())}", valueFormat }
-                };
+                builder.Add($"{MyTexts.TrySubstitute("Detected")}: ", nameFormat);
+                builder.Add($"{MyTexts.TrySubstitute(IsEntityDetected.ToString())}", valueFormat);
             }
         }
     }

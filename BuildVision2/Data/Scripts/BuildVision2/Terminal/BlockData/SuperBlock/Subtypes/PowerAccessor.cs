@@ -90,7 +90,7 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
                 RichText summary = null;
 
@@ -98,38 +98,24 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (functionalBlock != null) // functional w/ measurable power input/output
                     {
-                        summary = new RichText
-                        {
-                            { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat },
-                            { $"{MyTexts.GetString(Enabled.Value ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)} ", valueFormat },
-                            { $"({GetPowerDisplay(Input, Output)})\n", nameFormat },
-                        };
+                        builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat);
+                        builder.Add($"{MyTexts.GetString(Enabled.Value ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)} ", valueFormat);
+                        builder.Add($"({GetPowerDisplay(Input, Output)})\n", nameFormat);
                     }
                     else // not functional
                     {
-                        summary = new RichText
-                        {
-                            { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat },
-                            { $"{GetPowerDisplay(Input, Output)}\n", valueFormat },
-                        };
+                        builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat);
+                        builder.Add($"{GetPowerDisplay(Input, Output)}\n", valueFormat);
                     }
 
-                    summary += new RichText()
-                    {
-                        { $"{MyTexts.TrySubstitute("Max Power:")} ", nameFormat },
-                        { $"{GetPowerDisplay(MaxInput, MaxOutput)}\n", valueFormat },
-                    };
+                    builder.Add($"{MyTexts.TrySubstitute("Max Power:")} ", nameFormat);
+                    builder.Add($"{GetPowerDisplay(MaxInput, MaxOutput)}\n", valueFormat);
                 }
                 else if (functionalBlock != null) // not a sink or producer, but functional
                 {
-                    summary = new RichText
-                    {
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat },
-                        { $"{MyTexts.GetString(Enabled.Value ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)}\n", valueFormat },
-                    };
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat);
+                    builder.Add($"{MyTexts.GetString(Enabled.Value ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)}\n", valueFormat);
                 }
-
-                return summary;
             }
 
             /// <summary>

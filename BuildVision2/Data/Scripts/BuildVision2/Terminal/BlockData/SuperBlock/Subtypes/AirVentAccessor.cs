@@ -36,30 +36,19 @@ namespace DarkHelmet.BuildVision2
             public string GetLocalizedVentStatus() =>
                 MyTexts.TrySubstitute(Status.ToString());
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                var summary = new RichText
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Depressurize)}: ", nameFormat },
-                    { $"{MyTexts.GetString(Depressurize ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Depressurize)}: ", nameFormat);
+                builder.Add($"{MyTexts.GetString(Depressurize ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)}\n", valueFormat);
 
                 if (block.Power.Enabled != null && block.Power.Enabled.Value)
                 {
-                    summary.Add(new RichText
-                    {
-                        { $"{MyTexts.GetString(MySpaceTexts.HudInfoOxygen)}", nameFormat },
-                        { $"{(OxygenLevel * 100f).Round(2)}%\n", valueFormat },
-                    });
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.HudInfoOxygen)}", nameFormat);
+                    builder.Add($"{(OxygenLevel * 100f):F2}%\n", valueFormat);
                 }
 
-                summary.Add(new RichText
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
-                    { $"{GetLocalizedVentStatus()}\n", valueFormat },
-                });
-
-                return summary;
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat);
+                builder.Add($"{GetLocalizedVentStatus()}\n", valueFormat);
             }
         }
     }

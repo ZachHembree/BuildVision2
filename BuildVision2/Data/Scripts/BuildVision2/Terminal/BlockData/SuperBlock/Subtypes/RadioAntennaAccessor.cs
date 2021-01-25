@@ -33,19 +33,16 @@ namespace DarkHelmet.BuildVision2
             public RadioAntennaAccessor(SuperBlock block) : base(block, TBlockSubtypes.RadioAntenna)
             { }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText 
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesTitle_HudText)}: ", nameFormat },
-                    { $"{HudText}\n", valueFormat },
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesTitle_HudText)}: ", nameFormat);
+                builder.Add($"{HudText}\n", valueFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_BroadcastRadius)}: ", nameFormat },
-                    { $"{TerminalUtilities.GetDistanceDisplay(Range)}\n", valueFormat },
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_BroadcastRadius)}: ", nameFormat);
+                builder.Add($"{TerminalUtilities.GetDistanceDisplay(Range)}\n", valueFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.HudInfoBroadcasting)}: ", nameFormat },
-                    { $"{(IsBroadcasting ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.HudInfoBroadcasting)}: ", nameFormat);
+                builder.Add($"{(IsBroadcasting ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat);
             }
         }
     }

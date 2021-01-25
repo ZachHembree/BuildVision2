@@ -119,6 +119,7 @@ namespace DarkHelmet.BuildVision2
 
         private string notification;
         private ScrollMenuModes _menuMode;
+        private readonly RichText peekBuilder;
 
         public BvScrollMenu(HudParentBase parent = null) : base(parent)
         {
@@ -195,6 +196,7 @@ namespace DarkHelmet.BuildVision2
             MenuMode = ScrollMenuModes.Peek;
             Count = 0;
 
+            peekBuilder = new RichText();
             peekUpdateTimer = new Stopwatch();
             notificationTimer = new Stopwatch();
             listWrapTimer = new Stopwatch();
@@ -230,20 +232,13 @@ namespace DarkHelmet.BuildVision2
         {
             if (peekUpdateTimer.ElapsedMilliseconds > 100 || targetChanged)
             {
-                var peekText = new RichText();
-
                 foreach (SuperBlock.SubtypeAccessorBase subtype in Target.SubtypeAccessors)
                 {
                     if (subtype != null)
-                    {
-                        RichText summary = subtype.GetSummary(bodyText, valueText);
-
-                        if (summary != null)
-                            peekText.Add(summary);
-                    }
+                        subtype.GetSummary(peekBuilder, bodyText, valueText);
                 }
 
-                peekBody.TextBoard.SetText(peekText);
+                peekBody.TextBoard.SetText(peekBuilder);
                 peekUpdateTimer.Reset();
             }
         }

@@ -35,38 +35,27 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                var summary = new RichText();
-
                 if (Inventories.Count > 1)
                 {
                     for (int n = 0; n < Inventories.Count; n++)
                     {
                         var inventory = Inventories[n];
 
-                        summary.Add(new RichText
-                        {
-                            { $"{MyTexts.GetString(MySpaceTexts.ScreenTerminalProduction_InventoryButton)} {n}: ", nameFormat },
-                            { $"{inventory.CurrentVolume.ToString("G6")} / {inventory.MaxVolume.ToString("G6")} L ", valueFormat },
-                            { $"({(100d * inventory.CurrentVolume / inventory.MaxVolume).Round(2)}%)\n", nameFormat },
-                        });
+                        builder.Add($"{MyTexts.GetString(MySpaceTexts.ScreenTerminalProduction_InventoryButton)} {n}: ", nameFormat);
+                        builder.Add($"{inventory.CurrentVolume.ToString("G6")} / {inventory.MaxVolume.ToString("G6")} L ", valueFormat);
+                        builder.Add($"({(100d * inventory.CurrentVolume / inventory.MaxVolume).Round(2)}%)\n", nameFormat);
                     }
                 }
                 else
                 {
                     var inventory = Inventories[0];
 
-                    summary.Add(new RichText
-                    {
-                        { $"{MyTexts.GetString(MySpaceTexts.ScreenTerminalProduction_InventoryButton)}: ", nameFormat },
-                        { $"{inventory.CurrentVolume.ToString("G6")} / {inventory.MaxVolume.ToString("G6")} L ", valueFormat },
-                        { $"({(100d * inventory.CurrentVolume / inventory.MaxVolume).Round(2)}%)\n", nameFormat },
-                    });
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.ScreenTerminalProduction_InventoryButton)}: ", nameFormat);
+                    builder.Add($"{inventory.CurrentVolume.ToString("G6")} / {inventory.MaxVolume.ToString("G6")} L ", valueFormat);
+                    builder.Add($"({(100d * inventory.CurrentVolume / inventory.MaxVolume).Round(2)}%)\n", nameFormat);
                 }
-
-
-                return summary;
             }
         }
 

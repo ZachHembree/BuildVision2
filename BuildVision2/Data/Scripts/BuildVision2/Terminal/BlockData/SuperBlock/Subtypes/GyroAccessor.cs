@@ -25,18 +25,13 @@ namespace DarkHelmet.BuildVision2
             public GyroAccessor(SuperBlock block) : base(block, TBlockSubtypes.Gyroscope)
             { }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                var summary = new RichText 
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat },
-                    { $"{(Power * 100f).Round(2)}%\n", valueFormat },
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat);
+                builder.Add($"{(Power * 100f).Round(2)}%\n", valueFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroOverride)}: ", nameFormat },
-                    { $"{(Override ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
-                };
-
-                return summary;
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroOverride)}: ", nameFormat);
+                builder.Add($"{(Override ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat);
             }
         }
     }

@@ -39,16 +39,13 @@ namespace DarkHelmet.BuildVision2
             public ThrusterAccessor(SuperBlock block) : base(block, TBlockSubtypes.Thruster)
             { }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText 
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Effectiveness)} ", nameFormat },
-                    { $"{(ThrustEffectiveness * 100f).Round(2)}%\n", valueFormat },
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Effectiveness)} ", nameFormat);
+                builder.Add($"{(ThrustEffectiveness * 100f).Round(2)}%\n", valueFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ThrustOverride)}: ", nameFormat },
-                    { Override > 0f ? $"{TerminalUtilities.GetForceDisplay(Override * ThrustEffectiveness)}\n" : MyTexts.TrySubstitute("Disabled"), valueFormat },
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ThrustOverride)}: ", nameFormat);
+                builder.Add((Override > 0f ? $"{TerminalUtilities.GetForceDisplay(Override * ThrustEffectiveness)}\n" : MyTexts.TrySubstitute("Disabled")), valueFormat);
             }
         }
     }

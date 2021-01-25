@@ -35,16 +35,13 @@ namespace DarkHelmet.BuildVision2
             public string GetLocalizedAntennaStatus() =>
                 MyTexts.TrySubstitute(Status.ToString());
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText 
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LaserRange)}: ", nameFormat },
-                    { $"{((Range < 1E8) ? TerminalUtilities.GetDistanceDisplay(Range) : MyTexts.GetString(MySpaceTexts.ScreenTerminal_Infinite))}\n", valueFormat },
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LaserRange)}: ", nameFormat);
+                builder.Add($"{((Range < 1E8) ? TerminalUtilities.GetDistanceDisplay(Range) : MyTexts.GetString(MySpaceTexts.ScreenTerminal_Infinite))}\n", valueFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat },
-                    { $"{GetLocalizedAntennaStatus()}\n", valueFormat }
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat);
+                builder.Add($"{GetLocalizedAntennaStatus()}\n", valueFormat);
             }
         }
     }

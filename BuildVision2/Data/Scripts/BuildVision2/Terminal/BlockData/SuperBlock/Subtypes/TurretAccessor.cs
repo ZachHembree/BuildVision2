@@ -27,13 +27,10 @@ namespace DarkHelmet.BuildVision2
             public TurretAccessor(SuperBlock block) : base(block, TBlockSubtypes.Turret)
             { }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText 
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LargeTurretRadius)}: ", nameFormat },
-                    { $"{TerminalUtilities.GetDistanceDisplay(Range)}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LargeTurretRadius)}: ", nameFormat);
+                builder.Add($"{TerminalUtilities.GetDistanceDisplay(Range)}\n", valueFormat);
             }
         }
     }

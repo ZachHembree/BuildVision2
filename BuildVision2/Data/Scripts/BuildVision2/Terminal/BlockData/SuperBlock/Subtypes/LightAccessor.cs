@@ -39,24 +39,27 @@ namespace DarkHelmet.BuildVision2
             public LightAccessor(SuperBlock block) : base(block, TBlockSubtypes.Light)
             { }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText 
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightColor)}: ", nameFormat },
-                    { $"R: ", nameFormat }, { $"{Color.R} ", valueFormat }, 
-                    { $"G: ", nameFormat }, { $"{Color.G} ", valueFormat }, 
-                    { $"B: ", nameFormat }, { $"{Color.B}\n", valueFormat },
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightColor)}: ", nameFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightRadius)}: ", nameFormat },
-                    { $"{TerminalUtilities.GetDistanceDisplay(Radius)}\n", valueFormat },
+                builder.Add($"R: ", nameFormat); 
+                builder.Add($"{Color.R} ", valueFormat); 
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightFalloff)}: ", nameFormat },
-                    { $"{Falloff.Round(2)}\n", valueFormat },
+                builder.Add($"G: ", nameFormat); 
+                builder.Add($"{Color.G} ", valueFormat); 
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightIntensity)}: ", nameFormat },
-                    { $"{Intensity.Round(2)}\n", valueFormat },
-                };
+                builder.Add($"B: ", nameFormat); 
+                builder.Add($"{Color.B}\n", valueFormat);
+
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightRadius)}: ", nameFormat);
+                builder.Add($"{TerminalUtilities.GetDistanceDisplay(Radius)}\n", valueFormat);
+
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightFalloff)}: ", nameFormat);
+                builder.Add($"{Falloff.Round(2)}\n", valueFormat);
+
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LightIntensity)}: ", nameFormat);
+                builder.Add($"{Intensity.Round(2)}\n", valueFormat);
             }
         }
     }

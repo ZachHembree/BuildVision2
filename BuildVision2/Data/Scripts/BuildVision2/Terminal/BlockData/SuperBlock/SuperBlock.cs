@@ -219,7 +219,7 @@ namespace DarkHelmet.BuildVision2
                 : this(block, subtypeId, block.SubtypeId.UsesSubtype(prerequsites))
             { }
 
-            public abstract RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat);
+            public abstract void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat);
         }
 
         public abstract class SubtypeAccessor<T> : SubtypeAccessorBase where T : class

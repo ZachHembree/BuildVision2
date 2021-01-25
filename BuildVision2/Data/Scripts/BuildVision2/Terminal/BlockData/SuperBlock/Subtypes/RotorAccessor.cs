@@ -32,20 +32,16 @@ namespace DarkHelmet.BuildVision2
             public void Reverse() =>
                 subtype.TargetVelocityRad = -subtype.TargetVelocityRad;
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
                 if (subtype.IsAttached)
                 {
-                    return new RichText {
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_MotorLock)}: ", nameFormat },
-                        { $"{(RotorLock ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_MotorLock)}: ", nameFormat);
+                    builder.Add($"{(RotorLock ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat);
 
-                        { MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle), nameFormat },
-                        { $"{Angle.RadiansToDegrees().Round(2)}°\n", valueFormat },
-                    };
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle)}", nameFormat);
+                    builder.Add($"{Angle.RadiansToDegrees():F2}°\n", valueFormat);
                 }
-                else
-                    return null;
             }
         }
     }

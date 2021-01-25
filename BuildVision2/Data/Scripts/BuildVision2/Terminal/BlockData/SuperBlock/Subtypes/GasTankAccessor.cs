@@ -34,19 +34,17 @@ namespace DarkHelmet.BuildVision2
             public GasTankAccessor(SuperBlock block) : base(block, TBlockSubtypes.GasTank)
             { }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText {
-                    { $"{MyTexts.TrySubstitute("Gas")}: ", nameFormat },
-                    { $"{Fill.ToString("G6")} / {Capacity.ToString("G6")} L ", valueFormat },
-                    { $"({(FillRatio * 100d).Round(2)}%)\n", nameFormat },
+                builder.Add($"{MyTexts.TrySubstitute("Gas")}: ", nameFormat);
+                builder.Add($"{Fill.ToString("G6")} / {Capacity.ToString("G6")} L ", valueFormat);
+                builder.Add($"({(FillRatio * 100d).Round(2)}%)\n", nameFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Stockpile)}: ", nameFormat },
-                    { $"{(Stockpile ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Stockpile)}: ", nameFormat);
+                builder.Add($"{(Stockpile ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_AutoRefill)}: ", nameFormat },
-                    { $"{(AutoRefillBottles ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_AutoRefill)}: ", nameFormat);
+                builder.Add($"{(AutoRefillBottles ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat);
             }
         }
     }

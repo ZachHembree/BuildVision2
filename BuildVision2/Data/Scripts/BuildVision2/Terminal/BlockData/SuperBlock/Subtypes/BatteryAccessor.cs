@@ -31,19 +31,17 @@ namespace DarkHelmet.BuildVision2
             public BatteryAccessor(SuperBlock block) : base(block, TBlockSubtypes.Battery)
             { }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText {
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", nameFormat },
-                    { $"{TerminalUtilities.GetPowerDisplay(Charge)}", valueFormat },
-                    { $" ({((Charge / Capacity) * 100f).Round(1)}%)\n", nameFormat },
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", nameFormat);
+                builder.Add($"{TerminalUtilities.GetPowerDisplay(Charge)}", valueFormat);
+                builder.Add($" ({((Charge / Capacity) * 100f):F1}%)\n", nameFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat },
-                    { $"{TerminalUtilities.GetPowerDisplay(Capacity)}\n", valueFormat },
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat);
+                builder.Add($"{TerminalUtilities.GetPowerDisplay(Capacity)}\n", valueFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ChargeMode)}: ", nameFormat },
-                    { $"{GetLocalizedChargeMode()}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ChargeMode)}: ", nameFormat);
+                builder.Add($"{GetLocalizedChargeMode()}\n", valueFormat);
             }
 
             private string GetLocalizedChargeMode()

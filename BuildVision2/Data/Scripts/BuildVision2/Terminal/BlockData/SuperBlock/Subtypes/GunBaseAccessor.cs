@@ -36,13 +36,10 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.DisplayName_BlueprintClass_Ammo)}: ", nameFormat },
-                    { $"{AmmoName}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.DisplayName_BlueprintClass_Ammo)}: ", nameFormat);
+                builder.Add($"{AmmoName}\n", valueFormat);
             }
 
             private static string CleanTypeId(string subtypeId)

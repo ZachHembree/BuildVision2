@@ -55,38 +55,25 @@ namespace DarkHelmet.BuildVision2
             public ProductionAccessorBase(SuperBlock block) : base(block, TBlockSubtypes.Production)
             { }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                var summary = new RichText();
-
                 if (Productivity != null)
                 {
-                    summary.Add(new RichText
-                    {
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Productivity)} ", nameFormat },
-                        { $"{(Productivity.Value * 100f).Round(2)}%\n", valueFormat } 
-                    });
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Productivity)} ", nameFormat);
+                    builder.Add($"{(Productivity.Value * 100f).Round(2)}%\n", valueFormat);
                 }
 
                 if (Effectiveness != null)
                 {
-                    summary.Add(new RichText
-                    {
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Effectiveness)} ", nameFormat },
-                        { $"{(Effectiveness.Value * 100f).Round(2)}%\n", valueFormat }
-                    });
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Effectiveness)} ", nameFormat);
+                    builder.Add($"{(Effectiveness.Value * 100f).Round(2)}%\n", valueFormat);
                 }
 
                 if (PowerEfficiency != null)
                 {
-                    summary.Add(new RichText
-                    {
-                        { $"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Efficiency)} ", nameFormat },
-                        { $"{(PowerEfficiency.Value * 100f).Round(2)}%\n", valueFormat }
-                    });
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Efficiency)} ", nameFormat);
+                    builder.Add($"{(PowerEfficiency.Value * 100f).Round(2)}%\n", valueFormat);
                 }
-
-                return summary;
             }
         }
     }

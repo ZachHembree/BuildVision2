@@ -24,25 +24,17 @@ namespace DarkHelmet.BuildVision2
             public ProjectorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Projector)
             { }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                var summary = new RichText
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalTab_Info_ShipName)} ", nameFormat },
-                    { $"{GridName ?? MyTexts.TrySubstitute("None")}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalTab_Info_ShipName)} ", nameFormat);
+                builder.Add($"{GridName ?? MyTexts.TrySubstitute("None")}\n", valueFormat);
 
                 if (GridName != null)
                 {
-                    summary.Add(new RichText
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalTab_Info_Blocks)} ", nameFormat },
-                    { $"{BlocksBuilt} / {TotalBlocks} ", valueFormat },
-                    { $"({PctComplete:G5}%)\n", nameFormat },
-                });
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalTab_Info_Blocks)} ", nameFormat);
+                    builder.Add($"{BlocksBuilt} / {TotalBlocks} ", valueFormat);
+                    builder.Add($"({PctComplete:G5}%)\n", nameFormat);
                 }
-
-                return summary;
             }
         }
     }

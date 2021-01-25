@@ -21,16 +21,13 @@ namespace DarkHelmet.BuildVision2
             public TimerAccessor(SuperBlock block) : base(block, TBlockSubtypes.Timer)
             { }
 
-            public override RichText GetSummary(GlyphFormat nameFormat, GlyphFormat valueFormat)
+            public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                return new RichText
-                {
-                    { $"{MyTexts.GetString(MySpaceTexts.TerminalControlPanel_TimerDelay)}: ", nameFormat },
-                    { $"{Math.Truncate(Delay)}s\n", valueFormat },
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalControlPanel_TimerDelay)}: ", nameFormat);
+                builder.Add($"{Math.Truncate(Delay)}s\n", valueFormat);
 
-                    { $"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Silent)}: ", nameFormat },
-                    { $"{MyTexts.TrySubstitute(Silent.ToString())}\n", valueFormat },
-                };
+                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Silent)}: ", nameFormat);
+                builder.Add($"{MyTexts.TrySubstitute(Silent.ToString())}\n", valueFormat);
             }
 
             public void StartCountdown() =>
