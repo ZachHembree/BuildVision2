@@ -232,6 +232,8 @@ namespace DarkHelmet.BuildVision2
         {
             if (peekUpdateTimer.ElapsedMilliseconds > 100 || targetChanged)
             {
+                peekBuilder.Clear();
+
                 foreach (SuperBlock.SubtypeAccessorBase subtype in Target.SubtypeAccessors)
                 {
                     if (subtype != null)
@@ -239,7 +241,7 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 peekBody.TextBoard.SetText(peekBuilder);
-                peekUpdateTimer.Reset();
+                peekUpdateTimer.Restart();
             }
         }
 
@@ -539,6 +541,7 @@ namespace DarkHelmet.BuildVision2
             public void OpenInput()
             {
                 valueBox.Text = Value;
+                valueBox.Format = Value.defaultFormat;
                 valueBox.OpenInput();
             }
 
@@ -579,7 +582,7 @@ namespace DarkHelmet.BuildVision2
                         Value.defaultFormat = highlightText;
                 }
                 else
-                    Value.defaultFormat = BvScrollMenu.valueText;
+                    Value.defaultFormat = valueText;
 
                 Value.Clear();
                 Postfix.Clear();

@@ -109,7 +109,8 @@ namespace DarkHelmet.BuildVision2
             waitingForChat = false;
 
             Selection.Value.Clear();
-            Selection.Value.Add(Selection.BlockMember.Value, selectedText);
+            Selection.Value.defaultFormat = selectedText;
+            Selection.Value.Add(Selection.BlockMember.Value);
             Selection.OpenInput();
         }
 
@@ -126,13 +127,13 @@ namespace DarkHelmet.BuildVision2
         {
             if (Selection != null)
             {
+                Selection.CloseInput();
                 var textMember = Selection.BlockMember as IBlockTextMember;
 
                 if (textMember != null && Selection.InputOpen)
                     textMember.SetValueText(Selection.Value.ToString());
 
                 waitingForChat = false;
-                Selection.CloseInput();
             }
         }
 

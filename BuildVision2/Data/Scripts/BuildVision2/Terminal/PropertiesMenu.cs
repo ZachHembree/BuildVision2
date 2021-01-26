@@ -131,7 +131,7 @@ namespace DarkHelmet.BuildVision2
                         if (BvBinds.Peek.IsNewPressed || peekRefresh.ElapsedTicks > peekTime)
                         {
                             TryPeek();
-                            peekRefresh.Reset();
+                            peekRefresh.Restart();
                         }
                     }
                     else if (BvBinds.Peek.IsReleased && Open && scrollMenu.MenuMode == ScrollMenuModes.Peek)

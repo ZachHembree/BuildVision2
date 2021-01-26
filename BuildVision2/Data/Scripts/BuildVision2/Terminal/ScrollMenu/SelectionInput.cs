@@ -33,7 +33,7 @@ namespace DarkHelmet.BuildVision2
             if (!PropOpen)
             {
                 UpdateIndex(BvBinds.MultX.IsPressed ? dir * 4 : dir);
-                listWrapTimer.Reset();
+                listWrapTimer.Restart();
             }
             else
             {
