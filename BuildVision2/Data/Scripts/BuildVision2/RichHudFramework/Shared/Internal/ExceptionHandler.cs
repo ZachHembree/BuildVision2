@@ -196,7 +196,7 @@ namespace RichHudFramework.Internal
                 exceptionMessages.Add(message);
 
             if (exceptionCount == 0)
-                errorTimer.Start();
+                errorTimer.Restart();
 
             exceptionCount++;
 

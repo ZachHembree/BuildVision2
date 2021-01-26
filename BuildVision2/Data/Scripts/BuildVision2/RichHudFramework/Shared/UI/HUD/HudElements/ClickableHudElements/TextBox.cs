@@ -337,7 +337,7 @@ namespace RichHudFramework.UI
                     text.MoveToChar(Index + new Vector2I(0, 1));
 
                 blink = true;
-                blinkTimer.Reset();
+                blinkTimer.Restart();
             }
 
             public void SetPosition(Vector2I index)
@@ -375,7 +375,7 @@ namespace RichHudFramework.UI
                     if (blinkTimer.ElapsedMilliseconds > 500)
                     {
                         blink = !blink;
-                        blinkTimer.Reset();
+                        blinkTimer.Restart();
                     }
                 }
             }
@@ -466,7 +466,7 @@ namespace RichHudFramework.UI
                     lastCursorPos = cursorPos;         
 
                     blink = true;
-                    blinkTimer.Reset();
+                    blinkTimer.Restart();
                     caretMoved = true;
                 }
             }
