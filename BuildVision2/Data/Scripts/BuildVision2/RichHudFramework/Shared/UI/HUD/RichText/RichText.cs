@@ -140,7 +140,7 @@ namespace RichHudFramework
                     sbPool = new ObjectPool<StringBuilder>(new StringBuilderPoolPolicy());
 
                 List<RichStringMembers> richStrings = apiData;
-                GlyphFormatMembers format = newFormat?.data ?? GlyphFormat.Empty.data;
+                GlyphFormatMembers format = newFormat?.data ?? defaultFormat?.data ?? GlyphFormat.Empty.data;
                 StringBuilder sb;
                 bool formatEqual;
 
@@ -175,7 +175,7 @@ namespace RichHudFramework
                     sbPool = new ObjectPool<StringBuilder>(new StringBuilderPoolPolicy());
 
                 List<RichStringMembers> richStrings = apiData;
-                GlyphFormatMembers format = newFormat?.data ?? GlyphFormat.Empty.data;
+                GlyphFormatMembers format = newFormat?.data ?? defaultFormat?.data ?? GlyphFormat.Empty.data;
                 StringBuilder sb;
                 bool formatEqual;
 
@@ -256,13 +256,17 @@ namespace RichHudFramework
             {
                 StringBuilder rawText = new StringBuilder();
                 List<RichStringMembers> richText = apiData;
+                int charCount = 0;
 
-                for (int a = 0; a < richText.Count; a++)
+                for (int i = 0; i < richText.Count; i++)
+                    charCount += richText[i].Item1.Length;
+
+                rawText.EnsureCapacity(charCount);
+
+                for (int i = 0; i < richText.Count; i++)
                 {
-                    rawText.EnsureCapacity(rawText.Length + richText[a].Item1.Length);
-
-                    for (int b = 0; b < richText[a].Item1.Length; b++)
-                        rawText.Append(richText[a].Item1[b]);
+                    for (int b = 0; b < richText[i].Item1.Length; b++)
+                        rawText.Append(richText[i].Item1[b]);
                 }
                 
                 return rawText.ToString();
