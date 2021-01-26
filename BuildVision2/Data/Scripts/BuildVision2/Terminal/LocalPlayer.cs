@@ -191,12 +191,11 @@ namespace DarkHelmet.BuildVision2
             List<long> bigOwners = grid.BigOwners;
             var def = MyDefinitionManager.Static.GetDefinition(block.BlockDefinition) as MyCubeBlockDefinition;
 
-            // Terminal blocks with computers are ownership permissions. If there are no bigOwners, the grid
-            // is unowned.
-            bool ownable = def?.Components.Any(x => x.Definition.Id.SubtypeName == "Computer") ?? false,
+            // Terminal blocks with computers are ownable. If there are no bigOwners, the grid is unowned.
+            bool blockOwnable = def?.Components.Any(x => x.Definition.Id.SubtypeName == "Computer") ?? false,
                 gridUnowned = bigOwners.Count == 0;
 
-            if (ownable)
+            if (blockOwnable)
             {
                 if (block.HasPlayerAccess(plyID))
                     accessState |= TerminalPermissionStates.Granted | TerminalPermissionStates.BlockFriendly;
@@ -217,7 +216,7 @@ namespace DarkHelmet.BuildVision2
                     {
                         IMyFaction ownerFaction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(owner);
 
-                        if (ownerFaction != null && (!ownerFaction.IsEnemy(plyID) || ownerFaction.IsMember(plyID)))
+                        if (ownerFaction != null && (ownerFaction.IsFriendly(plyID) || ownerFaction.IsMember(plyID)))
                         {
                             gridFriendly = true;
                             break;
