@@ -187,7 +187,7 @@ namespace RichHudFramework
                         else
                         {
                             node.reregParent = null;
-                            node.wasFastUnregistered = true;
+                            node.wasFastUnregistered = false;
                         }
 
                         node.Parent = null;
@@ -256,7 +256,7 @@ namespace RichHudFramework
                         else
                         {
                             node.reregParent = null;
-                            node.wasFastUnregistered = true;
+                            node.wasFastUnregistered = false;
                         }
 
                         node.Parent = null;
