@@ -12,7 +12,19 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to block battery members, if defined.
         /// </summary>
-        public BatteryAccessor Battery { get; private set; }
+        public BatteryAccessor Battery
+        {
+            get
+            {
+                return _battery;
+            }
+            private set
+            {
+                _battery = value;
+            }
+        }
+
+        private BatteryAccessor _battery;
 
         public class BatteryAccessor : SubtypeAccessor<IMyBatteryBlock>
         {
@@ -28,8 +40,10 @@ namespace DarkHelmet.BuildVision2
 
             public ChargeMode ChargeMode { get { return subtype.ChargeMode; } set { subtype.ChargeMode = value; } }
 
-            public BatteryAccessor(SuperBlock block) : base(block, TBlockSubtypes.Battery)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.Battery);
+            }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
@@ -46,7 +60,7 @@ namespace DarkHelmet.BuildVision2
 
             private string GetLocalizedChargeMode()
             {
-                switch(ChargeMode)
+                switch (ChargeMode)
                 {
                     case ChargeMode.Auto:
                         return MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Auto);

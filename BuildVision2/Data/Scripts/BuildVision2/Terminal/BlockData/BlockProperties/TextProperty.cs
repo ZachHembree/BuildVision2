@@ -13,24 +13,66 @@ namespace DarkHelmet.BuildVision2
         private class TextProperty : BvTerminalProperty<ITerminalProperty<StringBuilder>, StringBuilder>, IBlockTextMember
         {
             public override string Display => CleanText(GetValue());
-            public override string Status => null;
-            public Func<char, bool> CharFilterFunc { get; protected set; }
 
-            public TextProperty(string name, ITerminalProperty<StringBuilder> textProp, IMyTerminalControl control, SuperBlock block) : base(name, textProp, control, block)
+            public override string Status => null;
+
+            public Func<char, bool> CharFilterFunc { get; }
+
+            protected readonly StringBuilder valueBuilder;
+            protected BvPropPool<TextProperty> poolParent;
+
+            public TextProperty()
             {
-                CharFilterFunc = x => (x >= ' ');
+                CharFilterFunc = FilterCharInput;
+                valueBuilder = new StringBuilder();
+            }
+
+            public override void SetProperty(string name, ITerminalProperty<StringBuilder> property, IMyTerminalControl control, PropertyBlock block)
+            {
+                base.SetProperty(name, property, control, block);
+
+                if (poolParent == null)
+                    poolParent = block.textPropPool;
+            }
+
+            public override void Reset()
+            {
+                base.Reset();
+                valueBuilder.Clear();
+            }
+
+            public override void Return()
+            {
+                poolParent.Return(this);
+            }
+
+            public static TextProperty GetProperty(string name, ITerminalProperty<StringBuilder> property, IMyTerminalControl control, PropertyBlock block)
+            {
+                TextProperty prop = block.textPropPool.Get();
+                prop.SetProperty(name, property, control, block);
+
+                return prop;
             }
 
             public void SetValueText(string text)
             {
-                SetValue(new StringBuilder(text));
+                valueBuilder.Clear();
+                valueBuilder.Append(text);
+
+                SetValue(valueBuilder);
             }
 
             public override bool TryParseValue(string valueData, out StringBuilder value)
             {
-                value = new StringBuilder(valueData);
+                valueBuilder.Clear();
+                valueBuilder.Append(valueData);
+                value = valueBuilder;
+
                 return true;
             }
+
+            protected virtual bool FilterCharInput(char x) =>
+                (x >= ' ');
         }
     }
 }

@@ -12,7 +12,19 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to block vent members, if defined.
         /// </summary>
-        public AirVentAccessor AirVent { get; private set; }
+        public AirVentAccessor AirVent
+        {
+            get
+            {
+                return _airVent;
+            }
+            private set
+            {
+                _airVent = value;
+            }
+        }
+
+        private AirVentAccessor _airVent;
 
         public class AirVentAccessor : SubtypeAccessor<IMyAirVent>
         {
@@ -27,8 +39,10 @@ namespace DarkHelmet.BuildVision2
 
             public float OxygenLevel => subtype.GetOxygenLevel();
 
-            public AirVentAccessor(SuperBlock block) : base(block, TBlockSubtypes.AirVent)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.AirVent);
+            }
 
             /// <summary>
             /// Returns vent status as a localized string.

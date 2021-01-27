@@ -9,7 +9,9 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class SuperBlock
     {
-        public ProductionAccessorBase Production { get; set; }
+        public ProductionAccessorBase Production  { get { return _production; } set { _production = value; } }
+
+        private ProductionAccessorBase _production;
 
         public class ProductionAccessorBase : SubtypeAccessor<IMyProductionBlock>
         {
@@ -52,8 +54,10 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public ProductionAccessorBase(SuperBlock block) : base(block, TBlockSubtypes.Production)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.Production);
+ }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

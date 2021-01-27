@@ -12,7 +12,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to block light members, if defined.
         /// </summary>
-        public LightAccessor Light { get; private set; }
+        public LightAccessor Light  { get { return _light; } private set { _light = value; } }
+
+        private LightAccessor _light;
 
         public class LightAccessor : SubtypeAccessor<IMyLightingBlock>
         {
@@ -36,8 +38,10 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public float Radius { get { return subtype.Radius; } set { subtype.Radius = value; } }
 
-            public LightAccessor(SuperBlock block) : base(block, TBlockSubtypes.Light)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.Light);
+            }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

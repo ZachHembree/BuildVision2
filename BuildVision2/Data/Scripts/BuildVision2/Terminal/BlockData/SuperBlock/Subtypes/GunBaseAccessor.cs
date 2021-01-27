@@ -12,25 +12,36 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class SuperBlock
     {
-        public GunBaseAccessor Weapon { get; private set; }
+        public GunBaseAccessor Weapon  { get { return _weapon; } private set { _weapon = value; } }
+
+        private GunBaseAccessor _weapon;
 
         public class GunBaseAccessor : SubtypeAccessor<IMyGunBaseUser>
         {
             /// <summary>
             /// Lists the supported ammo types.
             /// </summary>
-            public IReadOnlyList<MyItemType> AmmoTypes { get; private set; }
+            public IReadOnlyList<MyItemType> AmmoTypes => ammoTypes;
 
-            public string AmmoName { get; }
+            public string AmmoName { get; private set; }
 
-            public GunBaseAccessor(SuperBlock block) : base(block, TBlockSubtypes.GunBase)
+            private readonly List<MyItemType> ammoTypes;
+            private readonly StringBuilder nameBuilder;
+
+            public GunBaseAccessor()
             {
+                ammoTypes = new List<MyItemType>();
+                nameBuilder = new StringBuilder();
+            }
+
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.GunBase);
+
                 if (subtype != null)
                 {
-                    var acceptedItems = new List<MyItemType>();
-
-                    AmmoTypes = acceptedItems;
-                    (subtype.AmmoInventory as IMyInventory).GetAcceptedItems(acceptedItems);
+                    ammoTypes.Clear();
+                    (subtype.AmmoInventory as IMyInventory).GetAcceptedItems(ammoTypes);
 
                     AmmoName = CleanTypeId(AmmoTypes[0].SubtypeId);
                 }
@@ -42,9 +53,10 @@ namespace DarkHelmet.BuildVision2
                 builder.Add($"{AmmoName}\n", valueFormat);
             }
 
-            private static string CleanTypeId(string subtypeId)
+            private string CleanTypeId(string subtypeId)
             {
-                StringBuilder sb = new StringBuilder(subtypeId.Length + 4);
+                nameBuilder.Clear();
+                nameBuilder.EnsureCapacity(subtypeId.Length + 4);
                 char left = 'A';
 
                 for (int n = 0; n < subtypeId.Length; n++)
@@ -58,13 +70,13 @@ namespace DarkHelmet.BuildVision2
                     if (right == '_')
                         right = ' ';
                     else if (!leftCapital && ((rightCapital && left != ' ') || (rightNumber && !leftNumber)))
-                        sb.Append(' ');
+                        nameBuilder.Append(' ');
 
-                    sb.Append(right);
+                    nameBuilder.Append(right);
                     left = right;
                 }
 
-                return sb.ToString();
+                return nameBuilder.ToString();
             }
         }
     }

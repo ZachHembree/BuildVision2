@@ -14,7 +14,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to block power information, if defined.
         /// </summary>
-        public PowerAccessor Power { get; private set; }
+        public PowerAccessor Power  { get { return _power; } private set { _power = value; } }
+
+        private PowerAccessor _power;
 
         public class PowerAccessor : SubtypeAccessorBase
         {
@@ -62,13 +64,15 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public float? MaxOutput => powerProducer?.MaxOutput;
 
-            private readonly MyDefinitionId resourceId;
-            private readonly MyResourceSinkComponentBase sink;
-            private readonly IMyPowerProducer powerProducer;
-            private readonly IMyFunctionalBlock functionalBlock;
+            private MyDefinitionId resourceId;
+            private MyResourceSinkComponentBase sink;
+            private IMyPowerProducer powerProducer;
+            private IMyFunctionalBlock functionalBlock;
 
-            public PowerAccessor(SuperBlock block) : base(block)
+            public override void SetBlock(SuperBlock block)
             {
+                SetBlock(block);
+
                 IMyTerminalBlock tblock = block.TBlock;
 
                 if (tblock.ResourceSink != null || tblock is IMyPowerProducer || tblock is IMyFunctionalBlock)
@@ -90,10 +94,17 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            public override void Reset()
+            {
+                base.Reset();
+                resourceId = default(MyDefinitionId);
+                sink = null;
+                powerProducer = null;
+                functionalBlock = null;
+            }
+
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                RichText summary = null;
-
                 if (IsPowerSink || IsPowerProducer) // not functional, but powered
                 {
                     if (functionalBlock != null) // functional w/ measurable power input/output

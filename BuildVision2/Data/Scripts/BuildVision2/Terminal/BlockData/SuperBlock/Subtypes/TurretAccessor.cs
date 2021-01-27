@@ -15,7 +15,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to turret members, if defined.
         /// </summary>
-        public TurretAccessor Turret { get; private set; }
+        public TurretAccessor Turret  { get { return _turret; } private set { _turret = value; } }
+
+        private TurretAccessor _turret;
 
         public class TurretAccessor : SubtypeAccessor<IMyLargeTurretBase>
         {
@@ -24,8 +26,10 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public float Range => subtype.Range;
 
-            public TurretAccessor(SuperBlock block) : base(block, TBlockSubtypes.Turret)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.Turret);
+            }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

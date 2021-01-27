@@ -13,7 +13,19 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to block door members, if defined.
         /// </summary>
-        public DoorAccessor Door { get; private set; }
+        public DoorAccessor Door
+        {
+            get
+            {
+                return _door;
+            }
+            private set
+            {
+                _door = value;
+            }
+        }
+
+        private DoorAccessor _door;
 
         public class DoorAccessor : SubtypeAccessor<IMyDoor>
         {
@@ -22,8 +34,10 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public DoorStatus Status => subtype.Status;
 
-            public DoorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Door)
+            public override void SetBlock(SuperBlock block)
             {
+                SetBlock(block, TBlockSubtypes.Door);
+
                 if (subtype != null && block.TBlock is IMyParachute)
                     block.SubtypeId |= TBlockSubtypes.Parachute;
             }

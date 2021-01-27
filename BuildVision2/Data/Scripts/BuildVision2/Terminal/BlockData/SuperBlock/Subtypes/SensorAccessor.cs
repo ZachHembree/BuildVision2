@@ -6,14 +6,18 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class SuperBlock
     {
-        public SensorAccessor Sensor { get; private set; }
+        public SensorAccessor Sensor  { get { return _sensor; } private set { _sensor = value; } }
+
+        private SensorAccessor _sensor;
 
         public class SensorAccessor : SubtypeAccessor<IMySensorBlock>
         {
             public bool IsEntityDetected => subtype.IsActive && block.TBlock.IsWorking;
 
-            public SensorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Sensor)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.Sensor);
+            }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

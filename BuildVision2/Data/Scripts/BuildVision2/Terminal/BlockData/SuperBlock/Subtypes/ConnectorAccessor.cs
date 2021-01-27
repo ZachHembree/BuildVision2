@@ -13,7 +13,19 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to block connector members, if defined.
         /// </summary>
-        public ConnectorAccessor Connector { get; private set; }
+        public ConnectorAccessor Connector
+        {
+            get
+            {
+                return _connector;
+            }
+            private set
+            {
+                _connector = value;
+            }
+        }
+
+        private ConnectorAccessor _connector;
 
         public class ConnectorAccessor : SubtypeAccessor<IMyShipConnector>
         {
@@ -22,8 +34,10 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public ConnectorStatus Status => subtype.Status;
 
-            public ConnectorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Connector)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.Connector);
+            }
 
             /// <summary>
             /// Toggles connector lock.
@@ -45,7 +59,7 @@ namespace DarkHelmet.BuildVision2
                     case ConnectorStatus.Connected:
                         return MyTexts.GetString(MySpaceTexts.BlockPropertyValue_Locked);
                     default:
-                         return null;
+                        return null;
                 }
             }
 

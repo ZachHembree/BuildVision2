@@ -78,7 +78,7 @@ namespace DarkHelmet.BuildVision2
             set
             {
                 if (Target != null && value != ScrollMenuModes.Peek && Count == 0)
-                    AddMembers();
+                    AddMembers(PropertiesMenu.Target);
 
                 _menuMode = value;
             }
@@ -92,7 +92,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Returns the block currently targeted
         /// </summary>
-        public PropertyBlock Target { get; private set; }
+        public IMyTerminalBlock Target { get; private set; }
 
         /// <summary>
         /// If true, then if the property currently selected and open will have its text updated.
@@ -234,7 +234,7 @@ namespace DarkHelmet.BuildVision2
             {
                 peekBuilder.Clear();
 
-                foreach (SuperBlock.SubtypeAccessorBase subtype in Target.SubtypeAccessors)
+                foreach (SuperBlock.SubtypeAccessorBase subtype in PropertiesMenu.Target.SubtypeAccessors)
                 {
                     if (subtype != null)
                         subtype.GetSummary(peekBuilder, bodyText, valueText);
@@ -401,23 +401,23 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Sets the target block to the one given.
         /// </summary>
-        public void SetTarget(PropertyBlock newTarget)
+        public void SetTarget(PropertyBlock block)
         {
             Clear();
-            Target = newTarget;
-            targetChanged = Target != newTarget;
+            targetChanged = Target != block.TBlock;
+            Target = block.TBlock;
 
             if (MenuMode != ScrollMenuModes.Peek)
-                AddMembers();
+                AddMembers(block);
         }
 
         /// <summary>
         /// Adds block member property boxes
         /// </summary>
-        private void AddMembers()
+        private void AddMembers(PropertyBlock block)
         {
-            for (int n = 0; n < Target.BlockMembers.Count; n++)
-                AddMember(Target.BlockMembers[n]);
+            for (int n = 0; n < block.BlockMembers.Count; n++)
+                AddMember(block.BlockMembers[n]);
 
             index = GetFirstIndex();
             scrollBody.Start = 0;

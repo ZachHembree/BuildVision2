@@ -11,12 +11,15 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private abstract class NumericPropertyBase<TValue> : ScrollablePropertyBase<ITerminalProperty<TValue>, TValue>, IBlockTextMember
         {
-            public Func<char, bool> CharFilterFunc { get; protected set; }
+            public Func<char, bool> CharFilterFunc { get; }
 
-            public NumericPropertyBase(string name, ITerminalProperty<TValue> property, IMyTerminalControl control, SuperBlock block) : base(name, property, control, block)
+            public NumericPropertyBase()
             {
-                CharFilterFunc = x => (x >= '0' && x <= '9') || x == '.' || x == ',' || x == 'E' || x == 'e' || x == '-' || x == '+';
+                CharFilterFunc = FilterCharInput;
             }
+
+            protected virtual bool FilterCharInput(char x) =>
+                (x >= '0' && x <= '9') || x == '.' || x == ',' || x == 'E' || x == 'e' || x == '-' || x == '+';
 
             public void SetValueText(string value)
             {

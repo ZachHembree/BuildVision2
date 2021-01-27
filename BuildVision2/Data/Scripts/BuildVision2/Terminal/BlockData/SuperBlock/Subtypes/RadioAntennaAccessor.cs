@@ -11,7 +11,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to radio antenna members, if defined.
         /// </summary>
-        public RadioAntennaAccessor RadioAntenna { get; private set; }
+        public RadioAntennaAccessor RadioAntenna  { get { return _radioAntenna; } private set { _radioAntenna = value; } }
+
+        private RadioAntennaAccessor _radioAntenna;
 
         public class RadioAntennaAccessor : SubtypeAccessor<IMyRadioAntenna>
         {
@@ -30,8 +32,10 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public string HudText { get { return subtype.HudText; } set { subtype.HudText = value; } } 
 
-            public RadioAntennaAccessor(SuperBlock block) : base(block, TBlockSubtypes.RadioAntenna)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.RadioAntenna);
+            }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

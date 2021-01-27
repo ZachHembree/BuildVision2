@@ -10,19 +10,31 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class SuperBlock
     {
-        public GravityGenAccessor GravityGen { get; private set; }
+        private GravityGenAccessor _gravityGen;
+
+        public GravityGenAccessor GravityGen
+        {
+            get
+            {
+                return _gravityGen;
+            }
+            private set
+            {
+                _gravityGen = value;
+            }
+        }
 
         public class GravityGenAccessor : SubtypeAccessor<IMyGravityGeneratorBase>
         {
             public float Acceleration { get { return subtype.GravityAcceleration; } set { subtype.GravityAcceleration = value; } }
 
-            public Vector3 FieldSize 
-            { 
-                get { return box?.FieldSize ?? Vector3.Zero; } 
-                set { if (box != null) box.FieldSize = value; } 
+            public Vector3 FieldSize
+            {
+                get { return box?.FieldSize ?? Vector3.Zero; }
+                set { if (box != null) box.FieldSize = value; }
             }
 
-            public float Radius 
+            public float Radius
             {
                 get { return sphere?.Radius ?? 0f; }
                 set { if (sphere != null) sphere.Radius = value; }
@@ -30,11 +42,13 @@ namespace DarkHelmet.BuildVision2
 
             public bool IsSpherical => sphere != null;
 
-            private readonly IMyGravityGenerator box;
-            private readonly IMyGravityGeneratorSphere sphere;
+            private IMyGravityGenerator box;
+            private IMyGravityGeneratorSphere sphere;
 
-            public GravityGenAccessor(SuperBlock block) : base(block, TBlockSubtypes.GravityGen)
+            public override void SetBlock(SuperBlock block)
             {
+                SetBlock(block, TBlockSubtypes.GravityGen);
+
                 if (subtype != null)
                 {
                     box = block.TBlock as IMyGravityGenerator;
@@ -42,10 +56,17 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            public override void Reset()
+            {
+                base.Reset();
+                box = null;
+                sphere = null;
+            }
+
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
                 builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityAcceleration)}: ", nameFormat);
-                builder.Add($"{Acceleration.ToString("G4")} m/s²\n", valueFormat);
+                builder.Add($"{Acceleration:G4} m/s²\n", valueFormat);
 
                 if (IsSpherical)
                 {

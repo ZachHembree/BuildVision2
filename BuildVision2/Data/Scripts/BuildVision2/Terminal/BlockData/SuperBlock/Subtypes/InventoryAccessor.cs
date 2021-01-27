@@ -12,27 +12,44 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to block inventory, if defined.
         /// </summary>
-        public InventoryAccessor Inventory { get; private set; }
+        public InventoryAccessor Inventory  { get { return _inventory; } private set { _inventory = value; } }
+
+        private InventoryAccessor _inventory;
 
         public class InventoryAccessor : SubtypeAccessorBase
         {
-            public IReadOnlyList<InventoryWrapper> Inventories { get; private set; }
+            public IReadOnlyList<InventoryWrapper> Inventories => inventories;
 
             /// <summary>
             /// Returns the number of inventories contained by the block
             /// </summary>
             public int InventoryCount => block.TBlock.InventoryCount;
 
-            public InventoryAccessor(SuperBlock block) : base(block, TBlockSubtypes.Inventory, block.TBlock.HasInventory)
+            private readonly List<InventoryWrapper> inventories;
+
+            public InventoryAccessor()
             {
+                inventories = new List<InventoryWrapper>();
+            }
+
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.Inventory, block.TBlock.HasInventory);
+
                 if (block.TBlock.HasInventory)
                 {
-                    var inventories = new List<InventoryWrapper>(InventoryCount);
-                    Inventories = inventories;
+                    inventories.Clear();
+                    inventories.EnsureCapacity(InventoryCount);
 
                     for (int n = 0; n < InventoryCount; n++)
                         inventories.Add(new InventoryWrapper(block.TBlock.GetInventory(n)));
                 }
+            }
+
+            public override void Reset()
+            {
+                base.Reset();
+                inventories.Clear();
             }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
@@ -59,7 +76,7 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        public class InventoryWrapper
+        public struct InventoryWrapper
         {
             public readonly IMyInventory inventory;
 

@@ -24,7 +24,7 @@ namespace DarkHelmet.BuildVision2
         {
             get 
             {
-                if (blockMembers == null)
+                if (blockMembers == null || blockMembers.Count == 0)
                     GenerateProperties();
 
                 return blockMembers;
@@ -40,20 +40,54 @@ namespace DarkHelmet.BuildVision2
         /// The difference between the center of the bounding box and the position reported by
         /// GetPosition().
         /// </summary>
-        public readonly Vector3D modelOffset;
+        public Vector3D ModelOffset { get; private set; }
 
-        private List<IBlockMember> blockMembers;
-        private List<BvTerminalPropertyBase> blockProperties;
+        private readonly List<BlockMemberBase> blockMembers;
+        private readonly List<BvTerminalPropertyBase> blockProperties;
 
-        public PropertyBlock(TerminalGrid grid, IMyTerminalBlock block) : base(grid, block)
+        private readonly BvPropPool<BlockAction> blockActionPool;
+        private readonly BvPropPool<BoolProperty> boolPropPool;
+        private readonly BvPropPool<ColorProperty> colorPropPool;
+        private readonly BvPropPool<ComboBoxProperty> comboPropPool;
+        private readonly BvPropPool<FloatProperty> floatPropPool;
+        private readonly BvPropPool<TextProperty> textPropPool;
+
+        public PropertyBlock()
         {
-            modelOffset = block.WorldAABB.Center - TBlock.GetPosition();
+            blockActionPool = new BvPropPool<BlockAction>();
+            boolPropPool = new BvPropPool<BoolProperty>();
+            colorPropPool = new BvPropPool<ColorProperty>();
+            comboPropPool = new BvPropPool<ComboBoxProperty>();
+            floatPropPool = new BvPropPool<FloatProperty>();
+            textPropPool = new BvPropPool<TextProperty>();
+
+            blockMembers = new List<BlockMemberBase>();
+            blockProperties = new List<BvTerminalPropertyBase>();
+        }
+
+        public override void SetBlock(TerminalGrid grid, IMyTerminalBlock tBlock)
+        {
+            base.SetBlock(grid, tBlock);
+
+            ModelOffset = tBlock.WorldAABB.Center - TBlock.GetPosition();
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+
+            for (int i = 0; i < blockMembers.Count; i++)
+                blockMembers[i].Return();
+
+            blockMembers.Clear();
+            blockProperties.Clear();
+            ModelOffset = Vector3D.Zero;
         }
 
         private void GenerateProperties()
         {
-            blockMembers = new List<IBlockMember>();
-            blockProperties = new List<BvTerminalPropertyBase>();
+            blockMembers.Clear();
+            blockProperties.Clear();
 
             GetScrollableProps();
             GetScrollableActions();
@@ -194,11 +228,11 @@ namespace DarkHelmet.BuildVision2
                             if (textProp.CanAccessValue(TBlock))
                             {
                                 if (prop.Id == "ConsoleCommand")
-                                    argProperty = new TextProperty(name, textProp, control, this);
+                                    argProperty = TextProperty.GetProperty(name, textProp, control, this);
                                 else if (prop.Id == "Name" || prop.Id == "CustomName")
-                                    blockProperties.Insert(0, new TextProperty(name, textProp, control, this));
+                                    blockProperties.Insert(0, TextProperty.GetProperty(name, textProp, control, this));
                                 else
-                                    blockProperties.Add(new TextProperty(name, textProp, control, this));
+                                    blockProperties.Add(TextProperty.GetProperty(name, textProp, control, this));
                             }
                         }
                         if (prop is IMyTerminalControlCombobox)
@@ -206,28 +240,28 @@ namespace DarkHelmet.BuildVision2
                             var comboBox = prop as IMyTerminalControlCombobox;
 
                             if (comboBox.CanAccessValue(TBlock))
-                                blockProperties.Add(new ComboBoxProperty(name, comboBox, control, this));
+                                blockProperties.Add(ComboBoxProperty.GetProperty(name, comboBox, control, this));
                         }
                         else if (prop is ITerminalProperty<bool>)
                         {
                             var boolProp = prop as ITerminalProperty<bool>;
 
                             if (boolProp.CanAccessValue(TBlock))
-                                blockProperties.Add(new BoolProperty(name, boolProp, control, this));
+                                blockProperties.Add(BoolProperty.GetProperty(name, boolProp, control, this));
                         }
                         else if (prop is ITerminalProperty<float>)
                         {
                             var floatProp = prop as ITerminalProperty<float>;
 
                             if (floatProp.CanAccessValue(TBlock))
-                                blockProperties.Add(new FloatProperty(name, floatProp, control, this));
+                                blockProperties.Add(FloatProperty.GetProperty(name, floatProp, control, this));
                         }
                         else if (prop is ITerminalProperty<Color>)
                         {
                             var colorProp = prop as ITerminalProperty<Color>;
 
                             if (colorProp.CanAccessValue(TBlock))
-                                blockProperties.AddRange(ColorProperty.GetColorProperties(name, colorProp, control, this));
+                                ColorProperty.AddColorProperties(name, colorProp, control, this);
                         }
                     }
                 }

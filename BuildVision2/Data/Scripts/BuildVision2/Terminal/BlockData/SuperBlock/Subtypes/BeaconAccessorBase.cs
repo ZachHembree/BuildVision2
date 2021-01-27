@@ -7,7 +7,19 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class SuperBlock
     {
-        public BeaconAccessorBase Beacon { get; private set; }
+        public BeaconAccessorBase Beacon
+        {
+            get
+            {
+                return _beacon;
+            }
+            private set
+            {
+                _beacon = value;
+            }
+        }
+
+        private BeaconAccessorBase _beacon;
 
         public class BeaconAccessorBase : SubtypeAccessor<IMyBeacon>
         {
@@ -15,8 +27,10 @@ namespace DarkHelmet.BuildVision2
 
             public string HudText { get { return subtype.HudText; } set { subtype.HudText = value; } }
 
-            public BeaconAccessorBase(SuperBlock block) : base(block, TBlockSubtypes.Beacon)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.Beacon);
+            }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

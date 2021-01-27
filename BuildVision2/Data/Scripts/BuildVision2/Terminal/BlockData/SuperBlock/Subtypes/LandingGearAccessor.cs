@@ -13,7 +13,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to landing gear members, if defined.
         /// </summary>
-        public LandingGearAccessor LandingGear { get; private set; }
+        public LandingGearAccessor LandingGear  { get { return _landingGear; } private set { _landingGear = value; } }
+
+        private LandingGearAccessor _landingGear;
 
         public class LandingGearAccessor : SubtypeAccessor<IMyLandingGear>
         {
@@ -24,8 +26,10 @@ namespace DarkHelmet.BuildVision2
 
             public bool AutoLock { get { return subtype.AutoLock; } set { subtype.AutoLock = value; } }
 
-            public LandingGearAccessor(SuperBlock block) : base(block, TBlockSubtypes.LandingGear)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.LandingGear);
+            }
 
             /// <summary>
             /// Toggles the landing gear's lock.

@@ -17,7 +17,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Currently targeted terminal block
         /// </summary>
-        public static PropertyBlock Target => Instance.targetBlock;
+        public static PropertyBlock Target => Instance.propertyBlock;
 
         /// <summary>
         /// If true, then the menu is open
@@ -49,10 +49,13 @@ namespace DarkHelmet.BuildVision2
 
         private readonly BvScrollMenu scrollMenu;
         private readonly CustomSpaceNode hudSpace;
-        private readonly TerminalGrid targetGrid;
         private readonly BoundingBoard boundingBox;
-        private PropertyBlock targetBlock;
+
+        private readonly TerminalGrid targetGrid;
+        private readonly PropertyBlock propertyBlock;
+
         private IMyTerminalBlock lastPastedTarget;
+
         private BlockData clipboard, pasteBackup;
         private Stopwatch peekRefresh;
 
@@ -63,14 +66,14 @@ namespace DarkHelmet.BuildVision2
 
             hudSpace = new CustomSpaceNode(HudMain.Root) { UpdateMatrixFunc = UpdateHudSpace };
             scrollMenu = new BvScrollMenu(hudSpace) { Visible = false };
-            targetGrid = new TerminalGrid();
             boundingBox = new BoundingBoard();
+
+            targetGrid = new TerminalGrid();
+            propertyBlock = new PropertyBlock();
 
             RichHudCore.LateMessageEntered += MessageHandler;
             peekRefresh = new Stopwatch();
             peekRefresh.Start();
-
-            SharedBinds.Escape.NewPressed += Hide;
         }
 
         public static void Init()
@@ -109,7 +112,7 @@ namespace DarkHelmet.BuildVision2
             if (Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))
                 Hide();
 
-            if (targetBlock != null && Open)
+            if (propertyBlock.TBlock != null && Open)
                 scrollMenu.UpdateText();
         }
 
@@ -121,7 +124,7 @@ namespace DarkHelmet.BuildVision2
                     ToggleOpen();
                 else if (BvBinds.Open.IsNewPressed)
                     TryOpen();
-                else if (BvBinds.Hide.IsNewPressed)
+                else if (BvBinds.Hide.IsNewPressed || SharedBinds.Escape.IsNewPressed)
                     Hide();
 
                 if (BvConfig.Current.general.enablePeek)
@@ -138,31 +141,31 @@ namespace DarkHelmet.BuildVision2
                         Hide();
                 }
 
-                if (targetBlock != null && Open)
+                if (propertyBlock.TBlock != null && Open)
                 {
                     if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Dupe)
                     {
-                        clipboard = new BlockData(targetBlock.TypeID, scrollMenu.GetDuplicationRange());
+                        clipboard = new BlockData(propertyBlock.TypeID, scrollMenu.GetDuplicationRange());
                         scrollMenu.ShowNotification($"Copied {clipboard.terminalProperties.Count} Properties");
                     }
 
                     if (BvBinds.PasteProperties.IsNewPressed && !clipboard.Equals(default(BlockData)) && clipboard.terminalProperties.Count > 0)
                     {
-                        if (clipboard.blockTypeID == targetBlock.TypeID)
+                        if (clipboard.blockTypeID == propertyBlock.TypeID)
                         {
-                            pasteBackup = targetBlock.ExportSettings();
-                            lastPastedTarget = targetBlock.TBlock;
+                            pasteBackup = propertyBlock.ExportSettings();
+                            lastPastedTarget = propertyBlock.TBlock;
 
-                            int importCount = targetBlock.ImportSettings(clipboard);
+                            int importCount = propertyBlock.ImportSettings(clipboard);
                             scrollMenu.ShowNotification($"Pasted {importCount} Properties");
                         }
                         else
                             scrollMenu.ShowNotification($"Paste Incompatible");
                     }
 
-                    if (BvBinds.UndoPaste.IsNewPressed && targetBlock.TBlock == lastPastedTarget)
+                    if (BvBinds.UndoPaste.IsNewPressed && propertyBlock.TBlock == lastPastedTarget)
                     {
-                        targetBlock.ImportSettings(pasteBackup);
+                        propertyBlock.ImportSettings(pasteBackup);
                         scrollMenu.ShowNotification("Paste Undone");
                         lastPastedTarget = null;
                     }
@@ -172,10 +175,10 @@ namespace DarkHelmet.BuildVision2
 
         private MatrixD UpdateHudSpace()
         {
-            if (targetBlock != null && Open)
+            if (propertyBlock.TBlock != null && Open)
             {
                 if (DrawBoundingBox)
-                    boundingBox.Draw(targetBlock.TBlock);
+                    boundingBox.Draw(propertyBlock.TBlock);
 
                 scrollMenu.BgOpacity = BvConfig.Current.hudConfig.hudOpacity;
                 scrollMenu.MaxVisible = BvConfig.Current.hudConfig.maxVisible;
@@ -187,8 +190,8 @@ namespace DarkHelmet.BuildVision2
 
                 if (EnableWorldDraw)
                 {
-                    BoundingBox box = targetBlock.TBlock.LocalAABB;
-                    MatrixD matrix = targetBlock.TBlock.WorldMatrix;
+                    BoundingBox box = propertyBlock.TBlock.LocalAABB;
+                    MatrixD matrix = propertyBlock.TBlock.WorldMatrix;
                     matrix.Translation += new Vector3D(0d, 0d, box.Size.Z * .5f + 0.1f);
 
                     hudSpace.LocalScale = 0.01f;
@@ -203,7 +206,7 @@ namespace DarkHelmet.BuildVision2
 
                     if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !BvConfig.Current.hudConfig.useCustomPos)
                     {
-                        targetPos = Target.Position + Target.modelOffset * .75d;
+                        targetPos = Target.Position + Target.ModelOffset * .75d;
                         worldPos = LocalPlayer.GetWorldToScreenPos(targetPos) / 2d;
 
                         screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
@@ -244,7 +247,7 @@ namespace DarkHelmet.BuildVision2
 
             if (TryGetTarget() && CanAccessTargetBlock())
             {
-                scrollMenu.SetTarget(targetBlock);
+                scrollMenu.SetTarget(propertyBlock);
                 Open = true;
             }
         }
@@ -253,11 +256,11 @@ namespace DarkHelmet.BuildVision2
         {
             scrollMenu.MenuMode = ScrollMenuModes.Control;
 
-            if ((scrollMenu.MenuMode == ScrollMenuModes.Peek && targetBlock?.TBlock != null || TryGetTarget()) && CanAccessTargetBlock())
+            if ((scrollMenu.MenuMode == ScrollMenuModes.Peek && propertyBlock.TBlock != null || TryGetTarget()) && CanAccessTargetBlock())
             {
-                if (targetBlock?.TBlock != scrollMenu?.Target?.TBlock)
+                if (propertyBlock.TBlock != scrollMenu.Target)
                 {
-                    scrollMenu.SetTarget(targetBlock);
+                    scrollMenu.SetTarget(propertyBlock);
                     Open = true;
                 }
             }
@@ -269,7 +272,7 @@ namespace DarkHelmet.BuildVision2
         private void Hide()
         {
             Open = false;
-            targetBlock = null;
+            propertyBlock.Reset();
             scrollMenu.Clear();
         }
 
@@ -288,10 +291,10 @@ namespace DarkHelmet.BuildVision2
 
                     if ((permissions & TerminalPermissionStates.Granted) > 0)
                     {
-                        if (targetBlock == null || block != targetBlock.TBlock)
+                        if (propertyBlock.TBlock == null || block != propertyBlock.TBlock)
                         {
                             targetGrid.SetGrid(block.CubeGrid);
-                            targetBlock = new PropertyBlock(targetGrid, block);
+                            propertyBlock.SetBlock(targetGrid, block);
                         }
 
                         return true;
@@ -362,7 +365,7 @@ namespace DarkHelmet.BuildVision2
         /// Checks if the player can access the targeted block.
         /// </summary>
         private bool CanAccessTargetBlock() =>
-            targetBlock?.TBlock != null && BlockInRange() && targetBlock.CanLocalPlayerAccess && (!BvConfig.Current.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(targetBlock.TBlock));
+            propertyBlock.TBlock != null && BlockInRange() && propertyBlock.CanLocalPlayerAccess && (!BvConfig.Current.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(propertyBlock.TBlock));
 
         /// <summary>
         /// Determines whether the player is within 10 units of the block.
@@ -371,8 +374,8 @@ namespace DarkHelmet.BuildVision2
         {
             double dist = double.PositiveInfinity;
 
-            if (targetBlock != null)
-                dist = (LocalPlayer.Position - targetBlock.Position).LengthSquared();
+            if (propertyBlock.TBlock != null)
+                dist = (LocalPlayer.Position - propertyBlock.Position).LengthSquared();
 
             return dist < (BvConfig.Current.general.maxControlRange * BvConfig.Current.general.maxControlRange);
         }

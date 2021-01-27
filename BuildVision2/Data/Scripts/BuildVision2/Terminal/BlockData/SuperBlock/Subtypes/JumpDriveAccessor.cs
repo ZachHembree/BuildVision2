@@ -12,7 +12,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to jump drive members, if defined.
         /// </summary>
-        public JumpDriveAccessor JumpDrive { get; private set; }
+        public JumpDriveAccessor JumpDrive  { get { return _jumpDrive; } private set { _jumpDrive = value; } }
+
+        private JumpDriveAccessor _jumpDrive;
 
         public class JumpDriveAccessor : SubtypeAccessor<IMyJumpDrive>
         {
@@ -31,8 +33,10 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public MyJumpDriveStatus Status => subtype.Status;
 
-            public JumpDriveAccessor(SuperBlock block) : base(block, TBlockSubtypes.JumpDrive)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                SetBlock(block, TBlockSubtypes.JumpDrive);
+            }
 
             /// <summary>
             /// Returns the jump drive's status as a localized string.
