@@ -173,7 +173,7 @@ namespace DarkHelmet.BuildVision2
                 Color = headerColor,
             };
 
-            footer.LeftTextBoard.Format = footerTextLeft;
+            footer.LeftTextBuilder.Format = footerTextLeft;
 
             layout = new HudChain(true, this)
             {
@@ -217,7 +217,7 @@ namespace DarkHelmet.BuildVision2
                 UpdateFooterText();
             }
             else
-                footer.RightText = new RichText("[Target is null]", blockIncText);
+                footer.RightTextBoard.SetText("[Target is null]", blockIncText);
 
             targetChanged = false;
         }
@@ -270,7 +270,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (notification != null)
             {
-                footer.LeftText = $"[{notification}]";
+                footer.LeftTextBuilder.SetText($"[{notification}]");
 
                 if (notificationTimer.ElapsedMilliseconds > notifTime)
                     notification = null;
@@ -285,19 +285,19 @@ namespace DarkHelmet.BuildVision2
                         copyCount++;
                 }
 
-                footer.LeftText = $"[Copying {copyCount} of {scrollBody.EnabledCount}]";
+                footer.LeftTextBuilder.SetText($"[Copying {copyCount} of {scrollBody.EnabledCount}]");
             }
             else if (MenuMode == ScrollMenuModes.Peek)
-                footer.LeftText = "[Peeking]";
+                footer.LeftTextBuilder.SetText("[Peeking]");
             else
-                footer.LeftText = $"[{scrollBody.VisStart + 1} - {scrollBody.VisStart + scrollBody.VisCount} of {scrollBody.EnabledCount}]";
+                footer.LeftTextBuilder.SetText($"[{scrollBody.VisStart + 1} - {scrollBody.VisStart + scrollBody.VisCount} of {scrollBody.EnabledCount}]");
 
             if (PropertiesMenu.Target.IsWorking)
-                footer.RightText = new RichText($"[Working]", footerTextRight);
+                footer.RightTextBoard.SetText($"[Working]", footerTextRight);
             else if (PropertiesMenu.Target.IsFunctional)
-                footer.RightText = new RichText($"[Functional]", footerTextRight);
+                footer.RightTextBoard.SetText($"[Functional]", footerTextRight);
             else
-                footer.RightText = new RichText($"[Incomplete]", blockIncText);
+                footer.RightTextBoard.SetText($"[Incomplete]", blockIncText);
         }
 
         /// <summary>
