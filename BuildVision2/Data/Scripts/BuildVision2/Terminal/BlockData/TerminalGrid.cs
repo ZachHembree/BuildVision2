@@ -30,7 +30,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         private void OnGridClose(IMyEntity entity) =>
-            Clear();
+            Reset();
 
         public void SetGrid(IMyCubeGrid grid)
         {
@@ -39,7 +39,7 @@ namespace DarkHelmet.BuildVision2
                 if (Grid != null)
                     Grid.OnMarkForClose -= OnGridClose;
 
-                Clear();
+                Reset();
                 Grid = grid;
 
                 if (Grid != null)
@@ -84,7 +84,7 @@ namespace DarkHelmet.BuildVision2
             groupBlockBuffer.Clear();
         }
 
-        public void Clear()
+        public void Reset()
         {
             Grid = null;
             TerminalSystem = null;

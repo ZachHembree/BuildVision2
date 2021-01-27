@@ -60,7 +60,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Number of block members registered with the menu
         /// </summary>
-        public int Count { get; private set; }
+        public int Count => scrollBody.Collection.Count;
 
         /// <summary>
         /// If true, then a property is currently selected and open
@@ -77,8 +77,8 @@ namespace DarkHelmet.BuildVision2
             get { return _menuMode; }
             set
             {
-                if (Target != null && value != ScrollMenuModes.Peek && Count == 0)
-                    AddMembers(PropertiesMenu.Target);
+                if (PropertiesMenu.Target.TBlock != null && value != ScrollMenuModes.Peek && Count == 0)
+                    UpdateProperties();
 
                 _menuMode = value;
             }
@@ -88,11 +88,6 @@ namespace DarkHelmet.BuildVision2
         /// Currently highlighted property. Null if none selected.
         /// </summary>
         private BvPropertyBox Selection => (index < scrollBody.Collection.Count) ? scrollBody.Collection[index].Element : null;
-
-        /// <summary>
-        /// Returns the block currently targeted
-        /// </summary>
-        public IMyTerminalBlock Target { get; private set; }
 
         /// <summary>
         /// If true, then if the property currently selected and open will have its text updated.
@@ -107,6 +102,7 @@ namespace DarkHelmet.BuildVision2
         private readonly ScrollBox<ScrollBoxEntry<BvPropertyBox>, BvPropertyBox> scrollBody;
         private readonly HudChain layout;
 
+        private readonly BvPropBoxPool propBoxPool;
         private readonly Stopwatch peekUpdateTimer, listWrapTimer, notificationTimer;
 
         /// <summary>
@@ -119,6 +115,7 @@ namespace DarkHelmet.BuildVision2
 
         private string notification;
         private ScrollMenuModes _menuMode;
+        private IMyTerminalBlock lastTarget;
         private readonly RichText peekBuilder;
 
         public BvScrollMenu(HudParentBase parent = null) : base(parent)
@@ -194,8 +191,8 @@ namespace DarkHelmet.BuildVision2
             _bgOpacity = 0.9f;
             BgOpacity = 0.9f;
             MenuMode = ScrollMenuModes.Peek;
-            Count = 0;
 
+            propBoxPool = new BvPropBoxPool();
             peekBuilder = new RichText();
             peekUpdateTimer = new Stopwatch();
             notificationTimer = new Stopwatch();
@@ -210,7 +207,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void UpdateText()
         {
-            if (Target != null)
+            if (PropertiesMenu.Target != null)
             {
                 if (MenuMode == ScrollMenuModes.Peek)
                     UpdatePeekBody();
@@ -295,9 +292,9 @@ namespace DarkHelmet.BuildVision2
             else
                 footer.LeftText = $"[{scrollBody.VisStart + 1} - {scrollBody.VisStart + scrollBody.VisCount} of {scrollBody.EnabledCount}]";
 
-            if (Target.IsWorking)
+            if (PropertiesMenu.Target.IsWorking)
                 footer.RightText = new RichText($"[Working]", footerTextRight);
-            else if (Target.IsFunctional)
+            else if (PropertiesMenu.Target.IsFunctional)
                 footer.RightText = new RichText($"[Functional]", footerTextRight);
             else
                 footer.RightText = new RichText($"[Incomplete]", blockIncText);
@@ -326,8 +323,8 @@ namespace DarkHelmet.BuildVision2
                 for (int i = 0; i < entries.Count && visCount < scrollBody.VisCount; i++)
                 {
                     int j = Math.Min(scrollBody.VisStart + i, entries.Count - 1);
-
                     HudElementBase element = entries[j].Element;
+
                     if (element.Visible)
                     {
                         memberWidth = Math.Max(memberWidth, element.Width);
@@ -401,21 +398,23 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Sets the target block to the one given.
         /// </summary>
-        public void SetTarget(PropertyBlock block)
+        public void UpdateTarget()
         {
             Clear();
-            targetChanged = Target != block.TBlock;
-            Target = block.TBlock;
+            targetChanged = PropertiesMenu.Target.TBlock != lastTarget;
+            lastTarget = PropertiesMenu.Target.TBlock;
 
             if (MenuMode != ScrollMenuModes.Peek)
-                AddMembers(block);
+                UpdateProperties();
         }
 
         /// <summary>
         /// Adds block member property boxes
         /// </summary>
-        private void AddMembers(PropertyBlock block)
+        private void UpdateProperties()
         {
+            PropertyBlock block = PropertiesMenu.Target;
+
             for (int n = 0; n < block.BlockMembers.Count; n++)
                 AddMember(block.BlockMembers[n]);
 
@@ -428,16 +427,11 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void AddMember(IBlockMember blockMember)
         {
-            if (scrollBody.Collection.Count <= Count)
-            {
-                scrollBody.Add(new BvPropertyBox(Count));
-            }
-
-            var entry = scrollBody.Collection[Count];
+            var entry = propBoxPool.Get();
             entry.Enabled = true;
             entry.Element.BlockMember = blockMember;
 
-            Count++;
+            scrollBody.Add(entry);
         }
 
         /// <summary>
@@ -445,22 +439,14 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void Clear()
         {
-            if (Count != 0)
-            {
-                for (int n = 0; n < scrollBody.Collection.Count; n++)
-                {
-                    var entry = scrollBody.Collection[n];
-                    entry.Enabled = false;
-                    entry.Element.Clear();
-                }
-            }
+            propBoxPool.ReturnRange(scrollBody.Collection, 0, scrollBody.Collection.Count);
+            scrollBody.Clear(true);
 
+            lastTarget = null;
             waitingForChat = false;
             PropOpen = false;
             index = 0;
             scrollBody.Start = 0;
-            Target = null;
-            Count = 0;
         }
 
         private class BvPropertyBox : HudElementBase
@@ -509,17 +495,14 @@ namespace DarkHelmet.BuildVision2
 
             public bool InputOpen => valueBox.InputOpen;
 
-            public readonly int index;
-
             private readonly Label name, postfix;
             private readonly TextBox valueBox;
             private readonly SelectionBox copyIndicator;
             private readonly HudChain layout;
             private IBlockMember _blockMember;
 
-            public BvPropertyBox(int index, HudParentBase parent = null) : base(parent)
+            public BvPropertyBox() : base(null)
             {
-                this.index = index;
                 ParentAlignment = ParentAlignments.Left;
 
                 copyIndicator = new SelectionBox();
@@ -554,7 +537,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Clears property information from the property box
             /// </summary>
-            public void Clear()
+            public void Reset()
             {
                 name.TextBoard.Clear();
                 postfix.TextBoard.Clear();
