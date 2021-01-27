@@ -255,18 +255,6 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// Sorts the entries using the given comparer.
-            /// </summary>
-            public void Sort(Func<TElementContainer, TElementContainer, int> comparison) =>
-                hudCollectionList.Sort((x, y) => comparison(x, y));
-
-            /// <summary>
-            /// Sorts the entires using the default comparer.
-            /// </summary>
-            public void Sort() =>
-                hudCollectionList.Sort();
-
-            /// <summary>
             /// Returns true if the given element is in the collection.
             /// </summary>
             public bool Contains(TElementContainer item) =>
