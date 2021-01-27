@@ -196,7 +196,7 @@ namespace RichHudFramework.UI
         private void AddChar(char ch)
         {
             DeleteSelection();
-            TextBoard.Insert(ch.ToString(), caret.Index + new Vector2I(0, 1));
+            TextBoard.Insert(ch, caret.Index + new Vector2I(0, 1));
             caret.Move(new Vector2I(0, 1));
         }
 

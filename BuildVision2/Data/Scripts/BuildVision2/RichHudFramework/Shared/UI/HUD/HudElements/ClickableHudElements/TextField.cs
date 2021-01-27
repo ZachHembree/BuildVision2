@@ -23,7 +23,7 @@ namespace RichHudFramework.UI.Server
         /// <summary>
         /// TextBoard backing the text field.
         /// </summary>
-        public ITextBoard TextBoard => textBox.TextBoard;
+        public ITextBuilder TextBoard => textBox.TextBoard;
 
         /// <summary>
         /// Default formatting used by the text field.

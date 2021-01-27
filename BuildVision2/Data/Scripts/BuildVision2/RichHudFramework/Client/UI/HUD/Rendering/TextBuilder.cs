@@ -99,29 +99,131 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
-                /// Clears current text and appends the text given.
+                /// Replaces the current text with the <see cref="RichText"/> given
                 /// </summary>
                 public void SetText(RichText text)
                 {
-                    lastText = text;
                     SetTextAction(text.apiData);
+                    lastText = text;
                 }
 
                 /// <summary>
-                /// Appends the given text to the end of the text using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichText"/>.
+                /// Clears current text and appends a copy of the <see cref="StringBuilder"/> given.
+                /// </summary>
+                public void SetText(StringBuilder text, GlyphFormat format = null)
+                {
+                    if (lastText == null)
+                        lastText = new RichText();
+
+                    lastText.Clear();
+                    lastText.Add(text, format ?? Format);
+                    SetTextAction(lastText.apiData);
+                }
+
+                /// <summary>
+                /// Clears current text and appends a copy of the <see cref="string"/> given.
+                /// </summary>
+                public void SetText(string text, GlyphFormat format = null)
+                {
+                    if (lastText == null)
+                        lastText = new RichText();
+
+                    lastText.Clear();
+                    lastText.Add(text, format ?? Format);
+                    SetTextAction(lastText.apiData);
+                }
+
+                /// <summary>
+                /// Appends the given <see cref="RichText"/>
                 /// </summary>
                 public void Append(RichText text)
                 {
-                    lastText = text;
-                    Insert(text, GetLastIndex());
+                    InsertTextAction(text.apiData, GetLastIndex());
+                }
+
+                /// <summary>
+                /// Appends a copy of the text in the <see cref="StringBuilder"/>
+                /// </summary>
+                public void Append(StringBuilder text, GlyphFormat format = null)
+                {
+                    if (lastText == null)
+                        lastText = new RichText();
+
+                    lastText.Clear();
+                    lastText.Add(text, format ?? Format);
+                    InsertTextAction(lastText.apiData, GetLastIndex());
+                }
+
+                /// <summary>
+                /// Appends a copy of the <see cref="string"/>
+                /// </summary>
+                public void Append(string text, GlyphFormat format = null)
+                {
+                    if (lastText == null)
+                        lastText = new RichText();
+
+                    lastText.Clear();
+                    lastText.Add(text, format ?? Format);
+                    InsertTextAction(lastText.apiData, GetLastIndex());
+                }
+
+                /// <summary>
+                /// Appends the given <see cref="char"/>
+                /// </summary>
+                public void Append(char ch, GlyphFormat format = null)
+                {
+                    if (lastText == null)
+                        lastText = new RichText();
+
+                    lastText.Clear();
+                    lastText.Add(ch, format ?? Format);
+                    InsertTextAction(lastText.apiData, GetLastIndex());
                 }
 
                 /// Inserts the given text to the end of the text at the specified starting index using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichText"/>.
                 /// </summary>
                 public void Insert(RichText text, Vector2I start)
                 {
-                    lastText = text;
                     InsertTextAction(text.apiData, start);
+                }
+
+                /// <summary>
+                /// Inserts a copy of the given <see cref="StringBuilder"/> starting at the specified starting index
+                /// </summary>
+                public void Insert(StringBuilder text, Vector2I start, GlyphFormat format = null)
+                {
+                    if (lastText == null)
+                        lastText = new RichText();
+
+                    lastText.Clear();
+                    lastText.Add(text, format ?? Format);
+                    InsertTextAction(lastText.apiData, start);
+                }
+
+                /// <summary>
+                /// Inserts a copy of the given <see cref="string"/> starting at the specified starting index
+                /// </summary>
+                public void Insert(string text, Vector2I start, GlyphFormat format = null)
+                {
+                    if (lastText == null)
+                        lastText = new RichText();
+
+                    lastText.Clear();
+                    lastText.Add(text, format ?? Format);
+                    InsertTextAction(lastText.apiData, start);
+                }
+
+                /// <summary>
+                /// Inserts the given <see cref="char"/> starting at the specified starting index
+                /// </summary>
+                public void Insert(char ch, Vector2I start, GlyphFormat format = null)
+                {
+                    if (lastText == null)
+                        lastText = new RichText();
+
+                    lastText.Clear();
+                    lastText.Add(ch, format ?? Format);
+                    InsertTextAction(lastText.apiData, start);
                 }
 
                 /// <summary>
@@ -137,10 +239,10 @@ namespace RichHudFramework
                 {
                     var textData = GetOrSetMemberFunc(new RangeData(start, end), (int)TextBuilderAccessors.GetRange) as List<RichStringMembers>;
 
-                    if (lastText != null && lastText.apiData == textData)
-                        return lastText;
-                    else
-                        return new RichText(textData);
+                    if (lastText == null && lastText.apiData != textData)
+                        lastText = new RichText(textData);
+
+                    return lastText;
                 }
 
                 /// <summary>

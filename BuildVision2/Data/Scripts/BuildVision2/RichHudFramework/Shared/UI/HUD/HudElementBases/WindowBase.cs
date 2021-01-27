@@ -13,9 +13,15 @@ namespace RichHudFramework.UI
     /// </summary>
     public abstract class WindowBase : HudElementBase, IClickableElement
     {
-        public RichText HeaderText { get { return Header.GetText(); } set { Header.SetText(value); } }
+        /// <summary>
+        /// Window header text
+        /// </summary>
+        public RichText HeaderText { get { return HeaderBuilder.GetText(); } set { HeaderBuilder.SetText(value); } }
 
-        public ITextBuilder Header => header.TextBoard;
+        /// <summary>
+        /// Text builder for the window header
+        /// </summary>
+        public ITextBuilder HeaderBuilder => header.TextBoard;
 
         /// <summary>
         /// Determines the color of both the header and the border.
@@ -66,17 +72,17 @@ namespace RichHudFramework.UI
         public IMouseInput MouseInput => resizeInput;
 
         /// <summary>
-        /// Window header element.
+        /// Window header element
         /// </summary>
         public readonly LabelBoxButton header;
 
         /// <summary>
-        /// Textured background. Body of the window.
+        /// Textured background. Body of the window
         /// </summary>
         public readonly HudElementBase body;
 
         /// <summary>
-        /// Window border.
+        /// Window border
         /// </summary>
         public readonly BorderBox border;
 

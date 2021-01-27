@@ -166,7 +166,7 @@ namespace RichHudFramework
                 Add(text, newFormat);
 
             /// <summary>
-            /// Appends a string to the end of the text. If the formatting given is equivalent to 
+            /// Appends a <see cref="string"/> to the end of the text. If the formatting given is equivalent to 
             /// that of the last string appended, then it will use the same StringBuilder.
             /// </summary>
             public void Add(string text, GlyphFormat newFormat = null)
@@ -189,6 +189,32 @@ namespace RichHudFramework
                 }
 
                 sb.Append(text);
+            }
+
+            /// <summary>
+            /// Appends a <see cref="char"/> to the end of the text. If the formatting given is equivalent to 
+            /// that of the last string appended, then it will use the same StringBuilder.
+            /// </summary>
+            public void Add(char ch, GlyphFormat newFormat = null)
+            {
+                if (sbPool == null)
+                    sbPool = new ObjectPool<StringBuilder>(new StringBuilderPoolPolicy());
+
+                List<RichStringMembers> richStrings = apiData;
+                GlyphFormatMembers format = newFormat?.data ?? defaultFormat?.data ?? GlyphFormat.Empty.data;
+                StringBuilder sb;
+                bool formatEqual;
+
+                GetNextStringBuilder(newFormat?.data ?? GlyphFormat.Empty.data, out sb, out formatEqual);
+
+                // If format is equal, reuse last StringBuilder
+                if (!formatEqual)
+                {
+                    var richString = new RichStringMembers(sb, format);
+                    richStrings.Add(richString);
+                }
+
+                sb.Append(ch);
             }
 
             private void GetNextStringBuilder(GlyphFormatMembers newFormat, out StringBuilder sb, out bool formatEqual)
