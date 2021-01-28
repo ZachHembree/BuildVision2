@@ -61,12 +61,12 @@ namespace DarkHelmet.BuildVision2
             DrawBoundingBox = false;
             EnableWorldDraw = false;
 
+            targetGrid = new TerminalGrid();
+            Target = new PropertyBlock();
+
             hudSpace = new CustomSpaceNode(HudMain.Root) { UpdateMatrixFunc = UpdateHudSpace };
             scrollMenu = new BvScrollMenu(hudSpace) { Visible = false };
             boundingBox = new BoundingBoard();
-
-            targetGrid = new TerminalGrid();
-            Target = new PropertyBlock();
 
             RichHudCore.LateMessageEntered += MessageHandler;
             peekRefresh = new Stopwatch();
@@ -255,10 +255,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void TryPeek()
         {
-            scrollMenu.MenuMode = ScrollMenuModes.Peek;
-
             if (TryGetTarget() && CanAccessTargetBlock())
             {
+                scrollMenu.MenuMode = ScrollMenuModes.Peek;
                 scrollMenu.UpdateTarget();
                 Open = true;
             }
@@ -271,7 +270,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (Open && scrollMenu.MenuMode == ScrollMenuModes.Peek)
                 scrollMenu.MenuMode = ScrollMenuModes.Control;
-            else if (!Open && (Target.TBlock != null || TryGetTarget()) && CanAccessTargetBlock())
+            else if (TryGetTarget() && CanAccessTargetBlock())
             {
                 scrollMenu.MenuMode = ScrollMenuModes.Control;
                 scrollMenu.UpdateTarget();

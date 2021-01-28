@@ -54,6 +54,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     builder.Add($"{MyTexts.TrySubstitute("Groups")}: ", nameFormat);
                     builder.Add(groupString, valueFormat);
+                    builder.Add('\n');
                 }
             }
 
