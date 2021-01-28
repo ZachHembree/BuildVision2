@@ -306,7 +306,7 @@ namespace DarkHelmet.BuildVision2
         public void ShowNotification(string message)
         {
             notification = message;
-            notificationTimer.Start();
+            notificationTimer.Restart();
         }
 
         protected override void Layout()

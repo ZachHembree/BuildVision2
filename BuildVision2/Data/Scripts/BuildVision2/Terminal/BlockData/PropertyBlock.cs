@@ -113,7 +113,7 @@ namespace DarkHelmet.BuildVision2
         {
             int importCount = 0;
 
-            if (blockMembers == null)
+            if (blockMembers.Count == 0)
                 GenerateProperties();
 
             foreach (PropertyData propData in src.terminalProperties)
@@ -135,7 +135,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public BlockData ExportSettings()
         {
-            if (blockProperties == null)
+            if (blockProperties.Count == 0)
                 GenerateProperties();
 
             var propData = new List<PropertyData>(blockProperties.Count);
