@@ -133,6 +133,7 @@ namespace DarkHelmet.BuildVision2
             TypeID = null;
             TBlock = null;
             TerminalGrid = null;
+            SubtypeId = 0;
         }
 
         /// <summary>
@@ -140,8 +141,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void BlockClosing(IMyEntity entity)
         {
-            TBlock = null;
-            SubtypeId = 0;
+            Reset();
         }
 
         private void AddBlockSubtypes()
@@ -271,6 +271,7 @@ namespace DarkHelmet.BuildVision2
             {
                 block = null;
                 subtype = null;
+                SubtypeId = 0;
             }
         }
     }

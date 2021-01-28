@@ -83,9 +83,9 @@ namespace DarkHelmet.BuildVision2
 
                 if (property.Id == "UpperLimit")
                 {
-                    if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Piston))
+                    if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Rotor))
                         GetStatusFunc = GetRotorAngleFunc;
-                    else if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Rotor))
+                    else if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Piston))
                         GetStatusFunc = GetPistonExtensionFunc;
                 }
             }
