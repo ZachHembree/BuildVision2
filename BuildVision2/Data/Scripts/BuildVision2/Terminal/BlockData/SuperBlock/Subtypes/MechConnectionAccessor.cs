@@ -31,8 +31,8 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetBlock(SuperBlock block)
             {
-                SetBlock(block, TBlockSubtypes.MechanicalConnection);
-                
+                base.SetBlock(block, TBlockSubtypes.MechanicalConnection);
+
                 if (subtype != null && block.TBlock is IMyMotorSuspension)
                     block.SubtypeId |= TBlockSubtypes.Suspension;
             }

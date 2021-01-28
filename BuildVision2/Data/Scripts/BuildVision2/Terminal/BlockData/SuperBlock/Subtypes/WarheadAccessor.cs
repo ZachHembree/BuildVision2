@@ -36,7 +36,7 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetBlock(SuperBlock block)
             {
-                SetBlock(block, TBlockSubtypes.Warhead);
+                base.SetBlock(block, TBlockSubtypes.Warhead);
             }
 
             /// <summary>

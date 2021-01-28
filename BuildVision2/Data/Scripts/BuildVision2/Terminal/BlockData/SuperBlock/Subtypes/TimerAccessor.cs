@@ -22,7 +22,7 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetBlock(SuperBlock block)
             {
-                SetBlock(block, TBlockSubtypes.Timer);
+                base.SetBlock(block, TBlockSubtypes.Timer);
             }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)

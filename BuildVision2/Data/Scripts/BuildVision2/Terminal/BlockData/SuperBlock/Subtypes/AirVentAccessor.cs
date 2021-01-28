@@ -41,7 +41,7 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetBlock(SuperBlock block)
             {
-                SetBlock(block, TBlockSubtypes.AirVent);
+                base.SetBlock(block, TBlockSubtypes.AirVent);
             }
 
             /// <summary>

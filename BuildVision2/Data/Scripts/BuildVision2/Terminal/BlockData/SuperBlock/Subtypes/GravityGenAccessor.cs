@@ -47,7 +47,7 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetBlock(SuperBlock block)
             {
-                SetBlock(block, TBlockSubtypes.GravityGen);
+                base.SetBlock(block, TBlockSubtypes.GravityGen);
 
                 if (subtype != null)
                 {

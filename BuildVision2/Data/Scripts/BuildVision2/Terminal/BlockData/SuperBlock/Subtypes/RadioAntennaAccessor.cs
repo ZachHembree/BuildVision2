@@ -34,7 +34,7 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetBlock(SuperBlock block)
             {
-                SetBlock(block, TBlockSubtypes.RadioAntenna);
+                base.SetBlock(block, TBlockSubtypes.RadioAntenna);
             }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)

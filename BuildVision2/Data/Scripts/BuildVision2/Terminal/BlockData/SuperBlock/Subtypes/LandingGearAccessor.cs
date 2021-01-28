@@ -28,7 +28,7 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetBlock(SuperBlock block)
             {
-                SetBlock(block, TBlockSubtypes.LandingGear);
+                base.SetBlock(block, TBlockSubtypes.LandingGear);
             }
 
             /// <summary>

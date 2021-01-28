@@ -19,7 +19,7 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetBlock(SuperBlock block)
             {
-                SetBlock(block, TBlockSubtypes.Programmable);
+                base.SetBlock(block, TBlockSubtypes.Programmable);
             }
 
             public void Run() =>

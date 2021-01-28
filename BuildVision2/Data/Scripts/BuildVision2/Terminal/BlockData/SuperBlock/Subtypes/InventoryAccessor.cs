@@ -34,7 +34,7 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetBlock(SuperBlock block)
             {
-                SetBlock(block, TBlockSubtypes.Inventory, block.TBlock.HasInventory);
+                base.SetBlock(block, TBlockSubtypes.Inventory, block.TBlock.HasInventory);
 
                 if (block.TBlock.HasInventory)
                 {

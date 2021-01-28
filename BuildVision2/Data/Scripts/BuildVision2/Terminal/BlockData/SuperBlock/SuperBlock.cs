@@ -111,6 +111,7 @@ namespace DarkHelmet.BuildVision2
             Utils.Debug.AssertNotNull(tBlock);
             Utils.Debug.AssertNotNull(grid);
 
+            Reset();
             TBlock = tBlock;
             TerminalGrid = grid;
 
@@ -128,6 +129,7 @@ namespace DarkHelmet.BuildVision2
             if (TBlock != null)
                 TBlock.OnMarkForClose -= BlockClosing;
 
+            subtypeAccessors.Clear();
             TypeID = null;
             TBlock = null;
             TerminalGrid = null;

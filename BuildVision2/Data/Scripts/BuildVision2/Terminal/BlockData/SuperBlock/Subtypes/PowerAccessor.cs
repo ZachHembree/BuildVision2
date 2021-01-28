@@ -71,8 +71,6 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetBlock(SuperBlock block)
             {
-                SetBlock(block);
-
                 IMyTerminalBlock tblock = block.TBlock;
 
                 if (tblock.ResourceSink != null || tblock is IMyPowerProducer || tblock is IMyFunctionalBlock)

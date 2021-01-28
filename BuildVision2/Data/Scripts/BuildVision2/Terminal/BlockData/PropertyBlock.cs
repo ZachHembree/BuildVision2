@@ -68,7 +68,6 @@ namespace DarkHelmet.BuildVision2
         public override void SetBlock(TerminalGrid grid, IMyTerminalBlock tBlock)
         {
             base.SetBlock(grid, tBlock);
-
             ModelOffset = tBlock.WorldAABB.Center - TBlock.GetPosition();
         }
 

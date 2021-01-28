@@ -36,7 +36,7 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetBlock(SuperBlock block)
             {
-                SetBlock(block, TBlockSubtypes.Door);
+                base.SetBlock(block, TBlockSubtypes.Door);
 
                 if (subtype != null && block.TBlock is IMyParachute)
                     block.SubtypeId |= TBlockSubtypes.Parachute;

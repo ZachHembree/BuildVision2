@@ -27,7 +27,7 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetBlock(SuperBlock block)
             {
-                SetBlock(block, TBlockSubtypes.Rotor, TBlockSubtypes.MechanicalConnection);
+                base.SetBlock(block, TBlockSubtypes.Rotor, TBlockSubtypes.MechanicalConnection);
             }
 
             /// <summary>
