@@ -16,12 +16,17 @@ namespace DarkHelmet.BuildVision2
             public override string Display => GetValue().GetChannel(channel).ToString();
             public override string Status => null;
 
-            private readonly int channel;
+            private int channel;
             private static int incrX, incrY, incrZ, incr0;
+            protected BvPropPool<ColorProperty> poolParent;
 
-            public ColorProperty(string name, ITerminalProperty<Color> property, IMyTerminalControl control, SuperBlock block, int channel)
-                : base(name, property, control, block)
+            public void SetProperty(string name, ITerminalProperty<Color> property, IMyTerminalControl control, PropertyBlock block, int channel)
             {
+                base.SetProperty(name, property, control, block);
+
+                if (poolParent == null)
+                    poolParent = block.colorPropPool;
+
                 incr0 = 1;
                 incrZ = (incr0 * Cfg.colorMult.Z); // x64
                 incrY = (incr0 * Cfg.colorMult.Y); // x16
@@ -30,17 +35,27 @@ namespace DarkHelmet.BuildVision2
                 this.channel = channel;
             }
 
+            public override void Return()
+            {
+                poolParent.Return(this);
+            }
+
             /// <summary>
             /// Returns a scrollable property for each color channel in an ITerminalProperty<Color> object
             /// </summary>
-            public static ColorProperty[] GetColorProperties(string name, ITerminalProperty<Color> property, IMyTerminalControl control, SuperBlock block)
+            public static void AddColorProperties(string name, ITerminalProperty<Color> property, IMyTerminalControl control, PropertyBlock block)
             {
-                return new ColorProperty[]
-                {
-                    new ColorProperty($"{name}: R", property, control, block, 0),
-                    new ColorProperty($"{name}: G", property, control, block, 1),
-                    new ColorProperty($"{name}: B", property, control, block, 2)
-                };
+                ColorProperty r = block.colorPropPool.Get(), 
+                    g = block.colorPropPool.Get(),
+                    b = block.colorPropPool.Get();
+
+                r.SetProperty($"{name}: R", property, control, block, 0);
+                g.SetProperty($"{name}: G", property, control, block, 1);
+                b.SetProperty($"{name}: B", property, control, block, 2);
+
+                block.blockProperties.Add(r);
+                block.blockProperties.Add(g);
+                block.blockProperties.Add(b);
             }
 
             public override void ScrollDown() =>

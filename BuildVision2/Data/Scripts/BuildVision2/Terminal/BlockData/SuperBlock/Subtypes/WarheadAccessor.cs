@@ -13,7 +13,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to block warhead members, if defined.
         /// </summary>
-        public WarheadAccessor Warhead { get; private set; }
+        public WarheadAccessor Warhead  { get { return _warhead; } private set { _warhead = value; } }
+
+        private WarheadAccessor _warhead;
 
         public class WarheadAccessor : SubtypeAccessor<IMyWarhead>
         {
@@ -32,8 +34,10 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public bool IsCountingDown => subtype.IsCountingDown;
 
-            public WarheadAccessor(SuperBlock block) : base(block, TBlockSubtypes.Warhead)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                base.SetBlock(block, TBlockSubtypes.Warhead);
+            }
 
             /// <summary>
             /// Starts the countdown.

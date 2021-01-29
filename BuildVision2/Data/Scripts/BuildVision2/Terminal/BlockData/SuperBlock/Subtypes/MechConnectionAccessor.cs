@@ -18,7 +18,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to mech block members, if defined.
         /// </summary>
-        public MechConnectionAccessor MechConnection { get; private set; }
+        public MechConnectionAccessor MechConnection  { get { return _mechConnection; } private set { _mechConnection = value; } }
+
+        private MechConnectionAccessor _mechConnection;
 
         public class MechConnectionAccessor : SubtypeAccessor<IMyMechanicalConnectionBlock>
         {
@@ -27,8 +29,10 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public bool PartAttached => subtype.IsAttached;
 
-            public MechConnectionAccessor(SuperBlock block) : base(block, TBlockSubtypes.MechanicalConnection)
-            {                
+            public override void SetBlock(SuperBlock block)
+            {
+                base.SetBlock(block, TBlockSubtypes.MechanicalConnection);
+
                 if (subtype != null && block.TBlock is IMyMotorSuspension)
                     block.SubtypeId |= TBlockSubtypes.Suspension;
             }

@@ -152,7 +152,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public ListBoxEntry<T> Selection { get; private set; }
 
-        protected readonly ScrollBox<ListBoxEntry<T>, LabelButton> scrollBox;
+        public readonly ScrollBox<ListBoxEntry<T>, LabelButton> scrollBox;
         protected readonly HighlightBox selectionBox, highlight;
         protected readonly BorderBox border;
         protected Vector2 _memberPadding;
@@ -378,6 +378,11 @@ namespace RichHudFramework.UI
                     }
                 }
             }
+        }
+
+        protected override void Draw()
+        {
+            Size = scrollBox.Size + Padding;
         }
 
         public object GetOrSetMember(object data, int memberEnum)

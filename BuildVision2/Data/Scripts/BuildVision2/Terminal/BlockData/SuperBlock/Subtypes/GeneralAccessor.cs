@@ -9,19 +9,40 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class SuperBlock
     {
-        public GeneralAccessor General { get; private set; }
+        private GeneralAccessor _general;
+
+        public GeneralAccessor General
+        {
+            get
+            {
+                return _general;
+            }
+            private set
+            {
+                _general = value;
+            }
+        }
 
         public class GeneralAccessor : SubtypeAccessorBase
         {
             public string CustomName { get { return block.TBlock.CustomName; } set { block.TBlock.CustomName = value; } }
 
-            private readonly string groupString;
+            private readonly StringBuilder groupString;
+            private readonly List<string> groupNames;
 
-            public GeneralAccessor(SuperBlock block) : base(block)
+            public GeneralAccessor()
             {
+                groupString = new StringBuilder();
+                groupNames = new List<string>();
+            }
+
+            public override void SetBlock(SuperBlock block)
+            {
+                this.block = block;
                 block.SubtypeId |= SubtypeId;
                 block.subtypeAccessors.Add(this);
-                groupString = GetGroupString();
+
+                GetGroupString();
             }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
@@ -32,25 +53,24 @@ namespace DarkHelmet.BuildVision2
                 if (groupString.Length > 0)
                 {
                     builder.Add($"{MyTexts.TrySubstitute("Groups")}: ", nameFormat);
-                    builder.Add($"{groupString}\n", valueFormat);
+                    builder.Add(groupString, valueFormat);
+                    builder.Add('\n');
                 }
             }
 
-            private string GetGroupString()
+            private void GetGroupString()
             {
-                var groupString = new StringBuilder();
-                var groupNames = new List<string>();
+                groupString.Clear();
+                groupNames.Clear();
                 block.GetGroupNamesForBlock(groupNames);
 
-                for(int n = 0; n < groupNames.Count; n++)
+                for (int n = 0; n < groupNames.Count; n++)
                 {
                     if (n > 0)
                         groupString.Append($", {groupNames[n]}");
                     else
                         groupString.Append(groupNames[n]);
                 }
-
-                return groupString.ToString();
             }
         }
     }

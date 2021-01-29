@@ -5,6 +5,8 @@ using System;
 using VRage;
 using VRageMath;
 using VRage.Utils;
+using RichHudFramework;
+using System.Collections.Generic;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -18,22 +20,27 @@ namespace DarkHelmet.BuildVision2
             public override string Display => GetPropStateText();
             public override string Status => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
-            private readonly Func<string> GetPostfixFunc;
-            private readonly MyStringId OnText, OffText;
+            private Func<string> GetPostfixFunc, GetPowerDisplayFunc, GetTankFillFunc;
+            private MyStringId OnText, OffText;
+            protected BvPropPool<BoolProperty> poolParent;
 
-            public BoolProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, SuperBlock block) : base(name, property, control, block)
+            public BoolProperty()
             {
+                GetPowerDisplayFunc = GetPowerDisplay;
+                GetTankFillFunc = GetGasTankFillPercent;
+            }
+
+            public override void SetProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, PropertyBlock block)
+            {
+                base.SetProperty(name, property, control, block);
+
+                if (poolParent == null)
+                    poolParent = block.boolPropPool;
+
                 if (property.Id == "OnOff" && block.SubtypeId.UsesSubtype(TBlockSubtypes.Powered)) // Insert power draw / output info
-                {
-                    GetPostfixFunc = () => 
-                    {
-                        PowerAccessor power = block.Power;
-                        float? input = power.Input, output = power.Output;
-                        return $"({PowerAccessor.GetPowerDisplay(input, output)})"; 
-                    };
-                }
+                    GetPostfixFunc = GetPowerDisplayFunc;
                 else if (property.Id == "Stockpile" && block.SubtypeId.UsesSubtype(TBlockSubtypes.GasTank)) // Insert gas tank info
-                    GetPostfixFunc = GetGasTankFillPercent;
+                    GetPostfixFunc = GetTankFillFunc;
 
                 if (property is IMyTerminalControlOnOffSwitch)
                 {
@@ -47,6 +54,33 @@ namespace DarkHelmet.BuildVision2
                     OnText = MySpaceTexts.SwitchText_On;
                     OffText = MySpaceTexts.SwitchText_Off;
                 }
+            }
+
+            public override void Reset()
+            {
+                base.Reset();
+                GetPostfixFunc = null;
+            }
+
+            public override void Return()
+            {
+                poolParent.Return(this);
+            }
+
+            public static BoolProperty GetProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, PropertyBlock block)
+            {
+                BoolProperty prop = block.boolPropPool.Get();
+                prop.SetProperty(name, property, control, block);
+
+                return prop;
+            }
+
+            private string GetPowerDisplay()
+            {
+                PowerAccessor power = block.Power;
+                float? input = power.Input, output = power.Output;
+
+                return $"({PowerAccessor.GetPowerDisplay(input, output)})";
             }
 
             private string GetGasTankFillPercent() =>

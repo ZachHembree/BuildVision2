@@ -6,6 +6,8 @@ using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageM
 
 namespace RichHudFramework.UI.Server
 {
+    using UI.Rendering;
+
     /// <summary>
     /// Horizontal sliderbox with a name and value label. Value label is not updated automatically. Made to
     /// resemble sliders used in the SE terminal.
@@ -13,7 +15,7 @@ namespace RichHudFramework.UI.Server
     public class NamedSliderBox : HudElementBase
     {
         /// <summary>
-        /// The name of the control as rendred in the terminal.
+        /// The name of the control
         /// </summary>
         public RichText Name { get { return name.TextBoard.GetText(); } set { name.TextBoard.SetText(value); } }
 
@@ -21,6 +23,16 @@ namespace RichHudFramework.UI.Server
         /// Text indicating the current value of the slider. Does not automatically reflect changes to the slider value.
         /// </summary>
         public RichText ValueText { get { return current.TextBoard.GetText(); } set { current.TextBoard.SetText(value); } }
+
+        /// <summary>
+        /// The name of the control
+        /// </summary>
+        public ITextBuilder NameBuilder => name.TextBoard;
+
+        /// <summary>
+        /// Text indicating the current value of the slider. Does not automatically reflect changes to the slider value.
+        /// </summary>
+        public ITextBuilder ValueBuilder => current.TextBoard;
 
         /// <summary>
         /// Minimum configurable value for the slider.

@@ -7,7 +7,9 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class SuperBlock
     {
-        public ProjectorAccessor Projector { get; private set; }
+        public ProjectorAccessor Projector  { get { return _projector; } private set { _projector = value; } }
+
+        private ProjectorAccessor _projector;
 
         public class ProjectorAccessor : SubtypeAccessor<IMyProjector>
         {
@@ -21,8 +23,10 @@ namespace DarkHelmet.BuildVision2
 
             public int TotalBlocks => subtype.TotalBlocks;
 
-            public ProjectorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Projector)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                base.SetBlock(block, TBlockSubtypes.Projector);
+            }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

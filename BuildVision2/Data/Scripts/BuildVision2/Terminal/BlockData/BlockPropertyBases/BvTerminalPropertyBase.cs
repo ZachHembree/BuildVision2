@@ -1,7 +1,9 @@
-﻿using Sandbox.ModAPI;
+﻿using RichHudFramework;
+using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
+using System.Collections.Generic;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -33,7 +35,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Base class for Build Vision terminal properties that make use of SE's <see cref="ITerminalProperty"/>
         /// </summary>
-        private abstract class BvTerminalPropertyBase<TProp, TValue> : BvTerminalPropertyBase where TProp : ITerminalProperty
+        private abstract class BvTerminalPropertyBase<TProp, TValue> : BvTerminalPropertyBase where TProp : class, ITerminalProperty
         {
             public override string PropName => property.Id;
 
@@ -62,25 +64,38 @@ namespace DarkHelmet.BuildVision2
                 } 
             }
 
-            protected readonly TProp property;
-            protected readonly IMyTerminalControl control;
-            protected readonly SuperBlock block;
+            protected TProp property;
+            protected IMyTerminalControl control;
+            protected PropertyBlock block;
 
-            private readonly Func<IMyTerminalBlock, TValue> Getter;
-            private readonly Action<IMyTerminalBlock, TValue> Setter;
+            private Func<IMyTerminalBlock, TValue> Getter;
+            private Action<IMyTerminalBlock, TValue> Setter;
 
-            private int id = int.MinValue;
+            private int id;
 
-            protected BvTerminalPropertyBase(string name, TProp property, IMyTerminalControl control, SuperBlock block, Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
+            protected virtual void SetPropertyInternal(string name, TProp property, IMyTerminalControl control, PropertyBlock block, Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
             {
                 Name = name;
+                id = int.MinValue;
 
                 this.property = property;
                 this.control = control;
                 this.block = block;
 
                 this.Getter = Getter;
-                this.Setter = Setter;          
+                this.Setter = Setter;
+            }
+
+            public override void Reset()
+            {
+                Name = null;
+
+                this.property = null;
+                this.control = null;
+                this.block = null;
+
+                this.Getter = null;
+                this.Setter = null;
             }
 
             /// <summary>
@@ -135,16 +150,20 @@ namespace DarkHelmet.BuildVision2
             public abstract bool TryParseValue(string valueData, out TValue value);
         }
 
-        private abstract class BvTerminalProperty<TProp, TValue> : BvTerminalPropertyBase<TProp, TValue> where TProp : ITerminalProperty<TValue>
+        private abstract class BvTerminalProperty<TProp, TValue> : BvTerminalPropertyBase<TProp, TValue> where TProp : class, ITerminalProperty<TValue>
         {
-            protected BvTerminalProperty(string name, TProp property, IMyTerminalControl control, SuperBlock block)
-                : base(name, property, control, block, property.GetValue, property.SetValue) { }
+            public virtual void SetProperty(string name, TProp property, IMyTerminalControl control, PropertyBlock block)
+            {
+                SetPropertyInternal(name, property, control, block, property.GetValue, property.SetValue);
+            }
         }
 
-        private abstract class BvTerminalValueControl<TProp, TValue> : BvTerminalPropertyBase<TProp, TValue> where TProp : IMyTerminalValueControl<TValue>
+        private abstract class BvTerminalValueControl<TProp, TValue> : BvTerminalPropertyBase<TProp, TValue> where TProp : class, IMyTerminalValueControl<TValue>
         {
-            protected BvTerminalValueControl(string name, TProp property, IMyTerminalControl control, SuperBlock block)
-                : base(name, property, control, block, property.Getter, property.Setter) { }
+            public virtual void SetProperty(string name, TProp property, IMyTerminalControl control, PropertyBlock block)
+            {
+                SetPropertyInternal(name, property, control, block, property.Getter, property.Setter);
+            }
         }
     }
 }

@@ -62,12 +62,12 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public IMyTerminalBlock TBlock { get; private set; }
 
-        public TerminalGrid TerminalGrid { get; }
+        public TerminalGrid TerminalGrid { get; private set; }
 
         /// <summary>
         /// Block type identifier. Uses IMyCubeBlock.BlockDefinition.TypeIdString.
         /// </summary>
-        public string TypeID { get; }
+        public string TypeID { get; private set; }
 
         /// <summary>
         /// Returns the position of the block in world space.
@@ -101,19 +101,39 @@ namespace DarkHelmet.BuildVision2
 
         private readonly List<SubtypeAccessorBase> subtypeAccessors;
 
-        public SuperBlock(TerminalGrid grid, IMyTerminalBlock tBlock)
+        public SuperBlock()
+        {
+            subtypeAccessors = new List<SubtypeAccessorBase>();
+        }
+
+        public virtual void SetBlock(TerminalGrid grid, IMyTerminalBlock tBlock)
         {
             Utils.Debug.AssertNotNull(tBlock);
             Utils.Debug.AssertNotNull(grid);
 
+            Reset();
             TBlock = tBlock;
             TerminalGrid = grid;
 
             TypeID = tBlock.BlockDefinition.TypeIdString;
             TBlock.OnMarkForClose += BlockClosing;
-            subtypeAccessors = new List<SubtypeAccessorBase>();
 
             AddBlockSubtypes();
+        }
+
+        public virtual void Reset()
+        {
+            for (int i = 0; i < subtypeAccessors.Count; i++)
+                subtypeAccessors[i].Reset();
+
+            if (TBlock != null)
+                TBlock.OnMarkForClose -= BlockClosing;
+
+            subtypeAccessors.Clear();
+            TypeID = null;
+            TBlock = null;
+            TerminalGrid = null;
+            SubtypeId = 0;
         }
 
         /// <summary>
@@ -121,69 +141,68 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void BlockClosing(IMyEntity entity)
         {
-            TBlock = null;
-            SubtypeId = 0;
+            Reset();
         }
 
         private void AddBlockSubtypes()
         {
-            General = new GeneralAccessor(this);
+            SetOrCreateAccessor(ref _general, this);
 
-            Power = new PowerAccessor(this);
+            SetOrCreateAccessor(ref _power, this);
 
-            Battery = new BatteryAccessor(this);
+            SetOrCreateAccessor(ref _battery, this);
 
-            Inventory = new InventoryAccessor(this);
+            SetOrCreateAccessor(ref _inventory, this);
 
-            Production = new ProductionAccessorBase(this);
+            SetOrCreateAccessor(ref _production, this);
 
-            GasTank = new GasTankAccessor(this);
+            SetOrCreateAccessor(ref _gasTank, this);
 
-            AirVent = new AirVentAccessor(this);
+            SetOrCreateAccessor(ref _airVent, this);
 
-            Door = new DoorAccessor(this);
+            SetOrCreateAccessor(ref _door, this);
 
-            LandingGear = new LandingGearAccessor(this);
+            SetOrCreateAccessor(ref _landingGear, this);
 
-            Connector = new ConnectorAccessor(this);
+            SetOrCreateAccessor(ref _connector, this);
 
-            MechConnection = new MechConnectionAccessor(this);
+            SetOrCreateAccessor(ref _mechConnection, this);
 
-            Piston = new PistonAccessor(this);
+            SetOrCreateAccessor(ref _piston, this);
 
-            Rotor = new RotorAccessor(this);
+            SetOrCreateAccessor(ref _rotor, this);
 
-            Light = new LightAccessor(this);
+            SetOrCreateAccessor(ref _light, this);
 
-            JumpDrive = new JumpDriveAccessor(this);
+            SetOrCreateAccessor(ref _jumpDrive, this);
 
-            Thruster = new ThrusterAccessor(this);
+            SetOrCreateAccessor(ref _thruster, this);
 
-            Beacon = new BeaconAccessorBase(this);
+            SetOrCreateAccessor(ref _beacon, this);
 
-            LaserAntenna = new LaserAntennaAccessor(this);
+            SetOrCreateAccessor(ref _laserAntenna, this);
 
-            RadioAntenna = new RadioAntennaAccessor(this);
+            SetOrCreateAccessor(ref _radioAntenna, this);
 
-            OreDetector = new OreDetectorAccessor(this);
+            SetOrCreateAccessor(ref _oreDetector, this);
 
-            Warhead = new WarheadAccessor(this);
+            SetOrCreateAccessor(ref _warhead, this);
 
-            Weapon = new GunBaseAccessor(this);
+            SetOrCreateAccessor(ref _weapon, this);
 
-            Turret = new TurretAccessor(this);
+            SetOrCreateAccessor(ref _turret, this);
 
-            Gyroscope = new GyroAccessor(this);
+            SetOrCreateAccessor(ref _gyroscope, this);
 
-            GravityGen = new GravityGenAccessor(this);
+            SetOrCreateAccessor(ref _gravityGen, this);
 
-            Sensor = new SensorAccessor(this);
+            SetOrCreateAccessor(ref _sensor, this);
 
-            Projector = new ProjectorAccessor(this);
+            SetOrCreateAccessor(ref _projector, this);
 
-            Timer = new TimerAccessor(this);
+            SetOrCreateAccessor(ref _timer, this);
 
-            Program = new ProgramBlockAccessor(this);
+            SetOrCreateAccessor(ref _program, this);
         }
 
         public void GetGroupNamesForBlock(List<string> groups) =>
@@ -192,18 +211,28 @@ namespace DarkHelmet.BuildVision2
         public void GetGroupsForBlock(List<IMyBlockGroup> groups) =>
             TerminalGrid.GetGroupsForBlock(TBlock, groups);
 
+        private static void SetOrCreateAccessor<T>(ref T accessor, SuperBlock block) where T : SubtypeAccessorBase, new()
+        {
+            if (accessor == null)
+                accessor = new T();
+
+            accessor.SetBlock(block);
+        }
+
         public abstract class SubtypeAccessorBase
         {
             public TBlockSubtypes SubtypeId { get; protected set; }
 
             protected SuperBlock block;
 
-            protected SubtypeAccessorBase(SuperBlock block)
+            public abstract void SetBlock(SuperBlock block);
+
+            public virtual void Reset()
             {
-                this.block = block;
+                block = null;
             }
 
-            protected SubtypeAccessorBase(SuperBlock block, TBlockSubtypes subtypeId, bool addSubtype = true)
+            protected virtual void SetBlock(SuperBlock block, TBlockSubtypes subtypeId, bool addSubtype = true)
             {
                 this.block = block;
                 this.SubtypeId = subtypeId;
@@ -215,19 +244,19 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            protected SubtypeAccessorBase(SuperBlock block, TBlockSubtypes subtypeId, TBlockSubtypes prerequsites)
-                : this(block, subtypeId, block.SubtypeId.UsesSubtype(prerequsites))
-            { }
+            protected virtual void SetBlock(SuperBlock block, TBlockSubtypes subtypeId, TBlockSubtypes prerequsites) =>
+                SetBlock(block, subtypeId, block.SubtypeId.UsesSubtype(prerequsites));
 
             public abstract void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat);
         }
 
         public abstract class SubtypeAccessor<T> : SubtypeAccessorBase where T : class
         {
-            protected readonly T subtype;
+            protected T subtype;
 
-            protected SubtypeAccessor(SuperBlock block, TBlockSubtypes subtypeId, bool addSubtype = true) : base(block)
+            protected override void SetBlock(SuperBlock block, TBlockSubtypes subtypeId, bool addSubtype = true)
             {
+                this.block = block;
                 subtype = block.TBlock as T;
                 this.SubtypeId = subtypeId;
 
@@ -238,9 +267,12 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            protected SubtypeAccessor(SuperBlock block, TBlockSubtypes subtypeId, TBlockSubtypes prerequsites) 
-                : this(block, subtypeId, block.SubtypeId.UsesSubtype(prerequsites))
-            { }
+            public override void Reset()
+            {
+                block = null;
+                subtype = null;
+                SubtypeId = 0;
+            }
         }
     }
 

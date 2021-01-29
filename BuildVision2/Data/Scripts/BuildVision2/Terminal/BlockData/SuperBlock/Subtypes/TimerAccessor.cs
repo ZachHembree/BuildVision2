@@ -8,7 +8,9 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class SuperBlock
     {
-        public TimerAccessor Timer { get; private set; }
+        public TimerAccessor Timer  { get { return _timer; } private set { _timer = value; } }
+
+        private TimerAccessor _timer;
 
         public class TimerAccessor : SubtypeAccessor<IMyTimerBlock>
         {
@@ -18,8 +20,10 @@ namespace DarkHelmet.BuildVision2
 
             public bool Silent { get { return subtype.Silent; } set { subtype.Silent = value; } }
 
-            public TimerAccessor(SuperBlock block) : base(block, TBlockSubtypes.Timer)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                base.SetBlock(block, TBlockSubtypes.Timer);
+            }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

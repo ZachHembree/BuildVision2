@@ -11,7 +11,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to ore detector members, if defined.
         /// </summary>
-        public OreDetectorAccessor OreDetector { get; private set; }
+        public OreDetectorAccessor OreDetector  { get { return _oreDetector; } private set { _oreDetector = value; } }
+
+        private OreDetectorAccessor _oreDetector;
 
         public class OreDetectorAccessor : SubtypeAccessor<IMyOreDetector>
         {
@@ -25,8 +27,10 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public bool BroadcastUsingAntennas { get { return subtype.BroadcastUsingAntennas; } set { subtype.BroadcastUsingAntennas = value; } }
 
-            public OreDetectorAccessor(SuperBlock block) : base(block, TBlockSubtypes.OreDetector)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                base.SetBlock(block, TBlockSubtypes.OreDetector);
+            }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

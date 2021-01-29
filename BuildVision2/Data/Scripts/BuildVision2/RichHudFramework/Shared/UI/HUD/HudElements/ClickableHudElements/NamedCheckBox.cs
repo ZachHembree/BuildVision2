@@ -46,7 +46,7 @@ namespace RichHudFramework.UI.Server
         /// <summary>
         /// TextBoard backing the label element.
         /// </summary>
-        public ITextBoard TextBoard => name.TextBoard;
+        public ITextBuilder NameBuilder => name.TextBoard;
 
         /// <summary>
         /// Checkbox mouse input

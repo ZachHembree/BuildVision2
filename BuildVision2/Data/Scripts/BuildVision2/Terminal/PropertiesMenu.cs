@@ -17,7 +17,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Currently targeted terminal block
         /// </summary>
-        public static PropertyBlock Target => Instance.targetBlock;
+        public static PropertyBlock Target  { get; private set; }
 
         /// <summary>
         /// If true, then the menu is open
@@ -45,14 +45,14 @@ namespace DarkHelmet.BuildVision2
             set { _instance = value; }
         }
         private static PropertiesMenu _instance;
-        private const long peekTime = 100 * TimeSpan.TicksPerMillisecond;
 
         private readonly BvScrollMenu scrollMenu;
         private readonly CustomSpaceNode hudSpace;
-        private readonly TerminalGrid targetGrid;
         private readonly BoundingBoard boundingBox;
-        private PropertyBlock targetBlock;
+
+        private readonly TerminalGrid targetGrid;
         private IMyTerminalBlock lastPastedTarget;
+
         private BlockData clipboard, pasteBackup;
         private Stopwatch peekRefresh;
 
@@ -61,16 +61,16 @@ namespace DarkHelmet.BuildVision2
             DrawBoundingBox = false;
             EnableWorldDraw = false;
 
+            targetGrid = new TerminalGrid();
+            Target = new PropertyBlock();
+
             hudSpace = new CustomSpaceNode(HudMain.Root) { UpdateMatrixFunc = UpdateHudSpace };
             scrollMenu = new BvScrollMenu(hudSpace) { Visible = false };
-            targetGrid = new TerminalGrid();
             boundingBox = new BoundingBoard();
 
             RichHudCore.LateMessageEntered += MessageHandler;
             peekRefresh = new Stopwatch();
             peekRefresh.Start();
-
-            SharedBinds.Escape.NewPressed += Hide;
         }
 
         public static void Init()
@@ -89,6 +89,7 @@ namespace DarkHelmet.BuildVision2
         {
             Hide();
             RichHudCore.LateMessageEntered -= MessageHandler;
+            Target = null;
             Instance = null;
         }
 
@@ -109,7 +110,7 @@ namespace DarkHelmet.BuildVision2
             if (Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))
                 Hide();
 
-            if (targetBlock != null && Open)
+            if (Target.TBlock != null && Open)
                 scrollMenu.UpdateText();
         }
 
@@ -117,18 +118,21 @@ namespace DarkHelmet.BuildVision2
         {
             if (!HudMain.Cursor.Visible)
             {
+                // Open/Hide
                 if (BvBinds.Open.IsNewPressed && BvBinds.Hide.IsNewPressed)
                     ToggleOpen();
                 else if (BvBinds.Open.IsNewPressed)
                     TryOpen();
-                else if (BvBinds.Hide.IsNewPressed)
+                else if (BvBinds.Hide.IsNewPressed || SharedBinds.Escape.IsNewPressed)
                     Hide();
 
+                // Peek
                 if (BvConfig.Current.general.enablePeek)
                 {
                     if (BvBinds.Peek.IsPressed && (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peek))
                     {
-                        if (BvBinds.Peek.IsNewPressed || peekRefresh.ElapsedTicks > peekTime)
+                        // Acquire peek target on new press and reacquire every 100ms until bind is released
+                        if (BvBinds.Peek.IsNewPressed || peekRefresh.ElapsedMilliseconds > 100)
                         {
                             TryPeek();
                             peekRefresh.Restart();
@@ -138,31 +142,35 @@ namespace DarkHelmet.BuildVision2
                         Hide();
                 }
 
-                if (targetBlock != null && Open)
+                // Copy/paste
+                if (Target.TBlock != null && Open)
                 {
+                    // Copy properties
                     if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Dupe)
                     {
-                        clipboard = new BlockData(targetBlock.TypeID, scrollMenu.GetDuplicationRange());
+                        clipboard = new BlockData(Target.TypeID, scrollMenu.GetDuplicationRange());
                         scrollMenu.ShowNotification($"Copied {clipboard.terminalProperties.Count} Properties");
                     }
 
+                    // Attempt to paste copied properties
                     if (BvBinds.PasteProperties.IsNewPressed && !clipboard.Equals(default(BlockData)) && clipboard.terminalProperties.Count > 0)
                     {
-                        if (clipboard.blockTypeID == targetBlock.TypeID)
+                        if (clipboard.blockTypeID == Target.TypeID)
                         {
-                            pasteBackup = targetBlock.ExportSettings();
-                            lastPastedTarget = targetBlock.TBlock;
+                            pasteBackup = Target.ExportSettings();
+                            lastPastedTarget = Target.TBlock;
 
-                            int importCount = targetBlock.ImportSettings(clipboard);
+                            int importCount = Target.ImportSettings(clipboard);
                             scrollMenu.ShowNotification($"Pasted {importCount} Properties");
                         }
                         else
                             scrollMenu.ShowNotification($"Paste Incompatible");
                     }
 
-                    if (BvBinds.UndoPaste.IsNewPressed && targetBlock.TBlock == lastPastedTarget)
+                    // Undo paste if the last pasted block is selected
+                    if (BvBinds.UndoPaste.IsNewPressed && Target.TBlock == lastPastedTarget)
                     {
-                        targetBlock.ImportSettings(pasteBackup);
+                        Target.ImportSettings(pasteBackup);
                         scrollMenu.ShowNotification("Paste Undone");
                         lastPastedTarget = null;
                     }
@@ -172,11 +180,12 @@ namespace DarkHelmet.BuildVision2
 
         private MatrixD UpdateHudSpace()
         {
-            if (targetBlock != null && Open)
+            if (Target.TBlock != null && Open)
             {
-                if (DrawBoundingBox)
-                    boundingBox.Draw(targetBlock.TBlock);
+                if (DrawBoundingBox) // Debug target bounding box
+                    boundingBox.Draw(Target.TBlock);
 
+                // Update opacity, visible range and UI scale based on config
                 scrollMenu.BgOpacity = BvConfig.Current.hudConfig.hudOpacity;
                 scrollMenu.MaxVisible = BvConfig.Current.hudConfig.maxVisible;
 
@@ -185,10 +194,10 @@ namespace DarkHelmet.BuildVision2
                 else
                     scrollMenu.LocalScale = BvConfig.Current.hudConfig.hudScale;
 
-                if (EnableWorldDraw)
+                if (EnableWorldDraw) // Debug world draw
                 {
-                    BoundingBox box = targetBlock.TBlock.LocalAABB;
-                    MatrixD matrix = targetBlock.TBlock.WorldMatrix;
+                    BoundingBox box = Target.TBlock.LocalAABB;
+                    MatrixD matrix = Target.TBlock.WorldMatrix;
                     matrix.Translation += new Vector3D(0d, 0d, box.Size.Z * .5f + 0.1f);
 
                     hudSpace.LocalScale = 0.01f;
@@ -196,14 +205,14 @@ namespace DarkHelmet.BuildVision2
 
                     return matrix;
                 }
-                else
+                else // Update UI to draw over the target or at a fixed position on the screen, as configured
                 {
                     Vector3D targetPos, worldPos;
                     Vector2 screenPos, screenBounds = Vector2.One / 2f;
 
                     if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !BvConfig.Current.hudConfig.useCustomPos)
                     {
-                        targetPos = Target.Position + Target.modelOffset * .75d;
+                        targetPos = Target.Position + Target.ModelOffset * .75d;
                         worldPos = LocalPlayer.GetWorldToScreenPos(targetPos) / 2d;
 
                         screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
@@ -230,6 +239,9 @@ namespace DarkHelmet.BuildVision2
             return HudMain.PixelToWorld;
         }
 
+        /// <summary>
+        /// Toggles the menu open/closed
+        /// </summary>
         private void ToggleOpen()
         {
             if (Open && scrollMenu.MenuMode != ScrollMenuModes.Peek)
@@ -238,38 +250,42 @@ namespace DarkHelmet.BuildVision2
                 TryOpen();
         }
 
+        /// <summary>
+        /// Attempts to open the menu and set it to peek
+        /// </summary>
         private void TryPeek()
         {
-            scrollMenu.MenuMode = ScrollMenuModes.Peek;
-
             if (TryGetTarget() && CanAccessTargetBlock())
             {
-                scrollMenu.SetTarget(targetBlock);
+                scrollMenu.MenuMode = ScrollMenuModes.Peek;
+                scrollMenu.UpdateTarget();
                 Open = true;
             }
         }
 
+        /// <summary>
+        /// Attempts to open the menu and set it to control
+        /// </summary>
         private void TryOpen()
         {
-            scrollMenu.MenuMode = ScrollMenuModes.Control;
-
-            if ((scrollMenu.MenuMode == ScrollMenuModes.Peek && targetBlock?.TBlock != null || TryGetTarget()) && CanAccessTargetBlock())
+            if (Open && scrollMenu.MenuMode == ScrollMenuModes.Peek)
+                scrollMenu.MenuMode = ScrollMenuModes.Control;
+            else if (TryGetTarget() && CanAccessTargetBlock())
             {
-                if (targetBlock?.TBlock != scrollMenu?.Target?.TBlock)
-                {
-                    scrollMenu.SetTarget(targetBlock);
-                    Open = true;
-                }
+                scrollMenu.MenuMode = ScrollMenuModes.Control;
+                scrollMenu.UpdateTarget();
+                Open = true;
             }
         }
 
         /// <summary>
-        /// Hides all menu elements.
+        /// Hide the scroll menu and clear target
         /// </summary>
         private void Hide()
         {
             Open = false;
-            targetBlock = null;
+            Target.Reset();
+            targetGrid.Reset();
             scrollMenu.Clear();
         }
 
@@ -288,10 +304,10 @@ namespace DarkHelmet.BuildVision2
 
                     if ((permissions & TerminalPermissionStates.Granted) > 0)
                     {
-                        if (targetBlock == null || block != targetBlock.TBlock)
+                        if (Target.TBlock == null || block != Target.TBlock)
                         {
                             targetGrid.SetGrid(block.CubeGrid);
-                            targetBlock = new PropertyBlock(targetGrid, block);
+                            Target.SetBlock(targetGrid, block);
                         }
 
                         return true;
@@ -322,21 +338,25 @@ namespace DarkHelmet.BuildVision2
 
             if (LocalPlayer.TryGetTargetedGrid(line, out grid, out rayInfo))
             {
-                double currentDist = double.PositiveInfinity, currentCenterDist = double.PositiveInfinity;
+                // Retrieve blocks within about half a block of the ray intersection point.
                 var sphere = new BoundingSphereD(rayInfo.Position, (grid.GridSizeEnum == MyCubeSize.Large) ? 1.3 : .3);
                 List<IMySlimBlock> blocks = grid.GetBlocksInsideSphere(ref sphere);
+                double currentDist = double.PositiveInfinity, currentCenterDist = double.PositiveInfinity;
 
                 foreach (IMySlimBlock slimBlock in blocks)
                 {
                     IMyCubeBlock cubeBlock = slimBlock?.FatBlock;
 
-                    if (cubeBlock != null)
+                    if (cubeBlock != null) // if it has a valid fat block (not armor)
                     {
+                        // Find shortest dist between the axis-aligned bb and the intersection.
                         BoundingBoxD box = cubeBlock.WorldAABB;
-                        double newDist = box.DistanceSquared(rayInfo.Position),
+                        double newDist = box.DistanceSquared(rayInfo.Position), 
                             newCenterDist = Vector3D.DistanceSquared(box.Center, rayInfo.Position);
                         var tBlock = cubeBlock as IMyTerminalBlock;
 
+                        // If this is a terminal block, check to see if this block is any closer than the last.
+                        // If the distance to the bb is zero, use the center dist, favoring smaller blocks.
                         if ((tBlock != null || currentDist > 0d) && (newDist < currentDist || (newDist == 0d && newCenterDist < currentCenterDist)))
                         {
                             target = tBlock;
@@ -346,6 +366,7 @@ namespace DarkHelmet.BuildVision2
                     }
                 }
 
+                // If no blocks were intersected by the ray, get the block at the first grid cell intersected instead.
                 if (target == null)
                 {
                     IMySlimBlock slimBlock;
@@ -362,7 +383,7 @@ namespace DarkHelmet.BuildVision2
         /// Checks if the player can access the targeted block.
         /// </summary>
         private bool CanAccessTargetBlock() =>
-            targetBlock?.TBlock != null && BlockInRange() && targetBlock.CanLocalPlayerAccess && (!BvConfig.Current.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(targetBlock.TBlock));
+            Target.TBlock != null && BlockInRange() && Target.CanLocalPlayerAccess && (!BvConfig.Current.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock));
 
         /// <summary>
         /// Determines whether the player is within 10 units of the block.
@@ -371,8 +392,8 @@ namespace DarkHelmet.BuildVision2
         {
             double dist = double.PositiveInfinity;
 
-            if (targetBlock != null)
-                dist = (LocalPlayer.Position - targetBlock.Position).LengthSquared();
+            if (Target.TBlock != null)
+                dist = (LocalPlayer.Position - Target.Position).LengthSquared();
 
             return dist < (BvConfig.Current.general.maxControlRange * BvConfig.Current.general.maxControlRange);
         }

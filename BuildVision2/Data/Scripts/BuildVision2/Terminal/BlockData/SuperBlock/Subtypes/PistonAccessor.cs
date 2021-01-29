@@ -12,7 +12,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to piston members, if defined.
         /// </summary>
-        public PistonAccessor Piston { get; private set; }
+        public PistonAccessor Piston  { get { return _piston; } private set { _piston = value; } }
+
+        private PistonAccessor _piston;
 
         public class PistonAccessor : SubtypeAccessor<IMyPistonBase>
         {
@@ -21,8 +23,10 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public float ExtensionDist => subtype.CurrentPosition;
 
-            public PistonAccessor(SuperBlock block) : base(block, TBlockSubtypes.Piston, TBlockSubtypes.MechanicalConnection)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                base.SetBlock(block, TBlockSubtypes.Piston, TBlockSubtypes.MechanicalConnection);
+            }
 
             /// <summary>
             /// Reverses the direction of the piston.

@@ -98,14 +98,16 @@ namespace DarkHelmet.BuildVision2
                 Stopwatch timer = new Stopwatch();
                 timer.Start();
 
-                TerminalGrid grid = new TerminalGrid();
+                var grid = new TerminalGrid();
+                var pBlock = new PropertyBlock();
+
                 grid.SetGrid(tblock.CubeGrid);
 
                 for (int n = 0; n < iterations; n++)
                 {
                     IMyTerminalBlock temp;
                     PropertiesMenu.TryGetTargetedBlock(100d, out temp);
-                    PropertyBlock pBlock = new PropertyBlock(grid, tblock);
+                    pBlock.SetBlock(grid, tblock);
 
                     if (getProperties)
                         pBlock.GetEnabledElementCount();

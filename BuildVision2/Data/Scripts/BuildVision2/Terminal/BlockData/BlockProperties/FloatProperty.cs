@@ -37,34 +37,79 @@ namespace DarkHelmet.BuildVision2
 
             public override string Status => GetStatusFunc?.Invoke() ?? "";
 
-            private readonly Func<string> GetStatusFunc;
-            private readonly Action<IMyTerminalBlock, StringBuilder> SliderWriter;
-            private readonly StringBuilder writerText;
-            private readonly float minValue, maxValue, increment;
-            private readonly Func<float> GetScaleFunc;
+            private static readonly Func<float> GetDefaultScaleFunc;
 
-            public FloatProperty(string name, ITerminalProperty<float> property, IMyTerminalControl control, SuperBlock block) : base(name, property, control, block)
+            private readonly StringBuilder writerText;
+            private readonly Func<string> GetPistonExtensionFunc, GetRotorAngleFunc;
+            private readonly Func<float> GetThrustEffectFunc;
+
+            private Action<IMyTerminalBlock, StringBuilder> SliderWriter;
+            private Func<string> GetStatusFunc;
+            private Func<float> GetScaleFunc;
+            private float minValue, maxValue, increment;
+            protected BvPropPool<FloatProperty> poolParent;
+
+            static FloatProperty()
             {
+                GetDefaultScaleFunc = () => 1f;
+            }
+
+            public FloatProperty()
+            {
+                writerText = new StringBuilder();
+                GetPistonExtensionFunc = GetPistonExtension;
+                GetRotorAngleFunc = GetRotorAngle;
+                GetThrustEffectFunc = GetThrustEffect;
+            }
+
+            public override void SetProperty(string name, ITerminalProperty<float> property, IMyTerminalControl control, PropertyBlock block)
+            {
+                base.SetProperty(name, property, control, block);
+
+                if (poolParent == null)
+                    poolParent = block.floatPropPool;
+
                 var slider = control as IMyTerminalControlSlider;
                 SliderWriter = slider?.Writer;
-                writerText = new StringBuilder();
 
                 minValue = property.GetMinimum(block.TBlock);
                 maxValue = property.GetMaximum(block.TBlock);
                 increment = GetIncrement();
 
                 if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Thruster) && PropName == "Override")
-                    GetScaleFunc = () => block.Thruster.ThrustEffectiveness;
+                    GetScaleFunc = GetThrustEffectFunc;
                 else
-                    GetScaleFunc = () => 1f;
+                    GetScaleFunc = GetDefaultScaleFunc;
 
                 if (property.Id == "UpperLimit")
                 {
-                    if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Piston))
-                        GetStatusFunc = () => $"({block.Piston.ExtensionDist.Round(2)}m)";
-                    else if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Rotor))
-                        GetStatusFunc = () => $"({MathHelper.Clamp(block.Rotor.Angle.RadiansToDegrees(), -360, 360).Round(2)}°)";
+                    if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Rotor))
+                        GetStatusFunc = GetRotorAngleFunc;
+                    else if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Piston))
+                        GetStatusFunc = GetPistonExtensionFunc;
                 }
+            }
+
+            public override void Reset()
+            {
+                base.Reset();
+
+                GetStatusFunc = null;
+                GetScaleFunc = null;
+                writerText.Clear();
+            }
+
+            public override void Return()
+            {
+                poolParent.Return(this);
+            }
+
+            public static FloatProperty GetProperty(string name, ITerminalProperty<float> property, IMyTerminalControl control, PropertyBlock block)
+            {
+                FloatProperty prop = block.floatPropPool.Get();
+                prop.SetProperty(name, property, control, block);
+
+                return prop;
             }
 
             public override void ScrollDown() =>
@@ -81,6 +126,15 @@ namespace DarkHelmet.BuildVision2
 
             public override bool TryParseValue(string text, out float value) =>
                 float.TryParse(text, out value);
+
+            private float GetThrustEffect() =>
+                block.Thruster.ThrustEffectiveness;
+
+            private string GetPistonExtension() =>
+                $"({block.Piston.ExtensionDist.Round(2)}m)";
+
+            private string GetRotorAngle() =>
+                $"({MathHelper.Clamp(block.Rotor.Angle.RadiansToDegrees(), -360, 360).Round(2)}°)";
 
             private float GetIncrement()
             {

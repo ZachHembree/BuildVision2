@@ -6,6 +6,7 @@ using RichHudFramework.Internal;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
 using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
+using RichHudFramework;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -17,13 +18,18 @@ namespace DarkHelmet.BuildVision2
         private class BlockAction : BlockMemberBase, IBlockAction
         {
             public override string Display => GetValueFunc();
+
             public override string Status => GetPostfixFunc != null ? GetPostfixFunc() : null;
 
-            private readonly Func<string> GetValueFunc, GetPostfixFunc;
-            private readonly Action action;
+            private Func<string> GetValueFunc, GetPostfixFunc;
+            private Action action;
+            private BvPropPool<BlockAction> poolParent;
 
-            public BlockAction(Func<string> GetValueFunc, Func<string> GetPostfixFunc, Action Action)
+            public void SetAction(Func<string> GetValueFunc, Func<string> GetPostfixFunc, Action Action, PropertyBlock block)
             {
+                if (poolParent == null)
+                    poolParent = block.blockActionPool;
+
                 Name = null;
                 Enabled = true;
 
@@ -32,8 +38,33 @@ namespace DarkHelmet.BuildVision2
                 action = Action;
             }
 
-            public BlockAction(string value, Func<string> GetPostfixFunc, Action Action)
-                : this(() => value, GetPostfixFunc, Action) { }
+            public override void Reset()
+            {
+                GetValueFunc = null;
+                GetPostfixFunc = null;
+                action = null;
+            }
+
+            public override void Return()
+            {
+                poolParent.Return(this);
+            }
+
+            public static BlockAction GetBlockAction(Func<string> GetValueFunc, Func<string> GetPostfixFunc, Action Action, PropertyBlock block)
+            {
+                BlockAction blockAction = block.blockActionPool.Get();
+                blockAction.SetAction(GetValueFunc, GetPostfixFunc, Action, block);
+
+                return blockAction;
+            }
+
+            public static BlockAction GetBlockAction(string value, Func<string> GetPostfixFunc, Action Action, PropertyBlock block)
+            {
+                BlockAction blockAction = block.blockActionPool.Get();
+                blockAction.SetAction(() => value, GetPostfixFunc, Action, block);
+
+                return blockAction;
+            }
 
             public void Action() =>
                 action();
@@ -41,7 +72,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Gets actions for blocks implementing IMyMechanicalConnectionBlock.
             /// </summary>
-            public static void GetMechActions(SuperBlock block, List<IBlockMember> members)
+            public static void GetMechActions(PropertyBlock block, List<BlockMemberBase> members)
             {
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
                 block.TBlock.GetActions(terminalActions);
@@ -54,114 +85,114 @@ namespace DarkHelmet.BuildVision2
                 else
                     AttachAction = block.MechConnection.AttachHead;
 
-                members.Add(new BlockAction(
+                members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_Attach),
                     () => $"({block.MechConnection.GetLocalizedAttachStatus()})",
-                    AttachAction));
-                members.Add(new BlockAction(
+                    AttachAction, block));
+                members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_Detach), null,
-                    block.MechConnection.DetachHead));
+                    block.MechConnection.DetachHead, block));
 
                 foreach (IMyTerminalAction tAction in terminalActions)
                 {
                     if (tAction.IsEnabled(block.TBlock) && tAction.Id.StartsWith("Add"))
                     {
-                        members.Add(new BlockAction(
+                        members.Add(GetBlockAction(
                             MyTexts.TrySubstitute(tAction.Name.ToString()), null,
-                            () => tAction.Apply(block.TBlock)));
+                            () => tAction.Apply(block.TBlock), block));
                     }
                 }
 
                 if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Piston))
                 {
-                    members.Add(new BlockAction(
+                    members.Add(GetBlockAction(
                          MyTexts.GetString(MySpaceTexts.BlockActionTitle_Reverse), null,
-                         block.Piston.Reverse));
+                         block.Piston.Reverse, block));
                 }
                 else if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Rotor))
                 {
-                    members.Add(new BlockAction(
+                    members.Add(GetBlockAction(
                         MyTexts.GetString(MySpaceTexts.BlockActionTitle_Reverse), null,
-                        block.Rotor.Reverse));
+                        block.Rotor.Reverse, block));
                 }
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyDoor.
             /// </summary>
-            public static void GetDoorActions(SuperBlock blockData, List<IBlockMember> members)
+            public static void GetDoorActions(PropertyBlock block, List<BlockMemberBase> members)
             {
-                members.Add(new BlockAction(
+                members.Add(GetBlockAction(
                     MyTexts.TrySubstitute("Open/Close"), null,
-                    blockData.Door.ToggleDoor));
+                    block.Door.ToggleDoor, block));
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyWarhead.
             /// </summary>
-            public static void GetWarheadActions(SuperBlock blockData, List<IBlockMember> members)
+            public static void GetWarheadActions(PropertyBlock block, List<BlockMemberBase> members)
             {
-                members.Add(new BlockAction(
+                members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StartCountdown),
-                    () => $"({Math.Truncate(blockData.Warhead.CountdownTime)}s)",
-                    blockData.Warhead.StartCountdown));
-                members.Add(new BlockAction(
+                    () => $"({Math.Truncate(block.Warhead.CountdownTime)}s)",
+                    block.Warhead.StartCountdown, block));
+                members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StopCountdown), null,
-                    blockData.Warhead.StopCountdown));
-                members.Add(new BlockAction(
+                    block.Warhead.StopCountdown, block));
+                members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_Detonate), null,
-                    blockData.Warhead.Detonate));
+                    block.Warhead.Detonate, block));
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyLandingGear.
             /// </summary>
-            public static void GetGearActions(SuperBlock blockData, List<IBlockMember> members)
+            public static void GetGearActions(PropertyBlock block, List<BlockMemberBase> members)
             {
-                members.Add(new BlockAction(
+                members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_SwitchLock),
-                    () => $"({blockData.LandingGear.GetLocalizedStatus()})",
-                    blockData.LandingGear.ToggleLock));
+                    () => $"({block.LandingGear.GetLocalizedStatus()})",
+                    block.LandingGear.ToggleLock, block));
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyShipConnector.
             /// </summary>
-            public static void GetConnectorActions(SuperBlock blockData, List<IBlockMember> members)
+            public static void GetConnectorActions(PropertyBlock block, List<BlockMemberBase> members)
             {
-                members.Add(new BlockAction(
+                members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_SwitchLock),
-                    () => $"({blockData.Connector.GetLocalizedStatus()})",
-                    blockData.Connector.ToggleConnect));
+                    () => $"({block.Connector.GetLocalizedStatus()})",
+                    block.Connector.ToggleConnect, block));
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyShipConnector.
             /// </summary>
-            public static void GetProgrammableBlockActions(SuperBlock blockData, List<IBlockMember> members)
+            public static void GetProgrammableBlockActions(PropertyBlock block, List<BlockMemberBase> members)
             {
-                members.Add(new BlockAction(
+                members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_RunCode), null,
-                    blockData.Program.Run));
-                members.Add(new BlockAction(
+                    block.Program.Run, block));
+                members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Recompile), null,
-                    blockData.Program.Recompile));
+                    block.Program.Recompile, block));
             }
 
             /// <summary>
             /// Gets actions for blocks implementing IMyShipConnector.
             /// </summary>
-            public static void GetTimerActions(SuperBlock blockData, List<IBlockMember> members)
+            public static void GetTimerActions(PropertyBlock block, List<BlockMemberBase> members)
             {
-                members.Add(new BlockAction(
+                members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_TimerStart), null,
-                    blockData.Timer.StartCountdown));
-                members.Add(new BlockAction(
+                    block.Timer.StartCountdown, block));
+                members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_TimerStop), null,
-                    blockData.Timer.StopCountdown));
-                members.Add(new BlockAction(
+                    block.Timer.StopCountdown, block));
+                members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_TimerTrigger), null,
-                    blockData.Timer.Trigger));
+                    block.Timer.Trigger, block));
             }
         }
     }

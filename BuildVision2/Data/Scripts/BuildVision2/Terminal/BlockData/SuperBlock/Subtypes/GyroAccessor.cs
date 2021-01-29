@@ -8,7 +8,9 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class SuperBlock
     {
-        public GyroAccessor Gyroscope { get; private set; }
+        public GyroAccessor Gyroscope  { get { return _gyroscope; } private set { _gyroscope = value; } }
+
+        private GyroAccessor _gyroscope;
 
         public class GyroAccessor : SubtypeAccessor<IMyGyro>
         {
@@ -22,8 +24,10 @@ namespace DarkHelmet.BuildVision2
 
             public float Yaw { get { return subtype.Yaw; } set { subtype.Yaw = value; } }
 
-            public GyroAccessor(SuperBlock block) : base(block, TBlockSubtypes.Gyroscope)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                base.SetBlock(block, TBlockSubtypes.Gyroscope);
+            }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

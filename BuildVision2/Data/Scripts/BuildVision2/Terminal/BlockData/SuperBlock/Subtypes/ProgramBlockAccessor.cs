@@ -7,7 +7,9 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class SuperBlock
     {
-        public ProgramBlockAccessor Program { get; private set; }
+        public ProgramBlockAccessor Program  { get { return _program; } private set { _program = value; } }
+
+        private ProgramBlockAccessor _program;
 
         public class ProgramBlockAccessor : SubtypeAccessor<IMyProgrammableBlock>
         { 
@@ -15,8 +17,10 @@ namespace DarkHelmet.BuildVision2
 
             public string Argument => subtype.TerminalRunArgument;
 
-            public ProgramBlockAccessor(SuperBlock block) : base(block, TBlockSubtypes.Programmable)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                base.SetBlock(block, TBlockSubtypes.Programmable);
+            }
 
             public void Run() =>
                 subtype.Run();

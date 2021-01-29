@@ -1,5 +1,6 @@
 ﻿using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
+using System.Text;
 using System.Collections.Generic;
 using VRage;
 using VRage.ModAPI;
@@ -15,19 +16,33 @@ namespace DarkHelmet.BuildVision2
         private class ComboBoxProperty : ScrollableValueControlBase<IMyTerminalControlCombobox, long>
         {
             public override string Display => names[GetCurrentIndex()];
+
             public override string Status => GetPostfixFunc?.Invoke();
 
             private readonly List<long> keys;
             private readonly List<string> names;
-            private readonly Func<string> GetPostfixFunc;
+            private Func<string> GetPostfixFunc, GetChargePostfixFunc;
+            protected BvPropPool<ComboBoxProperty> poolParent;
 
-            public ComboBoxProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, SuperBlock block) : base(name, comboBox, control, block)
+            public ComboBoxProperty()
             {
+                keys = new List<long>();
+                names = new List<string>();
+                GetChargePostfixFunc = GetChargePostfix;
+            }
+
+            public override void SetProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, PropertyBlock block)
+            {
+                base.SetProperty(name, comboBox, control, block);
+
+                if (poolParent == null)
+                    poolParent = block.comboPropPool;
+
                 List<MyTerminalControlComboBoxItem> content = new List<MyTerminalControlComboBoxItem>();
                 comboBox.ComboBoxContent(content);
 
-                keys = new List<long>(content.Count);
-                names = new List<string>(content.Count);
+                keys.EnsureCapacity(content.Count);
+                names.EnsureCapacity(content.Count);
 
                 foreach (MyTerminalControlComboBoxItem item in content)
                 {
@@ -35,9 +50,31 @@ namespace DarkHelmet.BuildVision2
                     keys.Add(item.Key);
                     names.Add(itemName);
                 }
-
+                
                 if (control.Id == "ChargeMode" && block.SubtypeId.UsesSubtype(TBlockSubtypes.Battery)) // Insert bat charge info
-                    GetPostfixFunc = () => $"({Math.Round((block.Battery.Charge / block.Battery.Capacity) * 100f, 1)}%)";
+                    GetPostfixFunc = GetChargePostfixFunc;
+            }
+
+            public override void Reset()
+            {
+                base.Reset();
+
+                GetPostfixFunc = null;
+                keys.Clear();
+                names.Clear();
+            }
+
+            public override void Return()
+            {
+                poolParent.Return(this);
+            }
+
+            public static ComboBoxProperty GetProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, PropertyBlock block)
+            {
+                ComboBoxProperty prop = block.comboPropPool.Get();
+                prop.SetProperty(name, comboBox, control, block);
+
+                return prop;
             }
 
             public override void ScrollUp() =>
@@ -45,6 +82,11 @@ namespace DarkHelmet.BuildVision2
 
             public override void ScrollDown() =>
                 ChangePropValue(-1);
+
+            private string GetChargePostfix()
+            {
+                return $"({Math.Round((block.Battery.Charge / block.Battery.Capacity) * 100f, 1)}%)";
+            }
 
             private void ChangePropValue(int delta)
             {

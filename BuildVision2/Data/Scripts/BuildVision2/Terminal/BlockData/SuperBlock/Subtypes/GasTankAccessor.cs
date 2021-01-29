@@ -8,10 +8,22 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class SuperBlock
     {
+        private GasTankAccessor _gasTank;
+
         /// <summary>
         /// Provides access to block tank members, if defined.
         /// </summary>
-        public GasTankAccessor GasTank { get; private set; }
+        public GasTankAccessor GasTank
+        {
+            get
+            {
+                return _gasTank;
+            }
+            private set
+            {
+                _gasTank = value;
+            }
+        }
 
         public class GasTankAccessor : SubtypeAccessor<IMyGasTank>
         {
@@ -31,8 +43,10 @@ namespace DarkHelmet.BuildVision2
 
             public bool AutoRefillBottles { get { return subtype.AutoRefillBottles; } set { subtype.AutoRefillBottles = value; } }
 
-            public GasTankAccessor(SuperBlock block) : base(block, TBlockSubtypes.GasTank)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                base.SetBlock(block, TBlockSubtypes.GasTank);
+            }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

@@ -53,7 +53,7 @@ namespace DarkHelmet.BuildVision2
         {
             float scale;
             string suffix;
-            GetPowerScale(megawatts, out scale, out suffix);
+            GetPowerScale(megawatts / 10f, out scale, out suffix);
 
             return $"{Math.Round(megawatts * scale, 2):G4} {suffix}";
         }

@@ -11,7 +11,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to block thruster members.
         /// </summary>
-        public ThrusterAccessor Thruster { get; private set; }
+        public ThrusterAccessor Thruster  { get { return _thruster; } private set { _thruster = value; } }
+
+        private ThrusterAccessor _thruster;
 
         public class ThrusterAccessor : SubtypeAccessor<IMyThrust>
         {
@@ -36,8 +38,10 @@ namespace DarkHelmet.BuildVision2
 
             public float ThrustEffectiveness => subtype.MaxEffectiveThrust / subtype.MaxThrust;
 
-            public ThrusterAccessor(SuperBlock block) : base(block, TBlockSubtypes.Thruster)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                base.SetBlock(block, TBlockSubtypes.Thruster);
+            }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

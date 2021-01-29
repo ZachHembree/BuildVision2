@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using RichHudFramework.UI.Rendering;
 using VRageMath;
 
@@ -13,14 +14,14 @@ namespace RichHudFramework.UI.Server
     public class ColorPickerRGB : HudElementBase
     {
         /// <summary>
-        /// Text rendered by the label.
+        /// Text rendered by the label
         /// </summary>
         public RichText Name { get { return name.TextBoard.GetText(); } set { name.TextBoard.SetText(value); } }
 
         /// <summary>
-        /// TextBoard backing the label element.
+        /// Text builder backing the label
         /// </summary>
-        public ITextBoard TextBoard => name.TextBoard;
+        public ITextBuilder NameBuilder => name.TextBoard;
 
         public override float Width
         {
@@ -76,6 +77,7 @@ namespace RichHudFramework.UI.Server
         private readonly HudChain<HudElementContainer<SliderBox>, SliderBox> colorSliderColumn;
 
         private readonly HudChain mainChain, colorChain;
+        private readonly StringBuilder valueBuilder;
         private Color _color;
 
         public ColorPickerRGB(HudParentBase parent) : base(parent)
@@ -156,6 +158,7 @@ namespace RichHudFramework.UI.Server
             };
 
             Size = new Vector2(318f, 163f);
+            valueBuilder = new StringBuilder();
         }
 
         public ColorPickerRGB() : this(null)
@@ -171,9 +174,20 @@ namespace RichHudFramework.UI.Server
                 A = 255
             };
 
-            rText.TextBoard.SetText($"R: {_color.R}");
-            gText.TextBoard.SetText($"G: {_color.G}");
-            bText.TextBoard.SetText($"B: {_color.B}");
+            valueBuilder.Clear();
+            valueBuilder.Append("R: ");
+            valueBuilder.Append(_color.R);
+            rText.TextBoard.SetText(valueBuilder);
+
+            valueBuilder.Clear();
+            valueBuilder.Append("G: ");
+            valueBuilder.Append(_color.G);
+            gText.TextBoard.SetText(valueBuilder);
+
+            valueBuilder.Clear();
+            valueBuilder.Append("B: ");
+            valueBuilder.Append(_color.B);
+            bText.TextBoard.SetText(valueBuilder);
 
             display.Color = _color;
         }

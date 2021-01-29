@@ -104,16 +104,6 @@ namespace RichHudFramework
             /// update. Meant to be used in conjunction with pooled elements being
             /// unregistered/reregistered to the same parent.</param>
             void RemoveRange(int index, int count, bool fast = false);
-
-            /// <summary>
-            /// Sorts the entires using the default comparer.
-            /// </summary>
-            void Sort();
-
-            /// <summary>
-            /// Sorts the entries using the given comparer.
-            /// </summary>
-            void Sort(Func<TElementContainer, TElementContainer, int> comparison);
         }
 
         /// <summary>

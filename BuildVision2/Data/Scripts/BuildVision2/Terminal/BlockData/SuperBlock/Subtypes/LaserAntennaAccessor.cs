@@ -12,7 +12,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to laser antenna members, if defined.
         /// </summary>
-        public LaserAntennaAccessor LaserAntenna { get; private set; }
+        public LaserAntennaAccessor LaserAntenna  { get { return _laserAntenna; } private set { _laserAntenna = value; } }
+
+        private LaserAntennaAccessor _laserAntenna;
 
         public class LaserAntennaAccessor : SubtypeAccessor<IMyLaserAntenna>
         {
@@ -26,8 +28,10 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public MyLaserAntennaStatus Status => subtype.Status;
 
-            public LaserAntennaAccessor(SuperBlock block) : base(block, TBlockSubtypes.LaserAntenna)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                base.SetBlock(block, TBlockSubtypes.LaserAntenna);
+            }
 
             /// <summary>
             /// Returns antenna status as a localized string.

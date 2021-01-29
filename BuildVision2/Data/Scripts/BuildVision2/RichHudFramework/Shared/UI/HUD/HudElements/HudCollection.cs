@@ -149,7 +149,7 @@ namespace RichHudFramework
                 {
                     if (hudCollectionList.Remove(entry))
                     {
-                        skipCollectionRemove = true;
+                        skipCollectionRemove = !fast;
                         bool success = entry.Element.Unregister(fast);
 
                         return success;
@@ -175,7 +175,7 @@ namespace RichHudFramework
 
                     if (index != -1 && index < hudCollectionList.Count)
                     {
-                        skipCollectionRemove = true;
+                        skipCollectionRemove = !fast;
                         hudCollectionList.RemoveAt(index);
                         success = element.Unregister(fast);
                     }
@@ -199,7 +199,7 @@ namespace RichHudFramework
                     TElement element = hudCollectionList[index].Element;
                     hudCollectionList.RemoveAt(index);
 
-                    skipCollectionRemove = true;
+                    skipCollectionRemove = !fast;
                     bool success = element.Unregister(fast);
 
                     return success;
@@ -255,18 +255,6 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// Sorts the entries using the given comparer.
-            /// </summary>
-            public void Sort(Func<TElementContainer, TElementContainer, int> comparison) =>
-                hudCollectionList.Sort((x, y) => comparison(x, y));
-
-            /// <summary>
-            /// Sorts the entires using the default comparer.
-            /// </summary>
-            public void Sort() =>
-                hudCollectionList.Sort();
-
-            /// <summary>
             /// Returns true if the given element is in the collection.
             /// </summary>
             public bool Contains(TElementContainer item) =>
@@ -281,7 +269,14 @@ namespace RichHudFramework
             public override bool RemoveChild(HudNodeBase child, bool fast = false)
             {
                 if (child.Parent == this)
-                    return child.Unregister(fast);
+                {
+                    bool success = child.Unregister(fast);
+
+                    if (success && fast)
+                        RemoveChild(child);
+
+                    return success;
+                }
                 else if (child.Parent == null && children.Remove(child))
                 {
                     if (!skipCollectionRemove)

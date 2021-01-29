@@ -1,4 +1,5 @@
 ﻿using VRageMath;
+using System.Text;
 
 namespace RichHudFramework
 {
@@ -89,19 +90,59 @@ namespace RichHudFramework
                 TextBuilderModes BuilderMode { get; set; }
 
                 /// <summary>
-                /// Clears current text and appends the text given.
+                /// Replaces the current text with the <see cref="RichText"/> given
                 /// </summary>
                 void SetText(RichText text);
 
                 /// <summary>
-                /// Appends the given text to the end of the text using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichText"/>.
+                /// Clears current text and appends a copy of the <see cref="StringBuilder"/> given.
+                /// </summary>
+                void SetText(StringBuilder text, GlyphFormat format = null);
+
+                /// <summary>
+                /// Clears current text and appends a copy of the <see cref="string"/> given.
+                /// </summary>
+                void SetText(string text, GlyphFormat format = null);
+
+                /// <summary>
+                /// Appends the given <see cref="RichText"/>
                 /// </summary>
                 void Append(RichText text);
 
                 /// <summary>
-                /// Inserts the given text to the end of the text at the specified starting index using the <see cref="GlyphFormat"/>ting specified in the <see cref="RichText"/>.
+                /// Appends a copy of the text in the <see cref="StringBuilder"/>
+                /// </summary>
+                void Append(StringBuilder text, GlyphFormat format = null);
+
+                /// <summary>
+                /// Appends a copy of the <see cref="string"/>
+                /// </summary>
+                void Append(string text, GlyphFormat format = null);
+
+                /// <summary>
+                /// Appends the given <see cref="char"/>
+                /// </summary>
+                void Append(char ch, GlyphFormat format = null);
+
+                /// <summary>
+                /// Inserts the given <see cref="RichText"/> starting at the specified starting index
                 /// </summary>
                 void Insert(RichText text, Vector2I start);
+
+                /// <summary>
+                /// Inserts a copy of the given <see cref="StringBuilder"/> starting at the specified starting index
+                /// </summary>
+                void Insert(StringBuilder text, Vector2I start, GlyphFormat format = null);
+
+                /// <summary>
+                /// Inserts a copy of the given <see cref="string"/> starting at the specified starting index
+                /// </summary>
+                void Insert(string text, Vector2I start, GlyphFormat format = null);
+
+                /// <summary>
+                /// Inserts the given <see cref="char"/> starting at the specified starting index
+                /// </summary>
+                void Insert(char text, Vector2I start, GlyphFormat format = null);
 
                 /// <summary>
                 /// Changes the formatting for the whole text to the given format.

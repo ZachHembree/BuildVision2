@@ -12,7 +12,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Provides access to rotor members, if defined.
         /// </summary>
-        public RotorAccessor Rotor { get; private set; }
+        public RotorAccessor Rotor  { get { return _rotor; } private set { _rotor = value; } }
+
+        private RotorAccessor _rotor;
 
         public class RotorAccessor : SubtypeAccessor<IMyMotorStator>
         {
@@ -23,8 +25,10 @@ namespace DarkHelmet.BuildVision2
 
             public bool RotorLock { get { return subtype.RotorLock; } set { subtype.RotorLock = value; } }
 
-            public RotorAccessor(SuperBlock block) : base(block, TBlockSubtypes.Rotor, TBlockSubtypes.MechanicalConnection)
-            { }
+            public override void SetBlock(SuperBlock block)
+            {
+                base.SetBlock(block, TBlockSubtypes.Rotor, TBlockSubtypes.MechanicalConnection);
+            }
 
             /// <summary>
             /// Reverses the rotors direction of rotation
