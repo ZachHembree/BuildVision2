@@ -136,64 +136,67 @@ namespace RichHudFramework
                 /// </summary>
                 public static void UnregisterNodes(HudParentBase parent, List<HudNodeBase> children, IReadOnlyList<HudNodeBase> nodes, int index, int count, bool fast)
                 {
-                    int conEnd = index + count - 1;
-
-                    if (!(index >= 0 && count >= 0 && index < nodes.Count && conEnd <= nodes.Count))
-                        throw new Exception("Specified indices are out of range.");
-
-                    if (parent == null)
-                        throw new Exception("Parent cannot be null");
-
-                    if (!fast)
+                    if (count > 0)
                     {
-                        for (int i = index; i <= conEnd; i++)
+                        int conEnd = index + count - 1;
+
+                        if (!(index >= 0 && index < nodes.Count && conEnd <= nodes.Count))
+                            throw new Exception("Specified indices are out of range.");
+
+                        if (parent == null)
+                            throw new Exception("Parent cannot be null");
+
+                        if (!fast)
                         {
-                            int start = 0;
-
-                            while (start < children.Count && children[start] != nodes[i])
-                                start++;
-
-                            if (children[start] == nodes[i])
+                            for (int i = index; i <= conEnd; i++)
                             {
-                                int j = start, end = start;
+                                int start = 0;
 
-                                while (j < children.Count && i <= conEnd && children[j] == nodes[i])
+                                while (start < children.Count && children[start] != nodes[i])
+                                    start++;
+
+                                if (children[start] == nodes[i])
                                 {
-                                    end = j;
-                                    i++;
-                                    j++;
+                                    int j = start, end = start;
+
+                                    while (j < children.Count && i <= conEnd && children[j] == nodes[i])
+                                    {
+                                        end = j;
+                                        i++;
+                                        j++;
+                                    }
+
+                                    children.RemoveRange(start, end - start + 1);
                                 }
-
-                                children.RemoveRange(start, end - start + 1);
                             }
+
+                            HudMain.RefreshDrawList = true;
                         }
 
-                        HudMain.RefreshDrawList = true;
-                    }
-
-                    for (int n = index; n < count; n++)
-                    {
-                        HudNodeBase node = nodes[n];
-                        HudParentBase nodeParent = node._parent ?? node.reregParent;
-
-                        if (nodeParent != parent)
-                            throw new Exception("The child node specified is not registered to the parent given.");
-
-                        if (fast)
+                        for (int n = index; n < count; n++)
                         {
-                            node.reregParent = node._parent;
-                            node.wasFastUnregistered = true;
-                        }
-                        else
-                        {
-                            node.reregParent = null;
-                            node.wasFastUnregistered = false;
-                        }
+                            HudNodeBase node = nodes[n];
+                            HudParentBase nodeParent = node._parent ?? node.reregParent;
 
-                        node.Parent = null;
-                        node._registered = false;
-                        node.parentZOffset = 0;
-                        node.parentVisible = false;
+                            if (nodeParent != parent)
+                                throw new Exception("The child node specified is not registered to the parent given.");
+
+                            if (fast)
+                            {
+                                node.reregParent = node._parent;
+                                node.wasFastUnregistered = true;
+                            }
+                            else
+                            {
+                                node.reregParent = null;
+                                node.wasFastUnregistered = false;
+                            }
+
+                            node.Parent = null;
+                            node._registered = false;
+                            node.parentZOffset = 0;
+                            node.parentVisible = false;
+                        }
                     }
                 }
 
@@ -205,64 +208,67 @@ namespace RichHudFramework
                     where TCon : IHudElementContainer<TNode>, new()
                     where TNode : HudNodeBase
                 {
-                    int conEnd = index + count - 1;
-
-                    if (!(index >= 0 && count >= 0 && index < nodes.Count && conEnd <= nodes.Count))
-                        throw new Exception("Specified indices are out of range.");
-
-                    if (parent == null)
-                        throw new Exception("Parent cannot be null");
-
-                    if (!fast)
+                    if (count > 0)
                     {
-                        for (int i = index; i <= conEnd; i++)
+                        int conEnd = index + count - 1;
+
+                        if (!(index >= 0 && index < nodes.Count && conEnd <= nodes.Count))
+                            throw new Exception("Specified indices are out of range.");
+
+                        if (parent == null)
+                            throw new Exception("Parent cannot be null");
+
+                        if (!fast)
                         {
-                            int start = 0;
-
-                            while (start < children.Count && children[start] != nodes[i].Element)
-                                start++;
-
-                            if (children[start] == nodes[i].Element)
+                            for (int i = index; i <= conEnd; i++)
                             {
-                                int j = start, end = start;
+                                int start = 0;
 
-                                while (j < children.Count && i <= conEnd && children[j] == nodes[i].Element)
+                                while (start < children.Count && children[start] != nodes[i].Element)
+                                    start++;
+
+                                if (children[start] == nodes[i].Element)
                                 {
-                                    end = j;
-                                    i++;
-                                    j++;
+                                    int j = start, end = start;
+
+                                    while (j < children.Count && i <= conEnd && children[j] == nodes[i].Element)
+                                    {
+                                        end = j;
+                                        i++;
+                                        j++;
+                                    }
+
+                                    children.RemoveRange(start, end - start + 1);
                                 }
-
-                                children.RemoveRange(start, end - start + 1);
                             }
+
+                            HudMain.RefreshDrawList = true;
                         }
 
-                        HudMain.RefreshDrawList = true;
-                    }
-
-                    for (int n = index; n < count; n++)
-                    {
-                        HudNodeBase node = nodes[n].Element;
-                        HudParentBase nodeParent = node._parent ?? node.reregParent;
-
-                        if (nodeParent != parent)
-                            throw new Exception("The child node specified is not registered to the parent given.");
-
-                        if (fast)
+                        for (int n = index; n < count; n++)
                         {
-                            node.reregParent = node._parent;
-                            node.wasFastUnregistered = true;
-                        }
-                        else
-                        {
-                            node.reregParent = null;
-                            node.wasFastUnregistered = false;
-                        }
+                            HudNodeBase node = nodes[n].Element;
+                            HudParentBase nodeParent = node._parent ?? node.reregParent;
 
-                        node.Parent = null;
-                        node._registered = false;
-                        node.parentZOffset = 0;
-                        node.parentVisible = false;
+                            if (nodeParent != parent)
+                                throw new Exception("The child node specified is not registered to the parent given.");
+
+                            if (fast)
+                            {
+                                node.reregParent = node._parent;
+                                node.wasFastUnregistered = true;
+                            }
+                            else
+                            {
+                                node.reregParent = null;
+                                node.wasFastUnregistered = false;
+                            }
+
+                            node.Parent = null;
+                            node._registered = false;
+                            node.parentZOffset = 0;
+                            node.parentVisible = false;
+                        }
                     }
                 }
             }

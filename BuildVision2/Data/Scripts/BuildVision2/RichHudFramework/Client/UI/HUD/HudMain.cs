@@ -186,6 +186,7 @@ namespace RichHudFramework
                 GetOrSetMemberFunc(new Action<List<HudUpdateAccessors>, byte>(root.GetUpdateAccessors), (int)HudMainAccessors.GetUpdateAccessors);
 
                 root.CustomDrawAction = HudMasterDraw;
+                root.CustomInputAction = HudMasterInput;
                 UpdateCache();
             }
 
@@ -205,8 +206,6 @@ namespace RichHudFramework
 
             private void UpdateCache()
             {
-                cursor.Update();
-
                 ScreenWidth = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.ScreenWidth);
                 ScreenHeight = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.ScreenHeight);
                 AspectRatio = (float)GetOrSetMemberFunc(null, (int)HudMainAccessors.AspectRatio);
@@ -228,6 +227,11 @@ namespace RichHudFramework
 
                 enableCursorLast = EnableCursor;
                 refreshLast = RefreshDrawList;
+            }
+
+            private void HudMasterInput()
+            {
+                cursor.Update();
             }
 
             public override void Close()
@@ -302,7 +306,7 @@ namespace RichHudFramework
 
                 public bool IsFacingCamera { get; }
 
-                public Action CustomDrawAction;
+                public Action CustomDrawAction, CustomInputAction;
 
                 public HudClientRoot()
                 {
@@ -317,10 +321,14 @@ namespace RichHudFramework
 
                 protected override void Layout()
                 {
+                    CustomDrawAction?.Invoke();
                     PlaneToWorld = PixelToWorld;
                     CursorPos = new Vector3(Cursor.ScreenPos.X, Cursor.ScreenPos.Y, 0f);
+                }
 
-                    CustomDrawAction?.Invoke();
+                protected override void InputDepth()
+                {
+                    CustomInputAction?.Invoke();
                 }
             }
         }
