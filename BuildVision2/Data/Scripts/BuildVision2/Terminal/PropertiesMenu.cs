@@ -55,18 +55,19 @@ namespace DarkHelmet.BuildVision2
 
         private BlockData clipboard, pasteBackup;
         private Stopwatch peekRefresh;
+        private readonly IMyHudNotification hudNotification;
 
         private PropertiesMenu() : base(false, true)
         {
             DrawBoundingBox = false;
             EnableWorldDraw = false;
-
             targetGrid = new TerminalGrid();
             Target = new PropertyBlock();
 
             hudSpace = new CustomSpaceNode(HudMain.Root) { UpdateMatrixFunc = UpdateHudSpace };
             scrollMenu = new BvScrollMenu(hudSpace) { Visible = false };
             boundingBox = new BoundingBoard();
+            hudNotification = MyAPIGateway.Utilities.CreateNotification("", 1000, MyFontEnum.Red);
 
             RichHudCore.LateMessageEntered += MessageHandler;
             peekRefresh = new Stopwatch();
@@ -312,12 +313,14 @@ namespace DarkHelmet.BuildVision2
 
                         return true;
                     }
-                    else if (scrollMenu.MenuMode != ScrollMenuModes.Peek)
+                    else
                     {
                         if ((permissions & TerminalPermissionStates.GridUnfriendly) > 0)
-                            MyAPIGateway.Utilities.ShowNotification($"Access denied. Grid unfriendly.", 1000, MyFontEnum.Red);
+                            hudNotification.Text = $"Access denied. Grid unfriendly.";
                         else
-                            MyAPIGateway.Utilities.ShowNotification("Access denied", 1000, MyFontEnum.Red);
+                            hudNotification.Text = "Access denied";
+
+                        hudNotification.Show();
                     }
                 }
             }
