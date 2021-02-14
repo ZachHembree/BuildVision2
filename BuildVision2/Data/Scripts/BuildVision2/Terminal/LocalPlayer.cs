@@ -30,6 +30,13 @@ namespace DarkHelmet.BuildVision2
         BlockFriendly = 0x40
     }
 
+    public enum HudState : int
+    {
+        Hidden = 0,
+        Full = 1,
+        Minimal = 2
+    }
+
     /// <summary>
     /// Wrapper for various local player related fields and methods.
     /// </summary>
@@ -231,6 +238,15 @@ namespace DarkHelmet.BuildVision2
             }
 
             return accessState;
+        }
+
+        /// <summary>
+        /// Returns the current HUD state as configured (hidden/min/full).
+        /// </summary>
+        public static HudState GetHudState()
+        {
+            int hudState = MyAPIGateway.Session.Config.HudState;
+            return (HudState)hudState;
         }
     }
 }
