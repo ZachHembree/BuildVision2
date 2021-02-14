@@ -297,12 +297,16 @@ namespace DarkHelmet.BuildVision2
         {
             IMyTerminalBlock block;
 
-            if ((BvConfig.Current.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) && TryGetTargetedBlock(BvConfig.Current.general.maxOpenRange, out block))
+            if (
+                (LocalPlayer.GetHudState() != HudState.Hidden) 
+                && (BvConfig.Current.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) 
+                && TryGetTargetedBlock(BvConfig.Current.general.maxOpenRange, out block)
+            )
             {
                 if (block != null)
                 {
                     TerminalPermissionStates permissions = LocalPlayer.GetBlockAccessPermissions(block);
-
+                    
                     if ((permissions & TerminalPermissionStates.Granted) > 0)
                     {
                         if (Target.TBlock == null || block != Target.TBlock)
@@ -385,8 +389,13 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Checks if the player can access the targeted block.
         /// </summary>
-        private bool CanAccessTargetBlock() =>
-            Target.TBlock != null && BlockInRange() && Target.CanLocalPlayerAccess && (!BvConfig.Current.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock));
+        private bool CanAccessTargetBlock()
+        {
+            return Target.TBlock != null
+            && BlockInRange()
+            && Target.CanLocalPlayerAccess
+            && (!BvConfig.Current.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock));
+        }
 
         /// <summary>
         /// Determines whether the player is within 10 units of the block.
