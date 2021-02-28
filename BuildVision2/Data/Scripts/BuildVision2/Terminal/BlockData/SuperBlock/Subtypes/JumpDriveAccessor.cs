@@ -50,11 +50,11 @@ namespace DarkHelmet.BuildVision2
                 builder.Add($"{GetLocalizedDriveStatus()}\n", valueFormat);
 
                 builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", nameFormat);
-                builder.Add($"{TerminalUtilities.GetPowerDisplay(Charge)}", valueFormat);
+                builder.Add($"{TerminalUtilities.GetPowerDisplay(Charge)}h", valueFormat);
                 builder.Add($" ({((Charge / Capacity) * 100f).Round(1)}%)\n", nameFormat);
 
                 builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat);
-                builder.Add($"{TerminalUtilities.GetPowerDisplay(Capacity)}\n", valueFormat);
+                builder.Add($"{TerminalUtilities.GetPowerDisplay(Capacity)}h\n", valueFormat);
             }
         }
     }

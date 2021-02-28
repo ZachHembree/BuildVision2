@@ -48,11 +48,11 @@ namespace DarkHelmet.BuildVision2
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
                 builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", nameFormat);
-                builder.Add($"{TerminalUtilities.GetPowerDisplay(Charge)}", valueFormat);
+                builder.Add($"{TerminalUtilities.GetPowerDisplay(Charge)}h", valueFormat);
                 builder.Add($" ({((Charge / Capacity) * 100f):F1}%)\n", nameFormat);
 
                 builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat);
-                builder.Add($"{TerminalUtilities.GetPowerDisplay(Capacity)}\n", valueFormat);
+                builder.Add($"{TerminalUtilities.GetPowerDisplay(Capacity)}h\n", valueFormat);
 
                 builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ChargeMode)}: ", nameFormat);
                 builder.Add($"{GetLocalizedChargeMode()}\n", valueFormat);
