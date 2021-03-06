@@ -454,7 +454,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Indicates whether or not the property is currently being copied.
             /// </summary>
-            public bool Copying { get { return copyIndicator.Visible; } set { copyIndicator.Visible = value && (_blockMember is IBlockProperty); } }
+            public bool Copying { get { return _copying; } set { _copying = value && (_blockMember is IBlockProperty); } }
 
             /// <summary>
             /// Gets/sets the block member associated with the property block
@@ -500,6 +500,7 @@ namespace DarkHelmet.BuildVision2
             private readonly SelectionBox copyIndicator;
             private readonly HudChain layout;
             private IBlockMember _blockMember;
+            private bool _copying;
 
             public BvPropertyBox() : base(null)
             {
@@ -548,6 +549,7 @@ namespace DarkHelmet.BuildVision2
             protected override void Layout()
             {
                 Size = layout.Size;
+                copyIndicator.Visible = Copying;
             }
 
             /// <summary>
