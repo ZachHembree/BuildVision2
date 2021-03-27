@@ -147,10 +147,10 @@ namespace DarkHelmet.BuildVision2
                 Padding = new Vector2(48f, 16f),
             };
 
-            scrollBody.scrollBar.Padding = new Vector2(12f, 16f);
-            scrollBody.scrollBar.Width = 4f;
+            scrollBody.ScrollBar.Padding = new Vector2(12f, 16f);
+            scrollBody.ScrollBar.Width = 4f;
 
-            selectionBox = new TexturedBox(scrollBody.background)
+            selectionBox = new TexturedBox(scrollBody.Background)
             {
                 Color = selectionBoxColor,
                 Padding = new Vector2(30f, 0f),
@@ -332,7 +332,7 @@ namespace DarkHelmet.BuildVision2
                     }
                 }
 
-                memberWidth += scrollBody.Padding.X + scrollBody.scrollBar.Width + scrollBody.divider.Width;
+                memberWidth += scrollBody.Padding.X + scrollBody.ScrollBar.Width + scrollBody.Divider.Width;
                 layout.Width = Math.Max(memberWidth, layout.MemberMinSize.X);
             }
             else if (MenuMode == ScrollMenuModes.Peek)
@@ -368,7 +368,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (Selection != null)
             {
-                selectionBox.Size = new Vector2(scrollBody.Width - scrollBody.divider.Width - scrollBody.scrollBar.Width, Selection.Size.Y + (2f * Scale));
+                selectionBox.Size = new Vector2(scrollBody.Width - scrollBody.Divider.Width - scrollBody.ScrollBar.Width, Selection.Size.Y + (2f * Scale));
                 selectionBox.Offset = new Vector2(0f, Selection.Offset.Y - (1f * Scale));
                 tab.Height = selectionBox.Height;
             };
@@ -544,6 +544,11 @@ namespace DarkHelmet.BuildVision2
                 postfix.TextBoard.Clear();
                 valueBox.CloseInput();
                 BlockMember = null;
+            }
+
+            public void SetValueText(string value, GlyphFormat format = null)
+            {
+                valueBox.TextBoard.SetText(value, format);
             }
 
             protected override void Layout()

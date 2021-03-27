@@ -38,7 +38,6 @@ namespace DarkHelmet.BuildVision2
                 { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(PropertiesMenu.Target?.SubtypeId.ToString() ?? "No Target")}") },
                 { "toggleBoundingBox", x => PropertiesMenu.DrawBoundingBox = !PropertiesMenu.DrawBoundingBox },
                 { "toggleWorldDraw", x => PropertiesMenu.EnableWorldDraw = !PropertiesMenu.EnableWorldDraw },
-                { "refreshDrawList", x => HudMain.RefreshDrawList = true },
                 { "targetBench", TargetBench, 1 },
                 { "getTargetPermissions", x => GetTargetPermissions() },
                 { "echo", x => ExceptionHandler.SendChatMessage($"echo: {x[0]}") },

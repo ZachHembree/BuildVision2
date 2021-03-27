@@ -86,8 +86,7 @@ namespace DarkHelmet.BuildVision2
 
                         if (!(Selection.BlockMember is IBlockScrollable))
                         {
-                            Selection.Value.Clear();
-                            Selection.Value.Add("Open chat to continue", selectedText);
+                            Selection.SetValueText("Open chat to continue", selectedText);
                             updateSelection = false;
                         }
                         else

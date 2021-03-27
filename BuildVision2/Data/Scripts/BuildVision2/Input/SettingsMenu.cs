@@ -26,7 +26,7 @@ namespace DarkHelmet.BuildVision2
                 Text = HelpText.GetHelpMessage(),
             };
 
-            RichHudTerminal.Root.AddRange(new TerminalPageBase[] 
+            RichHudTerminal.Root.AddRange(new IModRootMember[] 
             { 
                 new ControlPage()
                 {
