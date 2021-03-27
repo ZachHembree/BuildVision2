@@ -21,43 +21,43 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Determines whether or not the button will highlight when moused over.
         /// </summary>
-        public bool highlightEnabled;
+        public bool HighlightEnabled { get; set; }
 
         /// <summary>
         /// Color of the background when moused over.
         /// </summary>
-        public Color highlightColor;
+        public Color HighlightColor { get; set; }
 
-        private readonly MouseInputElement _mouseInput;
-        private Color oldColor;
+        protected readonly MouseInputElement _mouseInput;
+        protected Color lastBackgroundColor;
 
         public Button(HudParentBase parent) : base(parent)
         {
             _mouseInput = new MouseInputElement(this);
-            highlightColor = new Color(125, 125, 125, 255);
-            highlightEnabled = true;
+            HighlightColor = new Color(125, 125, 125, 255);
+            HighlightEnabled = true;
 
-            _mouseInput.CursorEntered += CursorEntered;
-            _mouseInput.CursorExited += CursorExited;
+            _mouseInput.CursorEntered += CursorEnter;
+            _mouseInput.CursorExited += CursorExit;
         }
 
         public Button() : this(null)
         { }
 
-        protected void CursorEntered(object sender, EventArgs args)
+        protected virtual void CursorEnter(object sender, EventArgs args)
         {
-            if (highlightEnabled)
+            if (HighlightEnabled)
             {
-                oldColor = Color;
-                Color = highlightColor;
+                lastBackgroundColor = Color;
+                Color = HighlightColor;
             }
         }
 
-        protected void CursorExited(object sender, EventArgs args)
+        protected virtual void CursorExit(object sender, EventArgs args)
         {
-            if (highlightEnabled)
+            if (HighlightEnabled)
             {
-                Color = oldColor;
+                Color = lastBackgroundColor;
             }
         }
     }

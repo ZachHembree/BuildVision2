@@ -104,17 +104,25 @@ namespace RichHudFramework
             /// update. Meant to be used in conjunction with pooled elements being
             /// unregistered/reregistered to the same parent.</param>
             void RemoveRange(int index, int count, bool fast = false);
+
+            /// <summary>
+            /// Remove all elements in the collection. Does not affect normal child elements.
+            /// </summary>
+            /// <param name="fast">Prevents registration from triggering a draw list
+            /// update. Meant to be used in conjunction with pooled elements being
+            /// unregistered/reregistered to the same parent.</param>
+            void Clear(bool fast = false);
         }
 
         /// <summary>
-        /// Read-only interface for UI elements that support child elments using containers.
+        /// Interface for UI elements that support child elments using containers.
         /// </summary>
         public interface IHudCollection<TElementContainer> : IHudCollection<TElementContainer, HudElementBase>
             where TElementContainer : IHudElementContainer<HudElementBase>, new()
         { }
 
         /// <summary>
-        /// Read-only interface for UI elements that support child elments using containers.
+        /// Interface for UI elements that support child elments using containers.
         /// </summary>
         public interface IHudCollection : IHudCollection<HudElementContainer<HudElementBase>, HudElementBase>
         { }

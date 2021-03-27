@@ -8,7 +8,7 @@ namespace RichHudFramework.UI.Server
     /// Unlined clickable textbox with a background and border designed to look like text fields in the SE
     /// terminal.
     /// </summary>
-    public class TextField : LabelBoxBase, IClickableElement
+    public class TextField : LabelBoxBase, IClickableElement, ILabelElement
     {
         /// <summary>
         /// Invoked whenever a change is made to the text. Invokes once every 500ms, at most.
@@ -23,17 +23,31 @@ namespace RichHudFramework.UI.Server
         /// <summary>
         /// TextBoard backing the text field.
         /// </summary>
-        public ITextBuilder TextBoard => textBox.TextBoard;
+        public ITextBoard TextBoard => textBox.TextBoard;
 
         /// <summary>
         /// Default formatting used by the text field.
         /// </summary>
         public GlyphFormat Format { get { return textBox.Format; } set { textBox.Format = value; } }
 
+        /// <summary>
+        /// Text formatting used when the control gains focus.
+        /// </summary>
+        public GlyphFormat FocusFormat { get; set; }
+
+        /// <summary>
+        /// Size of the text as rendered
+        /// </summary>
         public override Vector2 TextSize { get { return textBox.Size; } set { textBox.Size = value; } }
 
+        /// <summary>
+        /// Padding around text element
+        /// </summary>
         public override Vector2 TextPadding { get { return textBox.Padding; } set { textBox.Padding = value; } }
 
+        /// <summary>
+        /// If true, the element will automatically resize to fit the text.
+        /// </summary>
         public override bool AutoResize { get { return textBox.AutoResize; } set { textBox.AutoResize = value; } }
 
         /// <summary>
@@ -44,7 +58,7 @@ namespace RichHudFramework.UI.Server
         /// <summary>
         /// Determines whether the user will be allowed to highlight text
         /// </summary>
-        public bool EnableHighlighting { get { return textBox.EnableHighlighting; } set { textBox.EnableHighlighting = value; } }
+        public bool EnableTextHighlighting { get { return textBox.EnableHighlighting; } set { textBox.EnableHighlighting = value; } }
 
         /// <summary>
         /// Indicates whether or not the text field will accept input
@@ -72,9 +86,14 @@ namespace RichHudFramework.UI.Server
         public bool SelectionEmpty => textBox.SelectionEmpty;
 
         /// <summary>
-        /// Gets/sets the background color of the text field
+        /// Background color when the text field is moused over
         /// </summary>
-        public Color BackgroundColor { get { return background.Color; } set { background.Color = value; } }
+        public Color HighlightColor { get; set; }
+
+        /// <summary>
+        /// Background color when the text field has input focus
+        /// </summary>
+        public Color FocusColor { get; set; }
 
         /// <summary>
         /// Color of the thin border surrounding the text field
@@ -86,44 +105,70 @@ namespace RichHudFramework.UI.Server
         /// </summary>
         public float BorderThickness { get { return border.Thickness; } set { border.Thickness = value; } }
 
+        /// <summary>
+        /// If true then the text field will change color when moused over
+        /// </summary>
+        public bool HighlightEnabled { get; set; }
+
+        /// <summary>
+        /// If true, then the text field will change formatting when it takes focus.
+        /// </summary>
+        public bool UseFocusFormatting { get; set; }
+
         public IMouseInput MouseInput => textBox.MouseInput;
 
         public override bool IsMousedOver => textBox.IsMousedOver;
 
-        private readonly TextBox textBox;
-        private readonly TexturedBox highlight;
-        private readonly BorderBox border;
+        /// <summary>
+        /// Line formatting mode used by the field
+        /// </summary>
+        public TextBuilderModes BuilderMode { get { return textBox.BuilderMode; } set { textBox.BuilderMode = value; } }
+
+        /// <summary>
+        /// If true, the text will be vertically centered.
+        /// </summary>
+        public bool VertCenterText { get { return textBox.VertCenterText; } set { textBox.VertCenterText = value; } }
+
+        protected readonly TextBox textBox;
+        protected readonly BorderBox border;
+        protected GlyphFormat lastFormat;
+        protected Color lastColor;
 
         public TextField(HudParentBase parent) : base(parent)
         {
-            background.Color = new Color(42, 55, 63);
-
             border = new BorderBox(background)
             {
-                Color = TerminalFormatting.BorderColor,
                 Thickness = 1f,
                 DimAlignment = DimAlignments.Both,
             };
 
             textBox = new TextBox(background)
             {
-                Format = TerminalFormatting.ControlFormat,
                 AutoResize = false,
                 DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
                 Padding = new Vector2(24f, 0f),
+                MoveToEndOnGainFocus = true,
+                ClearSelectionOnLoseFocus = true
             };
 
-            highlight = new TexturedBox(background)
-            {
-                Color = TerminalFormatting.HighlightOverlayColor,
-                DimAlignment = DimAlignments.Both,
-                Visible = false,
-            };
+            Format = TerminalFormatting.ControlFormat;
+            FocusFormat = TerminalFormatting.InvControlFormat;
+            Text = "NewTextField";
+
+            Color = TerminalFormatting.OuterSpace;
+            HighlightColor = TerminalFormatting.Atomic;
+            FocusColor = TerminalFormatting.Mint;
+            BorderColor = TerminalFormatting.LimedSpruce;
+
+            UseFocusFormatting = true;
+            HighlightEnabled = true;
 
             Size = new Vector2(319f, 40);
 
             textBox.TextBoard.TextChanged += OnTextChanged;
-            textBox.Text = "NewTextField";
+            MouseInput.CursorEntered += CursorEnter;
+            MouseInput.CursorExited += CursorExit;
+            MouseInput.LostInputFocus += LoseFocus;
         }
 
         public TextField() : this(null)
@@ -134,15 +179,44 @@ namespace RichHudFramework.UI.Server
             TextChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        protected override void HandleInput(Vector2 cursorPos)
+        protected virtual void CursorEnter(object sender, EventArgs args)
         {
-            if (textBox.IsMousedOver)
+            if (HighlightEnabled)
             {
-                highlight.Visible = true;
+                if (!(UseFocusFormatting && MouseInput.HasFocus))
+                {
+                    lastColor = Color;
+                    lastFormat = Format;
+                }
+
+                TextBoard.SetFormatting(lastFormat);
+                Color = HighlightColor;
             }
-            else
+        }
+
+        protected virtual void CursorExit(object sender, EventArgs args)
+        {
+            if (HighlightEnabled)
             {
-                highlight.Visible = false;
+                if (UseFocusFormatting && MouseInput.HasFocus)
+                {
+                    Color = FocusColor;
+                    TextBoard.SetFormatting(FocusFormat);
+                }
+                else
+                {
+                    Color = lastColor;
+                    TextBoard.SetFormatting(lastFormat);
+                }
+            }
+        }
+
+        protected virtual void LoseFocus(object sender, EventArgs args)
+        {
+            if (UseFocusFormatting)
+            {
+                Color = lastColor;
+                TextBoard.SetFormatting(lastFormat);
             }
         }
     }

@@ -19,7 +19,7 @@ namespace RichHudFramework
         public enum TerminalPageAccessors : int
         {
             /// <summary>
-            /// IList<RichStringMembers>
+            /// string
             /// </summary>
             Name = 1,
 
@@ -29,23 +29,8 @@ namespace RichHudFramework
             Enabled = 2,
         }
 
-        public interface ITerminalPage
+        public interface ITerminalPage : IModRootMember
         {
-            /// <summary>
-            /// Name of the <see cref="ITerminalPage"/> as it appears in the dropdown of the <see cref="IModControlRoot"/>.
-            /// </summary>
-            string Name { get; set; }
-
-            /// <summary>
-            /// Determines whether or not the <see cref="ITerminalPage"/> will be drawn.
-            /// </summary>
-            bool Enabled { get; set; }
-
-            /// <summary>
-            /// Unique identifier
-            /// </summary>
-            object ID { get; }
-
             /// <summary>
             /// Retrieves information used by the Framework API
             /// </summary>

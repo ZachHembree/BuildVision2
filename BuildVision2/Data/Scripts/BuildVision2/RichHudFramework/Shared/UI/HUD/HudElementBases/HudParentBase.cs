@@ -33,7 +33,17 @@ namespace RichHudFramework
             /// <summary>
             /// Determines whether or not an element will be drawn or process input. Visible by default.
             /// </summary>
-            public virtual bool Visible { get { return _visible; } set { _visible = value; } }
+            public virtual bool Visible
+            {
+                get { return (State & HudElementStates.IsVisible) > 0; }
+                set
+                {
+                    if (value)
+                        State |= HudElementStates.IsVisible;
+                    else
+                        State &= ~HudElementStates.IsVisible;
+                }
+            }
 
             /// <summary>
             /// Scales the size and offset of an element. Any offset or size set at a given
@@ -46,43 +56,33 @@ namespace RichHudFramework
             /// </summary>
             public virtual sbyte ZOffset
             {
-                get { return _zOffset; }
-                set { _zOffset = value; }
+                get { return layerData.zOffset; }
+                set { layerData.zOffset = value; }
             }
 
+            public HudElementStates State { get; protected set; }
+
+            protected HudLayerData layerData;
             protected readonly List<HudNodeBase> children;
-
-            protected readonly ApiMemberAccessor GetOrSetMemberFunc;
-            protected readonly Func<ushort> GetZOffsetFunc;
-            protected readonly Action DepthTestAction;
-            protected readonly Action InputAction;
-            protected readonly Action<bool> LayoutAction;
-            protected readonly Action DrawAction;
-
-            protected sbyte _zOffset;
-            protected bool _registered;
-
-            /// <summary>
-            /// Additional zOffset range used internally; primarily for determining window draw order.
-            /// Don't use this unless you have a good reason for it.
-            /// </summary>
-            protected byte zOffsetInner;
-            protected ushort fullZOffset;
-            protected bool _visible;
+            protected HudUpdateAccessors accessorDelegates;
 
             public HudParentBase()
             {
+                State |= HudElementStates.IsRegistered;
+
                 Visible = true;
                 Scale = 1f;
-                _registered = true;
                 children = new List<HudNodeBase>();
 
-                GetOrSetMemberFunc = GetOrSetApiMember;
-                GetZOffsetFunc = () => fullZOffset;
-                DepthTestAction = BeginInputDepth;
-                LayoutAction = BeginLayout;
-                DrawAction = BeginDraw;
-                InputAction = BeginInput;
+                accessorDelegates = new HudUpdateAccessors()
+                {
+                    Item1 = GetOrSetApiMember,
+                    Item2 = new MyTuple<Func<ushort>, Func<Vector3D>>(() => layerData.fullZOffset, null),
+                    Item3 = BeginInputDepth,
+                    Item4 = BeginInput,
+                    Item5 = BeginLayout,
+                    Item6 = BeginDraw
+                };
             }
 
             /// <summary>
@@ -96,7 +96,7 @@ namespace RichHudFramework
                 {
                     try
                     {
-                        if (Visible)
+                        if ((State & HudElementStates.CanUseCursor) > 0 && Visible)
                             InputDepth();
                     }
                     catch (Exception e)
@@ -141,7 +141,7 @@ namespace RichHudFramework
                 {
                     try
                     {
-                        fullZOffset = ParentUtils.GetFullZOffset(this);
+                        layerData.fullZOffset = ParentUtils.GetFullZOffset(layerData);
 
                         if (Visible || refresh)
                             Layout();
@@ -199,26 +199,20 @@ namespace RichHudFramework
             /// <summary>
             /// Adds update delegates for members in the order dictated by the UI tree
             /// </summary>
-            public virtual void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
+            public virtual void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte preloadDepth)
             {
-                fullZOffset = ParentUtils.GetFullZOffset(this);
-
-                UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + 1);
-                var accessors = new HudUpdateAccessors()
+                if (Visible)
                 {
-                    Item1 = GetOrSetMemberFunc,
-                    Item2 = new MyTuple<Func<ushort>, Func<Vector3D>>(GetZOffsetFunc, HudSpace.GetNodeOriginFunc),
-                    Item3 = DepthTestAction,
-                    Item4 = InputAction,
-                    Item5 = LayoutAction,
-                    Item6 = DrawAction
-                };
+                    layerData.fullZOffset = ParentUtils.GetFullZOffset(layerData);
 
-                UpdateActions.Add(accessors);
-                treeDepth++;
+                    UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + 1);
+                    accessorDelegates.Item2.Item2 = HudSpace.GetNodeOriginFunc;
 
-                for (int n = 0; n < children.Count; n++)
-                    children[n].GetUpdateAccessors(UpdateActions, treeDepth);
+                    UpdateActions.Add(accessorDelegates);
+
+                    for (int n = 0; n < children.Count; n++)
+                        children[n].GetUpdateAccessors(UpdateActions, preloadDepth);
+                }
             }
 
             /// <summary>
@@ -263,7 +257,7 @@ namespace RichHudFramework
                     case HudElementAccessors.ZOffset:
                         return ZOffset;
                     case HudElementAccessors.FullZOffset:
-                        return fullZOffset;
+                        return layerData.fullZOffset;
                     case HudElementAccessors.Position:
                         return Vector2.Zero;
                     case HudElementAccessors.Size:

@@ -20,27 +20,20 @@ namespace RichHudFramework
                 /// <summary>
                 /// Calculates the full z-offset using the public offset and inner offset.
                 /// </summary>
-                public static ushort GetFullZOffset(HudParentBase element, HudParentBase parent = null)
+                public static ushort GetFullZOffset(HudLayerData nodeData, HudParentBase parent = null)
                 {
-                    byte outerOffset = (byte)(element._zOffset - sbyte.MinValue);
-                    ushort innerOffset = (ushort)(element.zOffsetInner << 8);
+                    byte outerOffset = (byte)(nodeData.zOffset - sbyte.MinValue);
+                    ushort innerOffset = (ushort)(nodeData.zOffsetInner << 8);
 
                     if (parent != null)
                     {
-                        outerOffset += (byte)((parent.fullZOffset & 0x00FF) + sbyte.MinValue);
-                        innerOffset += (ushort)(parent.fullZOffset & 0xFF00);
+                        ushort parentFull = parent.layerData.fullZOffset;
+
+                        outerOffset += (byte)((parentFull & 0x00FF) + sbyte.MinValue);
+                        innerOffset += (ushort)(parentFull & 0xFF00);
                     }
 
                     return (ushort)(innerOffset | outerOffset);
-                }
-
-                /// <summary>
-                /// Returns the visibility set for the given <see cref="HudParentBase"/> without including
-                /// parent visibility.
-                /// </summary>
-                public static bool IsSetVisible(HudParentBase node)
-                {
-                    return node._visible && node._registered;
                 }
             }
         }

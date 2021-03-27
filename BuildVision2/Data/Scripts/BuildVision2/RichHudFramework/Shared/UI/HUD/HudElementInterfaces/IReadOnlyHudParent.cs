@@ -17,6 +17,36 @@ namespace RichHudFramework
             Action // BeforeDraw
         >;
 
+        [Flags]
+        public enum HudElementStates : ushort
+        {
+            None = 0x0,
+            IsVisible = 0x1,
+            WasParentVisible = 0x2,
+            IsRegistered = 0x4,
+            WasFastUnregistered = 0x8,
+            CanUseCursor = 0x10,
+            CanShareCursor = 0x20,
+            IsMousedOver = 0x40,
+            IsMouseInBounds = 0x80,
+            CanPreload = 0x100
+        }
+
+        public struct HudLayerData
+        {
+            public sbyte zOffset;
+
+            public sbyte parentZOffset;
+
+            /// <summary>
+            /// Additional zOffset range used internally; primarily for determining window draw order.
+            /// Don't use this unless you have a good reason for it.
+            /// </summary>
+            public byte zOffsetInner;
+
+            public ushort fullZOffset;
+        }
+
         public enum HudElementAccessors : int
         {
             /// <summary>
@@ -116,7 +146,7 @@ namespace RichHudFramework
             /// <summary>
             /// Adds update delegates for members in the order dictated by the UI tree
             /// </summary>
-            void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth);
+            void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte preloadDepth);
         }
     }
 }

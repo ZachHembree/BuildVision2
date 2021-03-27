@@ -38,13 +38,44 @@ namespace RichHudFramework
             /// <summary>
             /// out: MemberAccessor
             /// </summary>
-            AddTile = 4,
+            AddMember = 4
         }
 
         /// <summary>
         /// Horizontally scrolling list of control tiles.
         /// </summary>
-        public interface IControlCategory : IEnumerable<IControlTile>
+        public interface IControlCategory : IControlCategory<ControlTile>
+        {
+            /// <summary>
+            /// Read only collection of <see cref="ControlTile"/>s assigned to this category
+            /// </summary>
+            IReadOnlyList<ControlTile> Tiles { get; }
+
+            /// <summary>
+            /// Used to allow the addition of control tiles to categories using collection-initializer syntax in
+            /// conjunction with normal initializers.
+            /// </summary>
+            IControlCategory TileContainer { get; }
+        }
+
+        /// <summary>
+        /// Vertically scrolling list of terminal controls
+        /// </summary>
+        public interface IVertControlCategory : IControlCategory<TerminalControlBase>
+        {
+            /// <summary>
+            /// Read only collection of <see cref="ControlTile"/>s assigned to this category
+            /// </summary>
+            IReadOnlyList<TerminalControlBase> Controls { get; }
+
+            /// <summary>
+            /// Used to allow the addition of control tiles to categories using collection-initializer syntax in
+            /// conjunction with normal initializers.
+            /// </summary>
+            IVertControlCategory ControlContainer { get; }
+        }
+
+        public interface IControlCategory<TElementContainer> : IEnumerable<TElementContainer>
         {
             /// <summary>
             /// Category name
@@ -57,17 +88,6 @@ namespace RichHudFramework
             string SubheaderText { get; set; }
 
             /// <summary>
-            /// Read only collection of <see cref="IControlTile"/>s assigned to this category
-            /// </summary>
-            IReadOnlyList<IControlTile> Tiles { get; }
-
-            /// <summary>
-            /// Used to allow the addition of control tiles to categories using collection-initializer syntax in
-            /// conjunction with normal initializers.
-            /// </summary>
-            IControlCategory TileContainer { get; }
-
-            /// <summary>
             /// Determines whether or not the element will be drawn.
             /// </summary>
             bool Enabled { get; set; }
@@ -78,9 +98,9 @@ namespace RichHudFramework
             object ID { get; }
 
             /// <summary>
-            /// Adds a <see cref="IControlTile"/> to the category
+            /// Adds members to the category
             /// </summary>
-            void Add(ControlTile tile);
+            void Add(TElementContainer tile);
 
             /// <summary>
             /// Retrieves information used by the Framework API

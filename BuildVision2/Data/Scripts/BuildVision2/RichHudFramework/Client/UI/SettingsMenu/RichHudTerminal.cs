@@ -1,7 +1,5 @@
 ﻿using RichHudFramework.UI.Rendering;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Text;
 using VRage;
 using ApiMemberAccessor = System.Func<object, int, object>;
@@ -35,7 +33,7 @@ namespace RichHudFramework
         /// <summary>
         /// Windowed settings menu shared by mods using the framework.
         /// </summary>
-        public sealed class RichHudTerminal : RichHudClient.ApiModule<SettingsMenuMembers>
+        public sealed partial class RichHudTerminal : RichHudClient.ApiModule<SettingsMenuMembers>
         {
             /// <summary>
             /// Mod control root for the client.
@@ -59,6 +57,7 @@ namespace RichHudFramework
             private readonly Func<int, ControlMembers> GetNewControlFunc;
             private readonly Func<int, ControlContainerMembers> GetNewContainerFunc;
             private readonly Func<int, ControlMembers> GetNewPageFunc;
+            private readonly Func<ControlContainerMembers> GetNewPageCategoryFunc;
 
             private RichHudTerminal() : base(ApiModuleTypes.SettingsMenu, false, true)
             {
@@ -68,6 +67,9 @@ namespace RichHudFramework
                 GetNewControlFunc = data.Item3;
                 GetNewContainerFunc = data.Item4;
                 GetNewPageFunc = data.Item5;
+
+                GetNewPageCategoryFunc = 
+                    GetOrSetMembersFunc(null, (int)TerminalAccessors.GetNewPageCategoryFunc) as Func<ControlContainerMembers>;
 
                 menuRoot = new ModControlRoot(data.Item2);
             }
@@ -146,126 +148,8 @@ namespace RichHudFramework
             public static ControlMembers GetNewMenuPage(ModPages pageEnum) =>
                 Instance.GetNewPageFunc((int)pageEnum);
 
-            /// <summary>
-            /// Indented dropdown list of terminal pages. Root UI element for all terminal controls
-            /// associated with a given mod.
-            /// </summary>
-            private class ModControlRoot : IModControlRoot
-            {
-                /// <summary>
-                /// Invoked when a new page is selected
-                /// </summary>
-                public event EventHandler SelectionChanged;
-
-                /// <summary>
-                /// Name of the mod as it appears in the <see cref="RichHudTerminal"/> mod list
-                /// </summary>
-                public string Name
-                {
-                    get { return GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Name) as string; }
-                    set { GetOrSetMemberFunc(value, (int)ModControlRootAccessors.Name); }
-                }
-
-                /// <summary>
-                /// Read only collection of <see cref="ITerminalPage"/>s assigned to this object.
-                /// </summary>
-                public IReadOnlyList<ITerminalPage> Pages { get; }
-
-                public IModControlRoot PageContainer => this;
-
-                /// <summary>
-                /// Unique identifer
-                /// </summary>
-                public object ID => data.Item3;
-
-                /// <summary>
-                /// Currently selected <see cref="ITerminalPage"/>.
-                /// </summary>
-                public ITerminalPage Selection
-                {
-                    get 
-                    {
-                        object id = GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Selection);
-
-                        if (id != null)
-                        {
-                            for (int n = 0; n < Pages.Count; n++)
-                            {
-                                if (id == Pages[n].ID)
-                                    return Pages[n];
-                            }
-                        }
-
-                        return null;
-                    }
-                }
-
-                /// <summary>
-                /// Determines whether or not the element will appear in the list.
-                /// Disabled by default.
-                /// </summary>
-                public bool Enabled
-                {
-                    get { return (bool)GetOrSetMemberFunc(null, (int)ModControlRootAccessors.Enabled); }
-                    set { GetOrSetMemberFunc(value, (int)ModControlRootAccessors.Enabled); }
-                }
-
-                private ApiMemberAccessor GetOrSetMemberFunc => data.Item1;
-                private readonly ControlContainerMembers data;
-
-                public ModControlRoot(ControlContainerMembers data)
-                {
-                    this.data = data;
-
-                    var GetPageDataFunc = data.Item2.Item1 as Func<int, ControlMembers>;
-                    Func<int, ITerminalPage> GetPageFunc = (x => new TerminalPage(GetPageDataFunc(x)));
-                    Pages = new ReadOnlyApiCollection<ITerminalPage>(GetPageFunc, data.Item2.Item2);
-
-                    GetOrSetMemberFunc(new Action(ModRootCallback), (int)ModControlRootAccessors.GetOrSetCallback);
-                }
-
-                /// <summary>
-                /// Adds the given <see cref="TerminalPageBase"/> to the object.
-                /// </summary>
-                public void Add(TerminalPageBase page) =>
-                    GetOrSetMemberFunc(page.ID, (int)ModControlRootAccessors.AddPage);
-
-                /// <summary>
-                /// Adds the given ranges of pages to the control root.
-                /// </summary>
-                public void AddRange(IReadOnlyList<TerminalPageBase> pages)
-                {
-                    var idList = new object[pages.Count];
-
-                    for (int n = 0; n < pages.Count; n++)
-                        idList[n] = pages[n].ID;
-
-                    GetOrSetMemberFunc(idList, (int)ModControlRootAccessors.AddRange);
-                }
-
-                /// <summary>
-                /// Retrieves data used by the Framework API
-                /// </summary>
-                public ControlContainerMembers GetApiData() =>
-                    data;
-
-                protected void ModRootCallback()
-                {
-                    SelectionChanged?.Invoke(this, EventArgs.Empty);
-                }
-
-                IEnumerator<ITerminalPage> IEnumerable<ITerminalPage>.GetEnumerator() =>
-                    Pages.GetEnumerator();
-
-                IEnumerator IEnumerable.GetEnumerator() =>
-                    Pages.GetEnumerator();
-
-                private class TerminalPage : TerminalPageBase
-                {
-                    public TerminalPage(ControlMembers data) : base(data)
-                    { }
-                }
-            }
+            public static ControlContainerMembers GetNewPageCategory() =>
+                Instance.GetNewPageCategoryFunc();
         }
     }
 }

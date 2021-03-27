@@ -8,7 +8,7 @@ namespace RichHudFramework.UI.Server
     /// <summary>
     /// An On/Off button with a label over it
     /// </summary>
-    public class NamedOnOffButton : HudElementBase
+    public class NamedOnOffButton : HudElementBase, IClickableElement
     {
         public override Vector2 Padding { get { return layout.Padding; } set { layout.Padding = value; } }
 
@@ -33,11 +33,6 @@ namespace RichHudFramework.UI.Server
         public Color BorderColor { get { return onOffButton.BorderColor; } set { onOffButton.BorderColor = value; } }
 
         /// <summary>
-        /// Color of the highlight border used to indicate the current selection
-        /// </summary>
-        public Color HighlightBorderColor { get { return onOffButton.HighlightBorderColor; } set { onOffButton.HighlightBorderColor = value; } }
-
-        /// <summary>
         /// On button text
         /// </summary>
         public RichText OnText { get { return onOffButton.OnText; } set { onOffButton.OnText = value; } }
@@ -57,6 +52,11 @@ namespace RichHudFramework.UI.Server
         /// </summary>
         public bool Value { get { return onOffButton.Value; } set { onOffButton.Value = value; } }
 
+        /// <summary>
+        /// Mouse input element for the button
+        /// </summary>
+        public IMouseInput MouseInput => onOffButton.MouseInput;
+
         protected readonly Label name;
         protected readonly OnOffButton onOffButton;
         protected readonly HudChain layout;
@@ -73,7 +73,7 @@ namespace RichHudFramework.UI.Server
 
             onOffButton = new OnOffButton() 
             { 
-                Padding = new Vector2(90f, 0f),
+                Padding = new Vector2(78f, 0f),
             };
 
             layout = new HudChain(true, this)
@@ -85,7 +85,7 @@ namespace RichHudFramework.UI.Server
             };
 
             Padding = new Vector2(20f, 0f);
-            Size = new Vector2(300f, 74f);
+            Size = new Vector2(300f, 84f);
         }
 
         public NamedOnOffButton() : this(null)

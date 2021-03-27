@@ -47,10 +47,9 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// Read only collection of <see cref="IControlTile"/>s assigned to this category
-            /// Read only collection of <see cref="IControlTile"/>s assigned to this category
+            /// Read only collection of <see cref="ControlTile"/>s assigned to this category
             /// </summary>
-            public IReadOnlyList<IControlTile> Tiles { get; }
+            public IReadOnlyList<ControlTile> Tiles { get; }
 
             public IControlCategory TileContainer => this;
 
@@ -81,10 +80,10 @@ namespace RichHudFramework
                 var GetTileDataFunc = data.Item2.Item1 as Func<int, ControlContainerMembers>;
                 Func<int, ControlTile> GetTileFunc = x => new ControlTile(GetTileDataFunc(x));
 
-                Tiles = new ReadOnlyApiCollection<IControlTile>(GetTileFunc, data.Item2.Item2);
+                Tiles = new ReadOnlyApiCollection<ControlTile>(GetTileFunc, data.Item2.Item2);
             }
 
-            IEnumerator<IControlTile> IEnumerable<IControlTile>.GetEnumerator() =>
+            IEnumerator<ControlTile> IEnumerable<ControlTile>.GetEnumerator() =>
                 Tiles.GetEnumerator();
 
             IEnumerator IEnumerable.GetEnumerator() =>
@@ -94,7 +93,7 @@ namespace RichHudFramework
             /// Adds a <see cref="IControlTile"/> to the category
             /// </summary>
             public void Add(ControlTile tile) =>
-                GetOrSetMemberFunc(tile.ID, (int)ControlCatAccessors.AddTile);
+                GetOrSetMemberFunc(tile.ID, (int)ControlCatAccessors.AddMember);
 
             public ControlContainerMembers GetApiData() =>
                 data;

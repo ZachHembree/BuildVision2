@@ -12,22 +12,26 @@ namespace RichHudFramework.UI
 
     public class ListBoxData<T> : ReadOnlyApiCollection<EntryData<T>>
     {
+        /// <summary>
+        /// Current selection. Null if empty.
+        /// </summary>
         public EntryData<T> Selection 
         {
             get 
             {
-                object id = GetOrSetMemberFunc(null, (int)ListBoxAccessors.Selection);
+                var index = (int)GetOrSetMemberFunc(null, (int)ListBoxAccessors.SelectionIndex);
+                return (index != -1) ? this[index] : null;
+            }
+        }
 
-                if (id != null)
-                {
-                    for (int n = 0; n < Count; n++)
-                    {
-                        if (this[n].ID == id)
-                            return this[n];
-                    }
-                }
-
-                return null;
+        /// <summary>
+        /// Index of the current selection. -1 if empty.
+        /// </summary>
+        public int SelectionIndex
+        {
+            get
+            {
+                return (int)GetOrSetMemberFunc(null, (int)ListBoxAccessors.SelectionIndex);
             }
         }
 
@@ -50,23 +54,78 @@ namespace RichHudFramework.UI
             };
         }
 
-        public EntryData<T> Add(RichText text, T assocObject)
+        /// <summary>
+        /// Adds a new member to the list box with the given name and associated
+        /// object.
+        /// </summary>
+        public void Add(RichText text, T assocObject)
         {
-            var data = new MyTuple<IList<RichStringMembers>, object>()
+            var data = new MyTuple<List<RichStringMembers>, object>()
             {
                 Item1 = text.apiData,
                 Item2 = assocObject
             };
 
-            return new EntryData<T>((ApiMemberAccessor)GetOrSetMemberFunc(data, (int)ListBoxAccessors.Add));
+            GetOrSetMemberFunc(data, (int)ListBoxAccessors.Add);
         }
 
+        /// <summary>
+        /// Inserts an entry at the given index.
+        /// </summary>
+        public void Insert(int index, RichText text, T assocObject)
+        {
+            var data = new MyTuple<int, List<RichStringMembers>, object>()
+            {
+                Item1 = index,
+                Item2 = text.apiData,
+                Item3 = assocObject
+            };
+
+            GetOrSetMemberFunc(data, (int)ListBoxAccessors.Insert);
+        }
+
+        /// <summary>
+        /// Removes the member at the given index from the list box.
+        /// </summary>
+        public bool Remove(EntryData<T> entry) =>
+            (bool)GetOrSetMemberFunc(entry.ID, (int)ListBoxAccessors.Remove);
+
+        /// <summary>
+        /// Removes the member at the given index from the list box.
+        /// </summary>
+        public void RemoveAt(int index) =>
+            GetOrSetMemberFunc(index, (int)ListBoxAccessors.RemoveAt);
+
+        /// <summary>
+        /// Sets the selection to the specified entry.
+        /// </summary>
         public void SetSelection(EntryData<T> entry) =>
             GetOrSetMemberFunc(entry.ID, (int)ListBoxAccessors.Selection);
+
+        /// <summary>
+        /// Sets the selection to the member associated with the given object.
+        /// </summary>
+        public void SetSelection(T assocMember) =>
+            GetOrSetMemberFunc(assocMember, (int)ListBoxAccessors.SetSelectionAtData);
+
+        /// <summary>
+        /// Sets the selection to the member associated with the given object.
+        /// </summary>
+        public void SetSelection(int index) =>
+            GetOrSetMemberFunc(index, (int)ListBoxAccessors.SelectionIndex);
     }
 
     public class EntryData<T>
     {
+        /// <summary>
+        /// Name of the list box entry as shown in the UI
+        /// </summary>
+        public RichText Text
+        {
+            get { return new RichText(GetOrSetMemberFunc(null, (int)ListBoxEntryAccessors.Name) as List<RichStringMembers>); }
+            set { GetOrSetMemberFunc(value.apiData, (int)ListBoxEntryAccessors.Name); }
+        }
+
         /// <summary>
         /// Indicates whether or not the element will appear in the list
         /// </summary>
@@ -75,7 +134,7 @@ namespace RichHudFramework.UI
             get { return (bool)GetOrSetMemberFunc(null, (int)ListBoxEntryAccessors.Enabled); }
             set { GetOrSetMemberFunc(value, (int)ListBoxEntryAccessors.Enabled); }
         }
-        
+
         /// <summary>
         /// Object paired with the entry
         /// </summary>

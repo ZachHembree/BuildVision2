@@ -56,17 +56,17 @@ namespace RichHudFramework.UI
             {
                 Reverse = true,
                 Vertical = true,
-                SliderWidth = 20f,
-                BarWidth = 20f,
+                SliderWidth = 13f,
+                BarWidth = 13f,
 
-                SliderColor = new Color(103, 109, 124),
-                SliderHighlight = new Color(137, 140, 149),
+                SliderColor = new Color(78, 87, 101),
+                SliderHighlight = new Color(136, 140, 148),
 
                 BarColor = new Color(41, 51, 61),
             };
 
-            Size = new Vector2(20f, 300f);
-            Padding = new Vector2(18f, 18f);
+            Size = new Vector2(13f, 300f);
+            Padding = new Vector2(30f, 10f);
             slide.SliderVisible = false;
         }
 

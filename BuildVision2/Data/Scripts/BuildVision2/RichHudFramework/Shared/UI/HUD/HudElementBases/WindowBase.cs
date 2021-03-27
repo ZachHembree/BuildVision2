@@ -253,13 +253,13 @@ namespace RichHudFramework.UI
         /// </summary>
         public virtual void GetFocus()
         {
-            zOffsetInner = HudMain.GetFocusOffset(LoseFocusCallback);
+            layerData.zOffsetInner = HudMain.GetFocusOffset(LoseFocusCallback);
             WindowActive = true;
         }
 
         protected virtual void LoseFocus(byte newOffset)
         {
-            zOffsetInner = newOffset;
+            layerData.zOffsetInner = newOffset;
             WindowActive = false;
         }
     }

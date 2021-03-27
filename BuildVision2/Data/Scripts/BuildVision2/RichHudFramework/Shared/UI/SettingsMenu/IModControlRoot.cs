@@ -25,7 +25,12 @@ namespace RichHudFramework
             CloseMenu = 2,
             OpenToPage = 3,
             SetPage = 4,
-            GetMenuOpen = 5
+            GetMenuOpen = 5,
+
+            /// <summary>
+            /// out: Func<ControlContainerMembers>
+            /// </summary>
+            GetNewPageCategoryFunc = 6
         }
 
         /// <summary>
@@ -65,62 +70,22 @@ namespace RichHudFramework
             GetOrSetCallback = 1,
 
             /// <summary>
-            /// string
+            /// out: MyTuple<object, Func<int>>
             /// </summary>
-            Name = 2,
+            GetCategoryAccessors = 7,
 
             /// <summary>
-            /// bool
+            /// in: TerminalPageCategory
             /// </summary>
-            Enabled = 3,
-
-            /// <summary>
-            /// out: ControlMembers
-            /// </summary>
-            Selection = 4,
-
-            /// <summary>
-            /// in: TerminalPageBase
-            /// </summary>
-            AddPage = 5,
-
-            /// <summary>
-            /// in: IReadOnlyList<TerminalPageBase>
-            /// </summary>
-            AddRange = 6,
+            AddSubcategory = 8
         }
 
-        /// <summary>
-        /// Indented dropdown list of terminal pages. Root UI element for all terminal controls
-        /// associated with a given mod.
-        /// </summary>
-        public interface IModControlRoot : IEnumerable<ITerminalPage>
+        public interface IModRootMember
         {
             /// <summary>
-            /// Invoked when a new page is selected
-            /// </summary>
-            event EventHandler SelectionChanged;
-
-            /// <summary>
-            /// Name of the mod as it appears in the <see cref="TerminalFormatting"/> mod list
+            /// Name of the member as it appears in the terminal
             /// </summary>
             string Name { get; set; }
-
-            /// <summary>
-            /// Read only collection of <see cref="ITerminalPage"/>s assigned to this object.
-            /// </summary>
-            IReadOnlyList<ITerminalPage> Pages { get; }
-
-            /// <summary>
-            /// Used to allow the addition of page elements using collection-initializer syntax in
-            /// conjunction with normal initializers.
-            /// </summary>
-            IModControlRoot PageContainer { get; }
-
-            /// <summary>
-            /// Currently selected <see cref="ITerminalPage"/>.
-            /// </summary>
-            ITerminalPage Selection { get; }
 
             /// <summary>
             /// Determines whether or not the element will appear in the list.
@@ -129,14 +94,36 @@ namespace RichHudFramework
             bool Enabled { get; set; }
 
             /// <summary>
-            /// Adds the given <see cref="TerminalPageBase"/> to the object.
+            /// Unique identifier
             /// </summary>
-            void Add(TerminalPageBase page);
+            object ID { get; }
+        }
+
+        /// <summary>
+        /// Indented dropdown list of terminal pages and page categories. Root UI element for all terminal controls
+        /// associated with a given mod.
+        /// </summary>
+        public interface IModControlRoot : ITerminalPageCategory
+        {
+            /// <summary>
+            /// Invoked when a new page is selected
+            /// </summary>
+            event EventHandler SelectionChanged;
 
             /// <summary>
-            /// Adds the given ranges of pages to the control root.
+            /// Page subcategories attached to the mod root
             /// </summary>
-            void AddRange(IReadOnlyList<TerminalPageBase> terminalPageBases);
+            IReadOnlyList<TerminalPageCategoryBase> Subcategories { get; }
+
+            /// <summary>
+            /// Adds a page subcategory to the control root
+            /// </summary>
+            void Add(TerminalPageCategoryBase subcategory);
+
+            /// <summary>
+            /// Adds a range of root members to the control root, either subcategories or pages.
+            /// </summary>
+            void AddRange(IReadOnlyList<IModRootMember> members);
 
             /// <summary>
             /// Retrieves data used by the Framework API

@@ -58,9 +58,9 @@ namespace RichHudFramework.UI.Server
             get { return _color; }
             set 
             {
-                r.Current = value.R;
-                g.Current = value.G;
-                b.Current = value.B;
+                sliders[0].Current = value.R;
+                sliders[1].Current = value.G;
+                sliders[2].Current = value.B;
                 _color = value;
             }
         }
@@ -70,10 +70,10 @@ namespace RichHudFramework.UI.Server
         private readonly TexturedBox display;
         private readonly HudChain headerChain;
         // Slider text
-        private readonly Label rText, gText, bText;
+        private readonly Label[] sliderText;
         private readonly HudChain<HudElementContainer<Label>, Label> colorNameColumn;
         // Sliders
-        private readonly SliderBox r, g, b;
+        private readonly SliderBox[] sliders;
         private readonly HudChain<HudElementContainer<SliderBox>, SliderBox> colorSliderColumn;
 
         private readonly HudChain mainChain, colorChain;
@@ -112,28 +112,34 @@ namespace RichHudFramework.UI.Server
             };
 
             // Color picker
-            rText = new Label() { AutoResize = false, Format = TerminalFormatting.ControlFormat, Height = 47f };
-            gText = new Label() { AutoResize = false, Format = TerminalFormatting.ControlFormat, Height = 47f };
-            bText = new Label() { AutoResize = false, Format = TerminalFormatting.ControlFormat, Height = 47f };
+            sliderText = new Label[]
+            {
+                new Label() { AutoResize = false, Format = TerminalFormatting.ControlFormat, Height = 47f },
+                new Label() { AutoResize = false, Format = TerminalFormatting.ControlFormat, Height = 47f },
+                new Label() { AutoResize = false, Format = TerminalFormatting.ControlFormat, Height = 47f }
+            };
 
             colorNameColumn = new HudChain<HudElementContainer<Label>, Label>(true)
             {
                 SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.FitChainBoth,
                 Width = 87f,
                 Spacing = 5f,
-                CollectionContainer = { rText, gText, bText }
+                CollectionContainer = { sliderText[0], sliderText[1], sliderText[2] }
             };
 
-            r = new SliderBox() { Min = 0f, Max = 255f, Height = 47f };
-            g = new SliderBox() { Min = 0f, Max = 255f, Height = 47f };
-            b = new SliderBox() { Min = 0f, Max = 255f, Height = 47f };
+            sliders = new SliderBox[] 
+            {
+                new SliderBox() { Min = 0f, Max = 255f, Height = 47f },
+                new SliderBox() { Min = 0f, Max = 255f, Height = 47f },
+                new SliderBox() { Min = 0f, Max = 255f, Height = 47f }
+            };
 
             colorSliderColumn = new HudChain<HudElementContainer<SliderBox>, SliderBox>(true)
             {
                 SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.FitChainBoth,
                 Width = 231f,
                 Spacing = 5f,
-                CollectionContainer = { r, g, b }
+                CollectionContainer = { sliders[0], sliders[1], sliders[2] }
             };
 
             colorChain = new HudChain(false)
@@ -166,28 +172,47 @@ namespace RichHudFramework.UI.Server
 
         protected override void HandleInput(Vector2 cursorPos)
         {
+            for (int i = 0; i < sliders.Length; i++)
+            {
+                if (sliders[i].MouseInput.HasFocus)
+                {
+                    if (SharedBinds.UpArrow.IsNewPressed)
+                    {
+                        i = MathHelper.Clamp(i - 1, 0, sliders.Length - 1);
+                        sliders[i].MouseInput.GetInputFocus();
+                    }
+                    else if (SharedBinds.DownArrow.IsNewPressed)
+                    {
+                        i = MathHelper.Clamp(i + 1, 0, sliders.Length - 1);
+                        sliders[i].MouseInput.GetInputFocus();
+                    }
+
+                    break;
+                }
+            }
+
             _color = new Color()
             {
-                R = (byte)Math.Round(r.Current),
-                G = (byte)Math.Round(g.Current),
-                B = (byte)Math.Round(b.Current),
+                R = (byte)Math.Round(sliders[0].Current),
+                G = (byte)Math.Round(sliders[1].Current),
+                B = (byte)Math.Round(sliders[2].Current),
                 A = 255
             };
 
             valueBuilder.Clear();
             valueBuilder.Append("R: ");
             valueBuilder.Append(_color.R);
-            rText.TextBoard.SetText(valueBuilder);
+            sliderText[0].TextBoard.SetText(valueBuilder);
 
             valueBuilder.Clear();
             valueBuilder.Append("G: ");
             valueBuilder.Append(_color.G);
-            gText.TextBoard.SetText(valueBuilder);
+            sliderText[1].TextBoard.SetText(valueBuilder);
 
             valueBuilder.Clear();
             valueBuilder.Append("B: ");
             valueBuilder.Append(_color.B);
-            bText.TextBoard.SetText(valueBuilder);
+            sliderText[2].TextBoard.SetText(valueBuilder);
 
             display.Color = _color;
         }

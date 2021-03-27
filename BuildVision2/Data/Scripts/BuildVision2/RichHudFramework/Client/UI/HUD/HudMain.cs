@@ -10,6 +10,7 @@ using Vec2Prop = VRage.MyTuple<System.Func<VRageMath.Vector2>, System.Action<VRa
 
 namespace RichHudFramework
 {
+    using Internal;
     using Client;
     using CursorMembers = MyTuple<
         Func<HudSpaceDelegate, bool>, // IsCapturingSpace
@@ -143,11 +144,6 @@ namespace RichHudFramework
             public static float UiBkOpacity { get; private set; }
 
             /// <summary>
-            /// Used to indicate when the draw list should be refreshed. Resets every frame.
-            /// </summary>
-            public static bool RefreshDrawList { get; set; }
-
-            /// <summary>
             /// If true then the cursor will be visible while chat is open
             /// </summary>
             public static bool EnableCursor { get; set; }
@@ -161,7 +157,7 @@ namespace RichHudFramework
 
             private readonly HudClientRoot root;
             private readonly HudCursor cursor;
-            private bool enableCursorLast, refreshLast;
+            private bool enableCursorLast;
 
             private readonly Func<TextBoardMembers> GetTextBoardDataFunc;
             private readonly ApiMemberAccessor GetOrSetMemberFunc;
@@ -182,8 +178,14 @@ namespace RichHudFramework
 
                 root = new HudClientRoot();
 
+                Action<List<HudUpdateAccessors>, byte> rootDelegate = root.GetUpdateAccessors,
+                    safeAccessor = (List<HudUpdateAccessors> list, byte depth) =>
+                    {
+                        ExceptionHandler.Run(() => rootDelegate(list, depth));
+                    };
+
                 // Register update delegate
-                GetOrSetMemberFunc(new Action<List<HudUpdateAccessors>, byte>(root.GetUpdateAccessors), (int)HudMainAccessors.GetUpdateAccessors);
+                GetOrSetMemberFunc(safeAccessor, (int)HudMainAccessors.GetUpdateAccessors);
 
                 root.CustomDrawAction = HudMasterDraw;
                 root.CustomInputAction = HudMasterInput;
@@ -220,13 +222,7 @@ namespace RichHudFramework
                 else
                     EnableCursor = (bool)GetOrSetMemberFunc(null, (int)HudMainAccessors.EnableCursor);
 
-                if (RefreshDrawList != refreshLast)
-                    GetOrSetMemberFunc(RefreshDrawList, (int)HudMainAccessors.RefreshDrawList);
-                else
-                    RefreshDrawList = (bool)GetOrSetMemberFunc(null, (int)HudMainAccessors.RefreshDrawList);
-
                 enableCursorLast = EnableCursor;
-                refreshLast = RefreshDrawList;
             }
 
             private void HudMasterInput()
@@ -246,6 +242,13 @@ namespace RichHudFramework
             /// </summary>
             public static byte GetFocusOffset(Action<byte> LoseFocusCallback) =>
                 (byte)Instance.GetOrSetMemberFunc(LoseFocusCallback, (int)HudMainAccessors.GetFocusOffset);
+
+            /// <summary>
+            /// Registers a callback for UI elements taking input focus. Callback
+            /// invoked when another element takes focus.
+            /// </summary>
+            public static void GetInputFocus(Action LoseFocusCallback) =>
+                Instance.GetOrSetMemberFunc(LoseFocusCallback, (int)HudMainAccessors.GetInputFocus);
 
             /// <summary>
             /// Returns accessors for a new TextBoard
@@ -310,6 +313,9 @@ namespace RichHudFramework
 
                 public HudClientRoot()
                 {
+                    ZOffset = sbyte.MinValue;
+                    layerData.zOffsetInner = 0;
+
                     DrawCursorInHudSpace = true;
                     HudSpace = this;
                     IsInFront = true;

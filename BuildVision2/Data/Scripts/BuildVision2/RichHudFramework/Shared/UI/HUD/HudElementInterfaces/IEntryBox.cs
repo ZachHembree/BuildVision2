@@ -8,7 +8,9 @@ namespace RichHudFramework.UI
     /// <summary>
     /// An interface for clickable UI elements that represent of ListBoxEntry elements.
     /// </summary>
-    public interface IEntryBox<T> : IEnumerable<ListBoxEntry<T>>, IReadOnlyHudElement
+    public interface IEntryBox<TContainer, TElement> : IEnumerable<TContainer>, IReadOnlyHudElement
+        where TContainer : IScrollBoxEntry<TElement>, new()
+        where TElement : HudElementBase, IMinLabelElement
     {
         /// <summary>
         /// Invoked when a member of the list is selected.
@@ -18,11 +20,14 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Read-only collection of list entries.
         /// </summary>
-        IReadOnlyList<ListBoxEntry<T>> ListEntries { get; }
+        IReadOnlyList<TContainer> EntryList { get; }
 
         /// <summary>
         /// Current selection. Null if empty.
         /// </summary>
-        ListBoxEntry<T> Selection { get; }
+        TContainer Selection { get; }
     }
+
+    public interface IEntryBox<TValue> : IEntryBox<ListBoxEntry<TValue>, Label>
+    { }
 }

@@ -6,7 +6,7 @@ namespace RichHudFramework.UI
     /// <summary>
     /// A text element with a textured background.
     /// </summary>
-    public class LabelBox : LabelBoxBase
+    public class LabelBox : LabelBoxBase, ILabelElement
     {
         /// <summary>
         /// Text rendered by the label.

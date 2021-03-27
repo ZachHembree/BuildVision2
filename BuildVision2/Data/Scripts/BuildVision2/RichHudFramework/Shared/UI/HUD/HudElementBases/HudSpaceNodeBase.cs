@@ -28,6 +28,8 @@ namespace RichHudFramework
         /// </summary>
         public abstract class HudSpaceNodeBase : HudNodeBase, IReadOnlyHudSpaceNode
         {
+            protected const HudElementStates spaceNodeVisible = HudElementStates.IsVisible | HudElementStates.WasParentVisible;
+
             /// <summary>
             /// Node defining the coordinate space used to render the UI element
             /// </summary>
@@ -36,7 +38,7 @@ namespace RichHudFramework
             /// <summary>
             /// Returns true if the space node is visible and rendering.
             /// </summary>
-            public override bool Visible => _visible && parentVisible && IsInFront;
+            public override bool Visible => (State & spaceNodeVisible) == spaceNodeVisible;
 
             /// <summary>
             /// Returns the current draw matrix
@@ -93,46 +95,36 @@ namespace RichHudFramework
                 IsInFront = Vector3D.Dot((nodeOrigin - camOrigin), camForward) > 0;
                 IsFacingCamera = IsInFront && Vector3D.Dot(nodeForward, camForward) > 0;
 
-                if (Visible)
+                MatrixD worldToPlane = MatrixD.Invert(PlaneToWorld);
+                LineD cursorLine = HudMain.Cursor.WorldLine;
+
+                PlaneD plane = new PlaneD(PlaneToWorld.Translation, PlaneToWorld.Forward);
+                Vector3D worldPos = plane.Intersection(ref cursorLine.From, ref cursorLine.Direction);
+
+                Vector3D planePos;
+                Vector3D.TransformNoProjection(ref worldPos, ref worldToPlane, out planePos);
+
+                CursorPos = new Vector3()
                 {
-                    MatrixD worldToPlane = MatrixD.Invert(PlaneToWorld);
-                    LineD cursorLine = HudMain.Cursor.WorldLine;
-
-                    PlaneD plane = new PlaneD(nodeOrigin, nodeForward);
-                    Vector3D worldPos = plane.Intersection(ref cursorLine.From, ref cursorLine.Direction);
-
-                    Vector3D planePos;
-                    Vector3D.TransformNoProjection(ref worldPos, ref worldToPlane, out planePos);
-
-                    CursorPos = new Vector3()
-                    {
-                        X = (float)planePos.X,
-                        Y = (float)planePos.Y,
-                        Z = (float)Math.Round(Vector3D.DistanceSquared(worldPos, cursorLine.From), 6)
-                    };
-                }
+                    X = (float)planePos.X,
+                    Y = (float)planePos.Y,
+                    Z = (float)Math.Round(Vector3D.DistanceSquared(worldPos, cursorLine.From), 6)
+                };
             }
 
-            public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
+            public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte preloadDepth)
             {
-                fullZOffset = ParentUtils.GetFullZOffset(this, _parent);
+                layerData.fullZOffset = ParentUtils.GetFullZOffset(layerData, _parent);
                 UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + 1);
+                accessorDelegates.Item2.Item2 = GetNodeOriginFunc;
 
-                var accessors = new HudUpdateAccessors()
+                UpdateActions.Add(accessorDelegates);
+
+                if (Visible && IsInFront)
                 {
-                    Item1 = GetOrSetMemberFunc,
-                    Item2 = new MyTuple<Func<ushort>, Func<Vector3D>>(GetZOffsetFunc, GetNodeOriginFunc),
-                    Item3 = DepthTestAction,
-                    Item4 = InputAction,
-                    Item5 = LayoutAction,
-                    Item6 = DrawAction
-                };
-
-                UpdateActions.Add(accessors);
-                treeDepth++;
-
-                for (int n = 0; n < children.Count; n++)
-                    children[n].GetUpdateAccessors(UpdateActions, treeDepth);
+                    for (int n = 0; n < children.Count; n++)
+                        children[n].GetUpdateAccessors(UpdateActions, preloadDepth);
+                }
             }
         }
     }

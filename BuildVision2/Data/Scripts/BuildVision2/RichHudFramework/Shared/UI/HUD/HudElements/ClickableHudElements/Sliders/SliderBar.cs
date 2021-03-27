@@ -142,6 +142,11 @@ namespace RichHudFramework.UI
         }
 
         /// <summary>
+        /// If true then the slider will change to its set highlight color when moused over.
+        /// </summary>
+        public bool EnableHighlight { get; set; }
+
+        /// <summary>
         /// Color of the slider bar
         /// </summary>
         public Color BarColor { get; set; }
@@ -241,6 +246,7 @@ namespace RichHudFramework.UI
             SliderColor = new Color(180, 180, 180, 255);
             BarColor = new Color(140, 140, 140, 255);
             SliderHighlight = new Color(200, 200, 200, 255);
+            EnableHighlight = true;
 
             _min = 0f;
             _max = 1f;
@@ -252,7 +258,7 @@ namespace RichHudFramework.UI
         public SliderBar() : this(null)
         { }
 
-        private void BarClicked(object sender, EventArgs args)
+        protected virtual void BarClicked(object sender, EventArgs args)
         {
             canMoveSlider = true;
         }
@@ -272,7 +278,7 @@ namespace RichHudFramework.UI
             slider.Size = _sliderSize * scale;
             slider.Visible = SliderVisible;
 
-            if (IsMousedOver || canMoveSlider)
+            if (EnableHighlight && (IsMousedOver || canMoveSlider))
             {
                 slider.Color = SliderHighlight;
 

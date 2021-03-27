@@ -2,9 +2,19 @@
 using VRage;
 using System;
 using System.Collections.Generic;
+using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework.UI
 {
+    using HudUpdateAccessors = MyTuple<
+        ApiMemberAccessor,
+        MyTuple<Func<ushort>, Func<Vector3D>>, // ZOffset + GetOrigin
+        Action, // DepthTest
+        Action, // HandleInput
+        Action<bool>, // BeforeLayout
+        Action // BeforeDraw
+    >;
+
     /// <summary>
     /// Scrollable list of hud elements. Can be oriented vertically or horizontally. Min/Max size determines
     /// the maximum size of scrollbox elements as well as the scrollbox itself.
@@ -74,7 +84,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public int Start
         {
-            get { return _start; }
+            get { return MathHelper.Clamp(_start, 0, hudCollectionList.Count - 1); }
             set 
             {
                 _start = MathHelper.Clamp(value, 0, hudCollectionList.Count - 1);
@@ -87,7 +97,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public int End
         {
-            get { return _end; } 
+            get { return MathHelper.Clamp(_end, 0, hudCollectionList.Count - 1); } 
             set 
             {
                 _end = MathHelper.Clamp(value, 0, hudCollectionList.Count - 1);
@@ -113,33 +123,71 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Background color of the scroll box.
         /// </summary>
-        public Color Color { get { return background.Color; } set { background.Color = value; } }
+        public Color Color { get { return Background.Color; } set { Background.Color = value; } }
 
         /// <summary>
         /// Color of the slider bar
         /// </summary>
-        public Color BarColor { get { return scrollBar.slide.BarColor; } set { scrollBar.slide.BarColor = value; } }
+        public Color BarColor { get { return ScrollBar.slide.BarColor; } set { ScrollBar.slide.BarColor = value; } }
 
         /// <summary>
         /// Bar color when moused over
         /// </summary>
-        public Color BarHighlight { get { return scrollBar.slide.BarHighlight; } set { scrollBar.slide.BarHighlight = value; } }
+        public Color BarHighlight { get { return ScrollBar.slide.BarHighlight; } set { ScrollBar.slide.BarHighlight = value; } }
 
         /// <summary>
         /// Color of the slider box when not moused over
         /// </summary>
-        public Color SliderColor { get { return scrollBar.slide.SliderColor; } set { scrollBar.slide.SliderColor = value; } }
+        public Color SliderColor { get { return ScrollBar.slide.SliderColor; } set { ScrollBar.slide.SliderColor = value; } }
 
         /// <summary>
         /// Color of the slider button when moused over
         /// </summary>
-        public Color SliderHighlight { get { return scrollBar.slide.SliderHighlight; } set { scrollBar.slide.SliderHighlight = value; } }
+        public Color SliderHighlight { get { return ScrollBar.slide.SliderHighlight; } set { ScrollBar.slide.SliderHighlight = value; } }
 
         public bool EnableScrolling { get; set; }
 
-        public readonly ScrollBar scrollBar;
-        public readonly TexturedBox background;
-        public readonly TexturedBox divider;
+        public override bool AlignVertical 
+        { 
+            set 
+            {
+                ScrollBar.Vertical = value;
+                base.AlignVertical = value;
+
+                if (value)
+                {
+                    ScrollBar.DimAlignment = DimAlignments.Height;
+                    Divider.DimAlignment = DimAlignments.Height;
+
+                    ScrollBar.ParentAlignment = ParentAlignments.Right | ParentAlignments.InnerH;
+                    Divider.ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH;
+
+                    Divider.Padding = new Vector2(2f, 0f);
+                    Divider.Width = 1f;
+
+                    ScrollBar.Padding = new Vector2(30f, 10f);
+                    ScrollBar.Width = 43f;
+                }
+                else
+                {
+                    ScrollBar.DimAlignment = DimAlignments.Width;
+                    Divider.DimAlignment = DimAlignments.Width;
+
+                    ScrollBar.ParentAlignment = ParentAlignments.Bottom | ParentAlignments.InnerV;
+                    Divider.ParentAlignment = ParentAlignments.Bottom | ParentAlignments.InnerV;
+
+                    Divider.Padding = new Vector2(16f, 2f);
+                    Divider.Height = 1f;
+
+                    ScrollBar.Padding = new Vector2(16f);
+                    ScrollBar.Height = 24f;
+                }
+            } 
+        }
+
+        public ScrollBar ScrollBar { get; protected set; }
+        public TexturedBox Divider { get; protected set; }
+        public TexturedBox Background { get; protected set; }
 
         private float scrollBarPadding, _absMinLength, _absMinLengthInternal;
         private bool updateRangeReverse;
@@ -147,44 +195,12 @@ namespace RichHudFramework.UI
 
         public ScrollBox(bool alignVertical, HudParentBase parent = null) : base(alignVertical, parent)
         {
-            background = new TexturedBox(this)
+            Background = new TexturedBox(this)
             {
-                Color = new Color(41, 54, 62, 196),
+                Color = TerminalFormatting.DarkSlateGrey,
                 DimAlignment = DimAlignments.Both,
                 ZOffset = -1,
             };
-
-            scrollBar = new ScrollBar(this) { Vertical = alignVertical };
-            divider = new TexturedBox(scrollBar) { Color = new Color(53, 66, 75) };
-
-            if (alignVertical)
-            {
-                scrollBar.DimAlignment = DimAlignments.Height;
-                divider.DimAlignment = DimAlignments.Height;
-
-                scrollBar.ParentAlignment = ParentAlignments.Right | ParentAlignments.InnerH;
-                divider.ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH;
-
-                divider.Padding = new Vector2(2f, 0f);
-                divider.Width = 1f;
-
-                scrollBar.Padding = new Vector2(30f, 8f);
-                scrollBar.Width = 45f;
-            }
-            else
-            {
-                scrollBar.DimAlignment = DimAlignments.Width;
-                divider.DimAlignment = DimAlignments.Width;
-
-                scrollBar.ParentAlignment = ParentAlignments.Bottom | ParentAlignments.InnerV;
-                divider.ParentAlignment = ParentAlignments.Bottom | ParentAlignments.InnerV;
-
-                divider.Padding = new Vector2(16f, 2f);
-                divider.Height = 1f;
-
-                scrollBar.Padding = new Vector2(16f);
-                scrollBar.Height = 24f;
-            }
 
             MinVisibleCount = 1;
             UseCursor = true;
@@ -193,11 +209,23 @@ namespace RichHudFramework.UI
             ZOffset = 1;
         }
 
+        protected override void Init()
+        {
+            ScrollBar = new ScrollBar(this);
+            Divider = new TexturedBox(ScrollBar) { Color = new Color(53, 66, 75) };
+        }
+
+        public ScrollBox(HudParentBase parent) : this(false, parent)
+        { }
+
+        public ScrollBox() : this(false, null)
+        { }
+
         protected override void HandleInput(Vector2 cursorPos)
         {
-            if (scrollBar.MouseInput.IsLeftClicked)
-                _start = (int)Math.Round(scrollBar.Current);
-            else if (EnableScrolling && (IsMousedOver || scrollBar.IsMousedOver))
+            if (ScrollBar.MouseInput.IsLeftClicked)
+                _start = (int)Math.Round(ScrollBar.Current);
+            else if (EnableScrolling && (IsMousedOver || ScrollBar.IsMousedOver))
             {
                 if (SharedBinds.MousewheelUp.IsPressed)
                     _start = MathHelper.Clamp(_start - 1, 0, scrollMax);
@@ -205,14 +233,14 @@ namespace RichHudFramework.UI
                     _start = MathHelper.Clamp(_start + 1, 0, scrollMax);
             }
 
-            scrollBar.Current = _start;
+            ScrollBar.Current = _start;
         }
 
         protected override void Layout()
         {
             // Calculate effective min and max element sizes
             Vector2 effectivePadding = cachedPadding;
-            scrollBarPadding = scrollBar.Size[offAxis] + divider.Size[offAxis];
+            scrollBarPadding = ScrollBar.Size[offAxis];
             effectivePadding[offAxis] += scrollBarPadding;
 
             ClampElementSizeRange();
@@ -226,8 +254,8 @@ namespace RichHudFramework.UI
             scrollMin = GetFirstEnabled();
             scrollMax = GetScrollMax(rangeLength);
 
-            scrollBar.Min = scrollMin;
-            scrollBar.Max = scrollMax;
+            ScrollBar.Min = scrollMin;
+            ScrollBar.Max = scrollMax;
 
             // Update visible range
             UpdateElementRange(rangeLength);
@@ -243,14 +271,14 @@ namespace RichHudFramework.UI
             _absoluteHeight = size.Y / Scale;
 
             // Snap slider to integer offsets
-            scrollBar.Current = (int)Math.Round(scrollBar.Current);
+            ScrollBar.Current = (int)Math.Round(ScrollBar.Current);
 
             // Update slider size
             float visRatio = ((float)Math.Round(VisCount / (double)EnabledCount, 2));
-            Vector2 sliderSize = scrollBar.slide.BarSize;
+            Vector2 sliderSize = ScrollBar.slide.BarSize;
 
-            sliderSize[alignAxis] = (Size[alignAxis] - scrollBar.Padding[alignAxis]) * visRatio;
-            scrollBar.slide.SliderSize = sliderSize;
+            sliderSize[alignAxis] = (Size[alignAxis] - ScrollBar.Padding[alignAxis]) * visRatio;
+            ScrollBar.slide.SliderSize = sliderSize;
 
             // Calculate member start offset
             Vector2 startOffset;
@@ -458,6 +486,20 @@ namespace RichHudFramework.UI
             }
 
             return size;
+        }
+
+        public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte treeDepth)
+        {
+            int preloadRange = Math.Max((End - Start) * 2, 10),
+                preloadStart = MathHelper.Clamp(Start - preloadRange, 0, hudCollectionList.Count - 1),
+                preloadCount = MathHelper.Clamp((End + preloadRange) - preloadStart, 0, hudCollectionList.Count - preloadStart);
+
+            NodeUtils.SetNodesState<TElementContainer, TElement>
+                (HudElementStates.CanPreload, true, hudCollectionList, 0, hudCollectionList.Count);
+            NodeUtils.SetNodesState<TElementContainer, TElement>
+                (HudElementStates.CanPreload, false, hudCollectionList, preloadStart, preloadCount);
+
+            base.GetUpdateAccessors(UpdateActions, treeDepth);
         }
     }
 

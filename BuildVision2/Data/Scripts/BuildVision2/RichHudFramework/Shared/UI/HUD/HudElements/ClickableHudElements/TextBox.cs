@@ -51,12 +51,23 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool SelectionEmpty => selectionBox.Empty;
 
+        /// <summary>
+        /// If true, the caret will move to the end of the text when it gains focus.
+        /// </summary>
+        public bool MoveToEndOnGainFocus { get; set; }
+
+        /// <summary>
+        /// If true, any text selections will be cleared when focus is lost.
+        /// </summary>
+        public bool ClearSelectionOnLoseFocus { get; set; }
+
         public IMouseInput MouseInput { get; }
 
         private readonly TextInput textInput;
         private readonly TextCaret caret;
         private readonly SelectionBox selectionBox;
         private bool canHighlight, allowInput;
+        private Vector2 cursorStart;
 
         public TextBox(HudParentBase parent) : base(parent)
         {
@@ -67,11 +78,16 @@ namespace RichHudFramework.UI
             selectionBox = new SelectionBox(caret, this) { Color = new Color(255, 255, 255, 140) };
 
             caret.CaretMoved += CaretMoved;
+            MouseInput.GainedInputFocus += GainFocus;
+            MouseInput.LostInputFocus += LoseFocus;
 
             ShareCursor = true;
             EnableEditing = true;
             EnableHighlighting = true;
             UseCursor = true;
+
+            MoveToEndOnGainFocus = false;
+            ClearSelectionOnLoseFocus = true;
 
             Size = new Vector2(60f, 200f);
         }
@@ -126,8 +142,21 @@ namespace RichHudFramework.UI
                 selectionBox.UpdateSelection();
         }
 
+        private void GainFocus(object sender, EventArgs args)
+        {
+            if (MoveToEndOnGainFocus)
+                caret.Move(new Vector2I(0, int.MaxValue), true);
+        }
+
+        private void LoseFocus(object sender, EventArgs args)
+        {
+            if (ClearSelectionOnLoseFocus)
+                ClearSelection();
+        }
+
         protected override void HandleInput(Vector2 cursorPos)
         {
+            // MouseInput is running behind this because its a child element
             bool useInput = allowInput || (MouseInput.HasFocus && HudMain.Cursor.Visible);
 
             if (useInput && EnableEditing)
@@ -156,7 +185,7 @@ namespace RichHudFramework.UI
                         caret.Move(new Vector2I(0, length));
                     }
                 }
-            }
+            } 
 
             InputOpen = useInput && (EnableHighlighting || EnableEditing);
             caret.Visible = InputOpen;
@@ -167,8 +196,13 @@ namespace RichHudFramework.UI
                 {
                     if (SharedBinds.LeftButton.IsNewPressed)
                     {
-                        canHighlight = true;
+                        cursorStart = cursorPos;
                         selectionBox.ClearSelection();
+                    }
+                    // Require some movement before enabling highlighting
+                    else if (!canHighlight && SharedBinds.LeftButton.IsPressed && (cursorPos - cursorStart).LengthSquared() > 16f)
+                    {
+                        canHighlight = true;
                     }
                     else if (SharedBinds.LeftButton.IsReleased)
                     {
@@ -457,11 +491,11 @@ namespace RichHudFramework.UI
                     Vector2 offset = cursorPos - textElement.Position;
                     Vector2I newIndex = text.GetCharAtOffset(offset);
 
-                    Index = ClampIndex(newIndex);
-
+                    // If clicking left of center on the char, move one char back.
                     if ((text.Count > 0 && text[Index.X].Count > 0 && text[Index].Ch != '\n') && (offset.X < text[Index].Offset.X))
                         Index -= new Vector2I(0, 1);
 
+                    Index = ClampIndex(newIndex);
                     caretOffset = GetOffsetFromIndex(Index);
                     lastCursorPos = cursorPos;         
 

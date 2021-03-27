@@ -20,8 +20,11 @@ namespace RichHudFramework.Client
     /// </summary>
     public sealed class RichHudClient : RichHudComponentBase
     {
+        public static readonly Vector4I versionID = new Vector4I(1, 1, 0, 0); // Major, Minor, Rev, Hotfix
+        public const ClientSubtypes subtype = ClientSubtypes.Full;
+
         private const long modID = 1965654081, queueID = 1314086443;
-        private const int versionID = 7;
+        private const int vID = 8;
 
         public static bool Registered => Instance != null ? Instance.registered : false;
         private static RichHudClient Instance { get; set; }
@@ -43,7 +46,7 @@ namespace RichHudFramework.Client
             if (LogIO.FileName == null || LogIO.FileName == "modLog.txt")
                 LogIO.FileName = $"richHudLog.txt";
 
-            var clientData = new ClientData(modName, MessageHandler, RemoteReset, versionID);
+            var clientData = new ClientData(modName, MessageHandler, RemoteReset, vID);
             regMessage = new ExtendedClientData(clientData, ExceptionHandler.Run, GetOrSetMember);
         }
 
@@ -96,14 +99,14 @@ namespace RichHudFramework.Client
                         registered = true;
 
                         ExceptionHandler.Run(InitAction);
-                        ExceptionHandler.WriteToLog($" [RHF] Successfully registered with Rich HUD Master.");
+                        ExceptionHandler.WriteToLog($"[RHF] Successfully registered with Rich HUD Master.");
                     }
                     else if (msgType == MsgTypes.RegistrationFailed)
                     {
                         if (message is string)
-                            ExceptionHandler.WriteToLog($" [RHF] Failed to register with Rich HUD Master. Message: {message as string}");
+                            ExceptionHandler.WriteToLog($"[RHF] Failed to register with Rich HUD Master. Message: {message as string}");
                         else
-                            ExceptionHandler.WriteToLog($" [RHF] Failed to register with Rich HUD Master.");
+                            ExceptionHandler.WriteToLog($"[RHF] Failed to register with Rich HUD Master.");
 
                         regFail = true;
                     }
@@ -113,6 +116,14 @@ namespace RichHudFramework.Client
 
         private object GetOrSetMember(object data, int memberEnum)
         {
+            switch((ClientDataAccessors)memberEnum)
+            {
+                case ClientDataAccessors.GetVersionID:
+                    return versionID;
+                case ClientDataAccessors.GetSubtype:
+                    return subtype;
+            }
+
             return null;
         }
 

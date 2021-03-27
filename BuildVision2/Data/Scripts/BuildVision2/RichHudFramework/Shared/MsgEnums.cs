@@ -17,6 +17,16 @@
 
     public enum ClientDataAccessors : int
     {   
-        GetGeneralAccessor = 1,
+        GetVersionID = 1,
+        GetSubtype = 2
+    }
+
+    public enum ClientSubtypes : int
+    {
+        Full = 1,
+        NoLib = 2,
+        Terminal = 3,
+        FontManager = 4,
+        BindManager = 5
     }
 }

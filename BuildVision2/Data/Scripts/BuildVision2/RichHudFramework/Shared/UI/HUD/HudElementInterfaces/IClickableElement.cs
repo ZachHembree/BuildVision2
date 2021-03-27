@@ -43,6 +43,16 @@ namespace RichHudFramework
             event EventHandler RightReleased;
 
             /// <summary>
+            /// Invoked when taking focus
+            /// </summary>
+            event EventHandler GainedInputFocus;
+
+            /// <summary>
+            /// Invoked when focus is lost
+            /// </summary>
+            event EventHandler LostInputFocus;
+
+            /// <summary>
             /// True if the element is being clicked with the left mouse button
             /// </summary>
             bool IsLeftClicked { get; }
@@ -66,6 +76,17 @@ namespace RichHudFramework
             /// Indicates whether or not the cursor is currently over this element.
             /// </summary>
             bool HasFocus { get; }
+
+            /// <summary>
+            /// Returns true if the element is moused over
+            /// </summary>
+            bool IsMousedOver { get; }
+
+            /// <summary>
+            /// Gets input focus for keyboard controls. Input focus normally taken when an
+            /// element with mouse input is clicked.
+            /// </summary>
+            void GetInputFocus();
 
             /// <summary>
             /// Clears all subscribers to mouse input events.

@@ -10,7 +10,7 @@ namespace RichHudFramework.UI
     /// <summary>
     /// HUD element used to render text.
     /// </summary>
-    public class Label : HudElementBase
+    public class Label : LabelElementBase
     {
         /// <summary>
         /// Text rendered by the label.
@@ -20,7 +20,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// TextBoard backing the label element.
         /// </summary>
-        public ITextBoard TextBoard => _textBoard;
+        public override ITextBoard TextBoard => _textBoard;
 
         /// <summary>
         /// Default formatting used by the label.

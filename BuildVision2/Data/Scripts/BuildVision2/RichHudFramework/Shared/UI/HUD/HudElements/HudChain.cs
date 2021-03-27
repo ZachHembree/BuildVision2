@@ -104,6 +104,8 @@ namespace RichHudFramework
             where TElementContainer : IHudElementContainer<TElement>, new()
             where TElement : HudElementBase
         {
+            protected const HudElementStates nodeSetVisible = HudElementStates.IsVisible | HudElementStates.IsRegistered;
+
             /// <summary>
             /// Width of the chain
             /// </summary>
@@ -162,28 +164,50 @@ namespace RichHudFramework
             /// <summary>
             /// Determines whether or not chain elements will be aligned vertically.
             /// </summary>
-            public bool AlignVertical => alignAxis == 1;
+            public virtual bool AlignVertical 
+            { 
+                get { return _alignVertical; }
+                set 
+                {
+                    if (value)
+                    {
+                        alignAxis = 1;
+                        offAxis = 0;
+                    }
+                    else
+                    {
+                        alignAxis = 0;
+                        offAxis = 1;
+                    }
 
+                    _alignVertical = value;
+                }
+            }
+
+            protected bool _alignVertical;
             protected float _spacing;
             protected int alignAxis, offAxis;
             protected Vector2 _absMaxSize, _absMinSize;
 
             public HudChain(bool alignVertical, HudParentBase parent = null) : base(parent)
             {
+                Init();
+
                 Spacing = 0f;
                 SizingMode = HudChainSizingModes.FitChainBoth;
-
-                if (alignVertical)
-                {
-                    alignAxis = 1;
-                    offAxis = 0;
-                }
-                else
-                {
-                    alignAxis = 0;
-                    offAxis = 1;
-                }
+                AlignVertical = alignVertical;
             }
+
+            public HudChain(HudParentBase parent) : this(false, parent)
+            { }
+
+            public HudChain() : this(false, null)
+            { }
+
+            /// <summary>
+            /// Initialzer called before the constructor.
+            /// </summary>
+            protected virtual void Init() { }
 
             protected override void Layout()
             {
@@ -283,7 +307,7 @@ namespace RichHudFramework
                     // Apply changes
                     element.Offset = newOffset;
 
-                    if (ParentUtils.IsSetVisible(element))
+                    if ((element.State & (nodeSetVisible)) == nodeSetVisible)
                     {
                         // Move offset down for the next element
                         elementSize[alignAxis] += Spacing;
@@ -332,7 +356,7 @@ namespace RichHudFramework
                 {
                     TElement element = hudCollectionList[n].Element;
                     
-                    if (ParentUtils.IsSetVisible(element))
+                    if ((element.State & (nodeSetVisible)) == nodeSetVisible)
                     {
                         Vector2 elementSize = element.Size;
 

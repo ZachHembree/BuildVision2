@@ -46,7 +46,17 @@ namespace RichHudFramework.UI
         public event EventHandler RightReleased;
 
         /// <summary>
-        /// Indicates whether or not the cursor is currently over this element.
+        /// Invoked when taking focus
+        /// </summary>
+        public event EventHandler GainedInputFocus;
+
+        /// <summary>
+        /// Invoked when focus is lost
+        /// </summary>
+        public event EventHandler LostInputFocus;
+
+        /// <summary>
+        /// Indicates whether or not the element has input focus.
         /// </summary>
         public bool HasFocus { get { return hasFocus && Visible; } private set { hasFocus = value; } }
 
@@ -72,6 +82,7 @@ namespace RichHudFramework.UI
 
         private bool mouseCursorEntered;
         private bool hasFocus;
+        protected readonly Action LoseFocusCallback;
 
         public MouseInputElement(HudParentBase parent) : base(parent)
         {
@@ -79,6 +90,8 @@ namespace RichHudFramework.UI
             ShareCursor = true;
             HasFocus = false;
             DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding;
+
+            LoseFocusCallback = LoseFocus;
         }
 
         public MouseInputElement() : this(null)
@@ -99,19 +112,22 @@ namespace RichHudFramework.UI
 
         protected override void InputDepth()
         {
-            if (UseCursor && Visible && (HudSpace?.IsFacingCamera ?? false))
+            State &= ~HudElementStates.IsMouseInBounds;
+
+            if (HudSpace?.IsFacingCamera ?? false)
             {
                 Vector3 cursorPos = HudSpace.CursorPos;
                 Vector2 offset = Vector2.Max(cachedSize, new Vector2(minMouseBounds)) / 2f;
                 BoundingBox2 box = new BoundingBox2(cachedPosition - offset, cachedPosition + offset);
-                mouseInBounds = box.Contains(new Vector2(cursorPos.X, cursorPos.Y)) == ContainmentType.Contains
+                bool mouseInBounds = box.Contains(new Vector2(cursorPos.X, cursorPos.Y)) == ContainmentType.Contains
                         || (IsLeftClicked || IsRightClicked);
 
                 if (mouseInBounds)
+                {
+                    State |= HudElementStates.IsMouseInBounds;
                     HudMain.Cursor.TryCaptureHudSpace(cursorPos.Z, HudSpace.GetHudSpaceFunc);
+                }
             }
-            else
-                mouseInBounds = false;
         }
 
         protected override void HandleInput(Vector2 cursorPos)
@@ -126,20 +142,16 @@ namespace RichHudFramework.UI
 
                 if (SharedBinds.LeftButton.IsNewPressed)
                 {
-                    LeftClicked?.Invoke(_parent, EventArgs.Empty);
-                    HasFocus = true;
-                    IsLeftClicked = true;
-                    IsNewLeftClicked = true;
+                    GetInputFocus();
+                    OnLeftClick();
                 }
                 else
                     IsNewLeftClicked = false;
 
                 if (SharedBinds.RightButton.IsNewPressed)
                 {
-                    RightClicked?.Invoke(_parent, EventArgs.Empty);
-                    HasFocus = true;
-                    IsRightClicked = true;
-                    IsNewRightClicked = true;
+                    GetInputFocus();
+                    OnRightClick();
                 }
                 else
                     IsNewRightClicked = false;
@@ -153,7 +165,7 @@ namespace RichHudFramework.UI
                 }
 
                 if (HasFocus && (SharedBinds.LeftButton.IsNewPressed || SharedBinds.RightButton.IsNewPressed))
-                    HasFocus = false;
+                    LoseFocus();
 
                 IsNewLeftClicked = false;
                 IsNewRightClicked = false;
@@ -169,6 +181,49 @@ namespace RichHudFramework.UI
             {
                 RightReleased?.Invoke(_parent, EventArgs.Empty);
                 IsRightClicked = false;
+            }
+        }
+
+        /// <summary>
+        /// Invokes left click event
+        /// </summary>
+        public virtual void OnLeftClick()
+        {
+            LeftClicked?.Invoke(_parent, EventArgs.Empty);
+            IsLeftClicked = true;
+            IsNewLeftClicked = true;
+        }
+
+        /// <summary>
+        /// Invokes right click event
+        /// </summary>
+        public virtual void OnRightClick()
+        {
+            RightClicked?.Invoke(_parent, EventArgs.Empty);
+            IsRightClicked = true;
+            IsNewRightClicked = true;
+        }
+
+        /// <summary>
+        /// Gets input focus for keyboard controls. Input focus normally taken when an
+        /// element with mouse input is clicked.
+        /// </summary>
+        public virtual void GetInputFocus()
+        {
+            if (!hasFocus)
+            {
+                hasFocus = true;
+                HudMain.GetInputFocus(LoseFocusCallback);
+                GainedInputFocus?.Invoke(_parent, EventArgs.Empty);
+            }
+        }
+
+        protected virtual void LoseFocus()
+        {
+            if (hasFocus)
+            {
+                hasFocus = false;
+                LostInputFocus?.Invoke(_parent, EventArgs.Empty);
             }
         }
     }

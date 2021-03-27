@@ -21,7 +21,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Used internally quickly register a list of child nodes to a parent.
                 /// </summary>
-                public static void RegisterNodes(HudParentBase newParent, List<HudNodeBase> children, IReadOnlyList<HudNodeBase> nodes, bool preregister)
+                public static void RegisterNodes(HudParentBase newParent, List<HudNodeBase> children, IReadOnlyList<HudNodeBase> nodes, bool preregister, bool canPreload)
                 {
                     bool wereFastUnregistered = false;
 
@@ -29,17 +29,17 @@ namespace RichHudFramework
                     {
                         HudNodeBase node = nodes[n];
 
-                        if (node._registered)
+                        if ((node.State & HudElementStates.IsRegistered) > 0)
                             throw new Exception("HUD Element already registered!");
 
-                        if (node.wasFastUnregistered && newParent != node.reregParent)
+                        if ((node.State & HudElementStates.WasFastUnregistered) > 0 && newParent != node.reregParent)
                         {
                             node.reregParent.RemoveChild(node);
-                            node.wasFastUnregistered = false;
+                            node.State &= ~HudElementStates.WasFastUnregistered;
                             node.reregParent = null;
                         }
 
-                        if (node.wasFastUnregistered)
+                        if ((node.State & HudElementStates.WasFastUnregistered) > 0)
                             wereFastUnregistered = true;
                     }
 
@@ -54,29 +54,38 @@ namespace RichHudFramework
                         {
                             node.reregParent = newParent;
                             node.Parent = null;
-                            node._registered = false;
+                            node.State &= ~HudElementStates.IsRegistered;
                         }
                         else
                         {
-                            node.parentZOffset = newParent.ZOffset;
+                            node.Parent = newParent;
+                            node.State |= HudElementStates.IsRegistered;
+                            node.layerData.parentZOffset = newParent.ZOffset;
                             node.parentScale = newParent.Scale;
-                            node.parentVisible = newParent.Visible;
+                            node.ParentVisible = newParent.Visible;
                         }
 
-                        if (!node.wasFastUnregistered)
+                        if (!((node.State & HudElementStates.WasFastUnregistered) > 0))
                         {
-                            HudMain.RefreshDrawList = true;
                             children.Add(node);
                         }
 
-                        node.wasFastUnregistered = preregister;
+                        if (canPreload)
+                            node.State |= HudElementStates.CanPreload;
+                        else
+                            node.State &= ~HudElementStates.CanPreload;
+
+                        if (preregister)
+                            node.State |= HudElementStates.WasFastUnregistered;
+                        else
+                            node.State &= ~HudElementStates.WasFastUnregistered;
                     }
                 }
 
                 /// <summary>
                 /// Used internally quickly register a list of child nodes to a parent.
                 /// </summary>
-                public static void RegisterNodes<TCon, TNode>(HudParentBase newParent, List<HudNodeBase> children, IReadOnlyList<TCon> nodes, bool preregister)
+                public static void RegisterNodes<TCon, TNode>(HudParentBase newParent, List<HudNodeBase> children, IReadOnlyList<TCon> nodes, bool preregister, bool canPreload)
                     where TCon : IHudElementContainer<TNode>, new()
                     where TNode : HudNodeBase
                 {
@@ -86,17 +95,17 @@ namespace RichHudFramework
                     {
                         HudNodeBase node = nodes[n].Element;
 
-                        if (node._registered)
+                        if ((node.State & HudElementStates.IsRegistered) > 0)
                             throw new Exception("HUD Element already registered!");
 
-                        if (node.wasFastUnregistered && newParent != node.reregParent)
+                        if ((node.State & HudElementStates.WasFastUnregistered) > 0 && newParent != node.reregParent)
                         {
                             node.reregParent.RemoveChild(node);
-                            node.wasFastUnregistered = false;
+                            node.State &= ~HudElementStates.WasFastUnregistered;
                             node.reregParent = null;
                         }
 
-                        if (node.wasFastUnregistered)
+                        if ((node.State & HudElementStates.WasFastUnregistered) > 0)
                             wereFastUnregistered = true;
                     }
 
@@ -111,22 +120,31 @@ namespace RichHudFramework
                         {
                             node.reregParent = newParent;
                             node.Parent = null;
-                            node._registered = false;
+                            node.State &= ~HudElementStates.IsRegistered;
                         }
                         else
                         {
-                            node.parentZOffset = newParent.ZOffset;
+                            node.Parent = newParent;
+                            node.State |= HudElementStates.IsRegistered;
+                            node.layerData.parentZOffset = newParent.ZOffset;
                             node.parentScale = newParent.Scale;
-                            node.parentVisible = newParent.Visible;
+                            node.ParentVisible = newParent.Visible;
                         }
 
-                        if (!node.wasFastUnregistered)
+                        if (!((node.State & HudElementStates.WasFastUnregistered) > 0))
                         {
-                            HudMain.RefreshDrawList = true;
                             children.Add(node);
                         }
 
-                        node.wasFastUnregistered = preregister;
+                        if (canPreload)
+                            node.State |= HudElementStates.CanPreload;
+                        else
+                            node.State &= ~HudElementStates.CanPreload;
+
+                        if (preregister)
+                            node.State |= HudElementStates.WasFastUnregistered;
+                        else
+                            node.State &= ~HudElementStates.WasFastUnregistered;
                     }
                 }
 
@@ -169,8 +187,6 @@ namespace RichHudFramework
                                     children.RemoveRange(start, end - start + 1);
                                 }
                             }
-
-                            HudMain.RefreshDrawList = true;
                         }
 
                         for (int n = index; n < count; n++)
@@ -184,18 +200,18 @@ namespace RichHudFramework
                             if (fast)
                             {
                                 node.reregParent = node._parent;
-                                node.wasFastUnregistered = true;
+                                node.State |= HudElementStates.WasFastUnregistered;
                             }
                             else
                             {
                                 node.reregParent = null;
-                                node.wasFastUnregistered = false;
+                                node.State &= ~HudElementStates.WasFastUnregistered;
                             }
 
                             node.Parent = null;
-                            node._registered = false;
-                            node.parentZOffset = 0;
-                            node.parentVisible = false;
+                            node.State &= ~HudElementStates.IsRegistered;
+                            node.layerData.parentZOffset = 0;
+                            node.ParentVisible = false;
                         }
                     }
                 }
@@ -241,8 +257,6 @@ namespace RichHudFramework
                                     children.RemoveRange(start, end - start + 1);
                                 }
                             }
-
-                            HudMain.RefreshDrawList = true;
                         }
 
                         for (int n = index; n < count; n++)
@@ -256,18 +270,65 @@ namespace RichHudFramework
                             if (fast)
                             {
                                 node.reregParent = node._parent;
-                                node.wasFastUnregistered = true;
+                                node.State |= HudElementStates.WasFastUnregistered;
                             }
                             else
                             {
                                 node.reregParent = null;
-                                node.wasFastUnregistered = false;
+                                node.State &= ~HudElementStates.WasFastUnregistered;
                             }
 
                             node.Parent = null;
-                            node._registered = false;
-                            node.parentZOffset = 0;
-                            node.parentVisible = false;
+                            node.State &= ~HudElementStates.IsRegistered;
+                            node.layerData.parentZOffset = 0;
+                        }
+                    }
+                }
+
+                /// <summary>
+                /// Used internally to modify the state of hud nodes
+                /// </summary>
+                public static void SetNodesState(HudElementStates state, bool mask, IReadOnlyList<HudNodeBase> nodes, int index, int count)
+                {
+                    if (count > 0)
+                    {
+                        int end = index + count - 1;
+                        Utils.Debug.Assert(index >= 0 && end < nodes.Count, $"Range out of bounds. Index: {index}, End: {end}");
+
+                        if (mask)
+                        {
+                            for (int i = index; i <= end; i++)
+                                nodes[i].State &= ~state;
+                        }
+                        else
+                        {
+                            for (int i = index; i <= end; i++)
+                                nodes[i].State |= state;
+                        }
+                    }
+                }
+
+                /// <summary>
+                /// Used internally to modify the state of hud nodes
+                /// </summary>
+                public static void SetNodesState<TCon, TNode>(HudElementStates state, bool mask, IReadOnlyList<TCon> nodes, int index, int count)
+                    where TCon : IHudElementContainer<TNode>, new()
+                    where TNode : HudNodeBase
+                {
+                    if (count > 0)
+                    {
+                        int end = index + count - 1;
+                        Utils.Debug.Assert(index >= 0 && end < nodes.Count, $"Range out of bounds. Index: {index}, End: {end}");
+
+                        if (mask)
+                        {
+                            for (int i = index; i <= end; i++)
+                                nodes[i].Element.State &= ~state;
+                        }
+                        else
+                        {
+                            for (int i = index; i <= end; i++)
+                                nodes[i].Element.State |= state;
                         }
                     }
                 }

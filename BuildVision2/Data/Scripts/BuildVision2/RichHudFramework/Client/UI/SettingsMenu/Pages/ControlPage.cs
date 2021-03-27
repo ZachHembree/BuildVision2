@@ -31,9 +31,9 @@ namespace RichHudFramework
             /// <summary>
             /// List of control categories registered to the page.
             /// </summary>
-            public IReadOnlyList<IControlCategory> Categories { get; }
+            public IReadOnlyList<ControlCategory> Categories { get; }
 
-            public IControlPage CategoryContainer => this;
+            public IControlPage<ControlCategory, ControlTile> CategoryContainer => this;
 
             public ControlPage() : base(ModPages.ControlPage)
             {
@@ -41,10 +41,10 @@ namespace RichHudFramework
                 var GetCatDataFunc = catData.Item1 as Func<int, ControlContainerMembers>;
 
                 Func<int, ControlCategory> GetCatFunc = (x => new ControlCategory(GetCatDataFunc(x)));
-                Categories = new ReadOnlyApiCollection<IControlCategory>(GetCatFunc, catData.Item2);
+                Categories = new ReadOnlyApiCollection<ControlCategory>(GetCatFunc, catData.Item2);
             }
 
-            IEnumerator<IControlCategory> IEnumerable<IControlCategory>.GetEnumerator() =>
+            IEnumerator<ControlCategory> IEnumerable<ControlCategory>.GetEnumerator() =>
                 Categories.GetEnumerator();
 
             IEnumerator IEnumerable.GetEnumerator() =>

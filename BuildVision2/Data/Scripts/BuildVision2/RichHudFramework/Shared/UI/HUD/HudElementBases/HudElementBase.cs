@@ -110,17 +110,37 @@ namespace RichHudFramework
             /// <summary>
             /// If set to true the hud element will be allowed to capture the cursor.
             /// </summary>
-            public bool UseCursor { get; set; }
+            public bool UseCursor
+            {
+                get { return (State & HudElementStates.CanUseCursor) > 0; }
+                set
+                {
+                    if (value)
+                        State |= HudElementStates.CanUseCursor;
+                    else
+                        State &= ~HudElementStates.CanUseCursor;
+                }
+            }
 
             /// <summary>
             /// If set to true the hud element will share the cursor with other elements.
             /// </summary>
-            public bool ShareCursor { get; set; }
+            public bool ShareCursor
+            {
+                get { return (State & HudElementStates.CanShareCursor) > 0; }
+                set
+                {
+                    if (value)
+                        State |= HudElementStates.CanShareCursor;
+                    else
+                        State &= ~HudElementStates.CanShareCursor;
+                }
+            }
 
             /// <summary>
             /// Indicates whether or not the element is capturing the cursor.
             /// </summary>
-            public virtual bool IsMousedOver => _isMousedOver;
+            public virtual bool IsMousedOver => (State & HudElementStates.IsMousedOver) > 0;
 
             /// <summary>
             /// Unscaled element size;
@@ -136,11 +156,6 @@ namespace RichHudFramework
             /// Unscaled element padding.
             /// </summary>
             protected Vector2 _absolutePadding;
-
-            /// <summary>
-            /// Values used internaly for mouse bounds checking. Do not use.
-            /// </summary>
-            protected bool _isMousedOver, mouseInBounds;
 
             /// <summary>
             /// Values used internally to minimize property calls. Should be treated as read only.
@@ -165,18 +180,21 @@ namespace RichHudFramework
             /// </summary>
             protected override void InputDepth()
             {
-                if (UseCursor && (HudSpace?.IsFacingCamera ?? false))
+                State &= ~HudElementStates.IsMouseInBounds;
+
+                if (HudSpace?.IsFacingCamera ?? false)
                 {
                     Vector3 cursorPos = HudSpace.CursorPos;
                     Vector2 offset = Vector2.Max(cachedSize, new Vector2(minMouseBounds)) / 2f;
                     BoundingBox2 box = new BoundingBox2(cachedPosition - offset, cachedPosition + offset);
-                    mouseInBounds = box.Contains(new Vector2(cursorPos.X, cursorPos.Y)) == ContainmentType.Contains;
+                    bool mouseInBounds = box.Contains(new Vector2(cursorPos.X, cursorPos.Y)) == ContainmentType.Contains;
 
                     if (mouseInBounds)
+                    {
+                        State |= HudElementStates.IsMouseInBounds;
                         HudMain.Cursor.TryCaptureHudSpace(cursorPos.Z, HudSpace.GetHudSpaceFunc);
+                    }
                 }
-                else
-                    mouseInBounds = false;
             }
 
             /// <summary>
@@ -189,27 +207,30 @@ namespace RichHudFramework
                 {
                     try
                     {
+                        State &= ~HudElementStates.IsMousedOver;
+
                         if (Visible)
                         {
                             Vector3 cursorPos = HudSpace.CursorPos;
+                            bool mouseInBounds = (State & HudElementStates.IsMouseInBounds) > 0;
 
                             if (UseCursor && mouseInBounds && !HudMain.Cursor.IsCaptured && HudMain.Cursor.IsCapturingSpace(HudSpace.GetHudSpaceFunc))
                             {
-                                _isMousedOver = mouseInBounds;
+                                bool isMousedOver = mouseInBounds;
+
+                                if (isMousedOver)
+                                    State |= HudElementStates.IsMousedOver;
 
                                 HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
 
                                 if (!ShareCursor)
-                                    HudMain.Cursor.Capture(GetOrSetMemberFunc);
+                                    HudMain.Cursor.Capture(accessorDelegates.Item1);
                             }
                             else
                             {
-                                _isMousedOver = false;
                                 HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
                             }
                         }
-                        else
-                            _isMousedOver = false;
                     }
                     catch (Exception e)
                     {
@@ -228,17 +249,17 @@ namespace RichHudFramework
                 {
                     try
                     {
-                        fullZOffset = ParentUtils.GetFullZOffset(this, _parent);
+                        layerData.fullZOffset = ParentUtils.GetFullZOffset(layerData, _parent);
 
                         if (_parent == null)
                         {
-                            parentVisible = false;
+                            ParentVisible = false;
                         }
                         else
                         {
-                            parentVisible = _parent.Visible;
+                            ParentVisible = _parent.Visible;
                             parentScale = _parent.Scale;
-                            parentZOffset = _parent.ZOffset;
+                            layerData.parentZOffset = _parent.ZOffset;
                         }
 
                         if (Visible || refresh)
@@ -265,7 +286,7 @@ namespace RichHudFramework
             /// </summary>
             public override void BeginDraw()
             {
-                if (!ExceptionHandler.ClientsPaused && _registered)
+                if (!ExceptionHandler.ClientsPaused)
                 {
                     try
                     {
@@ -387,35 +408,13 @@ namespace RichHudFramework
             {
                 switch ((HudElementAccessors)memberEnum)
                 {
-                    case HudElementAccessors.GetType:
-                        return GetType();
-                    case HudElementAccessors.ZOffset:
-                        return ZOffset;
-                    case HudElementAccessors.FullZOffset:
-                        return fullZOffset;
                     case HudElementAccessors.Position:
                         return Position;
                     case HudElementAccessors.Size:
                         return Size;
-                    case HudElementAccessors.GetHudSpaceFunc:
-                        return HudSpace?.GetHudSpaceFunc;
-                    case HudElementAccessors.ModName:
-                        return Internal.ExceptionHandler.ModName;
-                    case HudElementAccessors.LocalCursorPos:
-                        return HudSpace?.CursorPos ?? Vector3.Zero;
-                    case HudElementAccessors.DrawCursorInHudSpace:
-                        return HudSpace?.DrawCursorInHudSpace ?? false;
-                    case HudElementAccessors.PlaneToWorld:
-                        return HudSpace?.PlaneToWorld ?? default(MatrixD);
-                    case HudElementAccessors.IsInFront:
-                        return HudSpace?.IsInFront ?? false;
-                    case HudElementAccessors.IsFacingCamera:
-                        return HudSpace?.IsFacingCamera ?? false;
-                    case HudElementAccessors.NodeOrigin:
-                        return HudSpace?.PlaneToWorld.Translation ?? Vector3D.Zero;
                 }
 
-                return null;
+                return base.GetOrSetApiMember(data, memberEnum);
             }
         }
     }
