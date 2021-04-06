@@ -51,7 +51,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private int GetNewID()
             {
-                int nextID = (idList?[idList.Count - 1] ?? -1) + 1;
+                int nextID = (idList.Count > 0 ? idList[idList.Count - 1] : -1) + 1;
                 idList.Add(nextID);
 
                 return nextID;

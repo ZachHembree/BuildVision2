@@ -22,9 +22,30 @@ namespace DarkHelmet.BuildVision2
             /// Rotor angle in pi radians.
             /// </summary>
             // Bug: Mod API not synchronizing this with DS, yet piston extension is fine
-            public float Angle => subtype.Angle;
+            public float Angle 
+            {
+                get 
+                {
+                    BvServer.SendEntityActionToServer
+                    (
+                        ServerBlockActions.MyMotorStator | ServerBlockActions.GetAngle, 
+                        subtype.EntityId,
+                        RotorAngleCallback
+                    );
+
+                    return _angle;
+                }
+            }
 
             public bool RotorLock { get { return subtype.RotorLock; } set { subtype.RotorLock = value; } }
+
+            private float _angle;
+            private readonly Action<byte[]> RotorAngleCallback;
+
+            public RotorAccessor()
+            {
+                RotorAngleCallback = UpdateRotorAngle;
+            }
 
             public override void SetBlock(SuperBlock block)
             {
@@ -47,6 +68,11 @@ namespace DarkHelmet.BuildVision2
                     builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle)}", nameFormat);
                     builder.Add($"{Angle.RadiansToDegrees():F2}°\n", valueFormat);
                 }
+            }
+
+            private void UpdateRotorAngle(byte[] bin)
+            {
+                Utils.ProtoBuf.TryDeserialize(bin, out _angle);
             }
         }
     }

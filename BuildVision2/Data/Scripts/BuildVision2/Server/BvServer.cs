@@ -107,9 +107,13 @@ namespace DarkHelmet.BuildVision2
             if (ExceptionHandler.IsClient)
                 SendMessagesToServer();
 
-            SendMessagesToClient();
+            if (ExceptionHandler.IsServer)
+                SendMessagesToClient();
+
             ParseIncommingMessages();
-            ProcessMessagesFromClient();
+
+            if (ExceptionHandler.IsServer)
+                ProcessMessagesFromClient();
 
             if (ExceptionHandler.IsClient)
                 ProcessMessagesFromServer();
@@ -153,7 +157,7 @@ namespace DarkHelmet.BuildVision2
                     byte[] bin;
                     KnownException exception = Utils.ProtoBuf.TrySerialize(clientMessages.Item2, out bin);
 
-                    if (exception != null)
+                    if (exception == null)
                         exception = Utils.ProtoBuf.TrySerialize(new MessageContainer(true, bin), out bin);
 
                     if (exception == null)
@@ -295,7 +299,7 @@ namespace DarkHelmet.BuildVision2
             byte[] bin;
             KnownException exception = Utils.ProtoBuf.TrySerialize(dataIn, out bin);
 
-            if (exception != null)
+            if (exception == null)
             {
                 if (currentClient != clientID || currentClient == null)
                 {
