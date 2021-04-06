@@ -103,12 +103,13 @@ namespace DarkHelmet.BuildVision2
         private readonly HudChain layout;
 
         private readonly BvPropBoxPool propBoxPool;
-        private readonly Stopwatch peekUpdateTimer, listWrapTimer, notificationTimer;
+        private readonly Stopwatch listWrapTimer, notificationTimer;
 
         /// <summary>
         /// Index of the currently selected property
         /// </summary>
         private int index;
+        private int tick;
 
         private float _bgOpacity;
         private bool targetChanged, waitingForChat;
@@ -194,11 +195,9 @@ namespace DarkHelmet.BuildVision2
 
             propBoxPool = new BvPropBoxPool();
             peekBuilder = new RichText();
-            peekUpdateTimer = new Stopwatch();
             notificationTimer = new Stopwatch();
             listWrapTimer = new Stopwatch();
 
-            peekUpdateTimer.Start();
             listWrapTimer.Start();
         }
 
@@ -211,15 +210,19 @@ namespace DarkHelmet.BuildVision2
             {
                 if (MenuMode == ScrollMenuModes.Peek)
                     UpdatePeekBody();
-                else
+                else if (tick % 3 == 0)
                     UpdatePropertyBody();
 
-                UpdateFooterText();
+                if (tick % 3 == 0)
+                    UpdateFooterText();
             }
             else
                 footer.RightTextBoard.SetText("[Target is null]", blockIncText);
 
-            targetChanged = false;
+            tick++;
+
+            if (tick % 12 == 0)
+                tick = 0;
         }
 
         /// <summary>
@@ -227,7 +230,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void UpdatePeekBody()
         {
-            if (peekUpdateTimer.ElapsedMilliseconds > 100 || targetChanged)
+            if (tick % 12 == 0)
             {
                 peekBuilder.Clear();
 
@@ -238,7 +241,6 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 peekBody.TextBoard.SetText(peekBuilder);
-                peekUpdateTimer.Restart();
             }
         }
 
