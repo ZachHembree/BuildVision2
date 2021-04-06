@@ -21,6 +21,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Rotor angle in pi radians.
             /// </summary>
+            // Bug: Mod API not synchronizing this with DS, yet piston extension is fine
             public float Angle => subtype.Angle;
 
             public bool RotorLock { get { return subtype.RotorLock; } set { subtype.RotorLock = value; } }
