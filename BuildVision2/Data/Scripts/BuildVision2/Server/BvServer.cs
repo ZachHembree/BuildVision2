@@ -45,8 +45,6 @@ namespace DarkHelmet.BuildVision2
                 callbackManager = new CallbackManager();
             else
                 callbackManager = null;
-
-            ExceptionHandler.DebugLogging = true;
         }
 
         public static void Init()
