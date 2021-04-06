@@ -28,7 +28,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     BvServer.SendEntityActionToServer
                     (
-                        ServerBlockActions.MyMotorStator | ServerBlockActions.GetAngle, 
+                        ServerBlockActions.MotorStator | ServerBlockActions.GetAngle, 
                         subtype.EntityId,
                         RotorAngleCallback
                     );

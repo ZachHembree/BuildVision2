@@ -6,15 +6,19 @@ namespace DarkHelmet.BuildVision2
     [Flags]
     public enum ServerBlockActions : ulong
     {
-        None =                      0x0,
-        MyMechanicalConnection =    0x1,
-        MyMotorStator =             0x2         | MyMechanicalConnection,
+        None =                      0x00000000,
+        MyMechanicalConnection =    0x00000001,
+        MotorStator =               0x00000002  | MyMechanicalConnection,
+        Warhead =                   0x00000004,
+        AirVent =                   0x00000008,
 
-        GetOrSendData =             0x4000000,
-        RequireReply =              0x8000000   | GetOrSendData,
+        GetOrSendData =             0x04000000,
+        RequireReply =              0x08000000  | GetOrSendData,
         AttachHead =                0x10000000  | GetOrSendData,
         DetachHead =                0x20000000  | GetOrSendData,
-        GetAngle =                  0x40000000  | RequireReply
+        GetAngle =                  0x40000000  | RequireReply,
+        GetTime =                   0x80000000  | RequireReply,
+        GetOxygen =                 0x100000000 | RequireReply,
     }
 
     public sealed partial class BvServer
@@ -69,17 +73,17 @@ namespace DarkHelmet.BuildVision2
         private struct ClientMessage
         {
             [ProtoMember(1)]
-            public ServerBlockActions actionID;
-
-            [ProtoMember(2)]
             public int callbackID;
 
-            [ProtoMember(3)]
+            [ProtoMember(2)]
             public long entID;
+
+            [ProtoMember(3)]
+            public ulong actionID;
 
             public ClientMessage(ServerBlockActions actionID, int callbackID, long entID)
             {
-                this.actionID = actionID;
+                this.actionID = (ulong)actionID;
                 this.callbackID = callbackID;
                 this.entID = entID;
             }

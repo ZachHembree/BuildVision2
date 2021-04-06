@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using VRage;
 using VRage.ModAPI;
 using SecureMsgHandler = System.Action<ushort, byte[], ulong, bool>;
+using IMyAirVent = SpaceEngineers.Game.ModAPI.Ingame.IMyAirVent;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -17,7 +18,7 @@ namespace DarkHelmet.BuildVision2
         private const ushort serverHandlerID = 16971;
         private static BvServer instance;
 
-        private readonly List<SecureMessage> incommingMessages;
+        private readonly List<SecureMessage> incomingMessages;
         private readonly List<MyTuple<ulong, ClientMessage>> receivedClientMessages;
         private readonly List<ServerReplyMessage> receivedServerMessages;
 
@@ -33,7 +34,7 @@ namespace DarkHelmet.BuildVision2
         {
             clientOutgoing = new List<ClientMessage>();
 
-            incommingMessages = new List<SecureMessage>();
+            incomingMessages = new List<SecureMessage>();
             receivedClientMessages = new List<MyTuple<ulong, ClientMessage>>();
             receivedServerMessages = new List<ServerReplyMessage>();
 
@@ -98,7 +99,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (ExceptionHandler.IsServer || (ExceptionHandler.IsClient && sentFromServer))
             {
-                incommingMessages.Add(new SecureMessage(sentFromServer, id, plyID, message));
+                incomingMessages.Add(new SecureMessage(sentFromServer, id, plyID, message));
             }
         }
 
@@ -184,10 +185,10 @@ namespace DarkHelmet.BuildVision2
             receivedClientMessages.Clear();
 
             // Deserialize client messages and keep a running count of errors
-            for (int i = 0; i < incommingMessages.Count; i++)
+            for (int i = 0; i < incomingMessages.Count; i++)
             {
                 MessageContainer container;
-                KnownException exception = Utils.ProtoBuf.TryDeserialize(incommingMessages[i].message, out container);
+                KnownException exception = Utils.ProtoBuf.TryDeserialize(incomingMessages[i].message, out container);
 
                 if (exception != null)
                     errCount++;
@@ -206,7 +207,7 @@ namespace DarkHelmet.BuildVision2
                     receivedClientMessages.EnsureCapacity(receivedClientMessages.Count + clientMessages.Length);
 
                     for (int j = 0; j < clientMessages.Length; j++)
-                        receivedClientMessages.Add(new MyTuple<ulong, ClientMessage>(incommingMessages[i].plyID, clientMessages[j]));
+                        receivedClientMessages.Add(new MyTuple<ulong, ClientMessage>(incomingMessages[i].plyID, clientMessages[j]));
                 }
 
                 if (exception != null)
@@ -214,9 +215,9 @@ namespace DarkHelmet.BuildVision2
             }
 
             if (errCount > 0)
-                ExceptionHandler.WriteToLogAndConsole($"Unable to parse {errCount} of {incommingMessages.Count} message(s).");
+                ExceptionHandler.WriteToLogAndConsole($"Unable to parse {errCount} of {incomingMessages.Count} message(s).");
 
-            incommingMessages.Clear();
+            incomingMessages.Clear();
         }
 
         /// <summary>
@@ -226,9 +227,9 @@ namespace DarkHelmet.BuildVision2
         {
             receivedClientMessages.Sort((a, b) => 
             {
-                if (a.Item1 > b.Item1)
+                if (a.Item2.entID > b.Item2.entID)
                     return 1;
-                if (a.Item1 < b.Item1)
+                if (a.Item2.entID < b.Item2.entID)
                     return -1;
                 else
                     return 0;
@@ -243,12 +244,20 @@ namespace DarkHelmet.BuildVision2
                 if (entID != message.Item2.entID)
                     entity = MyAPIGateway.Entities.GetEntityById(message.Item2.entID);
 
-                var actionID = message.Item2.actionID;
+                var actionID = (ServerBlockActions)message.Item2.actionID;
                 entID = message.Item2.entID;
 
                 if ((actionID & ServerBlockActions.MyMechanicalConnection) == ServerBlockActions.MyMechanicalConnection)
                 {
                     HandleMechBlockMessages(entity, message, ref currentClient);
+                }
+                else if ((actionID & ServerBlockActions.Warhead) == ServerBlockActions.Warhead)
+                {
+                    HandleWarheadMessages(entity, message, ref currentClient);
+                }
+                else if ((actionID & ServerBlockActions.AirVent) == ServerBlockActions.AirVent)
+                {
+                    HandleAirVentMessages(entity, message, ref currentClient);
                 }
             }
         }
@@ -267,7 +276,7 @@ namespace DarkHelmet.BuildVision2
         private void HandleMechBlockMessages(IMyEntity entity, MyTuple<ulong, ClientMessage> message, ref ulong? currentClient)
         {
             var mechBlock = entity as IMyMechanicalConnectionBlock;
-            var actionID = message.Item2.actionID;
+            var actionID = (ServerBlockActions)message.Item2.actionID;
 
             if ((actionID & ServerBlockActions.AttachHead) == ServerBlockActions.AttachHead)
             {
@@ -277,13 +286,35 @@ namespace DarkHelmet.BuildVision2
             {
                 mechBlock.Detach();
             }
-            else if ((actionID & ServerBlockActions.MyMotorStator) == ServerBlockActions.MyMotorStator)
+            else if ((actionID & ServerBlockActions.MotorStator) == ServerBlockActions.MotorStator)
             {
                 if ((actionID & ServerBlockActions.GetAngle) == ServerBlockActions.GetAngle)
                 {
                     var rotor = entity as IMyMotorStator;
                     AddServerReply(message, rotor.Angle, ref currentClient);
                 }
+            }
+        }
+
+        private void HandleWarheadMessages(IMyEntity entity, MyTuple<ulong, ClientMessage> message, ref ulong? currentClient)
+        {
+            var actionID = (ServerBlockActions)message.Item2.actionID;
+
+            if ((actionID & ServerBlockActions.GetTime) == ServerBlockActions.GetTime)
+            {
+                var warhead = entity as IMyWarhead;
+                AddServerReply(message, warhead.DetonationTime, ref currentClient);
+            }
+        }
+
+        private void HandleAirVentMessages(IMyEntity entity, MyTuple<ulong, ClientMessage> message, ref ulong? currentClient)
+        {
+            var actionID = (ServerBlockActions)message.Item2.actionID;
+
+            if ((actionID & ServerBlockActions.GetOxygen) == ServerBlockActions.GetOxygen)
+            {
+                var vent = entity as IMyAirVent;
+                AddServerReply(message, vent.GetOxygenLevel(), ref currentClient);
             }
         }
 
