@@ -32,7 +32,7 @@ namespace DarkHelmet.BuildVision2
             public override void SetBlock(SuperBlock block)
             {
                 base.SetBlock(block, TBlockSubtypes.MechanicalConnection);
-
+                 
                 if (subtype != null && block.TBlock is IMyMotorSuspension)
                     block.SubtypeId |= TBlockSubtypes.Suspension;
             }
@@ -43,7 +43,7 @@ namespace DarkHelmet.BuildVision2
             public void AttachHead()
             {
                 //subtype.Attach();
-                BvServer.SendBlockActionToServer(new BlockActionMsg(subtype.EntityId, EntitySubtypes.MyMechanicalConnection, MechBlockActions.Attach));
+                BvServer.SendEntityActionToServer(ServerBlockActions.MyMechanicalConnection | ServerBlockActions.AttachHead, subtype.EntityId);
             }
 
             /// <summary>
@@ -51,8 +51,8 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public void DetachHead()
             {
-                //subtype.Detach(); -- This isn't being synchronized with the DS, yet Attach() is.
-                BvServer.SendBlockActionToServer(new BlockActionMsg(subtype.EntityId, EntitySubtypes.MyMechanicalConnection, MechBlockActions.Detach));
+                //subtype.Detach(); -- Bug: This isn't being synchronized with the DS, yet Attach() is.
+                BvServer.SendEntityActionToServer(ServerBlockActions.MyMechanicalConnection | ServerBlockActions.DetachHead, subtype.EntityId);
             }
 
             /// <summary>

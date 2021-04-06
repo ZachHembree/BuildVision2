@@ -1,4 +1,5 @@
 ﻿using VRage;
+using System;
 using RichHudFramework;
 using RichHudFramework.UI;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
@@ -37,7 +38,28 @@ namespace DarkHelmet.BuildVision2
 
             public bool CanPressurize => subtype.CanPressurize;
 
-            public float OxygenLevel => subtype.GetOxygenLevel();
+            public float OxygenLevel
+            {
+                get 
+                {
+                    BvServer.SendEntityActionToServer
+                    (
+                        ServerBlockActions.AirVent | ServerBlockActions.GetOxygen,
+                        subtype.EntityId,
+                        OxygenCallback
+                    );
+
+                    return _oxygenLevel;
+                }
+            }
+
+            private float _oxygenLevel;
+            private readonly Action<byte[]> OxygenCallback;
+
+            public AirVentAccessor()
+            {
+                OxygenCallback = UpdateOxygenLevel;
+            }
 
             public override void SetBlock(SuperBlock block)
             {
@@ -63,6 +85,11 @@ namespace DarkHelmet.BuildVision2
 
                 builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat);
                 builder.Add($"{GetLocalizedVentStatus()}\n", valueFormat);
+            }
+
+            private void UpdateOxygenLevel(byte[] bin)
+            {
+                Utils.ProtoBuf.TryDeserialize(bin, out _oxygenLevel);
             }
         }
     }

@@ -22,7 +22,20 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Controls the warhead detonation countdown in seconds.
             /// </summary>
-            public float CountdownTime { get { return subtype.DetonationTime; } set { subtype.DetonationTime = value; } }
+            public float CountdownTime
+            {
+                get
+                {
+                    BvServer.SendEntityActionToServer
+                    (
+                        ServerBlockActions.Warhead | ServerBlockActions.GetTime,
+                        subtype.EntityId,
+                        DetonationTimeCallback
+                    );
+
+                    return _countdownTime;
+                }
+            }
 
             /// <summary>
             /// Controls warhead arming.
@@ -33,6 +46,14 @@ namespace DarkHelmet.BuildVision2
             /// Indicates whether or not the warhead is counting down.
             /// </summary>
             public bool IsCountingDown => subtype.IsCountingDown;
+
+            private float _countdownTime;
+            private readonly Action<byte[]> DetonationTimeCallback;
+
+            public WarheadAccessor()
+            {
+                DetonationTimeCallback = UpdateDetonationTime;
+            }
 
             public override void SetBlock(SuperBlock block)
             {
@@ -75,6 +96,11 @@ namespace DarkHelmet.BuildVision2
 
                 builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat);
                 builder.Add($"{GetLocalizedStatus()} ", valueFormat);
+            }
+
+            private void UpdateDetonationTime(byte[] bin)
+            {
+                Utils.ProtoBuf.TryDeserialize(bin, out _countdownTime);
             }
         }
     }
