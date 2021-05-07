@@ -26,7 +26,9 @@ namespace DarkHelmet.BuildVision2
             {
                 BoundingBox box = targetEntity.LocalAABB;
                 MatrixD matrix = targetEntity.WorldMatrix;
-                Size = box.Size;
+
+                matrix.Translation = targetEntity.WorldAABB.Center;
+                Size = box.Size * 1.05f;
 
                 Draw(ref matrix);
             }

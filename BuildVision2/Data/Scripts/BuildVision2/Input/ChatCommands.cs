@@ -39,7 +39,7 @@ namespace DarkHelmet.BuildVision2
                 { "toggleBoundingBox", x => PropertiesMenu.DrawBoundingBox = !PropertiesMenu.DrawBoundingBox },
                 { "toggleWorldDraw", x => PropertiesMenu.EnableWorldDraw = !PropertiesMenu.EnableWorldDraw },
                 { "targetBench", TargetBench, 1 },
-                { "getTargetPermissions", x => GetTargetPermissions() },
+                { "getTarget", x => GetTarget() },
                 { "echo", x => ExceptionHandler.SendChatMessage($"echo: {x[0]}") },
             });
         }
@@ -126,16 +126,16 @@ namespace DarkHelmet.BuildVision2
                 ExceptionHandler.SendChatMessage($"Cant start target bench. No target found.");
         }
 
-        private void GetTargetPermissions()
+        private void GetTarget()
         {
             IMyTerminalBlock tblock;
-
+            
             if (PropertiesMenu.TryGetTargetedBlock(100d, out tblock))
             {
-                ExceptionHandler.SendChatMessage($"Block Permissions: {LocalPlayer.GetBlockAccessPermissions(tblock)}");
+                ExceptionHandler.SendChatMessage($"Target: {tblock.GetType()}\nAccess: {LocalPlayer.GetBlockAccessPermissions(tblock)}");
             }
             else
-                ExceptionHandler.SendChatMessage($"Cant get permissions. No target found.");
+                ExceptionHandler.SendChatMessage($"Error: No target found.");
         }
 
         private static void Crash()

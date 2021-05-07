@@ -354,9 +354,19 @@ namespace DarkHelmet.BuildVision2
                 {
                     IMyCubeBlock cubeBlock = slimBlock?.FatBlock;
 
+                    if (cubeBlock != null)
+                    {
+                        var topBlock = cubeBlock as IMyAttachableTopBlock;
+
+                        if (topBlock != null)
+                        {
+                            cubeBlock = topBlock.Base;
+                        }
+                    }
+
                     if (cubeBlock != null) // if it has a valid fat block (not armor)
                     {
-                        // Find shortest dist between the axis-aligned bb and the intersection.
+                        // Find shortest dist between the bb and the intersection.
                         BoundingBoxD box = cubeBlock.WorldAABB;
                         double newDist = box.DistanceSquared(rayInfo.Position), 
                             newCenterDist = Vector3D.DistanceSquared(box.Center, rayInfo.Position);
@@ -379,7 +389,12 @@ namespace DarkHelmet.BuildVision2
                     IMySlimBlock slimBlock;
                     double dist;
                     grid.GetLineIntersectionExactAll(ref line, out dist, out slimBlock);
-                    target = slimBlock?.FatBlock as IMyTerminalBlock;
+                    var topBlock = slimBlock?.FatBlock as IMyAttachableTopBlock;
+
+                    if (topBlock != null)
+                        target = topBlock.Base;
+                    else
+                        target = slimBlock?.FatBlock as IMyTerminalBlock;
                 }
             }
 
