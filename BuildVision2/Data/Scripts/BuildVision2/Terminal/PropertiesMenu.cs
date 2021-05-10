@@ -50,7 +50,8 @@ namespace DarkHelmet.BuildVision2
         private readonly CustomSpaceNode hudSpace;
         private readonly BoundingBoard boundingBox;
 
-        private readonly TerminalGrid targetGrid;
+        private readonly TerminalGrid targetGrid, tempGrid;
+        private readonly List<IMySlimBlock> targetBuffer;
         private IMyTerminalBlock lastPastedTarget;
 
         private BlockData clipboard, pasteBackup;
@@ -62,6 +63,8 @@ namespace DarkHelmet.BuildVision2
             DrawBoundingBox = false;
             EnableWorldDraw = false;
             targetGrid = new TerminalGrid();
+            tempGrid = new TerminalGrid();
+            targetBuffer = new List<IMySlimBlock>();
             Target = new PropertyBlock();
 
             hudSpace = new CustomSpaceNode(HudMain.Root) { UpdateMatrixFunc = UpdateHudSpace };
@@ -300,7 +303,7 @@ namespace DarkHelmet.BuildVision2
             if (
                 (LocalPlayer.GetHudState() != HudState.Hidden) 
                 && (BvConfig.Current.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) 
-                && TryGetTargetedBlock(BvConfig.Current.general.maxOpenRange, out block)
+                && TryGetTargetedBlockInternal(BvConfig.Current.general.maxOpenRange, out block)
             )
             {
                 if (block != null)
@@ -337,20 +340,32 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock target)
         {
-            IMyCubeGrid grid;
+            return Instance.TryGetTargetedBlockInternal(maxDist, out target);
+        }
+
+        /// <summary>
+        /// Tries to retrieve targeted <see cref="IMyTerminalBlock"/> on a grid within a given distance.
+        /// </summary>
+        private bool TryGetTargetedBlockInternal(double maxDist, out IMyTerminalBlock target)
+        {
+            IMyCubeGrid cubeGrid;
             IHitInfo rayInfo;
             Vector3D headPos = LocalPlayer.HeadTransform.Translation, forward = LocalPlayer.HeadTransform.Forward;
             LineD line = new LineD(headPos, headPos + forward * maxDist);
             target = null;
 
-            if (LocalPlayer.TryGetTargetedGrid(line, out grid, out rayInfo))
+            if (LocalPlayer.TryGetTargetedGrid(line, out cubeGrid, out rayInfo))
             {
                 // Retrieve blocks within about half a block of the ray intersection point.
-                var sphere = new BoundingSphereD(rayInfo.Position, (grid.GridSizeEnum == MyCubeSize.Large) ? 1.3 : .3);
-                List<IMySlimBlock> blocks = grid.GetBlocksInsideSphere(ref sphere);
+                var sphere = new BoundingSphereD(rayInfo.Position, (cubeGrid.GridSizeEnum == MyCubeSize.Large) ? 1.3 : .3);
+
+                tempGrid.SetGrid(cubeGrid, true);
+                targetBuffer.Clear();
+                tempGrid.GetBlocksInsideSphere(cubeGrid, targetBuffer, ref sphere);
+
                 double currentDist = double.PositiveInfinity, currentCenterDist = double.PositiveInfinity;
 
-                foreach (IMySlimBlock slimBlock in blocks)
+                foreach (IMySlimBlock slimBlock in targetBuffer)
                 {
                     IMyCubeBlock cubeBlock = slimBlock?.FatBlock;
 
@@ -359,9 +374,7 @@ namespace DarkHelmet.BuildVision2
                         var topBlock = cubeBlock as IMyAttachableTopBlock;
 
                         if (topBlock != null)
-                        {
                             cubeBlock = topBlock.Base;
-                        }
                     }
 
                     if (cubeBlock != null) // if it has a valid fat block (not armor)
@@ -374,7 +387,10 @@ namespace DarkHelmet.BuildVision2
 
                         // If this is a terminal block, check to see if this block is any closer than the last.
                         // If the distance to the bb is zero, use the center dist, favoring smaller blocks.
-                        if ((tBlock != null || currentDist > 0d) && (newDist < currentDist || (newDist == 0d && newCenterDist < currentCenterDist)))
+                        if (
+                            (tBlock != null || currentDist > 0d) 
+                            && (newDist < currentDist || (newDist == 0d && newCenterDist < currentCenterDist))
+                        )
                         {
                             target = tBlock;
                             currentDist = newDist;
@@ -388,7 +404,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     IMySlimBlock slimBlock;
                     double dist;
-                    grid.GetLineIntersectionExactAll(ref line, out dist, out slimBlock);
+                    cubeGrid.GetLineIntersectionExactAll(ref line, out dist, out slimBlock);
                     var topBlock = slimBlock?.FatBlock as IMyAttachableTopBlock;
 
                     if (topBlock != null)
@@ -398,6 +414,7 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            tempGrid.Reset();
             return target != null;
         }
 
