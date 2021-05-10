@@ -358,12 +358,11 @@ namespace DarkHelmet.BuildVision2
             {
                 // Retrieve blocks within about half a block of the ray intersection point.
                 var sphere = new BoundingSphereD(rayInfo.Position, (cubeGrid.GridSizeEnum == MyCubeSize.Large) ? 1.3 : .3);
+                double currentDist = double.PositiveInfinity, currentCenterDist = double.PositiveInfinity;
 
                 tempGrid.SetGrid(cubeGrid, true);
                 targetBuffer.Clear();
                 tempGrid.GetBlocksInsideSphere(cubeGrid, targetBuffer, ref sphere);
-
-                double currentDist = double.PositiveInfinity, currentCenterDist = double.PositiveInfinity;
 
                 foreach (IMySlimBlock slimBlock in targetBuffer)
                 {
@@ -377,19 +376,20 @@ namespace DarkHelmet.BuildVision2
                             cubeBlock = topBlock.Base;
                     }
 
-                    if (cubeBlock != null) // if it has a valid fat block (not armor)
+                    var tBlock = cubeBlock as IMyTerminalBlock;
+
+                    if (tBlock != null)
                     {
                         // Find shortest dist between the bb and the intersection.
-                        BoundingBoxD box = cubeBlock.WorldAABB;
-                        double newDist = box.DistanceSquared(rayInfo.Position), 
-                            newCenterDist = Vector3D.DistanceSquared(box.Center, rayInfo.Position);
-                        var tBlock = cubeBlock as IMyTerminalBlock;
+                        BoundingBoxD box = cubeBlock.LocalAABB.Transform(cubeBlock.WorldMatrix);
+                        double newDist = Math.Round(box.DistanceSquared(rayInfo.Position), 3), 
+                            newCenterDist = Math.Round(Vector3D.DistanceSquared(box.Center, rayInfo.Position), 3);
 
                         // If this is a terminal block, check to see if this block is any closer than the last.
                         // If the distance to the bb is zero, use the center dist, favoring smaller blocks.
                         if (
-                            (tBlock != null || currentDist > 0d) 
-                            && (newDist < currentDist || (newDist == 0d && newCenterDist < currentCenterDist))
+                            (currentDist > 0d && newDist < currentDist) 
+                            || (Math.Abs(currentDist - newDist) < 0.02 && newCenterDist < currentCenterDist)
                         )
                         {
                             target = tBlock;
@@ -397,20 +397,6 @@ namespace DarkHelmet.BuildVision2
                             currentCenterDist = newCenterDist;
                         }
                     }
-                }
-
-                // If no blocks were intersected by the ray, get the block at the first grid cell intersected instead.
-                if (target == null)
-                {
-                    IMySlimBlock slimBlock;
-                    double dist;
-                    cubeGrid.GetLineIntersectionExactAll(ref line, out dist, out slimBlock);
-                    var topBlock = slimBlock?.FatBlock as IMyAttachableTopBlock;
-
-                    if (topBlock != null)
-                        target = topBlock.Base;
-                    else
-                        target = slimBlock?.FatBlock as IMyTerminalBlock;
                 }
             }
 
