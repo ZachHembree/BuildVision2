@@ -97,12 +97,12 @@ namespace RichHudFramework
                 /// <summary>
                 /// Clears current text and appends a copy of the <see cref="StringBuilder"/> given.
                 /// </summary>
-                void SetText(StringBuilder text, GlyphFormat format = null);
+                void SetText(StringBuilder text, GlyphFormat? format = null);
 
                 /// <summary>
                 /// Clears current text and appends a copy of the <see cref="string"/> given.
                 /// </summary>
-                void SetText(string text, GlyphFormat format = null);
+                void SetText(string text, GlyphFormat? format = null);
 
                 /// <summary>
                 /// Appends the given <see cref="RichText"/>
@@ -112,17 +112,17 @@ namespace RichHudFramework
                 /// <summary>
                 /// Appends a copy of the text in the <see cref="StringBuilder"/>
                 /// </summary>
-                void Append(StringBuilder text, GlyphFormat format = null);
+                void Append(StringBuilder text, GlyphFormat? format = null);
 
                 /// <summary>
                 /// Appends a copy of the <see cref="string"/>
                 /// </summary>
-                void Append(string text, GlyphFormat format = null);
+                void Append(string text, GlyphFormat? format = null);
 
                 /// <summary>
                 /// Appends the given <see cref="char"/>
                 /// </summary>
-                void Append(char ch, GlyphFormat format = null);
+                void Append(char ch, GlyphFormat? format = null);
 
                 /// <summary>
                 /// Inserts the given <see cref="RichText"/> starting at the specified starting index
@@ -132,17 +132,17 @@ namespace RichHudFramework
                 /// <summary>
                 /// Inserts a copy of the given <see cref="StringBuilder"/> starting at the specified starting index
                 /// </summary>
-                void Insert(StringBuilder text, Vector2I start, GlyphFormat format = null);
+                void Insert(StringBuilder text, Vector2I start, GlyphFormat? format = null);
 
                 /// <summary>
                 /// Inserts a copy of the given <see cref="string"/> starting at the specified starting index
                 /// </summary>
-                void Insert(string text, Vector2I start, GlyphFormat format = null);
+                void Insert(string text, Vector2I start, GlyphFormat? format = null);
 
                 /// <summary>
                 /// Inserts the given <see cref="char"/> starting at the specified starting index
                 /// </summary>
-                void Insert(char text, Vector2I start, GlyphFormat format = null);
+                void Insert(char text, Vector2I start, GlyphFormat? format = null);
 
                 /// <summary>
                 /// Changes the formatting for the whole text to the given format.

@@ -24,9 +24,9 @@ namespace RichHudFramework.UI.Server
         public override Color HighlightColor { get; set; }
 
         /// <summary>
-        /// Text formatting used when the control gains focus.
+        /// Text color used when the control gains focus.
         /// </summary>
-        public GlyphFormat FocusFormat { get; set; }
+        public Color FocusTextColor { get; set; }
 
         /// <summary>
         /// Background color used when the control gains focus.
@@ -39,8 +39,7 @@ namespace RichHudFramework.UI.Server
         public bool UseFocusFormatting { get; set; }
 
         protected readonly BorderBox border;
-        protected GlyphFormat lastFormat;
-        protected Color lastColor;
+        protected Color lastColor, lastTextColor;
 
         public BorderedButton(HudParentBase parent) : base(parent)
         {
@@ -52,7 +51,7 @@ namespace RichHudFramework.UI.Server
 
             AutoResize = false;
             Format = TerminalFormatting.ControlFormat.WithAlignment(TextAlignment.Center);
-            FocusFormat = TerminalFormatting.InvControlFormat.WithAlignment(TextAlignment.Center);
+            FocusTextColor = TerminalFormatting.Charcoal;
             Text = "NewBorderedButton";
 
             TextPadding = new Vector2(32f, 0f);
@@ -91,10 +90,10 @@ namespace RichHudFramework.UI.Server
                 if (!(UseFocusFormatting && MouseInput.HasFocus))
                 {
                     lastColor = Color;
-                    lastFormat = Format;
+                    lastTextColor = TextBoard.Format.Color;
                 }
 
-                TextBoard.SetFormatting(lastFormat);
+                TextBoard.SetFormatting(TextBoard.Format.WithColor(lastTextColor));
                 Color = HighlightColor;
             }
         }
@@ -106,12 +105,12 @@ namespace RichHudFramework.UI.Server
                 if (UseFocusFormatting && MouseInput.HasFocus)
                 {
                     Color = FocusColor;
-                    TextBoard.SetFormatting(FocusFormat);
+                    TextBoard.SetFormatting(TextBoard.Format.WithColor(FocusTextColor));
                 }
                 else
                 {
                     Color = lastColor;
-                    TextBoard.SetFormatting(lastFormat);
+                    TextBoard.SetFormatting(TextBoard.Format.WithColor(lastTextColor));
                 }
             }
         }
@@ -123,11 +122,11 @@ namespace RichHudFramework.UI.Server
                 if (!MouseInput.IsMousedOver)
                 {
                     lastColor = Color;
-                    lastFormat = Format;
+                    lastTextColor = TextBoard.Format.Color;
                 }
 
                 Color = FocusColor;
-                TextBoard.SetFormatting(FocusFormat);
+                TextBoard.SetFormatting(TextBoard.Format.WithColor(FocusTextColor));
             }
         }
 
@@ -136,7 +135,7 @@ namespace RichHudFramework.UI.Server
             if (UseFocusFormatting)
             {
                 Color = lastColor;
-                TextBoard.SetFormatting(lastFormat);
+                TextBoard.SetFormatting(TextBoard.Format.WithColor(lastTextColor));
             }
         }
     }

@@ -51,7 +51,7 @@ namespace RichHudFramework
                 public GlyphFormat Format
                 {
                     get { return new GlyphFormat((GlyphFormatMembers)GetOrSetMemberFunc(null, (int)TextBuilderAccessors.Format)); }
-                    set { GetOrSetMemberFunc(value.data, (int)TextBuilderAccessors.Format); }
+                    set { GetOrSetMemberFunc(value.Data, (int)TextBuilderAccessors.Format); }
                 }
 
                 /// <summary>
@@ -110,7 +110,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Clears current text and appends a copy of the <see cref="StringBuilder"/> given.
                 /// </summary>
-                public void SetText(StringBuilder text, GlyphFormat format = null)
+                public void SetText(StringBuilder text, GlyphFormat? format = null)
                 {
                     if (lastText == null)
                         lastText = new RichText();
@@ -123,7 +123,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Clears current text and appends a copy of the <see cref="string"/> given.
                 /// </summary>
-                public void SetText(string text, GlyphFormat format = null)
+                public void SetText(string text, GlyphFormat? format = null)
                 {
                     if (lastText == null)
                         lastText = new RichText();
@@ -144,7 +144,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Appends a copy of the text in the <see cref="StringBuilder"/>
                 /// </summary>
-                public void Append(StringBuilder text, GlyphFormat format = null)
+                public void Append(StringBuilder text, GlyphFormat? format = null)
                 {
                     if (lastText == null)
                         lastText = new RichText();
@@ -157,7 +157,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Appends a copy of the <see cref="string"/>
                 /// </summary>
-                public void Append(string text, GlyphFormat format = null)
+                public void Append(string text, GlyphFormat? format = null)
                 {
                     if (lastText == null)
                         lastText = new RichText();
@@ -170,7 +170,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Appends the given <see cref="char"/>
                 /// </summary>
-                public void Append(char ch, GlyphFormat format = null)
+                public void Append(char ch, GlyphFormat? format = null)
                 {
                     if (lastText == null)
                         lastText = new RichText();
@@ -190,7 +190,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Inserts a copy of the given <see cref="StringBuilder"/> starting at the specified starting index
                 /// </summary>
-                public void Insert(StringBuilder text, Vector2I start, GlyphFormat format = null)
+                public void Insert(StringBuilder text, Vector2I start, GlyphFormat? format = null)
                 {
                     if (lastText == null)
                         lastText = new RichText();
@@ -203,7 +203,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Inserts a copy of the given <see cref="string"/> starting at the specified starting index
                 /// </summary>
-                public void Insert(string text, Vector2I start, GlyphFormat format = null)
+                public void Insert(string text, Vector2I start, GlyphFormat? format = null)
                 {
                     if (lastText == null)
                         lastText = new RichText();
@@ -216,7 +216,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Inserts the given <see cref="char"/> starting at the specified starting index
                 /// </summary>
-                public void Insert(char ch, Vector2I start, GlyphFormat format = null)
+                public void Insert(char ch, Vector2I start, GlyphFormat? format = null)
                 {
                     if (lastText == null)
                         lastText = new RichText();
@@ -248,20 +248,23 @@ namespace RichHudFramework
                 /// <summary>
                 /// Changes the formatting for the whole text to the given format.
                 /// </summary>
-                public void SetFormatting(GlyphFormat format) =>
-                    SetFormatting(Vector2I.Zero, GetLastIndex() - new Vector2I(0, 1), format);
+                public void SetFormatting(GlyphFormat format)
+                {
+                    GetOrSetMemberFunc(format.Data, (int)TextBuilderAccessors.Format);
+                    GetOrSetMemberFunc(new RangeFormatData(Vector2I.Zero, GetLastIndex() - new Vector2I(0, 1), format.Data), (int)TextBuilderAccessors.SetFormatting);
+                }
 
                 /// <summary>
                 /// Changes the formatting for the text within the given range to the given format.
                 /// </summary>
                 public void SetFormatting(Vector2I start, Vector2I end, GlyphFormat format) =>
-                    GetOrSetMemberFunc(new RangeFormatData(start, end, format.data), (int)TextBuilderAccessors.SetFormatting);
+                    GetOrSetMemberFunc(new RangeFormatData(start, end, format.Data), (int)TextBuilderAccessors.SetFormatting);
 
                 /// <summary>
                 /// Removes the character at the specified index.
                 /// </summary>
                 public void RemoveAt(Vector2I index) =>
-                    RemoveRange(index, index);
+                    GetOrSetMemberFunc(new RangeData(index, index), (int)TextBuilderAccessors.RemoveRange);
 
                 /// <summary>
                 /// Removes all text within the specified range.
@@ -283,10 +286,11 @@ namespace RichHudFramework
 
                 protected Vector2I GetLastIndex()
                 {
-                    Vector2I start = new Vector2I(Math.Max(0, Count - 1), 0);
+                    int lineCount = GetLineCountFunc();
+                    Vector2I start = new Vector2I(Math.Max(0, lineCount - 1), 0);
 
-                    if (Count > 0)
-                        start.Y = Math.Max(0, this[start.X].Count);
+                    if (lineCount > 0)
+                        start.Y = Math.Max(0, lines[start.X].Count);
 
                     return start;
                 }

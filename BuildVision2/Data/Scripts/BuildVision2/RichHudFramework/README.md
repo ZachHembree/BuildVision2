@@ -1,15 +1,12 @@
-# Rich Hud Framework
-When it comes to creating custom GUI in Space Engineers, you don't have a lot to work with. With the tools supplied by the modding API, you can send notifications, you can send chat messages, create popups, really basic stuff. If you're so inclined, you can rearrange and reformat the HUD itself, but what if you want to create something totally new?
+## Rich HUD Framework
+This is a framework for creating custom retained-mode GUI in Space Engineers workshop mods using the billboards supplied by the mod API. It's nothing fancy, but it has most of the basic functionality you'd expect from a UI framework: text rendering, custom fonts, UI layering, key binds, mouse input, everything you might need to get started creating custom GUI in Space Engineers, sans markup lanugage. Everything is done in C#. If you want an idea of what that looks like, exactly, then have a look at some of the elements in the UI [library](https://github.com/ZachHembree/RichHudFramework.Client/blob/master/Shared/UI/HUD/HudElements/ClickableHudElements/Buttons/BorderedButton.cs); most of it's pretty straightforward.
 
-Well, with Billboards you can draw polygons pretty much wherever you want in world space, and with a bit of math you can figure out how to get them to stick to the screen, and with a bit more fiddling still, you can figure out how to size and place them with pixel-perfect accuracy. 
+## Getting Started 
+Space Engineer's mods are all compiled to independent assemblies with no references between them, for reasons I trust are apparent, but this has the obvious drawback of preventing any two mods from directly sharing code. Fortunately, the game does provide utilities for sharing data at runtime using types exposed by the game's mod API, like generic delegates and tuples. For this reason, this framework is split into three modules: Master, Client and Shared. The master module contains the implementation for things like the text renderer, bind manager, and manages the UI tree, among other things and the Client module provides wrappers and utilities that provide easy access to those systems.
 
-And by the time you've finally figured out how all that works, a week has probably gone by. Fortunately, the Text HUD API can help there. It already has specialized Billboards for doing exactly that, and as you might have guessed by the name, it'll handle text rendering as well!
+To get started using this framework, you'll need to download a copy of the [client](https://github.com/ZachHembree/RichHudFramework.Client/releases) module from releases and include it in your mod. Usage details can be found in the [wiki](https://github.com/ZachHembree/RichHudFramework.Client/wiki/Example-Main-Class), in addition to a more detailed overview of the framework's functions.
 
-With a little trial and error, you'll be able to figure out how to size and position everything, and at that point, you'll essentially have a bunch of colored rectangles and text. It's a start, but it's still not much to work with, and just getting that far will take days to weeks depending on the amount of time you're willing to spend.
+## Demo
+If you want to get a better idea of what you can do with this framework, [Rich HUD Master](https://steamcommunity.com/workshop/filedetails/?id=1965654081) has a demo built into the terminal that can be enabled using the chat command "/rhd toggledebug". This demo allows you to spawn most of the UI elements in the library in their default state while also allowing you to maniplate their [HUD Space](https://github.com/ZachHembree/RichHudFramework.Client/wiki/HUD-Spaces) in real time. 
 
-Take a look at the window in the screenshot below. No, that's not a new thing they added in the last update. No, it's not a plugin. It's part of a workshop mod. Yeah, it's nothing crazy, but when you consider that the pinnacle of custom UI has essentially been limited to custom HUD layouts and blocks of text with colored backgrounds, well then things start to look a bit different, don't they?
-
-![Settings Menu Screenshot](https://i.imgur.com/EbaUGIE.jpg)
-
-## Getting Started
-If you're interested in using this in one of your mods, see the wiki for details on getting set up.
+![enter image description here](https://steamuserimages-a.akamaihd.net/ugc/1722038154210428899/17BC5D4D245402D3E642B36672DC840D1B7207D3/)

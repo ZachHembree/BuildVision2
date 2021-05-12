@@ -39,7 +39,7 @@ namespace RichHudFramework.UI.Server
         /// <summary>
         /// Color used for the background behind the button pair
         /// </summary>
-        public Color BackgroundColor { get; set; }
+        public Color BackgroundColor { get { return _backgroundColor; } set { background.Color = value; _backgroundColor = value; } }
 
         /// <summary>
         /// Focus color used for the background behind the button pair
@@ -104,6 +104,7 @@ namespace RichHudFramework.UI.Server
         protected readonly BorderBox bgBorder;
 
         protected readonly MouseInputElement mouseInput;
+        protected Color _backgroundColor;
 
         public OnOffButton(HudParentBase parent) : base(parent)
         {

@@ -23,6 +23,24 @@ namespace RichHudFramework.UI.Server
         /// </summary>
         public ITextBuilder NameBuilder => name.TextBoard;
 
+        /// <summary>
+        /// Formatting used by the label
+        /// </summary>
+        public GlyphFormat NameFormat { get { return name.TextBoard.Format; } set { name.TextBoard.SetFormatting(value); } }
+
+        /// <summary>
+        /// Formatting used by the color value labels
+        /// </summary>
+        public GlyphFormat ValueFormat
+        { 
+            get { return sliderText[0].Format; } 
+            set 
+            {
+                foreach (Label label in sliderText)
+                    label.TextBoard.SetFormatting(value);
+            } 
+        }
+
         public override float Width
         {
             set
@@ -94,6 +112,7 @@ namespace RichHudFramework.UI.Server
             display = new TexturedBox()
             {
                 Width = 231f,
+                Color = Color.Black
             };
 
             var dispBorder = new BorderBox(display)

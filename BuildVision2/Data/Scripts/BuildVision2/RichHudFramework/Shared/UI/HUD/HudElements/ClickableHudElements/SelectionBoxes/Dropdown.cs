@@ -92,7 +92,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Default format for member text;
         /// </summary>
-        public GlyphFormat Format { get { return listBox.Format; } set { listBox.Format = value; } }
+        public GlyphFormat Format { get { return listBox.Format; } set { listBox.Format = value; display.Format = value; } }
 
         /// <summary>
         /// Background color of the dropdown list
@@ -211,7 +211,7 @@ namespace RichHudFramework.UI
         {
             if (Selection != null)
             {
-                display.name.TextBoard.SetText(Selection.Element.TextBoard.ToString());
+                display.name.TextBoard.SetText(Selection.Element.TextBoard.GetText());
                 CloseList();
             }
         }
@@ -344,9 +344,9 @@ namespace RichHudFramework.UI
             public float BorderThickness { get { return border.Thickness; } set { border.Thickness = value; } }
 
             /// <summary>
-            /// Text formatting used when the control gains focus.
+            /// Text color used when the control gains focus.
             /// </summary>
-            public GlyphFormat FocusFormat { get; set; }
+            public Color FocusTextColor { get; set; }
 
             /// <summary>
             /// Background color used when the control gains focus.
@@ -363,7 +363,7 @@ namespace RichHudFramework.UI
 
             private readonly HudChain layout;
             private readonly BorderBox border;
-            private GlyphFormat lastFormat;
+            private Color lastTextColor;
 
             public DropdownDisplay(HudParentBase parent = null) : base(parent)
             {
@@ -401,7 +401,7 @@ namespace RichHudFramework.UI
                 };
 
                 Format = TerminalFormatting.ControlFormat;
-                FocusFormat = TerminalFormatting.InvControlFormat;
+                FocusTextColor = TerminalFormatting.Charcoal;
 
                 Color = TerminalFormatting.OuterSpace;
                 HighlightColor = TerminalFormatting.Atomic;
@@ -439,14 +439,14 @@ namespace RichHudFramework.UI
                     if (!(UseFocusFormatting && MouseInput.HasFocus))
                     {
                         lastBackgroundColor = Color;
-                        lastFormat = Format;
+                        lastTextColor = name.Format.Color;
                     }
 
                     Color = HighlightColor;
-                    name.TextBoard.SetFormatting(lastFormat);
+                    name.TextBoard.SetFormatting(name.Format.WithColor(lastTextColor));
 
-                    divider.Color = lastFormat.Color.SetAlphaPct(0.8f);
-                    arrow.Color = lastFormat.Color;
+                    divider.Color = lastTextColor.SetAlphaPct(0.8f);
+                    arrow.Color = lastTextColor;
                 }
             }
 
@@ -457,18 +457,18 @@ namespace RichHudFramework.UI
                     if (UseFocusFormatting && MouseInput.HasFocus)
                     {
                         Color = FocusColor;
-                        name.TextBoard.SetFormatting(FocusFormat);
+                        name.TextBoard.SetFormatting(name.Format.WithColor(FocusTextColor));
 
-                        divider.Color = FocusFormat.Color.SetAlphaPct(0.8f);
-                        arrow.Color = FocusFormat.Color;
+                        divider.Color = FocusTextColor.SetAlphaPct(0.8f);
+                        arrow.Color = FocusTextColor;
                     }
                     else
                     {
                         Color = lastBackgroundColor;
-                        name.TextBoard.SetFormatting(lastFormat);
+                        name.TextBoard.SetFormatting(name.Format.WithColor(lastTextColor));
 
-                        divider.Color = lastFormat.Color.SetAlphaPct(0.8f);
-                        arrow.Color = lastFormat.Color;
+                        divider.Color = lastTextColor.SetAlphaPct(0.8f);
+                        arrow.Color = lastTextColor;
                     }
                 }
             }
@@ -480,14 +480,14 @@ namespace RichHudFramework.UI
                     if (!MouseInput.IsMousedOver)
                     {
                         lastBackgroundColor = Color;
-                        lastFormat = Format;
+                        lastTextColor = name.Format.Color;
                     }
 
                     Color = FocusColor;
-                    name.TextBoard.SetFormatting(FocusFormat);
+                    name.TextBoard.SetFormatting(name.Format.WithColor(FocusTextColor));
 
-                    divider.Color = FocusFormat.Color.SetAlphaPct(0.8f);
-                    arrow.Color = FocusFormat.Color;
+                    divider.Color = FocusTextColor.SetAlphaPct(0.8f);
+                    arrow.Color = FocusTextColor;
                 }
             }
 
@@ -496,10 +496,10 @@ namespace RichHudFramework.UI
                 if (UseFocusFormatting)
                 {
                     Color = lastBackgroundColor;
-                    name.TextBoard.SetFormatting(lastFormat);
+                    name.TextBoard.SetFormatting(name.Format.WithColor(lastTextColor));
 
-                    divider.Color = lastFormat.Color.SetAlphaPct(0.8f);
-                    arrow.Color = lastFormat.Color;
+                    divider.Color = lastTextColor.SetAlphaPct(0.8f);
+                    arrow.Color = lastTextColor;
                 }
             }
         }

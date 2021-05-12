@@ -32,7 +32,7 @@ namespace RichHudFramework
                 /// <summary>
                 /// Returns true if the cursor has been captured by a UI element
                 /// </summary>
-                public bool IsCaptured { get; private set; }
+                public bool IsCaptured => (bool)GetOrSetMemberFunc(null, (int)HudCursorAccessors.IsCaptured);
 
                 /// <summary>
                 /// The position of the cursor in pixels in screen space
@@ -66,7 +66,6 @@ namespace RichHudFramework
                 public void Update()
                 {
                     Visible = (bool)GetOrSetMemberFunc(null, (int)HudCursorAccessors.Visible);
-                    IsCaptured = (bool)GetOrSetMemberFunc(null, (int)HudCursorAccessors.IsCaptured);
                     ScreenPos = (Vector2)GetOrSetMemberFunc(null, (int)HudCursorAccessors.ScreenPos);
                     WorldPos = (Vector3D)GetOrSetMemberFunc(null, (int)HudCursorAccessors.WorldPos);
                     WorldLine = (LineD)GetOrSetMemberFunc(null, (int)HudCursorAccessors.WorldLine);

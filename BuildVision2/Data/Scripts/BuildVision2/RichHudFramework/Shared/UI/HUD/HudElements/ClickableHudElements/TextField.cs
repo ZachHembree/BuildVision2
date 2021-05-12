@@ -33,7 +33,7 @@ namespace RichHudFramework.UI.Server
         /// <summary>
         /// Text formatting used when the control gains focus.
         /// </summary>
-        public GlyphFormat FocusFormat { get; set; }
+        public Color FocusTextColor { get; set; }
 
         /// <summary>
         /// Size of the text as rendered
@@ -131,8 +131,7 @@ namespace RichHudFramework.UI.Server
 
         protected readonly TextBox textBox;
         protected readonly BorderBox border;
-        protected GlyphFormat lastFormat;
-        protected Color lastColor;
+        protected Color lastColor, lastTextColor;
 
         public TextField(HudParentBase parent) : base(parent)
         {
@@ -152,7 +151,7 @@ namespace RichHudFramework.UI.Server
             };
 
             Format = TerminalFormatting.ControlFormat;
-            FocusFormat = TerminalFormatting.InvControlFormat;
+            FocusTextColor = TerminalFormatting.Charcoal;
             Text = "NewTextField";
 
             Color = TerminalFormatting.OuterSpace;
@@ -186,10 +185,10 @@ namespace RichHudFramework.UI.Server
                 if (!(UseFocusFormatting && MouseInput.HasFocus))
                 {
                     lastColor = Color;
-                    lastFormat = Format;
+                    lastTextColor = Format.Color;
                 }
 
-                TextBoard.SetFormatting(lastFormat);
+                TextBoard.SetFormatting(TextBoard.Format.WithColor(lastTextColor));
                 Color = HighlightColor;
             }
         }
@@ -201,12 +200,12 @@ namespace RichHudFramework.UI.Server
                 if (UseFocusFormatting && MouseInput.HasFocus)
                 {
                     Color = FocusColor;
-                    TextBoard.SetFormatting(FocusFormat);
+                    TextBoard.SetFormatting(TextBoard.Format.WithColor(FocusTextColor));
                 }
                 else
                 {
                     Color = lastColor;
-                    TextBoard.SetFormatting(lastFormat);
+                    TextBoard.SetFormatting(TextBoard.Format.WithColor(lastTextColor));
                 }
             }
         }
@@ -216,7 +215,7 @@ namespace RichHudFramework.UI.Server
             if (UseFocusFormatting)
             {
                 Color = lastColor;
-                TextBoard.SetFormatting(lastFormat);
+                TextBoard.SetFormatting(TextBoard.Format.WithColor(lastTextColor));
             }
         }
     }

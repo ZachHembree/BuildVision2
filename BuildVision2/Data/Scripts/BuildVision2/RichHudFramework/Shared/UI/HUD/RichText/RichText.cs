@@ -21,7 +21,7 @@ namespace RichHudFramework
             /// Default text formatting. Applied to strings with no other formatting given.
             /// Optional.
             /// </summary>
-            public GlyphFormat defaultFormat;
+            public GlyphFormat? defaultFormat;
 
             public readonly List<RichStringMembers> apiData;
             private ObjectPool<StringBuilder> sbPool;
@@ -29,7 +29,7 @@ namespace RichHudFramework
             /// <summary>
             /// Initializes an empty RichText object with the given formatting.
             /// </summary>
-            public RichText(GlyphFormat defaultFormat = null)
+            public RichText(GlyphFormat? defaultFormat = null)
             {
                 this.defaultFormat = defaultFormat ?? GlyphFormat.Empty;
                 apiData = new List<RichStringMembers>();
@@ -57,17 +57,17 @@ namespace RichHudFramework
             /// <summary>
             /// Initializes a new RichText object with the given text and formatting.
             /// </summary>
-            public RichText(string text, GlyphFormat defaultFormat = null)
+            public RichText(string text, GlyphFormat? defaultFormat = null)
             {
                 this.defaultFormat = defaultFormat ?? GlyphFormat.Empty;
                 apiData = new List<RichStringMembers>();
-                apiData.Add(new RichStringMembers(new StringBuilder(text), this.defaultFormat.data));
+                apiData.Add(new RichStringMembers(new StringBuilder(text), this.defaultFormat.Value.Data));
             }
 
             /// <summary>
             /// Initializes a new RichText object with the given text and formatting.
             /// </summary>
-            public RichText(StringBuilder text, GlyphFormat defaultFormat = null)
+            public RichText(StringBuilder text, GlyphFormat? defaultFormat = null)
             {
                 this.defaultFormat = defaultFormat ?? GlyphFormat.Empty;
                 apiData = new List<RichStringMembers>();
@@ -134,17 +134,17 @@ namespace RichHudFramework
             /// <summary>
             /// Appends a copy of the given <see cref="StringBuilder"/> to the RichText instance.
             /// </summary>
-            public void Add(StringBuilder text, GlyphFormat newFormat = null)
+            public void Add(StringBuilder text, GlyphFormat? newFormat = null)
             {
                 if (sbPool == null)
                     sbPool = new ObjectPool<StringBuilder>(new StringBuilderPoolPolicy());
 
                 List<RichStringMembers> richStrings = apiData;
-                GlyphFormatMembers format = newFormat?.data ?? defaultFormat?.data ?? GlyphFormat.Empty.data;
+                GlyphFormatMembers format = newFormat?.Data ?? defaultFormat?.Data ?? GlyphFormat.Empty.Data;
                 StringBuilder sb;
                 bool formatEqual;
 
-                GetNextStringBuilder(newFormat?.data ?? GlyphFormat.Empty.data, out sb, out formatEqual);
+                GetNextStringBuilder(newFormat?.Data ?? GlyphFormat.Empty.Data, out sb, out formatEqual);
 
                 // If format is equal, reuse last StringBuilder
                 if (!formatEqual)
@@ -169,17 +169,17 @@ namespace RichHudFramework
             /// Appends a <see cref="string"/> to the end of the text. If the formatting given is equivalent to 
             /// that of the last string appended, then it will use the same StringBuilder.
             /// </summary>
-            public void Add(string text, GlyphFormat newFormat = null)
+            public void Add(string text, GlyphFormat? newFormat = null)
             {
                 if (sbPool == null)
                     sbPool = new ObjectPool<StringBuilder>(new StringBuilderPoolPolicy());
 
                 List<RichStringMembers> richStrings = apiData;
-                GlyphFormatMembers format = newFormat?.data ?? defaultFormat?.data ?? GlyphFormat.Empty.data;
+                GlyphFormatMembers format = newFormat?.Data ?? defaultFormat?.Data ?? GlyphFormat.Empty.Data;
                 StringBuilder sb;
                 bool formatEqual;
 
-                GetNextStringBuilder(newFormat?.data ?? GlyphFormat.Empty.data, out sb, out formatEqual);
+                GetNextStringBuilder(newFormat?.Data ?? GlyphFormat.Empty.Data, out sb, out formatEqual);
 
                 // If format is equal, reuse last StringBuilder
                 if (!formatEqual)
@@ -195,17 +195,17 @@ namespace RichHudFramework
             /// Appends a <see cref="char"/> to the end of the text. If the formatting given is equivalent to 
             /// that of the last string appended, then it will use the same StringBuilder.
             /// </summary>
-            public void Add(char ch, GlyphFormat newFormat = null)
+            public void Add(char ch, GlyphFormat? newFormat = null)
             {
                 if (sbPool == null)
                     sbPool = new ObjectPool<StringBuilder>(new StringBuilderPoolPolicy());
 
                 List<RichStringMembers> richStrings = apiData;
-                GlyphFormatMembers format = newFormat?.data ?? defaultFormat?.data ?? GlyphFormat.Empty.data;
+                GlyphFormatMembers format = newFormat?.Data ?? defaultFormat?.Data ?? GlyphFormat.Empty.Data;
                 StringBuilder sb;
                 bool formatEqual;
 
-                GetNextStringBuilder(newFormat?.data ?? GlyphFormat.Empty.data, out sb, out formatEqual);
+                GetNextStringBuilder(newFormat?.Data ?? GlyphFormat.Empty.Data, out sb, out formatEqual);
 
                 // If format is equal, reuse last StringBuilder
                 if (!formatEqual)

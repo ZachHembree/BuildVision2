@@ -115,9 +115,9 @@ namespace RichHudFramework.UI
         public GlyphFormat Format { get; set; }
 
         /// <summary>
-        /// Text formatting used for entries that have input focus
+        /// Text color used for entries that have input focus
         /// </summary>
-        public GlyphFormat FocusFormat { get; set; }
+        public Color FocusTextColor { get; set; }
 
         /// <summary>
         /// Current selection. Null if empty.
@@ -158,6 +158,8 @@ namespace RichHudFramework.UI
         protected readonly HighlightBox selectionBox, highlightBox;
         protected readonly ListInputElement<TContainer, TElement> listInput;
         protected readonly bool chainHidesDisabled;
+        protected TContainer lastSelection;
+        protected GlyphFormat lastFormat;
 
         public SelectionBoxBase(HudParentBase parent) : base(parent)
         {
@@ -185,7 +187,7 @@ namespace RichHudFramework.UI
             FocusColor = TerminalFormatting.Mint;
 
             Format = TerminalFormatting.ControlFormat;
-            FocusFormat = TerminalFormatting.InvControlFormat;
+            FocusTextColor = TerminalFormatting.Charcoal;
             Size = new Vector2(335f, 203f);
 
             HighlightPadding = new Vector2(8f, 0f);
@@ -279,9 +281,7 @@ namespace RichHudFramework.UI
 
         protected virtual void UpdateSelectionFormatting()
         {
-            // Update Selection/Highlight Formatting
-            for (int i = ListRange.X; i <= ListRange.Y; i++)
-                hudChain[i].Element.TextBoard.SetFormatting(Format);
+            lastSelection?.Element.TextBoard.SetFormatting(lastFormat);
 
             if ((SelectionIndex == listInput.FocusIndex) && SelectionIndex != -1)
             {
@@ -290,10 +290,10 @@ namespace RichHudFramework.UI
                     (!MouseInput.IsMousedOver && SelectionIndex == listInput.HighlightIndex)
                 )
                 {
-                    if (hudChain[SelectionIndex].AllowHighlighting)
+                    if (hudChain[listInput.SelectionIndex].AllowHighlighting)
                     {
+                        SetHighlightFormat(listInput.SelectionIndex);
                         selectionBox.Color = FocusColor;
-                        hudChain[SelectionIndex].Element.TextBoard.SetFormatting(FocusFormat);
                     }
                 }
                 else
@@ -305,10 +305,10 @@ namespace RichHudFramework.UI
             {
                 if (listInput.KeyboardScroll)
                 {
-                    if (hudChain[SelectionIndex].AllowHighlighting)
+                    if (hudChain[listInput.HighlightIndex].AllowHighlighting)
                     {
+                        SetHighlightFormat(listInput.HighlightIndex);
                         highlightBox.Color = FocusColor;
-                        hudChain[listInput.HighlightIndex].Element.TextBoard.SetFormatting(FocusFormat);
                     }
                 }
                 else
@@ -316,6 +316,15 @@ namespace RichHudFramework.UI
 
                 selectionBox.Color = HighlightColor;
             }
+        }
+
+        protected void SetHighlightFormat(int index)
+        {
+            lastSelection = hudChain[index];
+            ITextBoard textBoard = lastSelection.Element.TextBoard;
+
+            lastFormat = textBoard.Format;
+            textBoard.SetFormatting(textBoard.Format.WithColor(FocusTextColor));
         }
 
         protected override void Draw()

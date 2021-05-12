@@ -40,11 +40,6 @@ namespace RichHudFramework.UI.Server
         public Color TickBoxFocusColor { get; set; }
 
         /// <summary>
-        /// Text formatting used when the control gains focus.
-        /// </summary>
-        public GlyphFormat FocusFormat { get; set; }
-
-        /// <summary>
         /// Background color used when the control gains focus.
         /// </summary>
         public Color FocusColor { get; set; }

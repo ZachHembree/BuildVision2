@@ -313,9 +313,9 @@ namespace RichHudFramework
 
                 public HudClientRoot()
                 {
-                    ZOffset = sbyte.MinValue;
-                    layerData.zOffsetInner = 0;
+                    accessorDelegates.Item2 = new MyTuple<Func<ushort>, Func<Vector3D>>(() => 0, null);
 
+                    State |= HudElementStates.CanUseCursor;
                     DrawCursorInHudSpace = true;
                     HudSpace = this;
                     IsInFront = true;
