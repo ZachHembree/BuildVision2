@@ -527,7 +527,7 @@ namespace DarkHelmet.BuildVision2
             public void OpenInput()
             {
                 valueBox.Text = Value;
-                valueBox.Format = Value.defaultFormat;
+                valueBox.Format = Value.defaultFormat.Value;
                 valueBox.OpenInput();
             }
 
@@ -548,7 +548,7 @@ namespace DarkHelmet.BuildVision2
                 BlockMember = null;
             }
 
-            public void SetValueText(string value, GlyphFormat format = null)
+            public void SetValueText(string value, GlyphFormat? format = null)
             {
                 valueBox.TextBoard.SetText(value, format);
             }
