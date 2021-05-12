@@ -229,6 +229,7 @@ namespace DarkHelmet.BuildVision2
 
             public virtual void Reset()
             {
+                SubtypeId = TBlockSubtypes.None;
                 block = null;
             }
 
