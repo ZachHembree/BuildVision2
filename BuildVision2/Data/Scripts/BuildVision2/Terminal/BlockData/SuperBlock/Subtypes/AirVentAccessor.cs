@@ -70,15 +70,15 @@ namespace DarkHelmet.BuildVision2
             /// Returns vent status as a localized string.
             /// </summary>
             public string GetLocalizedVentStatus() =>
-                MyTexts.TrySubstitute(Status.ToString());
+                (block.Power.Enabled != null && block.Power.Enabled.Value) ? MyTexts.TrySubstitute(Status.ToString()) : MyTexts.GetString(MySpaceTexts.SwitchText_Off);
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Depressurize)}: ", nameFormat);
-                builder.Add($"{MyTexts.GetString(Depressurize ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)}\n", valueFormat);
-
                 if (block.Power.Enabled != null && block.Power.Enabled.Value)
                 {
+                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Depressurize)}: ", nameFormat);
+                    builder.Add($"{MyTexts.GetString(Depressurize ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)}\n", valueFormat);
+
                     builder.Add($"{MyTexts.GetString(MySpaceTexts.HudInfoOxygen)}", nameFormat);
                     builder.Add($"{(OxygenLevel * 100f):F2}%\n", valueFormat);
                 }
