@@ -381,7 +381,7 @@ namespace DarkHelmet.BuildVision2
                     if (tBlock != null)
                     {
                         // Find shortest dist between the bb and the intersection.
-                        BoundingBoxD box = cubeBlock.LocalAABB.Transform(cubeBlock.WorldMatrix);
+                        BoundingBoxD box = cubeBlock.WorldAABB;
                         double newDist = Math.Round(box.DistanceSquared(rayInfo.Position), 3), 
                             newCenterDist = Math.Round(Vector3D.DistanceSquared(box.Center, rayInfo.Position), 3);
 
