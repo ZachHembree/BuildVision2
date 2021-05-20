@@ -21,8 +21,10 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.TrySubstitute("Detected")}: ", nameFormat);
-                builder.Add($"{MyTexts.TrySubstitute(IsEntityDetected.ToString())}", valueFormat);
+                builder.Add(MyTexts.TrySubstitute("Detected"), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(MyTexts.TrySubstitute(IsEntityDetected.ToString()), valueFormat);
             }
         }
     }

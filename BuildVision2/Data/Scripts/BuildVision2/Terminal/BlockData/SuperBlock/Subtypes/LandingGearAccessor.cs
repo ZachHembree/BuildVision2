@@ -57,11 +57,19 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat);
-                builder.Add($"{GetLocalizedStatus()}\n", valueFormat);
+                // Lock status
+                builder.Add(MyTexts.GetString(MySpaceTexts.TerminalStatus), nameFormat);
+                builder.Add(": ", nameFormat);
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LandGearAutoLock)}: ", nameFormat);
-                builder.Add($"{(AutoLock ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat);
+                builder.Add(GetLocalizedStatus(), valueFormat);
+                builder.Add("\n", valueFormat);
+
+                // Auto lock
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LandGearAutoLock), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(AutoLock ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff), valueFormat);
+                builder.Add("\n", valueFormat);
             }
         }
     }

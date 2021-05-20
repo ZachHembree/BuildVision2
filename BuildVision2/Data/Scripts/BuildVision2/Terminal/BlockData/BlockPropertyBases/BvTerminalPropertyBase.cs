@@ -3,6 +3,7 @@ using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
+using System.Text;
 using System.Collections.Generic;
 
 namespace DarkHelmet.BuildVision2
@@ -14,7 +15,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Unique identifier associated with the property
             /// </summary>
-            public abstract string PropName { get; }
+            public abstract StringBuilder PropName { get; }
 
             /// <summary>
             /// Cached hashcode of StringID
@@ -37,7 +38,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private abstract class BvTerminalPropertyBase<TProp, TValue> : BvTerminalPropertyBase where TProp : class, ITerminalProperty
         {
-            public override string PropName => property.Id;
+            public override StringBuilder PropName { get; }
 
             public sealed override int ID
             {
@@ -73,9 +74,20 @@ namespace DarkHelmet.BuildVision2
 
             private int id;
 
-            protected virtual void SetPropertyInternal(string name, TProp property, IMyTerminalControl control, PropertyBlock block, Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
+            public BvTerminalPropertyBase()
             {
-                Name = name;
+                Name = new StringBuilder();
+                PropName = new StringBuilder();
+            }
+
+            protected virtual void SetPropertyInternal(StringBuilder name, TProp property, IMyTerminalControl control, PropertyBlock block, Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
+            {
+                Name.Clear();
+                Name.Append(name);
+
+                PropName.Clear();
+                PropName.Append(property.Id);
+
                 id = int.MinValue;
 
                 this.property = property;
@@ -88,7 +100,7 @@ namespace DarkHelmet.BuildVision2
 
             public override void Reset()
             {
-                Name = null;
+                Name.Clear();
 
                 this.property = null;
                 this.control = null;
@@ -145,14 +157,14 @@ namespace DarkHelmet.BuildVision2
             }
 
             public override PropertyData GetPropertyData() =>
-                new PropertyData(PropName, ID, GetValue().ToString());
+                new PropertyData(PropName.ToString(), ID, GetValue().ToString());
 
             public abstract bool TryParseValue(string valueData, out TValue value);
         }
 
         private abstract class BvTerminalProperty<TProp, TValue> : BvTerminalPropertyBase<TProp, TValue> where TProp : class, ITerminalProperty<TValue>
         {
-            public virtual void SetProperty(string name, TProp property, IMyTerminalControl control, PropertyBlock block)
+            public virtual void SetProperty(StringBuilder name, TProp property, IMyTerminalControl control, PropertyBlock block)
             {
                 SetPropertyInternal(name, property, control, block, property.GetValue, property.SetValue);
             }
@@ -160,7 +172,7 @@ namespace DarkHelmet.BuildVision2
 
         private abstract class BvTerminalValueControl<TProp, TValue> : BvTerminalPropertyBase<TProp, TValue> where TProp : class, IMyTerminalValueControl<TValue>
         {
-            public virtual void SetProperty(string name, TProp property, IMyTerminalControl control, PropertyBlock block)
+            public virtual void SetProperty(StringBuilder name, TProp property, IMyTerminalControl control, PropertyBlock block)
             {
                 SetPropertyInternal(name, property, control, block, property.Getter, property.Setter);
             }

@@ -1,12 +1,13 @@
-﻿using SpaceEngineers.Game.ModAPI.Ingame;
+﻿using RichHudFramework;
+using RichHudFramework.Internal;
+using SpaceEngineers.Game.ModAPI.Ingame;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using VRage;
-using RichHudFramework.Internal;
-using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using ConnectorStatus = Sandbox.ModAPI.Ingame.MyShipConnectorStatus;
 using IMyTerminalAction = Sandbox.ModAPI.Interfaces.ITerminalAction;
-using RichHudFramework;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -17,21 +18,37 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BlockAction : BlockMemberBase, IBlockAction
         {
-            public override string Display => GetValueFunc();
+            public override StringBuilder Display { get { GetValueFunc(dispBuilder); return dispBuilder; } }
 
-            public override string Status => GetPostfixFunc != null ? GetPostfixFunc() : null;
+            public override StringBuilder Status 
+            { 
+                get 
+                {
+                    if (GetPostfixFunc != null)
+                    {
+                        GetPostfixFunc(statusBuilder);
+                        return statusBuilder;
+                    }
+                    else
+                        return null;
+                } 
+            }
 
-            private Func<string> GetValueFunc, GetPostfixFunc;
+            private Action<StringBuilder> GetValueFunc, GetPostfixFunc;
             private Action action;
             private BvPropPool<BlockAction> poolParent;
+            private StringBuilder dispBuilder, statusBuilder;
 
-            public void SetAction(Func<string> GetValueFunc, Func<string> GetPostfixFunc, Action Action, PropertyBlock block)
+            public void SetAction(Action<StringBuilder> GetValueFunc, Action<StringBuilder> GetPostfixFunc, Action Action, PropertyBlock block)
             {
                 if (poolParent == null)
                     poolParent = block.blockActionPool;
 
                 Name = null;
                 Enabled = true;
+
+                dispBuilder = new StringBuilder();
+                statusBuilder = new StringBuilder();
 
                 this.GetValueFunc = GetValueFunc;
                 this.GetPostfixFunc = GetPostfixFunc;
@@ -40,6 +57,8 @@ namespace DarkHelmet.BuildVision2
 
             public override void Reset()
             {
+                dispBuilder.Clear();
+                statusBuilder.Clear();
                 GetValueFunc = null;
                 GetPostfixFunc = null;
                 action = null;
@@ -50,7 +69,7 @@ namespace DarkHelmet.BuildVision2
                 poolParent.Return(this);
             }
 
-            public static BlockAction GetBlockAction(Func<string> GetValueFunc, Func<string> GetPostfixFunc, Action Action, PropertyBlock block)
+            public static BlockAction GetBlockAction(Action<StringBuilder> GetValueFunc, Action<StringBuilder> GetPostfixFunc, Action Action, PropertyBlock block)
             {
                 BlockAction blockAction = block.blockActionPool.Get();
                 blockAction.SetAction(GetValueFunc, GetPostfixFunc, Action, block);
@@ -58,10 +77,10 @@ namespace DarkHelmet.BuildVision2
                 return blockAction;
             }
 
-            public static BlockAction GetBlockAction(string value, Func<string> GetPostfixFunc, Action Action, PropertyBlock block)
+            public static BlockAction GetBlockAction(string value, Action<StringBuilder> GetPostfixFunc, Action Action, PropertyBlock block)
             {
                 BlockAction blockAction = block.blockActionPool.Get();
-                blockAction.SetAction(() => value, GetPostfixFunc, Action, block);
+                blockAction.SetAction(x => { if (x.Length == 0) x.Append(value); }, GetPostfixFunc, Action, block);
 
                 return blockAction;
             }
@@ -86,8 +105,16 @@ namespace DarkHelmet.BuildVision2
                     AttachAction = block.MechConnection.AttachHead;
 
                 members.Add(GetBlockAction(
+                    // Name
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_Attach),
-                    () => $"({block.MechConnection.GetLocalizedAttachStatus()})",
+                    // Status
+                    x => 
+                    {
+                        x.Clear();
+                        x.Append('(');
+                        x.Append(block.MechConnection.GetLocalizedAttachStatus());
+                        x.Append(')');
+                    },
                     AttachAction, block));
                 members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_Detach), null,
@@ -133,8 +160,16 @@ namespace DarkHelmet.BuildVision2
             public static void GetWarheadActions(PropertyBlock block, List<BlockMemberBase> members)
             {
                 members.Add(GetBlockAction(
+                    // Name
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StartCountdown),
-                    () => $"({Math.Truncate(block.Warhead.CountdownTime)}s)",
+                    // Status
+                    x => 
+                    {
+                        x.Clear();
+                        x.Append('(');
+                        x.Append(Math.Truncate(block.Warhead.CountdownTime));
+                        x.Append("s)");
+                    },
                     block.Warhead.StartCountdown, block));
                 members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StopCountdown), null,
@@ -150,8 +185,16 @@ namespace DarkHelmet.BuildVision2
             public static void GetGearActions(PropertyBlock block, List<BlockMemberBase> members)
             {
                 members.Add(GetBlockAction(
+                    // Name
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_SwitchLock),
-                    () => $"({block.LandingGear.GetLocalizedStatus()})",
+                    // Status
+                    x => 
+                    {
+                        x.Clear();
+                        x.Append('(');
+                        x.Append(block.LandingGear.GetLocalizedStatus());
+                        x.Append(')');
+                    },
                     block.LandingGear.ToggleLock, block));
             }
 
@@ -161,8 +204,16 @@ namespace DarkHelmet.BuildVision2
             public static void GetConnectorActions(PropertyBlock block, List<BlockMemberBase> members)
             {
                 members.Add(GetBlockAction(
+                    // Name
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_SwitchLock),
-                    () => $"({block.Connector.GetLocalizedStatus()})",
+                    // Status
+                    x => 
+                    {
+                        x.Clear();
+                        x.Append('(');
+                        x.Append(block.Connector.GetLocalizedStatus());
+                        x.Append(')');
+                    },
                     block.Connector.ToggleConnect, block));
             }
 

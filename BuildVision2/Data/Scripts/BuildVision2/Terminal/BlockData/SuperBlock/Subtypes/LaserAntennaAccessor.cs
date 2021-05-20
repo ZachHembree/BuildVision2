@@ -41,11 +41,27 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LaserRange)}: ", nameFormat);
-                builder.Add($"{((Range < 1E8) ? TerminalUtilities.GetDistanceDisplay(Range) : MyTexts.GetString(MySpaceTexts.ScreenTerminal_Infinite))}\n", valueFormat);
+                // Laser range
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_LaserRange), nameFormat);
+                builder.Add(": ", nameFormat);
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat);
-                builder.Add($"{GetLocalizedAntennaStatus()}\n", valueFormat);
+                var buf = block.textBuffer;
+                buf.Clear();
+
+                if (Range < 1E8)
+                    TerminalUtilities.GetDistanceDisplay(Range, buf);
+                else
+                    buf.Append(MyTexts.GetString(MySpaceTexts.ScreenTerminal_Infinite));
+
+                buf.Append('\n');
+                builder.Add(buf, valueFormat);
+
+                // Antenna status
+                builder.Add(MyTexts.GetString(MySpaceTexts.TerminalStatus), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(GetLocalizedAntennaStatus(), valueFormat);
+                builder.Add("\n", valueFormat);
             }
         }
     }

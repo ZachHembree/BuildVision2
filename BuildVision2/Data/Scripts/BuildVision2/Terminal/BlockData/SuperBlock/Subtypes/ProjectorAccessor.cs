@@ -30,14 +30,31 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalTab_Info_ShipName)} ", nameFormat);
-                builder.Add($"{GridName ?? MyTexts.TrySubstitute("None")}\n", valueFormat);
+                builder.Add(MyTexts.GetString(MySpaceTexts.TerminalTab_Info_ShipName), nameFormat);
+                builder.Add(" ", nameFormat);
+
+                builder.Add(GridName ?? MyTexts.TrySubstitute("None"), valueFormat);
+                builder.Add("\n", valueFormat);
 
                 if (GridName != null)
                 {
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalTab_Info_Blocks)} ", nameFormat);
-                    builder.Add($"{BlocksBuilt} / {TotalBlocks} ", valueFormat);
-                    builder.Add($"({PctComplete:G5}%)\n", nameFormat);
+                    var buf = block.textBuffer;
+
+                    builder.Add(MyTexts.GetString(MySpaceTexts.TerminalTab_Info_Blocks), nameFormat);
+                    builder.Add(" ", nameFormat);
+
+                    buf.Clear();
+                    buf.Append(BlocksBuilt);
+                    buf.Append(" / ");
+                    buf.Append(TotalBlocks);
+
+                    builder.Add(buf, valueFormat);
+
+                    buf.Clear();
+                    buf.Append(" (");
+                    buf.AppendFormat("{0:G5}", PctComplete);
+                    buf.Append("%)\n");
+                    builder.Add(buf, nameFormat);
                 }
             }
         }

@@ -23,15 +23,14 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public IReadOnlyList<MyItemType> AmmoTypes => ammoTypes;
 
-            public string AmmoName { get; private set; }
+            public StringBuilder AmmoName { get; private set; }
 
             private readonly List<MyItemType> ammoTypes;
-            private readonly StringBuilder nameBuilder;
 
             public GunBaseAccessor()
             {
                 ammoTypes = new List<MyItemType>();
-                nameBuilder = new StringBuilder();
+                AmmoName = new StringBuilder();
             }
 
             public override void SetBlock(SuperBlock block)
@@ -43,20 +42,23 @@ namespace DarkHelmet.BuildVision2
                     ammoTypes.Clear();
                     (subtype.AmmoInventory as IMyInventory).GetAcceptedItems(ammoTypes);
 
-                    AmmoName = CleanTypeId(AmmoTypes[0].SubtypeId);
+                    CleanTypeId(AmmoTypes[0].SubtypeId);
                 }
             }
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.DisplayName_BlueprintClass_Ammo)}: ", nameFormat);
-                builder.Add($"{AmmoName}\n", valueFormat);
+                builder.Add(MyTexts.GetString(MySpaceTexts.DisplayName_BlueprintClass_Ammo), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(AmmoName, valueFormat);
+                builder.Add("\n", valueFormat);
             }
 
-            private string CleanTypeId(string subtypeId)
+            private void CleanTypeId(string subtypeId)
             {
-                nameBuilder.Clear();
-                nameBuilder.EnsureCapacity(subtypeId.Length + 4);
+                AmmoName.Clear();
+                AmmoName.EnsureCapacity(subtypeId.Length + 4);
                 char left = 'A';
 
                 for (int n = 0; n < subtypeId.Length; n++)
@@ -70,13 +72,11 @@ namespace DarkHelmet.BuildVision2
                     if (right == '_')
                         right = ' ';
                     else if (!leftCapital && ((rightCapital && left != ' ') || (rightNumber && !leftNumber)))
-                        nameBuilder.Append(' ');
+                        AmmoName.Append(' ');
 
-                    nameBuilder.Append(right);
+                    AmmoName.Append(right);
                     left = right;
                 }
-
-                return nameBuilder.ToString();
             }
         }
     }

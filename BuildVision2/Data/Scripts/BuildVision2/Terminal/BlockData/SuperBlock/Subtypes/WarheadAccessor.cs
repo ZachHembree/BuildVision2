@@ -91,11 +91,20 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalControlPanel_TimerDelay)}: ", nameFormat);
-                builder.Add($"{Math.Truncate(CountdownTime)}s\n", valueFormat);
+                var buf = block.textBuffer;
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat);
-                builder.Add($"{GetLocalizedStatus()} ", valueFormat);
+                builder.Add(MyTexts.GetString(MySpaceTexts.TerminalControlPanel_TimerDelay), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                buf.Clear();
+                buf.Append(Math.Truncate(CountdownTime));
+                buf.Append("s\n");
+                builder.Add(buf, valueFormat);
+
+                builder.Add(MyTexts.GetString(MySpaceTexts.TerminalStatus), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(GetLocalizedStatus(), valueFormat);
             }
 
             private void UpdateDetonationTime(byte[] bin)

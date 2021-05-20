@@ -3,6 +3,7 @@ using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using VRage.Collections;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
@@ -13,7 +14,7 @@ namespace DarkHelmet.BuildVision2
 {
     public static class TerminalUtilities
     {
-        public static string GetForceDisplay(float newtons)
+        public static void GetForceDisplay(float newtons, StringBuilder sb)
         {
             string suffix = "N";
 
@@ -33,10 +34,12 @@ namespace DarkHelmet.BuildVision2
                 suffix = "kN";
             }
 
-            return $"{Math.Round(newtons, 2):G6} {suffix}";
+            sb.AppendFormat("{0:G6}", Math.Round(newtons, 2));
+            sb.Append(" ");
+            sb.Append(suffix);
         }
 
-        public static string GetDistanceDisplay(float meters)
+        public static void GetDistanceDisplay(float meters, StringBuilder dst)
         {
             string suffix = "m";
 
@@ -46,16 +49,20 @@ namespace DarkHelmet.BuildVision2
                 suffix = "km";
             }
 
-            return $"{Math.Round(meters, 2):G6} {suffix}";
+            dst.AppendFormat("{0:G6}", Math.Round(meters, 2));
+            dst.Append(" ");
+            dst.Append(suffix);
         }
 
-        public static string GetPowerDisplay(float megawatts)
+        public static void GetPowerDisplay(float megawatts, StringBuilder dst)
         {
             float scale;
             string suffix;
             GetPowerScale(megawatts / 10f, out scale, out suffix);
 
-            return $"{Math.Round(megawatts * scale, 2):G4} {suffix}";
+            dst.AppendFormat("{0:G4}", Math.Round(megawatts * scale, 2));
+            dst.Append(" ");
+            dst.Append(suffix);
         }
 
         /// <summary>
@@ -161,6 +168,38 @@ namespace DarkHelmet.BuildVision2
             }
 
             return false;
+        }
+
+        public static bool IsTextEqual(this StringBuilder text, StringBuilder other)
+        {
+            if (text.Length == other.Length)
+            {
+                for (int i = 0; i < text.Length; i++)
+                {
+                    if (text[i] != other[i])
+                        return false;
+                }
+
+                return true;
+            }
+            else
+                return false;   
+        }
+
+        public static bool IsTextEqual(this StringBuilder text, string other)
+        {
+            if (text.Length == other.Length)
+            {
+                for (int i = 0; i < text.Length; i++)
+                {
+                    if (text[i] != other[i])
+                        return false;
+                }
+
+                return true;
+            }
+            else
+                return false;
         }
     }
 }

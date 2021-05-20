@@ -18,7 +18,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class FloatProperty : NumericPropertyBase<float>
         {
-            public override string Display
+            public override StringBuilder Display
             {
                 get 
                 {
@@ -26,28 +26,49 @@ namespace DarkHelmet.BuildVision2
                     {
                         writerText.Clear();
                         SliderWriter(block.TBlock, writerText);
-                        return writerText.ToString();
+                        return writerText;
                     }
                     else
                         return Value;
                 } 
             }
 
-            public override string Value => GetValue().Round(4).ToString("G6");
+            public override StringBuilder Value 
+            {
+                get 
+                {
+                    valueBuilder.Clear();
+                    valueBuilder.AppendFormat("{0:G6}", Math.Round(GetValue(), 4));
 
-            public override string Status => GetStatusFunc?.Invoke() ?? "";
+                    return valueBuilder;
+                }
+            }
+
+            public override StringBuilder Status 
+            {
+                get 
+                {
+                    if (GetStatusFunc != null)
+                    {
+                        GetStatusFunc(statusBuilder);
+                        return statusBuilder;
+                    }
+                    else
+                        return null;
+                }
+            }
 
             private static readonly Func<float> GetDefaultScaleFunc;
 
-            private readonly StringBuilder writerText;
-            private readonly Func<string> GetPistonExtensionFunc, GetRotorAngleFunc;
+            private readonly StringBuilder writerText, valueBuilder, statusBuilder;
+            private readonly Action<StringBuilder> GetPistonExtensionFunc, GetRotorAngleFunc;
             private readonly Func<float> GetThrustEffectFunc;
 
             private Action<IMyTerminalBlock, StringBuilder> SliderWriter;
-            private Func<string> GetStatusFunc;
+            private Action<StringBuilder> GetStatusFunc;
             private Func<float> GetScaleFunc;
             private float minValue, maxValue, increment;
-            protected BvPropPool<FloatProperty> poolParent;
+            private BvPropPool<FloatProperty> poolParent;
 
             static FloatProperty()
             {
@@ -57,12 +78,15 @@ namespace DarkHelmet.BuildVision2
             public FloatProperty()
             {
                 writerText = new StringBuilder();
+                valueBuilder = new StringBuilder();
+                statusBuilder = new StringBuilder();
+
                 GetPistonExtensionFunc = GetPistonExtension;
                 GetRotorAngleFunc = GetRotorAngle;
                 GetThrustEffectFunc = GetThrustEffect;
             }
 
-            public override void SetProperty(string name, ITerminalProperty<float> property, IMyTerminalControl control, PropertyBlock block)
+            public override void SetProperty(StringBuilder name, ITerminalProperty<float> property, IMyTerminalControl control, PropertyBlock block)
             {
                 base.SetProperty(name, property, control, block);
 
@@ -76,7 +100,7 @@ namespace DarkHelmet.BuildVision2
                 maxValue = property.GetMaximum(block.TBlock);
                 increment = GetIncrement();
 
-                if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Thruster) && PropName == "Override")
+                if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Thruster) && PropName.IsTextEqual("Override"))
                     GetScaleFunc = GetThrustEffectFunc;
                 else
                     GetScaleFunc = GetDefaultScaleFunc;
@@ -104,7 +128,7 @@ namespace DarkHelmet.BuildVision2
                 poolParent.Return(this);
             }
 
-            public static FloatProperty GetProperty(string name, ITerminalProperty<float> property, IMyTerminalControl control, PropertyBlock block)
+            public static FloatProperty GetProperty(StringBuilder name, ITerminalProperty<float> property, IMyTerminalControl control, PropertyBlock block)
             {
                 FloatProperty prop = block.floatPropPool.Get();
                 prop.SetProperty(name, property, control, block);
@@ -130,11 +154,21 @@ namespace DarkHelmet.BuildVision2
             private float GetThrustEffect() =>
                 block.Thruster.ThrustEffectiveness;
 
-            private string GetPistonExtension() =>
-                $"({block.Piston.ExtensionDist.Round(2)}m)";
+            private void GetPistonExtension(StringBuilder sb)
+            {
+                sb.Clear();
+                sb.Append('(');
+                sb.Append(Math.Round(block.Piston.ExtensionDist, 2));
+                sb.Append("m)");
+            }
 
-            private string GetRotorAngle() =>
-                $"({MathHelper.Clamp(block.Rotor.Angle.RadiansToDegrees(), -360, 360).Round(2)}°)";
+            private void GetRotorAngle(StringBuilder sb)
+            {
+                sb.Clear();
+                sb.Append('(');
+                sb.Append(Math.Round(MathHelper.Clamp(block.Rotor.Angle.RadiansToDegrees(), -360, 360), 2));
+                sb.Append("°)");
+            }
 
             private float GetIncrement()
             {

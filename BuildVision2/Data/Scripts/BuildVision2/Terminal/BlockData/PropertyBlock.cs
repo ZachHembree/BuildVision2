@@ -51,6 +51,7 @@ namespace DarkHelmet.BuildVision2
         private readonly BvPropPool<ComboBoxProperty> comboPropPool;
         private readonly BvPropPool<FloatProperty> floatPropPool;
         private readonly BvPropPool<TextProperty> textPropPool;
+        private readonly StringBuilder nameBuilder;
 
         public PropertyBlock()
         {
@@ -60,6 +61,7 @@ namespace DarkHelmet.BuildVision2
             comboPropPool = new BvPropPool<ComboBoxProperty>();
             floatPropPool = new BvPropPool<FloatProperty>();
             textPropPool = new BvPropPool<TextProperty>();
+            nameBuilder = new StringBuilder();
 
             blockMembers = new List<BlockMemberBase>();
             blockProperties = new List<BvTerminalPropertyBase>();
@@ -118,7 +120,7 @@ namespace DarkHelmet.BuildVision2
 
             foreach (PropertyData propData in src.terminalProperties)
             {
-                BvTerminalPropertyBase prop = blockProperties.Find(x => (x.ID == propData.id) && (x.PropName == propData.name));
+                BvTerminalPropertyBase prop = blockProperties.Find(x => x.PropName.IsTextEqual(propData.name));
 
                 if (prop != null)
                 {
@@ -149,13 +151,15 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Retrieves a Block Property's Terminal Name.
         /// </summary>
-        private static string GetTooltipName(ITerminalProperty prop)
+        private static void GetTooltipName(ITerminalProperty prop, StringBuilder dst)
         {
+            dst.Clear();
+
             if (prop is IMyTerminalControlTitleTooltip)
             {
                 var tooltip = prop as IMyTerminalControlTitleTooltip;
-                StringBuilder name = MyTexts.Get(tooltip.Title), cleanedName;
                 int trailingCharacters = 0;
+                StringBuilder name = MyTexts.Get(tooltip.Title);
 
                 for (int n = name.Length - 1; n >= 0; n--)
                 {
@@ -165,39 +169,32 @@ namespace DarkHelmet.BuildVision2
                         trailingCharacters++;
                 }
 
-                cleanedName = new StringBuilder(name.Length - trailingCharacters);
+                dst.EnsureCapacity(name.Length - trailingCharacters);
 
                 for (int n = 0; n < (name.Length - trailingCharacters); n++)
                 {
                     if (name[n] >= ' ')
-                        cleanedName.Append(name[n]);
+                        dst.Append(name[n]);
                 }
-
-                return cleanedName.ToString();
             }
-            else
-                return "";
         }
 
         /// <summary>
         /// Filters out any any special characters from a given string.
         /// </summary>
-        private static string CleanText(StringBuilder text)
+        private static void CleanText(StringBuilder src, StringBuilder dst)
         {
-            if (text != null)
+            if (src != null)
             {
-                StringBuilder cleanedText = new StringBuilder(text.Length);
+                dst.Clear();
+                dst.EnsureCapacity(src.Length);
 
-                for (int n = 0; n < text.Length; n++)
+                for (int n = 0; n < src.Length; n++)
                 {
-                    if (text[n] >= ' ')
-                        cleanedText.Append(text[n]);
+                    if (src[n] >= ' ')
+                        dst.Append(src[n]);
                 }
-
-                return cleanedText.ToString();
             }
-            else
-                return "";
         }
 
         /// <summary>
@@ -207,7 +204,6 @@ namespace DarkHelmet.BuildVision2
         {
             List<ITerminalProperty> properties = new List<ITerminalProperty>(12);
             TextProperty argProperty = null;
-            string name;
             TBlock.GetProperties(properties);
 
             foreach (ITerminalProperty prop in properties)
@@ -216,9 +212,9 @@ namespace DarkHelmet.BuildVision2
 
                 if (control != null && control.CanUseControl(TBlock))
                 {
-                    name = GetTooltipName(prop);
+                    GetTooltipName(prop, nameBuilder);
 
-                    if (name.Length > 0)
+                    if (nameBuilder.Length > 0)
                     {                        
                         if (prop is ITerminalProperty<StringBuilder>)
                         {
@@ -227,11 +223,11 @@ namespace DarkHelmet.BuildVision2
                             if (textProp.CanAccessValue(TBlock))
                             {
                                 if (prop.Id == "ConsoleCommand")
-                                    argProperty = TextProperty.GetProperty(name, textProp, control, this);
+                                    argProperty = TextProperty.GetProperty(nameBuilder, textProp, control, this);
                                 else if (prop.Id == "Name" || prop.Id == "CustomName")
-                                    blockProperties.Insert(0, TextProperty.GetProperty(name, textProp, control, this));
+                                    blockProperties.Insert(0, TextProperty.GetProperty(nameBuilder, textProp, control, this));
                                 else
-                                    blockProperties.Add(TextProperty.GetProperty(name, textProp, control, this));
+                                    blockProperties.Add(TextProperty.GetProperty(nameBuilder, textProp, control, this));
                             }
                         }
                         if (prop is IMyTerminalControlCombobox)
@@ -239,28 +235,28 @@ namespace DarkHelmet.BuildVision2
                             var comboBox = prop as IMyTerminalControlCombobox;
 
                             if (comboBox.CanAccessValue(TBlock))
-                                blockProperties.Add(ComboBoxProperty.GetProperty(name, comboBox, control, this));
+                                blockProperties.Add(ComboBoxProperty.GetProperty(nameBuilder, comboBox, control, this));
                         }
                         else if (prop is ITerminalProperty<bool>)
                         {
                             var boolProp = prop as ITerminalProperty<bool>;
 
                             if (boolProp.CanAccessValue(TBlock))
-                                blockProperties.Add(BoolProperty.GetProperty(name, boolProp, control, this));
+                                blockProperties.Add(BoolProperty.GetProperty(nameBuilder, boolProp, control, this));
                         }
                         else if (prop is ITerminalProperty<float>)
                         {
                             var floatProp = prop as ITerminalProperty<float>;
 
                             if (floatProp.CanAccessValue(TBlock))
-                                blockProperties.Add(FloatProperty.GetProperty(name, floatProp, control, this));
+                                blockProperties.Add(FloatProperty.GetProperty(nameBuilder, floatProp, control, this));
                         }
                         else if (prop is ITerminalProperty<Color>)
                         {
                             var colorProp = prop as ITerminalProperty<Color>;
 
                             if (colorProp.CanAccessValue(TBlock))
-                                ColorProperty.AddColorProperties(name, colorProp, control, this);
+                                ColorProperty.AddColorProperties(nameBuilder, colorProp, control, this);
                         }
                     }
                 }

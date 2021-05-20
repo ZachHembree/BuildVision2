@@ -1,12 +1,13 @@
-﻿using Sandbox.Game.Localization;
+﻿using RichHudFramework;
+using Sandbox.Game.Localization;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
-using VRage;
-using VRageMath;
-using VRage.Utils;
-using RichHudFramework;
 using System.Collections.Generic;
+using System.Text;
+using VRage;
+using VRage.Utils;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -17,20 +18,35 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>, bool>, IBlockAction
         {
-            public override string Display => GetPropStateText();
-            public override string Status => GetPostfixFunc != null ? GetPostfixFunc() : null;
+            public override StringBuilder Display => GetPropStateText();
 
-            private Func<string> GetPostfixFunc, GetPowerDisplayFunc, GetTankFillFunc;
+            public override StringBuilder Status 
+            {
+                get 
+                {
+                    if (GetPostfixFunc != null)
+                    {
+                        GetPostfixFunc(statusBuilder);
+                        return statusBuilder;
+                    }
+                    else
+                        return null;
+                }
+            }
+
+            private Action<StringBuilder> GetPostfixFunc, GetPowerDisplayFunc, GetTankFillFunc;
             private MyStringId OnText, OffText;
             protected BvPropPool<BoolProperty> poolParent;
+            private readonly StringBuilder statusBuilder;
 
             public BoolProperty()
             {
                 GetPowerDisplayFunc = GetPowerDisplay;
                 GetTankFillFunc = GetGasTankFillPercent;
+                statusBuilder = new StringBuilder();
             }
 
-            public override void SetProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, PropertyBlock block)
+            public override void SetProperty(StringBuilder name, ITerminalProperty<bool> property, IMyTerminalControl control, PropertyBlock block)
             {
                 base.SetProperty(name, property, control, block);
 
@@ -44,7 +60,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (property is IMyTerminalControlOnOffSwitch)
                 {
-                    IMyTerminalControlOnOffSwitch onOffSwitch = (IMyTerminalControlOnOffSwitch)property;
+                    var onOffSwitch = property as IMyTerminalControlOnOffSwitch;
 
                     OnText = onOffSwitch.OnText;
                     OffText = onOffSwitch.OffText;
@@ -67,7 +83,7 @@ namespace DarkHelmet.BuildVision2
                 poolParent.Return(this);
             }
 
-            public static BoolProperty GetProperty(string name, ITerminalProperty<bool> property, IMyTerminalControl control, PropertyBlock block)
+            public static BoolProperty GetProperty(StringBuilder name, ITerminalProperty<bool> property, IMyTerminalControl control, PropertyBlock block)
             {
                 BoolProperty prop = block.boolPropPool.Get();
                 prop.SetProperty(name, property, control, block);
@@ -75,16 +91,24 @@ namespace DarkHelmet.BuildVision2
                 return prop;
             }
 
-            private string GetPowerDisplay()
+            private void GetPowerDisplay(StringBuilder sb)
             {
                 PowerAccessor power = block.Power;
                 float? input = power.Input, output = power.Output;
 
-                return $"({PowerAccessor.GetPowerDisplay(input, output)})";
+                sb.Clear();
+                sb.Append('(');
+                PowerAccessor.GetPowerDisplay(input, output, sb);
+                sb.Append(')');
             }
 
-            private string GetGasTankFillPercent() =>
-                $"({Math.Round(block.GasTank.FillRatio * 100d, 1)}%)";
+            private void GetGasTankFillPercent(StringBuilder sb)
+            {
+                sb.Clear();
+                sb.Append('(');
+                sb.Append(Math.Round(block.GasTank.FillRatio * 100d, 1));
+                sb.Append("%)");
+            }
 
             public void Action() =>
                 SetValue(!GetValue());
@@ -95,12 +119,12 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Retrieves the on/off state of given property of a given block as a string.
             /// </summary>
-            private string GetPropStateText()
+            private StringBuilder GetPropStateText()
             {
                 if (GetValue())
-                    return MyTexts.Get(OnText).ToString();
+                    return MyTexts.Get(OnText);
                 else
-                    return MyTexts.Get(OffText).ToString();
+                    return MyTexts.Get(OffText);
             }
         }
     }

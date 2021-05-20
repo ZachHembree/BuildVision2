@@ -27,11 +27,21 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalControlPanel_TimerDelay)}: ", nameFormat);
-                builder.Add($"{Math.Truncate(Delay)}s\n", valueFormat);
+                var buf = block.textBuffer;
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Silent)}: ", nameFormat);
-                builder.Add($"{MyTexts.TrySubstitute(Silent.ToString())}\n", valueFormat);
+                builder.Add(MyTexts.GetString(MySpaceTexts.TerminalControlPanel_TimerDelay), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                buf.Clear();
+                buf.Append(Math.Truncate(Delay));
+                buf.Append("s\n");
+                builder.Add(buf, valueFormat);
+
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Silent), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(MyTexts.TrySubstitute(Silent.ToString()), valueFormat);
+                builder.Add("\n", valueFormat);
             }
 
             public void StartCountdown() =>

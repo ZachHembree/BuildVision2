@@ -34,8 +34,15 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_OreDetectorRange)}: ", nameFormat);
-                builder.Add($"{TerminalUtilities.GetDistanceDisplay(Range)}\n", valueFormat);
+                // Detector range
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_OreDetectorRange), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                block.textBuffer.Clear();
+                TerminalUtilities.GetDistanceDisplay(Range, block.textBuffer);
+                block.textBuffer.Append('\n');
+
+                builder.Add(block.textBuffer, valueFormat);
             }
         }
     }

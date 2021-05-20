@@ -1,6 +1,7 @@
-﻿using RichHudFramework.UI;
-using RichHudFramework;
+﻿using RichHudFramework;
+using RichHudFramework.UI;
 using Sandbox.ModAPI;
+using System;
 using VRage;
 using VRage.Game.ModAPI;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
@@ -61,22 +62,39 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
+                var buf = block.textBuffer;
+
                 if (Productivity != null)
                 {
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Productivity)} ", nameFormat);
-                    builder.Add($"{(Productivity.Value * 100f).Round(2)}%\n", valueFormat);
+                    builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Productivity), nameFormat);
+                    builder.Add(" ", nameFormat);
+
+                    buf.Clear();
+                    buf.Append(Math.Round(Productivity.Value * 100f, 2));
+                    buf.Append("%\n");
+                    builder.Add(buf, valueFormat);
                 }
 
                 if (Effectiveness != null)
                 {
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Effectiveness)} ", nameFormat);
-                    builder.Add($"{(Effectiveness.Value * 100f).Round(2)}%\n", valueFormat);
+                    builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Effectiveness), nameFormat);
+                    builder.Add(" ", nameFormat);
+
+                    buf.Clear();
+                    buf.Append(Math.Round(Effectiveness.Value * 100f, 2));
+                    buf.Append("%\n");
+                    builder.Add(buf, valueFormat);
                 }
 
                 if (PowerEfficiency != null)
                 {
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Efficiency)} ", nameFormat);
-                    builder.Add($"{(PowerEfficiency.Value * 100f).Round(2)}%\n", valueFormat);
+                    builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Efficiency), nameFormat);
+                    builder.Add(" ", nameFormat);
+
+                    buf.Clear();
+                    buf.Append(Math.Round(PowerEfficiency.Value * 100f, 2));
+                    buf.Append("%\n");
+                    builder.Add(buf, valueFormat);
                 }
             }
         }

@@ -1,6 +1,7 @@
 ﻿using RichHudFramework;
 using System.Collections.Generic;
 using VRage;
+using System.Text;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -11,22 +12,22 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Retrieves the name of the block property
             /// </summary>
-            public virtual string Name { get; protected set; }
+            public virtual StringBuilder Name { get; protected set; }
 
             /// <summary>
-            /// Retrieves the value as a <see cref="string"/> using formatting specific to the member.
+            /// Retrieves the value as a <see cref="StringBuilder"/> using formatting specific to the member.
             /// </summary>
-            public abstract string Display { get; }
+            public abstract StringBuilder Display { get; }
 
             /// <summary>
-            /// Retrieves the current value of the block member as an unformatted <see cref="string"/>
+            /// Retrieves the current value of the block member as an unformatted <see cref="StringBuilder"/>
             /// </summary>
-            public virtual string Value => Display;
+            public virtual StringBuilder Value => Display;
 
             /// <summary>
             /// Additional information following the value of the member.
             /// </summary>
-            public abstract string Status { get; }
+            public abstract StringBuilder Status { get; }
 
             /// <summary>
             /// Indicates whether or not a given <see cref="IBlockMember"/> should be shown in the terminal.

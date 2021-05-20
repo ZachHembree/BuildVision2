@@ -5,6 +5,7 @@ using RichHudFramework.UI.Rendering;
 using Sandbox.ModAPI;
 using System;
 using System.Diagnostics;
+using System.Text;
 using VRage.Game.ModAPI;
 using VRageMath;
 
@@ -295,11 +296,11 @@ namespace DarkHelmet.BuildVision2
                 footer.LeftTextBuilder.SetText($"[{scrollBody.VisStart + 1} - {scrollBody.VisStart + scrollBody.VisCount} of {scrollBody.EnabledCount}]");
 
             if (PropertiesMenu.Target.IsWorking)
-                footer.RightTextBoard.SetText($"[Working]", footerTextRight);
+                footer.RightTextBoard.SetText("[Working]", footerTextRight);
             else if (PropertiesMenu.Target.IsFunctional)
-                footer.RightTextBoard.SetText($"[Functional]", footerTextRight);
+                footer.RightTextBoard.SetText("[Functional]", footerTextRight);
             else
-                footer.RightTextBoard.SetText($"[Incomplete]", blockIncText);
+                footer.RightTextBoard.SetText("[Incomplete]", blockIncText);
         }
 
         /// <summary>
@@ -478,12 +479,14 @@ namespace DarkHelmet.BuildVision2
                         else
                             this.valueBox.CharFilterFunc = null;
 
+                        var nameBuilder = _blockMember.Name;
                         name.Format = bodyText;
                         Name.Clear();
 
-                        if (_blockMember.Name != null && _blockMember.Name.Length > 0)
+                        if (nameBuilder != null && nameBuilder.Length > 0)
                         {
-                            Name.Add($"{_blockMember.Name}: ");
+                            Name.Add(nameBuilder);
+                            Name.Add(": ");
                         }
                     }
                 }
@@ -579,12 +582,21 @@ namespace DarkHelmet.BuildVision2
                 Value.Clear();
                 Postfix.Clear();
 
-                Value.Add(_blockMember.Display);
-                Postfix.Add($" {_blockMember.Status}");
+                StringBuilder disp = _blockMember.Display,
+                    status = _blockMember.Status;
 
-                name.Text = Name;
-                valueBox.Text = Value;
-                postfix.Text = Postfix;
+                if (disp != null)
+                    Value.Add(disp);
+
+                if (status != null)
+                {
+                    Postfix.Add(" ");
+                    Postfix.Add(status);
+                }
+
+                name.TextBoard.SetText(Name);
+                valueBox.TextBoard.SetText(Value);
+                postfix.TextBoard.SetText(Postfix);
             }
 
             private class SelectionBox : Label

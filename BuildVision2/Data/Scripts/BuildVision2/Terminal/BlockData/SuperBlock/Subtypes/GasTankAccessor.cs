@@ -1,7 +1,8 @@
-﻿using Sandbox.ModAPI;
-using VRage;
-using RichHudFramework;
+﻿using RichHudFramework;
 using RichHudFramework.UI;
+using Sandbox.ModAPI;
+using System;
+using VRage;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
@@ -50,15 +51,33 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.TrySubstitute("Gas")}: ", nameFormat);
-                builder.Add($"{Fill.ToString("G6")} / {Capacity.ToString("G6")} L ", valueFormat);
-                builder.Add($"({(FillRatio * 100d).Round(2)}%)\n", nameFormat);
+                var buf = block.textBuffer;
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Stockpile)}: ", nameFormat);
-                builder.Add($"{(Stockpile ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat);
+                // Fill
+                builder.Add(MyTexts.TrySubstitute("Gas"), nameFormat);
+                builder.Add(": ", nameFormat);
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_AutoRefill)}: ", nameFormat);
-                builder.Add($"{(AutoRefillBottles ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat);
+                builder.Add($"{Fill:G6} / {Capacity:G6} L ", valueFormat);
+
+                buf.Clear();
+                buf.Append('(');
+                buf.Append(Math.Round(FillRatio * 100d, 2));
+                buf.Append("%)\n");
+                builder.Add(buf, nameFormat);
+
+                // Stockpile status
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Stockpile), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(Stockpile ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff), valueFormat);
+                builder.Add("\n");
+
+                // Auto refil enabled/disabled
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_AutoRefill), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(AutoRefillBottles ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff), valueFormat);
+                builder.Add("\n");
             }
         }
     }

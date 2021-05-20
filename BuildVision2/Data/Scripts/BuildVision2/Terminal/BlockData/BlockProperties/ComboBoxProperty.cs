@@ -15,23 +15,37 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ComboBoxProperty : ScrollableValueControlBase<IMyTerminalControlCombobox, long>
         {
-            public override string Display => names[GetCurrentIndex()];
+            public override StringBuilder Display => names[GetCurrentIndex()];
 
-            public override string Status => GetPostfixFunc?.Invoke();
+            public override StringBuilder Status 
+            { 
+                get
+                {
+                    if (GetPostfixFunc != null)
+                    {
+                        GetPostfixFunc(postfixBuilder);
+                        return postfixBuilder;
+                    }
+                    else
+                        return null;
+                }
+            }
 
             private readonly List<long> keys;
-            private readonly List<string> names;
-            private Func<string> GetPostfixFunc, GetChargePostfixFunc;
-            protected BvPropPool<ComboBoxProperty> poolParent;
+            private readonly List<StringBuilder> names;
+            private Action<StringBuilder> GetPostfixFunc, GetChargePostfixFunc;
+            private BvPropPool<ComboBoxProperty> poolParent;
+            private readonly StringBuilder postfixBuilder;
 
             public ComboBoxProperty()
             {
                 keys = new List<long>();
-                names = new List<string>();
+                names = new List<StringBuilder>();
                 GetChargePostfixFunc = GetChargePostfix;
+                postfixBuilder = new StringBuilder();
             }
 
-            public override void SetProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, PropertyBlock block)
+            public override void SetProperty(StringBuilder name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, PropertyBlock block)
             {
                 base.SetProperty(name, comboBox, control, block);
 
@@ -46,7 +60,7 @@ namespace DarkHelmet.BuildVision2
 
                 foreach (MyTerminalControlComboBoxItem item in content)
                 {
-                    string itemName = MyTexts.Get(item.Value).ToString();
+                    StringBuilder itemName = MyTexts.Get(item.Value);
                     keys.Add(item.Key);
                     names.Add(itemName);
                 }
@@ -62,6 +76,7 @@ namespace DarkHelmet.BuildVision2
                 GetPostfixFunc = null;
                 keys.Clear();
                 names.Clear();
+                postfixBuilder.Clear();
             }
 
             public override void Return()
@@ -69,7 +84,7 @@ namespace DarkHelmet.BuildVision2
                 poolParent.Return(this);
             }
 
-            public static ComboBoxProperty GetProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, PropertyBlock block)
+            public static ComboBoxProperty GetProperty(StringBuilder name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, PropertyBlock block)
             {
                 ComboBoxProperty prop = block.comboPropPool.Get();
                 prop.SetProperty(name, comboBox, control, block);
@@ -83,9 +98,12 @@ namespace DarkHelmet.BuildVision2
             public override void ScrollDown() =>
                 ChangePropValue(-1);
 
-            private string GetChargePostfix()
+            private void GetChargePostfix(StringBuilder sb)
             {
-                return $"({Math.Round((block.Battery.Charge / block.Battery.Capacity) * 100f, 1)}%)";
+                sb.Clear();
+                sb.Append('(');
+                sb.Append(Math.Round((block.Battery.Charge / block.Battery.Capacity) * 100f, 1));
+                sb.Append("%)");
             }
 
             private void ChangePropValue(int delta)
