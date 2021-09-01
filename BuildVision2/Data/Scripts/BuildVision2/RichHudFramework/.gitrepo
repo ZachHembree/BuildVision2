@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = git@github.com:ZachHembree/RichHudFramework.Client.git
-	branch = master
-	commit = 03b9652f7841405cb581cf47a7c1d15f8ee4f123
+	branch = prerelease
+	commit = 0ef4a78aa6aca88475a133dd668109c95c019178
 	method = merge
 	cmdver = 0.4.3
-	parent = 746b67e986a31f32e30514af63281fb796ab4302
+	parent = e289b4681ac1a656b6d89b179deeef1b84df76c6

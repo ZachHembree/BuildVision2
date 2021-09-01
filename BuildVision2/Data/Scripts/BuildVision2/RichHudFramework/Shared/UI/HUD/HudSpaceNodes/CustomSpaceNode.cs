@@ -20,18 +20,14 @@ namespace RichHudFramework
             public Func<MatrixD> UpdateMatrixFunc { get; set; }
 
             public CustomSpaceNode(HudParentBase parent = null) : base(parent)
-            {
-                GetHudSpaceFunc = () => new MyTuple<bool, float, MatrixD>(DrawCursorInHudSpace, Scale, PlaneToWorld);
-                DrawCursorInHudSpace = true;
-                GetNodeOriginFunc = () => PlaneToWorld.Translation;
-            }
+            { }
 
             protected override void Layout()
             {
                 if (UpdateMatrixFunc != null)
-                    PlaneToWorld = UpdateMatrixFunc();
+                    PlaneToWorldRef[0] = UpdateMatrixFunc();
                 else if (Parent?.HudSpace != null)
-                    PlaneToWorld = Parent.HudSpace.PlaneToWorld;
+                    PlaneToWorldRef[0] = Parent.HudSpace.PlaneToWorldRef[0];
 
                 base.Layout();
             }

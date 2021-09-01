@@ -34,6 +34,11 @@ namespace RichHudFramework
             MatrixD PlaneToWorld { get; }
 
             /// <summary>
+            /// Returns the current draw matrix by reference as an array of length 1
+            /// </summary>
+            MatrixD[] PlaneToWorldRef { get; }
+
+            /// <summary>
             /// Returns the world space position of the node's origin.
             /// </summary>
             Func<Vector3D> GetNodeOriginFunc { get; }

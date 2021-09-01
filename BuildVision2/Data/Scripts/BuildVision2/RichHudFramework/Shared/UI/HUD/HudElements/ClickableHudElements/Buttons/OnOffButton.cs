@@ -183,7 +183,7 @@ namespace RichHudFramework.UI.Server
         protected override void Layout()
         {
             Vector2 buttonSize = cachedSize - cachedPadding - buttonChain.Padding;
-            buttonSize.X = buttonSize.X / 2f - buttonChain.Spacing;
+            buttonSize.X = buttonSize.X * .5f - buttonChain.Spacing;
             buttonChain.MemberMaxSize = buttonSize;
 
             if (Value)

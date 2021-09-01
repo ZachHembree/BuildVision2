@@ -44,6 +44,15 @@ namespace RichHudFramework.UI.Client
         }
 
         /// <summary>
+        /// Optional tooltip for the control
+        /// </summary>
+        public ToolTip ToolTip
+        {
+            get { return _toolTip; }
+            set { _toolTip = value; GetOrSetMember(value.GetToolTipFunc, (int)TerminalControlAccessors.ToolTip); }
+        }
+
+        /// <summary>
         /// Unique identifier
         /// </summary>
         public object ID { get; }
@@ -51,6 +60,7 @@ namespace RichHudFramework.UI.Client
         public EventHandler ControlChangedHandler { get; set; }
 
         protected readonly ApiMemberAccessor GetOrSetMember;
+        protected ToolTip _toolTip;
 
         public TerminalControlBase(MenuControls controlEnum) : this(RichHudTerminal.GetNewMenuControl(controlEnum))
         {

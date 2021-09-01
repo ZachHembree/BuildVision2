@@ -33,7 +33,7 @@ namespace RichHudFramework
                 Func<Vector2>, // Size
                 Func<Vector2>, // TextSize
                 Vec2Prop, // FixedSize
-                Action<Vector2, MatrixD> // UpdateText, Draw 
+                Action<BoundingBox2, BoundingBox2, MatrixD[]> // Draw 
             >;
 
             public class TextBoard : TextBuilder, ITextBoard
@@ -113,7 +113,8 @@ namespace RichHudFramework
                 private readonly Func<Vector2> GetTextSizeFunc;
                 private readonly Func<Vector2> GetFixedSizeFunc;
                 private readonly Action<Vector2> SetFixedSizeAction;
-                private readonly Action<Vector2, MatrixD> DrawAction;
+                private readonly Action<BoundingBox2, BoundingBox2, MatrixD[]> DrawAction;
+                private readonly MatrixD[] matRef;
 
                 public TextBoard() : this(HudMain.GetTextBoardData())
                 { }
@@ -128,27 +129,40 @@ namespace RichHudFramework
                     GetFixedSizeFunc = members.Item5.Item1;
                     SetFixedSizeAction = members.Item5.Item2;
                     DrawAction = members.Item6;
+
+                    matRef = new MatrixD[1];
                 }
 
                 /// <summary>
                 /// Draws the text board in screen space with an offset given in pixels.
                 /// </summary>
-                public void Draw(Vector2 origin) =>
-                    DrawAction(origin, HudMain.PixelToWorld);
+                public void Draw(Vector2 origin)
+                {
+                    Vector2 halfSize = GetSizeFunc() * .5f;
+                    BoundingBox2 box = new BoundingBox2(origin - halfSize, origin + halfSize);
+
+                    DrawAction(box, CroppedBox.defaultMask, HudMain.PixelToWorldRef);
+                }
 
                 /// <summary>
                 /// Draws the text board in world space on the XY plane of the matrix, facing in the +Z
                 /// direction.
                 /// </summary>
-                public void Draw(Vector2 origin, ref MatrixD matrix) =>
-                    DrawAction(origin, matrix);
+                public void Draw(Vector2 origin, MatrixD matrix)
+                {
+                    Vector2 halfSize = GetSizeFunc() * .5f;
+                    BoundingBox2 box = new BoundingBox2(origin - halfSize, origin + halfSize);
+                    matRef[0] = matrix;
+
+                    DrawAction(box, CroppedBox.defaultMask, matRef);
+                }
 
                 /// <summary>
                 /// Draws the text board in world space on the XY plane of the matrix, facing in the +Z
                 /// direction.
                 /// </summary>
-                public void Draw(Vector2 origin, MatrixD matrix) =>
-                    DrawAction(origin, matrix);
+                public void Draw(BoundingBox2 box, BoundingBox2 mask, MatrixD[] matrix) =>
+                    DrawAction(box, mask, matrix);
 
                 /// <summary>
                 /// Calculates and applies the minimum offset needed to ensure that the character at the specified index

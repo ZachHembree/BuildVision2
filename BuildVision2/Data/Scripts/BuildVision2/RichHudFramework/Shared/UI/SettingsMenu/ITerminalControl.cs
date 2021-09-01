@@ -34,6 +34,11 @@ namespace RichHudFramework
             Enabled = 3,
 
             /// <summary>
+            /// in: Func<ToolTipMembers>
+            /// </summary>
+            ToolTip = 4,
+
+            /// <summary>
             /// T
             /// </summary>
             Value = 8,
@@ -63,6 +68,11 @@ namespace RichHudFramework
             /// Determines whether or not the control will be visible in the menu.
             /// </summary>
             bool Enabled { get; set; }
+
+            /// <summary>
+            /// Optional tooltip for the control
+            /// </summary>
+            ToolTip ToolTip { get; set; }
 
             /// <summary>
             /// Unique identifer.

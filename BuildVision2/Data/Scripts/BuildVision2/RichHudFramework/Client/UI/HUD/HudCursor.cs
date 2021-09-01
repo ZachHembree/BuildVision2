@@ -35,6 +35,11 @@ namespace RichHudFramework
                 public bool IsCaptured => (bool)GetOrSetMemberFunc(null, (int)HudCursorAccessors.IsCaptured);
 
                 /// <summary>
+                /// Returns true if a tooltip has been registered
+                /// </summary>
+                public bool IsToolTipRegistered { get; private set; }
+
+                /// <summary>
                 /// The position of the cursor in pixels in screen space
                 /// </summary>
                 public Vector2 ScreenPos { get; private set; }
@@ -44,6 +49,10 @@ namespace RichHudFramework
                 /// </summary>
                 public Vector3D WorldPos { get; private set; }
 
+                /// <summary>
+                /// Line projected from the cursor into world space on the -Z axis 
+                /// correcting for apparent warping due to perspective projection.
+                /// </summary>
                 public LineD WorldLine { get; private set; }
 
                 private readonly Func<HudSpaceDelegate, bool> IsCapturingSpaceFunc;
@@ -69,6 +78,7 @@ namespace RichHudFramework
                     ScreenPos = (Vector2)GetOrSetMemberFunc(null, (int)HudCursorAccessors.ScreenPos);
                     WorldPos = (Vector3D)GetOrSetMemberFunc(null, (int)HudCursorAccessors.WorldPos);
                     WorldLine = (LineD)GetOrSetMemberFunc(null, (int)HudCursorAccessors.WorldLine);
+                    IsToolTipRegistered = (bool)GetOrSetMemberFunc(null, (int)HudCursorAccessors.IsToolTipRegistered);
                 }
 
                 /// <summary>
@@ -115,6 +125,14 @@ namespace RichHudFramework
                 /// </summary>
                 public bool TryRelease(ApiMemberAccessor capturedElement) =>
                     TryReleaseFunc(capturedElement);
+
+                /// <summary>
+                /// Registers a callback delegate to set the tooltip for the next frame. Tooltips are reset
+                /// every tick and must be reregistered in HandleInput() every tick. The first tooltip registered
+                /// takes precedence.
+                /// </summary>
+                public void RegisterToolTip(ToolTip toolTip) =>
+                    GetOrSetMemberFunc(toolTip.GetToolTipFunc, (int)HudCursorAccessors.RegisterToolTip);
             }
         }
     }

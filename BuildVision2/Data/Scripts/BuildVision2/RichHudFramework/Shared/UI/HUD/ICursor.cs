@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using VRage;
 using VRageMath;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
+using RichStringMembers = VRage.MyTuple<System.Text.StringBuilder, VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>>;
 
 namespace RichHudFramework
 {
@@ -33,7 +35,17 @@ namespace RichHudFramework
             /// <summary>
             /// out: LineD
             /// </summary>
-            WorldLine = 4
+            WorldLine = 4,
+
+            /// <summary>
+            /// in: Func<ToolTipMembers>
+            /// </summary>
+            RegisterToolTip = 5,
+
+            /// <summary>
+            /// out: bool
+            /// </summary>
+            IsToolTipRegistered = 6,
         }
 
         /// <summary>
@@ -50,6 +62,11 @@ namespace RichHudFramework
             /// Returns true if the cursor has been captured by a UI element
             /// </summary>
             bool IsCaptured { get; }
+
+            /// <summary>
+            /// Returns true if a tooltip has been registered
+            /// </summary>
+            bool IsToolTipRegistered { get; }
 
             /// <summary>
             /// The position of the cursor in pixels in screen space
@@ -104,6 +121,13 @@ namespace RichHudFramework
             /// not capture or if not captured by the object given.
             /// </summary>
             bool TryRelease(ApiMemberAccessor capturedElement);
+
+            /// <summary>
+            /// Registers a callback delegate to set the tooltip for the next frame. Tooltips are reset
+            /// every tick and must be reregistered in HandleInput() every tick. The first tooltip registered
+            /// takes precedence.
+            /// </summary>
+            void RegisterToolTip(ToolTip toolTip);
         }
     }
 }

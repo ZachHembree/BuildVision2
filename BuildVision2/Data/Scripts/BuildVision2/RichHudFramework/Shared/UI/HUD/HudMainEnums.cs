@@ -87,7 +87,27 @@
             /// <summary>
             /// out: int
             /// </summary>
-            TreeRefreshRate = 17
+            TreeRefreshRate = 17,
+
+            /// <summary>
+            /// out: HudInputMode (int)
+            /// </summary>
+            InputMode = 18
+        }
+
+        public enum HudInputMode : int
+        {
+            NoInput = 0,
+
+            /// <summary>
+            /// Cursor is enabled and visible
+            /// </summary>
+            CursorOnly = 1,
+
+            /// <summary>
+            /// Cursor and text input enabled
+            /// </summary>
+            Full = 2
         }
     }
 }

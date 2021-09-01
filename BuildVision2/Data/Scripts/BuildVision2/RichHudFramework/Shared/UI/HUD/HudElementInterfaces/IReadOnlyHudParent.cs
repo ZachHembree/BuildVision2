@@ -29,14 +29,16 @@ namespace RichHudFramework
             CanShareCursor = 0x20,
             IsMousedOver = 0x40,
             IsMouseInBounds = 0x80,
-            CanPreload = 0x100
+            CanPreload = 0x100,
+            IsMasked = 0x200,
+            IsMasking = 0x400,
+            IsSelectivelyMasked = 0x800,
+            CanIgnoreMasking = 0x1000
         }
 
         public struct HudLayerData
         {
             public sbyte zOffset;
-
-            public sbyte parentZOffset;
 
             /// <summary>
             /// Additional zOffset range used internally; primarily for determining window draw order.
@@ -130,12 +132,6 @@ namespace RichHudFramework
             /// input.
             /// </summary>
             bool Visible { get; }
-
-            /// <summary>
-            /// Scales the size and offset of an element. Any offset or size set at a given
-            /// be increased or decreased with scale. Defaults to 1f.
-            /// </summary>
-            float Scale { get; }
 
             /// <summary>
             /// Used to change the draw order of the UI element. Lower offsets place the element

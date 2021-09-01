@@ -48,7 +48,7 @@ namespace RichHudFramework.UI.Server
                 if (value > Padding.X)
                     value -= Padding.X;
 
-                _absoluteWidth = (value / Scale);
+                _size.X = (value);
                 display.Width = value - name.Width;
                 colorSliderColumn.Width = display.Width;
             }
@@ -61,7 +61,7 @@ namespace RichHudFramework.UI.Server
                 if (value > Padding.Y)
                     value -= Padding.Y;
 
-                _absoluteHeight = (value / Scale);
+                _size.Y = (value);
                 value = (value - headerChain.Height - 15f) / 3f;
                 colorNameColumn.MemberMaxSize = new Vector2(colorNameColumn.MemberMaxSize.X, value);
                 colorSliderColumn.MemberMaxSize = new Vector2(colorSliderColumn.MemberMaxSize.X, value);
@@ -184,6 +184,9 @@ namespace RichHudFramework.UI.Server
 
             Size = new Vector2(318f, 163f);
             valueBuilder = new StringBuilder();
+
+            UseCursor = true;
+            ShareCursor = true;
         }
 
         public ColorPickerRGB() : this(null)

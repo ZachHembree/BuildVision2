@@ -239,7 +239,7 @@ namespace RichHudFramework
                 {
                     var textData = GetOrSetMemberFunc(new RangeData(start, end), (int)TextBuilderAccessors.GetRange) as List<RichStringMembers>;
 
-                    if (lastText == null && lastText.apiData != textData)
+                    if (lastText == null || lastText.apiData != textData)
                         lastText = new RichText(textData);
 
                     return lastText;

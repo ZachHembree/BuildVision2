@@ -116,7 +116,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public int MinVisibleCount { get { return hudChain.MinVisibleCount; } set { hudChain.MinVisibleCount = value; } }
 
-        protected override Vector2I ListRange => new Vector2I(hudChain.Start, hudChain.End);
+        protected override Vector2I ListRange => hudChain.ClipRange;
 
         protected override Vector2 ListSize
         {

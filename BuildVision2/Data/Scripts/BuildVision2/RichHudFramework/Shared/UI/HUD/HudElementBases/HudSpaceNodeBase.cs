@@ -43,7 +43,12 @@ namespace RichHudFramework
             /// <summary>
             /// Returns the current draw matrix
             /// </summary>
-            public MatrixD PlaneToWorld { get; protected set; }
+            public MatrixD PlaneToWorld => PlaneToWorldRef[0];
+
+            /// <summary>
+            /// Returns the current draw matrix by reference as an array of length 1
+            /// </summary>
+            public MatrixD[] PlaneToWorldRef { get; }
 
             /// <summary>
             /// Cursor position on the XY plane defined by the HUD space. Z == dist from screen.
@@ -78,9 +83,10 @@ namespace RichHudFramework
 
             public HudSpaceNodeBase(HudParentBase parent = null) : base(parent)
             {
-                GetHudSpaceFunc = () => new MyTuple<bool, float, MatrixD>(DrawCursorInHudSpace, Scale, PlaneToWorld);
+                GetHudSpaceFunc = () => new MyTuple<bool, float, MatrixD>(DrawCursorInHudSpace, 1f, PlaneToWorldRef[0]);
                 DrawCursorInHudSpace = true;
-                GetNodeOriginFunc = () => PlaneToWorld.Translation;
+                GetNodeOriginFunc = () => PlaneToWorldRef[0].Translation;
+                PlaneToWorldRef = new MatrixD[1];
             }
 
             protected override void Layout()
@@ -89,16 +95,17 @@ namespace RichHudFramework
                 MatrixD camMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
                 Vector3D camOrigin = camMatrix.Translation,
                     camForward = camMatrix.Forward,
-                    nodeOrigin = PlaneToWorld.Translation,
-                    nodeForward = PlaneToWorld.Forward;
+                    nodeOrigin = PlaneToWorldRef[0].Translation,
+                    nodeForward = PlaneToWorldRef[0].Forward;
 
                 IsInFront = Vector3D.Dot((nodeOrigin - camOrigin), camForward) > 0;
                 IsFacingCamera = IsInFront && Vector3D.Dot(nodeForward, camForward) > 0;
 
-                MatrixD worldToPlane = MatrixD.Invert(PlaneToWorld);
+                MatrixD worldToPlane;
+                MatrixD.Invert(ref PlaneToWorldRef[0], out worldToPlane);
                 LineD cursorLine = HudMain.Cursor.WorldLine;
 
-                PlaneD plane = new PlaneD(PlaneToWorld.Translation, PlaneToWorld.Forward);
+                PlaneD plane = new PlaneD(PlaneToWorldRef[0].Translation, PlaneToWorldRef[0].Forward);
                 Vector3D worldPos = plane.Intersection(ref cursorLine.From, ref cursorLine.Direction);
 
                 Vector3D planePos;

@@ -78,16 +78,15 @@ namespace RichHudFramework.UI
         public Label() : this(null)
         { }
 
-        protected override void Layout()
-        {
-            if (_textBoard.Scale != Scale)
-                _textBoard.Scale = Scale;
-        }
-
         protected override void Draw()
         {
-            var matrix = HudSpace.PlaneToWorld;
-            _textBoard.Draw(cachedPosition, ref matrix);
+            Vector2 halfSize = (cachedSize - cachedPadding) * .5f;
+            BoundingBox2 box = new BoundingBox2(cachedPosition - halfSize, cachedPosition + halfSize);
+
+            if (maskingBox != null)
+                _textBoard.Draw(box, maskingBox.Value, HudSpace.PlaneToWorldRef);
+            else
+                _textBoard.Draw(box, CroppedBox.defaultMask, HudSpace.PlaneToWorldRef);
         }
     }
 }

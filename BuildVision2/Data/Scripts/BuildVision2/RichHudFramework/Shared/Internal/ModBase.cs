@@ -296,7 +296,14 @@ namespace RichHudFramework.Internal
             /// Called in the event an exception occurs in one of the component's tasks with a list of <see cref="KnownException"/>s
             /// and a single aggregate exception of all other exceptions.
             /// </summary>
-            protected abstract void ErrorCallback(List<KnownException> knownExceptions, AggregateException aggregate);
+            protected virtual void ErrorCallback(List<KnownException> knownExceptions, AggregateException aggregate)
+            {
+                if (knownExceptions.Count > 0)
+                    ExceptionHandler.ReportException(new AggregateException(knownExceptions));
+
+                if (aggregate != null)
+                    ExceptionHandler.ReportException(aggregate);
+            }
 
             /// <summary>
             /// Enqueues an action to run in parallel. Not thread safe; must be called from the main thread.

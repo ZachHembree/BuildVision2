@@ -20,7 +20,7 @@ namespace RichHudFramework
             /// <summary>
             /// Scaling applied on the XY plane of the node's transform.
             /// </summary>
-            public double PlaneScale { get; set; }
+            public float PlaneScale { get; set; }
 
             /// <summary>
             /// Gets/sets axis the node's transform is rotated about, starting from the matrix's
@@ -52,7 +52,7 @@ namespace RichHudFramework
 
             public CamSpaceNode(HudParentBase parent = null) : base(parent)
             {
-                PlaneScale = 1d;
+                PlaneScale = 1f;
                 TransformOffset = new Vector3D(0d, 0d, -MyAPIGateway.Session.Camera.NearPlaneDistance);
 
                 IsScreenSpace = true;
@@ -75,7 +75,7 @@ namespace RichHudFramework
                 var rotation = MatrixD.CreateFromQuaternion(Quaternion.CreateFromAxisAngle(RotationAxis, RotationAngle));
                 var translation = MatrixD.CreateTranslation(TransformOffset);
 
-                PlaneToWorld = (scaling * rotation * translation) * MyAPIGateway.Session.Camera.WorldMatrix;
+                PlaneToWorldRef[0] = (scaling * rotation * translation) * MyAPIGateway.Session.Camera.WorldMatrix;
                 base.Layout();
             }
         }

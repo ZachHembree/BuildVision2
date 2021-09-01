@@ -45,26 +45,6 @@ namespace RichHudFramework
             public override bool Visible => (State & nodeVisible) == nodeVisible;
 
             /// <summary>
-            /// Determines whether the UI element will be drawn in the Back, Mid or Foreground
-            /// </summary>
-            public sealed override sbyte ZOffset
-            {
-                get { return (sbyte)(layerData.zOffset + layerData.parentZOffset); }
-                set { layerData.zOffset = (sbyte)(value - layerData.parentZOffset); }
-            }
-
-            /// <summary>
-            /// Scales the size and offset of an element. Any offset or size set at a given
-            /// be increased or decreased with scale. Defaults to 1f. Includes parent scale.
-            /// </summary>
-            public sealed override float Scale => LocalScale * parentScale;
-
-            /// <summary>
-            /// Element scaling without parent scaling.
-            /// </summary>
-            public virtual float LocalScale { get; set; }
-
-            /// <summary>
             /// Indicates whether or not the element has been registered to a parent.
             /// </summary>
             public bool Registered => (State & HudElementStates.IsRegistered) > 0;
@@ -82,14 +62,10 @@ namespace RichHudFramework
             }
 
             protected HudParentBase _parent, reregParent;
-            protected float parentScale;
 
             public HudNodeBase(HudParentBase parent)
             {
                 State &= ~HudElementStates.IsRegistered;
-
-                parentScale = 1f;
-                LocalScale = 1f;
                 ParentVisible = true;
 
                 Register(parent);
@@ -114,8 +90,6 @@ namespace RichHudFramework
                         else
                         {
                             ParentVisible = _parent.Visible;
-                            parentScale = _parent.Scale;
-                            layerData.parentZOffset = _parent.ZOffset;
                         }
 
                         if (Visible || refresh)
@@ -209,8 +183,6 @@ namespace RichHudFramework
                         }
                         else
                         {
-                            layerData.parentZOffset = _parent.ZOffset;
-                            parentScale = _parent.Scale;
                             ParentVisible = _parent.Visible;
                             State &= ~HudElementStates.WasFastUnregistered;
                         }
@@ -260,7 +232,6 @@ namespace RichHudFramework
                         State |= HudElementStates.WasFastUnregistered;
                     }
 
-                    layerData.parentZOffset = 0;
                     State &= ~HudElementStates.WasParentVisible;
                 }
 

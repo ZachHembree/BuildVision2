@@ -32,7 +32,7 @@ namespace RichHudFramework
             /// <summary>
             /// List of bind groups registered to the page.
             /// </summary>
-            public IReadOnlyList<IBindGroup> BindGroups { get; }
+            public IReadOnlyList<IBindGroup> BindGroups => bindGroups;
 
             public RebindPage GroupContainer => this;
 
@@ -41,7 +41,6 @@ namespace RichHudFramework
             public RebindPage() : base(ModPages.RebindPage)
             {
                 bindGroups = new List<IBindGroup>();
-                BindGroups = new ReadOnlyCollection<IBindGroup>(bindGroups);
             }
 
             /// <summary>

@@ -84,7 +84,7 @@ namespace RichHudFramework
         /// <summary>
         /// Updates public task/action queues and runs exception handling.
         /// </summary>
-        public override void Update()
+        public override void Draw()
         {
             TryStartWaitingTasks();
             UpdateRunningTasks();

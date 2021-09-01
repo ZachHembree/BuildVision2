@@ -181,6 +181,7 @@ namespace RichHudFramework.UI
             listBox = new ListBox<TContainer, TElement, TValue>()
             {
                 Visible = false,
+                CanIgnoreMasking = true,
                 ZOffset = 3,
                 DimAlignment = DimAlignments.Width,
                 ParentAlignment = ParentAlignments.Bottom,
@@ -190,7 +191,6 @@ namespace RichHudFramework.UI
             
             Size = new Vector2(331f, 43f);
 
-            listBox.MouseInput.LostInputFocus += LoseListFocus;
             display.MouseInput.LeftClicked += ClickDisplay;
             SelectionChanged += UpdateDisplay;
         }
@@ -200,6 +200,9 @@ namespace RichHudFramework.UI
 
         protected override void HandleInput(Vector2 cursorPos)
         {
+            if (SharedBinds.LeftButton.IsNewPressed && !(display.IsMousedOver || listBox.IsMousedOver))
+                CloseList();
+
             if (getDispFocus)
             {
                 display.MouseInput.GetInputFocus();
@@ -214,11 +217,6 @@ namespace RichHudFramework.UI
                 display.name.TextBoard.SetText(Selection.Element.TextBoard.GetText());
                 CloseList();
             }
-        }
-
-        protected virtual void LoseListFocus(object sender, EventArgs args)
-        {
-            CloseList();
         }
 
         protected virtual void ClickDisplay(object sender, EventArgs args)
