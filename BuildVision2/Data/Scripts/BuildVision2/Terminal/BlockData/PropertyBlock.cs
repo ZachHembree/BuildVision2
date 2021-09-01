@@ -213,7 +213,7 @@ namespace DarkHelmet.BuildVision2
                 if (control != null && control.CanUseControl(TBlock))
                 {
                     GetTooltipName(prop, nameBuilder);
-
+                    
                     if (nameBuilder.Length > 0)
                     {                        
                         if (prop is ITerminalProperty<StringBuilder>)

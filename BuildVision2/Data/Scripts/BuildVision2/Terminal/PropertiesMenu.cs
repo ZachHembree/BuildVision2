@@ -34,11 +34,6 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static bool DrawBoundingBox { get; set; }
 
-        /// <summary>
-        /// If true, then the menu will draw on the target block in world space. Used for debugging.
-        /// </summary>
-        public static bool EnableWorldDraw { get; set; }
-
         private static PropertiesMenu Instance
         {
             get { Init(); return _instance; }
@@ -61,7 +56,6 @@ namespace DarkHelmet.BuildVision2
         private PropertiesMenu() : base(false, true)
         {
             DrawBoundingBox = false;
-            EnableWorldDraw = false;
             targetGrid = new TerminalGrid();
             tempGrid = new TerminalGrid();
             targetBuffer = new List<IMySlimBlock>();
@@ -184,6 +178,11 @@ namespace DarkHelmet.BuildVision2
 
         private MatrixD UpdateHudSpace()
         {
+            float scale = BvConfig.Current.hudConfig.hudScale;
+
+            if (BvConfig.Current.hudConfig.resolutionScaling)
+                scale *= HudMain.ResScale;
+
             if (Target.TBlock != null && Open)
             {
                 if (DrawBoundingBox) // Debug target bounding box
@@ -193,54 +192,35 @@ namespace DarkHelmet.BuildVision2
                 scrollMenu.BgOpacity = BvConfig.Current.hudConfig.hudOpacity;
                 scrollMenu.MaxVisible = BvConfig.Current.hudConfig.maxVisible;
 
-                if (BvConfig.Current.hudConfig.resolutionScaling)
-                    scrollMenu.LocalScale = BvConfig.Current.hudConfig.hudScale * HudMain.ResScale;
+                Vector3D targetWorldPos, targetScreenPos;
+                Vector2 menuPos, screenBounds = Vector2.One / 2f;
+
+                if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !BvConfig.Current.hudConfig.useCustomPos)
+                {
+                    targetWorldPos = Target.Position + Target.ModelOffset * .75d;
+                    targetScreenPos = LocalPlayer.GetWorldToScreenPos(targetWorldPos) / 2d;
+
+                    menuPos = new Vector2((float)targetScreenPos.X, (float)targetScreenPos.Y);
+                    screenBounds -= HudMain.GetAbsoluteVector(scrollMenu.Size * scale / 2f);
+                    scrollMenu.AlignToEdge = false;
+                }
                 else
-                    scrollMenu.LocalScale = BvConfig.Current.hudConfig.hudScale;
-
-                if (EnableWorldDraw) // Debug world draw
                 {
-                    BoundingBox box = Target.TBlock.LocalAABB;
-                    MatrixD matrix = Target.TBlock.WorldMatrix;
-                    matrix.Translation += new Vector3D(0d, 0d, box.Size.Z * .5f + 0.1f);
-
-                    hudSpace.LocalScale = 0.01f;
-                    scrollMenu.Offset = Vector2.Zero;
-
-                    return matrix;
+                    menuPos = BvConfig.Current.hudConfig.hudPos;
+                    scrollMenu.AlignToEdge = true;
                 }
-                else // Update UI to draw over the target or at a fixed position on the screen, as configured
+
+                if (BvConfig.Current.hudConfig.clampHudPos)
                 {
-                    Vector3D targetPos, worldPos;
-                    Vector2 screenPos, screenBounds = Vector2.One / 2f;
-
-                    if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !BvConfig.Current.hudConfig.useCustomPos)
-                    {
-                        targetPos = Target.Position + Target.ModelOffset * .75d;
-                        worldPos = LocalPlayer.GetWorldToScreenPos(targetPos) / 2d;
-
-                        screenPos = new Vector2((float)worldPos.X, (float)worldPos.Y);
-                        screenBounds -= HudMain.GetAbsoluteVector(scrollMenu.Size / 2f);
-                        scrollMenu.AlignToEdge = false;
-                    }
-                    else
-                    {
-                        screenPos = BvConfig.Current.hudConfig.hudPos;
-                        scrollMenu.AlignToEdge = true;
-                    }
-
-                    if (BvConfig.Current.hudConfig.clampHudPos)
-                    {
-                        screenPos.X = MathHelper.Clamp(screenPos.X, -screenBounds.X, screenBounds.X);
-                        screenPos.Y = MathHelper.Clamp(screenPos.Y, -screenBounds.Y, screenBounds.Y);
-                    }
-
-                    hudSpace.LocalScale = 1f;
-                    scrollMenu.Offset = HudMain.GetPixelVector(screenPos);
+                    menuPos.X = MathHelper.Clamp(menuPos.X, -screenBounds.X, screenBounds.X);
+                    menuPos.Y = MathHelper.Clamp(menuPos.Y, -screenBounds.Y, screenBounds.Y);
                 }
+
+                scrollMenu.Offset = HudMain.GetPixelVector(menuPos) / scale;
             }
 
-            return HudMain.PixelToWorld;
+            // Rescale draw matrix based on config
+            return MatrixD.CreateScale(scale, scale, 1d) * HudMain.PixelToWorld;
         }
 
         /// <summary>

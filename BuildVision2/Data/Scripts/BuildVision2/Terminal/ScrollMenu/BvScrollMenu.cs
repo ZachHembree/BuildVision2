@@ -113,11 +113,10 @@ namespace DarkHelmet.BuildVision2
         private int tick;
 
         private float _bgOpacity;
-        private bool targetChanged, waitingForChat;
+        private bool waitingForChat;
 
         private string notification;
         private ScrollMenuModes _menuMode;
-        private IMyTerminalBlock lastTarget;
         private readonly RichText peekBuilder;
 
         public BvScrollMenu(HudParentBase parent = null) : base(parent)
@@ -144,6 +143,7 @@ namespace DarkHelmet.BuildVision2
             {
                 Color = bodyColor,
                 EnableScrolling = false,
+                UseSmoothScrolling = false,
                 SizingMode = HudChainSizingModes.ClampChainOffAxis | HudChainSizingModes.FitChainAlignAxis,
                 MinVisibleCount = 10,
                 Padding = new Vector2(48f, 16f),
@@ -344,7 +344,7 @@ namespace DarkHelmet.BuildVision2
                 scrollBody.Visible = false;
 
                 peekBody.TextBoard.FixedSize = new Vector2(0, peekBody.TextBoard.TextSize.Y);
-                layout.Width = 300f * Scale;
+                layout.Width = 300f;
             }
 
             if (AlignToEdge)
@@ -371,8 +371,8 @@ namespace DarkHelmet.BuildVision2
         {
             if (Selection != null)
             {
-                selectionBox.Size = new Vector2(scrollBody.Width - scrollBody.Divider.Width - scrollBody.ScrollBar.Width, Selection.Size.Y + (2f * Scale));
-                selectionBox.Offset = new Vector2(0f, Selection.Offset.Y - (1f * Scale));
+                selectionBox.Size = new Vector2(scrollBody.Width - scrollBody.Divider.Width - scrollBody.ScrollBar.Width, Selection.Size.Y + 2f);
+                selectionBox.Offset = new Vector2(0f, Selection.Offset.Y - 1f);
                 tab.Height = selectionBox.Height;
             };
         }
@@ -404,8 +404,6 @@ namespace DarkHelmet.BuildVision2
         public void UpdateTarget()
         {
             Clear();
-            targetChanged = PropertiesMenu.Target.TBlock != lastTarget;
-            lastTarget = PropertiesMenu.Target.TBlock;
 
             if (MenuMode != ScrollMenuModes.Peek)
                 UpdateProperties();
@@ -445,7 +443,6 @@ namespace DarkHelmet.BuildVision2
             propBoxPool.ReturnRange(scrollBody.Collection, 0, scrollBody.Collection.Count);
             scrollBody.Clear(true);
 
-            lastTarget = null;
             waitingForChat = false;
             PropOpen = false;
             index = 0;
