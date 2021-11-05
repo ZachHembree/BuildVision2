@@ -127,7 +127,7 @@ namespace RichHudFramework.UI
         public void RemoveAt(int index)
         {
             TContainer entry = hudChain.Collection[index];
-            hudChain.RemoveAt(index, true);
+            hudChain.RemoveAt(index);
             entryPool.Return(entry);
         }
 
@@ -136,7 +136,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool Remove(TContainer entry)
         {
-            if (hudChain.Remove(entry, true))
+            if (hudChain.Remove(entry))
             {
                 entryPool.Return(entry);
                 return true;
@@ -153,7 +153,7 @@ namespace RichHudFramework.UI
             for (int n = index; n < index + count; n++)
                 entryPool.Return(hudChain.Collection[n]);
 
-            hudChain.RemoveRange(index, count, true);
+            hudChain.RemoveRange(index, count);
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace RichHudFramework.UI
             for (int n = 0; n < hudChain.Collection.Count; n++)
                 entryPool.Return(hudChain.Collection[n]);
 
-            hudChain.Clear(true);
+            hudChain.Clear();
         }
 
         /// <summary>

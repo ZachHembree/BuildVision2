@@ -21,126 +21,48 @@ namespace RichHudFramework
                 /// <summary>
                 /// Used internally quickly register a list of child nodes to a parent.
                 /// </summary>
-                public static void RegisterNodes(HudParentBase newParent, List<HudNodeBase> children, IReadOnlyList<HudNodeBase> nodes, bool preregister, bool canPreload)
+                public static void RegisterNodes(HudParentBase newParent, List<HudNodeBase> children, IReadOnlyList<HudNodeBase> nodes, bool canPreload)
                 {
-                    bool wereFastUnregistered = false;
+                    children.EnsureCapacity(children.Count + nodes.Count);
 
                     for (int n = 0; n < nodes.Count; n++)
                     {
                         HudNodeBase node = nodes[n];
+                        node.Parent = newParent;
+                        node.State |= HudElementStates.IsRegistered;
+                        node.ParentVisible = newParent.Visible;
 
-                        if ((node.State & HudElementStates.IsRegistered) > 0)
-                            throw new Exception("HUD Element already registered!");
-
-                        if ((node.State & HudElementStates.WasFastUnregistered) > 0 && newParent != node.reregParent)
-                        {
-                            node.reregParent.RemoveChild(node);
-                            node.State &= ~HudElementStates.WasFastUnregistered;
-                            node.reregParent = null;
-                        }
-
-                        if ((node.State & HudElementStates.WasFastUnregistered) > 0)
-                            wereFastUnregistered = true;
-                    }
-
-                    if (!wereFastUnregistered)
-                        children.EnsureCapacity(children.Count + nodes.Count);
-
-                    for (int n = 0; n < nodes.Count; n++)
-                    {
-                        HudNodeBase node = nodes[n];
-
-                        if (preregister)
-                        {
-                            node.reregParent = newParent;
-                            node.Parent = null;
-                            node.State &= ~HudElementStates.IsRegistered;
-                        }
-                        else
-                        {
-                            node.Parent = newParent;
-                            node.State |= HudElementStates.IsRegistered;
-                            node.ParentVisible = newParent.Visible;
-                        }
-
-                        if (!((node.State & HudElementStates.WasFastUnregistered) > 0))
-                        {
-                            children.Add(node);
-                        }
+                        children.Add(node);
 
                         if (canPreload)
                             node.State |= HudElementStates.CanPreload;
                         else
                             node.State &= ~HudElementStates.CanPreload;
-
-                        if (preregister)
-                            node.State |= HudElementStates.WasFastUnregistered;
-                        else
-                            node.State &= ~HudElementStates.WasFastUnregistered;
                     }
                 }
 
                 /// <summary>
                 /// Used internally quickly register a list of child nodes to a parent.
                 /// </summary>
-                public static void RegisterNodes<TCon, TNode>(HudParentBase newParent, List<HudNodeBase> children, IReadOnlyList<TCon> nodes, bool preregister, bool canPreload)
+                public static void RegisterNodes<TCon, TNode>(HudParentBase newParent, List<HudNodeBase> children, IReadOnlyList<TCon> nodes, bool canPreload)
                     where TCon : IHudElementContainer<TNode>, new()
                     where TNode : HudNodeBase
                 {
-                    bool wereFastUnregistered = false;
+                    children.EnsureCapacity(children.Count + nodes.Count);
 
                     for (int n = 0; n < nodes.Count; n++)
                     {
                         HudNodeBase node = nodes[n].Element;
+                        node.Parent = newParent;
+                        node.State |= HudElementStates.IsRegistered;
+                        node.ParentVisible = newParent.Visible;
 
-                        if ((node.State & HudElementStates.IsRegistered) > 0)
-                            throw new Exception("HUD Element already registered!");
-
-                        if ((node.State & HudElementStates.WasFastUnregistered) > 0 && newParent != node.reregParent)
-                        {
-                            node.reregParent.RemoveChild(node);
-                            node.State &= ~HudElementStates.WasFastUnregistered;
-                            node.reregParent = null;
-                        }
-
-                        if ((node.State & HudElementStates.WasFastUnregistered) > 0)
-                            wereFastUnregistered = true;
-                    }
-
-                    if (!wereFastUnregistered)
-                        children.EnsureCapacity(children.Count + nodes.Count);
-                
-                    for (int n = 0; n < nodes.Count; n++)
-                    {
-                        HudNodeBase node = nodes[n].Element;
-
-                        if (preregister)
-                        {
-                            node.reregParent = newParent;
-                            node.Parent = null;
-                            node.State &= ~HudElementStates.IsRegistered;
-                        }
-                        else
-                        {
-                            node.Parent = newParent;
-                            node.State |= HudElementStates.IsRegistered;
-                            node.ParentVisible = newParent.Visible;
-                        }
-
-                        if (!((node.State & HudElementStates.WasFastUnregistered) > 0))
-                        {
-                            children.Add(node);
-                        }
+                        children.Add(node);
 
                         if (canPreload)
                             node.State |= HudElementStates.CanPreload;
                         else
                             node.State &= ~HudElementStates.CanPreload;
-
-                        if (preregister)
-                            node.State |= HudElementStates.WasFastUnregistered;
-                        else
-                            node.State &= ~HudElementStates.WasFastUnregistered;
                     }
                 }
 
@@ -148,7 +70,7 @@ namespace RichHudFramework
                 /// Used internally to quickly unregister child nodes from their parent. Removes the range of nodes
                 /// specified in the node list from the child list.
                 /// </summary>
-                public static void UnregisterNodes(HudParentBase parent, List<HudNodeBase> children, IReadOnlyList<HudNodeBase> nodes, int index, int count, bool fast)
+                public static void UnregisterNodes(HudParentBase parent, List<HudNodeBase> children, IReadOnlyList<HudNodeBase> nodes, int index, int count)
                 {
                     if (count > 0)
                     {
@@ -160,52 +82,38 @@ namespace RichHudFramework
                         if (parent == null)
                             throw new Exception("Parent cannot be null");
 
-                        if (!fast)
+                        for (int i = index; i <= conEnd; i++)
                         {
-                            for (int i = index; i <= conEnd; i++)
+                            int start = 0;
+
+                            while (start < children.Count && children[start] != nodes[i])
+                                start++;
+
+                            if (children[start] == nodes[i])
                             {
-                                int start = 0;
+                                int j = start, end = start;
 
-                                while (start < children.Count && children[start] != nodes[i])
-                                    start++;
-
-                                if (children[start] == nodes[i])
+                                while (j < children.Count && i <= conEnd && children[j] == nodes[i])
                                 {
-                                    int j = start, end = start;
-
-                                    while (j < children.Count && i <= conEnd && children[j] == nodes[i])
-                                    {
-                                        end = j;
-                                        i++;
-                                        j++;
-                                    }
-
-                                    children.RemoveRange(start, end - start + 1);
+                                    end = j;
+                                    i++;
+                                    j++;
                                 }
+
+                                children.RemoveRange(start, end - start + 1);
                             }
                         }
 
                         for (int n = index; n < count; n++)
                         {
                             HudNodeBase node = nodes[n];
-                            HudParentBase nodeParent = node._parent ?? node.reregParent;
+                            HudParentBase nodeParent = node._parent;
 
                             if (nodeParent != parent)
                                 throw new Exception("The child node specified is not registered to the parent given.");
 
-                            if (fast)
-                            {
-                                node.reregParent = node._parent;
-                                node.State |= HudElementStates.WasFastUnregistered;
-                            }
-                            else
-                            {
-                                node.reregParent = null;
-                                node.State &= ~HudElementStates.WasFastUnregistered;
-                            }
-
                             node.Parent = null;
-                            node.State &= ~HudElementStates.IsRegistered;
+                            node.State &= ~(HudElementStates.IsRegistered | HudElementStates.WasParentVisible);
                             node.ParentVisible = false;
                         }
                     }
@@ -215,7 +123,7 @@ namespace RichHudFramework
                 /// Used internally to quickly unregister child nodes from their parent. Removes the range of nodes
                 /// specified in the node list from the child list.
                 /// </summary>
-                public static void UnregisterNodes<TCon, TNode>(HudParentBase parent, List<HudNodeBase> children, IReadOnlyList<TCon> nodes, int index, int count, bool fast)
+                public static void UnregisterNodes<TCon, TNode>(HudParentBase parent, List<HudNodeBase> children, IReadOnlyList<TCon> nodes, int index, int count)
                     where TCon : IHudElementContainer<TNode>, new()
                     where TNode : HudNodeBase
                 {
@@ -229,52 +137,38 @@ namespace RichHudFramework
                         if (parent == null)
                             throw new Exception("Parent cannot be null");
 
-                        if (!fast)
+                        for (int i = index; i <= conEnd; i++)
                         {
-                            for (int i = index; i <= conEnd; i++)
+                            int start = 0;
+
+                            while (start < children.Count && children[start] != nodes[i].Element)
+                                start++;
+
+                            if (children[start] == nodes[i].Element)
                             {
-                                int start = 0;
+                                int j = start, end = start;
 
-                                while (start < children.Count && children[start] != nodes[i].Element)
-                                    start++;
-
-                                if (children[start] == nodes[i].Element)
+                                while (j < children.Count && i <= conEnd && children[j] == nodes[i].Element)
                                 {
-                                    int j = start, end = start;
-
-                                    while (j < children.Count && i <= conEnd && children[j] == nodes[i].Element)
-                                    {
-                                        end = j;
-                                        i++;
-                                        j++;
-                                    }
-
-                                    children.RemoveRange(start, end - start + 1);
+                                    end = j;
+                                    i++;
+                                    j++;
                                 }
+
+                                children.RemoveRange(start, end - start + 1);
                             }
                         }
 
                         for (int n = index; n < count; n++)
                         {
                             HudNodeBase node = nodes[n].Element;
-                            HudParentBase nodeParent = node._parent ?? node.reregParent;
+                            HudParentBase nodeParent = node._parent;
 
                             if (nodeParent != parent)
                                 throw new Exception("The child node specified is not registered to the parent given.");
 
-                            if (fast)
-                            {
-                                node.reregParent = node._parent;
-                                node.State |= HudElementStates.WasFastUnregistered;
-                            }
-                            else
-                            {
-                                node.reregParent = null;
-                                node.State &= ~HudElementStates.WasFastUnregistered;
-                            }
-
                             node.Parent = null;
-                            node.State &= ~HudElementStates.IsRegistered;
+                            node.State &= ~(HudElementStates.IsRegistered | HudElementStates.WasParentVisible);
                         }
                     }
                 }

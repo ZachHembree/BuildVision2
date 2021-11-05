@@ -183,8 +183,8 @@ namespace RichHudFramework.UI
             selectionBox = new HighlightBox() { Visible = false };
             highlightBox = new HighlightBox() { Visible = false, CanDrawTab = false };
 
-            selectionBox.Register(hudChain, false, true);
-            highlightBox.Register(hudChain, false, true);
+            selectionBox.Register(hudChain, true);
+            highlightBox.Register(hudChain, true);
 
             listInput = new ListInputElement<TContainer, TElement>(hudChain);
 

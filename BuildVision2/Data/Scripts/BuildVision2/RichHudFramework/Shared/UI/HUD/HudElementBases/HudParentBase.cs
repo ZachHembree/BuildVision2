@@ -212,7 +212,7 @@ namespace RichHudFramework
             /// Registers a child node to the object.
             /// </summary>
             /// <param name="preregister">Adds the element to the update tree without registering.</param>
-            public virtual bool RegisterChild(HudNodeBase child, bool preregister = false)
+            public virtual bool RegisterChild(HudNodeBase child)
             {
                 if (child.Parent == this && !child.Registered)
                 {
@@ -220,7 +220,7 @@ namespace RichHudFramework
                     return true;
                 }
                 else if (child.Parent == null)
-                    return child.Register(this, preregister);
+                    return child.Register(this);
                 else
                     return false;
             }
@@ -231,10 +231,10 @@ namespace RichHudFramework
             /// <param name="fast">Prevents registration from triggering a draw list
             /// update. Meant to be used in conjunction with pooled elements being
             /// unregistered/reregistered to the same parent.</param>
-            public virtual bool RemoveChild(HudNodeBase child, bool fast = false)
+            public virtual bool RemoveChild(HudNodeBase child)
             {
                 if (child.Parent == this)
-                    return child.Unregister(fast);
+                    return child.Unregister();
                 else if (child.Parent == null)
                     return children.Remove(child);
                 else

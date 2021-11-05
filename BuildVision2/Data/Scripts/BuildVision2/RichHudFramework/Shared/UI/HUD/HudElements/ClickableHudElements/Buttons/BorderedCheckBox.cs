@@ -66,7 +66,7 @@ namespace RichHudFramework.UI.Server
                 DimAlignment = DimAlignments.Both,
                 Padding = new Vector2(17f),
             };
-            tickBox.Register(this, false, true);
+            tickBox.Register(this, true);
 
             Size = new Vector2(37f);
 

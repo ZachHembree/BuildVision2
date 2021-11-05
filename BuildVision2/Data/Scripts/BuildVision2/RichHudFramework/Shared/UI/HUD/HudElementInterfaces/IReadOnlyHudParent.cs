@@ -24,7 +24,6 @@ namespace RichHudFramework
             IsVisible = 0x1,
             WasParentVisible = 0x2,
             IsRegistered = 0x4,
-            WasFastUnregistered = 0x8,
             CanUseCursor = 0x10,
             CanShareCursor = 0x20,
             IsMousedOver = 0x40,

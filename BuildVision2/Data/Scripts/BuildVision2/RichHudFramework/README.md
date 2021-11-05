@@ -12,6 +12,6 @@ If you want to get a better idea of what you can do with this framework, [Rich H
 ![Demo menu screenshot](https://steamuserimages-a.akamaihd.net/ugc/1722038154210428899/17BC5D4D245402D3E642B36672DC840D1B7207D3/)
 
 ## Example Mod
-You can find a well-documented example Text Editor Mod [here](https://github.com/ZachHembree/TextEditorExample). Fair warning, the corresponding walkthrough in the wiki is currently outdated, and I probably won't get around to finishing it until July.
+You can find a well-documented example Text Editor Mod [here](https://github.com/ZachHembree/TextEditorExample). Fair warning, the corresponding walkthrough in the wiki is currently outdated, and I probably won't get around to finishing it for a while.
 
 ![Text editor screenshot](https://user-images.githubusercontent.com/6527038/117976888-3ffe4d80-b2fe-11eb-82f2-17c690fec3c5.png)

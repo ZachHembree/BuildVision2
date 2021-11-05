@@ -1,5 +1,9 @@
-﻿namespace RichHudFramework
+﻿using System;
+
+namespace RichHudFramework
 {
+    public delegate void EventHandler(object sender, EventArgs e);
+
     namespace UI
     {
         public enum HudMainAccessors : int
@@ -109,5 +113,79 @@
             /// </summary>
             Full = 2
         }
+
+        public enum ListBoxEntryAccessors : int
+        {
+            /// <summary>
+            /// IList<RichStringMembers>
+            /// </summary>
+            Name = 1,
+
+            /// <summary>
+            /// bool
+            /// </summary>
+            Enabled = 2,
+
+            /// <summary>
+            /// Object
+            /// </summary>
+            AssocObject = 3,
+
+            /// <summary>
+            /// Object
+            /// </summary>
+            ID = 4,
+        }
+
+        public enum ListBoxAccessors : int
+        {
+            /// <summary>
+            /// CollectionData
+            /// </summary>
+            ListMembers = 1,
+
+            /// <summary>
+            /// in: MyTuple<IList<RichStringMembers>, T>, out: ApiMemberAccessor
+            /// </summary>
+            Add = 2,
+
+            /// <summary>
+            /// out: ListBoxEntry
+            /// </summary>
+            Selection = 3,
+
+            /// <summary>
+            /// out: int
+            /// </summary>
+            SelectionIndex = 4,
+
+            /// <summary>
+            /// in: T (AssocObject)
+            /// </summary>
+            SetSelectionAtData = 5,
+
+            /// <summary>
+            /// in: MyTuple<int, IList<RichStringMembers>, T>
+            /// </summary>
+            Insert = 6,
+
+            /// <summary>
+            /// in: ListBoxEntry, out: bool
+            /// </summary>
+            Remove = 7,
+
+            /// <summary>
+            /// in: int
+            /// </summary>
+            RemoveAt = 8,
+
+            /// <summary>
+            /// void
+            /// </summary>
+            ClearEntries = 9
+        }
     }
 }
+
+namespace RichHudFramework.UI.Server { }
+namespace RichHudFramework.UI.Rendering.Server { }

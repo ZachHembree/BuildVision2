@@ -13,54 +13,6 @@ namespace RichHudFramework.UI
     using CollectionData = MyTuple<Func<int, ApiMemberAccessor>, Func<int>>;
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
 
-    public enum ListBoxAccessors : int
-    {
-        /// <summary>
-        /// CollectionData
-        /// </summary>
-        ListMembers = 1,
-
-        /// <summary>
-        /// in: MyTuple<IList<RichStringMembers>, T>, out: ApiMemberAccessor
-        /// </summary>
-        Add = 2,
-
-        /// <summary>
-        /// out: ListBoxEntry
-        /// </summary>
-        Selection = 3,
-
-        /// <summary>
-        /// out: int
-        /// </summary>
-        SelectionIndex = 4,
-
-        /// <summary>
-        /// in: T (AssocObject)
-        /// </summary>
-        SetSelectionAtData = 5,
-
-        /// <summary>
-        /// in: MyTuple<int, IList<RichStringMembers>, T>
-        /// </summary>
-        Insert = 6,
-
-        /// <summary>
-        /// in: ListBoxEntry, out: bool
-        /// </summary>
-        Remove = 7,
-
-        /// <summary>
-        /// in: int
-        /// </summary>
-        RemoveAt = 8,
-
-        /// <summary>
-        /// void
-        /// </summary>
-        ClearEntries = 9
-    }
-
     /// <summary>
     /// Scrollable list of text elements. Each list entry is associated with a value of type T.
     /// </summary>

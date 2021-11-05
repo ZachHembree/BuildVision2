@@ -95,15 +95,5 @@ namespace RichHudFramework
             /// </summary>
             UsePadding = 0x40,
         }
-
-        /// <summary>
-        /// Used to determine text alignment.
-        /// </summary>
-        public enum TextAlignment : byte
-        {
-            Left = 0,
-            Center = 1,
-            Right = 2,
-        }
     }
 }

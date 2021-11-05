@@ -76,42 +76,27 @@ namespace RichHudFramework
             /// <summary>
             /// Removes the specified element from the collection.
             /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
-            bool Remove(TElementContainer collectionElement, bool fast);
+            bool Remove(TElementContainer collectionElement);
 
             /// <summary>
             /// Removes the collection member that meets the conditions required by the predicate.
             /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
-            bool Remove(Func<TElementContainer, bool> predicate, bool fast = false);
+            bool Remove(Func<TElementContainer, bool> predicate);
 
             /// <summary>
             /// Remove the collection element at the given index.
             /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
-            bool RemoveAt(int index, bool fast = false);
+            bool RemoveAt(int index);
 
             /// <summary>
             /// Removes the specfied range from the collection. Normal child elements not affected.
             /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
-            void RemoveRange(int index, int count, bool fast = false);
+            void RemoveRange(int index, int count);
 
             /// <summary>
             /// Remove all elements in the collection. Does not affect normal child elements.
             /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
-            void Clear(bool fast = false);
+            void Clear();
         }
 
         /// <summary>

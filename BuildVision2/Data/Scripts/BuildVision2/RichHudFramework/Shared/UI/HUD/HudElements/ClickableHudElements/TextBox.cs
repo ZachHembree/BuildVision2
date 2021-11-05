@@ -205,6 +205,8 @@ namespace RichHudFramework.UI
 
             if (useInput && EnableHighlighting)
             {
+                bool isCursorHighlighting = false;
+
                 if (UseCursor)
                 {
                     if (SharedBinds.LeftButton.IsNewPressed)
@@ -216,12 +218,16 @@ namespace RichHudFramework.UI
                     else if (!canHighlight && SharedBinds.LeftButton.IsPressed && (cursorPos - cursorStart).LengthSquared() > 16f)
                     {
                         canHighlight = true;
+                        isCursorHighlighting = true;
                     }
                     else if (SharedBinds.LeftButton.IsReleased)
                     {
                         canHighlight = false;
                     }
                 }
+
+                if (!isCursorHighlighting)
+                    canHighlight = SharedBinds.Shift.IsPressed;
 
                 if (SharedBinds.SelectAll.IsNewPressed)
                     selectionBox.SetSelection(Vector2I.Zero, new Vector2I(TextBoard.Count - 1, TextBoard[TextBoard.Count - 1].Count - 1));

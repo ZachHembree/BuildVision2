@@ -3,8 +3,6 @@ using VRage;
 
 namespace RichHudFramework
 {
-    public delegate void EventHandler(object sender, EventArgs e);
-
     namespace UI
     {
         /// <summary>

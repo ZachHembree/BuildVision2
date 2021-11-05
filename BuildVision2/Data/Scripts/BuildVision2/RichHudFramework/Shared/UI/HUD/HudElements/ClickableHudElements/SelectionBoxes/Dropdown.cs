@@ -187,7 +187,7 @@ namespace RichHudFramework.UI
                 ParentAlignment = ParentAlignments.Bottom,
                 TabColor = new Color(0, 0, 0, 0),
             };
-            listBox.Register(display, false, true);
+            listBox.Register(display, true);
             
             Size = new Vector2(331f, 43f);
 
