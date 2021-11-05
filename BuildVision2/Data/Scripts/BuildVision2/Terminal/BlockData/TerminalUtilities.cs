@@ -155,14 +155,16 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Returns true if it can retrieve the current value without throwing an exception.
         /// </summary>
-        public static bool CanAccessValue(this IMyTerminalControlCombobox comboBox, IMyTerminalBlock tBlock)
+        public static bool CanAccessValue(this IMyTerminalControlCombobox comboBox, IMyTerminalBlock tBlock, List<MyTerminalControlComboBoxItem> contentBuffer)
         {
             if (CanAccessValue(comboBox as IMyTerminalValueControl<long>, tBlock) && comboBox.ComboBoxContent != null)
             {
                 try
                 {
-                    comboBox.ComboBoxContent(new List<MyTerminalControlComboBoxItem>());
-                    return true;
+                    contentBuffer.Clear();
+                    comboBox.ComboBoxContent(contentBuffer);
+
+                    return contentBuffer.Count > 0;
                 }
                 catch { }
             }
@@ -188,7 +190,7 @@ namespace DarkHelmet.BuildVision2
 
         public static bool IsTextEqual(this StringBuilder text, string other)
         {
-            if (text.Length == other.Length)
+            if (text != null && other != null && text.Length == other.Length)
             {
                 for (int i = 0; i < text.Length; i++)
                 {

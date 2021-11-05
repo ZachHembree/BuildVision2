@@ -46,9 +46,9 @@ namespace DarkHelmet.BuildVision2
                 statusBuilder = new StringBuilder();
             }
 
-            public override void SetProperty(StringBuilder name, ITerminalProperty<bool> property, IMyTerminalControl control, PropertyBlock block)
+            public override void SetProperty(StringBuilder name, ITerminalProperty<bool> property, PropertyBlock block)
             {
-                base.SetProperty(name, property, control, block);
+                base.SetProperty(name, property, block);
 
                 if (poolParent == null)
                     poolParent = block.boolPropPool;
@@ -83,10 +83,10 @@ namespace DarkHelmet.BuildVision2
                 poolParent.Return(this);
             }
 
-            public static BoolProperty GetProperty(StringBuilder name, ITerminalProperty<bool> property, IMyTerminalControl control, PropertyBlock block)
+            public static BoolProperty GetProperty(StringBuilder name, ITerminalProperty<bool> property, PropertyBlock block)
             {
                 BoolProperty prop = block.boolPropPool.Get();
-                prop.SetProperty(name, property, control, block);
+                prop.SetProperty(name, property, block);
 
                 return prop;
             }

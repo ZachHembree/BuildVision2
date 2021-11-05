@@ -30,16 +30,12 @@ namespace DarkHelmet.BuildVision2
         [ProtoMember(1)]
         public string name;
 
-        [ProtoMember(2)]
-        public int id;
-
         [ProtoMember(3)]
-        public string valueData;
+        public byte[] valueData;
 
-        public PropertyData(string propertyID, int ID, string valueData)
+        public PropertyData(string propertyID, byte[] valueData)
         {
             this.name = propertyID;
-            this.id = ID;
             this.valueData = valueData;
         }
     }

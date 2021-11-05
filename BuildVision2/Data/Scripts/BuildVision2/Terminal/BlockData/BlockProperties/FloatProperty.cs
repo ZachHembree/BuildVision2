@@ -86,9 +86,9 @@ namespace DarkHelmet.BuildVision2
                 GetThrustEffectFunc = GetThrustEffect;
             }
 
-            public override void SetProperty(StringBuilder name, ITerminalProperty<float> property, IMyTerminalControl control, PropertyBlock block)
+            public override void SetProperty(StringBuilder name, ITerminalProperty<float> property, PropertyBlock block)
             {
-                base.SetProperty(name, property, control, block);
+                base.SetProperty(name, property, block);
 
                 if (poolParent == null)
                     poolParent = block.floatPropPool;
@@ -128,10 +128,10 @@ namespace DarkHelmet.BuildVision2
                 poolParent.Return(this);
             }
 
-            public static FloatProperty GetProperty(StringBuilder name, ITerminalProperty<float> property, IMyTerminalControl control, PropertyBlock block)
+            public static FloatProperty GetProperty(StringBuilder name, ITerminalProperty<float> property, PropertyBlock block)
             {
                 FloatProperty prop = block.floatPropPool.Get();
-                prop.SetProperty(name, property, control, block);
+                prop.SetProperty(name, property, block);
 
                 return prop;
             }
@@ -146,7 +146,7 @@ namespace DarkHelmet.BuildVision2
                 base.GetValue() * GetScaleFunc();
 
             public override void SetValue(float value) =>
-                base.SetValue((value / GetScaleFunc()).Round(6));
+                base.SetValue(MathHelper.Clamp((value / GetScaleFunc()).Round(6), minValue, maxValue));
 
             public override bool TryParseValue(string text, out float value) =>
                 float.TryParse(text, out value);

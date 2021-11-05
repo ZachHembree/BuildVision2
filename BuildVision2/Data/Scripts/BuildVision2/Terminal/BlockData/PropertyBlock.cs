@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using VRage;
 using VRageMath;
+using VRage.ModAPI;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -52,6 +53,7 @@ namespace DarkHelmet.BuildVision2
         private readonly BvPropPool<FloatProperty> floatPropPool;
         private readonly BvPropPool<TextProperty> textPropPool;
         private readonly StringBuilder nameBuilder;
+        private readonly List<MyTerminalControlComboBoxItem> comboItemBuffer;
 
         public PropertyBlock()
         {
@@ -65,6 +67,7 @@ namespace DarkHelmet.BuildVision2
 
             blockMembers = new List<BlockMemberBase>();
             blockProperties = new List<BvTerminalPropertyBase>();
+            comboItemBuffer = new List<MyTerminalControlComboBoxItem>();
         }
 
         public override void SetBlock(TerminalGrid grid, IMyTerminalBlock tBlock)
@@ -124,7 +127,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (prop != null)
                 {
-                    if (prop.TryImportPropertyValue(propData))
+                    if (prop.TryImportData(propData))
                         importCount++;
                 }
             }
@@ -223,40 +226,40 @@ namespace DarkHelmet.BuildVision2
                             if (textProp.CanAccessValue(TBlock))
                             {
                                 if (prop.Id == "ConsoleCommand")
-                                    argProperty = TextProperty.GetProperty(nameBuilder, textProp, control, this);
+                                    argProperty = TextProperty.GetProperty(nameBuilder, textProp, this);
                                 else if (prop.Id == "Name" || prop.Id == "CustomName")
-                                    blockProperties.Insert(0, TextProperty.GetProperty(nameBuilder, textProp, control, this));
+                                    blockProperties.Insert(0, TextProperty.GetProperty(nameBuilder, textProp, this));
                                 else
-                                    blockProperties.Add(TextProperty.GetProperty(nameBuilder, textProp, control, this));
+                                    blockProperties.Add(TextProperty.GetProperty(nameBuilder, textProp, this));
                             }
                         }
                         if (prop is IMyTerminalControlCombobox)
                         {
                             var comboBox = prop as IMyTerminalControlCombobox;
 
-                            if (comboBox.CanAccessValue(TBlock))
-                                blockProperties.Add(ComboBoxProperty.GetProperty(nameBuilder, comboBox, control, this));
+                            if (comboBox.CanAccessValue(TBlock, comboItemBuffer))
+                                blockProperties.Add(ComboBoxProperty.GetProperty(nameBuilder, comboBox, comboItemBuffer, this));
                         }
                         else if (prop is ITerminalProperty<bool>)
                         {
                             var boolProp = prop as ITerminalProperty<bool>;
 
                             if (boolProp.CanAccessValue(TBlock))
-                                blockProperties.Add(BoolProperty.GetProperty(nameBuilder, boolProp, control, this));
+                                blockProperties.Add(BoolProperty.GetProperty(nameBuilder, boolProp, this));
                         }
                         else if (prop is ITerminalProperty<float>)
                         {
                             var floatProp = prop as ITerminalProperty<float>;
 
                             if (floatProp.CanAccessValue(TBlock))
-                                blockProperties.Add(FloatProperty.GetProperty(nameBuilder, floatProp, control, this));
+                                blockProperties.Add(FloatProperty.GetProperty(nameBuilder, floatProp, this));
                         }
                         else if (prop is ITerminalProperty<Color>)
                         {
                             var colorProp = prop as ITerminalProperty<Color>;
 
                             if (colorProp.CanAccessValue(TBlock))
-                                ColorProperty.AddColorProperties(nameBuilder, colorProp, control, this);
+                                ColorProperty.AddColorProperties(nameBuilder, colorProp, this);
                         }
                     }
                 }
@@ -266,6 +269,7 @@ namespace DarkHelmet.BuildVision2
                 blockProperties.Add(argProperty);
 
             blockMembers.AddRange(blockProperties);
+            comboItemBuffer.Clear();
         }
 
         /// <summary>

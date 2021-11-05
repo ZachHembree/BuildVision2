@@ -441,7 +441,7 @@ namespace DarkHelmet.BuildVision2
         public void Clear()
         {
             propBoxPool.ReturnRange(scrollBody.Collection, 0, scrollBody.Collection.Count);
-            scrollBody.Clear(true);
+            scrollBody.Clear();
 
             waitingForChat = false;
             PropOpen = false;

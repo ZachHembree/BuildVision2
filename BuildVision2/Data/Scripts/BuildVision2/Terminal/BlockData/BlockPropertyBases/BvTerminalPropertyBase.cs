@@ -18,11 +18,6 @@ namespace DarkHelmet.BuildVision2
             public abstract StringBuilder PropName { get; }
 
             /// <summary>
-            /// Cached hashcode of StringID
-            /// </summary>
-            public abstract int ID { get; }
-
-            /// <summary>
             /// Returns a serializable representation of the property.
             /// </summary>
             public abstract PropertyData GetPropertyData();
@@ -30,7 +25,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Attempts to apply the given property data.
             /// </summary>
-            public abstract bool TryImportPropertyValue(PropertyData data);
+            public abstract bool TryImportData(PropertyData data);
         }
 
         /// <summary>
@@ -39,17 +34,6 @@ namespace DarkHelmet.BuildVision2
         private abstract class BvTerminalPropertyBase<TProp, TValue> : BvTerminalPropertyBase where TProp : class, ITerminalProperty
         {
             public override StringBuilder PropName { get; }
-
-            public sealed override int ID
-            {
-                get 
-                {
-                    if (id == int.MinValue)
-                        id = PropName.GetHashCode();
-
-                    return id;
-                }
-            }
 
             public override bool Enabled 
             { 
@@ -72,15 +56,13 @@ namespace DarkHelmet.BuildVision2
             private Func<IMyTerminalBlock, TValue> Getter;
             private Action<IMyTerminalBlock, TValue> Setter;
 
-            private int id;
-
             public BvTerminalPropertyBase()
             {
                 Name = new StringBuilder();
                 PropName = new StringBuilder();
             }
 
-            protected virtual void SetPropertyInternal(StringBuilder name, TProp property, IMyTerminalControl control, PropertyBlock block, Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
+            protected virtual void SetPropertyInternal(StringBuilder name, TProp property, PropertyBlock block, Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
             {
                 Name.Clear();
                 Name.Append(name);
@@ -88,10 +70,8 @@ namespace DarkHelmet.BuildVision2
                 PropName.Clear();
                 PropName.Append(property.Id);
 
-                id = int.MinValue;
-
                 this.property = property;
-                this.control = control;
+                this.control = property as IMyTerminalControl;
                 this.block = block;
 
                 this.Getter = Getter;
@@ -143,11 +123,11 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public override bool TryImportPropertyValue(PropertyData data)
+            public override bool TryImportData(PropertyData data)
             {
                 TValue value;
 
-                if (TryParseValue(data.valueData, out value))
+                if (Utils.ProtoBuf.TryDeserialize(data.valueData, out value) == null)
                 {
                     SetValue(value);
                     return true;
@@ -156,25 +136,34 @@ namespace DarkHelmet.BuildVision2
                     return false;
             }
 
-            public override PropertyData GetPropertyData() =>
-                new PropertyData(PropName.ToString(), ID, GetValue().ToString());
+            public override PropertyData GetPropertyData()
+            {
+                byte[] valueData;
+
+                if (Utils.ProtoBuf.TrySerialize(GetValue(), out valueData) == null)
+                {
+                    return new PropertyData(PropName.ToString(), valueData);
+                }
+                else
+                    return default(PropertyData);
+            }
 
             public abstract bool TryParseValue(string valueData, out TValue value);
         }
 
         private abstract class BvTerminalProperty<TProp, TValue> : BvTerminalPropertyBase<TProp, TValue> where TProp : class, ITerminalProperty<TValue>
         {
-            public virtual void SetProperty(StringBuilder name, TProp property, IMyTerminalControl control, PropertyBlock block)
+            public virtual void SetProperty(StringBuilder name, TProp property, PropertyBlock block)
             {
-                SetPropertyInternal(name, property, control, block, property.GetValue, property.SetValue);
+                SetPropertyInternal(name, property, block, property.GetValue, property.SetValue);
             }
         }
 
         private abstract class BvTerminalValueControl<TProp, TValue> : BvTerminalPropertyBase<TProp, TValue> where TProp : class, IMyTerminalValueControl<TValue>
         {
-            public virtual void SetProperty(StringBuilder name, TProp property, IMyTerminalControl control, PropertyBlock block)
+            public virtual void SetProperty(StringBuilder name, TProp property, PropertyBlock block)
             {
-                SetPropertyInternal(name, property, control, block, property.Getter, property.Setter);
+                SetPropertyInternal(name, property, block, property.Getter, property.Setter);
             }
         }
     }

@@ -34,9 +34,9 @@ namespace DarkHelmet.BuildVision2
                 dispBuilder = new StringBuilder();
             }
 
-            public void SetProperty(StringBuilder name, string suffix, ITerminalProperty<Color> property, IMyTerminalControl control, PropertyBlock block, int channel)
+            public void SetProperty(StringBuilder name, string suffix, ITerminalProperty<Color> property, PropertyBlock block, int channel)
             {
-                base.SetProperty(name, property, control, block);
+                base.SetProperty(name, property, block);
                 Name.Append(suffix);
 
                 PropName.Append('_');
@@ -61,15 +61,15 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns a scrollable property for each color channel in an ITerminalProperty<Color> object
             /// </summary>
-            public static void AddColorProperties(StringBuilder name, ITerminalProperty<Color> property, IMyTerminalControl control, PropertyBlock block)
+            public static void AddColorProperties(StringBuilder name, ITerminalProperty<Color> property, PropertyBlock block)
             {
                 ColorProperty r = block.colorPropPool.Get(), 
                     g = block.colorPropPool.Get(),
                     b = block.colorPropPool.Get();
 
-                r.SetProperty(name, $": R", property, control, block, 0);
-                g.SetProperty(name, $": G", property, control, block, 1);
-                b.SetProperty(name, $": B", property, control, block, 2);
+                r.SetProperty(name, $": R", property, block, 0);
+                g.SetProperty(name, $": G", property, block, 1);
+                b.SetProperty(name, $": B", property, block, 2);
 
                 block.blockProperties.Add(r);
                 block.blockProperties.Add(g);
@@ -82,11 +82,33 @@ namespace DarkHelmet.BuildVision2
             public override void ScrollUp() =>
                 SetPropValue(true);
 
+            public override bool TryImportData(PropertyData data)
+            {
+                byte value;
+
+                if (Utils.ProtoBuf.TryDeserialize(data.valueData, out value) == null)
+                {
+                    SetValue(GetValue().SetChannel(channel, value));
+                    return true;
+                }
+                else
+                    return false;
+            }
+
             /// <summary>
             /// Retrieves the property data for the color channel associated with the control.
             /// </summary>
-            public override PropertyData GetPropertyData() =>
-                new PropertyData(PropName.ToString(), ID, GetValue().GetChannel(channel).ToString());
+            public override PropertyData GetPropertyData()
+            {
+                byte[] valueData;
+
+                if (Utils.ProtoBuf.TrySerialize(GetValue().GetChannel(channel), out valueData) == null)
+                {
+                    return new PropertyData(PropName.ToString(), valueData);
+                }
+                else
+                    return default(PropertyData);
+            }
 
             /// <summary>
             /// Parses color channel data and applies it to the corresponding color channel in the output value.
