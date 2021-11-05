@@ -47,12 +47,17 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.TrySubstitute("Name")}: ", nameFormat);
-                builder.Add($"{CustomName}\n", valueFormat);
+                builder.Add(MyTexts.TrySubstitute("Name"), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(CustomName, valueFormat);
+                builder.Add("\n", valueFormat);
 
                 if (groupString.Length > 0)
                 {
-                    builder.Add($"{MyTexts.TrySubstitute("Groups")}: ", nameFormat);
+                    builder.Add(MyTexts.TrySubstitute("Groups"), nameFormat);
+                    builder.Add(": ", nameFormat);
+
                     builder.Add(groupString, valueFormat);
                     builder.Add('\n');
                 }

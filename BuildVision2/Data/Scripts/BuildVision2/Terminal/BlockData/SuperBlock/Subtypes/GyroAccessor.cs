@@ -31,11 +31,16 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower)}: ", nameFormat);
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower), nameFormat);
+                builder.Add(": ", nameFormat);
+
                 builder.Add($"{(Power * 100f).Round(2)}%\n", valueFormat);
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroOverride)}: ", nameFormat);
-                builder.Add($"{(Override ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat);
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroOverride), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(Override ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff), valueFormat);
+                builder.Add("\n", valueFormat);
             }
         }
     }

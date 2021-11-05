@@ -66,6 +66,7 @@ namespace RichHudFramework.UI
         private readonly TextInput textInput;
         private readonly TextCaret caret;
         private readonly SelectionBox selectionBox;
+        private readonly ToolTip warningToolTip;
         private bool canHighlight, allowInput;
         private Vector2 cursorStart;
 
@@ -76,6 +77,12 @@ namespace RichHudFramework.UI
 
             caret = new TextCaret(this) { Visible = false };
             selectionBox = new SelectionBox(caret, this) { Color = new Color(255, 255, 255, 140) };
+
+            warningToolTip = new ToolTip()
+            {
+                text = "Open Chat to Enable Text Editing",
+                bgColor = ToolTip.orangeWarningBG
+            };
 
             caret.CaretMoved += CaretMoved;
             MouseInput.GainedInputFocus += GainFocus;
@@ -157,7 +164,10 @@ namespace RichHudFramework.UI
         protected override void HandleInput(Vector2 cursorPos)
         {
             // MouseInput is running behind this because its a child element
-            bool useInput = allowInput || (MouseInput.HasFocus && HudMain.Cursor.Visible);
+            bool useInput = allowInput || (MouseInput.HasFocus && HudMain.InputMode == HudInputMode.Full);
+
+            if (EnableEditing && IsMousedOver && HudMain.InputMode == HudInputMode.CursorOnly)
+                HudMain.Cursor.RegisterToolTip(warningToolTip);
 
             if (useInput && EnableEditing)
             {
@@ -175,8 +185,11 @@ namespace RichHudFramework.UI
                 {
                     if (!HudMain.ClipBoard.Equals(default(RichText)))
                     {
+                        Vector2I insertIndex = caret.Index + new Vector2I(0, 1);
+                        insertIndex.X = MathHelper.Clamp(insertIndex.X, 0, TextBoard.Count);
+
                         DeleteSelection();
-                        TextBoard.Insert(HudMain.ClipBoard, caret.Index + new Vector2I(0, 1));
+                        TextBoard.Insert(HudMain.ClipBoard, insertIndex);
                         int length = GetRichTextMinLength(HudMain.ClipBoard);
 
                         if (caret.Index.Y == -1)
@@ -185,13 +198,15 @@ namespace RichHudFramework.UI
                         caret.Move(new Vector2I(0, length));
                     }
                 }
-            } 
+            }
 
             InputOpen = useInput && (EnableHighlighting || EnableEditing);
             caret.Visible = InputOpen;
 
             if (useInput && EnableHighlighting)
             {
+                bool isCursorHighlighting = false;
+
                 if (UseCursor)
                 {
                     if (SharedBinds.LeftButton.IsNewPressed)
@@ -203,12 +218,16 @@ namespace RichHudFramework.UI
                     else if (!canHighlight && SharedBinds.LeftButton.IsPressed && (cursorPos - cursorStart).LengthSquared() > 16f)
                     {
                         canHighlight = true;
+                        isCursorHighlighting = true;
                     }
                     else if (SharedBinds.LeftButton.IsReleased)
                     {
                         canHighlight = false;
                     }
                 }
+
+                if (!isCursorHighlighting)
+                    canHighlight = SharedBinds.Shift.IsPressed;
 
                 if (SharedBinds.SelectAll.IsNewPressed)
                     selectionBox.SetSelection(Vector2I.Zero, new Vector2I(TextBoard.Count - 1, TextBoard[TextBoard.Count - 1].Count - 1));
@@ -335,7 +354,7 @@ namespace RichHudFramework.UI
                     dir.Y = 0;
 
                 bool moveLeft = dir.Y < 0, moveRight = dir.Y > 0,
-                    prepending = Index.Y == -1, 
+                    prepending = Index.Y == -1,
                     startPrepend = moveLeft && Index.Y == 0;
 
                 if (startPrepend || (dir.Y == 0 && prepending))
@@ -424,32 +443,32 @@ namespace RichHudFramework.UI
                 if (text.Count > 0 && text[Index.X].Count > 0)
                 {
                     IRichChar ch;
-                    Height = text[Index.X].Size.Y - (2f * Scale);
-                    
+                    Height = text[Index.X].Size.Y - 2f;
+
                     if (Index.Y == -1)
                     {
                         ch = text[Index + new Vector2I(0, 1)];
                         offset = ch.Offset + text.TextOffset;
-                        offset.X -= ch.Size.X / 2f + (1f * Scale);
+                        offset.X -= ch.Size.X * .5f + 1f;
                     }
                     else
                     {
                         ch = text[Index];
                         offset = ch.Offset + text.TextOffset;
-                        offset.X += ch.Size.X / 2f + (1f * Scale);
+                        offset.X += ch.Size.X * .5f + 1f;
                     }
                 }
                 else
                 {
                     if (text.Format.Alignment == TextAlignment.Left)
-                        offset.X = -textElement.Size.X / 2f + (2f * Scale);
+                        offset.X = -textElement.Size.X * .5f + 2f;
                     else if (text.Format.Alignment == TextAlignment.Right)
-                        offset.X = textElement.Size.X / 2f - (2f * Scale);
+                        offset.X = textElement.Size.X * .5f - 2f;
 
-                    offset += _parentFull.Padding / 2f;
+                    offset += _parentFull.Padding * .5f;
 
                     if (!text.VertCenterText)
-                        offset.Y = (text.Size.Y - Height) / 2f - (4f * Scale);
+                        offset.Y = (text.Size.Y - Height) * .5f - 4f;
                 }
 
                 Offset = offset;
@@ -486,7 +505,7 @@ namespace RichHudFramework.UI
             /// </summary>
             private void GetClickedChar(Vector2 cursorPos)
             {
-                if ((cursorPos - lastCursorPos).LengthSquared() > 4f * Scale)
+                if ((cursorPos - lastCursorPos).LengthSquared() > 4f)
                 {
                     Vector2 offset = cursorPos - textElement.Position;
                     Vector2I newIndex = text.GetCharAtOffset(offset);
@@ -497,7 +516,7 @@ namespace RichHudFramework.UI
 
                     Index = ClampIndex(newIndex);
                     caretOffset = GetOffsetFromIndex(Index);
-                    lastCursorPos = cursorPos;         
+                    lastCursorPos = cursorPos;
 
                     blink = true;
                     blinkTimer.Restart();
@@ -682,11 +701,10 @@ namespace RichHudFramework.UI
                         UpdateHighlight();
                     }
 
-                    var ptw = HudSpace.PlaneToWorld;
-                    Vector2 tbOffset = text.TextOffset, bounds = new Vector2(-text.Size.X / 2f, text.Size.X / 2f);
+                    Vector2 tbOffset = text.TextOffset, bounds = new Vector2(-text.Size.X * .5f, text.Size.X * .5f);
 
                     for (int n = 0; n < highlightList.Count; n++)
-                        highlightList[n].Draw(highlightBoard, Origin, tbOffset, bounds, ref ptw);
+                        highlightList[n].Draw(highlightBoard, Origin, tbOffset, bounds, ref HudSpace.PlaneToWorldRef[0]);
                 }
             }
 
@@ -737,13 +755,13 @@ namespace RichHudFramework.UI
                     {
                         size = new Vector2()
                         {
-                            X = right.Offset.X - left.Offset.X + (left.Size.X + right.Size.X) / 2f,
+                            X = right.Offset.X - left.Offset.X + (left.Size.X + right.Size.X) * .5f,
                             Y = text[line].Size.Y
                         },
                         offset = new Vector2()
                         {
-                            X = (right.Offset.X + left.Offset.X) / 2f - 2f,
-                            Y = text[line].VerticalOffset - text[line].Size.Y / 2f
+                            X = (right.Offset.X + left.Offset.X) * .5f - 2f,
+                            Y = text[line].VerticalOffset - text[line].Size.Y * .5f
                         }
                     };
 
@@ -760,18 +778,24 @@ namespace RichHudFramework.UI
 
                 public void Draw(MatBoard matBoard, Vector2 origin, Vector2 tbOffset, Vector2 xBounds, ref MatrixD matrix)
                 {
-                    Vector2 drawSize = size, drawOffset = offset + tbOffset;
+                    CroppedBox box = default(CroppedBox);
+                    Vector2 clipSize, clipPos;
+                    clipSize = size;
+                    clipPos = offset + tbOffset;
 
                     // Determine the visible extents of the highlight box within the bounds of the textboard
-                    float leftBound = Math.Max(drawOffset.X - drawSize.X / 2f, xBounds.X),
-                        rightBound = Math.Min(drawOffset.X + drawSize.X / 2f, xBounds.Y);
+                    float leftBound = Math.Max(clipPos.X - clipSize.X * .5f, xBounds.X),
+                        rightBound = Math.Min(clipPos.X + clipSize.X * .5f, xBounds.Y);
 
                     // Adjust highlight size and offset to compensate for textboard clipping and offset
-                    drawSize.X = Math.Max(0, rightBound - leftBound);
-                    drawOffset.X = (rightBound + leftBound) / 2f;
+                    clipSize.X = Math.Max(0, rightBound - leftBound);
+                    clipPos.X = (rightBound + leftBound) * .5f;
+                    clipPos += origin;
 
-                    matBoard.Size = drawSize;
-                    matBoard.Draw(origin + drawOffset, ref matrix);
+                    clipSize *= .5f;
+                    box.bounds = new BoundingBox2(clipPos - clipSize, clipPos + clipSize);
+
+                    matBoard.Draw(ref box, ref matrix);
                 }
             }
         }

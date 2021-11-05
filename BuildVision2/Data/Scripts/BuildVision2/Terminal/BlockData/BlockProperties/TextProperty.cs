@@ -1,5 +1,6 @@
 ﻿using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
+using RichHudFramework;
 using System;
 using System.Text;
 
@@ -12,9 +13,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class TextProperty : BvTerminalProperty<ITerminalProperty<StringBuilder>, StringBuilder>, IBlockTextMember
         {
-            public override string Display => CleanText(GetValue());
+            public override StringBuilder Display { get { CleanText(GetValue(), valueBuilder); return valueBuilder; } }
 
-            public override string Status => null;
+            public override StringBuilder Status => null;
 
             public Func<char, bool> CharFilterFunc { get; }
 
@@ -27,9 +28,9 @@ namespace DarkHelmet.BuildVision2
                 valueBuilder = new StringBuilder();
             }
 
-            public override void SetProperty(string name, ITerminalProperty<StringBuilder> property, IMyTerminalControl control, PropertyBlock block)
+            public override void SetProperty(StringBuilder name, ITerminalProperty<StringBuilder> property, PropertyBlock block)
             {
-                base.SetProperty(name, property, control, block);
+                base.SetProperty(name, property, block);
 
                 if (poolParent == null)
                     poolParent = block.textPropPool;
@@ -46,10 +47,10 @@ namespace DarkHelmet.BuildVision2
                 poolParent.Return(this);
             }
 
-            public static TextProperty GetProperty(string name, ITerminalProperty<StringBuilder> property, IMyTerminalControl control, PropertyBlock block)
+            public static TextProperty GetProperty(StringBuilder name, ITerminalProperty<StringBuilder> property, PropertyBlock block)
             {
                 TextProperty prop = block.textPropPool.Get();
-                prop.SetProperty(name, property, control, block);
+                prop.SetProperty(name, property, block);
 
                 return prop;
             }
@@ -60,6 +61,31 @@ namespace DarkHelmet.BuildVision2
                 valueBuilder.Append(text);
 
                 SetValue(valueBuilder);
+            }
+
+            public override PropertyData GetPropertyData()
+            {
+                byte[] valueData;
+
+                if (Utils.ProtoBuf.TrySerialize(GetValue().ToString(), out valueData) == null)
+                {
+                    return new PropertyData(PropName.ToString(), valueData);
+                }
+                else
+                    return default(PropertyData);
+            }
+
+            public override bool TryImportData(PropertyData data)
+            {
+                string value;
+
+                if (Utils.ProtoBuf.TryDeserialize(data.valueData, out value) == null)
+                {
+                    SetValueText(value);
+                    return true;
+                }
+                else
+                    return false;
             }
 
             public override bool TryParseValue(string valueData, out StringBuilder value)

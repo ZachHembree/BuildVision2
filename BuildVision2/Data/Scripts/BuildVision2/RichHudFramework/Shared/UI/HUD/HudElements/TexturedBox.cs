@@ -29,24 +29,22 @@ namespace RichHudFramework.UI
         public TexturedBox(HudParentBase parent) : base(parent)
         {
             hudBoard = new MatBoard();
-            lastScale = Scale;
             Size = new Vector2(50f);
         }
 
         public TexturedBox() : this(null)
         { }
 
-        protected override void Layout()
-        {
-            hudBoard.Size = cachedSize - cachedPadding;
-        }
-
         protected override void Draw()
         {
             if (hudBoard.Color.A > 0)
             {
-                var matrix = HudSpace.PlaneToWorld;
-                hudBoard.Draw(cachedPosition, ref matrix);
+                CroppedBox box = default(CroppedBox);
+                Vector2 halfSize = (cachedSize - cachedPadding) * .5f;
+
+                box.bounds = new BoundingBox2(cachedPosition - halfSize, cachedPosition + halfSize);
+                box.mask = maskingBox;
+                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
             }
         }
     }

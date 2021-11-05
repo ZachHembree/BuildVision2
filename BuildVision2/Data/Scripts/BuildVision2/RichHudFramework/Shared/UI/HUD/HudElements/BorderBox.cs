@@ -26,7 +26,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Size of the border on all four sides in pixels.
         /// </summary>
-        public float Thickness { get { return _thickness * Scale; } set { _thickness = value / Scale; } }
+        public float Thickness { get { return _thickness; } set { _thickness = value; } }
 
         private float _thickness;
         protected readonly MatBoard hudBoard;
@@ -44,26 +44,36 @@ namespace RichHudFramework.UI
         {
             if (Color.A > 0)
             {
-                var ptw = HudSpace.PlaneToWorld;
+                CroppedBox box = default(CroppedBox);
+                box.mask = maskingBox;
 
-                float thickness = _thickness * Scale, 
-                    height = _absoluteHeight * Scale, width = _absoluteWidth * Scale;
+                float thickness = _thickness, 
+                    height = _size.Y, width = _size.X;
+                Vector2 halfSize, pos;
 
                 // Left
-                hudBoard.Size = new Vector2(thickness, height);
-                hudBoard.Draw(cachedPosition + new Vector2(-width / 2f, 0f), ref ptw);
+                halfSize = new Vector2(thickness, height) * .5f;
+                pos = cachedPosition + new Vector2((-width + thickness) * .5f, 0f);
+                box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
+                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
 
                 // Top
-                hudBoard.Size = new Vector2(width, thickness);
-                hudBoard.Draw(cachedPosition + new Vector2(0f, height / 2f), ref ptw);
+                halfSize = new Vector2(width, thickness) * .5f;
+                pos = cachedPosition + new Vector2(0f, (height - thickness) * .5f);
+                box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
+                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
 
                 // Right
-                hudBoard.Size = new Vector2(thickness, height);
-                hudBoard.Draw(cachedPosition + new Vector2(width / 2f, 0f), ref ptw);
+                halfSize = new Vector2(thickness, height) * .5f;
+                pos = cachedPosition + new Vector2((width - thickness) * .5f, 0f);
+                box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
+                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
 
                 // Bottom
-                hudBoard.Size = new Vector2(width, thickness);
-                hudBoard.Draw(cachedPosition + new Vector2(0f, -height / 2f), ref ptw);
+                halfSize = new Vector2(width, thickness) * .5f;
+                pos = cachedPosition + new Vector2(0f, (-height + thickness) * .5f);
+                box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
+                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
             }
         }
     }

@@ -12,6 +12,16 @@ namespace RichHudFramework
         using Rendering;
 
         /// <summary>
+        /// Used to determine text alignment.
+        /// </summary>
+        public enum TextAlignment : byte
+        {
+            Left = 0,
+            Center = 1,
+            Right = 2,
+        }
+
+        /// <summary>
         /// Defines the formatting of the characters in rich text types.
         /// </summary>
         public struct GlyphFormat

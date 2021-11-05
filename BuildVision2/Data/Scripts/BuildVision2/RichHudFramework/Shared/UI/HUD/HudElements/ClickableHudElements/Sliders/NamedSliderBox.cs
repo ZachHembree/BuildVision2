@@ -12,7 +12,7 @@ namespace RichHudFramework.UI.Server
     /// Horizontal sliderbox with a name and value label. Value label is not updated automatically. Made to
     /// resemble sliders used in the SE terminal.
     /// </summary>
-    public class NamedSliderBox : HudElementBase
+    public class NamedSliderBox : HudElementBase, IClickableElement
     {
         /// <summary>
         /// The name of the control
@@ -53,6 +53,10 @@ namespace RichHudFramework.UI.Server
         /// Current slider value expreseed as a percentage between the min and maximum values.
         /// </summary>
         public float Percent { get { return sliderBox.Percent; } set { sliderBox.Percent = value; } }
+
+        public IMouseInput MouseInput => sliderBox.MouseInput;
+
+        public override bool IsMousedOver => sliderBox.IsMousedOver;
 
         protected readonly Label name, current;
         protected readonly SliderBox sliderBox;

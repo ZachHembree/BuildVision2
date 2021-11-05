@@ -44,7 +44,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Minimum allowable size for the window.
         /// </summary>
-        public Vector2 MinimumSize { get { return minimumSize * Scale; } set { minimumSize = value / Scale; } }
+        public Vector2 MinimumSize { get { return minimumSize; } set { minimumSize = value; } }
 
         /// <summary>
         /// Determines whether or not the window can be resized by the user
@@ -86,8 +86,8 @@ namespace RichHudFramework.UI
         /// </summary>
         public readonly BorderBox border;
 
-        private readonly MouseInputElement inputInner, resizeInput;
-        private readonly TexturedBox bodyBg;
+        protected readonly MouseInputElement inputInner, resizeInput;
+        protected readonly TexturedBox bodyBg;
 
         protected readonly Action<byte> LoseFocusCallback;
         protected float cornerSize = 16f;
@@ -117,7 +117,7 @@ namespace RichHudFramework.UI
             bodyBg = new TexturedBox(body)
             {
                 DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
-                ZOffset = -2
+                ZOffset = -2,
             };
 
             border = new BorderBox(this)
@@ -132,8 +132,9 @@ namespace RichHudFramework.UI
                 ZOffset = sbyte.MaxValue,
                 Padding = new Vector2(16f),
                 DimAlignment = DimAlignments.Both,
+                CanIgnoreMasking = true
             };
-
+            
             inputInner = new MouseInputElement(resizeInput)
             {
                 DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
@@ -143,6 +144,7 @@ namespace RichHudFramework.UI
             CanDrag = true;
             UseCursor = true;
             ShareCursor = false;
+            IsMasking = true;
             MinimumSize = new Vector2(200f, 200f);
 
             LoseFocusCallback = LoseFocus;
@@ -180,32 +182,32 @@ namespace RichHudFramework.UI
             // 1 == horizontal, 3 == both
             if (resizeDir == 1 || resizeDir == 3)
             {
-                newWidth = Math.Abs(newOffset.X - cursorPos.X) + Width / 2f;
+                newWidth = Math.Abs(newOffset.X - cursorPos.X) + Width * .5f;
 
                 if (newWidth >= MinimumSize.X)
                 {
                     Width = newWidth;
 
                     if (cursorPos.X > center.X)
-                        newOffset.X = cursorPos.X - Width / 2f;
+                        newOffset.X = cursorPos.X - Width * .5f;
                     else
-                        newOffset.X = cursorPos.X + Width / 2f;
+                        newOffset.X = cursorPos.X + Width * .5f;
                 }
             }
 
             // 2 == vertical
             if (resizeDir == 2 || resizeDir == 3)
             {
-                newHeight = Math.Abs(newOffset.Y - cursorPos.Y) + Height / 2f;
+                newHeight = Math.Abs(newOffset.Y - cursorPos.Y) + Height * .5f;
 
                 if (newHeight >= MinimumSize.Y)
                 {
                     Height = newHeight;
 
                     if (cursorPos.Y > center.Y)
-                        newOffset.Y = cursorPos.Y - Height / 2f;
+                        newOffset.Y = cursorPos.Y - Height * .5f;
                     else
-                        newOffset.Y = cursorPos.Y + Height / 2f;
+                        newOffset.Y = cursorPos.Y + Height * .5f;
                 }
             }
 
@@ -226,10 +228,10 @@ namespace RichHudFramework.UI
                 canResize = true;
                 resizeDir = 0;
 
-                if (Width - (2f * Scale) * Math.Abs(pos.X - cursorPos.X) <= cornerSize * Scale)
+                if (Width - (2f) * Math.Abs(pos.X - cursorPos.X) <= cornerSize)
                     resizeDir += 1;
 
-                if (Height - (2f * Scale) * Math.Abs(pos.Y - cursorPos.Y) <= cornerSize * Scale)
+                if (Height - (2f) * Math.Abs(pos.Y - cursorPos.Y) <= cornerSize)
                     resizeDir += 2;
             }
             else if (CanDrag && header.MouseInput.IsNewLeftClicked)

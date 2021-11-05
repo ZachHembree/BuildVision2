@@ -9,8 +9,8 @@ using System.Collections;
 namespace RichHudFramework.UI
 {
     /// <summary>
-    /// MouseInputElement subtype designed to manage selection, highlighting of vertically scrolling lists with entries
-    /// of the same height.
+    /// MouseInputElement subtype designed to manage selection, highlighting of vertically or horizontally scrolling 
+    /// lists.
     /// </summary>
     public class ListInputElement<TElementContainer, TElement> : MouseInputElement
         where TElement : HudElementBase, IMinLabelElement
@@ -168,23 +168,24 @@ namespace RichHudFramework.UI
                 if (!KeyboardScroll)
                 {
                     Vector2 cursorOffset = cursorPos - ListPos;
-                    BoundingBox2 listBounds = new BoundingBox2(-ListSize / 2f, ListSize / 2f);
+                    BoundingBox2 listBounds = new BoundingBox2(-ListSize * .5f, ListSize * .5f);
 
                     // If the list is moused over, then calculate highlight index based on cursor position.
                     if (listBounds.Contains(cursorOffset) == ContainmentType.Contains)
                     {
-                        float vOffset = -(cursorOffset.Y - ListSize.Y / 2f),
-                            entryOffset = 0f;
                         int newIndex = ListRange.X;
 
                         for (int i = ListRange.X; i <= ListRange.Y; i++)
                         {
                             if (Entries[i].Enabled)
                             {
-                                if ((entryOffset + Entries[i].Element.Height) >= vOffset)
+                                TElement element = Entries[i].Element;
+                                Vector2 halfSize = element.Size * .5f,
+                                    offset = element.Offset;
+                                BoundingBox2 bb = new BoundingBox2(offset - halfSize, offset + halfSize);
+
+                                if (bb.Contains(cursorOffset) == ContainmentType.Contains)
                                     break;
-                                else
-                                    entryOffset += Entries[i].Element.Height;
                             }
 
                             newIndex++;

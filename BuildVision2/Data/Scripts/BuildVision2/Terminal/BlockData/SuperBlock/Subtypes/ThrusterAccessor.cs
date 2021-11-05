@@ -1,7 +1,8 @@
-﻿using Sandbox.ModAPI;
-using VRage;
-using RichHudFramework;
+﻿using RichHudFramework;
 using RichHudFramework.UI;
+using Sandbox.ModAPI;
+using System;
+using VRage;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
@@ -45,11 +46,29 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Effectiveness)} ", nameFormat);
-                builder.Add($"{(ThrustEffectiveness * 100f).Round(2)}%\n", valueFormat);
+                var buf = block.textBuffer;
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ThrustOverride)}: ", nameFormat);
-                builder.Add((Override > 0f ? $"{TerminalUtilities.GetForceDisplay(Override * ThrustEffectiveness)}\n" : MyTexts.TrySubstitute("Disabled")), valueFormat);
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Effectiveness), nameFormat);
+                builder.Add(" ", nameFormat);
+
+                buf.Clear();
+                buf.Append(Math.Round(ThrustEffectiveness * 100f, 2));
+                buf.Append("%\n");
+                builder.Add(buf, valueFormat);
+
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ThrustOverride), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                if (Override > 0f)
+                {
+                    buf.Clear();
+                    TerminalUtilities.GetForceDisplay(Override * ThrustEffectiveness, buf);
+                    buf.Append('\n');
+
+                    builder.Add(buf, valueFormat);
+                }
+                else
+                    builder.Add(MyTexts.TrySubstitute("Disabled"), valueFormat);
             }
         }
     }

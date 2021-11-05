@@ -34,11 +34,23 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesTitle_HudText)}: ", nameFormat);
-                builder.Add($"{HudText}\n", valueFormat);
+                var buf = block.textBuffer;
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_BroadcastRadius)}: ", nameFormat);
-                builder.Add($"{TerminalUtilities.GetDistanceDisplay(Radius)}\n", valueFormat);
+                // Broadcast text
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesTitle_HudText), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(HudText, valueFormat);
+                builder.Add('\n', valueFormat);
+
+                // Broadcast radius
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_BroadcastRadius), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                buf.Clear();
+                TerminalUtilities.GetDistanceDisplay(Radius, buf);
+                buf.Append('\n');
+                builder.Add(buf, valueFormat);
             }
         }
     }

@@ -38,6 +38,25 @@ namespace RichHudFramework
             /// </summary
             public static IReadOnlyList<IControl> Controls => Instance.controls;
 
+            /// <summary>
+            /// Specifies blacklist mode for SE controls
+            /// </summary>
+            public static SeBlacklistModes BlacklistMode
+            {
+                get 
+                { 
+                    if (_instance == null) Init(); 
+                        return (SeBlacklistModes)_instance.GetOrSetMemberFunc(null, (int)BindClientAccessors.RequestBlacklistMode); 
+                }
+                set
+                {
+                    if (_instance == null)
+                        Init();
+
+                    _instance.GetOrSetMemberFunc(value, (int)BindClientAccessors.RequestBlacklistMode);
+                }
+            }
+
             private static BindManager Instance
             {
                 get { Init(); return _instance; }

@@ -46,15 +46,9 @@ namespace RichHudFramework
             }
 
             /// <summary>
-            /// Scales the size and offset of an element. Any offset or size set at a given
-            /// be increased or decreased with scale. Defaults to 1f.
-            /// </summary>
-            public virtual float Scale { get; }
-
-            /// <summary>
             /// Determines whether the UI element will be drawn in the Back, Mid or Foreground
             /// </summary>
-            public virtual sbyte ZOffset
+            public sbyte ZOffset
             {
                 get { return layerData.zOffset; }
                 set { layerData.zOffset = value; }
@@ -71,7 +65,6 @@ namespace RichHudFramework
                 State |= HudElementStates.IsRegistered;
 
                 Visible = true;
-                Scale = 1f;
                 children = new List<HudNodeBase>();
 
                 accessorDelegates = new HudUpdateAccessors()
@@ -219,7 +212,7 @@ namespace RichHudFramework
             /// Registers a child node to the object.
             /// </summary>
             /// <param name="preregister">Adds the element to the update tree without registering.</param>
-            public virtual bool RegisterChild(HudNodeBase child, bool preregister = false)
+            public virtual bool RegisterChild(HudNodeBase child)
             {
                 if (child.Parent == this && !child.Registered)
                 {
@@ -227,7 +220,7 @@ namespace RichHudFramework
                     return true;
                 }
                 else if (child.Parent == null)
-                    return child.Register(this, preregister);
+                    return child.Register(this);
                 else
                     return false;
             }
@@ -238,10 +231,10 @@ namespace RichHudFramework
             /// <param name="fast">Prevents registration from triggering a draw list
             /// update. Meant to be used in conjunction with pooled elements being
             /// unregistered/reregistered to the same parent.</param>
-            public virtual bool RemoveChild(HudNodeBase child, bool fast = false)
+            public virtual bool RemoveChild(HudNodeBase child)
             {
                 if (child.Parent == this)
-                    return child.Unregister(fast);
+                    return child.Unregister();
                 else if (child.Parent == null)
                     return children.Remove(child);
                 else
@@ -271,13 +264,13 @@ namespace RichHudFramework
                     case HudElementAccessors.DrawCursorInHudSpace:
                         return HudSpace?.DrawCursorInHudSpace ?? false;
                     case HudElementAccessors.PlaneToWorld:
-                        return HudSpace?.PlaneToWorld ?? default(MatrixD);
+                        return HudSpace?.PlaneToWorldRef[0] ?? default(MatrixD);
                     case HudElementAccessors.IsInFront:
                         return HudSpace?.IsInFront ?? false;
                     case HudElementAccessors.IsFacingCamera:
                         return HudSpace?.IsFacingCamera ?? false;
                     case HudElementAccessors.NodeOrigin:
-                        return HudSpace?.PlaneToWorld.Translation ?? Vector3D.Zero;
+                        return HudSpace?.PlaneToWorldRef[0].Translation ?? Vector3D.Zero;
                 }
 
                 return null;

@@ -76,15 +76,24 @@ namespace DarkHelmet.BuildVision2
             {
                 if (block.Power.Enabled != null && block.Power.Enabled.Value)
                 {
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Depressurize)}: ", nameFormat);
-                    builder.Add($"{MyTexts.GetString(Depressurize ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off)}\n", valueFormat);
+                    // Depressurize on/off
+                    builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_Depressurize), nameFormat);
+                    builder.Add(": ", nameFormat);
 
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.HudInfoOxygen)}", nameFormat);
+                    builder.Add(MyTexts.GetString(Depressurize ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off), valueFormat);
+                    builder.Add("\n", valueFormat);
+
+                    // Oxy pct
+                    builder.Add(MyTexts.GetString(MySpaceTexts.HudInfoOxygen), nameFormat);
                     builder.Add($"{(OxygenLevel * 100f):F2}%\n", valueFormat);
                 }
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat);
-                builder.Add($"{GetLocalizedVentStatus()}\n", valueFormat);
+                // Vent status
+                builder.Add(MyTexts.GetString(MySpaceTexts.TerminalStatus), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(GetLocalizedVentStatus(), valueFormat);
+                builder.Add("\n", valueFormat);
             }
 
             private void UpdateOxygenLevel(byte[] bin)

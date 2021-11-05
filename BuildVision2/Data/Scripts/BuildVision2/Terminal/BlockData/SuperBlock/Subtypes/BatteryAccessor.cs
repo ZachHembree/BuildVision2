@@ -47,15 +47,37 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", nameFormat);
-                builder.Add($"{TerminalUtilities.GetPowerDisplay(Charge)}h", valueFormat);
-                builder.Add($" ({((Charge / Capacity) * 100f):F1}%)\n", nameFormat);
+                var buf = block.textBuffer;
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat);
-                builder.Add($"{TerminalUtilities.GetPowerDisplay(Capacity)}h\n", valueFormat);
+                // Current charge
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower), nameFormat);
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ChargeMode)}: ", nameFormat);
-                builder.Add($"{GetLocalizedChargeMode()}\n", valueFormat);
+                buf.Clear();
+                TerminalUtilities.GetPowerDisplay(Charge, buf);
+                buf.Append('h');
+                builder.Add(buf, valueFormat);
+
+                // pct
+                buf.Clear();
+                buf.Append(" (");
+                buf.AppendFormat("{0:F1}", (Charge / Capacity) * 100f);
+                buf.Append("%)\n");
+                builder.Add(buf, nameFormat);
+
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower), nameFormat);
+
+                buf.Clear();
+                TerminalUtilities.GetPowerDisplay(Capacity, buf);
+                buf.Append("h\n");
+                builder.Add(buf, valueFormat);
+
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_ChargeMode), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                buf.Clear();
+                buf.Append(GetLocalizedChargeMode());
+                buf.Append('\n');
+                builder.Add(buf, valueFormat);
             }
 
             private string GetLocalizedChargeMode()

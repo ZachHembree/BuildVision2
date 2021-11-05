@@ -33,8 +33,11 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalControlPanel_RunArgument)}: ", nameFormat);
-                builder.Add($"{Argument ?? ""}\n", valueFormat);
+                builder.Add(MyTexts.GetString(MySpaceTexts.TerminalControlPanel_RunArgument), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(Argument ?? "", valueFormat);
+                builder.Add("\n", valueFormat);
             }
         }
     }

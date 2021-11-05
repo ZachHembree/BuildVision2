@@ -5,6 +5,7 @@ using RichHudFramework.UI.Rendering;
 using Sandbox.ModAPI;
 using System;
 using System.Diagnostics;
+using System.Text;
 using VRage.Game.ModAPI;
 using VRageMath;
 
@@ -112,11 +113,10 @@ namespace DarkHelmet.BuildVision2
         private int tick;
 
         private float _bgOpacity;
-        private bool targetChanged, waitingForChat;
+        private bool waitingForChat;
 
         private string notification;
         private ScrollMenuModes _menuMode;
-        private IMyTerminalBlock lastTarget;
         private readonly RichText peekBuilder;
 
         public BvScrollMenu(HudParentBase parent = null) : base(parent)
@@ -143,6 +143,7 @@ namespace DarkHelmet.BuildVision2
             {
                 Color = bodyColor,
                 EnableScrolling = false,
+                UseSmoothScrolling = false,
                 SizingMode = HudChainSizingModes.ClampChainOffAxis | HudChainSizingModes.FitChainAlignAxis,
                 MinVisibleCount = 10,
                 Padding = new Vector2(48f, 16f),
@@ -295,11 +296,11 @@ namespace DarkHelmet.BuildVision2
                 footer.LeftTextBuilder.SetText($"[{scrollBody.VisStart + 1} - {scrollBody.VisStart + scrollBody.VisCount} of {scrollBody.EnabledCount}]");
 
             if (PropertiesMenu.Target.IsWorking)
-                footer.RightTextBoard.SetText($"[Working]", footerTextRight);
+                footer.RightTextBoard.SetText("[Working]", footerTextRight);
             else if (PropertiesMenu.Target.IsFunctional)
-                footer.RightTextBoard.SetText($"[Functional]", footerTextRight);
+                footer.RightTextBoard.SetText("[Functional]", footerTextRight);
             else
-                footer.RightTextBoard.SetText($"[Incomplete]", blockIncText);
+                footer.RightTextBoard.SetText("[Incomplete]", blockIncText);
         }
 
         /// <summary>
@@ -343,7 +344,7 @@ namespace DarkHelmet.BuildVision2
                 scrollBody.Visible = false;
 
                 peekBody.TextBoard.FixedSize = new Vector2(0, peekBody.TextBoard.TextSize.Y);
-                layout.Width = 300f * Scale;
+                layout.Width = 300f;
             }
 
             if (AlignToEdge)
@@ -370,8 +371,8 @@ namespace DarkHelmet.BuildVision2
         {
             if (Selection != null)
             {
-                selectionBox.Size = new Vector2(scrollBody.Width - scrollBody.Divider.Width - scrollBody.ScrollBar.Width, Selection.Size.Y + (2f * Scale));
-                selectionBox.Offset = new Vector2(0f, Selection.Offset.Y - (1f * Scale));
+                selectionBox.Size = new Vector2(scrollBody.Width - scrollBody.Divider.Width - scrollBody.ScrollBar.Width, Selection.Size.Y + 2f);
+                selectionBox.Offset = new Vector2(0f, Selection.Offset.Y - 1f);
                 tab.Height = selectionBox.Height;
             };
         }
@@ -403,8 +404,6 @@ namespace DarkHelmet.BuildVision2
         public void UpdateTarget()
         {
             Clear();
-            targetChanged = PropertiesMenu.Target.TBlock != lastTarget;
-            lastTarget = PropertiesMenu.Target.TBlock;
 
             if (MenuMode != ScrollMenuModes.Peek)
                 UpdateProperties();
@@ -442,9 +441,8 @@ namespace DarkHelmet.BuildVision2
         public void Clear()
         {
             propBoxPool.ReturnRange(scrollBody.Collection, 0, scrollBody.Collection.Count);
-            scrollBody.Clear(true);
+            scrollBody.Clear();
 
-            lastTarget = null;
             waitingForChat = false;
             PropOpen = false;
             index = 0;
@@ -478,12 +476,14 @@ namespace DarkHelmet.BuildVision2
                         else
                             this.valueBox.CharFilterFunc = null;
 
+                        var nameBuilder = _blockMember.Name;
                         name.Format = bodyText;
                         Name.Clear();
 
-                        if (_blockMember.Name != null && _blockMember.Name.Length > 0)
+                        if (nameBuilder != null && nameBuilder.Length > 0)
                         {
-                            Name.Add($"{_blockMember.Name}: ");
+                            Name.Add(nameBuilder);
+                            Name.Add(": ");
                         }
                     }
                 }
@@ -579,12 +579,21 @@ namespace DarkHelmet.BuildVision2
                 Value.Clear();
                 Postfix.Clear();
 
-                Value.Add(_blockMember.Display);
-                Postfix.Add($" {_blockMember.Status}");
+                StringBuilder disp = _blockMember.Display,
+                    status = _blockMember.Status;
 
-                name.Text = Name;
-                valueBox.Text = Value;
-                postfix.Text = Postfix;
+                if (disp != null)
+                    Value.Add(disp);
+
+                if (status != null)
+                {
+                    Postfix.Add(" ");
+                    Postfix.Add(status);
+                }
+
+                name.TextBoard.SetText(Name);
+                valueBox.TextBoard.SetText(Value);
+                postfix.TextBoard.SetText(Postfix);
             }
 
             private class SelectionBox : Label

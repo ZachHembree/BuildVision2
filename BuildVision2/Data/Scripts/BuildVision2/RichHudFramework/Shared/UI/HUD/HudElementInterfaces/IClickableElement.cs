@@ -3,8 +3,6 @@ using VRage;
 
 namespace RichHudFramework
 {
-    public delegate void EventHandler(object sender, EventArgs e);
-
     namespace UI
     {
         /// <summary>
@@ -51,6 +49,11 @@ namespace RichHudFramework
             /// Invoked when focus is lost
             /// </summary>
             event EventHandler LostInputFocus;
+
+            /// <summary>
+            /// Determines whether the input element is enabled and accepting input
+            /// </summary>
+            bool Enabled { get; set; }
 
             /// <summary>
             /// True if the element is being clicked with the left mouse button

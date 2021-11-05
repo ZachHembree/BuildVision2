@@ -62,10 +62,13 @@ namespace DarkHelmet.BuildVision2
             {
                 if (subtype.IsAttached)
                 {
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_MotorLock)}: ", nameFormat);
-                    builder.Add($"{(RotorLock ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff))}\n", valueFormat);
+                    builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_MotorLock), nameFormat);
+                    builder.Add(": ", nameFormat);
 
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle)}", nameFormat);
+                    builder.Add(RotorLock ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff), valueFormat);
+                    builder.Add("\n", valueFormat);
+
+                    builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle), nameFormat);
                     builder.Add($"{Angle.RadiansToDegrees():F2}°\n", valueFormat);
                 }
             }

@@ -45,26 +45,6 @@ namespace RichHudFramework
             public override bool Visible => (State & nodeVisible) == nodeVisible;
 
             /// <summary>
-            /// Determines whether the UI element will be drawn in the Back, Mid or Foreground
-            /// </summary>
-            public sealed override sbyte ZOffset
-            {
-                get { return (sbyte)(layerData.zOffset + layerData.parentZOffset); }
-                set { layerData.zOffset = (sbyte)(value - layerData.parentZOffset); }
-            }
-
-            /// <summary>
-            /// Scales the size and offset of an element. Any offset or size set at a given
-            /// be increased or decreased with scale. Defaults to 1f. Includes parent scale.
-            /// </summary>
-            public sealed override float Scale => LocalScale * parentScale;
-
-            /// <summary>
-            /// Element scaling without parent scaling.
-            /// </summary>
-            public virtual float LocalScale { get; set; }
-
-            /// <summary>
             /// Indicates whether or not the element has been registered to a parent.
             /// </summary>
             public bool Registered => (State & HudElementStates.IsRegistered) > 0;
@@ -81,15 +61,11 @@ namespace RichHudFramework
                 }
             }
 
-            protected HudParentBase _parent, reregParent;
-            protected float parentScale;
+            protected HudParentBase _parent;
 
             public HudNodeBase(HudParentBase parent)
             {
                 State &= ~HudElementStates.IsRegistered;
-
-                parentScale = 1f;
-                LocalScale = 1f;
                 ParentVisible = true;
 
                 Register(parent);
@@ -114,8 +90,6 @@ namespace RichHudFramework
                         else
                         {
                             ParentVisible = _parent.Visible;
-                            parentScale = _parent.Scale;
-                            layerData.parentZOffset = _parent.ZOffset;
                         }
 
                         if (Visible || refresh)
@@ -144,7 +118,7 @@ namespace RichHudFramework
 
                 if (Visible)
                 {
-                    HudSpace = _parent?.HudSpace ?? reregParent?.HudSpace;
+                    HudSpace = _parent?.HudSpace;
                     layerData.fullZOffset = ParentUtils.GetFullZOffset(layerData, _parent);
 
                     UpdateActions.EnsureCapacity(UpdateActions.Count + children.Count + 1);
@@ -163,67 +137,31 @@ namespace RichHudFramework
             /// <summary>
             /// Registers the element to the given parent object.
             /// </summary>
-            /// <param name="preregister">Adds the element to the update tree without registering.</param>
             /// <param name="canPreload">Indicates whether or not the element's accessors can be loaded into the update tree
             /// before the element is visible. Useful for preventing flicker in scrolling lists.</param>
-            public virtual bool Register(HudParentBase newParent, bool preregister = false, bool canPreload = false)
+            public virtual bool Register(HudParentBase newParent, bool canPreload = false)
             {
                 if (newParent == this)
                     throw new Exception("Types of HudNodeBase cannot be parented to themselves!");
 
-                // Complete unregistration from previous parent if being registered to a different node
-                if ((State & HudElementStates.WasFastUnregistered) > 0 && newParent != reregParent)
+                if (newParent != null)
                 {
-                    reregParent.RemoveChild(this);
-                    State &= ~HudElementStates.WasFastUnregistered;
-                    reregParent = null;
+                    Parent = newParent;
+
+                    if (_parent.RegisterChild(this))
+                        State |= HudElementStates.IsRegistered;
+                    else
+                        State &= ~HudElementStates.IsRegistered;
                 }
 
-                if (newParent != null && (reregParent == null || (State & HudElementStates.WasFastUnregistered) > 0))
+                if ((State & HudElementStates.IsRegistered) > 0)
                 {
-                    reregParent = null;
-
-                    if ((State & HudElementStates.WasFastUnregistered) > 0)
-                    {
-                        Parent = newParent;
-                        State |= HudElementStates.IsRegistered;
-                    }
+                    if (canPreload)
+                        State |= HudElementStates.CanPreload;
                     else
-                    {
-                        Parent = newParent;
+                        State &= ~HudElementStates.CanPreload;
 
-                        if (_parent.RegisterChild(this))
-                            State |= HudElementStates.IsRegistered;
-                        else
-                            State &= ~HudElementStates.IsRegistered;
-                    }
-
-                    if ((State & HudElementStates.IsRegistered) > 0)
-                    {
-                        if (preregister)
-                        {
-                            reregParent = newParent;
-                            Parent = null;
-                            State &= ~HudElementStates.IsRegistered;
-                            State |= HudElementStates.WasFastUnregistered;
-                        }
-                        else
-                        {
-                            layerData.parentZOffset = _parent.ZOffset;
-                            parentScale = _parent.Scale;
-                            ParentVisible = _parent.Visible;
-                            State &= ~HudElementStates.WasFastUnregistered;
-                        }
-
-                        if (canPreload)
-                            State |= HudElementStates.CanPreload;
-                        else
-                            State &= ~HudElementStates.CanPreload;
-
-                        return true;
-                    }
-                    else
-                        return false;
+                    return true;
                 }
                 else
                     return false;
@@ -232,36 +170,15 @@ namespace RichHudFramework
             /// <summary>
             /// Unregisters the element from its parent, if it has one.
             /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
-            public virtual bool Unregister(bool fast = false)
+            public virtual bool Unregister()
             {
-                if (Parent != null || ((State & HudElementStates.WasFastUnregistered) > 0 && !fast))
+                if (Parent != null)
                 {
-                    reregParent = _parent;
+                    HudParentBase lastParent = Parent;
                     Parent = null;
 
-                    if (!fast)
-                    {
-                        if (!reregParent.RemoveChild(this, false))
-                            State |= HudElementStates.IsRegistered;
-                        else
-                            State &= ~HudElementStates.IsRegistered;
-
-                        if ((State & HudElementStates.IsRegistered) > 0)
-                            Parent = reregParent;
-
-                        reregParent = null;
-                    }
-                    else
-                    {
-                        State &= ~HudElementStates.IsRegistered;
-                        State |= HudElementStates.WasFastUnregistered;
-                    }
-
-                    layerData.parentZOffset = 0;
-                    State &= ~HudElementStates.WasParentVisible;
+                    lastParent.RemoveChild(this);
+                    State &= ~(HudElementStates.IsRegistered | HudElementStates.WasParentVisible);
                 }
 
                 return !((State & HudElementStates.IsRegistered) > 0);

@@ -1,9 +1,10 @@
-﻿using Sandbox.ModAPI;
-using VRage;
-using RichHudFramework;
+﻿using RichHudFramework;
 using RichHudFramework.UI;
-using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
+using Sandbox.ModAPI;
+using System;
+using VRage;
 using MyJumpDriveStatus = Sandbox.ModAPI.Ingame.MyJumpDriveStatus;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -46,15 +47,37 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat);
-                builder.Add($"{GetLocalizedDriveStatus()}\n", valueFormat);
+                var buf = block.textBuffer;
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower)}", nameFormat);
-                builder.Add($"{TerminalUtilities.GetPowerDisplay(Charge)}h", valueFormat);
-                builder.Add($" ({((Charge / Capacity) * 100f).Round(1)}%)\n", nameFormat);
+                // Jump status
+                builder.Add(MyTexts.GetString(MySpaceTexts.TerminalStatus), nameFormat);
+                builder.Add(": ", nameFormat);
 
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower)}", nameFormat);
-                builder.Add($"{TerminalUtilities.GetPowerDisplay(Capacity)}h\n", valueFormat);
+                builder.Add(GetLocalizedDriveStatus(), valueFormat);
+                builder.Add("\n", valueFormat);
+
+                // Stored power
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_StoredPower), nameFormat);
+
+                buf.Clear();
+                TerminalUtilities.GetPowerDisplay(Charge, buf);
+                buf.Append('h');
+                builder.Add(buf, valueFormat);
+
+                // pct
+                buf.Clear();
+                buf.Append(" (");
+                buf.Append(Math.Round(Charge / Capacity * 100f, 1));
+                buf.Append("%)\n");
+                builder.Add(buf, nameFormat);
+
+                // Power capacity
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MaxStoredPower), nameFormat);
+
+                buf.Clear();
+                TerminalUtilities.GetPowerDisplay(Capacity, buf);
+                buf.Append("h\n");
+                builder.Add(buf, valueFormat);
             }
         }
     }

@@ -45,7 +45,7 @@ namespace RichHudFramework.UI
     }
 
     /// <summary>
-    /// Abstract generic list of selectable UI elements of arbitrary size size.
+    /// Abstract generic list of selectable UI elements of arbitrary size.
     /// </summary>
     /// <typeparam name="TContainer">Container element type wrapping the UI element</typeparam>
     /// <typeparam name="TElement">UI element in the list</typeparam>
@@ -140,6 +140,11 @@ namespace RichHudFramework.UI
         public IMouseInput MouseInput => listInput;
 
         /// <summary>
+        /// Indicates whether or not the cursor is currently positioned over the list.
+        /// </summary>
+        public override bool IsMousedOver => listInput.IsMousedOver;
+
+        /// <summary>
         /// Defines the range of elements visible
         /// </summary>
         protected virtual Vector2I ListRange => new Vector2I(0, hudChain.Count - 1);
@@ -178,8 +183,8 @@ namespace RichHudFramework.UI
             selectionBox = new HighlightBox() { Visible = false };
             highlightBox = new HighlightBox() { Visible = false, CanDrawTab = false };
 
-            selectionBox.Register(hudChain, false, true);
-            highlightBox.Register(hudChain, false, true);
+            selectionBox.Register(hudChain, true);
+            highlightBox.Register(hudChain, true);
 
             listInput = new ListInputElement<TContainer, TElement>(hudChain);
 
@@ -348,27 +353,32 @@ namespace RichHudFramework.UI
                 tabBoard = new MatBoard() { Color = TerminalFormatting.Mercury };
                 Color = TerminalFormatting.Atomic;
                 CanDrawTab = true;
-            }
-
-            protected override void Layout()
-            {
-                hudBoard.Size = cachedSize - cachedPadding;
-                tabBoard.Size = new Vector2(4f * Scale, cachedSize.Y - cachedPadding.Y);
+                IsSelectivelyMasked = true;
             }
 
             protected override void Draw()
             {
-                var ptw = HudSpace.PlaneToWorld;
+                CroppedBox box = default(CroppedBox);
+                Vector2 size = (cachedSize - cachedPadding),
+                    halfSize = size * .5f;
+
+                box.bounds = new BoundingBox2(cachedPosition - halfSize, cachedPosition + halfSize);
+                box.mask = maskingBox;
 
                 if (hudBoard.Color.A > 0)
-                    hudBoard.Draw(cachedPosition, ref ptw);
+                    hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
 
                 // Left align the tab
-                Vector2 tabPos = cachedPosition;
-                tabPos.X += (-hudBoard.Size.X + tabBoard.Size.X) / 2f;
+                Vector2 tabPos = cachedPosition,
+                    tabSize = new Vector2(4f, size.Y - cachedPadding.Y);
+                tabPos.X += (-size.X + tabSize.X) * .5f;
+                tabSize *= .5f;
 
                 if (CanDrawTab && tabBoard.Color.A > 0)
-                    tabBoard.Draw(tabPos, ref ptw);
+                {
+                    box.bounds = new BoundingBox2(tabPos - tabSize, tabPos + tabSize);
+                    tabBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using Sandbox.ModAPI;
 using System;
+using System.Text;
 using VRage;
 using RichHudFramework;
 using RichHudFramework.UI;
@@ -38,8 +39,15 @@ namespace DarkHelmet.BuildVision2
             {
                 if (subtype.IsAttached)
                 {
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalDistance)}: ", nameFormat);
-                    builder.Add($"{TerminalUtilities.GetDistanceDisplay(ExtensionDist)}\n", valueFormat);
+                    // Piston extension dist
+                    builder.Add(MyTexts.GetString(MySpaceTexts.TerminalDistance), nameFormat);
+                    builder.Add(": ", nameFormat);
+
+                    block.textBuffer.Clear();
+                    TerminalUtilities.GetDistanceDisplay(ExtensionDist, block.textBuffer);
+                    block.textBuffer.Append('\n');
+
+                    builder.Add(block.textBuffer, valueFormat);
                 }
             }
         }

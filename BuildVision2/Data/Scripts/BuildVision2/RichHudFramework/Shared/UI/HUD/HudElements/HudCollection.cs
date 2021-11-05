@@ -104,7 +104,7 @@ namespace RichHudFramework
             /// </summary>
             public void AddRange(IReadOnlyList<TElementContainer> newContainers)
             {
-                NodeUtils.RegisterNodes<TElementContainer, TElement>(this, children, newContainers, false, false);
+                NodeUtils.RegisterNodes<TElementContainer, TElement>(this, children, newContainers, false);
                 hudCollectionList.AddRange(newContainers);
             }
 
@@ -124,33 +124,20 @@ namespace RichHudFramework
             /// </summary>
             public void InsertRange(int index, IReadOnlyList<TElementContainer> newContainers)
             {
-                NodeUtils.RegisterNodes<TElementContainer, TElement>(this, children, newContainers, false, false);
+                NodeUtils.RegisterNodes<TElementContainer, TElement>(this, children, newContainers, false);
                 hudCollectionList.InsertRange(index, newContainers);
             }
 
             /// <summary>
             /// Removes the specified element from the collection.
             /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
-            public bool Remove(TElementContainer entry) =>
-                Remove(entry, false);
-
-            /// <summary>
-            /// Removes the specified element from the collection.
-            /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
-            public bool Remove(TElementContainer entry, bool fast)
+            public bool Remove(TElementContainer entry)
             {
                 if (entry.Element.Parent == this && hudCollectionList.Count > 0)
                 {
                     if (hudCollectionList.Remove(entry))
                     {
-                        skipCollectionRemove = !fast;
-                        bool success = entry.Element.Unregister(fast);
+                        bool success = entry.Element.Unregister();
 
                         return success;
                     }
@@ -162,10 +149,7 @@ namespace RichHudFramework
             /// <summary>
             /// Removes the chain member that meets the conditions required by the predicate.
             /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
-            public bool Remove(Func<TElementContainer, bool> predicate, bool fast = false)
+            public bool Remove(Func<TElementContainer, bool> predicate)
             {
                 if (hudCollectionList.Count > 0)
                 {
@@ -175,9 +159,8 @@ namespace RichHudFramework
 
                     if (index != -1 && index < hudCollectionList.Count)
                     {
-                        skipCollectionRemove = !fast;
                         hudCollectionList.RemoveAt(index);
-                        success = element.Unregister(fast);
+                        success = element.Unregister();
                     }
 
                     return success;
@@ -189,18 +172,14 @@ namespace RichHudFramework
             /// <summary>
             /// Remove the element at the given index.
             /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
-            public bool RemoveAt(int index, bool fast = false)
+            public bool RemoveAt(int index)
             {
                 if (hudCollectionList[index].Element.Parent == this && hudCollectionList.Count > 0)
                 {
                     TElement element = hudCollectionList[index].Element;
                     hudCollectionList.RemoveAt(index);
 
-                    skipCollectionRemove = !fast;
-                    bool success = element.Unregister(fast);
+                    bool success = element.Unregister();
 
                     return success;
                 }
@@ -211,30 +190,18 @@ namespace RichHudFramework
             /// <summary>
             /// Removes the specfied range from the collection. Normal child elements not affected.
             /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
-            public void RemoveRange(int index, int count, bool fast = false)
+            public void RemoveRange(int index, int count)
             {
-                NodeUtils.UnregisterNodes<TElementContainer, TElement>(this, children, hudCollectionList, index, count, fast);
+                NodeUtils.UnregisterNodes<TElementContainer, TElement>(this, children, hudCollectionList, index, count);
                 hudCollectionList.RemoveRange(index, count);
             }
 
             /// <summary>
             /// Remove all elements in the collection. Does not affect normal child elements.
             /// </summary>
-            public void Clear() =>
-                Clear(false);
-
-            /// <summary>
-            /// Remove all elements in the collection. Does not affect normal child elements.
-            /// </summary>
-            /// <param name="fast">Prevents registration from triggering a draw list
-            /// update. Meant to be used in conjunction with pooled elements being
-            /// unregistered/reregistered to the same parent.</param>
-            public void Clear(bool fast)
+            public void Clear()
             {
-                NodeUtils.UnregisterNodes<TElementContainer, TElement>(this, children, hudCollectionList, 0, hudCollectionList.Count, fast);
+                NodeUtils.UnregisterNodes<TElementContainer, TElement>(this, children, hudCollectionList, 0, hudCollectionList.Count);
                 hudCollectionList.Clear();
             }
 
@@ -266,13 +233,13 @@ namespace RichHudFramework
             public void CopyTo(TElementContainer[] array, int arrayIndex) =>
                 hudCollectionList.CopyTo(array, arrayIndex);
 
-            public override bool RemoveChild(HudNodeBase child, bool fast = false)
+            public override bool RemoveChild(HudNodeBase child)
             {
                 if (child.Parent == this)
                 {
-                    bool success = child.Unregister(fast);
+                    bool success = child.Unregister();
 
-                    if (success && fast)
+                    if (success)
                         RemoveChild(child);
 
                     return success;

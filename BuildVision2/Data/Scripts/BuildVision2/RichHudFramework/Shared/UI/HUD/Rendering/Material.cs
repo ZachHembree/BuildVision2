@@ -31,7 +31,7 @@ namespace RichHudFramework
                 FitHorizontal = 2,
 
                 /// <summary>
-                /// Rescales the material so that such that it maintains it's aspect ratio while filling as much of the billboard
+                /// Rescales the material such that it maintains it's aspect ratio while filling as much of the billboard
                 /// as possible
                 /// </summary>
                 FitAuto = 3,
@@ -48,16 +48,19 @@ namespace RichHudFramework
                 /// ID of the Texture the <see cref="Material"/> is based on.
                 /// </summary>
                 public readonly MyStringId TextureID;
+
                 /// <summary>
                 /// The dimensions, in pixels, of the <see cref="Material"/>.
                 /// </summary>
                 public readonly Vector2 size;
+
                 /// <summary>
-                /// The dimensions of the <see cref="Material"/> relative to the size of the texture its based on.
+                /// The dimensions of the <see cref="Material"/> in normalized texture coordinates.
                 /// </summary>
                 public readonly Vector2 uvSize;
+
                 /// <summary>
-                /// Center of the <see cref="Material"/> on the texture scaled relative to the size of the texture.
+                /// Center of the <see cref="Material"/> in normalized texture coordinates.
                 /// </summary>
                 public readonly Vector2 uvOffset;
 
@@ -91,7 +94,7 @@ namespace RichHudFramework
                     this.size = size;
 
                     uvSize = Vector2.One;
-                    uvOffset = uvSize / 2f;
+                    uvOffset = uvSize * .5f;
                 }
 
                 /// <summary>
@@ -114,7 +117,7 @@ namespace RichHudFramework
                     offset.X /= textureSize.X;
                     offset.Y /= textureSize.Y;
 
-                    uvOffset = offset + (uvSize / 2f);
+                    uvOffset = offset + (uvSize * .5f);
                 }
             }
 

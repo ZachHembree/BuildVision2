@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -7,22 +8,22 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Retrieves the name of the block property
         /// </summary>
-        string Name { get; }
+        StringBuilder Name { get; }
 
         /// <summary>
-        /// Retrieves the value as a <see cref="string"/> using formatting specific to the member.
+        /// Retrieves the value as a <see cref="StringBuilder"/> using formatting specific to the member.
         /// </summary>
-        string Display { get; }
+        StringBuilder Display { get; }
 
         /// <summary>
-        /// Retrieves the current value of the block member as an unformatted <see cref="string"/>
+        /// Retrieves the current value of the block member as an unformatted <see cref="StringBuilder"/>
         /// </summary>
-        string Value { get; }
+        StringBuilder Value { get; }
 
         /// <summary>
         /// Additional information following the value of the member.
         /// </summary>
-        string Status { get; }
+        StringBuilder Status { get; }
 
         /// <summary>
         /// Indicates whether or not a given <see cref="IBlockMember"/> should be shown in the terminal.

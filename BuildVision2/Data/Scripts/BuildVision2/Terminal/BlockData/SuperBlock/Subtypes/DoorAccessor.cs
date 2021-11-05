@@ -61,8 +61,11 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.TerminalStatus)}: ", nameFormat);
-                builder.Add($"{GetLocalizedStatus()}\n", valueFormat);
+                builder.Add(MyTexts.GetString(MySpaceTexts.TerminalStatus), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                builder.Add(GetLocalizedStatus(), valueFormat);
+                builder.Add("\n", valueFormat);
             }
         }
     }

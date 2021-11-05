@@ -26,51 +26,6 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
-                /// Size of the billboard.
-                /// </summary>
-                public Vector2 Size
-                {
-                    get { return size; }
-                    set
-                    {
-                        if (value != size)
-                            updateMatFit = true;
-
-                        size = value;
-                    }
-                }
-
-                /// <summary>
-                /// Width of the billboard.
-                /// </summary>
-                public float Width
-                {
-                    get { return size.X; }
-                    set
-                    {
-                        if (value != size.X)
-                            updateMatFit = true;
-
-                        size.X = value;
-                    }
-                }
-
-                /// <summary>
-                /// Height of the billboard.
-                /// </summary>
-                public float Height
-                {
-                    get { return size.Y; }
-                    set
-                    {
-                        if (value != size.Y)
-                            updateMatFit = true;
-
-                        size.Y = value;
-                    }
-                }
-
-                /// <summary>
                 /// Texture applied to the billboard.
                 /// </summary>
                 public Material Material
@@ -103,7 +58,6 @@ namespace RichHudFramework
                     }
                 }
 
-                private Vector2 size;
                 private Color color;
                 private bool updateMatFit;
 
@@ -127,58 +81,37 @@ namespace RichHudFramework
                 /// </summary>
                 public void Draw(ref MyQuadD quad)
                 {
-                    if (updateMatFit && matFrame.Material != Material.Default)
-                    {
-                        minBoard.matFit = matFrame.GetMaterialAlignment(size.X / size.Y);
-                        updateMatFit = false;
-                    }
-
                     minBoard.Draw(ref quad);
                 }
 
                 /// <summary>
                 /// Draws a billboard in world space facing the +Z direction of the matrix given. Units in meters,
                 /// matrix transform notwithstanding. Dont forget to compensate for perspective scaling!
-                /// </summary>
-                public void Draw(Vector3D offset, ref MatrixD matrix)
+                /// </summary
+                public void Draw(ref CroppedBox box, ref MatrixD matrix)
                 {
-                    if (updateMatFit && matFrame.Material != Material.Default)
+                    ContainmentType containment = ContainmentType.Contains;
+
+                    if (box.mask != null)
+                        box.mask.Value.Contains(ref box.bounds, out containment);
+
+                    if (containment != ContainmentType.Disjoint)
                     {
-                        minBoard.matFit = matFrame.GetMaterialAlignment(size.X / size.Y);
-                        updateMatFit = false;
+                        if (updateMatFit && matFrame.Material != Material.Default)
+                        {
+                            Vector2 boxSize = box.bounds.Size;
+                            minBoard.texCoords = matFrame.GetMaterialAlignment(boxSize.X / boxSize.Y);
+                            updateMatFit = false;
+                        }
+
+                        if (containment == ContainmentType.Contains)
+                            minBoard.Draw(ref box, ref matrix);
+                        else if (containment == ContainmentType.Intersects && matFrame.Material == Material.Default)
+                            minBoard.DrawCropped(ref box, ref matrix);
+                        else
+                            minBoard.DrawCroppedTex(ref box, ref matrix);
                     }
-
-                    minBoard.Draw(size, offset, ref matrix);
-                }
-
-                /// <summary>
-                /// Draws a billboard in world space facing the +Z direction of the matrix given. Units in meters,
-                /// matrix transform notwithstanding. Dont forget to compensate for perspective scaling!
-                /// </summary>
-                public void Draw(Vector2 offset, ref MatrixD matrix)
-                {
-                    if (updateMatFit && matFrame.Material != Material.Default)
-                    {
-                        minBoard.matFit = matFrame.GetMaterialAlignment(size.X / size.Y);
-                        updateMatFit = false;
-                    }
-
-                    minBoard.Draw(size, offset, ref matrix);
-                }
-
-                /// <summary>
-                /// Draws a billboard in screen space at the given position in pixels.
-                /// </summary>
-                public void Draw(Vector2 origin)
-                {
-                    if (updateMatFit && matFrame.Material != Material.Default)
-                    {
-                        minBoard.matFit = matFrame.GetMaterialAlignment(size.X / size.Y);
-                        updateMatFit = false;
-                    }
-
-                    minBoard.Draw(size, origin);
-                }           
+                }     
             }
         }
     }

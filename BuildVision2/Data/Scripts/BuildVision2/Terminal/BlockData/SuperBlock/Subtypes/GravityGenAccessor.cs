@@ -65,24 +65,56 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityAcceleration)}: ", nameFormat);
-                builder.Add($"{Acceleration:G4} m/s²\n", valueFormat);
+                var buf = block.textBuffer;
+
+                // Acceleration due to gravity
+                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityAcceleration), nameFormat);
+                builder.Add(": ", nameFormat);
+
+                buf.Clear();
+                buf.AppendFormat("{0:G4}", Acceleration);
+                buf.Append(" m/s²\n");
+                builder.Add(buf, valueFormat);
 
                 if (IsSpherical)
                 {
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldRadius)}: ", nameFormat);
-                    builder.Add($"{TerminalUtilities.GetDistanceDisplay(Radius)}\n", valueFormat);
+                    // Field radius
+                    builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldRadius), nameFormat);
+                    builder.Add(": ", nameFormat);
+
+                    buf.Clear();
+                    TerminalUtilities.GetDistanceDisplay(Radius, buf);
+                    buf.Append('\n');
+                    builder.Add(buf, valueFormat);
                 }
                 else
                 {
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldWidth)}: ", nameFormat);
-                    builder.Add($"{TerminalUtilities.GetDistanceDisplay(FieldSize.X)}\n", valueFormat);
+                    // Field width
+                    builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldWidth), nameFormat);
+                    builder.Add(": ", nameFormat);
 
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldHeight)}: ", nameFormat);
-                    builder.Add($"{TerminalUtilities.GetDistanceDisplay(FieldSize.Y)}\n", valueFormat);
+                    buf.Clear();
+                    TerminalUtilities.GetDistanceDisplay(FieldSize.X, buf);
+                    buf.Append('\n');
+                    builder.Add(buf, valueFormat);
 
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldDepth)}: ", nameFormat);
-                    builder.Add($"{TerminalUtilities.GetDistanceDisplay(FieldSize.Z)}\n", valueFormat);
+                    // Field height
+                    builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldHeight), nameFormat);
+                    builder.Add(": ", nameFormat);
+
+                    buf.Clear();
+                    TerminalUtilities.GetDistanceDisplay(FieldSize.Y, buf);
+                    buf.Append('\n');
+                    builder.Add(buf, valueFormat);
+
+                    // Field depth
+                    builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GravityFieldDepth), nameFormat);
+                    builder.Add(": ", nameFormat);
+
+                    buf.Clear();
+                    TerminalUtilities.GetDistanceDisplay(FieldSize.Z, buf);
+                    buf.Append('\n');
+                    builder.Add(buf, valueFormat);
                 }
             }
         }

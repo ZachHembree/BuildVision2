@@ -1,9 +1,10 @@
-﻿using VRage;
-using RichHudFramework;
+﻿using RichHudFramework;
 using RichHudFramework.UI;
+using System;
 using System.Collections.Generic;
-using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
+using VRage;
 using VRage.Game.ModAPI;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -54,24 +55,46 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
+                var buf = block.textBuffer;
+
                 if (Inventories.Count > 1)
                 {
+
                     for (int n = 0; n < Inventories.Count; n++)
                     {
                         var inventory = Inventories[n];
 
-                        builder.Add($"{MyTexts.GetString(MySpaceTexts.ScreenTerminalProduction_InventoryButton)} {n}: ", nameFormat);
-                        builder.Add($"{inventory.CurrentVolume.ToString("G6")} / {inventory.MaxVolume.ToString("G6")} L ", valueFormat);
-                        builder.Add($"({(100d * inventory.CurrentVolume / inventory.MaxVolume).Round(2)}%)\n", nameFormat);
+                        buf.Clear();
+                        buf.Append(MyTexts.GetString(MySpaceTexts.ScreenTerminalProduction_InventoryButton));
+                        buf.Append(n);
+                        buf.Append(": ");
+                        builder.Add(buf, nameFormat);
+
+                        builder.Add($"{inventory.CurrentVolume:G6} / {inventory.MaxVolume:G6} L ", valueFormat);
+
+                        buf.Clear();
+                        buf.Append('(');
+                        buf.Append(Math.Round(100d * inventory.CurrentVolume / inventory.MaxVolume, 2));
+                        buf.Append("%)\n");
+                        builder.Add(buf, nameFormat);
                     }
                 }
                 else
                 {
                     var inventory = Inventories[0];
 
-                    builder.Add($"{MyTexts.GetString(MySpaceTexts.ScreenTerminalProduction_InventoryButton)}: ", nameFormat);
-                    builder.Add($"{inventory.CurrentVolume.ToString("G6")} / {inventory.MaxVolume.ToString("G6")} L ", valueFormat);
-                    builder.Add($"({(100d * inventory.CurrentVolume / inventory.MaxVolume).Round(2)}%)\n", nameFormat);
+                    buf.Clear();
+                    buf.Append(MyTexts.GetString(MySpaceTexts.ScreenTerminalProduction_InventoryButton));
+                    buf.Append(": ");
+                    builder.Add(buf, nameFormat);
+
+                    builder.Add($"{inventory.CurrentVolume:G6} / {inventory.MaxVolume:G6} L ", valueFormat);
+
+                    buf.Clear();
+                    buf.Append('(');
+                    buf.Append(Math.Round(100d * inventory.CurrentVolume / inventory.MaxVolume, 2));
+                    buf.Append("%)\n");
+                    builder.Add(buf, nameFormat);
                 }
             }
         }

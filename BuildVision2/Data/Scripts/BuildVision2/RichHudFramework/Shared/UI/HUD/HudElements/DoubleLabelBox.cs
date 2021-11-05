@@ -90,8 +90,8 @@ namespace RichHudFramework.UI
                 }
                 else
                 {
-                    left.Width = fullWidth / 2f;
-                    right.Width = fullWidth / 2f;
+                    left.Width = fullWidth * .5f;
+                    right.Width = fullWidth * .5f;
                 }
             }
         }

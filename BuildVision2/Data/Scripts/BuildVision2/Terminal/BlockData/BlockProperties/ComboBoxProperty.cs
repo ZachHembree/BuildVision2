@@ -15,42 +15,56 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ComboBoxProperty : ScrollableValueControlBase<IMyTerminalControlCombobox, long>
         {
-            public override string Display => names[GetCurrentIndex()];
+            public override StringBuilder Display 
+            {
+                get 
+                {
+                    int i = (int)GetValue();
 
-            public override string Status => GetPostfixFunc?.Invoke();
+                    if (keys.Count > 0 && i >= 0 && i < keys.Count)
+                        return names[i];
+                    else
+                        return null;
+                }
+            }
+
+            public override StringBuilder Status 
+            { 
+                get
+                {
+                    if (GetPostfixFunc != null)
+                    {
+                        GetPostfixFunc(postfixBuilder);
+                        return postfixBuilder;
+                    }
+                    else
+                        return null;
+                }
+            }
 
             private readonly List<long> keys;
-            private readonly List<string> names;
-            private Func<string> GetPostfixFunc, GetChargePostfixFunc;
-            protected BvPropPool<ComboBoxProperty> poolParent;
+            private readonly List<StringBuilder> names;
+
+            private Action<StringBuilder> GetPostfixFunc, GetChargePostfixFunc;
+            private BvPropPool<ComboBoxProperty> poolParent;
+            private readonly StringBuilder postfixBuilder;
 
             public ComboBoxProperty()
             {
                 keys = new List<long>();
-                names = new List<string>();
+                names = new List<StringBuilder>();
+
                 GetChargePostfixFunc = GetChargePostfix;
+                postfixBuilder = new StringBuilder();
             }
 
-            public override void SetProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, PropertyBlock block)
+            public override void SetProperty(StringBuilder name, IMyTerminalControlCombobox comboBox, PropertyBlock block)
             {
-                base.SetProperty(name, comboBox, control, block);
+                base.SetProperty(name, comboBox, block);
 
                 if (poolParent == null)
                     poolParent = block.comboPropPool;
 
-                List<MyTerminalControlComboBoxItem> content = new List<MyTerminalControlComboBoxItem>();
-                comboBox.ComboBoxContent(content);
-
-                keys.EnsureCapacity(content.Count);
-                names.EnsureCapacity(content.Count);
-
-                foreach (MyTerminalControlComboBoxItem item in content)
-                {
-                    string itemName = MyTexts.Get(item.Value).ToString();
-                    keys.Add(item.Key);
-                    names.Add(itemName);
-                }
-                
                 if (control.Id == "ChargeMode" && block.SubtypeId.UsesSubtype(TBlockSubtypes.Battery)) // Insert bat charge info
                     GetPostfixFunc = GetChargePostfixFunc;
             }
@@ -62,6 +76,7 @@ namespace DarkHelmet.BuildVision2
                 GetPostfixFunc = null;
                 keys.Clear();
                 names.Clear();
+                postfixBuilder.Clear();
             }
 
             public override void Return()
@@ -69,10 +84,11 @@ namespace DarkHelmet.BuildVision2
                 poolParent.Return(this);
             }
 
-            public static ComboBoxProperty GetProperty(string name, IMyTerminalControlCombobox comboBox, IMyTerminalControl control, PropertyBlock block)
+            public static ComboBoxProperty GetProperty(StringBuilder name, IMyTerminalControlCombobox comboBox, List<MyTerminalControlComboBoxItem> comboItems, PropertyBlock block)
             {
                 ComboBoxProperty prop = block.comboPropPool.Get();
-                prop.SetProperty(name, comboBox, control, block);
+                prop.SetProperty(name, comboBox, block);
+                prop.SetComboItems(comboItems);
 
                 return prop;
             }
@@ -83,20 +99,36 @@ namespace DarkHelmet.BuildVision2
             public override void ScrollDown() =>
                 ChangePropValue(-1);
 
-            private string GetChargePostfix()
+            private void SetComboItems(List<MyTerminalControlComboBoxItem> comboItems)
             {
-                return $"({Math.Round((block.Battery.Charge / block.Battery.Capacity) * 100f, 1)}%)";
+                keys.EnsureCapacity(comboItems.Count);
+                names.EnsureCapacity(comboItems.Count);
+
+                foreach (MyTerminalControlComboBoxItem item in comboItems)
+                {
+                    StringBuilder itemName = MyTexts.Get(item.Value);
+                    keys.Add(item.Key);
+                    names.Add(itemName);
+                }
+            }
+
+            private void GetChargePostfix(StringBuilder sb)
+            {
+                sb.Clear();
+                sb.Append('(');
+                sb.Append(Math.Round((block.Battery.Charge / block.Battery.Capacity) * 100f, 1));
+                sb.Append("%)");
             }
 
             private void ChangePropValue(int delta)
             {
-                int index = MathHelper.Clamp((GetCurrentIndex() + delta), 0, keys.Count - 1);
+                int index = MathHelper.Clamp((int)(GetValue() + delta), 0, keys.Count - 1);
                 SetValue(keys[index]);
             }
 
-            private int GetCurrentIndex()
+            public override long GetValue()
             {
-                long key = GetValue();
+                long key = base.GetValue();
 
                 for (int n = 0; n < keys.Count; n++)
                 {

@@ -37,7 +37,6 @@ namespace DarkHelmet.BuildVision2
                 { "import", x => TryImportBlockData() },
                 { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(PropertiesMenu.Target?.SubtypeId.ToString() ?? "No Target")}") },
                 { "toggleBoundingBox", x => PropertiesMenu.DrawBoundingBox = !PropertiesMenu.DrawBoundingBox },
-                { "toggleWorldDraw", x => PropertiesMenu.EnableWorldDraw = !PropertiesMenu.EnableWorldDraw },
                 { "targetBench", TargetBench, 1 },
                 { "getTarget", x => GetTarget() },
                 { "echo", x => ExceptionHandler.SendChatMessage($"echo: {x[0]}") },
@@ -54,7 +53,7 @@ namespace DarkHelmet.BuildVision2
             if (bind == null)
                 ExceptionHandler.SendChatMessage("Error: The bind specified could not be found.");
             else
-                bind.TrySetCombo(controls);
+                bind.TrySetCombo(controls, true, false);
         }
 
         private void TryImportBlockData()

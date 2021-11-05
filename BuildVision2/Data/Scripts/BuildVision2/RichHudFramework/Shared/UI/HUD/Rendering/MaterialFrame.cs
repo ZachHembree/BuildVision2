@@ -23,7 +23,7 @@ namespace RichHudFramework
                 /// </summary>
                 Vector2 UvOffset { get; }
 
-                FlatQuad GetMaterialAlignment(float bbAspectRatio);
+                BoundingBox2 GetMaterialAlignment(float bbAspectRatio);
             }
 
             /// <summary>
@@ -57,10 +57,10 @@ namespace RichHudFramework
                 /// Calculates the texture coordinates needed to fit the material to the billboard. 
                 /// Aspect ratio = Width/Height
                 /// </summary>
-                public FlatQuad GetMaterialAlignment(float bbAspectRatio)
+                public BoundingBox2 GetMaterialAlignment(float bbAspectRatio)
                 {
                     Vector2 matOrigin = Material.uvOffset + UvOffset,
-                        matStep = Material.uvSize / 2f;
+                        matStep = Material.uvSize * .5f;
 
                     if (Alignment != MaterialAlignment.StretchToFit)
                     {
@@ -86,16 +86,10 @@ namespace RichHudFramework
                         matStep *= localUV;
                     }
 
-                    Vector2
-                        min = matOrigin - matStep,
-                        max = matOrigin + matStep;
-
-                    return new FlatQuad
+                    return new BoundingBox2
                     (
-                        Vector2.Clamp(matOrigin - matStep, min, max), // Bottom left
-                        Vector2.Clamp(matOrigin + new Vector2(-matStep.X, matStep.Y), min, max), // Upper left
-                        Vector2.Clamp(matOrigin + matStep, min, max), // Upper right
-                        Vector2.Clamp(matOrigin + new Vector2(matStep.X, -matStep.Y), min, max) // Bottom right
+                        matOrigin - matStep, // Bottom left
+                        matOrigin + matStep // Upper right
                     );
                 }
             }
@@ -105,7 +99,7 @@ namespace RichHudFramework
             /// </summary>
             public struct FlatQuad
             {
-                public readonly Vector2 Point0, Point1, Point2, Point3;
+                public Vector2 Point0, Point1, Point2, Point3;
 
                 public FlatQuad(Vector2 Point0, Vector2 Point1, Vector2 Point2, Vector2 Point3)
                 {

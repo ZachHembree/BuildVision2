@@ -3,6 +3,7 @@ using RichHudFramework.UI;
 using RichHudFramework;
 using Sandbox.ModAPI;
 using System;
+using System.Text;
 using System.Collections.Generic;
 using VRage.ModAPI;
 using VRageMath;
@@ -100,10 +101,12 @@ namespace DarkHelmet.BuildVision2
         public IReadOnlyList<SubtypeAccessorBase> SubtypeAccessors => subtypeAccessors;
 
         private readonly List<SubtypeAccessorBase> subtypeAccessors;
+        private readonly StringBuilder textBuffer;
 
         public SuperBlock()
         {
             subtypeAccessors = new List<SubtypeAccessorBase>();
+            textBuffer = new StringBuilder();
         }
 
         public virtual void SetBlock(TerminalGrid grid, IMyTerminalBlock tBlock)
