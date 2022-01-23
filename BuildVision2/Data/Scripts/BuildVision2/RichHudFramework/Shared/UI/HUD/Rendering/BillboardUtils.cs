@@ -192,6 +192,30 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
+                /// Adds a triangles in the given starting index range
+                /// </summary>
+                public static void AddTriangleRange(Vector2I range, List<int> indices, List<Vector3D> vertices, ref PolyMaterial mat)
+                {
+                    for (int i = range.X; i <= range.Y; i += 3)
+                    {
+                        MyTransparentGeometry.AddTriangleBillboard
+                        (
+                            vertices[indices[i]],
+                            vertices[indices[i + 1]],
+                            vertices[indices[i + 2]],
+                            Vector3.Zero, Vector3.Zero, Vector3.Zero,
+                            mat.texCoords[indices[i]],
+                            mat.texCoords[indices[i + 1]],
+                            mat.texCoords[indices[i + 2]],
+                            mat.textureID, 0,
+                            Vector3D.Zero,
+                            mat.bbColor,
+                            BlendTypeEnum.PostPP
+                        );
+                    }
+                }
+
+                /// <summary>
                 /// Renders a polygon from a given set of unique vertex coordinates. Triangles are defined by their
                 /// indices.
                 /// </summary>

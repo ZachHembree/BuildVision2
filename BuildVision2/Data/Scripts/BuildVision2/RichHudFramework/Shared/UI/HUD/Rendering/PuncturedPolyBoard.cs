@@ -31,6 +31,32 @@ namespace RichHudFramework.UI.Rendering
             _innerRadius = 0.8f;
         }
 
+        /// <summary>
+        /// Draws the given range of faces
+        /// </summary>
+        public override void Draw(Vector2 size, Vector2 origin, ref MatrixD matrix, Vector2I faceRange)
+        {
+            if (_sides > 2)
+            {
+                if (updateVertices)
+                    GeneratePolygon();
+
+                faceRange *= 2;
+
+                // Generate final vertices for drawing from unscaled vertices
+                for (int i = faceRange.X; i <= (faceRange.Y + 3); i++)
+                {
+                    var point = new Vector3D(origin + size * vertices[i % drawVertices.Count], 0d);
+                    Vector3D.TransformNoProjection(ref point, ref matrix, out point);
+                    drawVertices[i % drawVertices.Count] = point;
+                }
+
+                faceRange *= 3;
+                var range = new Vector2I(faceRange.X, faceRange.Y + 3);
+                BillBoardUtils.AddTriangleRange(range, triangles, drawVertices, ref polyMat);
+            }
+        }
+
         protected override void GenerateTriangles()
         {
             int max = vertices.Count;
