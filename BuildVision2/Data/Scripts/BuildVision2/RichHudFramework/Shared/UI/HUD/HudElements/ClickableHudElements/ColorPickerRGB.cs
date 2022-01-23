@@ -3,7 +3,7 @@ using System.Text;
 using RichHudFramework.UI.Rendering;
 using VRageMath;
 
-namespace RichHudFramework.UI.Server
+namespace RichHudFramework.UI
 {
     using UI;
 

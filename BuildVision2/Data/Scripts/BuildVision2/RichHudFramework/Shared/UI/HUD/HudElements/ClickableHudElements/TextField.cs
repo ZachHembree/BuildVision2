@@ -2,7 +2,7 @@
 using RichHudFramework.UI.Rendering;
 using VRageMath;
 
-namespace RichHudFramework.UI.Server
+namespace RichHudFramework.UI
 {
     /// <summary>
     /// Unlined clickable textbox with a background and border designed to look like text fields in the SE

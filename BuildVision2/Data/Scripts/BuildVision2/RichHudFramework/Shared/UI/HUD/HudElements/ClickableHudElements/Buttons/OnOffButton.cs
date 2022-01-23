@@ -4,7 +4,7 @@ using VRage;
 using VRageMath;
 using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
-namespace RichHudFramework.UI.Server
+namespace RichHudFramework.UI
 {
     /// <summary>
     /// A pair of horizontally aligned on and off bordered buttons used to indicate a boolean value. Made to
