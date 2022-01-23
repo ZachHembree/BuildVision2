@@ -33,8 +33,6 @@ namespace RichHudFramework.UI.Rendering
 
         protected override void GenerateTriangles()
         {
-            GenerateVertices();
-
             int max = vertices.Count;
             triangles.Clear();
             triangles.EnsureCapacity(_sides * 3 * 2);
@@ -42,7 +40,7 @@ namespace RichHudFramework.UI.Rendering
             for (int i = 0; i < vertices.Count; i += 2)
             {
                 int outerStart = i,
-                    innerStart = i + 1,
+                    innerStart = (i + 1) % max,
                     outerEnd = (i + 2) % max,
                     innerEnd = (i + 3) % max;
 
@@ -59,13 +57,12 @@ namespace RichHudFramework.UI.Rendering
 
         protected override void GenerateVertices()
         {
-            _innerRadius = Math.Min(1f - 0.01f, _innerRadius);
+            float rotStep = (float)(Math.PI * 2f / _sides),
+                rotPos = -.5f * rotStep;
 
+            _innerRadius = Math.Min(1f - 0.01f, _innerRadius);
             vertices.Clear();
             vertices.EnsureCapacity(_sides * 2);
-
-            float rotStep = (float)(Math.PI * 2f / _sides),
-                rotPos =  -.5f * rotStep;
 
             for (int i = 0; i < _sides; i++)
             {

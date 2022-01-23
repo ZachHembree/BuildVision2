@@ -10,8 +10,6 @@ namespace RichHudFramework.UI.Rendering
     /// </summary>
     public class PolyBoard
     {
-        public static readonly Material testMat = new Material("RichHudSe0", new Vector2(1024));
-
         /// <summary>
         /// Tinting applied to the material
         /// </summary>
@@ -76,7 +74,6 @@ namespace RichHudFramework.UI.Rendering
             drawVertices = new List<Vector3D>();
 
             polyMat = PolyMaterial.Default;
-            polyMat.textureID = testMat.TextureID;
             polyMat.texCoords = new List<Vector2>();
 
             _sides = 16;
@@ -85,36 +82,43 @@ namespace RichHudFramework.UI.Rendering
 
         public void Draw(Vector2 size, Vector2 origin, ref MatrixD matrix)
         {
-            if (updateVertices)
-                GenerateTriangles();
-
-            // Generate final vertices for drawing from unscaled vertices
-            drawVertices.Clear();
-            drawVertices.EnsureCapacity(vertices.Count);
-
-            for (int i = 0; i < vertices.Count; i++)
+            if (_sides > 2)
             {
-                var point = new Vector3D(origin + size * vertices[i], 0d);
-                Vector3D.TransformNoProjection(ref point, ref matrix, out point);
-                drawVertices.Add(point);
-            }
+                if (updateVertices)
+                    GeneratePolygon();
 
-            BillBoardUtils.AddTriangles(triangles, drawVertices, ref polyMat);
+                // Generate final vertices for drawing from unscaled vertices
+                drawVertices.Clear();
+                drawVertices.EnsureCapacity(vertices.Count);
+
+                for (int i = 0; i < vertices.Count; i++)
+                {
+                    var point = new Vector3D(origin + size * vertices[i], 0d);
+                    Vector3D.TransformNoProjection(ref point, ref matrix, out point);
+                    drawVertices.Add(point);
+                }
+
+                BillBoardUtils.AddTriangles(triangles, drawVertices, ref polyMat);
+            }
+        }
+
+        protected virtual void GeneratePolygon()
+        {
+            GenerateVertices();
+            GenerateTextureCoordinates();
+            GenerateTriangles();
         }
 
         protected virtual void GenerateTriangles()
         {
-            GenerateVertices();
-            GenerateTextureCoordinates();
-
-            int max = vertices.Count;
+            int max = vertices.Count - 1;
             triangles.Clear();
             triangles.EnsureCapacity(_sides * 3);
 
-            for (int i = 0; i < vertices.Count; i++)
+            for (int i = 0; i < vertices.Count - 1; i++)
             {
                 triangles.Add(0);
-                triangles.Add(i % max);
+                triangles.Add(i);
                 triangles.Add((i + 1) % max);
             }
         }
@@ -136,15 +140,13 @@ namespace RichHudFramework.UI.Rendering
 
         protected virtual void GenerateVertices()
         {
-            int outerVertices = _sides + 1 - _sides % 2;
             float rotStep = (float)(Math.PI * 2f / _sides),
                 rotPos = -.5f * rotStep;
 
             vertices.Clear();
-            vertices.EnsureCapacity(outerVertices + 1);
-            vertices.Add(Vector2.Zero);
+            vertices.EnsureCapacity(_sides + 1);
 
-            for (int i = 0; i < outerVertices; i++)
+            for (int i = 0; i < _sides; i++)
             {
                 Vector2 point = Vector2.Zero;
                 point.X = (float)Math.Cos(rotPos);
@@ -152,6 +154,8 @@ namespace RichHudFramework.UI.Rendering
                 vertices.Add(.5f * point);
                 rotPos += rotStep;
             }
+
+            vertices.Add(Vector2.Zero);
         }
     }
 }
