@@ -102,11 +102,6 @@ namespace DarkHelmet.BuildVision2
 
         private static BvApiClient instance;
 
-        /// <summary>
-        /// Returns true if the player currently has the menu open
-        /// </summary>
-        public bool IsMenuOpen { get; }
-
         public BvApiClient()
         {
             if (instance == null)

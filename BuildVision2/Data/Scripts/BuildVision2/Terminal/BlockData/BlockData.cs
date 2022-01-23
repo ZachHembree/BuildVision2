@@ -30,7 +30,7 @@ namespace DarkHelmet.BuildVision2
         [ProtoMember(1)]
         public string name;
 
-        [ProtoMember(3)]
+        [ProtoMember(2)]
         public byte[] valueData;
 
         public PropertyData(string propertyID, byte[] valueData)
