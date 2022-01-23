@@ -19,7 +19,7 @@ namespace RichHudFramework
                     set
                     {
                         if (value != color)
-                            minBoard.bbColor = QuadBoard.GetQuadBoardColor(value);
+                            minBoard.materialData.bbColor = BillBoardUtils.GetBillBoardBoardColor(value);
 
                         color = value;
                     }
@@ -37,7 +37,7 @@ namespace RichHudFramework
                         {
                             updateMatFit = true;
                             matFrame.Material = value;
-                            minBoard.textureID = value.TextureID;
+                            minBoard.materialData.textureID = value.TextureID;
                         }
                     }
                 }
@@ -100,7 +100,7 @@ namespace RichHudFramework
                         if (updateMatFit && matFrame.Material != Material.Default)
                         {
                             Vector2 boxSize = box.bounds.Size;
-                            minBoard.texCoords = matFrame.GetMaterialAlignment(boxSize.X / boxSize.Y);
+                            minBoard.materialData.texBounds = matFrame.GetMaterialAlignment(boxSize.X / boxSize.Y);
                             updateMatFit = false;
                         }
 

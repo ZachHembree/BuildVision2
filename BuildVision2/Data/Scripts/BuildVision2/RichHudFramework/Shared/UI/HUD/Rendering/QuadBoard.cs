@@ -16,7 +16,8 @@ namespace RichHudFramework
         {
             public struct CroppedBox
             {
-                public static readonly BoundingBox2 defaultMask = new BoundingBox2(-Vector2.PositiveInfinity, Vector2.PositiveInfinity);
+                public static readonly BoundingBox2 defaultMask =
+                    new BoundingBox2(-Vector2.PositiveInfinity, Vector2.PositiveInfinity);
 
                 public BoundingBox2 bounds;
                 public BoundingBox2? mask;
@@ -36,39 +37,29 @@ namespace RichHudFramework
                 public float skewRatio;
 
                 /// <summary>
-                /// Material ID used by the billboard.
+                /// Determines material applied to the billboard as well as its alignment, bounding and tint
                 /// </summary>
-                public MyStringId textureID;
-
-                /// <summary>
-                /// Color of the billboard using native formatting
-                /// </summary>
-                public Vector4 bbColor;
-
-                /// <summary>
-                /// Determines the scale and aspect ratio of the texture as rendered.
-                /// </summary>
-                public BoundingBox2 texCoords;
+                public BoundedQuadMaterial materialData;
 
                 static QuadBoard()
                 {
-                    var matFit = new BoundingBox2(new Vector2(0f, 0f), new Vector2(0f, 1f));
+                    var matFit = new BoundingBox2(new Vector2(0f, 0f), new Vector2(1f, 1f));
                     Default = new QuadBoard(Material.Default.TextureID, matFit, Color.White);
                 }
 
                 public QuadBoard(MyStringId textureID, BoundingBox2 matFit, Vector4 bbColor, float skewRatio = 0f)
                 {
-                    this.textureID = textureID;
-                    this.texCoords = matFit;
-                    this.bbColor = bbColor;
+                    materialData.textureID = textureID;
+                    materialData.texBounds = matFit;
+                    materialData.bbColor = bbColor;
                     this.skewRatio = skewRatio;
                 }
 
                 public QuadBoard(MyStringId textureID, BoundingBox2 matFit, Color color, float skewRatio = 0f)
                 {
-                    this.textureID = textureID;
-                    this.texCoords = matFit;
-                    bbColor = GetQuadBoardColor(color);
+                    materialData.textureID = textureID;
+                    materialData.texBounds = matFit;
+                    materialData.bbColor = BillBoardUtils.GetBillBoardBoardColor(color);
                     this.skewRatio = skewRatio;
                 }
 
@@ -77,7 +68,7 @@ namespace RichHudFramework
                 /// </summary>
                 public void Draw(ref MyQuadD quad)
                 {
-                    AddBillboard(ref this, ref quad);
+                    BillBoardUtils.AddQuad(ref materialData, ref quad);
                 }
 
                 /// <summary>
@@ -102,7 +93,7 @@ namespace RichHudFramework
                         quad.Point2 -= offset;
                     }
 
-                    AddBillboard(ref this, ref quad);
+                    BillBoardUtils.AddQuad(ref materialData, ref quad);
                 }
 
                 /// <summary>
@@ -130,7 +121,7 @@ namespace RichHudFramework
                         quad.Point2 -= offset;
                     }
 
-                    AddBillboard(ref this, ref quad);
+                    BillBoardUtils.AddQuad(ref materialData, ref quad);
                 }
 
                 /// <summary>
@@ -162,7 +153,7 @@ namespace RichHudFramework
                         quad.Point2 -= offset;
                     }
 
-                    AddBillboard(ref this, ref quad);
+                    BillBoardUtils.AddQuad(ref materialData, ref quad);
                 }
 
                 /// <summary>
@@ -178,7 +169,7 @@ namespace RichHudFramework
 
                     Vector2 clipSize = box.bounds.Size;
                     CroppedQuad crop = default(CroppedQuad);
-                    crop.matBounds = texCoords;
+                    crop.matBounds = materialData.texBounds;
 
                     // Normalized cropped size and offset
                     Vector2 clipScale = clipSize / size,
@@ -209,21 +200,10 @@ namespace RichHudFramework
                         crop.quad.Point2 -= offset;
                     }
 
-                    AddBillboard(ref this, ref crop);
+                    AddBillboard(ref materialData, ref crop);
                 }
 
-                public static Vector4 GetQuadBoardColor(Color color)
-                {   
-                    float opacity = color.A / 255f;
-
-                    color.R = (byte)(color.R * opacity);
-                    color.G = (byte)(color.G * opacity);
-                    color.B = (byte)(color.B * opacity);
-
-                    return ((Vector4)color).ToLinearRGB();
-                }
-
-                private static void AddBillboard(ref QuadBoard qb, ref CroppedQuad crop)
+                private static void AddBillboard(ref BoundedQuadMaterial matData, ref CroppedQuad crop)
                 {
                     MyTransparentGeometry.AddTriangleBillboard
                     (
@@ -234,9 +214,9 @@ namespace RichHudFramework
                         crop.matBounds.Min,
                         (crop.matBounds.Min + new Vector2(0f, crop.matBounds.Size.Y)),
                         crop.matBounds.Max,
-                        qb.textureID, 0,
+                        matData.textureID, 0,
                         Vector3D.Zero,
-                        qb.bbColor,
+                        matData.bbColor,
                         BlendTypeEnum.PostPP
                     );
 
@@ -249,42 +229,9 @@ namespace RichHudFramework
                         crop.matBounds.Min,
                         crop.matBounds.Max,
                         (crop.matBounds.Min + new Vector2(crop.matBounds.Size.X, 0f)),
-                        qb.textureID, 0,
+                        matData.textureID, 0,
                         Vector3D.Zero,
-                        qb.bbColor,
-                        BlendTypeEnum.PostPP
-                    );
-                }
-
-                private static void AddBillboard(ref QuadBoard qb, ref MyQuadD quad)
-                {
-                    MyTransparentGeometry.AddTriangleBillboard
-                    (
-                        quad.Point0,
-                        quad.Point1,
-                        quad.Point2,
-                        Vector3.Zero, Vector3.Zero, Vector3.Zero,
-                        qb.texCoords.Min,
-                        (qb.texCoords.Min + new Vector2(0f, qb.texCoords.Size.Y)),
-                        qb.texCoords.Max,
-                        qb.textureID, 0,
-                        Vector3D.Zero,
-                        qb.bbColor,
-                        BlendTypeEnum.PostPP
-                    );
-
-                    MyTransparentGeometry.AddTriangleBillboard
-                    (
-                        quad.Point0,
-                        quad.Point2,
-                        quad.Point3,
-                        Vector3.Zero, Vector3.Zero, Vector3.Zero,
-                        qb.texCoords.Min,
-                        qb.texCoords.Max,
-                        (qb.texCoords.Min + new Vector2(qb.texCoords.Size.X, 0f)),
-                        qb.textureID, 0,
-                        Vector3D.Zero,
-                        qb.bbColor,
+                        matData.bbColor,
                         BlendTypeEnum.PostPP
                     );
                 }
