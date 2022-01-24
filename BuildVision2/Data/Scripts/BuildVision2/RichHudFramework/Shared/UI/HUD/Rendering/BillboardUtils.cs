@@ -159,6 +159,11 @@ namespace RichHudFramework
                 public Vector4 bbColor;
 
                 /// <summary>
+                /// Min/max texcoords
+                /// </summary>
+                public BoundingBox2 texBounds;
+
+                /// <summary>
                 /// Normalized texture coordinates
                 /// </summary>
                 public List<Vector2> texCoords;

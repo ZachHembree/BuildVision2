@@ -28,7 +28,7 @@ namespace RichHudFramework.UI.Rendering
 
         public PuncturedPolyBoard()
         {
-            _innerRadius = 0.8f;
+            _innerRadius = 0.6f;
         }
 
         /// <summary>
@@ -40,6 +40,13 @@ namespace RichHudFramework.UI.Rendering
             {
                 if (updateVertices)
                     GeneratePolygon();
+
+                if (updateMatFit && matFrame.Material != Material.Default)
+                {
+                    polyMat.texBounds = matFrame.GetMaterialAlignment(size.X / size.Y);
+                    GenerateTextureCoordinates();
+                    updateMatFit = false;
+                }
 
                 faceRange *= 2;
 
@@ -55,6 +62,18 @@ namespace RichHudFramework.UI.Rendering
                 var range = new Vector2I(faceRange.X, faceRange.Y + 3);
                 BillBoardUtils.AddTriangleRange(range, triangles, drawVertices, ref polyMat);
             }
+        }
+
+        /// <summary>
+        /// Returns the center position of the given slice relative to the center of the billboard
+        /// </summary>
+        public override Vector2 GetSliceOffset(Vector2 bbSize, Vector2I range)
+        {
+            range *= 2;
+            Vector2 start = vertices[range.X],
+                end = vertices[range.Y + 1];
+
+            return bbSize * (start + end) / 2f;
         }
 
         protected override void GenerateTriangles()
@@ -74,6 +93,7 @@ namespace RichHudFramework.UI.Rendering
                 triangles.Add(outerStart);
                 triangles.Add(outerEnd);
                 triangles.Add(innerStart);
+
                 // Right Lower
                 triangles.Add(outerEnd);
                 triangles.Add(innerEnd);

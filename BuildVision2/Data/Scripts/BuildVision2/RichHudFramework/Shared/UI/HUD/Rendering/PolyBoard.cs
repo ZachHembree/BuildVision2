@@ -30,13 +30,30 @@ namespace RichHudFramework.UI.Rendering
         /// </summary>
         public virtual Material Material
         {
-            get { return material; }
+            get { return matFrame.Material; }
             set
             {
-                if (value != material)
+                if (value != matFrame.Material)
                 {
-                    material = value;
+                    updateMatFit = true;
+                    matFrame.Material = value;
                     polyMat.textureID = value.TextureID;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Determines how the texture scales with the MatBoard's dimensions.
+        /// </summary>
+        public MaterialAlignment MatAlignment
+        {
+            get { return matFrame.Alignment; }
+            set
+            {
+                if (value != matFrame.Alignment)
+                {
+                    updateMatFit = true;
+                    matFrame.Alignment = value;
                 }
             }
         }
@@ -58,11 +75,11 @@ namespace RichHudFramework.UI.Rendering
 
         protected int _sides;
 
-        protected Material material;
         protected Color color;
-        protected bool updateVertices;
+        protected bool updateVertices, updateMatFit;
 
         protected PolyMaterial polyMat;
+        protected readonly MaterialFrame matFrame;
         protected readonly List<int> triangles;
         protected readonly List<Vector2> vertices;
         protected readonly List<Vector3D> drawVertices;
@@ -73,6 +90,7 @@ namespace RichHudFramework.UI.Rendering
             vertices = new List<Vector2>();
             drawVertices = new List<Vector3D>();
 
+            matFrame = new MaterialFrame();
             polyMat = PolyMaterial.Default;
             polyMat.texCoords = new List<Vector2>();
 
@@ -89,6 +107,13 @@ namespace RichHudFramework.UI.Rendering
             {
                 if (updateVertices)
                     GeneratePolygon();
+
+                if (updateMatFit && matFrame.Material != Material.Default)
+                {
+                    polyMat.texBounds = matFrame.GetMaterialAlignment(size.X / size.Y);
+                    GenerateTextureCoordinates();
+                    updateMatFit = false;
+                }
 
                 // Generate final vertices for drawing from unscaled vertices
                 for (int i = 0; i < drawVertices.Count; i++)
@@ -112,6 +137,13 @@ namespace RichHudFramework.UI.Rendering
                 if (updateVertices)
                     GeneratePolygon();
 
+                if (updateMatFit && matFrame.Material != Material.Default)
+                {
+                    polyMat.texBounds = matFrame.GetMaterialAlignment(size.X / size.Y);
+                    GenerateTextureCoordinates();
+                    updateMatFit = false;
+                }
+
                 // Generate final vertices for drawing from unscaled vertices
                 int max = drawVertices.Count - 1;
                 var point = new Vector3D(origin + size * vertices[max], 0d);
@@ -130,15 +162,28 @@ namespace RichHudFramework.UI.Rendering
             }
         }
 
+        /// <summary>
+        /// Returns the center position of the given slice relative to the center of the billboard
+        /// </summary>
+        public virtual Vector2 GetSliceOffset(Vector2 bbSize, Vector2I range)
+        {
+            Vector2 start = vertices[range.X], 
+                end = vertices[range.Y], 
+                center = Vector2.Zero;
+
+            return bbSize * (start + end + center) / 3f;
+        }
+
         protected virtual void GeneratePolygon()
         {
             GenerateVertices();
-            GenerateTextureCoordinates();
             GenerateTriangles();
             drawVertices.Clear();
 
             for (int i = 0; i < vertices.Count; i++)
                 drawVertices.Add(Vector3D.Zero);
+
+            updateMatFit = true;
         }
 
         protected virtual void GenerateTriangles()
@@ -157,16 +202,18 @@ namespace RichHudFramework.UI.Rendering
 
         protected virtual void GenerateTextureCoordinates()
         {
+            Vector2 texScale = polyMat.texBounds.Size,
+                texCenter = polyMat.texBounds.Center;
+
             polyMat.texCoords.Clear();
             polyMat.texCoords.EnsureCapacity(vertices.Count);
 
             for (int i = 0; i < vertices.Count; i++)
             {
-                Vector2 uv = vertices[i];
+                Vector2 uv = vertices[i] * texScale;
                 uv.Y *= -1f;
-                uv += 0.5f * Vector2.One;
 
-                polyMat.texCoords.Add(uv);
+                polyMat.texCoords.Add(uv + texCenter);
             }
         }
 
@@ -183,6 +230,7 @@ namespace RichHudFramework.UI.Rendering
                 Vector2 point = Vector2.Zero;
                 point.X = (float)Math.Cos(rotPos);
                 point.Y = (float)Math.Sin(rotPos);
+
                 vertices.Add(.5f * point);
                 rotPos += rotStep;
             }
