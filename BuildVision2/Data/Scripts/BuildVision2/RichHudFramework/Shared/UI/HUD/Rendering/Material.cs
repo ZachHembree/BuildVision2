@@ -42,7 +42,9 @@ namespace RichHudFramework
             /// </summary>
             public class Material
             {
-                public static readonly Material Default = new Material(MyStringId.GetOrCompute("RichHudDefault"), new Vector2(4f, 4f));
+                public static readonly Material Default = new Material("RichHudDefault", new Vector2(4f, 4f)),
+                    CircleMat = new Material("RhfCircle", new Vector2(1024f)),
+                    AnnulusMat = new Material("RhfAnnulus", new Vector2(1024f));
 
                 /// <summary>
                 /// ID of the Texture the <see cref="Material"/> is based on.

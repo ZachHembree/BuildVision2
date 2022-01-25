@@ -18,9 +18,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BlockAction : BlockMemberBase, IBlockAction
         {
-            public override StringBuilder Display { get { GetValueFunc(dispBuilder); return dispBuilder; } }
+            public override StringBuilder FormattedValue { get { GetValueFunc(dispBuilder); return dispBuilder; } }
 
-            public override StringBuilder Status 
+            public override StringBuilder StatusText 
             { 
                 get 
                 {
@@ -37,7 +37,14 @@ namespace DarkHelmet.BuildVision2
             private Action<StringBuilder> GetValueFunc, GetPostfixFunc;
             private Action action;
             private BvPropPool<BlockAction> poolParent;
-            private StringBuilder dispBuilder, statusBuilder;
+            private readonly StringBuilder dispBuilder, statusBuilder;
+
+            public BlockAction()
+            {
+                dispBuilder = new StringBuilder();
+                statusBuilder = new StringBuilder();
+                ValueType = BlockMemberValueTypes.None;
+            }
 
             public void SetAction(Action<StringBuilder> GetValueFunc, Action<StringBuilder> GetPostfixFunc, Action Action, PropertyBlock block)
             {
@@ -46,9 +53,6 @@ namespace DarkHelmet.BuildVision2
 
                 Name = null;
                 Enabled = true;
-
-                dispBuilder = new StringBuilder();
-                statusBuilder = new StringBuilder();
 
                 this.GetValueFunc = GetValueFunc;
                 this.GetPostfixFunc = GetPostfixFunc;

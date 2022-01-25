@@ -13,22 +13,26 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Scrollable property for <see cref="IMyTerminalControlCombobox"/> terminal properties.
         /// </summary>
-        private class ComboBoxProperty : ScrollableValueControlBase<IMyTerminalControlCombobox, long>
+        private class ComboBoxProperty : ScrollableValueControlBase<IMyTerminalControlCombobox, long>, IBlockComboBox
         {
-            public override StringBuilder Display 
+            public long Value { get{ return GetValue(); } set { SetValue(value); } }
+
+            public IReadOnlyList<KeyValuePair<long, StringBuilder>> ComboEntries => comboEntries;
+
+            public override StringBuilder FormattedValue 
             {
                 get 
                 {
                     int i = (int)GetValue();
 
-                    if (keys.Count > 0 && i >= 0 && i < keys.Count)
-                        return names[i];
+                    if (comboEntries.Count > 0 && i >= 0 && i < comboEntries.Count)
+                        return comboEntries[i].Value;
                     else
                         return null;
                 }
             }
 
-            public override StringBuilder Status 
+            public override StringBuilder StatusText 
             { 
                 get
                 {
@@ -42,8 +46,7 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            private readonly List<long> keys;
-            private readonly List<StringBuilder> names;
+            private readonly List<KeyValuePair<long, StringBuilder>> comboEntries;
 
             private Action<StringBuilder> GetPostfixFunc, GetChargePostfixFunc;
             private BvPropPool<ComboBoxProperty> poolParent;
@@ -51,11 +54,11 @@ namespace DarkHelmet.BuildVision2
 
             public ComboBoxProperty()
             {
-                keys = new List<long>();
-                names = new List<StringBuilder>();
+                comboEntries = new List<KeyValuePair<long, StringBuilder>>();
 
                 GetChargePostfixFunc = GetChargePostfix;
                 postfixBuilder = new StringBuilder();
+                ValueType = BlockMemberValueTypes.Combo;
             }
 
             public override void SetProperty(StringBuilder name, IMyTerminalControlCombobox comboBox, PropertyBlock block)
@@ -74,8 +77,7 @@ namespace DarkHelmet.BuildVision2
                 base.Reset();
 
                 GetPostfixFunc = null;
-                keys.Clear();
-                names.Clear();
+                comboEntries.Clear();
                 postfixBuilder.Clear();
             }
 
@@ -101,14 +103,12 @@ namespace DarkHelmet.BuildVision2
 
             private void SetComboItems(List<MyTerminalControlComboBoxItem> comboItems)
             {
-                keys.EnsureCapacity(comboItems.Count);
-                names.EnsureCapacity(comboItems.Count);
+                comboEntries.EnsureCapacity(comboItems.Count);
 
                 foreach (MyTerminalControlComboBoxItem item in comboItems)
                 {
                     StringBuilder itemName = MyTexts.Get(item.Value);
-                    keys.Add(item.Key);
-                    names.Add(itemName);
+                    comboEntries.Add(new KeyValuePair<long, StringBuilder>(item.Key, itemName));
                 }
             }
 
@@ -122,17 +122,17 @@ namespace DarkHelmet.BuildVision2
 
             private void ChangePropValue(int delta)
             {
-                int index = MathHelper.Clamp((int)(GetValue() + delta), 0, keys.Count - 1);
-                SetValue(keys[index]);
+                int index = MathHelper.Clamp((int)(GetValue() + delta), 0, comboEntries.Count - 1);
+                SetValue(comboEntries[index].Key);
             }
 
             public override long GetValue()
             {
                 long key = base.GetValue();
 
-                for (int n = 0; n < keys.Count; n++)
+                for (int n = 0; n < comboEntries.Count; n++)
                 {
-                    if (keys[n] == key)
+                    if (comboEntries[n].Key == key)
                         return n;
                 }
 

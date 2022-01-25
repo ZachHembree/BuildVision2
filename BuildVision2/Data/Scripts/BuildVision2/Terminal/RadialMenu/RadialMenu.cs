@@ -9,20 +9,23 @@ using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
 using RichHudFramework;
+using RichHudFramework.UI.Rendering;
 using RichHudFramework.UI.Client;
 
 namespace DarkHelmet.BuildVision2
 {
-    public sealed class QuickActionMenu : HudElementBase
+    public sealed partial class QuickActionMenu : HudElementBase
     {
         private static readonly Color
-            headerColor = new Color(41, 54, 62),
-            bodyColor = new Color(70, 78, 86),
-            selectionBoxColor = new Color(41, 54, 62);
+            headerColor = new Color(41, 54, 62, 225),
+            bodyColor = new Color(70, 78, 86, 225),
+            selectionBoxColor = new Color(41, 54, 62, 225);
         private static readonly GlyphFormat
             headerText = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f),
             bodyText = new GlyphFormat(Color.White, textSize: .885f),
             valueText = bodyText.WithColor(new Color(210, 210, 210)),
+            bodyTextCenter = bodyText.WithAlignment(TextAlignment.Center),
+            valueTextCenter = valueText.WithAlignment(TextAlignment.Center),
             footerTextLeft = bodyText.WithColor(new Color(220, 235, 245)),
             footerTextRight = footerTextLeft.WithAlignment(TextAlignment.Right),
             highlightText = bodyText.WithColor(new Color(220, 180, 50)),
@@ -30,64 +33,66 @@ namespace DarkHelmet.BuildVision2
             blockIncText = footerTextRight.WithColor(new Color(200, 35, 35));
 
         private readonly RadialSelectionBox<QuickActionEntry, Label> selectionBox;
+        private readonly Body centerElement;
         private readonly ObjectPool<QuickActionEntry> entryPool;
-        private readonly Label summaryText;
-        private readonly RichText summaryBuilder;
 
         private int tick;
-        private const int tickDivider = 4;
+        private const int textTickDivider = 4;
 
         public QuickActionMenu(HudParentBase parent = null) : base(parent)
         {
-            selectionBox = new RadialSelectionBox<QuickActionEntry, Label>(this);
-            entryPool = new ObjectPool<QuickActionEntry>(() => new QuickActionEntry(), x => x.Reset());
-
-            summaryText = new Label(selectionBox)
+            selectionBox = new RadialSelectionBox<QuickActionEntry, Label>(this) 
             {
-                BuilderMode = TextBuilderModes.Lined,
-                AutoResize = false,
-                DimAlignment = DimAlignments.Both
+                BackgroundColor = bodyColor,
+                HighlightColor = selectionBoxColor
             };
-            summaryBuilder = new RichText();
+
+            centerElement = new Body(selectionBox) 
+            { };
+
+            entryPool = new ObjectPool<QuickActionEntry>(() => new QuickActionEntry(), x => x.Reset());
         }
 
         protected override void Layout()
         {
+            Vector2 size = cachedSize - cachedPadding;
+            centerElement.Size = 1.05f * selectionBox.Size * selectionBox.polyBoard.InnerRadius;
+
             if (tick == 0)
             {
                 foreach (QuickActionEntry entry in selectionBox)
                 {
                     entry.UpdateText();
                 }
-
-                summaryBuilder.Clear();
-
-                foreach (SuperBlock.SubtypeAccessorBase subtype in MenuManager.Target.SubtypeAccessors)
-                {
-                    if (subtype != null)
-                        subtype.GetSummary(summaryBuilder, bodyText, valueText);
-                }
-
-                summaryText.Padding = 1.25f * (1f - selectionBox.polyBoard.InnerRadius) * selectionBox.Size;
-                summaryText.TextBoard.SetText(summaryBuilder);
             }
 
             tick++;
-            tick %= tickDivider;
+            tick %= textTickDivider;
         }
 
         protected override void HandleInput(Vector2 cursorPos)
         {
             if (selectionBox.EntryList.Count > 0)
             {
-                if (SharedBinds.LeftButton.IsNewPressed)
+                selectionBox.IsInputEnabled = !centerElement.IsWidgetOpen;
+
+                if (selectionBox.IsInputEnabled && SharedBinds.LeftButton.IsNewPressed)
                 {
                     var selection = selectionBox.Selection;
+                    var member = selection?.BlockMember;
 
-                    if (selection != null && selection.Enabled)
+                    if (member != null && member.Enabled)
                     {
-                        var blockAction = selection.BlockMember as IBlockAction;
-                        blockAction.Action();
+                        if (member is IBlockAction)
+                        {
+                            var blockAction = member as IBlockAction;
+                            blockAction.Action();
+                        }
+                        else
+                        {
+                            centerElement.OpenMemberWidget(member);
+                            selectionBox.IsInputEnabled = false;
+                        }
                     }
                 }
             }
@@ -99,7 +104,7 @@ namespace DarkHelmet.BuildVision2
 
             foreach (IBlockMember blockMember in MenuManager.Target.BlockMembers)
             {
-                if (blockMember.Enabled && blockMember is IBlockAction)
+                if (blockMember.Enabled)
                 {
                     var entry = entryPool.Get();
                     entry.SetMember(blockMember);
@@ -121,23 +126,21 @@ namespace DarkHelmet.BuildVision2
         {
             public override bool Enabled
             {
-                get
-                {
-                    return base.Enabled && BlockMember != null && BlockMember.Enabled;
-                }
+                get { return base.Enabled && BlockMember != null && BlockMember.Enabled; }
             }
 
             public IBlockMember BlockMember { get; private set; }
+            private readonly RichText textBuf;
 
             public QuickActionEntry()
             {
+                textBuf = new RichText();
                 SetElement(new Label() 
                 {
-                    AutoResize = false,
-                    Width = 100f,
-                    Height = 200f,
+                    VertCenterText = true,
                     BuilderMode = TextBuilderModes.Wrapped,
-                    Format = GlyphFormat.White.WithAlignment(TextAlignment.Center)
+                    Padding = new Vector2(20f),
+                    Width = 80f
                 });
             }
 
@@ -148,25 +151,27 @@ namespace DarkHelmet.BuildVision2
 
             public void UpdateText()
             {
-                Element.TextBoard.Clear();
-
                 StringBuilder name = BlockMember.Name,
-                    disp = BlockMember.Display,
-                    status = BlockMember.Status;
+                    disp = BlockMember.FormattedValue,
+                    status = BlockMember.StatusText;
+
+                textBuf.Clear();
 
                 if (name != null)
                 {
-                    Element.TextBoard.Append(name);
+                    textBuf.Add(name, bodyTextCenter);
 
                     if (disp != null || status != null)
-                        Element.TextBoard.Append(":");
+                        textBuf.Add(":\n", bodyTextCenter);
                 }
 
                 if (disp != null)
                 {
-                    Element.TextBoard.Append(" ");
-                    Element.TextBoard.Append(disp);
+                    textBuf.Add(' ', valueTextCenter);
+                    textBuf.Add(disp, valueTextCenter);
                 }
+
+                Element.Text = textBuf;
             }
 
             public void Reset()

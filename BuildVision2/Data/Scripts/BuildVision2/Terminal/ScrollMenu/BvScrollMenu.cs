@@ -579,8 +579,8 @@ namespace DarkHelmet.BuildVision2
                 Value.Clear();
                 Postfix.Clear();
 
-                StringBuilder disp = _blockMember.Display,
-                    status = _blockMember.Status;
+                StringBuilder disp = _blockMember.FormattedValue,
+                    status = _blockMember.StatusText;
 
                 if (disp != null)
                     Value.Add(disp);

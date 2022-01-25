@@ -109,7 +109,7 @@ namespace DarkHelmet.BuildVision2
 
             Selection.Value.Clear();
             Selection.Value.defaultFormat = selectedText;
-            Selection.Value.Add(Selection.BlockMember.Value);
+            Selection.Value.Add(Selection.BlockMember.ValueText);
             Selection.OpenInput();
         }
 

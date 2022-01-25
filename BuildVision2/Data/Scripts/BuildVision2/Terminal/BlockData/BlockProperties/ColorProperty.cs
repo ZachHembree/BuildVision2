@@ -11,9 +11,11 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Block Terminal Property for individual color channels of a VRageMath.Color
         /// </summary>
-        private class ColorProperty : NumericPropertyBase<Color>
+        private class ColorProperty : NumericPropertyBase<Color>, IBlockValue<Color>
         {
-            public override StringBuilder Display 
+            public Color Value { get { return GetValue(); } set { SetValue(value); } }
+
+            public override StringBuilder FormattedValue 
             {
                 get 
                 {
@@ -22,7 +24,7 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public override StringBuilder Status => null;
+            public override StringBuilder StatusText => null;
 
             private int channel;
             private static int incrX, incrY, incrZ, incr0;
@@ -32,6 +34,7 @@ namespace DarkHelmet.BuildVision2
             public ColorProperty()
             {
                 dispBuilder = new StringBuilder();
+                ValueType = BlockMemberValueTypes.Color;
             }
 
             public void SetProperty(StringBuilder name, string suffix, ITerminalProperty<Color> property, PropertyBlock block, int channel)

@@ -53,6 +53,16 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Background color for the polyboard
+        /// </summary>
+        public virtual Color BackgroundColor { get; set; }
+
+        /// <summary>
+        /// Highlight color for the polyboard
+        /// </summary>
+        public virtual Color HighlightColor { get; set; }
+
         public readonly PuncturedPolyBoard polyBoard;
 
         protected int selection, effectiveMaxCount;
@@ -97,7 +107,7 @@ namespace RichHudFramework.UI
 
                 if (container.Enabled)
                 {
-                    element.Offset = polyBoard.GetSliceOffset(size, slice);
+                    element.Offset = 1.05f * polyBoard.GetSliceOffset(size, slice);
                     slice += entrySize;
                 }
             }
@@ -154,6 +164,7 @@ namespace RichHudFramework.UI
         protected override void Draw()
         {
             Vector2 size = cachedSize - cachedPadding;
+            polyBoard.Color = BackgroundColor;
             polyBoard.Draw(size, cachedOrigin, ref HudSpace.PlaneToWorldRef[0]);
 
             if (selection != -1)
@@ -161,6 +172,7 @@ namespace RichHudFramework.UI
                 int entrySize = polyBoard.Sides / effectiveMaxCount;
                 Vector2I slice = new Vector2I(0, entrySize - 1) + (selection * entrySize);
 
+                polyBoard.Color = HighlightColor;
                 polyBoard.Draw(size, cachedOrigin, ref HudSpace.PlaneToWorldRef[0], slice);
             }
         }

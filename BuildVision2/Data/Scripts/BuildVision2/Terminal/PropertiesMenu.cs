@@ -118,7 +118,7 @@ namespace DarkHelmet.BuildVision2
                     peekRefresh.Restart();
                 }
             }
-            else if (!BvBinds.Peek.IsPressed && Open)
+            else if (SharedBinds.Shift.IsNewPressed && Open)
                 Hide();
         }
 
