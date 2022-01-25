@@ -41,7 +41,7 @@ namespace RichHudFramework.UI.Rendering
                 if (updateVertices)
                     GeneratePolygon();
 
-                if (updateMatFit && matFrame.Material != Material.Default)
+                if (updateMatFit)
                 {
                     polyMat.texBounds = matFrame.GetMaterialAlignment(size.X / size.Y);
                     GenerateTextureCoordinates();
@@ -69,11 +69,17 @@ namespace RichHudFramework.UI.Rendering
         /// </summary>
         public override Vector2 GetSliceOffset(Vector2 bbSize, Vector2I range)
         {
-            range *= 2;
-            Vector2 start = vertices[range.X],
-                end = vertices[range.Y + 1];
+            if (updateVertices)
+                GeneratePolygon();
 
-            return bbSize * (start + end) / 2f;
+            range *= 2;
+            Vector2 sum = 
+                vertices[range.X] +
+                vertices[range.X + 1] +
+                vertices[range.Y] +
+                vertices[range.Y + 1];
+
+            return bbSize * sum * .25f;
         }
 
         protected override void GenerateTriangles()

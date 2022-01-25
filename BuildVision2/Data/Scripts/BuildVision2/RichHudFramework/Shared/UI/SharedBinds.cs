@@ -11,30 +11,31 @@ namespace RichHudFramework.UI
     /// </summary>
     public sealed class SharedBinds : RichHudComponentBase
     {
-        public static IBind LeftButton { get { return BindGroup[0]; } }
-        public static IBind RightButton { get { return BindGroup[1]; } }
-        public static IBind MousewheelUp { get { return BindGroup[2]; } }
-        public static IBind MousewheelDown { get { return BindGroup[3]; } }
+        public static IBind LeftButton { get { return Instance.sharedBinds[0]; } }
+        public static IBind RightButton { get { return Instance.sharedBinds[1]; } }
+        public static IBind MousewheelUp { get { return Instance.sharedBinds[2]; } }
+        public static IBind MousewheelDown { get { return Instance.sharedBinds[3]; } }
 
-        public static IBind Enter { get { return BindGroup[4]; } }
-        public static IBind Back { get { return BindGroup[5]; } }
-        public static IBind Delete { get { return BindGroup[6]; } }
-        public static IBind Escape { get { return BindGroup[7]; } }
+        public static IBind Enter { get { return Instance.sharedBinds[4]; } }
+        public static IBind Back { get { return Instance.sharedBinds[5]; } }
+        public static IBind Delete { get { return Instance.sharedBinds[6]; } }
+        public static IBind Escape { get { return Instance.sharedBinds[7]; } }
 
-        public static IBind SelectAll { get { return BindGroup[8]; } }
-        public static IBind Copy { get { return BindGroup[9]; } }
-        public static IBind Cut { get { return BindGroup[10]; } }
-        public static IBind Paste { get { return BindGroup[11]; } }
+        public static IBind SelectAll { get { return Instance.sharedBinds[8]; } }
+        public static IBind Copy { get { return Instance.sharedBinds[9]; } }
+        public static IBind Cut { get { return Instance.sharedBinds[10]; } }
+        public static IBind Paste { get { return Instance.sharedBinds[11]; } }
 
-        public static IBind UpArrow { get { return BindGroup[12]; } }
-        public static IBind DownArrow { get { return BindGroup[13]; } }
-        public static IBind LeftArrow { get { return BindGroup[14]; } }
-        public static IBind RightArrow { get { return BindGroup[15]; } }
+        public static IBind UpArrow { get { return Instance.sharedBinds[12]; } }
+        public static IBind DownArrow { get { return Instance.sharedBinds[13]; } }
+        public static IBind LeftArrow { get { return Instance.sharedBinds[14]; } }
+        public static IBind RightArrow { get { return Instance.sharedBinds[15]; } }
 
-        public static IBind PageUp { get { return BindGroup[16]; } }
-        public static IBind PageDown { get { return BindGroup[17]; } }
-        public static IBind Shift { get { return BindGroup[18]; } }
-        public static IBind Space { get { return BindGroup[19]; } }
+        public static IBind PageUp { get { return Instance.sharedBinds[16]; } }
+        public static IBind PageDown { get { return Instance.sharedBinds[17]; } }
+        public static IBind Shift { get { return Instance.sharedBinds[18]; } }
+        public static IBind Space { get { return Instance.sharedBinds[19]; } }
+        public static IBind Control { get { return Instance.sharedBinds[20]; } }
 
         public static IBindGroup BindGroup { get { return Instance.sharedBinds; } }
 
@@ -75,6 +76,7 @@ namespace RichHudFramework.UI
                 { "pagedown", MyKeys.PageDown },
                 { "shift", MyKeys.Shift },
                 { "space", MyKeys.Space },
+                { "control", MyKeys.Control },
             });
         }
 

@@ -108,7 +108,7 @@ namespace RichHudFramework.UI.Rendering
                 if (updateVertices)
                     GeneratePolygon();
 
-                if (updateMatFit && matFrame.Material != Material.Default)
+                if (updateMatFit)
                 {
                     polyMat.texBounds = matFrame.GetMaterialAlignment(size.X / size.Y);
                     GenerateTextureCoordinates();
@@ -137,7 +137,7 @@ namespace RichHudFramework.UI.Rendering
                 if (updateVertices)
                     GeneratePolygon();
 
-                if (updateMatFit && matFrame.Material != Material.Default)
+                if (updateMatFit)
                 {
                     polyMat.texBounds = matFrame.GetMaterialAlignment(size.X / size.Y);
                     GenerateTextureCoordinates();
@@ -167,6 +167,9 @@ namespace RichHudFramework.UI.Rendering
         /// </summary>
         public virtual Vector2 GetSliceOffset(Vector2 bbSize, Vector2I range)
         {
+            if (updateVertices)
+                GeneratePolygon();
+
             Vector2 start = vertices[range.X], 
                 end = vertices[range.Y], 
                 center = Vector2.Zero;
