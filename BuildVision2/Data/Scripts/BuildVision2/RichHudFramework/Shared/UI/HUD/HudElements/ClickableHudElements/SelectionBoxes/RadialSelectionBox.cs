@@ -41,13 +41,24 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Enables/disables highlighting
         /// </summary>
-        public virtual bool IsInputEnabled { get; set; }
+        public virtual bool IsInputEnabled
+        {
+            get { return _isInputEnabled; }
+            set
+            {
+                if (_isInputEnabled != value)
+                    isStartPosStale = true;
+
+                _isInputEnabled = value;
+            }
+        }
 
         public readonly PuncturedPolyBoard polyBoard;
 
         protected int selection, effectiveMaxCount;
         protected bool isStartPosStale;
-        protected Vector2 cursorStartPos;
+        protected Vector2 lastCursorPos, cursorNormal;
+        private bool _isInputEnabled;
 
         public RadialSelectionBox(HudParentBase parent = null) : base(parent)
         {
@@ -98,33 +109,38 @@ namespace RichHudFramework.UI
             {
                 if (isStartPosStale)
                 {
-                    cursorStartPos = cursorPos;
+                    cursorNormal = Vector2.Zero;
+                    lastCursorPos = cursorPos;
                     isStartPosStale = false;
                 }
 
-                Vector2 cursorOffset = cursorPos - cursorStartPos;
-                float dot = .2f;
-                int newSelection = -1;
+                Vector2 cursorOffset = cursorPos - lastCursorPos;
 
-                for (int i = 0; i < hudCollectionList.Count; i++)
+                if (cursorOffset.LengthSquared() > 10f)
                 {
-                    TContainer container = hudCollectionList[i];
-                    TElement element = container.Element;
+                    float dot = .2f;
+                    int newSelection = -1;
+                    Vector2 normalizedOffset = 0.2f * Vector2.Normalize(cursorOffset);
+                    cursorNormal = Vector2.Normalize(cursorNormal + normalizedOffset);
 
-                    if (container.Enabled)
+                    for (int i = 0; i < hudCollectionList.Count; i++)
                     {
-                        float newDot = Vector2.Dot(element.Offset, cursorOffset);
+                        TContainer container = hudCollectionList[i];
+                        TElement element = container.Element;
 
-                        if (newDot > dot)
+                        if (container.Enabled)
                         {
-                            dot = newDot;
-                            newSelection = i;
+                            float newDot = Vector2.Dot(element.Offset, cursorNormal);
+
+                            if (newDot > dot)
+                            {
+                                dot = newDot;
+                                newSelection = i;
+                            }
                         }
                     }
-                }
 
-                if (selection != newSelection)
-                {
+                    lastCursorPos = cursorPos;
                     selection = newSelection;
                 }
             }
