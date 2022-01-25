@@ -15,16 +15,40 @@ namespace DarkHelmet.BuildVision2
 {
     public sealed class QuickActionMenu : HudElementBase
     {
+        private static readonly Color
+            headerColor = new Color(41, 54, 62),
+            bodyColor = new Color(70, 78, 86),
+            selectionBoxColor = new Color(41, 54, 62);
+        private static readonly GlyphFormat
+            headerText = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f),
+            bodyText = new GlyphFormat(Color.White, textSize: .885f),
+            valueText = bodyText.WithColor(new Color(210, 210, 210)),
+            footerTextLeft = bodyText.WithColor(new Color(220, 235, 245)),
+            footerTextRight = footerTextLeft.WithAlignment(TextAlignment.Right),
+            highlightText = bodyText.WithColor(new Color(220, 180, 50)),
+            selectedText = bodyText.WithColor(new Color(50, 200, 50)),
+            blockIncText = footerTextRight.WithColor(new Color(200, 35, 35));
+
         private readonly RadialSelectionBox<QuickActionEntry, Label> selectionBox;
         private readonly ObjectPool<QuickActionEntry> entryPool;
+        private readonly Label summaryText;
+        private readonly RichText summaryBuilder;
 
         private int tick;
         private const int tickDivider = 4;
 
         public QuickActionMenu(HudParentBase parent = null) : base(parent)
         {
-            selectionBox = new RadialSelectionBox<QuickActionEntry, Label>(this) { IsInputEnabled = true };
-            entryPool = new ObjectPool<QuickActionEntry>(() => new QuickActionEntry(), x => x.Reset());   
+            selectionBox = new RadialSelectionBox<QuickActionEntry, Label>(this);
+            entryPool = new ObjectPool<QuickActionEntry>(() => new QuickActionEntry(), x => x.Reset());
+
+            summaryText = new Label(selectionBox)
+            {
+                BuilderMode = TextBuilderModes.Lined,
+                AutoResize = false,
+                DimAlignment = DimAlignments.Both
+            };
+            summaryBuilder = new RichText();
         }
 
         protected override void Layout()
@@ -35,6 +59,17 @@ namespace DarkHelmet.BuildVision2
                 {
                     entry.UpdateText();
                 }
+
+                summaryBuilder.Clear();
+
+                foreach (SuperBlock.SubtypeAccessorBase subtype in MenuManager.Target.SubtypeAccessors)
+                {
+                    if (subtype != null)
+                        subtype.GetSummary(summaryBuilder, bodyText, valueText);
+                }
+
+                summaryText.Padding = 1.25f * (1f - selectionBox.polyBoard.InnerRadius) * selectionBox.Size;
+                summaryText.TextBoard.SetText(summaryBuilder);
             }
 
             tick++;
@@ -71,12 +106,15 @@ namespace DarkHelmet.BuildVision2
                     selectionBox.Add(entry);
                 }
             }
+
+            selectionBox.IsInputEnabled = true;
         }
 
         public void Clear()
         {
             entryPool.ReturnRange(selectionBox.EntryList, 0, selectionBox.EntryList.Count);
             selectionBox.Clear();
+            selectionBox.IsInputEnabled = false;
         }
 
         private class QuickActionEntry : ScrollBoxEntry<Label>
@@ -117,18 +155,17 @@ namespace DarkHelmet.BuildVision2
                     status = BlockMember.Status;
 
                 if (name != null)
+                {
                     Element.TextBoard.Append(name);
+
+                    if (disp != null || status != null)
+                        Element.TextBoard.Append(":");
+                }
 
                 if (disp != null)
                 {
                     Element.TextBoard.Append(" ");
                     Element.TextBoard.Append(disp);
-                }
-
-                if (status != null)
-                {
-                    Element.TextBoard.Append(" ");
-                    Element.TextBoard.Append(status);
                 }
             }
 
