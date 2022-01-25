@@ -28,15 +28,15 @@ namespace DarkHelmet.BuildVision2
                 { "toggleOpenWhileHolding", x => Cfg.general.canOpenIfHolding = !Cfg.general.canOpenIfHolding },
 
                 // Debug/Testing
-                { "open", x => PropertiesMenu.TryOpenMenu() },
-                { "close", x => PropertiesMenu.HideMenu() },
+                { "open", x => MenuManager.TryOpenMenu() },
+                { "close", x => MenuManager.HideMenu() },
                 { "reload", x => ExceptionHandler.ReloadClients() },
                 { "crash", x => Crash() },
                 { "printControlsToLog", x => LogIO.WriteToLogStart($"Control List:\n{HelpText.controlList}") },
                 { "export", x => ExportBlockData() },
                 { "import", x => TryImportBlockData() },
-                { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(PropertiesMenu.Target?.SubtypeId.ToString() ?? "No Target")}") },
-                { "toggleBoundingBox", x => PropertiesMenu.DrawBoundingBox = !PropertiesMenu.DrawBoundingBox },
+                { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(MenuManager.Target?.SubtypeId.ToString() ?? "No Target")}") },
+                { "toggleBoundingBox", x => MenuManager.DrawBoundingBox = !MenuManager.DrawBoundingBox },
                 { "targetBench", TargetBench, 1 },
                 { "getTarget", x => GetTarget() },
                 { "echo", x => ExceptionHandler.SendChatMessage($"echo: {x[0]}") },
@@ -58,7 +58,7 @@ namespace DarkHelmet.BuildVision2
 
         private void TryImportBlockData()
         {
-            LocalFileIO blockIO = new LocalFileIO($"{PropertiesMenu.Target?.TypeID}.bin");
+            LocalFileIO blockIO = new LocalFileIO($"{MenuManager.Target?.TypeID}.bin");
             byte[] byteData;
 
             if (blockIO.FileExists && blockIO.TryRead(out byteData) == null)
@@ -66,16 +66,16 @@ namespace DarkHelmet.BuildVision2
                 BlockData data;
 
                 if (Utils.ProtoBuf.TryDeserialize(byteData, out data) == null)
-                    PropertiesMenu.Target.ImportSettings(data);
+                    MenuManager.Target.ImportSettings(data);
             }
         }
 
         private void ExportBlockData()
         {
-            LocalFileIO blockIO = new LocalFileIO($"{PropertiesMenu.Target?.TypeID}.bin");
+            LocalFileIO blockIO = new LocalFileIO($"{MenuManager.Target?.TypeID}.bin");
             byte[] byteData;
 
-            if (Utils.ProtoBuf.TrySerialize(PropertiesMenu.Target?.ExportSettings(), out byteData) == null)
+            if (Utils.ProtoBuf.TrySerialize(MenuManager.Target?.ExportSettings(), out byteData) == null)
                 blockIO.TryWrite(byteData);
         }
 
@@ -83,7 +83,7 @@ namespace DarkHelmet.BuildVision2
         {
             IMyTerminalBlock tblock;
 
-            if (PropertiesMenu.TryGetTargetedBlock(100d, out tblock))
+            if (MenuManager.TryGetTargetedBlock(100d, out tblock))
             {
                 int iterations;
                 bool getProperties = false;
@@ -104,7 +104,7 @@ namespace DarkHelmet.BuildVision2
                 for (int n = 0; n < iterations; n++)
                 {
                     IMyTerminalBlock temp;
-                    PropertiesMenu.TryGetTargetedBlock(100d, out temp);
+                    MenuManager.TryGetTargetedBlock(100d, out temp);
                     pBlock.SetBlock(grid, tblock);
 
                     if (getProperties)
@@ -129,7 +129,7 @@ namespace DarkHelmet.BuildVision2
         {
             IMyTerminalBlock tblock;
             
-            if (PropertiesMenu.TryGetTargetedBlock(100d, out tblock))
+            if (MenuManager.TryGetTargetedBlock(100d, out tblock))
             {
                 ExceptionHandler.SendChatMessage($"Target: {tblock.GetType()}\nAccess: {LocalPlayer.GetBlockAccessPermissions(tblock)}");
             }

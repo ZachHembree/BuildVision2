@@ -101,11 +101,11 @@ namespace DarkHelmet.BuildVision2
             switch ((BvApiAccessors)memberEnum)
             {
                 case BvApiAccessors.Open:
-                    return running ? PropertiesMenu.Open : false;
+                    return running ? MenuManager.Open : false;
                 case BvApiAccessors.MenuMode:
-                    return running ? PropertiesMenu.MenuMode : default(ScrollMenuModes);
+                    return running ? MenuManager.MenuMode : default(ScrollMenuModes);
                 case BvApiAccessors.Target:
-                    return running ? PropertiesMenu.Target?.TBlock : null;
+                    return running ? MenuManager.Target?.TBlock : null;
             }
 
             return null;

@@ -78,7 +78,7 @@ namespace DarkHelmet.BuildVision2
             get { return _menuMode; }
             set
             {
-                if (PropertiesMenu.Target.TBlock != null && value != ScrollMenuModes.Peek && Count == 0)
+                if (MenuManager.Target.TBlock != null && value != ScrollMenuModes.Peek && Count == 0)
                     UpdateProperties();
 
                 _menuMode = value;
@@ -207,7 +207,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void UpdateText()
         {
-            if (PropertiesMenu.Target != null)
+            if (MenuManager.Target != null)
             {
                 if (MenuMode == ScrollMenuModes.Peek)
                     UpdatePeekBody();
@@ -235,7 +235,7 @@ namespace DarkHelmet.BuildVision2
             {
                 peekBuilder.Clear();
 
-                foreach (SuperBlock.SubtypeAccessorBase subtype in PropertiesMenu.Target.SubtypeAccessors)
+                foreach (SuperBlock.SubtypeAccessorBase subtype in MenuManager.Target.SubtypeAccessors)
                 {
                     if (subtype != null)
                         subtype.GetSummary(peekBuilder, bodyText, valueText);
@@ -295,9 +295,9 @@ namespace DarkHelmet.BuildVision2
             else
                 footer.LeftTextBuilder.SetText($"[{scrollBody.VisStart + 1} - {scrollBody.VisStart + scrollBody.VisCount} of {scrollBody.EnabledCount}]");
 
-            if (PropertiesMenu.Target.IsWorking)
+            if (MenuManager.Target.IsWorking)
                 footer.RightTextBoard.SetText("[Working]", footerTextRight);
-            else if (PropertiesMenu.Target.IsFunctional)
+            else if (MenuManager.Target.IsFunctional)
                 footer.RightTextBoard.SetText("[Functional]", footerTextRight);
             else
                 footer.RightTextBoard.SetText("[Incomplete]", blockIncText);
@@ -414,7 +414,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void UpdateProperties()
         {
-            PropertyBlock block = PropertiesMenu.Target;
+            PropertyBlock block = MenuManager.Target;
 
             for (int n = 0; n < block.BlockMembers.Count; n++)
                 AddMember(block.BlockMembers[n]);

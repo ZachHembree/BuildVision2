@@ -14,6 +14,7 @@ using VRage.Game.Entity;
 using Sandbox.ModAPI;
 using VRage.Game.Components;
 using RichHudFramework;
+using RichHudFramework.UI.Client;
 using ProtoBuf;
 
 namespace DarkHelmet.BuildVision2
@@ -67,7 +68,7 @@ namespace DarkHelmet.BuildVision2
                 BvConfig.Load();
                 AddChatCommands();
                 InitSettingsMenu();
-                PropertiesMenu.Init();
+                MenuManager.Init();
             }
         }
 
