@@ -72,12 +72,15 @@ namespace RichHudFramework.UI.Rendering
             if (updateVertices)
                 GeneratePolygon();
 
+            range.Y++;
             range *= 2;
+
+            int max = vertices.Count;
             Vector2 sum = 
                 vertices[range.X] +
                 vertices[range.X + 1] +
-                vertices[range.Y] +
-                vertices[range.Y + 1];
+                vertices[(range.Y) % max] +
+                vertices[(range.Y + 1) % max];
 
             return bbSize * sum * .25f;
         }

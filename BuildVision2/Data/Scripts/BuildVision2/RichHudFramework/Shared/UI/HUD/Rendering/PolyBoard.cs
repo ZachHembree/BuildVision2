@@ -170,8 +170,9 @@ namespace RichHudFramework.UI.Rendering
             if (updateVertices)
                 GeneratePolygon();
 
+            int max = vertices.Count;
             Vector2 start = vertices[range.X], 
-                end = vertices[range.Y], 
+                end = vertices[(range.Y + 1) % max], 
                 center = Vector2.Zero;
 
             return bbSize * (start + end + center) / 3f;
