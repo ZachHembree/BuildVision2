@@ -1,4 +1,4 @@
-using RichHudFramework.Client;
+﻿using RichHudFramework.Client;
 using RichHudFramework.IO;
 using RichHudFramework.UI;
 using System;
@@ -82,7 +82,7 @@ namespace DarkHelmet.BuildVision2
                     var selection = selectionBox.Selection;
                     var member = selection?.BlockMember;
 
-                    if (member != null && member.Enabled)
+                    if (member != null && selection.Enabled)
                     {
                         if (member is IBlockAction)
                         {
@@ -105,9 +105,9 @@ namespace DarkHelmet.BuildVision2
 
             foreach (IBlockMember blockMember in MenuManager.Target.BlockMembers)
             {
-                    var entry = entryPool.Get();
-                    entry.SetMember(blockMember);
-                    selectionBox.Add(entry);
+                var entry = entryPool.Get();
+                entry.SetMember(blockMember);
+                selectionBox.Add(entry);
             }
 
             selectionBox.IsInputEnabled = true;
