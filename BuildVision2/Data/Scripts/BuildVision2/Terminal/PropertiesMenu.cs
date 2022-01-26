@@ -174,7 +174,6 @@ namespace DarkHelmet.BuildVision2
                     quickActionMenu.UpdateTarget();
 
                 quickActionMenu.Visible = true;
-                HudMain.EnableCursor = true;
                 Open = true;
             }
         }
@@ -190,6 +189,7 @@ namespace DarkHelmet.BuildVision2
 
             quickActionMenu.Clear();
             quickActionMenu.Visible = false;
+
             HudMain.EnableCursor = false;
         }
 

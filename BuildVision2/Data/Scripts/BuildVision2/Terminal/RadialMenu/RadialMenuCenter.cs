@@ -91,12 +91,14 @@ namespace DarkHelmet.BuildVision2
 
                 activeWidget.Visible = true;
                 summaryText.Visible = false;
+                HudMain.EnableCursor = true;
             }
 
             public void CloseWidget()
             {
                 if (activeWidget != null)
                 {
+                    HudMain.EnableCursor = false;
                     activeWidget.Reset();
                     activeWidget.Visible = false;
                     summaryText.Visible = true;

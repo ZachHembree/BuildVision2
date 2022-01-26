@@ -1,4 +1,4 @@
-﻿using RichHudFramework.Client;
+using RichHudFramework.Client;
 using RichHudFramework.IO;
 using RichHudFramework.UI;
 using System;
@@ -74,6 +74,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (selectionBox.EntryList.Count > 0)
             {
+                BindManager.RequestTempBlacklist(SeBlacklistModes.MouseAndCam);
                 selectionBox.IsInputEnabled = !centerElement.IsWidgetOpen;
 
                 if (selectionBox.IsInputEnabled && SharedBinds.LeftButton.IsNewPressed)
@@ -104,12 +105,9 @@ namespace DarkHelmet.BuildVision2
 
             foreach (IBlockMember blockMember in MenuManager.Target.BlockMembers)
             {
-                if (blockMember.Enabled)
-                {
                     var entry = entryPool.Get();
                     entry.SetMember(blockMember);
                     selectionBox.Add(entry);
-                }
             }
 
             selectionBox.IsInputEnabled = true;
