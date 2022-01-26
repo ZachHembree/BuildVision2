@@ -65,7 +65,7 @@ namespace RichHudFramework.UI
 
         public readonly PuncturedPolyBoard polyBoard;
 
-        protected int selection, effectiveMaxCount;
+        protected int selection, selectionVisPos, effectiveMaxCount;
         protected bool isStartPosStale;
         protected Vector2 lastCursorPos, cursorNormal;
         private bool _isInputEnabled;
@@ -90,7 +90,12 @@ namespace RichHudFramework.UI
             for (int i = 0; i < hudCollectionList.Count; i++)
             {
                 if (hudCollectionList[i].Enabled)
+                {
+                    hudCollectionList[i].Element.Visible = true;
                     EnabledCount++;
+                }
+                else
+                    hudCollectionList[i].Element.Visible = false;
             }
 
             effectiveMaxCount = Math.Max(MaxEntryCount, EnabledCount);
@@ -152,6 +157,15 @@ namespace RichHudFramework.UI
 
                     lastCursorPos = cursorPos;
                     selection = newSelection;
+                    selectionVisPos = -1;
+
+                    for (int i = 0; i <= selection; i++)
+                    {
+                        TContainer container = hudCollectionList[i];
+
+                        if (container.Enabled)
+                            selectionVisPos++;
+                    }
                 }
             }
             else
@@ -170,7 +184,7 @@ namespace RichHudFramework.UI
             if (selection != -1)
             {
                 int entrySize = polyBoard.Sides / effectiveMaxCount;
-                Vector2I slice = new Vector2I(0, entrySize - 1) + (selection * entrySize);
+                Vector2I slice = new Vector2I(0, entrySize - 1) + (selectionVisPos * entrySize);
 
                 polyBoard.Color = HighlightColor;
                 polyBoard.Draw(size, cachedOrigin, ref HudSpace.PlaneToWorldRef[0], slice);
