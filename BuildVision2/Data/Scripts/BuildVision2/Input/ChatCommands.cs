@@ -45,7 +45,7 @@ namespace DarkHelmet.BuildVision2
 
         private static void UpdateBind(string bindName, string[] controls)
         {
-            IBind bind = BvBinds.OpenGroup.GetBind(bindName);
+            IBind bind = BvBinds.ModifierGroup.GetBind(bindName);
 
             if (bind == null)
                 bind = BvBinds.MainGroup.GetBind(bindName);

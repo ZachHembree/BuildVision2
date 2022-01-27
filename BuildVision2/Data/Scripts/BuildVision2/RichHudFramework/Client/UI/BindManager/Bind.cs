@@ -77,17 +77,17 @@ namespace RichHudFramework
 
                     private void OnNewPressed()
                     {
-                        NewPressed?.Invoke(this, null);
+                        NewPressed?.Invoke(this, EventArgs.Empty);
                     }
 
                     private void OnPressedAndHeld()
                     {
-                        PressedAndHeld?.Invoke(this, null);
+                        PressedAndHeld?.Invoke(this, EventArgs.Empty);
                     }
 
                     private void OnReleased()
                     {
-                        Released?.Invoke(this, null);
+                        Released?.Invoke(this, EventArgs.Empty);
                     }
 
                     /// <summary>

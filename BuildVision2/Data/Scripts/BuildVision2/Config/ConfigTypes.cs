@@ -253,30 +253,30 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public class BindsConfig : Config<BindsConfig>
     {
-        public static BindDefinition[] DefaultOpen => defaultOpen.Clone() as BindDefinition[];
+        public static BindDefinition[] DefaultModifiers => defaultModifiers.Clone() as BindDefinition[];
 
         public static BindDefinition[] DefaultMain => defaultMain.Clone() as BindDefinition[];
 
         private static readonly BindDefinition[]
-            defaultOpen = new BindGroupInitializer
+            defaultModifiers = new BindGroupInitializer
             {
                 { "EnableMouse", MyKeys.Control },
-                { "Open", MyKeys.Control, RichHudControls.MousewheelUp },
+                { "MultX", MyKeys.Alt },
+                { "MultY", MyKeys.Shift },
+                { "MultZ", MyKeys.Alt, MyKeys.Shift },
             }.GetBindDefinitions(),
             defaultMain = new BindGroupInitializer
             {
+                { "Open", MyKeys.Control, RichHudControls.MousewheelUp },
                 { "Hide", MyKeys.Control, RichHudControls.MousewheelDown },
                 { "Select", MyKeys.LeftButton },
-                { "Confirm", MyKeys.RightButton },
+                { "Cancel", MyKeys.RightButton },
                 { "ScrollUp", RichHudControls.MousewheelUp },
                 { "ScrollDown", RichHudControls.MousewheelDown },
-                { "MultX", MyKeys.Alt },
-                { "MultY", MyKeys.Shift },
-                { "MultZ", MyKeys.Alt, MyKeys.Shift }
             }.GetBindDefinitions();
 
-        [XmlArray("OpenGroup")]
-        public BindDefinition[] openGroup;
+        [XmlArray("ModifierGroup")]
+        public BindDefinition[] modifierGroup;
 
         [XmlArray("MainGroup")]
         public BindDefinition[] mainGroup;
@@ -285,7 +285,7 @@ namespace DarkHelmet.BuildVision2
         {
             return new BindsConfig
             {
-                openGroup = DefaultOpen,
+                modifierGroup = DefaultModifiers,
                 mainGroup = DefaultMain
             };
         }
@@ -295,8 +295,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public override void Validate()
         {
-            if (openGroup == null)
-                openGroup = DefaultOpen;
+            if (modifierGroup == null)
+                modifierGroup = DefaultModifiers;
 
             if (mainGroup == null)
                 mainGroup = DefaultMain;
