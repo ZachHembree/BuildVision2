@@ -25,7 +25,12 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Currently highlighted entry
         /// </summary>
-        public virtual TContainer Selection => (selection != -1) ? hudCollectionList[selection] : default(TContainer);
+        public virtual TContainer Selection => (SelectionIndex != -1) ? hudCollectionList[SelectionIndex] : default(TContainer);
+
+        /// <summary>
+        /// Returns the index of the current selection. Returns -1 if nothing is selected.
+        /// </summary>
+        public virtual int SelectionIndex { get; protected set; }
 
         /// <summary>
         /// Maximum number of entries. Used to determine subdivisions in circle. If enabled
@@ -65,7 +70,7 @@ namespace RichHudFramework.UI
 
         public readonly PuncturedPolyBoard polyBoard;
 
-        protected int selection, selectionVisPos, effectiveMaxCount;
+        protected int selectionVisPos, effectiveMaxCount;
         protected bool isStartPosStale;
         protected Vector2 lastCursorPos, cursorNormal;
         private bool _isInputEnabled;
@@ -80,6 +85,22 @@ namespace RichHudFramework.UI
 
             Size = new Vector2(512f);
             MaxEntryCount = 8;
+        }
+
+        public void SetSelectionAt(int index)
+        {
+            SelectionIndex = MathHelper.Clamp(index, 0, hudCollectionList.Count - 1);
+            UpdateVisPos();
+        }
+
+        public void SetSelection(TContainer container)
+        {
+            int index = FindIndex(x => x.Equals(container));
+
+            if (index != -1)
+                SelectionIndex = index;
+
+            UpdateVisPos();
         }
 
         protected override void Layout()
@@ -133,6 +154,8 @@ namespace RichHudFramework.UI
 
                 if (cursorOffset.LengthSquared() > 10f)
                 {
+                    // Find enabled entry with the offset that most closely matches
+                    // the direction of the normal
                     float dot = .2f;
                     int newSelection = -1;
                     Vector2 normalizedOffset = 0.2f * Vector2.Normalize(cursorOffset);
@@ -156,22 +179,27 @@ namespace RichHudFramework.UI
                     }
 
                     lastCursorPos = cursorPos;
-                    selection = newSelection;
-                    selectionVisPos = -1;
-
-                    for (int i = 0; i <= selection; i++)
-                    {
-                        TContainer container = hudCollectionList[i];
-
-                        if (container.Enabled)
-                            selectionVisPos++;
-                    }
+                    SelectionIndex = newSelection;
+                    UpdateVisPos();
                 }
             }
             else
             {
-                selection = -1;
                 isStartPosStale = true;
+            }
+        }
+
+        protected void UpdateVisPos()
+        {
+            selectionVisPos = -1;
+
+            // Find visible offset index
+            for (int i = 0; i <= SelectionIndex; i++)
+            {
+                TContainer container = hudCollectionList[i];
+
+                if (container.Enabled)
+                    selectionVisPos++;
             }
         }
 
@@ -181,7 +209,7 @@ namespace RichHudFramework.UI
             polyBoard.Color = BackgroundColor;
             polyBoard.Draw(size, cachedOrigin, ref HudSpace.PlaneToWorldRef[0]);
 
-            if (selection != -1)
+            if (SelectionIndex != -1)
             {
                 int entrySize = polyBoard.Sides / effectiveMaxCount;
                 Vector2I slice = new Vector2I(0, entrySize - 1) + (selectionVisPos * entrySize);
