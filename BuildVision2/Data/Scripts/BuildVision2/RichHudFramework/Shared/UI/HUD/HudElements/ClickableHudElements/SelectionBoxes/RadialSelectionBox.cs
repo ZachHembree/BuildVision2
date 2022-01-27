@@ -25,7 +25,16 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Currently highlighted entry
         /// </summary>
-        public virtual TContainer Selection => (SelectionIndex != -1) ? hudCollectionList[SelectionIndex] : default(TContainer);
+        public virtual TContainer Selection 
+        {
+            get 
+            {
+                if (SelectionIndex >= 0 && SelectionIndex < hudCollectionList.Count)
+                    return hudCollectionList[SelectionIndex];
+                else
+                    return default(TContainer);
+            }
+        }
 
         /// <summary>
         /// Returns the index of the current selection. Returns -1 if nothing is selected.
@@ -90,7 +99,6 @@ namespace RichHudFramework.UI
         public void SetSelectionAt(int index)
         {
             SelectionIndex = MathHelper.Clamp(index, 0, hudCollectionList.Count - 1);
-            UpdateVisPos();
         }
 
         public void SetSelection(TContainer container)
@@ -99,14 +107,13 @@ namespace RichHudFramework.UI
 
             if (index != -1)
                 SelectionIndex = index;
-
-            UpdateVisPos();
         }
 
         protected override void Layout()
         {
             // Get enabled elements and effective max count
             EnabledCount = 0;
+            SelectionIndex = MathHelper.Clamp(SelectionIndex, 0, hudCollectionList.Count - 1);
 
             for (int i = 0; i < hudCollectionList.Count; i++)
             {
@@ -137,6 +144,8 @@ namespace RichHudFramework.UI
                     slice += entrySize;
                 }
             }
+
+            polyBoard.Sides = Math.Max(effectiveMaxCount * 6, polyBoard.Sides);
         }
 
         protected override void HandleInput(Vector2 cursorPos)
@@ -180,7 +189,6 @@ namespace RichHudFramework.UI
 
                     lastCursorPos = cursorPos;
                     SelectionIndex = newSelection;
-                    UpdateVisPos();
                 }
             }
             else
@@ -211,6 +219,8 @@ namespace RichHudFramework.UI
 
             if (SelectionIndex != -1)
             {
+                UpdateVisPos();
+
                 int entrySize = polyBoard.Sides / effectiveMaxCount;
                 Vector2I slice = new Vector2I(0, entrySize - 1) + (selectionVisPos * entrySize);
 
