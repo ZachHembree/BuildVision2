@@ -91,12 +91,13 @@ namespace RichHudFramework.UI
         private readonly Label[] sliderText;
         private readonly HudChain<HudElementContainer<Label>, Label> colorNameColumn;
         // Sliders
-        private readonly SliderBox[] sliders;
+        public readonly SliderBox[] sliders;
         private readonly HudChain<HudElementContainer<SliderBox>, SliderBox> colorSliderColumn;
 
         private readonly HudChain mainChain, colorChain;
         private readonly StringBuilder valueBuilder;
         private Color _color;
+        private int focusedChannel;
 
         public ColorPickerRGB(HudParentBase parent) : base(parent)
         {
@@ -187,13 +188,31 @@ namespace RichHudFramework.UI
 
             UseCursor = true;
             ShareCursor = true;
+            focusedChannel = -1;
         }
 
         public ColorPickerRGB() : this(null)
         { }
 
+        /// <summary>
+        /// Set focus for slider corresponding to the given color channel index [0, 2].
+        /// </summary>
+        public void SetChannelFocused(int channel)
+        {
+            channel = MathHelper.Clamp(channel, 0, 2);
+
+            if (!sliders[channel].MouseInput.HasFocus)
+                focusedChannel = channel;
+        }
+
         protected override void HandleInput(Vector2 cursorPos)
         {
+            if (focusedChannel != -1)
+            {
+                sliders[focusedChannel].MouseInput.GetInputFocus();
+                focusedChannel = -1;
+            }
+
             for (int i = 0; i < sliders.Length; i++)
             {
                 if (sliders[i].MouseInput.HasFocus)

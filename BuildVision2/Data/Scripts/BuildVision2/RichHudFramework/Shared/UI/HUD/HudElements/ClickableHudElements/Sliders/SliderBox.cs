@@ -164,6 +164,12 @@ namespace RichHudFramework.UI
                     Percent += 0.01f;
                 }
             }
+            else if (!MouseInput.IsMousedOver)
+            {
+                lastBarColor = BarColor;
+                lastSliderColor = SliderColor;
+                lastBackgroundColor = BackgroundColor;
+            }
         }
 
         protected virtual void CursorEnter(object sender, EventArgs args)
