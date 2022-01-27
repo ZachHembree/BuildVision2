@@ -52,7 +52,7 @@ namespace DarkHelmet.BuildVision2
             {
                 colorMember.Value = colorPicker.Color;
 
-                if (confirmButton.MouseInput.IsLeftClicked)
+                if (confirmButton.MouseInput.IsLeftClicked || BvBinds.Confirm.IsNewPressed)
                 {
                     CloseWidgetCallback();
                 }

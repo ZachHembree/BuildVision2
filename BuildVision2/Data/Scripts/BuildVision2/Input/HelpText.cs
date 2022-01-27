@@ -22,8 +22,8 @@ namespace DarkHelmet.BuildVision2
             return new RichText
             {
                 { $"To open Build Vision, aim at the block you want to control and press press " }, { $"[{GetBindString(BvBinds.Open)}]", highlight }, {"; to close the menu, " },
-                { $"[{GetBindString(BvBinds.Hide)}]", highlight }, { ". Alternatively, pressing and holding " }, {$"[{GetBindString(BvBinds.Peek)}]", highlight}, 
-                {" will allow you to peek at a block's current status.\n\n" },
+                { $"[{GetBindString(BvBinds.Hide)}]", highlight }, { ". Pressing and holding " }, {$"[{GetBindString(BvBinds.EnableMouse)}]", highlight}, 
+                {" will allow you to use the mouse.\n\n" },
 
                 { $"[{GetBindString(BvBinds.ScrollUp)}]", highlight }, { $" and " }, { $"[{GetBindString(BvBinds.ScrollDown)}]", highlight }, 
                 { " can be used to scroll up and down the list and to increment / decrement numerical properties when selected. To select a property in the menu press " },
@@ -36,7 +36,7 @@ namespace DarkHelmet.BuildVision2
 
                 { $"\tOpen Menu:\t\t|\t[{GetBindString(BvBinds.Open)}]\n" },
                 { $"\tClose Menu:\t\t|\t[{GetBindString(BvBinds.Hide)}]\n" },
-                { $"\tSelect/Trigger:\t|\t[{GetBindString(BvBinds.Select)}]\n" },
+                { $"\tSelect:\t|\t[{GetBindString(BvBinds.Select)}]\n" },
                 { $"\tScroll Up:\t\t\t|\t[{GetBindString(BvBinds.ScrollUp)}]\n" },
                 { $"\tScroll Down:\t\t|\t[{GetBindString(BvBinds.ScrollDown)}]\n\n" },
 
@@ -50,19 +50,6 @@ namespace DarkHelmet.BuildVision2
                 { $"\tMultZ (x{BvConfig.Current.block.floatMult.Z}):\t\t|\t[{GetBindString(BvBinds.MultZ)}]\n\n" },
 
                 { $"The MultX bind, Ctrl by default, can also be used to scroll through the list " }, {"faster", highlight }, {". Just hold it down while scrolling.\n\n" },
-
-                { $"Copy/Paste Binds:\n\n", subsection},
-
-                { $"\tToggle Dupe Mode:\t|\t[{GetBindString(BvBinds.ToggleSelectMode)}]\n" },
-                { $"\tSelect All:\t\t\t|\t[{GetBindString(BvBinds.SelectAll)}]\n" },
-                { $"\tCopy Selected:\t\t|\t[{GetBindString(BvBinds.CopySelection)}]\n" },
-                { $"\tPaste Copied:\t\t|\t[{GetBindString(BvBinds.PasteProperties)}]\n" },
-                { $"\tUndo Paste:\t\t\t|\t[{GetBindString(BvBinds.UndoPaste)}]\n\n" },
-
-                { $"These binds are used to " }, {$"copy properties", highlight }, {$" between compatible block types. When in dupe mode, you'll be " },
-                { $"able to select/deselect properties one at a time using the " }, {"scroll and select", highlight }, {" binds or you can select them " },
-                { $"all at once using the select all bind. Pressing Select All will also automatically change the menu to " },
-                { $"duplication mode if not it's already enabled.\n\n" },
 
                 { $"Settings Menu:\n", subheader},
                 { $"By default, this settings menu can be toggled by pressing " }, { "F1", highlight }, { " while having chat open. From here, you can configure block " },
@@ -93,7 +80,7 @@ namespace DarkHelmet.BuildVision2
         {
             string bindHelp =
                 "\n---Build Vision 2 Binds---\n" +
-                $"Peek: [{GetBindString(BvBinds.Peek)}]\n" +
+                $"Peek: [{GetBindString(BvBinds.EnableMouse)}]\n" +
                 $"Open: [{GetBindString(BvBinds.Open)}]\n" +
                 $"Close: [{GetBindString(BvBinds.Hide)}]\n" +
                 $"Select: [{GetBindString(BvBinds.Select)}]\n" +

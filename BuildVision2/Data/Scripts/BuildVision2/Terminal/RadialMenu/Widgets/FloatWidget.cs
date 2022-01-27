@@ -69,12 +69,11 @@ namespace DarkHelmet.BuildVision2
                 {
                     floatMember.Value = sliderBox.Current;
 
-                    if (SharedBinds.Control.IsNewPressed
-                        && sliderBox.MouseInput.IsNewLeftClicked)
+                    if (SharedBinds.Control.IsNewPressed && sliderBox.MouseInput.IsNewLeftClicked)
                     {
                         OpenFieldInput();
                     }
-                    else if (confirmButton.MouseInput.IsNewLeftClicked)
+                    else if (confirmButton.MouseInput.IsNewLeftClicked || BvBinds.Confirm.IsNewPressed)
                     {
                         CloseWidgetCallback?.Invoke();
                     }
@@ -82,6 +81,26 @@ namespace DarkHelmet.BuildVision2
                     {
                         floatMember.Value = initValue;
                         CloseWidgetCallback?.Invoke();
+                    }
+                    else if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
+                    {
+                        float offset = floatMember.Increment;
+
+                        if (BvBinds.MultZ.IsPressed)
+                            offset *= BvConfig.Current.block.floatMult.Z;
+                        else if (BvBinds.MultY.IsPressed)
+                            offset *= BvConfig.Current.block.floatMult.Y;
+                        else if (BvBinds.MultX.IsPressed)
+                            offset *= BvConfig.Current.block.floatMult.X;
+
+                        if (BvBinds.ScrollUp.IsNewPressed)
+                        {
+                            sliderBox.Current += offset;
+                        }
+                        else if (BvBinds.ScrollDown.IsNewPressed)
+                        {
+                            sliderBox.Current -= offset;
+                        }
                     }
                 }
                 else

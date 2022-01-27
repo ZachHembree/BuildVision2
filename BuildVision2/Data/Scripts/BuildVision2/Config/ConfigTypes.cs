@@ -10,7 +10,7 @@ namespace DarkHelmet.BuildVision2
     [XmlRoot, XmlType(TypeName = "BuildVisionSettings")]
     public class BvConfig : ConfigRoot<BvConfig>
     {
-        private const int vID = 9;
+        private const int vID = 10;
 
         [XmlElement(ElementName = "GeneralSettings")]
         public TargetingConfig general;
@@ -260,24 +260,19 @@ namespace DarkHelmet.BuildVision2
         private static readonly BindDefinition[]
             defaultOpen = new BindGroupInitializer
             {
-                { "Peek", MyKeys.Control },
-                { "Open", MyKeys.Control, MyKeys.MiddleButton },
+                { "EnableMouse", MyKeys.Control },
+                { "Open", MyKeys.Control, RichHudControls.MousewheelUp },
             }.GetBindDefinitions(),
             defaultMain = new BindGroupInitializer
             {
-                { "Close", MyKeys.Shift, MyKeys.MiddleButton },
-                { "Select", MyKeys.MiddleButton },
+                { "Hide", MyKeys.Control, RichHudControls.MousewheelDown },
+                { "Select", MyKeys.LeftButton },
+                { "Confirm", MyKeys.RightButton },
                 { "ScrollUp", RichHudControls.MousewheelUp },
                 { "ScrollDown", RichHudControls.MousewheelDown },
-                { "MultX", MyKeys.Control },
+                { "MultX", MyKeys.Alt },
                 { "MultY", MyKeys.Shift },
-                { "MultZ", MyKeys.Control, MyKeys.Shift },
-
-                { "ToggleSelectMode", MyKeys.Home },
-                { "SelectAll", MyKeys.Insert },
-                { "CopySelection", MyKeys.PageUp },
-                { "PasteProperties", MyKeys.PageDown },
-                { "UndoPaste", MyKeys.Delete },
+                { "MultZ", MyKeys.Alt, MyKeys.Shift }
             }.GetBindDefinitions();
 
         [XmlArray("OpenGroup")]

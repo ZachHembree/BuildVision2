@@ -26,23 +26,26 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        public static IBind Peek { get { return Instance.openGroup[0]; } }
-        public static IBind Open { get { return Instance.openGroup[1]; } }
+        public static IBind EnableMouse { get; private set; }
+        public static IBind Open { get; private set; }
 
-        public static IBind Hide { get { return Instance.mainGroup[0]; } }
-        public static IBind Select { get { return Instance.mainGroup[1]; } }
-        public static IBind ScrollUp { get { return Instance.mainGroup[2]; } }
-        public static IBind ScrollDown { get { return Instance.mainGroup[3]; } }
+        public static IBind Hide { get; private set; }
+        public static IBind Select { get; private set; }
+        public static IBind Confirm { get; private set; }
 
-        public static IBind MultX { get { return Instance.mainGroup[4]; } }
-        public static IBind MultY { get { return Instance.mainGroup[5]; } }
-        public static IBind MultZ { get { return Instance.mainGroup[6]; } }
+        public static IBind ScrollUp { get; private set; }
+        public static IBind ScrollDown { get; private set; }
 
-        public static IBind ToggleSelectMode { get { return Instance.mainGroup[7]; } }
-        public static IBind SelectAll { get { return Instance.mainGroup[8]; } }
-        public static IBind CopySelection { get { return Instance.mainGroup[9]; } }
-        public static IBind PasteProperties { get { return Instance.mainGroup[10]; } }
-        public static IBind UndoPaste { get { return Instance.mainGroup[11]; } }
+        public static IBind MultX { get; private set; }
+        public static IBind MultY { get; private set; }
+        public static IBind MultZ { get; private set; }
+
+        // REMOVE THESE
+        public static IBind ToggleSelectMode { get; private set; }
+        public static IBind SelectAll { get; private set; }
+        public static IBind CopySelection { get; private set; }
+        public static IBind PasteProperties { get; private set; }
+        public static IBind UndoPaste { get; private set; }
 
         public static IBindGroup OpenGroup { get { return Instance.openGroup; } }
         public static IBindGroup MainGroup { get { return Instance.mainGroup; } }
@@ -70,7 +73,7 @@ namespace DarkHelmet.BuildVision2
             mainGroup.RegisterBinds(BindsConfig.DefaultMain);
         }
 
-        private static void Init()
+        public static void Init()
         {
             if (_instance == null)
             {
@@ -79,6 +82,8 @@ namespace DarkHelmet.BuildVision2
 
                 BvConfig.OnConfigSave += _instance.UpdateConfig;
                 BvConfig.OnConfigLoad += _instance.UpdateBinds;
+
+                _instance.UpdateBindProperties();
             }
         }
 
@@ -89,10 +94,28 @@ namespace DarkHelmet.BuildVision2
             Instance = null;
         }
 
+        private void UpdateBindProperties()
+        {
+            EnableMouse = openGroup["EnableMouse"];
+            Open = openGroup["Open"];
+
+            Hide = mainGroup["Hide"];
+            Select = mainGroup["Select"];
+            Confirm = mainGroup["Confirm"];
+            ScrollUp = mainGroup["ScrollUp"];
+            ScrollDown = mainGroup["ScrollDown"];
+            MultX = mainGroup["MultX"];
+            MultY = mainGroup["MultY"];
+            MultZ = mainGroup["MultZ"];
+        }
+
         private void UpdateConfig() =>
             BvConfig.Current.binds = Cfg;
 
-        private void UpdateBinds() =>
+        private void UpdateBinds()
+        {
             Cfg = BvConfig.Current.binds;
+            _instance.UpdateBindProperties();
+        }
     }
 }

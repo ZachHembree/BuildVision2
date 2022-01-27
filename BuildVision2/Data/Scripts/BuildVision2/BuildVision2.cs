@@ -65,6 +65,7 @@ namespace DarkHelmet.BuildVision2
             {
                 CanUpdate = true;
 
+                BvBinds.Init();
                 BvConfig.Load();
                 AddChatCommands();
                 InitSettingsMenu();

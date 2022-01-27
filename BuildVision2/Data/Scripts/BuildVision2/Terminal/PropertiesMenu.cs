@@ -22,7 +22,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// If true, then the menu is open
         /// </summary>
-        public static bool Open { get; set; }
+        public static bool Open => Instance.quickActionMenu.Visible;
 
         /// <summary>
         /// Returns the menu's current mode (peek/control/copy)
@@ -48,7 +48,6 @@ namespace DarkHelmet.BuildVision2
         private readonly TerminalGrid targetGrid, tempGrid;
         private readonly List<IMySlimBlock> targetBuffer;
 
-        private Stopwatch peekRefresh;
         private readonly IMyHudNotification hudNotification;
 
         private MenuManager() : base(false, true)
@@ -65,8 +64,6 @@ namespace DarkHelmet.BuildVision2
             hudNotification = MyAPIGateway.Utilities.CreateNotification("", 1000, MyFontEnum.Red);
 
             RichHudCore.LateMessageEntered += MessageHandler;
-            peekRefresh = new Stopwatch();
-            peekRefresh.Start();
         }
 
         public static void Init()
@@ -79,11 +76,11 @@ namespace DarkHelmet.BuildVision2
             Instance.TryOpen();
 
         public static void HideMenu() =>
-            Instance.Hide();
+            Instance.CloseMenu();
 
         public override void Close()
         {
-            Hide();
+            CloseMenu();
             RichHudCore.LateMessageEntered -= MessageHandler;
             Target = null;
             Instance = null;
@@ -104,22 +101,19 @@ namespace DarkHelmet.BuildVision2
         public override void Update()
         {
             if (Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))
-                Hide();
+                CloseMenu();
         }
 
         public override void HandleInput()
         {
-            if (BvBinds.Peek.IsPressed && !Open)
+            if (BvBinds.Open.IsNewPressed && !Open)
             {
-                // Acquire peek target on new press and reacquire every 100ms until bind is released
-                if (BvBinds.Peek.IsNewPressed || peekRefresh.ElapsedMilliseconds > 100)
-                {
-                    TryOpen();
-                    peekRefresh.Restart();
-                }
+                TryOpen();
             }
-            else if (SharedBinds.Shift.IsNewPressed && Open)
-                Hide();
+            else if (BvBinds.Hide.IsNewPressed && Open)
+            {
+                CloseMenu();
+            }
         }
 
         private MatrixD UpdateHudSpace()
@@ -170,26 +164,20 @@ namespace DarkHelmet.BuildVision2
         {
             if (TryGetTarget() && CanAccessTargetBlock())
             {
-                if (!quickActionMenu.Visible)
-                    quickActionMenu.UpdateTarget();
-
-                quickActionMenu.Visible = true;
-                Open = true;
+                if (quickActionMenu.MenuState == QuickActionMenuState.Closed)
+                    quickActionMenu.OpenMenu(Target);
             }
         }
 
         /// <summary>
         /// Hide the scroll menu and clear target
         /// </summary>
-        private void Hide()
+        private void CloseMenu()
         {
-            Open = false;
             Target.Reset();
             targetGrid.Reset();
 
-            quickActionMenu.Clear();
-            quickActionMenu.Visible = false;
-
+            quickActionMenu.CloseMenu();
             HudMain.EnableCursor = false;
         }
 

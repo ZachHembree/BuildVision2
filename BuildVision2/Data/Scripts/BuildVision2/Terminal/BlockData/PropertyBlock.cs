@@ -259,7 +259,7 @@ namespace DarkHelmet.BuildVision2
                             var colorProp = prop as ITerminalProperty<Color>;
 
                             if (colorProp.CanAccessValue(TBlock))
-                                ColorProperty.AddColorProperties(nameBuilder, colorProp, this);
+                                blockProperties.Add(ColorProperty.GetProperty(nameBuilder, colorProp, this));
                         }
                     }
                 }

@@ -44,7 +44,7 @@ namespace DarkHelmet.BuildVision2
 
                 summaryText = new Label(this)
                 {
-                    BuilderMode = TextBuilderModes.Lined,
+                    BuilderMode = TextBuilderModes.Wrapped,
                     AutoResize = false,
                     DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding
                 };
@@ -91,7 +91,6 @@ namespace DarkHelmet.BuildVision2
 
                 activeWidget.Visible = true;
                 summaryText.Visible = false;
-                HudMain.EnableCursor = true;
             }
 
             public void CloseWidget()
@@ -113,6 +112,7 @@ namespace DarkHelmet.BuildVision2
                     if (activeWidget == null)
                     {
                         summaryBuilder.Clear();
+                        summaryBuilder.Add("Build Vision\n", headerText);
 
                         foreach (SuperBlock.SubtypeAccessorBase subtype in MenuManager.Target.SubtypeAccessors)
                         {

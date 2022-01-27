@@ -58,7 +58,7 @@ namespace DarkHelmet.BuildVision2
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (confirmButton.MouseInput.IsNewLeftClicked)
+                if (confirmButton.MouseInput.IsNewLeftClicked || BvBinds.Confirm.IsNewPressed)
                 {
                     if (comboBox.Selection != null)
                         blockComboMember.Value = comboBox.Selection.AssocMember.Key;
@@ -68,6 +68,17 @@ namespace DarkHelmet.BuildVision2
                 else if (cancelButton.MouseInput.IsNewLeftClicked)
                 {
                     CloseWidgetCallback();
+                }
+                else if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
+                {
+                    int index = comboBox.SelectionIndex;
+
+                    if (BvBinds.ScrollUp.IsNewPressed)
+                        index++;
+                    else if (BvBinds.ScrollDown.IsNewPressed)
+                        index--;
+
+                    comboBox.SetSelectionAt(index);
                 }
             }
         }

@@ -58,7 +58,7 @@ namespace DarkHelmet.BuildVision2
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (confirmButton.MouseInput.IsNewLeftClicked)
+                if (confirmButton.MouseInput.IsNewLeftClicked || BvBinds.Confirm.IsNewPressed)
                 {
                     textMember.SetValueText(textField.TextBoard.ToString());
                     CloseWidgetCallback();
