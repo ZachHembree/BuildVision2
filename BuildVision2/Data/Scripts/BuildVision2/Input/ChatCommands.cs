@@ -28,6 +28,7 @@ namespace DarkHelmet.BuildVision2
                 { "toggleOpenWhileHolding", x => Cfg.general.canOpenIfHolding = !Cfg.general.canOpenIfHolding },
 
                 // Debug/Testing
+                { "debugInfo", x => QuickActionMenu.DrawDebug = !QuickActionMenu.DrawDebug },
                 { "open", x => MenuManager.TryOpenMenu() },
                 { "close", x => MenuManager.HideMenu() },
                 { "reload", x => ExceptionHandler.ReloadClients() },

@@ -22,9 +22,13 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public QuickActionMenuState MenuState { get; private set; }
 
+        public static bool DrawDebug { get; set; }
+
         private readonly RadialSelectionBox<QuickActionEntry, Label> selectionBox;
         private readonly Body centerElement;
         private readonly ObjectPool<QuickActionEntry> entryPool;
+
+        private readonly Label debugText;
 
         private int tick;
 
@@ -33,13 +37,24 @@ namespace DarkHelmet.BuildVision2
             selectionBox = new RadialSelectionBox<QuickActionEntry, Label>(this) 
             {
                 BackgroundColor = bodyColor,
-                HighlightColor = selectionBoxColor
+                HighlightColor = selectionBoxColor,
+                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding
             };
 
             centerElement = new Body(selectionBox) 
             { };
 
             entryPool = new ObjectPool<QuickActionEntry>(() => new QuickActionEntry(), x => x.Reset());
+
+            debugText = new Label(this)
+            {
+                Visible = false,
+                AutoResize = true,
+                BuilderMode = TextBuilderModes.Lined,
+                ParentAlignment = ParentAlignments.Left
+            };
+
+            Size = new Vector2(512f);
         }
 
         protected override void Layout()
@@ -74,7 +89,7 @@ namespace DarkHelmet.BuildVision2
                     if (BvBinds.EnableMouse.IsPressed)
                         BindManager.RequestTempBlacklist(SeBlacklistModes.MouseAndCam);
 
-                    if (BvBinds.Select.IsNewPressed)
+                    if (BvBinds.Select.IsReleased)
                     {
                         if (member != null && selection.Enabled)
                         {
@@ -111,6 +126,22 @@ namespace DarkHelmet.BuildVision2
                     MenuState = QuickActionMenuState.RadialSelect;
                 }
             }
+
+            if (DrawDebug)
+            {
+                debugText.Visible = true;
+
+                ITextBuilder debugBuilder = debugText.TextBoard;
+                debugBuilder.Clear();
+                debugBuilder.Append($"State: {MenuState}\n");
+                debugBuilder.Append($"IsWidgetOpen: {centerElement.IsWidgetOpen}\n");
+                debugBuilder.Append($"Wheel Input Enabled: {selectionBox.IsInputEnabled}\n");
+                debugBuilder.Append($"Cursor Mode: {HudMain.InputMode}\n");
+                debugBuilder.Append($"Blacklist Mode: {BindManager.BlacklistMode}\n");
+                debugBuilder.Append($"Enable Cursor Pressed: {BvBinds.EnableMouse.IsPressed}\n");
+            }
+            else
+                debugText.Visible = false;
         }
 
         /// <summary>
