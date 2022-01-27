@@ -56,20 +56,24 @@ namespace DarkHelmet.BuildVision2
                 comboBox.ClearEntries();
             }
 
+            protected override void Confirm()
+            {
+                if (comboBox.Selection != null)
+                    blockComboMember.Value = comboBox.Selection.AssocMember.Key;
+
+                CloseWidgetCallback();
+            }
+
+            protected override void Cancel()
+            {
+                CloseWidgetCallback();
+            }
+
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (confirmButton.MouseInput.IsNewLeftClicked || BvBinds.Confirm.IsNewPressed)
-                {
-                    if (comboBox.Selection != null)
-                        blockComboMember.Value = comboBox.Selection.AssocMember.Key;
-
-                    CloseWidgetCallback();
-                }
-                else if (cancelButton.MouseInput.IsNewLeftClicked)
-                {
-                    CloseWidgetCallback();
-                }
-                else if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
+                base.HandleInput(cursorPos); 
+                
+                if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
                 {
                     int index = comboBox.SelectionIndex;
 

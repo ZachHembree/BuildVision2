@@ -10,8 +10,11 @@ namespace DarkHelmet.BuildVision2
         {
             private readonly ColorPickerRGB colorPicker;
 
+            private static int incrX, incrY, incrZ, incr0;
             private IBlockValue<Color> colorMember;
             private Color initColor;
+            private int selectedChannel;
+            private bool channelSelected;
 
             public ColorWidget(HudParentBase parent = null) : base(parent)
             {
@@ -40,27 +43,79 @@ namespace DarkHelmet.BuildVision2
                 initColor = colorMember.Value;
                 colorPicker.Color = colorMember.Value;
                 colorPicker.NameBuilder.SetText(colorMember.Name);
+
+                incr0 = 1;
+                incrZ = (incr0 * BvConfig.Current.block.colorMult.Z); // x64
+                incrY = (incr0 * BvConfig.Current.block.colorMult.Y); // x16
+                incrX = (incr0 * BvConfig.Current.block.colorMult.X); // x8
             }
 
             public override void Reset()
             {
+                selectedChannel = 0;
+                channelSelected = false;
                 colorMember = null;
                 CloseWidgetCallback = null;
+            }
+
+            protected override void Confirm()
+            {
+                if (channelSelected)
+                {
+                    channelSelected = false;
+                    CloseWidgetCallback();
+                }
+                else
+                {
+                    channelSelected = true;
+                }
+            }
+
+            protected override void Cancel()
+            {
+                if (channelSelected)
+                {
+                    channelSelected = false;
+                }
+                else
+                {
+                    colorMember.Value = initColor;
+                    CloseWidgetCallback();
+                } 
             }
 
             protected override void HandleInput(Vector2 cursorPos)
             {
                 colorMember.Value = colorPicker.Color;
 
-                if (confirmButton.MouseInput.IsLeftClicked || BvBinds.Confirm.IsNewPressed)
+                if (!channelSelected)
                 {
-                    CloseWidgetCallback();
+                    if (BvBinds.ScrollUp.IsNewPressed)
+                        selectedChannel--;
+                    else if (BvBinds.ScrollDown.IsNewPressed)
+                        selectedChannel++;
+
+                    selectedChannel = MathHelper.Clamp(selectedChannel, 0, 2);
+                    colorPicker.SetChannelFocused(selectedChannel);
                 }
-                else if (cancelButton.MouseInput.IsLeftClicked)
+                else
                 {
-                    colorMember.Value = initColor;
-                    CloseWidgetCallback();
+                    int offset = 1;
+
+                    if (BvBinds.MultZ.IsPressed)
+                        offset *= incrZ;
+                    else if (BvBinds.MultY.IsPressed)
+                        offset *= incrY;
+                    else if (BvBinds.MultX.IsPressed)
+                        offset *= incrX;
+
+                    if (BvBinds.ScrollUp.IsNewPressed)
+                        colorPicker.sliders[selectedChannel].Current += offset;
+                    else if (BvBinds.ScrollDown.IsNewPressed)
+                        colorPicker.sliders[selectedChannel].Current -= offset;
                 }
+
+                base.HandleInput(cursorPos);
             }
         }
     }

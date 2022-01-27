@@ -73,15 +73,6 @@ namespace DarkHelmet.BuildVision2
                     {
                         OpenFieldInput();
                     }
-                    else if (confirmButton.MouseInput.IsNewLeftClicked || BvBinds.Confirm.IsNewPressed)
-                    {
-                        CloseWidgetCallback?.Invoke();
-                    }
-                    else if (cancelButton.MouseInput.IsNewLeftClicked)
-                    {
-                        floatMember.Value = initValue;
-                        CloseWidgetCallback?.Invoke();
-                    }
                     else if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
                     {
                         float offset = floatMember.Increment;
@@ -103,29 +94,45 @@ namespace DarkHelmet.BuildVision2
                         }
                     }
                 }
+
+                base.HandleInput(cursorPos);
+            }
+
+            protected override void Confirm()
+            {
+                if (!useManualEntry)
+                { }
                 else
                 {
-                    if (confirmButton.MouseInput.IsNewLeftClicked)
-                    {
-                        float newValue;
+                    float newValue;
 
-                        if (float.TryParse(textField.TextBoard.ToString(), out newValue))
-                            floatMember.Value = newValue;
+                    if (float.TryParse(textField.TextBoard.ToString(), out newValue))
+                        floatMember.Value = newValue;
 
-                        CloseFieldInput();
-                    }
-                    else if (cancelButton.MouseInput.IsNewLeftClicked)
-                    {
-                        CloseFieldInput();
-                    }
+                    CloseFieldInput();
                 }
+
+                CloseWidgetCallback?.Invoke();
+            }
+
+            protected override void Cancel()
+            {
+                if (!useManualEntry)
+                {
+                    floatMember.Value = initValue;
+                }
+                else
+                {
+                    CloseFieldInput();
+                }
+
+                CloseWidgetCallback?.Invoke();
             }
 
             private void OpenFieldInput()
             {
                 textField.Visible = true;
                 sliderBox.Visible = false;
-                cancelButton.Visible = true;
 
                 textField.TextBoard.SetText(floatMember.ValueText);
                 useManualEntry = true;
@@ -135,7 +142,6 @@ namespace DarkHelmet.BuildVision2
             {
                 textField.Visible = false;
                 sliderBox.Visible = true;
-                cancelButton.Visible = false;
                 useManualEntry = false;
             }
         }

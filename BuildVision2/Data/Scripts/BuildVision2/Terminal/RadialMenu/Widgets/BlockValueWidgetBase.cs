@@ -23,17 +23,17 @@ namespace DarkHelmet.BuildVision2
 
             public BlockValueWidgetBase(HudParentBase parent = null) : base(parent)
             {
-                cancelButton = new BorderedButton()
+                confirmButton = new BorderedButton()
                 {
-                    Text = "Cancel",
+                    Text = "Confirm",
                     Height = 40f,
                     Width = 150f,
                     Padding = Vector2.Zero,
                     TextPadding = Vector2.Zero,
                 };
-                confirmButton = new BorderedButton()
+                cancelButton = new BorderedButton()
                 {
-                    Text = "Confirm",
+                    Text = "Cancel",
                     Height = 40f,
                     Width = 150f,
                     Padding = Vector2.Zero,
@@ -44,7 +44,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     ParentAlignment = ParentAlignments.Left | ParentAlignments.Inner,
                     Spacing = 8f,
-                    CollectionContainer = { cancelButton, confirmButton }
+                    CollectionContainer = { confirmButton, cancelButton }
                 };
 
                 DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding;
@@ -53,6 +53,24 @@ namespace DarkHelmet.BuildVision2
             public abstract void SetMember(IBlockMember member, Action CloseWidgetCallback);
 
             public abstract void Reset();
+
+            protected override void HandleInput(Vector2 cursorPos)
+            {
+                if (cancelButton.MouseInput.IsLeftReleased ||
+                    (BvBinds.Cancel.IsReleased && !BvBinds.EnableMouse.IsPressed))
+                {
+                    Cancel();
+                }
+                else if (confirmButton.MouseInput.IsRightReleased ||
+                    (BvBinds.Select.IsReleased && !BvBinds.EnableMouse.IsPressed))
+                {
+                    Confirm();
+                }
+            }
+
+            protected abstract void Confirm();
+
+            protected abstract void Cancel();
         }
     }
 }

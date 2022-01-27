@@ -56,17 +56,15 @@ namespace DarkHelmet.BuildVision2
                 CloseWidgetCallback = null;
             }
 
-            protected override void HandleInput(Vector2 cursorPos)
+            protected override void Confirm()
             {
-                if (confirmButton.MouseInput.IsNewLeftClicked || BvBinds.Confirm.IsNewPressed)
-                {
-                    textMember.SetValueText(textField.TextBoard.ToString());
-                    CloseWidgetCallback();
-                }
-                else if (cancelButton.MouseInput.IsNewLeftClicked)
-                {
-                    CloseWidgetCallback();
-                }
+                textMember.SetValueText(textField.TextBoard.ToString());
+                CloseWidgetCallback();
+            }
+
+            protected override void Cancel()
+            {
+                CloseWidgetCallback();
             }
         }
     }
