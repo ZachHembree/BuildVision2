@@ -196,7 +196,7 @@ namespace DarkHelmet.BuildVision2
             {
                 if (block != null)
                 {
-                    TerminalPermissionStates permissions = LocalPlayer.GetBlockAccessPermissions(block);
+                    TerminalPermissionStates permissions = block.GetAccessPermissions();
                     
                     if ((permissions & TerminalPermissionStates.Granted) > 0)
                     {

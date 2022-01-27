@@ -132,7 +132,7 @@ namespace DarkHelmet.BuildVision2
             
             if (MenuManager.TryGetTargetedBlock(100d, out tblock))
             {
-                ExceptionHandler.SendChatMessage($"Target: {tblock.GetType()}\nAccess: {LocalPlayer.GetBlockAccessPermissions(tblock)}");
+                ExceptionHandler.SendChatMessage($"Target: {tblock.GetType()}\nAccess: {tblock.GetAccessPermissions()}");
             }
             else
                 ExceptionHandler.SendChatMessage($"Error: No target found.");

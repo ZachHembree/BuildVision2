@@ -1,9 +1,11 @@
-﻿using Sandbox.ModAPI;
+using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
+using Sandbox.Definitions;
 using VRage.Collections;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
@@ -12,8 +14,109 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
+    [Flags]
+    public enum TerminalPermissionStates : int
+    {
+        None = 0x0,
+        Denied = 0x1,
+        Granted = 0x2,
+
+        GridUnowned = 0x4,
+        GridUnfriendly = 0x8,
+        GridFriendly = 0x10,
+
+        BlockUnfriendly = 0x20,
+        BlockFriendly = 0x40
+    }
+
     public static class TerminalUtilities
     {
+        /// <summary>
+        /// Returns true if the block has ownership permissions
+        /// </summary>
+        public static bool GetIsBlockOwnable(this IMyTerminalBlock block)
+        {
+            IMyCubeGrid grid = block.CubeGrid;
+            var def = MyDefinitionManager.Static.GetDefinition(block.BlockDefinition) as MyCubeBlockDefinition;
+
+            // Terminal blocks with computers are ownable. If there are no bigOwners, the grid is unowned.
+            return def?.Components.Any(x => x.Definition.Id.SubtypeName == "Computer") ?? false;
+        }
+
+        /// <summary>
+        /// Returns true if the player can access the given terminal block. Blocks without ownership
+        /// permissions require the player to have at least neutral relations with the grid owner's faction.
+        /// </summary>
+        public static TerminalPermissionStates GetAccessPermissions(this IMyTerminalBlock block, long plyID = -1)
+        {
+            IMyCubeGrid grid = block.CubeGrid;
+            TerminalPermissionStates accessState;
+
+            if (plyID == -1)
+                plyID = MyAPIGateway.Session.LocalHumanPlayer.IdentityId;
+
+            if (block.GetIsBlockOwnable())
+            {
+                if (block.HasPlayerAccess(plyID))
+                    accessState = TerminalPermissionStates.Granted | TerminalPermissionStates.BlockFriendly;
+                else
+                    accessState = TerminalPermissionStates.Denied | TerminalPermissionStates.BlockUnfriendly;
+
+                return accessState;
+            }
+            else
+            {
+                return grid.GetAccessPermissions(plyID);
+            }
+        }
+
+        /// <summary>
+        /// Returns grid ownership permissions for the player. Access is granted if a grid is unowned 
+        /// or if at least one big owner is friendly, otherwise, the grid is considered unfriendly.
+        /// </summary>
+        public static TerminalPermissionStates GetAccessPermissions(this IMyCubeGrid grid, long plyID = -1)
+        {
+            // Ensure owners are up to date
+            grid.UpdateOwnership(0, false);
+
+            if (plyID == -1)
+                plyID = MyAPIGateway.Session.LocalHumanPlayer.IdentityId;
+
+            TerminalPermissionStates accessState;
+            List<long> bigOwners = grid.BigOwners;
+            bool gridUnowned = bigOwners.Count == 0;
+
+            if (gridUnowned)
+            {
+                accessState = TerminalPermissionStates.Granted | TerminalPermissionStates.GridUnowned;
+            }
+            else
+            {
+                bool gridFriendly = bigOwners.Contains(plyID);
+
+                if (!gridFriendly)
+                {
+                    foreach (long owner in bigOwners)
+                    {
+                        IMyFaction ownerFaction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(owner);
+
+                        if (ownerFaction != null && (ownerFaction.IsFriendly(plyID) || ownerFaction.IsMember(plyID)))
+                        {
+                            gridFriendly = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (gridFriendly)
+                    accessState = TerminalPermissionStates.Granted | TerminalPermissionStates.GridFriendly;
+                else
+                    accessState = TerminalPermissionStates.Denied | TerminalPermissionStates.GridUnfriendly;
+            }
+
+            return accessState;
+        }
+
         public static void GetForceDisplay(float newtons, StringBuilder sb)
         {
             string suffix = "N";
@@ -163,8 +266,6 @@ namespace DarkHelmet.BuildVision2
                 {
                     contentBuffer.Clear();
                     comboBox.ComboBoxContent(contentBuffer);
-
-                    return contentBuffer.Count > 0;
                 }
                 catch { }
             }
