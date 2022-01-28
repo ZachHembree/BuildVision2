@@ -61,7 +61,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     Cancel();
                 }
-                else if (confirmButton.MouseInput.IsRightReleased ||
+                else if (confirmButton.MouseInput.IsLeftReleased ||
                     (BvBinds.Select.IsReleased && !BvBinds.EnableMouse.IsPressed))
                 {
                     Confirm();

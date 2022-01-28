@@ -88,31 +88,34 @@ namespace DarkHelmet.BuildVision2
             {
                 colorMember.Value = colorPicker.Color;
 
-                if (!channelSelected)
+                if (!BvBinds.EnableMouse.IsPressed)
                 {
-                    if (BvBinds.ScrollUp.IsNewPressed)
-                        selectedChannel--;
-                    else if (BvBinds.ScrollDown.IsNewPressed)
-                        selectedChannel++;
+                    if (!channelSelected)
+                    {
+                        if (BvBinds.ScrollUp.IsNewPressed)
+                            selectedChannel--;
+                        else if (BvBinds.ScrollDown.IsNewPressed)
+                            selectedChannel++;
 
-                    selectedChannel = MathHelper.Clamp(selectedChannel, 0, 2);
-                    colorPicker.SetChannelFocused(selectedChannel);
-                }
-                else
-                {
-                    int offset = 1;
+                        selectedChannel = MathHelper.Clamp(selectedChannel, 0, 2);
+                        colorPicker.SetChannelFocused(selectedChannel);
+                    }
+                    else
+                    {
+                        int offset = 1;
 
-                    if (BvBinds.MultZ.IsPressed)
-                        offset *= incrZ;
-                    else if (BvBinds.MultY.IsPressed)
-                        offset *= incrY;
-                    else if (BvBinds.MultX.IsPressed)
-                        offset *= incrX;
+                        if (BvBinds.MultZ.IsPressed)
+                            offset *= incrZ;
+                        else if (BvBinds.MultY.IsPressed)
+                            offset *= incrY;
+                        else if (BvBinds.MultX.IsPressed)
+                            offset *= incrX;
 
-                    if (BvBinds.ScrollUp.IsNewPressed)
-                        colorPicker.sliders[selectedChannel].Current += offset;
-                    else if (BvBinds.ScrollDown.IsNewPressed)
-                        colorPicker.sliders[selectedChannel].Current -= offset;
+                        if (BvBinds.ScrollUp.IsNewPressed)
+                            colorPicker.sliders[selectedChannel].Current += offset;
+                        else if (BvBinds.ScrollDown.IsNewPressed)
+                            colorPicker.sliders[selectedChannel].Current -= offset;
+                    }
                 }
 
                 base.HandleInput(cursorPos);
