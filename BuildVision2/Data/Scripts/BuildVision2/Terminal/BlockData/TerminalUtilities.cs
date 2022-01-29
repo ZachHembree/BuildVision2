@@ -260,12 +260,13 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static bool CanAccessValue(this IMyTerminalControlCombobox comboBox, IMyTerminalBlock tBlock, List<MyTerminalControlComboBoxItem> contentBuffer)
         {
-            if (CanAccessValue(comboBox as IMyTerminalValueControl<long>, tBlock) && comboBox.ComboBoxContent != null)
+            if (CanAccessValue(comboBox, tBlock) && comboBox.ComboBoxContent != null)
             {
                 try
                 {
                     contentBuffer.Clear();
                     comboBox.ComboBoxContent(contentBuffer);
+                    return true;
                 }
                 catch { }
             }
