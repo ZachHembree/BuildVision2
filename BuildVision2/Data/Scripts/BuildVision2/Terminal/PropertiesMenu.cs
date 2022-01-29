@@ -49,6 +49,7 @@ namespace DarkHelmet.BuildVision2
         private readonly List<IMySlimBlock> targetBuffer;
 
         private readonly IMyHudNotification hudNotification;
+        private Vector2 lastPos;
 
         private MenuManager() : base(false, true)
         {
@@ -150,7 +151,13 @@ namespace DarkHelmet.BuildVision2
                     menuPos.Y = MathHelper.Clamp(menuPos.Y, -screenBounds.Y, screenBounds.Y);
                 }
 
-                quickActionMenu.Offset = HudMain.GetPixelVector(menuPos) / scale;
+                menuPos = HudMain.GetPixelVector(menuPos) / scale;
+
+                if ((lastPos - menuPos).LengthSquared() > 4f)
+                {
+                    quickActionMenu.Offset = menuPos;
+                    lastPos = menuPos;
+                }
             }
 
             // Rescale draw matrix based on config
