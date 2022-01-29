@@ -64,12 +64,23 @@ namespace RichHudFramework
 
             public GlyphFormatMembers Data { get; }
 
-            public GlyphFormat(Color color = default(Color), TextAlignment alignment = TextAlignment.Left, float textSize = 1f, Vector2I fontStyle = default(Vector2I))
+            public GlyphFormat(Color color, TextAlignment alignment, float textSize, Vector2I fontStyle)
             {
                 if (color == default(Color))
                     color = Color.Black;
 
                 Data = new GlyphFormatMembers((byte)alignment, textSize, fontStyle, color);
+            }
+
+            public GlyphFormat(Color color = default(Color), TextAlignment alignment = TextAlignment.Left, float textSize = 1f, FontStyles style = FontStyles.Regular, IFontMin font = null)
+            {
+                if (color == default(Color))
+                    color = Color.Black;
+
+                if (font == null)
+                    font = FontManager.GetFont(FontManager.Default.X);
+
+                Data = new GlyphFormatMembers((byte)alignment, textSize, font.GetStyleIndex(style), color);
             }
 
             public GlyphFormat(GlyphFormatMembers data)

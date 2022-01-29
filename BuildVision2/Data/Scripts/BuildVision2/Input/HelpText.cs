@@ -14,8 +14,8 @@ namespace DarkHelmet.BuildVision2
         private static readonly Color accentGrey = new Color(200, 200, 210);
         private static readonly GlyphFormat 
             highlight = new GlyphFormat(accentGrey),
-            subheader = new GlyphFormat(accentGrey, TextAlignment.Center, 1.2f, new Vector2I(0, (int)FontStyles.Underline)),
-            subsection = new GlyphFormat(accentGrey, fontStyle: new Vector2I(0, (int)FontStyles.Underline));
+            subheader = new GlyphFormat(accentGrey, TextAlignment.Center, 1.2f, FontStyles.Underline),
+            subsection = new GlyphFormat(accentGrey, style: FontStyles.Underline);
 
         public static RichText GetHelpMessage()
         {
