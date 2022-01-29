@@ -109,7 +109,7 @@ namespace DarkHelmet.BuildVision2
                 MaxValue = property.GetMaximum(block.TBlock);
                 Increment = GetIncrement();
 
-                if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Thruster) && PropName.IsTextEqual("Override"))
+                if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Thruster) && PropName == "Override")
                     GetScaleFunc = GetThrustEffectFunc;
                 else
                     GetScaleFunc = GetDefaultScaleFunc;

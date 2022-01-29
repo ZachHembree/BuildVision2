@@ -17,6 +17,11 @@ namespace DarkHelmet.BuildVision2
     public interface IBlockMember
     {
         /// <summary>
+        /// Unique identifier associated with the property
+        /// </summary>
+        string PropName { get; }
+
+        /// <summary>
         /// Retrieves the name of the block property
         /// </summary>
         StringBuilder Name { get; }

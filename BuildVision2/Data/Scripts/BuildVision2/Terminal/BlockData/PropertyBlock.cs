@@ -123,7 +123,7 @@ namespace DarkHelmet.BuildVision2
 
             foreach (PropertyData propData in src.terminalProperties)
             {
-                BvTerminalPropertyBase prop = blockProperties.Find(x => x.PropName.IsTextEqual(propData.name));
+                BvTerminalPropertyBase prop = blockProperties.Find(x => x.PropName == propData.name);
 
                 if (prop != null)
                 {

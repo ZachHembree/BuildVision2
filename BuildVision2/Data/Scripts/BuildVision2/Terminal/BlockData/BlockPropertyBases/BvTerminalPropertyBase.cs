@@ -13,11 +13,6 @@ namespace DarkHelmet.BuildVision2
         private abstract class BvTerminalPropertyBase : BlockMemberBase, IBlockProperty
         {
             /// <summary>
-            /// Unique identifier associated with the property
-            /// </summary>
-            public abstract StringBuilder PropName { get; }
-
-            /// <summary>
             /// Returns a serializable representation of the property.
             /// </summary>
             public abstract PropertyData GetPropertyData();
@@ -33,7 +28,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private abstract class BvTerminalPropertyBase<TProp, TValue> : BvTerminalPropertyBase where TProp : class, ITerminalProperty
         {
-            public override StringBuilder PropName { get; }
+            public override string PropName => property?.Id;
 
             public override bool Enabled 
             { 
@@ -59,16 +54,12 @@ namespace DarkHelmet.BuildVision2
             public BvTerminalPropertyBase()
             {
                 Name = new StringBuilder();
-                PropName = new StringBuilder();
             }
 
             protected virtual void SetPropertyInternal(StringBuilder name, TProp property, PropertyBlock block, Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
             {
                 Name.Clear();
                 Name.Append(name);
-
-                PropName.Clear();
-                PropName.Append(property.Id);
 
                 this.property = property;
                 this.control = property as IMyTerminalControl;

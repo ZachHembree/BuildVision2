@@ -10,6 +10,11 @@ namespace DarkHelmet.BuildVision2
         private abstract class BlockMemberBase : IBlockMember
         {
             /// <summary>
+            /// Unique identifier associated with the property
+            /// </summary>
+            public abstract string PropName { get; }
+
+            /// <summary>
             /// Retrieves the name of the block property
             /// </summary>
             public virtual StringBuilder Name { get; protected set; }
