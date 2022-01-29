@@ -36,7 +36,7 @@ namespace DarkHelmet.BuildVision2
                 };
             }
 
-            public override void SetMember(IBlockMember member, Action CloseWidgetCallback)
+            public override void SetData(object member, Action CloseWidgetCallback)
             {
                 blockComboMember = member as IBlockComboBox;
                 this.CloseWidgetCallback = CloseWidgetCallback;

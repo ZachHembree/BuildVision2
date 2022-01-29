@@ -19,7 +19,6 @@ namespace DarkHelmet.BuildVision2
             public ColorWidget(HudParentBase parent = null) : base(parent)
             {
                 colorPicker = new ColorPickerRGB();
-                cancelButton.Visible = true;
 
                 var layout = new HudChain(true, this)
                 {
@@ -35,7 +34,7 @@ namespace DarkHelmet.BuildVision2
                 };
             }
 
-            public override void SetMember(IBlockMember member, Action CloseWidgetCallback)
+            public override void SetData(object member, Action CloseWidgetCallback)
             {
                 colorMember = member as IBlockValue<Color>;
                 this.CloseWidgetCallback = CloseWidgetCallback;

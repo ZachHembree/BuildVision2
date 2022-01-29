@@ -121,7 +121,7 @@ namespace DarkHelmet.BuildVision2
             if (blockMembers.Count == 0)
                 GenerateProperties();
 
-            foreach (PropertyData propData in src.terminalProperties)
+            foreach (PropertyData propData in src.propertyList)
             {
                 BvTerminalPropertyBase prop = blockProperties.Find(x => x.PropName == propData.name);
 

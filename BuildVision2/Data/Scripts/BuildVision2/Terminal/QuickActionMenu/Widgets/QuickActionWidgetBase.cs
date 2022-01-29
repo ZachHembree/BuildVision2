@@ -1,27 +1,19 @@
-﻿using RichHudFramework.Client;
-using RichHudFramework.IO;
-using RichHudFramework.UI;
+﻿using RichHudFramework.UI;
 using System;
-using VRage;
 using VRageMath;
-using VRage.ModAPI;
-using VRage.Utils;
-using RichHudFramework;
-using RichHudFramework.UI.Rendering;
-using RichHudFramework.UI.Client;
 
 namespace DarkHelmet.BuildVision2
 {
     public sealed partial class QuickActionMenu
     {
-        private abstract class BlockValueWidgetBase : HudElementBase
+        private abstract class QuickActionWidgetBase : HudElementBase
         {
             protected readonly BorderedButton cancelButton, confirmButton;
             protected readonly HudChain buttonChain;
 
             protected Action CloseWidgetCallback;
 
-            public BlockValueWidgetBase(HudParentBase parent = null) : base(parent)
+            public QuickActionWidgetBase(HudParentBase parent = null) : base(parent)
             {
                 confirmButton = new BorderedButton()
                 {
@@ -50,14 +42,13 @@ namespace DarkHelmet.BuildVision2
                 DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding;
             }
 
-            public abstract void SetMember(IBlockMember member, Action CloseWidgetCallback);
+            public abstract void SetData(object data, Action CloseWidgetCallback);
 
             public abstract void Reset();
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (cancelButton.MouseInput.IsLeftReleased ||
-                    (BvBinds.Cancel.IsReleased && !BvBinds.EnableMouse.IsPressed))
+                if (cancelButton.MouseInput.IsLeftReleased || BvBinds.Cancel.IsReleased)
                 {
                     Cancel();
                 }

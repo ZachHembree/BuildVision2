@@ -17,8 +17,9 @@ namespace DarkHelmet.BuildVision2
     public enum QuickActionMenuState
     {
         Closed,
-        RadialSelect,
-        WidgetControl
+        PropertySelection,
+        WidgetControl,
+        PropertyDuplication,
     }
 
     public sealed partial class QuickActionMenu : HudElementBase
@@ -28,7 +29,7 @@ namespace DarkHelmet.BuildVision2
             bodyColor = new Color(70, 78, 86, 225),
             selectionBoxColor = new Color(41, 54, 62, 225);
         private static readonly GlyphFormat
-            headerText = new GlyphFormat(Color.White, TextAlignment.Center, 1f),
+            headerText = new GlyphFormat(Color.White, TextAlignment.Center, 1f, FontStyles.Underline),
             bodyText = new GlyphFormat(Color.White, textSize: .885f),
             valueText = bodyText.WithColor(new Color(210, 210, 210)),
             bodyTextCenter = bodyText.WithAlignment(TextAlignment.Center),

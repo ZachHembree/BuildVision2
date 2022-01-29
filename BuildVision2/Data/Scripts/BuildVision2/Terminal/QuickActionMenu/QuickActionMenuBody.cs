@@ -27,14 +27,18 @@ namespace DarkHelmet.BuildVision2
             private readonly ComboWidget comboWidget;
             private readonly FloatWidget floatWidget;
             private readonly TextWidget textWidget;
+            private readonly PropertyListWidget propertyListWidget;
+
             private readonly Action CloseWidgetCallback;
-            private BlockValueWidgetBase activeWidget;
+            private QuickActionWidgetBase activeWidget;
 
             private readonly RichText summaryBuilder;
+            private readonly QuickActionMenu menuMain;
             private int tick;
 
-            public Body(HudParentBase parent = null) : base(parent)
+            public Body(QuickActionMenu parent) : base(parent)
             {
+                menuMain = parent;
                 background = new TexturedBox(this)
                 {
                     Material = Material.CircleMat,
@@ -53,6 +57,7 @@ namespace DarkHelmet.BuildVision2
                 comboWidget = new ComboWidget(this) { Visible = false };
                 floatWidget = new FloatWidget(this) { Visible = false };
                 textWidget = new TextWidget(this) { Visible = false };
+                propertyListWidget = new PropertyListWidget(this) { Visible = false };
 
                 summaryBuilder = new RichText();
                 CloseWidgetCallback = CloseWidget;
@@ -60,27 +65,26 @@ namespace DarkHelmet.BuildVision2
                 Padding = new Vector2(90f);
             }
 
-            public void OpenMemberWidget(IBlockMember member)
+            public void OpenPropertyListWidget()
             {
-                CloseWidget();
+                OpenWidget(propertyListWidget, menuMain.block.BlockMembers);
+            }
 
+            public void OpenBlockMemberWidget(IBlockMember member)
+            {
                 switch (member.ValueType)
                 {
                     case BlockMemberValueTypes.Color:
-                        colorWidget.SetMember(member, CloseWidgetCallback);
-                        activeWidget = colorWidget;
+                        OpenWidget(colorWidget, member);
                         break;
                     case BlockMemberValueTypes.Combo:
-                        comboWidget.SetMember(member, CloseWidgetCallback);
-                        activeWidget = comboWidget;
+                        OpenWidget(comboWidget, member);
                         break;
                     case BlockMemberValueTypes.Float:
-                        floatWidget.SetMember(member, CloseWidgetCallback);
-                        activeWidget = floatWidget;
+                        OpenWidget(floatWidget, member);
                         break;
                     case BlockMemberValueTypes.Text:
-                        textWidget.SetMember(member, CloseWidgetCallback);
-                        activeWidget = textWidget;
+                        OpenWidget(textWidget, member);
                         break;
                     default:
                         throw new Exception(
@@ -88,6 +92,14 @@ namespace DarkHelmet.BuildVision2
                             $"Member Type: {member?.GetType()}"
                         );
                 }
+            }
+
+            private void OpenWidget(QuickActionWidgetBase widget, object data)
+            {
+                CloseWidget();
+
+                widget.SetData(data, CloseWidgetCallback);
+                activeWidget = widget;
 
                 activeWidget.Visible = true;
                 summaryText.Visible = false;
@@ -114,7 +126,7 @@ namespace DarkHelmet.BuildVision2
                         summaryBuilder.Clear();
                         summaryBuilder.Add("Build Vision\n", headerText);
 
-                        foreach (SuperBlock.SubtypeAccessorBase subtype in MenuManager.Target.SubtypeAccessors)
+                        foreach (SuperBlock.SubtypeAccessorBase subtype in menuMain.block.SubtypeAccessors)
                         {
                             if (subtype != null)
                                 subtype.GetSummary(summaryBuilder, bodyTextCenter, valueTextCenter);

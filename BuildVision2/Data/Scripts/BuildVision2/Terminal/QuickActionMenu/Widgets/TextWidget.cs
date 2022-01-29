@@ -38,7 +38,7 @@ namespace DarkHelmet.BuildVision2
                 };
             }
 
-            public override void SetMember(IBlockMember member, Action CloseWidgetCallback)
+            public override void SetData(object member, Action CloseWidgetCallback)
             {
                 textValueMember = member as IBlockValue<StringBuilder>;
                 textMember = member as IBlockTextMember;

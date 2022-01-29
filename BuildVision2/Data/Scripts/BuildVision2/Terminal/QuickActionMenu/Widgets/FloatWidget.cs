@@ -36,7 +36,7 @@ namespace DarkHelmet.BuildVision2
                 };
             }
 
-            public override void SetMember(IBlockMember member, Action CloseWidgetCallback)
+            public override void SetData(object member, Action CloseWidgetCallback)
             {
                 floatMember = member as IBlockNumericValue<float>;
                 textMember = member as IBlockTextMember;
