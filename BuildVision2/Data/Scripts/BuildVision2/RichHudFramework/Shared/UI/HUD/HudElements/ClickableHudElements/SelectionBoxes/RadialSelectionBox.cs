@@ -161,7 +161,7 @@ namespace RichHudFramework.UI
 
                 Vector2 cursorOffset = cursorPos - lastCursorPos;
 
-                if (cursorOffset.LengthSquared() > 10f)
+                if (cursorOffset.LengthSquared() > 2f)
                 {
                     // Find enabled entry with the offset that most closely matches
                     // the direction of the normal
