@@ -34,15 +34,10 @@ namespace RichHudFramework.UI
     /// <typeparam name="TElement">UI element in the list</typeparam>
     /// <typeparam name="TValue">Value paired with the list entry</typeparam>
     public class ListBox<TContainer, TElement, TValue>
-        : SelectionBox<ScrollBox<TContainer, TElement>, TContainer, TElement, TValue>, IClickableElement
+        : ScrollSelectionBox<TContainer, TElement, TValue>, IClickableElement
         where TContainer : class, IListBoxEntry<TElement, TValue>, new()
         where TElement : HudElementBase, IMinLabelElement
     {
-        /// <summary>
-        /// Background color
-        /// </summary>
-        public Color Color { get { return hudChain.Color; } set { hudChain.Color = value; } }
-
         /// <summary>
         /// Color of the slider bar
         /// </summary>
@@ -100,17 +95,6 @@ namespace RichHudFramework.UI
 
         public ListBox() : this(null)
         { }
-
-        protected override void Layout()
-        {
-            if (listInput.KeyboardScroll)
-            {
-                if (listInput.HighlightIndex < hudChain.Start)
-                    hudChain.Start = listInput.HighlightIndex;
-                else if (listInput.HighlightIndex > hudChain.End)
-                    hudChain.End = listInput.HighlightIndex;
-            }
-        }
 
         protected override void Draw()
         {

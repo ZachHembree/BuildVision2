@@ -20,7 +20,13 @@ namespace RichHudFramework.UI
         : SelectionBox<HudChain<TContainer, TElement>, TContainer, TElement, TValue>
         where TContainer : class, IListBoxEntry<TElement, TValue>, new()
         where TElement : HudElementBase, IMinLabelElement
-    { }
+    {
+        public ChainSelectionBox(HudParentBase parent) : base(parent)
+        { }
+
+        public ChainSelectionBox() : base(null)
+        { }
+    }
 
     /// <summary>
     /// Generic SelectionBox using ScrollBox
@@ -30,7 +36,33 @@ namespace RichHudFramework.UI
         where TContainer : class, IListBoxEntry<TElement, TValue>, new()
         where TElement : HudElementBase, IMinLabelElement
     {
-        public Color BackgroundColor { get { return hudChain.Color; } set { hudChain.Color = value; } }
+        /// <summary>
+        /// Background color
+        /// </summary>
+        public Color Color { get { return hudChain.Color; } set { hudChain.Color = value; } }
+
+        public ScrollSelectionBox(HudParentBase parent) : base(parent)
+        { }
+
+        public ScrollSelectionBox() : base(null)
+        { }
+
+        protected override void HandleInput(Vector2 cursorPos)
+        {
+            base.HandleInput(cursorPos);
+
+            if (listInput.KeyboardScroll)
+            {
+                if (listInput.HighlightIndex > hudChain.End)
+                {
+                    hudChain.End = listInput.HighlightIndex;
+                }
+                else if (listInput.HighlightIndex < hudChain.Start)
+                {
+                    hudChain.Start = listInput.HighlightIndex;
+                }
+            }
+        }
     }
 
     /// <summary>

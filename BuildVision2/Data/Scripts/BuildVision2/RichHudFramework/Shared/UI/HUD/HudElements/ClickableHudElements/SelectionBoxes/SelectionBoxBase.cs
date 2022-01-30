@@ -37,11 +37,33 @@ namespace RichHudFramework.UI
         where TElement : HudElementBase, IMinLabelElement
         where TContainer : class, ISelectionBoxEntry<TElement>, new()
     {
+        /// <summary>
+        /// Background color
+        /// </summary>
+        public Color Color { get { return hudChain.Color; } set { hudChain.Color = value; } }
+
         public ScrollSelectionBoxBase(HudParentBase parent) : base(parent)
         { }
 
         public ScrollSelectionBoxBase() : base(null)
         { }
+
+        protected override void HandleInput(Vector2 cursorPos)
+        {
+            base.HandleInput(cursorPos);
+
+            if (listInput.KeyboardScroll)
+            {
+                if (listInput.HighlightIndex > hudChain.End)
+                {
+                    hudChain.End = listInput.HighlightIndex;
+                }
+                else if (listInput.HighlightIndex < hudChain.Start)
+                {
+                    hudChain.Start = listInput.HighlightIndex;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -163,8 +185,7 @@ namespace RichHudFramework.UI
         protected readonly HighlightBox selectionBox, highlightBox;
         protected readonly ListInputElement<TContainer, TElement> listInput;
         protected readonly bool chainHidesDisabled;
-        protected TContainer lastSelection;
-        protected GlyphFormat lastFormat;
+        protected MyTuple<TContainer, RichText> lastSelection;
 
         public SelectionBoxBase(HudParentBase parent) : base(parent)
         {
@@ -286,7 +307,11 @@ namespace RichHudFramework.UI
 
         protected virtual void UpdateSelectionFormatting()
         {
-            lastSelection?.Element.TextBoard.SetFormatting(lastFormat);
+            if (lastSelection.Item1 != null)
+            {
+                ITextBoard textBoard = lastSelection.Item1.Element.TextBoard;
+                textBoard.SetText(lastSelection.Item2);
+            }
 
             if ((SelectionIndex == listInput.FocusIndex) && SelectionIndex != -1)
             {
@@ -297,7 +322,7 @@ namespace RichHudFramework.UI
                 {
                     if (hudChain[listInput.SelectionIndex].AllowHighlighting)
                     {
-                        SetHighlightFormat(listInput.SelectionIndex);
+                        SetFocusFormat(listInput.SelectionIndex);
                         selectionBox.Color = FocusColor;
                     }
                 }
@@ -312,7 +337,7 @@ namespace RichHudFramework.UI
                 {
                     if (hudChain[listInput.HighlightIndex].AllowHighlighting)
                     {
-                        SetHighlightFormat(listInput.HighlightIndex);
+                        SetFocusFormat(listInput.HighlightIndex);
                         highlightBox.Color = FocusColor;
                     }
                 }
@@ -323,12 +348,12 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected void SetHighlightFormat(int index)
+        protected void SetFocusFormat(int index)
         {
-            lastSelection = hudChain[index];
-            ITextBoard textBoard = lastSelection.Element.TextBoard;
+            lastSelection.Item1 = hudChain[index];
+            ITextBoard textBoard = lastSelection.Item1.Element.TextBoard;
+            lastSelection.Item2 = textBoard.GetText();
 
-            lastFormat = textBoard.Format;
             textBoard.SetFormatting(textBoard.Format.WithColor(FocusTextColor));
         }
 
