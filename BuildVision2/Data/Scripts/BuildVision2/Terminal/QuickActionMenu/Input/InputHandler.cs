@@ -42,6 +42,15 @@ namespace DarkHelmet.BuildVision2
                     else
                         HudMain.EnableCursor = BvBinds.EnableMouse.IsPressed;
                 }
+                else if (MenuState == QuickActionMenuState.ListMenuControl)
+                {
+                    if (!propertyList.ListOpen)
+                        MenuState = QuickActionMenuState.PropertySelection;
+                    else if (BvBinds.Cancel.IsReleased)
+                        propertyList.CloseMenu();
+                    else
+                        activeWheel.IsInputEnabled = false;
+                }
             }
 
             if (DrawDebug)
@@ -113,11 +122,10 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private void OpenPropertyListWidget()
+        private void OpenPropertyList()
         {
-            menuBody.OpenPropertyListWidget();
-            activeWheel.IsInputEnabled = false;
-            MenuState = QuickActionMenuState.WidgetControl;
+            propertyList.SetBlockMembers(block.BlockMembers);
+            MenuState = QuickActionMenuState.ListMenuControl;
         }
 
         /// <summary>

@@ -27,7 +27,6 @@ namespace DarkHelmet.BuildVision2
             private readonly ComboWidget comboWidget;
             private readonly FloatWidget floatWidget;
             private readonly TextWidget textWidget;
-            private readonly PropertyListWidget propertyListWidget;
 
             private readonly Action CloseWidgetCallback;
             private QuickActionWidgetBase activeWidget;
@@ -57,17 +56,11 @@ namespace DarkHelmet.BuildVision2
                 comboWidget = new ComboWidget(this) { Visible = false };
                 floatWidget = new FloatWidget(this) { Visible = false };
                 textWidget = new TextWidget(this) { Visible = false };
-                propertyListWidget = new PropertyListWidget(this) { Visible = false };
 
                 summaryBuilder = new RichText();
                 CloseWidgetCallback = CloseWidget;
 
                 Padding = new Vector2(90f);
-            }
-
-            public void OpenPropertyListWidget()
-            {
-                OpenWidget(propertyListWidget, menuMain.block.BlockMembers);
             }
 
             public void OpenBlockMemberWidget(IBlockMember member)

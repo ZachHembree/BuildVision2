@@ -19,6 +19,7 @@ namespace DarkHelmet.BuildVision2
         Closed,
         PropertySelection,
         WidgetControl,
+        ListMenuControl,
         PropertyDuplication,
     }
 

@@ -25,6 +25,8 @@ namespace DarkHelmet.BuildVision2
 
         private readonly RadialSelectionBox<QuickActionEntryBase, Label> propertyWheel, dupeWheel;
         private readonly Body menuBody;
+        private readonly PropertyListMenu propertyList;
+
         private readonly ObjectPool<object> propertyEntryPool;
         private readonly QuickActionShortcutEntry scrollMenuShortcut, dupeShortcut;
 
@@ -75,10 +77,12 @@ namespace DarkHelmet.BuildVision2
 
             menuBody = new Body(this) { };
 
+            propertyList = new PropertyListMenu(this) { Visible = false };
+
             scrollMenuShortcut = new QuickActionShortcutEntry()
             { 
-                Text = "Open Full Menu",
-                ShortcutAction = OpenPropertyListWidget,
+                Text = "Open List Menu",
+                ShortcutAction = OpenPropertyList,
             };
             dupeShortcut = new QuickActionShortcutEntry()
             {
@@ -142,6 +146,7 @@ namespace DarkHelmet.BuildVision2
         {
             StopPropertyDuplication();
             menuBody.CloseWidget();
+            propertyList.CloseMenu();
             block = null;
 
             propertyEntryPool.ReturnRange(propertyWheel.EntryList, 0, propertyWheel.EntryList.Count - 2);
