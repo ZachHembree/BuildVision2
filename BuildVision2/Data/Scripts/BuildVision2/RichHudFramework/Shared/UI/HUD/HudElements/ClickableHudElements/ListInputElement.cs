@@ -138,13 +138,29 @@ namespace RichHudFramework.UI
             {
                 if (SharedBinds.UpArrow.IsNewPressed || SharedBinds.UpArrow.IsPressedAndHeld)
                 {
-                    HighlightIndex--;
+                    for (int i = HighlightIndex - 1; i >= 0; i--)
+                    {
+                        if (Entries[i].Enabled)
+                        {
+                            HighlightIndex = i;
+                            break;
+                        }
+                    }
+
                     KeyboardScroll = true;
                     lastCursorPos = cursorPos;
                 }
                 else if (SharedBinds.DownArrow.IsNewPressed || SharedBinds.DownArrow.IsPressedAndHeld)
                 {
-                    HighlightIndex++;
+                    for (int i = HighlightIndex + 1; i < Entries.Count; i++)
+                    {
+                        if (Entries[i].Enabled)
+                        {
+                            HighlightIndex = i;
+                            break;
+                        }
+                    }
+
                     KeyboardScroll = true;
                     lastCursorPos = cursorPos;
                 }
