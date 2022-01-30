@@ -235,6 +235,13 @@ namespace RichHudFramework.UI
             listInput.SetSelectionAt(index);
 
         /// <summary>
+        /// Offsets selection index in the direction of the offset. If wrap == true, the index will wrap around
+        /// if the offset places it out of range.
+        /// </summary>
+        public void OffsetSelectionIndex(int offset, bool wrap = false) =>
+            listInput.OffsetSelectionIndex(offset, wrap);
+
+        /// <summary>
         /// Sets the selection to the specified entry.
         /// </summary>
         public void SetSelection(TContainer member) =>
