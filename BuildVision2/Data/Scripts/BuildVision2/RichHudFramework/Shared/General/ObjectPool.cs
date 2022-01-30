@@ -156,8 +156,14 @@ namespace RichHudFramework
         /// <summary>
         /// Returns the specified range of objects in the collection to the pool.
         /// </summary>
-        public void ReturnRange(IReadOnlyList<T> objects, int index, int count)
+        public void ReturnRange(IReadOnlyList<T> objects, int index = -1, int count = -1)
         {
+            if (index == -1)
+                index = 0;
+
+            if (count == -1)
+                count = objects.Count;
+
             objectPolicy.ResetRange(objects, index, count);
             pooledObjects.EnsureCapacity(Capacity);
 
@@ -168,8 +174,14 @@ namespace RichHudFramework
         /// <summary>
         /// Returns the specified range of objects in the collection to the pool.
         /// </summary>
-        public void ReturnRange<T2>(IReadOnlyList<MyTuple<T, T2>> objects, int index, int count)
+        public void ReturnRange<T2>(IReadOnlyList<MyTuple<T, T2>> objects, int index = -1, int count = -1)
         {
+            if (index == -1)
+                index = 0;
+
+            if (count == -1)
+                count = objects.Count;
+
             objectPolicy.ResetRange(objects, index, count);
             pooledObjects.EnsureCapacity(Capacity);
 
