@@ -108,6 +108,7 @@ namespace RichHudFramework.UI
         public void OpenInput()
         {
             allowInput = true;
+            UpdateInputOpen();
             caret.SetPosition(new Vector2I(int.MaxValue, int.MaxValue));
         }
 
@@ -117,6 +118,7 @@ namespace RichHudFramework.UI
         public void CloseInput()
         {
             allowInput = false;
+            UpdateInputOpen();
             selectionBox.ClearSelection();
         }
 
@@ -200,7 +202,7 @@ namespace RichHudFramework.UI
                 }
             }
 
-            InputOpen = useInput && (EnableHighlighting || EnableEditing);
+            UpdateInputOpen();
             caret.Visible = InputOpen;
 
             if (useInput && EnableHighlighting)
@@ -241,6 +243,12 @@ namespace RichHudFramework.UI
             {
                 canHighlight = false;
             }
+        }
+
+        private void UpdateInputOpen()
+        {
+            bool useInput = allowInput || (MouseInput.HasFocus && HudMain.InputMode == HudInputMode.Full);
+            InputOpen = useInput && (EnableHighlighting || EnableEditing);
         }
 
         /// <summary>
