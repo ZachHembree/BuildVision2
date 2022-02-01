@@ -1,23 +1,32 @@
 ﻿using RichHudFramework;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
-using VRageMath;
+using System.Collections.Generic;
 using System.Text;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
     public partial class PropertyBlock
     {
         /// <summary>
-        /// Block Terminal Property for individual color channels of a VRageMath.Color
+        /// Block Terminal Property for <see cref="VRageMath.Color"/>
         /// </summary>
-        private class ColorProperty : NumericPropertyBase<Color>, IBlockValue<Color>
+        private class ColorProperty : NumericPropertyBase<Color>, IBlockColor
         {
             public Color Value { get { return GetValue(); } set { SetValue(value); } }
 
-            public override StringBuilder FormattedValue 
+            public Color MinValue => Color.Black;
+
+            public Color MaxValue => Color.White;
+
+            public Color Increment => new Color(1, 1, 1);
+
+            public IReadOnlyList<IBlockNumericValue<byte>> ColorChannels { get; }
+
+            public override StringBuilder FormattedValue
             {
-                get 
+                get
                 {
                     dispBuilder.Clear();
                     Color value = GetValue();
@@ -34,12 +43,20 @@ namespace DarkHelmet.BuildVision2
             public override StringBuilder StatusText => null;
 
             private BvPropPool<ColorProperty> poolParent;
-            protected readonly StringBuilder dispBuilder;
+
+            private readonly StringBuilder dispBuilder;
 
             public ColorProperty()
             {
                 dispBuilder = new StringBuilder();
                 ValueType = BlockMemberValueTypes.Color;
+
+                ColorChannels = new IBlockNumericValue<byte>[3]
+                {
+                    new ColorPropertyChannel(this, "R", 0),
+                    new ColorPropertyChannel(this, "G", 1),
+                    new ColorPropertyChannel(this, "B", 2),
+                };
             }
 
             public override void SetProperty(StringBuilder name, ITerminalProperty<Color> property, PropertyBlock block)

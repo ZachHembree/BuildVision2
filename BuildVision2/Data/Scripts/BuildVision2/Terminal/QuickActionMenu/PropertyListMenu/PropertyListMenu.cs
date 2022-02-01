@@ -97,16 +97,17 @@ namespace DarkHelmet.BuildVision2
 
                 foreach (IBlockMember member in blockMembers)
                 {
-                    if (member is IBlockValue<Color>)
+                    if (member is IBlockColor)
                     {
+                        var colorMember = member as IBlockColor;
                         var entry = body.AddNew();
-                        entry.SetMember(member, 0);
+                        entry.SetMember(colorMember.ColorChannels[0]);
 
                         entry = body.AddNew();
-                        entry.SetMember(member, 1);
+                        entry.SetMember(colorMember.ColorChannels[1]);
 
                         entry = body.AddNew();
-                        entry.SetMember(member, 2);
+                        entry.SetMember(colorMember.ColorChannels[2]);
                     }
                     else
                     {
@@ -135,6 +136,8 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
+                Size = layout.Size;
+
                 if (body.EntryList.Count > 0)
                 {
                     if (body.SelectionIndex > body.hudChain.End)
@@ -151,6 +154,7 @@ namespace DarkHelmet.BuildVision2
                     textBuf.Add($"Selection: {body.Selection?.TextBoard}\n");
                     textBuf.Add($"Selection Open: {body.Selection?.PropertyOpen}\n");
                     textBuf.Add($"Selection Type: {body.Selection?.AssocMember.GetType().Name}\n");
+                    textBuf.Add($"Selection Value Text: {body.Selection?.AssocMember.ValueText}\n");
                     textBuf.Add($"Chat Open: {BindManager.IsChatOpen}\n");
 
                     debugText.Text = textBuf;

@@ -54,11 +54,9 @@ namespace DarkHelmet.BuildVision2
                         if (!BindManager.IsChatOpen && selection.InputOpen ||
                             !selection.PropertyOpen && selection.WaitingForChatInput)
                         {
-                            var textMember = body.Selection.AssocMember as IBlockTextMember;
-
                             // If no input was recieved, don't write anything
                             if (!selection.WaitingForChatInput)
-                                textMember.SetValueText(selection.ValueText.ToString());
+                                selection.SetValueText(selection.ValueText.ToString());
 
                             selection.WaitingForChatInput = false;
                             selection.PropertyOpen = false;
@@ -72,7 +70,7 @@ namespace DarkHelmet.BuildVision2
                                 HandleActionInput();
                             else if (selection.AssocMember is IBlockNumericValue<float>)
                                 HandleFloatInput();
-                            else if (selection.AssocMember is IBlockValue<Color>)
+                            else if (selection.AssocMember is IBlockNumericValue<byte>)
                                 HandleColorInput();
                             else if (selection.AssocMember is IBlockComboBox)
                                 HandleComboInput();
@@ -138,8 +136,7 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    var colorMember = body.Selection.AssocMember as IBlockValue<Color>;
-                    var colorChannel = (int)body.Selection.MemberData;
+                    var colorMember = body.Selection.AssocMember as IBlockNumericValue<byte>;
                     int offset = 1;
 
                     if (BvBinds.MultZ.IsPressed)
@@ -149,19 +146,16 @@ namespace DarkHelmet.BuildVision2
                     else if (BvBinds.MultX.IsPressed)
                         offset *= incrX;
 
-                    Color fullColor = colorMember.Value;
-                    byte color = colorMember.Value.GetChannel(colorChannel);
+                    byte color = colorMember.Value;
 
                     if (BvBinds.ScrollUp.IsNewPressed)
                     {
-                        color = (byte)MathHelper.Clamp(color + offset, 0, 255);
+                        colorMember.Value = (byte)MathHelper.Clamp(color + offset, 0, 255);
                     }
                     else if (BvBinds.ScrollDown.IsNewPressed)
                     {
-                        color = (byte)MathHelper.Clamp(color - offset, 0, 255);
+                        colorMember.Value = (byte)MathHelper.Clamp(color - offset, 0, 255);
                     }
-
-                    colorMember.Value = fullColor.SetChannel(colorChannel, color);
                 }
             }
 
@@ -183,7 +177,6 @@ namespace DarkHelmet.BuildVision2
             private void HandleTextInput()
             {
                 PropertyListEntry selection = body.Selection;
-                var textMember = body.Selection.AssocMember as IBlockTextMember;
 
                 if (BindManager.IsChatOpen)
                 {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -86,7 +87,7 @@ namespace DarkHelmet.BuildVision2
         T Value { get; set; }   
     }
 
-    public interface IBlockNumericValue<T> : IBlockValue<T>
+    public interface IBlockNumericValue<T> : IBlockValue<T>, IBlockTextMember
         where T : struct, IEquatable<T>
     {
         /// <summary>
@@ -103,6 +104,14 @@ namespace DarkHelmet.BuildVision2
         /// Standard increment
         /// </summary>
         T Increment { get; }
+    }
+
+    public interface IBlockColor : IBlockNumericValue<Color>
+    {
+        /// <summary>
+        /// RGB Color channels presented as individual byte properties
+        /// </summary>
+        IReadOnlyList<IBlockNumericValue<byte>> ColorChannels { get; }
     }
 
     public interface IBlockComboBox : IBlockValue<long>

@@ -42,19 +42,19 @@ namespace DarkHelmet.BuildVision2
             copiedProperties.propertyList = new List<PropertyData>();
             lastCopiedProperties.propertyList = new List<PropertyData>();
 
-            propertyWheel = new RadialSelectionBox<QuickActionEntryBase, Label>(this)
+            menuBody = new Body(this) { };
+
+            propertyWheel = new RadialSelectionBox<QuickActionEntryBase, Label>(menuBody)
             {
                 BackgroundColor = bodyColor,
                 HighlightColor = selectionBoxColor,
-                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding
             };
 
-            dupeWheel = new RadialSelectionBox<QuickActionEntryBase, Label>(this) 
+            dupeWheel = new RadialSelectionBox<QuickActionEntryBase, Label>(menuBody) 
             {
                 Visible = false,
                 BackgroundColor = bodyColor,
                 HighlightColor = selectionBoxColor,
-                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
                 CollectionContainer = 
                 {
                     new QuickActionShortcutEntry()
@@ -74,8 +74,6 @@ namespace DarkHelmet.BuildVision2
                     },
                 }
             };
-
-            menuBody = new Body(this) { };
 
             propertyList = new PropertyListMenu(this) { Visible = false };
 
@@ -102,8 +100,6 @@ namespace DarkHelmet.BuildVision2
                 BuilderMode = TextBuilderModes.Lined,
                 ParentAlignment = ParentAlignments.Left
             };
-
-            Size = new Vector2(512f);
         }
 
         /// <summary>
@@ -159,14 +155,25 @@ namespace DarkHelmet.BuildVision2
             Vector2 size = cachedSize - cachedPadding;
             menuBody.Size = 1.05f * propertyWheel.Size * propertyWheel.polyBoard.InnerRadius;
 
-            if (tick == 0)
+            if (MenuState == QuickActionMenuState.ListMenuControl)
             {
-                foreach (QuickActionEntryBase baseEntry in propertyWheel)
-                {
-                    var entry = baseEntry as QuickBlockPropertyEntry;
+                menuBody.Visible = false;
+                Size = propertyList.Size;
+            }
+            else
+            {
+                menuBody.Visible = true;
+                Size = propertyWheel.Size;
 
-                    if (entry != null)
-                        entry.UpdateText();
+                if (tick == 0)
+                {
+                    foreach (QuickActionEntryBase baseEntry in propertyWheel)
+                    {
+                        var entry = baseEntry as QuickBlockPropertyEntry;
+
+                        if (entry != null)
+                            entry.UpdateText();
+                    }
                 }
             }
 

@@ -10,7 +10,7 @@ namespace DarkHelmet.BuildVision2
         {
             private readonly ColorPickerRGB colorPicker;
 
-            private static int incrX, incrY, incrZ, incr0;
+            private static int incrX, incrY, incrZ;
             private IBlockValue<Color> colorMember;
             private Color initColor;
             private int selectedChannel;
@@ -43,10 +43,9 @@ namespace DarkHelmet.BuildVision2
                 colorPicker.Color = colorMember.Value;
                 colorPicker.NameBuilder.SetText(colorMember.Name);
 
-                incr0 = 1;
-                incrZ = (incr0 * BvConfig.Current.block.colorMult.Z); // x64
-                incrY = (incr0 * BvConfig.Current.block.colorMult.Y); // x16
-                incrX = (incr0 * BvConfig.Current.block.colorMult.X); // x8
+                incrZ = BvConfig.Current.block.colorMult.Z; // x64
+                incrY = BvConfig.Current.block.colorMult.Y; // x16
+                incrX = BvConfig.Current.block.colorMult.X; // x8
             }
 
             public override void Reset()

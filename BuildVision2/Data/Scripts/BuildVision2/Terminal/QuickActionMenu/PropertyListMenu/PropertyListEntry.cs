@@ -83,11 +83,6 @@ namespace DarkHelmet.BuildVision2
             public bool WaitingForChatInput { get; set; }
 
             /// <summary>
-            /// Optional data associated with block member
-            /// </summary>
-            public object MemberData { get; private set; }
-
-            /// <summary>
             /// Returns true if text input for the text box is open
             /// </summary>
             public bool InputOpen => Element.value.InputOpen;
@@ -101,7 +96,15 @@ namespace DarkHelmet.BuildVision2
             public void SetMember(IBlockMember member, object data = null)
             {
                 AssocMember = member;
-                MemberData = data;
+            }
+
+            public override void Reset()
+            {
+                WaitingForChatInput = false;
+                IsSelectedForCopy = false;
+                PropertyOpen = false;
+                CloseInput();
+                base.Reset();
             }
 
             /// <summary>
@@ -120,6 +123,15 @@ namespace DarkHelmet.BuildVision2
             public void CloseInput()
             {
                 Element.value.CloseInput();
+            }
+
+            /// <summary>
+            /// Sets value based on parsed text value, if applicable
+            /// </summary>
+            public void SetValueText(string text)
+            {
+                var textMember = AssocMember as IBlockTextMember;
+                textMember?.SetValueText(text);
             }
 
             /// <summary>
@@ -157,12 +169,8 @@ namespace DarkHelmet.BuildVision2
 
                     if (disp != null)
                     {
-                        var colorMember = AssocMember as IBlockValue<Color>;
-
-                        if (colorMember != null)
-                            valueTB.Append(colorMember.Value.GetChannel((int)MemberData).ToString(), valueFormat);
-                        else
-                            valueTB.Append(disp, valueFormat);
+                        var colorMember = AssocMember as IBlockNumericValue<Color>;
+                        valueTB.Append(disp, valueFormat);
                     }
                 }
 
@@ -174,15 +182,6 @@ namespace DarkHelmet.BuildVision2
                     postTB.Append(' ', nameFormat);
                     postTB.Append(status, nameFormat);
                 }
-            }
-
-            public override void Reset()
-            {
-                IsSelectedForCopy = false;
-                PropertyOpen = false;
-                MemberData = null;
-                CloseInput();
-                base.Reset();
             }
         }
     }
