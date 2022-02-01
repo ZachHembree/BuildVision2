@@ -41,6 +41,9 @@ namespace RichHudFramework.UI
         /// </summary>
         public Color Color { get { return hudChain.Color; } set { hudChain.Color = value; } }
 
+        protected override float HighlightWidth =>
+            cachedSize.X - hudChain.ScrollBar.Width - cachedPadding.X - hudChain.Padding.X - HighlightPadding.X;
+
         public ScrollSelectionBox(HudParentBase parent) : base(parent)
         { }
 
@@ -78,6 +81,11 @@ namespace RichHudFramework.UI
         /// Padding applied to list members.
         /// </summary>
         public Vector2 MemberPadding { get; set; }
+
+        /// <summary>
+        /// Sets padding for the list independent of selection box padding.
+        /// </summary>
+        public virtual Vector2 ListPadding { get { return hudChain.Padding; } set { hudChain.Padding = value; } }
 
         /// <summary>
         /// Height of entries in the list.

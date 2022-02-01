@@ -42,6 +42,9 @@ namespace RichHudFramework.UI
         /// </summary>
         public Color Color { get { return hudChain.Color; } set { hudChain.Color = value; } }
 
+        protected override float HighlightWidth => 
+            cachedSize.X - hudChain.ScrollBar.Width - cachedPadding.X - hudChain.Padding.X - HighlightPadding.X;
+
         public ScrollSelectionBoxBase(HudParentBase parent) : base(parent)
         { }
 
@@ -181,6 +184,8 @@ namespace RichHudFramework.UI
         /// </summary>
         protected virtual Vector2 ListPos => hudChain.Position;
 
+        protected virtual float HighlightWidth => cachedSize.X - cachedPadding.X - hudChain.Padding.X - HighlightPadding.X;
+
         public readonly TChain hudChain;
         protected readonly HighlightBox selectionBox, highlightBox;
         protected readonly ListInputElement<TContainer, TElement> listInput;
@@ -290,11 +295,14 @@ namespace RichHudFramework.UI
 
         protected virtual void UpdateSelectionPositions()
         {
+            float entryWidth = HighlightWidth;
+
             // Make sure the selection box highlights the current selection
             if (Selection != null && Selection.Element.Visible)
             {
                 selectionBox.Offset = Selection.Element.Position - selectionBox.Origin;
-                selectionBox.Size = Selection.Element.Size - HighlightPadding;
+                selectionBox.Height = Selection.Element.Height - HighlightPadding.Y;
+                selectionBox.Width = entryWidth;
                 selectionBox.Visible = Selection.Element.Visible && Selection.AllowHighlighting;
             }
 
@@ -307,7 +315,8 @@ namespace RichHudFramework.UI
                     (listInput.IsMousedOver || listInput.HasFocus) 
                     && entry.Element.Visible && entry.AllowHighlighting;
 
-                highlightBox.Size = entry.Element.Size - HighlightPadding;
+                highlightBox.Height = entry.Element.Height - HighlightPadding.Y;
+                highlightBox.Width = entryWidth;
                 highlightBox.Offset = entry.Element.Position - highlightBox.Origin;
             }
         }
