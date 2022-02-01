@@ -323,10 +323,7 @@ namespace RichHudFramework
                             Layout();
 
                             // Update cached values for use on draw and by child nodes
-                            cachedPadding = Padding;
-                            cachedSize = new Vector2(Width, Height);
-                            cachedPosition = cachedOrigin + Offset;
-
+                            UpdateCache();
                             UpdateMasking();
                         }
                     }
@@ -349,7 +346,6 @@ namespace RichHudFramework
                     {
                         if (Visible)
                         {
-                            UpdateCache();
                             Draw();
                         }
                     }
