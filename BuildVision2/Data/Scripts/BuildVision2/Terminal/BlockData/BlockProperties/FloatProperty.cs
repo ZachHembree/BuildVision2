@@ -145,12 +145,6 @@ namespace DarkHelmet.BuildVision2
                 return prop;
             }
 
-            public override void ScrollDown() =>
-                ChangePropValue(-GetStep());
-
-            public override void ScrollUp() =>
-                ChangePropValue(+GetStep());
-
             public override float GetValue() =>
                 base.GetValue() * GetScaleFunc();
 

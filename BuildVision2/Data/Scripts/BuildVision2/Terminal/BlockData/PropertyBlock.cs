@@ -44,7 +44,7 @@ namespace DarkHelmet.BuildVision2
         public Vector3D ModelOffset { get; private set; }
 
         private readonly List<BlockMemberBase> blockMembers;
-        private readonly List<BvTerminalPropertyBase> blockProperties;
+        private readonly List<BlockPropertyBase> blockProperties;
 
         private readonly BvPropPool<BlockAction> blockActionPool;
         private readonly BvPropPool<BoolProperty> boolPropPool;
@@ -66,7 +66,7 @@ namespace DarkHelmet.BuildVision2
             nameBuilder = new StringBuilder();
 
             blockMembers = new List<BlockMemberBase>();
-            blockProperties = new List<BvTerminalPropertyBase>();
+            blockProperties = new List<BlockPropertyBase>();
             comboItemBuffer = new List<MyTerminalControlComboBoxItem>();
         }
 
@@ -123,7 +123,7 @@ namespace DarkHelmet.BuildVision2
 
             foreach (PropertyData propData in src.propertyList)
             {
-                BvTerminalPropertyBase prop = blockProperties.Find(x => x.PropName == propData.name);
+                BlockPropertyBase prop = blockProperties.Find(x => x.PropName == propData.name);
 
                 if (prop != null)
                 {

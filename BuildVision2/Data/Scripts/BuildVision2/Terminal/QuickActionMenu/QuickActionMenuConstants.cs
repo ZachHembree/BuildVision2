@@ -30,6 +30,7 @@ namespace DarkHelmet.BuildVision2
             bodyColor = new Color(70, 78, 86, 225),
             selectionBoxColor = new Color(41, 54, 62, 225);
         private static readonly GlyphFormat
+            listHeaderText = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f),
             headerText = new GlyphFormat(Color.White, TextAlignment.Center, 1f, FontStyles.Underline),
             bodyText = new GlyphFormat(Color.White, textSize: .885f),
             valueText = bodyText.WithColor(new Color(210, 210, 210)),

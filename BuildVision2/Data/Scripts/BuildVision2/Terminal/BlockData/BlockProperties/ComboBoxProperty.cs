@@ -13,7 +13,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Scrollable property for <see cref="IMyTerminalControlCombobox"/> terminal properties.
         /// </summary>
-        private class ComboBoxProperty : ScrollableValueControlBase<IMyTerminalControlCombobox, long>, IBlockComboBox
+        private class ComboBoxProperty : BvTerminalValueControl<IMyTerminalControlCombobox, long>, IBlockComboBox
         {
             public long Value { get{ return GetValue(); } set { SetValue(value); } }
 
@@ -95,12 +95,6 @@ namespace DarkHelmet.BuildVision2
                 return prop;
             }
 
-            public override void ScrollUp() =>
-                ChangePropValue(1);
-
-            public override void ScrollDown() =>
-                ChangePropValue(-1);
-
             private void SetComboItems(List<MyTerminalControlComboBoxItem> comboItems)
             {
                 comboEntries.EnsureCapacity(comboItems.Count);
@@ -118,12 +112,6 @@ namespace DarkHelmet.BuildVision2
                 sb.Append('(');
                 sb.Append(Math.Round((block.Battery.Charge / block.Battery.Capacity) * 100f, 1));
                 sb.Append("%)");
-            }
-
-            private void ChangePropValue(int delta)
-            {
-                int index = MathHelper.Clamp((int)(GetValue() + delta), 0, comboEntries.Count - 1);
-                SetValue(comboEntries[index].Key);
             }
 
             public override long GetValue()

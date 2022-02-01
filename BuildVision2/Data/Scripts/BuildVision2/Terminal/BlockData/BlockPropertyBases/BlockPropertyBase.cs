@@ -10,7 +10,7 @@ namespace DarkHelmet.BuildVision2
 {
     public partial class PropertyBlock
     {
-        private abstract class BvTerminalPropertyBase : BlockMemberBase, IBlockProperty
+        private abstract class BlockPropertyBase : BlockMemberBase, IBlockProperty
         {
             /// <summary>
             /// Returns a serializable representation of the property.
@@ -26,7 +26,8 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Base class for Build Vision terminal properties that make use of SE's <see cref="ITerminalProperty"/>
         /// </summary>
-        private abstract class BvTerminalPropertyBase<TProp, TValue> : BvTerminalPropertyBase where TProp : class, ITerminalProperty
+        private abstract class BlockPropertyBase<TProp, TValue> : BlockPropertyBase 
+            where TProp : class, ITerminalProperty
         {
             public override string PropName => property?.Id;
 
@@ -51,7 +52,7 @@ namespace DarkHelmet.BuildVision2
             private Func<IMyTerminalBlock, TValue> Getter;
             private Action<IMyTerminalBlock, TValue> Setter;
 
-            public BvTerminalPropertyBase()
+            public BlockPropertyBase()
             {
                 Name = new StringBuilder();
             }
@@ -142,7 +143,7 @@ namespace DarkHelmet.BuildVision2
             public abstract bool TryParseValue(string valueData, out TValue value);
         }
 
-        private abstract class BvTerminalProperty<TProp, TValue> : BvTerminalPropertyBase<TProp, TValue> where TProp : class, ITerminalProperty<TValue>
+        private abstract class BvTerminalProperty<TProp, TValue> : BlockPropertyBase<TProp, TValue> where TProp : class, ITerminalProperty<TValue>
         {
             public virtual void SetProperty(StringBuilder name, TProp property, PropertyBlock block)
             {
@@ -150,7 +151,7 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private abstract class BvTerminalValueControl<TProp, TValue> : BvTerminalPropertyBase<TProp, TValue> where TProp : class, IMyTerminalValueControl<TValue>
+        private abstract class BvTerminalValueControl<TProp, TValue> : BlockPropertyBase<TProp, TValue> where TProp : class, IMyTerminalValueControl<TValue>
         {
             public virtual void SetProperty(StringBuilder name, TProp property, PropertyBlock block)
             {

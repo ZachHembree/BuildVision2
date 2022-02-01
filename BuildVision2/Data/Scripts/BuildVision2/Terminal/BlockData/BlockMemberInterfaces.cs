@@ -76,17 +76,6 @@ namespace DarkHelmet.BuildVision2
     }
 
     /// <summary>
-    /// Interface for block terminal settings that support scrolling. Usually used for incrementing/decrementing
-    /// values.
-    /// </summary>
-    public interface IBlockScrollable : IBlockProperty
-    {
-        void ScrollUp();
-
-        void ScrollDown();
-    }
-
-    /// <summary>
     /// Interface for terminal settings that store data
     /// </summary>
     public interface IBlockValue<T> : IBlockProperty

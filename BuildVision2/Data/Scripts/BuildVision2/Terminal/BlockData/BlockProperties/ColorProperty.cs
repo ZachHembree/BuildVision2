@@ -33,7 +33,6 @@ namespace DarkHelmet.BuildVision2
 
             public override StringBuilder StatusText => null;
 
-            private static int incrX, incrY, incrZ, incr0;
             private BvPropPool<ColorProperty> poolParent;
             protected readonly StringBuilder dispBuilder;
 
@@ -49,11 +48,6 @@ namespace DarkHelmet.BuildVision2
 
                 if (poolParent == null)
                     poolParent = block.colorPropPool;
-
-                incr0 = 1;
-                incrZ = (incr0 * Cfg.colorMult.Z); // x64
-                incrY = (incr0 * Cfg.colorMult.Y); // x16
-                incrX = (incr0 * Cfg.colorMult.X); // x8
             }
 
             public override void Return()
@@ -68,12 +62,6 @@ namespace DarkHelmet.BuildVision2
 
                 return prop;
             }
-
-            public override void ScrollDown() =>
-                SetPropValue(false);
-
-            public override void ScrollUp() =>
-                SetPropValue(true);
 
             public override bool TryImportData(PropertyData data)
             {
@@ -109,48 +97,6 @@ namespace DarkHelmet.BuildVision2
             public override bool TryParseValue(string valueData, out Color value)
             {
                 return Utils.Color.TryParseColor(valueData, out value, true);
-            }
-
-            /// <summary>
-            /// Changes property color value based on given color delta.
-            /// </summary>
-            private void SetPropValue(bool increment, int channel)
-            {
-                Color current = GetValue();
-                int value = current.GetChannel(channel),
-                    mult = increment ? GetIncrement() : -GetIncrement();
-
-                current = current.SetChannel(channel, (byte)MathHelper.Clamp(value + mult, 0, 255));
-                SetValue(current);
-            }
-
-            /// <summary>
-            /// Changes property color value based on given color delta.
-            /// </summary>
-            private void SetPropValue(bool increment)
-            {
-                Color current = GetValue();
-                int mult = increment ? GetIncrement() : -GetIncrement();
-
-                current.R = (byte)MathHelper.Clamp(current.R + mult, 0, 255);
-                current.G = (byte)MathHelper.Clamp(current.G + mult, 0, 255);
-                current.B = (byte)MathHelper.Clamp(current.B + mult, 0, 255);
-                SetValue(current);
-            }
-
-            /// <summary>
-            /// Gets value to add or subtract from the property based on multipliers used.
-            /// </summary>
-            private int GetIncrement()
-            {
-                if (BvBinds.MultZ.IsPressed)
-                    return incrZ;
-                else if (BvBinds.MultY.IsPressed)
-                    return incrY;
-                else if (BvBinds.MultX.IsPressed)
-                    return incrX;
-                else
-                    return incr0;
             }
         }
     }
