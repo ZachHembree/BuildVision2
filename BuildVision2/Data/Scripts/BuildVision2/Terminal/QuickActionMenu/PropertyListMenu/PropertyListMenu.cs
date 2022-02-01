@@ -28,6 +28,7 @@ namespace DarkHelmet.BuildVision2
 
             private readonly Label debugText;
             private readonly RichText textBuf;
+            private int textUpdateTick;
 
             public PropertyListMenu(HudParentBase parent = null) : base(parent)
             {
@@ -43,7 +44,7 @@ namespace DarkHelmet.BuildVision2
                 body = new ScrollSelectionBox<PropertyListEntry, PropertyListEntryElement, IBlockMember>()
                 {
                     Color = bodyColor,
-                    Format = valueText,
+                    Format = bodyText,
                     LineHeight = 19f,
                     MemberPadding = Vector2.Zero,
                     HighlightPadding = new Vector2(4f, 0),
@@ -145,19 +146,23 @@ namespace DarkHelmet.BuildVision2
                     else if (body.SelectionIndex < body.hudChain.Start)
                         body.hudChain.Start = body.SelectionIndex;
 
-                    foreach (PropertyListEntry entry in body)
-                    {
-                        entry.UpdateText(entry == body.Selection);
-                    }
-
-                    textBuf.Clear();
+                    /*textBuf.Clear();
                     textBuf.Add($"Selection: {body.Selection?.TextBoard}\n");
                     textBuf.Add($"Selection Open: {body.Selection?.PropertyOpen}\n");
                     textBuf.Add($"Selection Type: {body.Selection?.AssocMember.GetType().Name}\n");
                     textBuf.Add($"Selection Value Text: {body.Selection?.AssocMember.ValueText}\n");
                     textBuf.Add($"Chat Open: {BindManager.IsChatOpen}\n");
 
-                    debugText.Text = textBuf;
+                    debugText.Text = textBuf;*/
+
+                    foreach (PropertyListEntry entry in body)
+                    {
+                        if (textUpdateTick == 0 || entry == body.Selection)
+                            entry.UpdateText(entry == body.Selection);
+                    }
+
+                    textUpdateTick++;
+                    textUpdateTick %= textTickDivider;
                 }
             }
         }

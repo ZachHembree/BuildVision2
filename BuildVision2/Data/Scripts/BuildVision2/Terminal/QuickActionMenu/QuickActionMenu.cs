@@ -48,6 +48,7 @@ namespace DarkHelmet.BuildVision2
             {
                 BackgroundColor = bodyColor,
                 HighlightColor = selectionBoxColor,
+                ZOffset = -1,
             };
 
             dupeWheel = new RadialSelectionBox<QuickActionEntryBase, Label>(menuBody) 
@@ -55,6 +56,7 @@ namespace DarkHelmet.BuildVision2
                 Visible = false,
                 BackgroundColor = bodyColor,
                 HighlightColor = selectionBoxColor,
+                ZOffset = -1,
                 CollectionContainer = 
                 {
                     new QuickActionShortcutEntry()

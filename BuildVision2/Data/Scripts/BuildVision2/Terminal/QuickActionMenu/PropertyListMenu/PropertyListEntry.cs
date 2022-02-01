@@ -8,9 +8,12 @@ namespace DarkHelmet.BuildVision2
 {
     public sealed partial class QuickActionMenu
     {
+        /// <summary>
+        /// UI element attached to list entry
+        /// </summary>
         private class PropertyListEntryElement : HudElementBase, IMinLabelElement
         {
-            public ITextBoard TextBoard => name.TextBoard;
+            public ITextBoard TextBoard => value.TextBoard;
 
             public readonly Label name, postfix;
             public readonly TextBox value;
@@ -47,7 +50,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// TextBoard backing the label element.
             /// </summary>
-            public ITextBoard TextBoard => Element.TextBoard;
+            public ITextBoard NameText => Element.name.TextBoard;
 
             /// <summary>
             /// TextBoard backing the value element.
@@ -90,7 +93,8 @@ namespace DarkHelmet.BuildVision2
             public PropertyListEntry()
             {
                 // Resizing was disabled in the parent constructor, I'm just turning it back on.
-                TextBoard.AutoResize = true;
+                Element.TextBoard.AutoResize = true;
+                NameText.Format = bodyText;
             }
 
             public void SetMember(IBlockMember member, object data = null)
@@ -146,11 +150,12 @@ namespace DarkHelmet.BuildVision2
                     disp = AssocMember.FormattedValue,
                     status = AssocMember.StatusText;
 
+                // Text format changes when selected
+                var nameFormat = highlight ? valueTB.Format : bodyText;
+                var valueFormat = highlight ? valueTB.Format : valueText;
+
                 // Update Name
                 nameTB.Clear();
-
-                var nameFormat = highlight ? nameTB.Format : bodyText;
-                var valueFormat = highlight ? nameTB.Format : valueText;
 
                 if (name != null)
                 {
@@ -161,8 +166,6 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 // Update Value
-                valueTB.Format = valueFormat;
-
                 if (!Element.value.InputOpen && !WaitingForChatInput)
                 {
                     valueTB.Clear();
