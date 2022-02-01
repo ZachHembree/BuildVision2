@@ -217,7 +217,7 @@ namespace RichHudFramework.UI
         protected readonly HighlightBox selectionBox, highlightBox;
         protected readonly ListInputElement<TContainer, TElement> listInput;
         protected readonly bool chainHidesDisabled;
-        protected MyTuple<TContainer, RichText> lastSelection;
+        protected MyTuple<TContainer, GlyphFormat> lastSelection;
 
         public SelectionBoxBase(HudParentBase parent) : base(parent)
         {
@@ -355,10 +355,11 @@ namespace RichHudFramework.UI
 
         protected virtual void UpdateSelectionFormatting()
         {
-            if (lastSelection.Item1 != null)
+            if (lastSelection.Item1 != null && lastSelection.Item1 != Selection)
             {
                 ITextBoard textBoard = lastSelection.Item1.Element.TextBoard;
-                textBoard.SetText(lastSelection.Item2);
+                textBoard.SetFormatting(lastSelection.Item2);
+                lastSelection.Item1 = null;
             }
 
             if ((SelectionIndex == listInput.FocusIndex) && SelectionIndex != -1)
@@ -400,7 +401,7 @@ namespace RichHudFramework.UI
         {
             lastSelection.Item1 = hudChain[index];
             ITextBoard textBoard = lastSelection.Item1.Element.TextBoard;
-            lastSelection.Item2 = textBoard.GetText();
+            lastSelection.Item2 = textBoard.Format;
 
             textBoard.SetFormatting(textBoard.Format.WithColor(FocusTextColor));
         }

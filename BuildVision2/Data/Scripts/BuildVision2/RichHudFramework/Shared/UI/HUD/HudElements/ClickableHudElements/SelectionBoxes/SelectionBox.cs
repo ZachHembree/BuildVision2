@@ -233,6 +233,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public void ClearEntries()
         {
+            ClearSelection();
             entryPool.ReturnRange(hudChain.Collection);
             hudChain.Clear();
         }
