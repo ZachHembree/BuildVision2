@@ -41,8 +41,30 @@ namespace RichHudFramework.UI
         /// </summary>
         public Color Color { get { return hudChain.Color; } set { hudChain.Color = value; } }
 
+        /// <summary>
+        /// If enabled scrolling using the scrollbar and mousewheel will be allowed
+        /// </summary>
+        public virtual bool EnableScrolling { get { return hudChain.EnableScrolling; } set { hudChain.EnableScrolling = value; } }
+
+        /// <summary>
+        /// Enable/disable smooth scrolling and range clipping
+        /// </summary>
+        public virtual bool UseSmoothScrolling { get { return hudChain.UseSmoothScrolling; } set { hudChain.UseSmoothScrolling = value; } }
+
+        /// <summary>
+        /// Minimum number of visible elements allowed. Supercedes maximum length. If the number of elements that
+        /// can fit within the maximum length is less than this value, then this element will expand beyond its maximum
+        /// size.
+        /// </summary>
+        public virtual int MinVisibleCount { get { return hudChain.MinVisibleCount; } set { hudChain.MinVisibleCount = value; } }
+
+        /// <summary>
+        /// Minimum total length (on the align axis) of visible members allowed in the scrollbox.
+        /// </summary>
+        public virtual float MinLength { get { return hudChain.MinLength; } set { hudChain.MinLength = value; } }
+
         protected override float HighlightWidth =>
-            cachedSize.X - hudChain.ScrollBar.Width - cachedPadding.X - hudChain.Padding.X - HighlightPadding.X;
+            hudChain.Size.X - cachedPadding.X - hudChain.ScrollBar.Width - hudChain.Padding.X - HighlightPadding.X;
 
         public ScrollSelectionBox(HudParentBase parent) : base(parent)
         { }

@@ -42,8 +42,30 @@ namespace RichHudFramework.UI
         /// </summary>
         public Color Color { get { return hudChain.Color; } set { hudChain.Color = value; } }
 
-        protected override float HighlightWidth => 
-            cachedSize.X - hudChain.ScrollBar.Width - cachedPadding.X - hudChain.Padding.X - HighlightPadding.X;
+        /// <summary>
+        /// If enabled scrolling using the scrollbar and mousewheel will be allowed
+        /// </summary>
+        public virtual bool EnableScrolling { get { return hudChain.EnableScrolling; } set { hudChain.EnableScrolling = value; } }
+
+        /// <summary>
+        /// Enable/disable smooth scrolling and range clipping
+        /// </summary>
+        public virtual bool UseSmoothScrolling { get { return hudChain.UseSmoothScrolling; } set { hudChain.UseSmoothScrolling = value; } }
+
+        /// <summary>
+        /// Minimum number of visible elements allowed. Supercedes maximum length. If the number of elements that
+        /// can fit within the maximum length is less than this value, then this element will expand beyond its maximum
+        /// size.
+        /// </summary>
+        public virtual int MinVisibleCount { get { return hudChain.MinVisibleCount; } set { hudChain.MinVisibleCount = value; } }
+
+        /// <summary>
+        /// Minimum total length (on the align axis) of visible members allowed in the scrollbox.
+        /// </summary>
+        public virtual float MinLength { get { return hudChain.MinLength; } set { hudChain.MinLength = value; } }
+
+        protected override float HighlightWidth =>
+            hudChain.Size.X - cachedPadding.X - hudChain.ScrollBar.Width - hudChain.Padding.X - HighlightPadding.X;
 
         public ScrollSelectionBoxBase(HudParentBase parent) : base(parent)
         { }
@@ -184,7 +206,12 @@ namespace RichHudFramework.UI
         /// </summary>
         protected virtual Vector2 ListPos => hudChain.Position;
 
-        protected virtual float HighlightWidth => cachedSize.X - cachedPadding.X - hudChain.Padding.X - HighlightPadding.X;
+        /// <summary>
+        /// Sets sizing mode for list chain
+        /// </summary>
+        public virtual HudChainSizingModes SizingMode { get { return hudChain.SizingMode; } set { hudChain.SizingMode = value; } }
+
+        protected virtual float HighlightWidth => hudChain.Size.X - cachedPadding.X - hudChain.Padding.X - HighlightPadding.X;
 
         public readonly TChain hudChain;
         protected readonly HighlightBox selectionBox, highlightBox;
@@ -300,7 +327,10 @@ namespace RichHudFramework.UI
             // Make sure the selection box highlights the current selection
             if (Selection != null && Selection.Element.Visible)
             {
-                selectionBox.Offset = Selection.Element.Position - selectionBox.Origin;
+                Vector2 offset = Selection.Element.Position - selectionBox.Origin;
+                offset.X -= (ListSize.X - entryWidth - HighlightPadding.X) / 2f;
+
+                selectionBox.Offset = offset;
                 selectionBox.Height = Selection.Element.Height - HighlightPadding.Y;
                 selectionBox.Width = entryWidth;
                 selectionBox.Visible = Selection.Element.Visible && Selection.AllowHighlighting;
@@ -310,6 +340,8 @@ namespace RichHudFramework.UI
             if (listInput.HighlightIndex != listInput.SelectionIndex)
             {
                 TContainer entry = hudChain[listInput.HighlightIndex];
+                Vector2 offset = entry.Element.Position - highlightBox.Origin;
+                offset.X -= (ListSize.X - entryWidth - HighlightPadding.X) / 2f;
 
                 highlightBox.Visible = 
                     (listInput.IsMousedOver || listInput.HasFocus) 
@@ -317,7 +349,7 @@ namespace RichHudFramework.UI
 
                 highlightBox.Height = entry.Element.Height - HighlightPadding.Y;
                 highlightBox.Width = entryWidth;
-                highlightBox.Offset = entry.Element.Position - highlightBox.Origin;
+                highlightBox.Offset = offset;
             }
         }
 
