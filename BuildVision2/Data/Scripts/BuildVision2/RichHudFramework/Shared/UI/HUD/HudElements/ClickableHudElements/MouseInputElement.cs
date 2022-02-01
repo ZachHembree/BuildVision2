@@ -76,7 +76,10 @@ namespace RichHudFramework.UI
         /// </summary>
         public event EventHandler LostInputFocus;
 
-        public bool Enabled { get { return Visible; } set { Visible = value; } }
+        /// <summary>
+        /// Enables/disables mouse input for this element
+        /// </summary>
+        public bool Enabled { get { return UseCursor; } set { UseCursor = value; } }
 
         /// <summary>
         /// Indicates whether or not the element has input focus.
