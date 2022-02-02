@@ -1,16 +1,16 @@
-﻿using RichHudFramework.Client;
+﻿using RichHudFramework;
+using RichHudFramework.Client;
+using RichHudFramework.Internal;
 using RichHudFramework.IO;
 using RichHudFramework.UI;
+using RichHudFramework.UI.Client;
+using RichHudFramework.UI.Rendering;
 using System;
 using System.Collections.Generic;
 using VRage;
 using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
-using RichHudFramework;
-using RichHudFramework.UI.Rendering;
-using RichHudFramework.UI.Client;
-using RichHudFramework.Internal;
 
 namespace DarkHelmet.BuildVision2
 {

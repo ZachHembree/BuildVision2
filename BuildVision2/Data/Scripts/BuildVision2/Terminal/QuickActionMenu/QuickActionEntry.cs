@@ -24,7 +24,7 @@ namespace DarkHelmet.BuildVision2
             {
                 SetElement(new Label()
                 {
-                    Format = valueTextCenter,
+                    Format = valueFormatCenter,
                     VertCenterText = true,
                     BuilderMode = TextBuilderModes.Wrapped,
                     Padding = new Vector2(20f),
@@ -35,8 +35,14 @@ namespace DarkHelmet.BuildVision2
             public virtual void Reset() { }
         }
 
+        /// <summary>
+        /// Shortcut entry for selection wheel
+        /// </summary>
         private class QuickActionShortcutEntry : QuickActionEntryBase
         {
+            /// <summary>
+            /// Delegate invoked when the corresponding shortcut entry is selected
+            /// </summary>
             public Action ShortcutAction;
 
             public QuickActionShortcutEntry()
@@ -51,7 +57,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Custom scroll box container for <see cref="IBlockMember"/>
         /// </summary>
-        private class QuickBlockPropertyEntry : QuickActionEntryBase
+        private class QuickActionPropertyEntry : QuickActionEntryBase
         {
             /// <summary>
             /// Returns true if the entry is enabled and valid
@@ -62,18 +68,33 @@ namespace DarkHelmet.BuildVision2
             }
 
             /// <summary>
-            /// Flag used to indicate entries selected for duplication
+            /// Returns true if the associated block member is selected for duplication
             /// </summary>
-            public bool IsSelectedForCopy { get; set; }
+            public bool IsSelectedForDuplication
+            {
+                get { return duplicator.PropertyDupeEntries[MemberIndex].isSelectedForDuplication; }
+                set { duplicator.SetMemberSelection(MemberIndex, value); }
+            }
 
             /// <summary>
-            /// Returns associated property member wrapper
+            /// Returns true if the associated block member can be duplicated
+            /// </summary>
+            public bool CanDuplicate => duplicator.PropertyDupeEntries[MemberIndex].canDuplicate;
+
+            /// <summary>
+            /// Block member index
+            /// </summary>
+            public int MemberIndex { get; private set; }
+
+            /// <summary>
+            /// Associated block member
             /// </summary>
             public IBlockMember BlockMember { get; private set; }
 
             private readonly RichText textBuf;
+            private BlockPropertyDuplicator duplicator;
 
-            public QuickBlockPropertyEntry()
+            public QuickActionPropertyEntry()
             {
                 textBuf = new RichText();
             }
@@ -81,9 +102,11 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Sets block property member
             /// </summary>
-            public void SetMember(IBlockMember blockMember)
+            public void SetMember(int index, BlockPropertyDuplicator duplicator)
             {
-                BlockMember = blockMember;
+                MemberIndex = index;
+                this.duplicator = duplicator;
+                BlockMember = duplicator.BlockMembers[MemberIndex];
             }
 
             /// <summary>
@@ -99,16 +122,16 @@ namespace DarkHelmet.BuildVision2
 
                 if (name != null)
                 {
-                    textBuf.Add(name, bodyTextCenter);
+                    textBuf.Add(name, bodyFormatCenter);
 
                     if (disp != null || status != null)
-                        textBuf.Add(":\n", bodyTextCenter);
+                        textBuf.Add(":\n", bodyFormatCenter);
                 }
 
                 if (disp != null)
                 {
-                    textBuf.Add(' ', valueTextCenter);
-                    textBuf.Add(disp, valueTextCenter);
+                    textBuf.Add(' ', valueFormatCenter);
+                    textBuf.Add(disp, valueFormatCenter);
                 }
 
                 Element.Text = textBuf;
@@ -116,8 +139,9 @@ namespace DarkHelmet.BuildVision2
 
             public override void Reset()
             {
-                IsSelectedForCopy = false;
+                MemberIndex = -1;
                 BlockMember = null;
+                duplicator = null;
             }
         }
     }

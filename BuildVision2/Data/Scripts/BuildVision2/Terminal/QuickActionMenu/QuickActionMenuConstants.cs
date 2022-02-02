@@ -30,17 +30,18 @@ namespace DarkHelmet.BuildVision2
             bodyColor = new Color(70, 78, 86, 225),
             selectionBoxColor = new Color(41, 54, 62, 225);
         private static readonly GlyphFormat
-            listHeaderText = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f),
-            headerText = new GlyphFormat(Color.White, TextAlignment.Center, 1f, FontStyles.Underline),
-            bodyText = new GlyphFormat(Color.White, textSize: .885f),
-            valueText = bodyText.WithColor(new Color(210, 210, 210)),
-            bodyTextCenter = bodyText.WithAlignment(TextAlignment.Center),
-            valueTextCenter = valueText.WithAlignment(TextAlignment.Center),
-            footerTextLeft = bodyText.WithColor(new Color(220, 235, 245)),
-            footerTextRight = footerTextLeft.WithAlignment(TextAlignment.Right),
-            highlightText = bodyText.WithColor(new Color(220, 180, 50)),
-            selectedText = bodyText.WithColor(new Color(50, 200, 50)),
-            blockIncText = footerTextRight.WithColor(new Color(200, 35, 35));
+            listHeaderFormat = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f),
+            mainHeaderFormat = new GlyphFormat(Color.White, TextAlignment.Center, 1f, FontStyles.Underline),
+            bodyFormat = new GlyphFormat(Color.White, textSize: .885f),
+            valueFormat = bodyFormat.WithColor(new Color(210, 210, 210)),
+            bodyFormatCenter = bodyFormat.WithAlignment(TextAlignment.Center),
+            valueFormatCenter = valueFormat.WithAlignment(TextAlignment.Center),
+            footerFormatLeft = bodyFormat.WithColor(new Color(220, 235, 245)),
+            footerFormatRight = footerFormatLeft.WithAlignment(TextAlignment.Right),
+            dupeCrossFormat = bodyFormat.WithColor(new Color(0, 30, 220)),
+            highlightFormat = bodyFormat.WithColor(new Color(220, 180, 50)),
+            selectedFormat = bodyFormat.WithColor(new Color(50, 200, 50)),
+            blockIncFormat = footerFormatRight.WithColor(new Color(200, 35, 35));
 
         private const int textTickDivider = 4;
     }

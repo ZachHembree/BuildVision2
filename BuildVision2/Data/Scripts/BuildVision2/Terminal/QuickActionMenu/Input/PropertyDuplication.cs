@@ -16,6 +16,9 @@ namespace DarkHelmet.BuildVision2
 {
     public sealed partial class QuickActionMenu : HudElementBase
     {
+        /// <summary>
+        /// Swtiches to duplication wheel and enables property duplication controls
+        /// </summary>
         private void StartPropertyDuplication()
         {
             MenuState = QuickActionMenuState.PropertyDuplication;
@@ -23,6 +26,9 @@ namespace DarkHelmet.BuildVision2
             dupeWheel.Visible = true;
         }
 
+        /// <summary>
+        /// Closes duplication controls
+        /// </summary>
         private void StopPropertyDuplication()
         {
             MenuState = QuickActionMenuState.PropertySelection;
@@ -30,72 +36,28 @@ namespace DarkHelmet.BuildVision2
             dupeWheel.Visible = false;
         }
 
+        /// <summary>
+        /// Handles selection for an entry in the duplication selection wheel
+        /// </summary>
         private void HandleDupeSelection(QuickActionEntryBase selection)
         {
             var shortcutEntry = selection as QuickActionShortcutEntry;
             shortcutEntry.ShortcutAction();
         }
 
+        /// <summary>
+        /// Selects all enabled properties in the current target and copies them to the clipboard
+        /// </summary>
         private void CopyAllProperties()
         {
-            SelectAllProperties();
-            CopySelectedProperties();
-            ClearPropertySelection();
-        }
-
-        private void SelectAllProperties()
-        {
-            foreach (QuickActionEntryBase baseEntry in propertyWheel)
-            {
-                var entry = baseEntry as QuickBlockPropertyEntry;
-
-                if (entry != null && entry.Enabled)
-                    entry.IsSelectedForCopy = true;
-            }
-        }
-
-        private void ClearPropertySelection()
-        {
-            foreach (QuickActionEntryBase baseEntry in propertyWheel)
-            {
-                var entry = baseEntry as QuickBlockPropertyEntry;
-
-                if (entry != null)
-                    entry.IsSelectedForCopy = false;
-            }
-        }
-
-        private void CopySelectedProperties()
-        {
-            MyUtils.Swap(ref copiedProperties, ref lastCopiedProperties);
-            var propertyList = copiedProperties.propertyList;
-
-            copiedProperties.blockTypeID = block.TypeID;
-            propertyList.Clear();
-
-            foreach (QuickActionEntryBase baseEntry in propertyWheel)
-            {
-                var entry = baseEntry as QuickBlockPropertyEntry;
-                var property = entry?.BlockMember as IBlockProperty;
-
-                if (property != null && entry.Enabled && entry.IsSelectedForCopy)
-                {
-                    propertyList.Add(property.GetPropertyData());
-                }
-            }
-
-            ExceptionHandler.SendChatMessage($"Copied {propertyList.Count} block properties.");
+            duplicator.CopyAllProperties();
         }
 
         private void PasteCopiedProperties()
         {
-            if (copiedProperties.blockTypeID == block.TypeID)
-            {
-                int importCount = block.ImportSettings(copiedProperties);
-                ExceptionHandler.SendChatMessage($"Pasted {importCount} block properties.");
-            }
-            else
-                ExceptionHandler.SendChatMessage("Pasted block properties incompatible.");
+            int pastedProperties = duplicator.TryPasteCopiedProperties();
+
+            ExceptionHandler.SendChatMessage($"Pasted {pastedProperties} properties");
         }
     }
 }

@@ -73,10 +73,14 @@ namespace DarkHelmet.BuildVision2
 
         private void ExportBlockData()
         {
+            BlockData blockData = default(BlockData);
+            blockData.propertyList = new List<PropertyData>();
+            MenuManager.Target?.ExportSettings(ref blockData);
+
             LocalFileIO blockIO = new LocalFileIO($"{MenuManager.Target?.TypeID}.bin");
             byte[] byteData;
 
-            if (Utils.ProtoBuf.TrySerialize(MenuManager.Target?.ExportSettings(), out byteData) == null)
+            if (Utils.ProtoBuf.TrySerialize(blockData, out byteData) == null)
                 blockIO.TryWrite(byteData);
         }
 

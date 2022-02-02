@@ -19,7 +19,10 @@ namespace DarkHelmet.BuildVision2
     {
         private partial class PropertyListMenu : HudElementBase
         {
-            public bool ListOpen { get; private set; }
+            /// <summary>
+            /// Returns true if the list is open
+            /// </summary>
+            public bool IsListOpen { get; private set; }
 
             private readonly LabelBox header;
             private readonly DoubleLabelBox footer;
@@ -28,13 +31,16 @@ namespace DarkHelmet.BuildVision2
 
             private readonly Label debugText;
             private readonly RichText textBuf;
+            private BlockPropertyDuplicator duplicator;
             private int textUpdateTick;
+
+            private bool isDuplicatingProperties;
 
             public PropertyListMenu(HudParentBase parent = null) : base(parent)
             {
                 header = new LabelBox()
                 {
-                    Format = listHeaderText,
+                    Format = listHeaderFormat,
                     Text = "Build Vision",
                     AutoResize = false,
                     Size = new Vector2(300f, 34f),
@@ -44,7 +50,7 @@ namespace DarkHelmet.BuildVision2
                 body = new ScrollSelectionBox<PropertyListEntry, PropertyListEntryElement, IBlockMember>()
                 {
                     Color = bodyColor,
-                    Format = bodyText,
+                    Format = bodyFormat,
                     LineHeight = 19f,
                     MemberPadding = Vector2.Zero,
                     HighlightPadding = new Vector2(4f, 0),
@@ -91,41 +97,46 @@ namespace DarkHelmet.BuildVision2
                 };
             }
 
-            public void SetBlockMembers(IReadOnlyList<IBlockMember> blockMembers)
+            public void SetBlockMembers(BlockPropertyDuplicator duplicator)
             {
                 CloseMenu();
                 UpdateConfig();
+                this.duplicator = duplicator;
 
-                foreach (IBlockMember member in blockMembers)
+                for (int i = 0; i < duplicator.BlockMembers.Count; i++)
                 {
-                    if (member is IBlockColor)
+                    IBlockMember blockMember = duplicator.BlockMembers[i];
+
+                    if (blockMember is IBlockColor)
                     {
-                        var colorMember = member as IBlockColor;
+                        // Assign an entry for each color channel
+                        var colorMember = blockMember as IBlockColor;
                         var entry = body.AddNew();
-                        entry.SetMember(colorMember.ColorChannels[0]);
+                        entry.SetMember(i, duplicator);
 
                         entry = body.AddNew();
-                        entry.SetMember(colorMember.ColorChannels[1]);
+                        entry.SetMember(i, duplicator);
 
                         entry = body.AddNew();
-                        entry.SetMember(colorMember.ColorChannels[2]);
+                        entry.SetMember(i, duplicator);
                     }
                     else
                     {
                         var entry = body.AddNew();
-                        entry.SetMember(member);
+                        entry.SetMember(i, duplicator);
                     }
                 }
 
                 Visible = true;
-                ListOpen = true;
+                IsListOpen = true;
             }
 
             public void CloseMenu()
             {
                 body.ClearEntries();
+                duplicator = null;
                 Visible = false;
-                ListOpen = false;
+                IsListOpen = false;
             }
 
             private void UpdateConfig()
@@ -157,8 +168,8 @@ namespace DarkHelmet.BuildVision2
 
                     foreach (PropertyListEntry entry in body)
                     {
-                        if (textUpdateTick == 0 || entry == body.Selection)
-                            entry.UpdateText(entry == body.Selection);
+                        if (entry.Enabled && (textUpdateTick == 0 || entry == body.Selection))
+                            entry.UpdateText(entry == body.Selection, isDuplicatingProperties);
                     }
 
                     textUpdateTick++;

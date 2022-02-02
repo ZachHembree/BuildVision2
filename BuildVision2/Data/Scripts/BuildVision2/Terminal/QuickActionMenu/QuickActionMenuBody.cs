@@ -116,13 +116,14 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (activeWidget == null)
                     {
+                        PropertyBlock block = menuMain.duplicator.Block;
                         summaryBuilder.Clear();
-                        summaryBuilder.Add("Build Vision\n", headerText);
+                        summaryBuilder.Add("Build Vision\n", mainHeaderFormat);
 
-                        foreach (SuperBlock.SubtypeAccessorBase subtype in menuMain.block.SubtypeAccessors)
+                        foreach (SuperBlock.SubtypeAccessorBase subtype in block.SubtypeAccessors)
                         {
                             if (subtype != null)
-                                subtype.GetSummary(summaryBuilder, bodyTextCenter, valueTextCenter);
+                                subtype.GetSummary(summaryBuilder, bodyFormatCenter, valueFormatCenter);
                         }
 
                         summaryText.Padding = .1f * (cachedSize - cachedPadding);

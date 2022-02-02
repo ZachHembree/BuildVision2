@@ -40,44 +40,61 @@ namespace DarkHelmet.BuildVision2
                         }
                     }
 
-                    var selection = body.Selection;
-
                     // Select highlighted entry
-                    if (selection != null)
+                    if (body.Selection != null)
                     {
-                        if (BvBinds.Select.IsReleased)
-                            selection.PropertyOpen = !selection.PropertyOpen;
-                        else if (!selection.PropertyOpen && BindManager.IsChatOpen && body.Selection.AssocMember is IBlockTextMember)
-                            selection.PropertyOpen = true;
-
-                        // Close text input on chat close or property deselect
-                        if (!BindManager.IsChatOpen && selection.InputOpen ||
-                            !selection.PropertyOpen && selection.WaitingForChatInput)
-                        {
-                            // If no input was recieved, don't write anything
-                            if (!selection.WaitingForChatInput)
-                                selection.SetValueText(selection.ValueText.ToString());
-
-                            selection.WaitingForChatInput = false;
-                            selection.PropertyOpen = false;
-                            selection.CloseInput();
-                        }
-
-                        // Handle input for selected entry
-                        if (selection.PropertyOpen)
-                        {
-                            if (selection.AssocMember is IBlockAction)
-                                HandleActionInput();
-                            else if (selection.AssocMember is IBlockNumericValue<float>)
-                                HandleFloatInput();
-                            else if (selection.AssocMember is IBlockNumericValue<byte>)
-                                HandleColorInput();
-                            else if (selection.AssocMember is IBlockComboBox)
-                                HandleComboInput();
-                            else if (selection.AssocMember is IBlockTextMember)
-                                HandleTextInput();
-                        }
+                        if(isDuplicatingProperties)
+                            HandleDuplicationInput();
+                        else
+                            HandlePropertySelectionInput();
                     }
+                }
+            }
+
+            private void HandleDuplicationInput()
+            {
+                var selection = body.Selection;
+
+                if (BvBinds.Select.IsReleased)
+                    selection.IsSelectedForDuplication = !selection.IsSelectedForDuplication;
+            }
+
+            private void HandlePropertySelectionInput()
+            {
+                var selection = body.Selection;
+                IBlockMember blockMember = selection.AssocMember;
+
+                if (BvBinds.Select.IsReleased)
+                    selection.PropertyOpen = !selection.PropertyOpen;
+                else if (!selection.PropertyOpen && BindManager.IsChatOpen && blockMember is IBlockTextMember)
+                    selection.PropertyOpen = true;
+
+                // Close text input on chat close or property deselect
+                if (!BindManager.IsChatOpen && selection.InputOpen ||
+                    !selection.PropertyOpen && selection.WaitingForChatInput)
+                {
+                    // If no input was recieved, don't write anything
+                    if (!selection.WaitingForChatInput)
+                        selection.SetValueText(selection.ValueText.ToString());
+
+                    selection.WaitingForChatInput = false;
+                    selection.PropertyOpen = false;
+                    selection.CloseInput();
+                }
+
+                // Handle input for selected entry
+                if (selection.PropertyOpen)
+                {
+                    if (blockMember is IBlockAction)
+                        HandleActionInput();
+                    else if (blockMember is IBlockNumericValue<float>)
+                        HandleFloatInput();
+                    else if (blockMember is IBlockNumericValue<byte>)
+                        HandleColorInput();
+                    else if (blockMember is IBlockComboBox)
+                        HandleComboInput();
+                    else if (blockMember is IBlockTextMember)
+                        HandleTextInput();
                 }
             }
 
@@ -86,7 +103,8 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void HandleActionInput()
             {
-                var member = body.Selection.AssocMember as IBlockAction;
+                IBlockMember blockMember = body.Selection.AssocMember;
+                var member = blockMember as IBlockAction;
 
                 member.Action();
                 body.Selection.PropertyOpen = false;
@@ -103,7 +121,8 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    var floatMember = body.Selection.AssocMember as IBlockNumericValue<float>;
+                    IBlockMember blockMember = body.Selection.AssocMember;
+                    var floatMember = blockMember as IBlockNumericValue<float>;
                     float offset = floatMember.Increment,
                         value = floatMember.Value;
 
@@ -136,7 +155,8 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    var colorMember = body.Selection.AssocMember as IBlockNumericValue<byte>;
+                    IBlockMember blockMember = body.Selection.AssocMember;
+                    var colorMember = blockMember as IBlockNumericValue<byte>;
                     int offset = 1;
 
                     if (BvBinds.MultZ.IsPressed)
@@ -161,7 +181,8 @@ namespace DarkHelmet.BuildVision2
 
             private void HandleComboInput()
             {
-                var comboBox = body.Selection.AssocMember as IBlockComboBox;
+                IBlockMember blockMember = body.Selection.AssocMember;
+                var comboBox = blockMember as IBlockComboBox;
                 var entries = comboBox.ComboEntries as List<KeyValuePair<long, StringBuilder>>;
                 int index = entries.FindIndex(x => x.Key == comboBox.Value);
 
@@ -182,7 +203,8 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (!selection.InputOpen)
                     {
-                        selection.ValueText.SetText(selection.AssocMember.ValueText);
+                        IBlockMember blockMember = selection.AssocMember;
+                        selection.ValueText.SetText(blockMember.ValueText);
                         selection.OpenInput();
                         selection.WaitingForChatInput = false;
                     }

@@ -29,29 +29,27 @@ namespace DarkHelmet.BuildVision2
 
         private readonly ObjectPool<object> propertyEntryPool;
         private readonly QuickActionShortcutEntry scrollMenuShortcut, dupeShortcut;
-
-        private BlockData copiedProperties, lastCopiedProperties;
-        private PropertyBlock block;
         private RadialSelectionBox<QuickActionEntryBase, Label> activeWheel;
 
         private readonly Label debugText;
         private int tick;
+        private BlockPropertyDuplicator duplicator;
 
         public QuickActionMenu(HudParentBase parent = null) : base(parent)
         {
-            copiedProperties.propertyList = new List<PropertyData>();
-            lastCopiedProperties.propertyList = new List<PropertyData>();
-
             menuBody = new Body(this) { };
 
-            propertyWheel = new RadialSelectionBox<QuickActionEntryBase, Label>(menuBody)
+            // Selection wheel for block properties
+            propertyWheel = new RadialSelectionBox<QuickActionEntryBase, Label>()
             {
                 BackgroundColor = bodyColor,
                 HighlightColor = selectionBoxColor,
                 ZOffset = -1,
             };
+            propertyWheel.Register(menuBody, true);
 
-            dupeWheel = new RadialSelectionBox<QuickActionEntryBase, Label>(menuBody) 
+            // Selection wheel for dupe shortcuts
+            dupeWheel = new RadialSelectionBox<QuickActionEntryBase, Label>() 
             {
                 Visible = false,
                 BackgroundColor = bodyColor,
@@ -76,9 +74,12 @@ namespace DarkHelmet.BuildVision2
                     },
                 }
             };
+            propertyWheel.Register(dupeWheel, true);
 
+            // Old-style list menu as fallback
             propertyList = new PropertyListMenu(this) { Visible = false };
 
+            // Shortcuts to be added to the property wheel later
             scrollMenuShortcut = new QuickActionShortcutEntry()
             { 
                 Text = "Open List Menu",
@@ -90,9 +91,11 @@ namespace DarkHelmet.BuildVision2
                 ShortcutAction = StartPropertyDuplication,
             };
 
+            // I'm using a generic pool because I'm using two types of entry in the same list, but only
+            // one is pooled.
             propertyEntryPool = new ObjectPool<object>(
-                () => new QuickBlockPropertyEntry(), 
-                x => (x as QuickBlockPropertyEntry).Reset()
+                () => new QuickActionPropertyEntry(), 
+                x => (x as QuickActionPropertyEntry).Reset()
             );
 
             debugText = new Label(this)
@@ -107,15 +110,14 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Opens the menu and populates it with properties from the given property block
         /// </summary>
-        public void OpenMenu(PropertyBlock block)
+        public void OpenRaidalMenu(BlockPropertyDuplicator duplicator)
         {
             Clear();
-            this.block = block;
 
-            foreach (IBlockMember blockMember in block.BlockMembers)
+            for (int i = 0; i < duplicator.BlockMembers.Count; i++)
             {
-                var entry = propertyEntryPool.Get() as QuickBlockPropertyEntry;
-                entry.SetMember(blockMember);
+                var entry = propertyEntryPool.Get() as QuickActionPropertyEntry;
+                entry.SetMember(i, duplicator);
                 propertyWheel.Add(entry);
             }
 
@@ -145,7 +147,7 @@ namespace DarkHelmet.BuildVision2
             StopPropertyDuplication();
             menuBody.CloseWidget();
             propertyList.CloseMenu();
-            block = null;
+            duplicator = null;
 
             propertyEntryPool.ReturnRange(propertyWheel.EntryList, 0, propertyWheel.EntryList.Count - 2);
             propertyWheel.Clear();
@@ -171,7 +173,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     foreach (QuickActionEntryBase baseEntry in propertyWheel)
                     {
-                        var entry = baseEntry as QuickBlockPropertyEntry;
+                        var entry = baseEntry as QuickActionPropertyEntry;
 
                         if (entry != null)
                             entry.UpdateText();

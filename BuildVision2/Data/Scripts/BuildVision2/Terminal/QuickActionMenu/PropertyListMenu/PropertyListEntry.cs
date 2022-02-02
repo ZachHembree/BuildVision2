@@ -71,14 +71,28 @@ namespace DarkHelmet.BuildVision2
             }
 
             /// <summary>
+            /// Returns true if the associated block member is selected for duplication
+            /// </summary>
+            public bool IsSelectedForDuplication
+            {
+                get { return duplicator.PropertyDupeEntries[MemberIndex].isSelectedForDuplication; }
+                set { duplicator.SetMemberSelection(MemberIndex, value); }
+            }
+
+            /// <summary>
+            /// Returns true if the associated block member can be duplicated
+            /// </summary>
+            public bool CanDuplicate => duplicator.PropertyDupeEntries[MemberIndex].canDuplicate;
+
+            /// <summary>
+            /// Block member index
+            /// </summary>
+            public int MemberIndex { get; private set; }
+
+            /// <summary>
             /// Returns/set true if the property has been selected and opened for editing
             /// </summary>
             public bool PropertyOpen { get; set; }
-
-            /// <summary>
-            /// Flag used to indicate entries selected for duplication
-            /// </summary>
-            public bool IsSelectedForCopy { get; set; }
 
             /// <summary>
             /// Flag used to indicate text entry has been opened, but the property is waiting for chat
@@ -90,23 +104,29 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public bool InputOpen => Element.value.InputOpen;
 
+            private BlockPropertyDuplicator duplicator;
+
             public PropertyListEntry()
             {
                 // Resizing was disabled in the parent constructor, I'm just turning it back on.
                 Element.TextBoard.AutoResize = true;
-                NameText.Format = bodyText;
+                NameText.Format = bodyFormat;
             }
 
-            public void SetMember(IBlockMember member, object data = null)
+            public void SetMember(int index, BlockPropertyDuplicator duplicator)
             {
-                AssocMember = member;
+                this.duplicator = duplicator;
+                MemberIndex = index;
+                AssocMember = duplicator.BlockMembers[index];
             }
 
             public override void Reset()
             {
                 WaitingForChatInput = false;
-                IsSelectedForCopy = false;
                 PropertyOpen = false;
+                duplicator = null;
+                MemberIndex = -1;
+
                 CloseInput();
                 base.Reset();
             }
@@ -141,21 +161,26 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Updates associated text label for the entry in the menu
             /// </summary>
-            public virtual void UpdateText(bool highlight)
+            public virtual void UpdateText(bool highlight, bool isDuplicating)
             {
                 ITextBoard nameTB = Element.name.TextBoard,
                     valueTB = Element.value.TextBoard,
                     postTB = Element.postfix.TextBoard;
-                StringBuilder name = AssocMember.Name,
-                    disp = AssocMember.FormattedValue,
-                    status = AssocMember.StatusText;
+                IBlockMember blockMember = AssocMember;
+                StringBuilder name = blockMember.Name,
+                    disp = blockMember.FormattedValue,
+                    status = blockMember.StatusText;
 
                 // Text format changes when selected
-                var nameFormat = highlight ? valueTB.Format : bodyText;
-                var valueFormat = highlight ? valueTB.Format : valueText;
+                var nameFormat = highlight ? valueTB.Format : bodyFormat;
+                var valueFormat = highlight ? valueTB.Format : QuickActionMenu.valueFormat;
+                var dupeFormat = highlight ? valueTB.Format : dupeCrossFormat;
 
                 // Update Name
                 nameTB.Clear();
+
+                if (isDuplicating && IsSelectedForDuplication)
+                    nameTB.Append("+ ", dupeFormat);
 
                 if (name != null)
                 {
