@@ -7,6 +7,7 @@ using RichHudFramework.UI.Client;
 using RichHudFramework.UI.Rendering;
 using System;
 using System.Collections.Generic;
+using Sandbox.ModAPI;
 using VRage;
 using VRage.ModAPI;
 using VRage.Utils;
@@ -56,7 +57,8 @@ namespace DarkHelmet.BuildVision2
         public PropertyBlock Block { get; private set; }
 
         private readonly List<BlockPropertyDupeEntry> dupeEntries;
-        private BlockData copiedProperties, backup;
+        private BlockData copiedProperties;
+        private MyTuple<IMyTerminalBlock, BlockData> backup;
 
         public BlockPropertyDuplicator()
         {
@@ -64,7 +66,7 @@ namespace DarkHelmet.BuildVision2
             DupeEntries = dupeEntries;
 
             copiedProperties.propertyList = new List<PropertyData>();
-            backup.propertyList = new List<PropertyData>();
+            backup.Item2.propertyList = new List<PropertyData>();
         }
 
         /// <summary>
@@ -75,6 +77,14 @@ namespace DarkHelmet.BuildVision2
         {
             Reset();
             Block = block;
+
+            // Clear backup if target changes
+            if (backup.Item1 != block.TBlock)
+            {
+                backup.Item1 = null;
+                backup.Item2.blockTypeID = null;
+                backup.Item2.propertyList.Clear();
+            }
 
             for (int i = 0; i < block.BlockMembers.Count; i++)
             {
@@ -93,10 +103,6 @@ namespace DarkHelmet.BuildVision2
         {
             dupeEntries.Clear();
             Block = null;
-
-            // Reset backup
-            backup.propertyList.Clear();
-            backup.blockTypeID = null;
         }
 
         /// <summary>
@@ -192,7 +198,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public int TryPasteCopiedProperties()
         {
-            Block.ExportSettings(ref backup);
+            backup.Item1 = Block.TBlock;
+            Block.ExportSettings(ref backup.Item2);
+
             return TryPasteSerializedProperties(copiedProperties);
         }
 
@@ -203,7 +211,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public int TryUndoPaste()
         {
-            return TryPasteSerializedProperties(backup);
+            return TryPasteSerializedProperties(backup.Item2);
         }
 
         /// <summary>
