@@ -12,7 +12,7 @@ using VRage.ModAPI;
 namespace DarkHelmet.BuildVision2
 {
     /// <summary>
-    /// Block property data used by the menu
+    /// Collection of wrapper objects used to interop with SE terminal system
     /// </summary>
     public partial class PropertyBlock : SuperBlock
     {
@@ -138,17 +138,15 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Exports block terminal settings as a serializable <see cref="BlockData"/>
         /// </summary>
-        public BlockData ExportSettings()
+        public void ExportSettings(ref BlockData blockData)
         {
             if (blockProperties.Count == 0)
                 GenerateProperties();
 
-            var propData = new List<PropertyData>(blockProperties.Count);
-
             for (int n = 0; n < blockProperties.Count; n++)
-                propData.Add(blockProperties[n].GetPropertyData());
+                blockData.propertyList.Add(blockProperties[n].GetPropertyData());
 
-            return new BlockData(TypeID, propData);
+            blockData.blockTypeID = TypeID;
         }
 
         /// <summary>
