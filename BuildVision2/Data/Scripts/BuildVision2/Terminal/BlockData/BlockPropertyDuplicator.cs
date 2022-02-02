@@ -120,19 +120,20 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Creates a copy of all valid block properties.
         /// </summary>
-        public void CopyAllProperties(bool includeName = true)
+        public int CopyAllProperties(bool includeName = true)
         {
             SelectAllProperties(includeName);
-            CopySelectedProperties();
+            return CopySelectedProperties();
         }
 
         /// <summary>
         /// Selects all valid block properties for duplication. If includeName == false, the name property
         /// will be excluded, where applicable.
         /// </summary>
-        public void SelectAllProperties(bool includeName = true)
+        public int SelectAllProperties(bool includeName = true)
         {
             ClearSelection();
+            int count = 0;
 
             for (int i = 0; i < dupeEntries.Count; i++)
             {
@@ -146,16 +147,19 @@ namespace DarkHelmet.BuildVision2
                 else if (entry.canDuplicate && member.Enabled)
                 {
                     entry.isSelectedForDuplication = true;
+                    count++;
                 }
 
                 dupeEntries[i] = entry;
             }
+
+            return count;
         }
 
         /// <summary>
         /// Saves serialized copies of the properties currently selcted for duplication.
         /// </summary>
-        public void CopySelectedProperties()
+        public int CopySelectedProperties()
         {
             var propertyList = copiedProperties.propertyList;
             propertyList.Clear();
@@ -175,6 +179,8 @@ namespace DarkHelmet.BuildVision2
             }
 
             ClearSelection();
+
+            return propertyList.Count;
         }
 
         /// <summary>

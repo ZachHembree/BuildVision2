@@ -23,18 +23,18 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Creates a copy of all valid block properties.
         /// </summary>
-        void CopyAllProperties(bool includeName = true);
+        int CopyAllProperties(bool includeName = true);
 
         /// <summary>
         /// Saves serialized copies of the properties currently selcted for duplication.
         /// </summary>
-        void CopySelectedProperties();
+        int CopySelectedProperties();
 
         /// <summary>
         /// Selects all valid block properties for duplication. If includeName == false, the name property
         /// will be excluded, where applicable.
         /// </summary>
-        void SelectAllProperties(bool includeName = true);
+        int SelectAllProperties(bool includeName = true);
 
         /// <summary>
         /// Sets the selection <see cref="BlockPropertyDupeEntry"/> at the corresponding index.
