@@ -34,9 +34,9 @@ namespace DarkHelmet.BuildVision2
             }
 
             /// <summary>
-            /// Returns the current block property duplicator
+            /// Returns the current block target
             /// </summary>
-            private BlockPropertyDuplicator Duplicator => quickActionMenu.Duplicator;
+            private PropertyBlock Target => quickActionMenu.Target;
 
             /// <summary>
             /// Returns true if the list is open
@@ -120,27 +120,27 @@ namespace DarkHelmet.BuildVision2
                 CloseMenu();
                 UpdateConfig();
 
-                for (int i = 0; i < Duplicator.BlockMembers.Count; i++)
+                for (int i = 0; i < Target.BlockMembers.Count; i++)
                 {
-                    IBlockMember blockMember = Duplicator.BlockMembers[i];
+                    IBlockMember blockMember = Target.BlockMembers[i];
 
                     if (blockMember is IBlockColor)
                     {
                         // Assign an entry for each color channel
                         var colorMember = blockMember as IBlockColor;
                         var entry = body.AddNew();
-                        entry.SetMember(i, Duplicator);
+                        entry.SetMember(i, Target);
 
                         entry = body.AddNew();
-                        entry.SetMember(i, Duplicator);
+                        entry.SetMember(i, Target);
 
                         entry = body.AddNew();
-                        entry.SetMember(i, Duplicator);
+                        entry.SetMember(i, Target);
                     }
                     else
                     {
                         var entry = body.AddNew();
-                        entry.SetMember(i, Duplicator);
+                        entry.SetMember(i, Target);
                     }
                 }
 

@@ -47,7 +47,6 @@ namespace DarkHelmet.BuildVision2
 
         private readonly TerminalGrid targetGrid, tempGrid;
         private readonly List<IMySlimBlock> targetBuffer;
-        private BlockPropertyDuplicator duplicator;
 
         private readonly IMyHudNotification hudNotification;
         private Vector2 lastPos;
@@ -59,7 +58,6 @@ namespace DarkHelmet.BuildVision2
             tempGrid = new TerminalGrid();
             targetBuffer = new List<IMySlimBlock>();
             Target = new PropertyBlock();
-            duplicator = new BlockPropertyDuplicator();
 
             hudSpace = new CustomSpaceNode(HudMain.Root) { UpdateMatrixFunc = UpdateHudSpace };
             quickActionMenu = new QuickActionMenu(hudSpace) { Visible = false };
@@ -175,8 +173,7 @@ namespace DarkHelmet.BuildVision2
             {
                 if (quickActionMenu.MenuState == QuickActionMenuState.Closed)
                 {
-                    duplicator.SetBlockMembers(Target);
-                    quickActionMenu.OpenRaidalMenu(duplicator);
+                    quickActionMenu.OpenRaidalMenu(Target);
                 }
             }
         }
@@ -188,7 +185,6 @@ namespace DarkHelmet.BuildVision2
         {
             Target.Reset();
             targetGrid.Reset();
-            duplicator.Reset();
 
             quickActionMenu.CloseMenu();
             HudMain.EnableCursor = false;

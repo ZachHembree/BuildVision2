@@ -22,9 +22,9 @@ namespace DarkHelmet.BuildVision2
         public QuickActionMenuState MenuState { get; private set; }
 
         /// <summary>
-        /// Currently assigned block property duplicator
+        /// Currently assigned block target
         /// </summary>
-        public BlockPropertyDuplicator Duplicator { get; private set; }
+        public PropertyBlock Target { get; private set; }
 
         /// <summary>
         /// Enables/disables debug text
@@ -59,10 +59,10 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Opens the wheel menu and populates it with properties from the given property block
         /// </summary>
-        public void OpenRaidalMenu(BlockPropertyDuplicator duplicator)
+        public void OpenRaidalMenu(PropertyBlock target)
         {
             CloseMenu();
-            Duplicator = duplicator;
+            Target = target;
 
             MenuState = QuickActionMenuState.WheelMenuControl;
             Visible = true;
@@ -71,10 +71,10 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Opens the property list menu and populates it with properties from the given property block
         /// </summary>
-        public void OpenListMenu(BlockPropertyDuplicator duplicator)
+        public void OpenListMenu(PropertyBlock target)
         {
             CloseMenu();
-            Duplicator = duplicator;
+            Target = target;
 
             MenuState = QuickActionMenuState.ListMenuControl;
             Visible = true;
@@ -88,7 +88,7 @@ namespace DarkHelmet.BuildVision2
             propertyWheel.CloseMenu();
             propertyList.CloseMenu();
 
-            Duplicator = null;
+            Target = null;
             Visible = false;
             MenuState = QuickActionMenuState.Closed;
         }

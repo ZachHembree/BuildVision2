@@ -72,14 +72,14 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public bool IsSelectedForDuplication
             {
-                get { return duplicator.PropertyDupeEntries[MemberIndex].isSelectedForDuplication; }
-                set { duplicator.SetMemberSelection(MemberIndex, value); }
+                get { return target.Duplicator.DupeEntries[MemberIndex].isSelectedForDuplication; }
+                set { target.Duplicator.SetMemberSelection(MemberIndex, value); }
             }
 
             /// <summary>
             /// Returns true if the associated block member can be duplicated
             /// </summary>
-            public bool CanDuplicate => duplicator.PropertyDupeEntries[MemberIndex].canDuplicate;
+            public bool CanDuplicate => target.Duplicator.DupeEntries[MemberIndex].canDuplicate;
 
             /// <summary>
             /// Block member index
@@ -92,7 +92,7 @@ namespace DarkHelmet.BuildVision2
             public IBlockMember BlockMember { get; private set; }
 
             private readonly RichText textBuf;
-            private BlockPropertyDuplicator duplicator;
+            private PropertyBlock target;
 
             public PropertyWheelEntry()
             {
@@ -102,11 +102,11 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Sets block property member
             /// </summary>
-            public void SetMember(int index, BlockPropertyDuplicator duplicator)
+            public void SetMember(int index, PropertyBlock target)
             {
                 MemberIndex = index;
-                this.duplicator = duplicator;
-                BlockMember = duplicator.BlockMembers[MemberIndex];
+                this.target = target;
+                BlockMember = target.BlockMembers[MemberIndex];
             }
 
             /// <summary>
@@ -141,7 +141,7 @@ namespace DarkHelmet.BuildVision2
             {
                 MemberIndex = -1;
                 BlockMember = null;
-                duplicator = null;
+                target = null;
             }
         }
     }

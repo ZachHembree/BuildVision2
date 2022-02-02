@@ -52,12 +52,12 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void CopyAllProperties()
             {
-                Duplicator.CopyAllProperties();
+                Target.Duplicator.CopyAllProperties();
             }
 
             private void PasteCopiedProperties()
             {
-                int pastedProperties = Duplicator.TryPasteCopiedProperties();
+                int pastedProperties = Target.Duplicator.TryPasteCopiedProperties();
                 ExceptionHandler.SendChatMessage($"Pasted {pastedProperties} properties");
             }
         }

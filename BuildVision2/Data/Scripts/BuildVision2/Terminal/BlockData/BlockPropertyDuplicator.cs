@@ -42,31 +42,26 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Class responsible for managing duplication of block properties in <see cref="PropertyBlock"/>s
     /// </summary>
-    public sealed class BlockPropertyDuplicator
+    public sealed class BlockPropertyDuplicator : IReadOnlyBlockPropertyDuplicator
     {
         /// <summary>
         /// Read-only list parallel to block members in <see cref="PropertyBlock"/> indicating which
         /// properties are selected for duplication, and which can be duplicated.
         /// </summary>
-        public IReadOnlyList<BlockPropertyDupeEntry> PropertyDupeEntries { get; }
-
-        /// <summary>
-        /// Read-only list of block members contained by the associated <see cref="PropertyBlock"/>.
-        /// </summary>
-        public IReadOnlyList<IBlockMember> BlockMembers { get; private set; }
+        public IReadOnlyList<BlockPropertyDupeEntry> DupeEntries { get; }
 
         /// <summary>
         /// Returns the block targeted for property duplication.
         /// </summary>
         public PropertyBlock Block { get; private set; }
 
-        private readonly List<BlockPropertyDupeEntry> propertyDupeEntries;
+        private readonly List<BlockPropertyDupeEntry> dupeEntries;
         private BlockData copiedProperties, backup;
 
         public BlockPropertyDuplicator()
         {
-            propertyDupeEntries = new List<BlockPropertyDupeEntry>();
-            PropertyDupeEntries = propertyDupeEntries;
+            dupeEntries = new List<BlockPropertyDupeEntry>();
+            DupeEntries = dupeEntries;
 
             copiedProperties.propertyList = new List<PropertyData>();
             backup.propertyList = new List<PropertyData>();
@@ -80,7 +75,6 @@ namespace DarkHelmet.BuildVision2
         {
             Reset();
             Block = block;
-            BlockMembers = block.BlockMembers;
 
             for (int i = 0; i < block.BlockMembers.Count; i++)
             {
@@ -95,9 +89,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void Reset()
         {
-            propertyDupeEntries.Clear();
+            dupeEntries.Clear();
             Block = null;
-            BlockMembers = null;
 
             // Reset backup
             backup.propertyList.Clear();
@@ -110,7 +103,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void SetMemberSelection(int index, bool isSelected)
         {
-            BlockPropertyDupeEntry entry = propertyDupeEntries[index];
+            BlockPropertyDupeEntry entry = dupeEntries[index];
             IBlockMember member = Block.BlockMembers[index];
 
             entry.isSelectedForDuplication = isSelected && entry.canDuplicate && member.Enabled;
@@ -133,9 +126,9 @@ namespace DarkHelmet.BuildVision2
         {
             ClearSelection();
 
-            for (int i = 0; i < propertyDupeEntries.Count; i++)
+            for (int i = 0; i < dupeEntries.Count; i++)
             {
-                BlockPropertyDupeEntry container = propertyDupeEntries[i];
+                BlockPropertyDupeEntry container = dupeEntries[i];
                 IBlockMember member = Block.BlockMembers[i];
 
                 if (includeName && i == 0 && (member.PropName == "Name" || member.PropName == "CustomName"))
@@ -147,7 +140,7 @@ namespace DarkHelmet.BuildVision2
                     container.isSelectedForDuplication = true;
                 }
 
-                propertyDupeEntries[i] = container;
+                dupeEntries[i] = container;
             }
         }
 
@@ -161,9 +154,9 @@ namespace DarkHelmet.BuildVision2
             copiedProperties.blockTypeID = Block.TypeID;
             propertyList.Clear();
 
-            for (int i = 0; i < propertyDupeEntries.Count; i++)
+            for (int i = 0; i < dupeEntries.Count; i++)
             {
-                BlockPropertyDupeEntry entry = propertyDupeEntries[i];
+                BlockPropertyDupeEntry entry = dupeEntries[i];
                 IBlockMember member = Block.BlockMembers[i];
 
                 if (entry.isSelectedForDuplication && entry.canDuplicate && member.Enabled)
@@ -181,12 +174,12 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void ClearSelection()
         {
-            for (int i = 0; i < propertyDupeEntries.Count; i++)
+            for (int i = 0; i < dupeEntries.Count; i++)
             {
-                BlockPropertyDupeEntry container = propertyDupeEntries[i];
+                BlockPropertyDupeEntry container = dupeEntries[i];
                 container.isSelectedForDuplication = false;
 
-                propertyDupeEntries[i] = container;
+                dupeEntries[i] = container;
             }
         }
 
@@ -201,7 +194,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Restores backup made before previous paste
+        /// Tries to restore backup made before previous paste
         /// </summary>
         public int TryUndoPaste()
         {

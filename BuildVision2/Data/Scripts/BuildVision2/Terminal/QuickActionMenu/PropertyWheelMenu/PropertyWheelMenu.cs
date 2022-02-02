@@ -33,9 +33,9 @@ namespace DarkHelmet.BuildVision2
             }
 
             /// <summary>
-            /// Returns the current block property duplicator
+            /// Returns the current target block
             /// </summary>
-            private BlockPropertyDuplicator Duplicator => quickActionMenu.Duplicator;
+            private PropertyBlock Target => quickActionMenu.Target;
 
             /// <summary>
             /// Returns true if the menu is open and visible
@@ -131,10 +131,10 @@ namespace DarkHelmet.BuildVision2
                 Clear();
 
                 // Add entries for block members
-                for (int i = 0; i < Duplicator.BlockMembers.Count; i++)
+                for (int i = 0; i < Target.BlockMembers.Count; i++)
                 {
                     var entry = propertyEntryPool.Get() as PropertyWheelEntry;
-                    entry.SetMember(i, Duplicator);
+                    entry.SetMember(i, Target);
                     propertyWheel.Add(entry);
                 }
 

@@ -43,6 +43,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public Vector3D ModelOffset { get; private set; }
 
+        public IReadOnlyBlockPropertyDuplicator Duplicator { get; }
+
         private readonly List<BlockMemberBase> blockMembers;
         private readonly List<BlockPropertyBase> blockProperties;
 
@@ -54,6 +56,7 @@ namespace DarkHelmet.BuildVision2
         private readonly BvPropPool<TextProperty> textPropPool;
         private readonly StringBuilder nameBuilder;
         private readonly List<MyTerminalControlComboBoxItem> comboItemBuffer;
+        private readonly BlockPropertyDuplicator duplicator;
 
         public PropertyBlock()
         {
@@ -68,6 +71,9 @@ namespace DarkHelmet.BuildVision2
             blockMembers = new List<BlockMemberBase>();
             blockProperties = new List<BlockPropertyBase>();
             comboItemBuffer = new List<MyTerminalControlComboBoxItem>();
+
+            duplicator = new BlockPropertyDuplicator();
+            Duplicator = duplicator;
         }
 
         public override void SetBlock(TerminalGrid grid, IMyTerminalBlock tBlock)
@@ -86,6 +92,7 @@ namespace DarkHelmet.BuildVision2
             blockMembers.Clear();
             blockProperties.Clear();
             ModelOffset = Vector3D.Zero;
+            duplicator.Reset();
         }
 
         private void GenerateProperties()
@@ -95,6 +102,8 @@ namespace DarkHelmet.BuildVision2
 
             GetScrollableProps();
             GetScrollableActions();
+
+            duplicator.SetBlockMembers(this);
         }
 
         public int GetEnabledElementCount()

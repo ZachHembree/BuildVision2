@@ -128,7 +128,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (activeWidget == null)
                     {
-                        PropertyBlock block = propertyWheelMenu.quickActionMenu.Duplicator.Block;
+                        PropertyBlock block = propertyWheelMenu.quickActionMenu.Target;
                         summaryBuilder.Clear();
                         summaryBuilder.Add("Build Vision\n", mainHeaderFormat);
 

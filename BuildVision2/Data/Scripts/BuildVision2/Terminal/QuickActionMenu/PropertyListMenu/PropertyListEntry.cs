@@ -75,14 +75,14 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public bool IsSelectedForDuplication
             {
-                get { return duplicator.PropertyDupeEntries[MemberIndex].isSelectedForDuplication; }
-                set { duplicator.SetMemberSelection(MemberIndex, value); }
+                get { return target.Duplicator.DupeEntries[MemberIndex].isSelectedForDuplication; }
+                set { target.Duplicator.SetMemberSelection(MemberIndex, value); }
             }
 
             /// <summary>
             /// Returns true if the associated block member can be duplicated
             /// </summary>
-            public bool CanDuplicate => duplicator.PropertyDupeEntries[MemberIndex].canDuplicate;
+            public bool CanDuplicate => target.Duplicator.DupeEntries[MemberIndex].canDuplicate;
 
             /// <summary>
             /// Block member index
@@ -104,7 +104,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public bool InputOpen => Element.value.InputOpen;
 
-            private BlockPropertyDuplicator duplicator;
+            private PropertyBlock target;
 
             public PropertyListEntry()
             {
@@ -113,18 +113,18 @@ namespace DarkHelmet.BuildVision2
                 NameText.Format = bodyFormat;
             }
 
-            public void SetMember(int index, BlockPropertyDuplicator duplicator)
+            public void SetMember(int index, PropertyBlock target)
             {
-                this.duplicator = duplicator;
+                this.target = target;
                 MemberIndex = index;
-                AssocMember = duplicator.BlockMembers[index];
+                AssocMember = target.BlockMembers[index];
             }
 
             public override void Reset()
             {
                 WaitingForChatInput = false;
                 PropertyOpen = false;
-                duplicator = null;
+                target = null;
                 MemberIndex = -1;
 
                 CloseInput();
