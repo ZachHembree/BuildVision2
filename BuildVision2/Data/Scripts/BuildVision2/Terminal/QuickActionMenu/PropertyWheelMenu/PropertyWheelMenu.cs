@@ -84,13 +84,23 @@ namespace DarkHelmet.BuildVision2
                         },
                         new PropertyWheelShortcutEntry()
                         {
+                            Text = "Copy All but Name",
+                            ShortcutAction = () => CopyAllProperties(false),
+                        },
+                        new PropertyWheelShortcutEntry()
+                        {
                             Text = "Copy All",
-                            ShortcutAction = CopyAllProperties,
+                            ShortcutAction = () => CopyAllProperties(true),
                         },
                         new PropertyWheelShortcutEntry()
                         {
                             Text = "Paste",
                             ShortcutAction = PasteCopiedProperties,
+                        },
+                        new PropertyWheelShortcutEntry()
+                        {
+                            Text = "Undo",
+                            ShortcutAction = UndoPropertyPaste,
                         },
                     }
                 };

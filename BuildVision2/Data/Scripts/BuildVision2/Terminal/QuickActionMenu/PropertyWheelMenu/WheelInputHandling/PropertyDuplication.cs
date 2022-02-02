@@ -47,12 +47,17 @@ namespace DarkHelmet.BuildVision2
                 shortcutEntry.ShortcutAction();
             }
 
+            private void UndoPropertyPaste()
+            {
+                Target.Duplicator.TryUndoPaste();
+            }
+
             /// <summary>
             /// Selects all enabled properties in the current target and copies them to the clipboard
             /// </summary>
-            private void CopyAllProperties()
+            private void CopyAllProperties(bool includeName = true)
             {
-                Target.Duplicator.CopyAllProperties();
+                Target.Duplicator.CopyAllProperties(includeName);
             }
 
             private void PasteCopiedProperties()
