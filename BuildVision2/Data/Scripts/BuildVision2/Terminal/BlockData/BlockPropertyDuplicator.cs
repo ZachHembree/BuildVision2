@@ -80,7 +80,9 @@ namespace DarkHelmet.BuildVision2
             {
                 IBlockMember member = block.BlockMembers[i];
                 bool canDuplicate = member is IBlockProperty;
-                var dupeContainer = new BlockPropertyDupeEntry(canDuplicate);
+                var entry = new BlockPropertyDupeEntry(canDuplicate);
+
+                dupeEntries.Add(entry);
             }
         }
 
@@ -128,19 +130,19 @@ namespace DarkHelmet.BuildVision2
 
             for (int i = 0; i < dupeEntries.Count; i++)
             {
-                BlockPropertyDupeEntry container = dupeEntries[i];
+                BlockPropertyDupeEntry entry = dupeEntries[i];
                 IBlockMember member = Block.BlockMembers[i];
 
-                if (includeName && i == 0 && (member.PropName == "Name" || member.PropName == "CustomName"))
+                if (!includeName && i == 0 && (member.PropName == "Name" || member.PropName == "CustomName"))
                 {
-                    container.isSelectedForDuplication = false;
+                    entry.isSelectedForDuplication = false;
                 }
-                else if (container.canDuplicate && member.Enabled)
+                else if (entry.canDuplicate && member.Enabled)
                 {
-                    container.isSelectedForDuplication = true;
+                    entry.isSelectedForDuplication = true;
                 }
 
-                dupeEntries[i] = container;
+                dupeEntries[i] = entry;
             }
         }
 
@@ -150,9 +152,9 @@ namespace DarkHelmet.BuildVision2
         public void CopySelectedProperties()
         {
             var propertyList = copiedProperties.propertyList;
+            propertyList.Clear();
 
             copiedProperties.blockTypeID = Block.TypeID;
-            propertyList.Clear();
 
             for (int i = 0; i < dupeEntries.Count; i++)
             {
@@ -185,7 +187,8 @@ namespace DarkHelmet.BuildVision2
 
         /// <summary>
         /// Writes previously copied properties to the current target block, while saving
-        /// the current configuration to allow for undo;
+        /// the current configuration to allow for undo. If successful, this will return the 
+        /// number of properties successfully written; if it fails, this will return -1;
         /// </summary>
         public int TryPasteCopiedProperties()
         {
@@ -194,7 +197,9 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Tries to restore backup made before previous paste
+        /// Tries to restore backup made before previous paste. If successful, this will return 
+        /// the number of properties successfully written; if it fails, this will return
+        /// -1;
         /// </summary>
         public int TryUndoPaste()
         {
