@@ -22,9 +22,14 @@ namespace DarkHelmet.BuildVision2
             {
                 if (propertyWheel.EntryList.Count > 0)
                 {
-                    BindManager.RequestTempBlacklist(SeBlacklistModes.Mouse);
-
-                    if ((MenuState & QuickActionMenuState.WheelMenuControl) > 0)
+                    if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
+                    {
+                        if (!menuBody.IsWidgetOpen)
+                            MenuState = QuickActionMenuState.WheelMenuControl;
+                        else
+                            HudMain.EnableCursor = BvBinds.EnableMouse.IsPressed;
+                    }
+                    else
                     {
                         if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
                             activeWheel = dupeWheel;
@@ -35,14 +40,6 @@ namespace DarkHelmet.BuildVision2
                             menuBody.CloseWidget();
 
                         HandleWheelInput();
-                    }
-                    else if (MenuState == QuickActionMenuState.WidgetControl)
-                    {
-                        // Switch back to radial list after the widget is closed
-                        if (!menuBody.IsWidgetOpen)
-                            MenuState = QuickActionMenuState.WheelMenuControl;
-                        else
-                            HudMain.EnableCursor = BvBinds.EnableMouse.IsPressed;
                     }
                 }
             }

@@ -119,6 +119,7 @@ namespace DarkHelmet.BuildVision2
             {
                 CloseMenu();
                 UpdateConfig();
+                ExceptionHandler.SendChatMessage("List menu opened");
 
                 for (int i = 0; i < Target.BlockMembers.Count; i++)
                 {

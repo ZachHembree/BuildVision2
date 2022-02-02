@@ -61,16 +61,15 @@ namespace DarkHelmet.BuildVision2
                 menuBody = new Body(this) { };
 
                 // Selection wheel for block properties
-                propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>()
+                propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(menuBody)
                 {
                     BackgroundColor = bodyColor,
                     HighlightColor = selectionBoxColor,
                     ZOffset = -1,
                 };
-                propertyWheel.Register(menuBody, true);
 
                 // Selection wheel for dupe shortcuts
-                dupeWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>()
+                dupeWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(menuBody)
                 {
                     Visible = false,
                     BackgroundColor = bodyColor,
@@ -95,7 +94,6 @@ namespace DarkHelmet.BuildVision2
                         },
                     }
                 };
-                propertyWheel.Register(dupeWheel, true);
 
                 // Shortcuts to be added to the property wheel later
                 shortcutEntries = new List<PropertyWheelShortcutEntry>()
@@ -129,6 +127,7 @@ namespace DarkHelmet.BuildVision2
             public void OpenMenu()
             {
                 Clear();
+                ExceptionHandler.SendChatMessage("Wheel Menu Opened");
 
                 // Add entries for block members
                 for (int i = 0; i < Target.BlockMembers.Count; i++)
