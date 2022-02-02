@@ -40,23 +40,6 @@ namespace DarkHelmet.BuildVision2
             {
                 propertyWheel.CloseMenu();
             }
-
-            if (DrawDebug)
-            {
-                debugText.Visible = true;
-
-                ITextBuilder debugBuilder = debugText.TextBoard;
-                debugBuilder.Clear();
-                debugBuilder.Append($"State: {MenuState}\n");
-                debugBuilder.Append($"Wheel Menu Open: {propertyWheel.IsOpen}\n");
-                debugBuilder.Append($"IsWidgetOpen: {propertyWheel.IsWidgetOpen}\n");
-                debugBuilder.Append($"List Menu Open: {propertyList.IsOpen}\n");
-                debugBuilder.Append($"Cursor Mode: {HudMain.InputMode}\n");
-                debugBuilder.Append($"Blacklist Mode: {BindManager.BlacklistMode}\n");
-                debugBuilder.Append($"Enable Cursor Pressed: {BvBinds.EnableMouse.IsPressed}\n");
-            }
-            else
-                debugText.Visible = false;
         }
 
         private void OpenPropertyWheel()

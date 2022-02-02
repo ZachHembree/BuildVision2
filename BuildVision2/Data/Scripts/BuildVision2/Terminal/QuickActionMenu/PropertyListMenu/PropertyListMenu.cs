@@ -49,7 +49,6 @@ namespace DarkHelmet.BuildVision2
             private readonly HudChain layout;
 
             private readonly Label debugText;
-            private readonly RichText textBuf;
             private int textUpdateTick;
 
             public PropertyListMenu(QuickActionMenu parent) : base(parent)
@@ -107,7 +106,6 @@ namespace DarkHelmet.BuildVision2
                     }
                 };
 
-                textBuf = new RichText();
                 debugText = new Label(layout)
                 {
                     ParentAlignment = ParentAlignments.Right,
@@ -172,14 +170,6 @@ namespace DarkHelmet.BuildVision2
                     else if (body.SelectionIndex < body.hudChain.Start)
                         body.hudChain.Start = body.SelectionIndex;
 
-                    textBuf.Clear();
-                    textBuf.Add($"Selection: {body.Selection?.NameText}\n");
-                    textBuf.Add($"Selection Open: {body.Selection?.PropertyOpen}\n");
-                    textBuf.Add($"Selection Type: {body.Selection?.AssocMember.GetType().Name}\n");
-                    textBuf.Add($"Selection Value Text: {body.Selection?.AssocMember.ValueText}\n");
-                    textBuf.Add($"Chat Open: {BindManager.IsChatOpen}\n");
-                    debugText.Text = textBuf;
-
                     bool isDuplicatingProperties = (MenuState & QuickActionMenuState.PropertyDuplication) > 0;
 
                     foreach (PropertyListEntry entry in body)
@@ -187,6 +177,19 @@ namespace DarkHelmet.BuildVision2
                         if (entry.Enabled && (textUpdateTick == 0 || entry == body.Selection))
                             entry.UpdateText(entry == body.Selection, isDuplicatingProperties);
                     }
+
+                    if (DrawDebug && textUpdateTick == 0)
+                    {
+                        ITextBuilder textBuilder = debugText.TextBoard;
+                        textBuilder.Clear();
+                        textBuilder.Append($"Selection: {body.Selection?.NameText}\n");
+                        textBuilder.Append($"Selection Open: {body.Selection?.PropertyOpen}\n");
+                        textBuilder.Append($"Selection Type: {body.Selection?.AssocMember.GetType().Name}\n");
+                        textBuilder.Append($"Selection Value Text: {body.Selection?.AssocMember.ValueText}\n");
+                        textBuilder.Append($"Chat Open: {BindManager.IsChatOpen}\n");
+                    }
+
+                    debugText.Visible = DrawDebug;
 
                     textUpdateTick++;
                     textUpdateTick %= textTickDivider;

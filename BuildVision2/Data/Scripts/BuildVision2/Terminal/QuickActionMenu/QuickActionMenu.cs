@@ -34,6 +34,7 @@ namespace DarkHelmet.BuildVision2
         private readonly PropertyWheelMenu propertyWheel;
         private readonly PropertyListMenu propertyList;
         private readonly Label debugText;
+        private int textUpdateTick;
 
         public QuickActionMenu(HudParentBase parent = null) : base(parent)
         {
@@ -91,6 +92,32 @@ namespace DarkHelmet.BuildVision2
             Target = null;
             Visible = false;
             MenuState = QuickActionMenuState.Closed;
+        }
+
+        protected override void Layout()
+        {
+            if ((MenuState & QuickActionMenuState.WheelMenuControl) > 0)
+                Size = propertyWheel.Size;
+            else
+                Size = propertyList.Size;
+
+            if (DrawDebug && textUpdateTick == 0)
+            {
+                ITextBuilder debugBuilder = debugText.TextBoard;
+                debugBuilder.Clear();
+                debugBuilder.Append($"State: {MenuState}\n");
+                debugBuilder.Append($"Wheel Menu Open: {propertyWheel.IsOpen}\n");
+                debugBuilder.Append($"IsWidgetOpen: {propertyWheel.IsWidgetOpen}\n");
+                debugBuilder.Append($"List Menu Open: {propertyList.IsOpen}\n");
+                debugBuilder.Append($"Cursor Mode: {HudMain.InputMode}\n");
+                debugBuilder.Append($"Blacklist Mode: {BindManager.BlacklistMode}\n");
+                debugBuilder.Append($"Enable Cursor Pressed: {BvBinds.EnableMouse.IsPressed}\n");
+            }
+
+            debugText.Visible = DrawDebug;
+
+            textUpdateTick++;
+            textUpdateTick %= textTickDivider;
         }
     }
 }
