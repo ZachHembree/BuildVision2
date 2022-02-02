@@ -43,7 +43,7 @@ namespace DarkHelmet.BuildVision2
                     // Select highlighted entry
                     if (body.Selection != null)
                     {
-                        if(isDuplicatingProperties)
+                        if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
                             HandleDuplicationInput();
                         else
                             HandlePropertySelectionInput();

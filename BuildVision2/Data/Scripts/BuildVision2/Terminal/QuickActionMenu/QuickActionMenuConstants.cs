@@ -14,13 +14,17 @@ using RichHudFramework.UI.Client;
 
 namespace DarkHelmet.BuildVision2
 {
-    public enum QuickActionMenuState
+    [Flags]
+    public enum QuickActionMenuState : int
     {
-        Closed,
-        PropertySelection,
-        WidgetControl,
-        ListMenuControl,
-        PropertyDuplication,
+        Closed = 0x0,
+
+        WheelMenuControl = 0x1,
+        WidgetControl = WheelMenuControl | 0x2,
+
+        ListMenuControl = 0x4,
+
+        PropertyDuplication = 0x8,
     }
 
     public sealed partial class QuickActionMenu : HudElementBase

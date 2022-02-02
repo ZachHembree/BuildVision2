@@ -45,7 +45,7 @@ namespace DarkHelmet.BuildVision2
 
         /// <summary>
         /// Returns true if the player can access the given terminal block. Blocks without ownership
-        /// permissions require the player to have at least neutral relations with the grid owner's faction.
+        /// permissions require the player to have at least friendly relations with a big owner's faction.
         /// </summary>
         public static TerminalPermissionStates GetAccessPermissions(this IMyTerminalBlock block, long plyID = -1)
         {

@@ -21,82 +21,31 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public QuickActionMenuState MenuState { get; private set; }
 
+        /// <summary>
+        /// Currently assigned block property duplicator
+        /// </summary>
+        public BlockPropertyDuplicator Duplicator { get; private set; }
+
+        /// <summary>
+        /// Enables/disables debug text
+        /// </summary>
         public static bool DrawDebug { get; set; }
 
-        private readonly RadialSelectionBox<QuickActionEntryBase, Label> propertyWheel, dupeWheel;
-        private readonly Body menuBody;
+        private readonly PropertyWheelMenu propertyWheel;
         private readonly PropertyListMenu propertyList;
-
-        private readonly ObjectPool<object> propertyEntryPool;
-        private readonly QuickActionShortcutEntry scrollMenuShortcut, dupeShortcut;
-        private RadialSelectionBox<QuickActionEntryBase, Label> activeWheel;
-
         private readonly Label debugText;
-        private int tick;
-        private BlockPropertyDuplicator duplicator;
 
         public QuickActionMenu(HudParentBase parent = null) : base(parent)
         {
-            menuBody = new Body(this) { };
-
-            // Selection wheel for block properties
-            propertyWheel = new RadialSelectionBox<QuickActionEntryBase, Label>()
-            {
-                BackgroundColor = bodyColor,
-                HighlightColor = selectionBoxColor,
-                ZOffset = -1,
-            };
-            propertyWheel.Register(menuBody, true);
-
-            // Selection wheel for dupe shortcuts
-            dupeWheel = new RadialSelectionBox<QuickActionEntryBase, Label>() 
-            {
-                Visible = false,
-                BackgroundColor = bodyColor,
-                HighlightColor = selectionBoxColor,
-                ZOffset = -1,
-                CollectionContainer = 
-                {
-                    new QuickActionShortcutEntry()
-                    {
-                        Text = "Back",
-                        ShortcutAction = StopPropertyDuplication,
-                    },
-                    new QuickActionShortcutEntry()
-                    {
-                        Text = "Copy All",
-                        ShortcutAction = CopyAllProperties,
-                    },
-                    new QuickActionShortcutEntry()
-                    {
-                        Text = "Paste",
-                        ShortcutAction = PasteCopiedProperties,
-                    },
-                }
-            };
-            propertyWheel.Register(dupeWheel, true);
-
+            propertyWheel = new PropertyWheelMenu(this) { Visible = false };
             // Old-style list menu as fallback
             propertyList = new PropertyListMenu(this) { Visible = false };
 
-            // Shortcuts to be added to the property wheel later
-            scrollMenuShortcut = new QuickActionShortcutEntry()
-            { 
-                Text = "Open List Menu",
-                ShortcutAction = OpenPropertyList,
-            };
-            dupeShortcut = new QuickActionShortcutEntry()
+            propertyWheel.RegisterShortcut(new PropertyWheelShortcutEntry()
             {
-                Text = "Copy Settings",
-                ShortcutAction = StartPropertyDuplication,
-            };
-
-            // I'm using a generic pool because I'm using two types of entry in the same list, but only
-            // one is pooled.
-            propertyEntryPool = new ObjectPool<object>(
-                () => new QuickActionPropertyEntry(), 
-                x => (x as QuickActionPropertyEntry).Reset()
-            );
+                Text = "Open List Menu",
+                ShortcutAction = OpenPropertyList
+            });
 
             debugText = new Label(this)
             {
@@ -108,24 +57,26 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Opens the menu and populates it with properties from the given property block
+        /// Opens the wheel menu and populates it with properties from the given property block
         /// </summary>
         public void OpenRaidalMenu(BlockPropertyDuplicator duplicator)
         {
-            Clear();
+            CloseMenu();
+            Duplicator = duplicator;
 
-            for (int i = 0; i < duplicator.BlockMembers.Count; i++)
-            {
-                var entry = propertyEntryPool.Get() as QuickActionPropertyEntry;
-                entry.SetMember(i, duplicator);
-                propertyWheel.Add(entry);
-            }
+            MenuState = QuickActionMenuState.WheelMenuControl;
+            Visible = true;
+        }
 
-            propertyWheel.Add(scrollMenuShortcut);
-            propertyWheel.Add(dupeShortcut);
+        /// <summary>
+        /// Opens the property list menu and populates it with properties from the given property block
+        /// </summary>
+        public void OpenListMenu(BlockPropertyDuplicator duplicator)
+        {
+            CloseMenu();
+            Duplicator = duplicator;
 
-            propertyWheel.IsInputEnabled = true;
-            MenuState = QuickActionMenuState.PropertySelection;
+            MenuState = QuickActionMenuState.ListMenuControl;
             Visible = true;
         }
 
@@ -134,55 +85,12 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void CloseMenu()
         {
-            Clear();
+            propertyWheel.CloseMenu();
+            propertyList.CloseMenu();
+
+            Duplicator = null;
             Visible = false;
             MenuState = QuickActionMenuState.Closed;
-        }
-
-        /// <summary>
-        /// Clears all entries from the menu and closes any open widgets
-        /// </summary>
-        private void Clear()
-        {
-            StopPropertyDuplication();
-            menuBody.CloseWidget();
-            propertyList.CloseMenu();
-            duplicator = null;
-
-            propertyEntryPool.ReturnRange(propertyWheel.EntryList, 0, propertyWheel.EntryList.Count - 2);
-            propertyWheel.Clear();
-            propertyWheel.IsInputEnabled = false;
-        }
-
-        protected override void Layout()
-        {
-            Vector2 size = cachedSize - cachedPadding;
-            menuBody.Size = 1.05f * propertyWheel.Size * propertyWheel.polyBoard.InnerRadius;
-
-            if (MenuState == QuickActionMenuState.ListMenuControl)
-            {
-                menuBody.Visible = false;
-                Size = propertyList.Size;
-            }
-            else
-            {
-                menuBody.Visible = true;
-                Size = propertyWheel.Size;
-
-                if (tick == 0)
-                {
-                    foreach (QuickActionEntryBase baseEntry in propertyWheel)
-                    {
-                        var entry = baseEntry as QuickActionPropertyEntry;
-
-                        if (entry != null)
-                            entry.UpdateText();
-                    }
-                }
-            }
-
-            tick++;
-            tick %= textTickDivider;
         }
     }
 }

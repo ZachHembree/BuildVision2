@@ -23,7 +23,7 @@ namespace DarkHelmet.BuildVision2
             {
                 name = new Label();
                 postfix = new Label();
-                value = new TextBox() 
+                value = new TextBox()
                 {
                     UseCursor = false,
                 };

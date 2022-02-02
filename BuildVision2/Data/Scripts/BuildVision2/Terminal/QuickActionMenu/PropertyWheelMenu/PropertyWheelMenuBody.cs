@@ -18,7 +18,19 @@ namespace DarkHelmet.BuildVision2
     {
         private class Body : HudElementBase
         {
+            /// <summary>
+            /// Returns true if a property widget is currently open
+            /// </summary>
             public bool IsWidgetOpen => activeWidget != null;
+
+            /// <summary>
+            /// Gets/sets the menu's state
+            /// </summary>
+            private QuickActionMenuState MenuState
+            {
+                get { return propertyWheelMenu.quickActionMenu.MenuState; }
+                set { propertyWheelMenu.quickActionMenu.MenuState = value; }
+            }
 
             private readonly TexturedBox background;
             private readonly Label summaryText;
@@ -32,12 +44,12 @@ namespace DarkHelmet.BuildVision2
             private QuickActionWidgetBase activeWidget;
 
             private readonly RichText summaryBuilder;
-            private readonly QuickActionMenu menuMain;
+            private readonly PropertyWheelMenu propertyWheelMenu;
             private int tick;
 
-            public Body(QuickActionMenu parent) : base(parent)
+            public Body(PropertyWheelMenu parent) : base(parent)
             {
-                menuMain = parent;
+                this.propertyWheelMenu = parent;
                 background = new TexturedBox(this)
                 {
                     Material = Material.CircleMat,
@@ -116,7 +128,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (activeWidget == null)
                     {
-                        PropertyBlock block = menuMain.duplicator.Block;
+                        PropertyBlock block = propertyWheelMenu.quickActionMenu.Duplicator.Block;
                         summaryBuilder.Clear();
                         summaryBuilder.Add("Build Vision\n", mainHeaderFormat);
 

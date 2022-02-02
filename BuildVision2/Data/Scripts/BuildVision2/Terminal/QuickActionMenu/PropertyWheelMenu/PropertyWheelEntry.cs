@@ -8,7 +8,7 @@ namespace DarkHelmet.BuildVision2
 {
     public sealed partial class QuickActionMenu
     {
-        private class QuickActionEntryBase : ScrollBoxEntry<Label>
+        private class PropertyWheelEntryBase : ScrollBoxEntry<Label>
         {
             /// <summary>
             /// Text rendered by the label.
@@ -20,7 +20,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public ITextBoard TextBoard => Element.TextBoard;
 
-            public QuickActionEntryBase()
+            public PropertyWheelEntryBase()
             {
                 SetElement(new Label()
                 {
@@ -38,14 +38,14 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Shortcut entry for selection wheel
         /// </summary>
-        private class QuickActionShortcutEntry : QuickActionEntryBase
+        private class PropertyWheelShortcutEntry : PropertyWheelEntryBase
         {
             /// <summary>
             /// Delegate invoked when the corresponding shortcut entry is selected
             /// </summary>
             public Action ShortcutAction;
 
-            public QuickActionShortcutEntry()
+            public PropertyWheelShortcutEntry()
             { }
 
             public override void Reset()
@@ -57,7 +57,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Custom scroll box container for <see cref="IBlockMember"/>
         /// </summary>
-        private class QuickActionPropertyEntry : QuickActionEntryBase
+        private class PropertyWheelEntry : PropertyWheelEntryBase
         {
             /// <summary>
             /// Returns true if the entry is enabled and valid
@@ -94,7 +94,7 @@ namespace DarkHelmet.BuildVision2
             private readonly RichText textBuf;
             private BlockPropertyDuplicator duplicator;
 
-            public QuickActionPropertyEntry()
+            public PropertyWheelEntry()
             {
                 textBuf = new RichText();
             }

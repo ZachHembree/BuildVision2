@@ -26,7 +26,7 @@ namespace DarkHelmet.BuildVision2
                     DimAlignment = DimAlignments.Width,
                     SizingMode = HudChainSizingModes.FitMembersOffAxis,
                     Spacing = 8f,
-                    CollectionContainer = 
+                    CollectionContainer =
                     {
                         colorPicker,
                         buttonChain
@@ -79,7 +79,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     colorMember.Value = initColor;
                     CloseWidgetCallback();
-                } 
+                }
             }
 
             protected override void HandleInput(Vector2 cursorPos)

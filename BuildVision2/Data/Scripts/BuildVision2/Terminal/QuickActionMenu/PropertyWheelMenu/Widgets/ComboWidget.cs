@@ -17,7 +17,7 @@ namespace DarkHelmet.BuildVision2
 
             public ComboWidget(HudParentBase parent = null) : base(parent)
             {
-                comboBox = new Dropdown<KeyValuePair<long, StringBuilder>>() 
+                comboBox = new Dropdown<KeyValuePair<long, StringBuilder>>()
                 {
                     DropdownHeight = 0f,
                     MinVisibleCount = 4,
@@ -71,8 +71,8 @@ namespace DarkHelmet.BuildVision2
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                base.HandleInput(cursorPos); 
-                
+                base.HandleInput(cursorPos);
+
                 if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
                 {
                     int index = comboBox.SelectionIndex;

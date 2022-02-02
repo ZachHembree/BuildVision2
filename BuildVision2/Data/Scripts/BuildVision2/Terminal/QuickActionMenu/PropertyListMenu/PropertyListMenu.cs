@@ -20,9 +20,28 @@ namespace DarkHelmet.BuildVision2
         private partial class PropertyListMenu : HudElementBase
         {
             /// <summary>
+            /// Parent of the wheel menu
+            /// </summary>
+            public readonly QuickActionMenu quickActionMenu;
+
+            /// <summary>
+            /// Gets/sets the menu's state
+            /// </summary>
+            private QuickActionMenuState MenuState
+            {
+                get { return quickActionMenu.MenuState; }
+                set { quickActionMenu.MenuState = value; }
+            }
+
+            /// <summary>
+            /// Returns the current block property duplicator
+            /// </summary>
+            private BlockPropertyDuplicator Duplicator => quickActionMenu.Duplicator;
+
+            /// <summary>
             /// Returns true if the list is open
             /// </summary>
-            public bool IsListOpen { get; private set; }
+            public bool IsOpen => Visible;
 
             private readonly LabelBox header;
             private readonly DoubleLabelBox footer;
@@ -31,13 +50,12 @@ namespace DarkHelmet.BuildVision2
 
             private readonly Label debugText;
             private readonly RichText textBuf;
-            private BlockPropertyDuplicator duplicator;
             private int textUpdateTick;
 
-            private bool isDuplicatingProperties;
-
-            public PropertyListMenu(HudParentBase parent = null) : base(parent)
+            public PropertyListMenu(QuickActionMenu parent) : base(parent)
             {
+                quickActionMenu = parent;
+
                 header = new LabelBox()
                 {
                     Format = listHeaderFormat,
@@ -81,7 +99,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     MemberMinSize = new Vector2(300f, 0f),
                     SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
-                    CollectionContainer = 
+                    CollectionContainer =
                     {
                         header,
                         body,
@@ -90,53 +108,49 @@ namespace DarkHelmet.BuildVision2
                 };
 
                 textBuf = new RichText();
-                debugText = new Label(layout) 
-                { 
+                debugText = new Label(layout)
+                {
                     ParentAlignment = ParentAlignments.Right,
                     BuilderMode = TextBuilderModes.Lined
                 };
             }
 
-            public void SetBlockMembers(BlockPropertyDuplicator duplicator)
+            public void OpenMenu()
             {
                 CloseMenu();
                 UpdateConfig();
-                this.duplicator = duplicator;
 
-                for (int i = 0; i < duplicator.BlockMembers.Count; i++)
+                for (int i = 0; i < Duplicator.BlockMembers.Count; i++)
                 {
-                    IBlockMember blockMember = duplicator.BlockMembers[i];
+                    IBlockMember blockMember = Duplicator.BlockMembers[i];
 
                     if (blockMember is IBlockColor)
                     {
                         // Assign an entry for each color channel
                         var colorMember = blockMember as IBlockColor;
                         var entry = body.AddNew();
-                        entry.SetMember(i, duplicator);
+                        entry.SetMember(i, Duplicator);
 
                         entry = body.AddNew();
-                        entry.SetMember(i, duplicator);
+                        entry.SetMember(i, Duplicator);
 
                         entry = body.AddNew();
-                        entry.SetMember(i, duplicator);
+                        entry.SetMember(i, Duplicator);
                     }
                     else
                     {
                         var entry = body.AddNew();
-                        entry.SetMember(i, duplicator);
+                        entry.SetMember(i, Duplicator);
                     }
                 }
 
                 Visible = true;
-                IsListOpen = true;
             }
 
             public void CloseMenu()
             {
                 body.ClearEntries();
-                duplicator = null;
                 Visible = false;
-                IsListOpen = false;
             }
 
             private void UpdateConfig()
@@ -157,14 +171,15 @@ namespace DarkHelmet.BuildVision2
                     else if (body.SelectionIndex < body.hudChain.Start)
                         body.hudChain.Start = body.SelectionIndex;
 
-                    /*textBuf.Clear();
-                    textBuf.Add($"Selection: {body.Selection?.TextBoard}\n");
+                    textBuf.Clear();
+                    textBuf.Add($"Selection: {body.Selection?.NameText}\n");
                     textBuf.Add($"Selection Open: {body.Selection?.PropertyOpen}\n");
                     textBuf.Add($"Selection Type: {body.Selection?.AssocMember.GetType().Name}\n");
                     textBuf.Add($"Selection Value Text: {body.Selection?.AssocMember.ValueText}\n");
                     textBuf.Add($"Chat Open: {BindManager.IsChatOpen}\n");
+                    debugText.Text = textBuf;
 
-                    debugText.Text = textBuf;*/
+                    bool isDuplicatingProperties = (MenuState & QuickActionMenuState.PropertyDuplication) > 0;
 
                     foreach (PropertyListEntry entry in body)
                     {

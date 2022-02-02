@@ -17,8 +17,8 @@ namespace DarkHelmet.BuildVision2
 
             public TextWidget(HudParentBase parent = null) : base(parent)
             {
-                label = new Label() 
-                { 
+                label = new Label()
+                {
                     Format = GlyphFormat.Blueish.WithSize(1.08f),
                     ParentAlignment = ParentAlignments.Left | ParentAlignments.Inner
                 };
