@@ -13,7 +13,7 @@ namespace DarkHelmet.BuildVision2
 {
     public sealed partial class QuickActionMenu
     {
-        private abstract class BlockValueWidgetBase : QuickActionWidgetBase
+        private abstract class BlockValueWidgetBase : PropertyWheelWidgetBase
         {
             public BlockValueWidgetBase(HudParentBase parent) : base(parent)
             { }

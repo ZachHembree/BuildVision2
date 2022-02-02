@@ -41,7 +41,7 @@ namespace DarkHelmet.BuildVision2
             private readonly TextWidget textWidget;
 
             private readonly Action CloseWidgetCallback;
-            private QuickActionWidgetBase activeWidget;
+            private PropertyWheelWidgetBase activeWidget;
 
             private readonly RichText summaryBuilder;
             private readonly PropertyWheelMenu propertyWheelMenu;
@@ -99,7 +99,7 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            private void OpenWidget(QuickActionWidgetBase widget, object data)
+            private void OpenWidget(PropertyWheelWidgetBase widget, object data)
             {
                 CloseWidget();
 

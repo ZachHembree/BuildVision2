@@ -6,14 +6,14 @@ namespace DarkHelmet.BuildVision2
 {
     public sealed partial class QuickActionMenu
     {
-        private abstract class QuickActionWidgetBase : HudElementBase
+        private abstract class PropertyWheelWidgetBase : HudElementBase
         {
             protected readonly BorderedButton cancelButton, confirmButton;
             protected readonly HudChain buttonChain;
 
             protected Action CloseWidgetCallback;
 
-            public QuickActionWidgetBase(HudParentBase parent = null) : base(parent)
+            public PropertyWheelWidgetBase(HudParentBase parent = null) : base(parent)
             {
                 confirmButton = new BorderedButton()
                 {
