@@ -77,6 +77,11 @@ namespace RichHudFramework.UI
         /// </summary>
         public virtual Color HighlightColor { get; set; }
 
+        /// <summary>
+        /// Cursor sensitivity for wheel scrolling on a scale from .1 to 1.
+        /// </summary>
+        public float CursorSensitivity { get; set; }
+
         public readonly PuncturedPolyBoard polyBoard;
 
         protected int selectionVisPos, effectiveMaxCount;
@@ -94,6 +99,7 @@ namespace RichHudFramework.UI
 
             Size = new Vector2(512f);
             MaxEntryCount = 8;
+            CursorSensitivity = 1f;
         }
 
         public void SetSelectionAt(int index)
@@ -152,6 +158,8 @@ namespace RichHudFramework.UI
         {
             if (IsInputEnabled)
             {
+                CursorSensitivity = MathHelper.Clamp(CursorSensitivity, 0.1f, 1f);
+
                 if (isStartPosStale)
                 {
                     cursorNormal = Vector2.Zero;
@@ -161,13 +169,13 @@ namespace RichHudFramework.UI
 
                 Vector2 cursorOffset = cursorPos - lastCursorPos;
 
-                if (cursorOffset.LengthSquared() > 2f)
+                if (cursorOffset.LengthSquared() > 16f)
                 {
                     // Find enabled entry with the offset that most closely matches
                     // the direction of the normal
                     float dot = .2f;
                     int newSelection = -1;
-                    Vector2 normalizedOffset = 0.2f * Vector2.Normalize(cursorOffset);
+                    Vector2 normalizedOffset = CursorSensitivity * 0.2f * Vector2.Normalize(cursorOffset);
                     cursorNormal = Vector2.Normalize(cursorNormal + normalizedOffset);
 
                     for (int i = 0; i < hudCollectionList.Count; i++)

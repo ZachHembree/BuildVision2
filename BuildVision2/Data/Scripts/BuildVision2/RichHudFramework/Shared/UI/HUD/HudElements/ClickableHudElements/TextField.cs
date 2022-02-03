@@ -173,6 +173,12 @@ namespace RichHudFramework.UI
         public TextField() : this(null)
         { }
 
+        public void OpenInput() =>
+            textBox.OpenInput();
+
+        public void CloseInput() =>
+            textBox.CloseInput();
+
         private void OnTextChanged()
         {
             TextChanged?.Invoke(this, EventArgs.Empty);
