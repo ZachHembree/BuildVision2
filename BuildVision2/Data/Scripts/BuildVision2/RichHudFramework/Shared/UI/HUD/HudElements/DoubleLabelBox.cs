@@ -58,7 +58,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Text builder for the right text element
         /// </summary>
-        public ITextBuilder RightTextBoard => right.TextBoard;
+        public ITextBuilder RightTextBuilder => right.TextBoard;
 
         protected readonly Label left, right;
 
