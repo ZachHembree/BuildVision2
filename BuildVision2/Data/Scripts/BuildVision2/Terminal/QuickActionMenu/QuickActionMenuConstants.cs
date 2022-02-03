@@ -47,6 +47,7 @@ namespace DarkHelmet.BuildVision2
             selectedFormat = bodyFormat.WithColor(new Color(50, 200, 50)),
             blockIncFormat = footerFormatRight.WithColor(new Color(200, 35, 35));
 
+        private const long notificationTime = 1500;
         private const int textTickDivider = 4;
     }
 }

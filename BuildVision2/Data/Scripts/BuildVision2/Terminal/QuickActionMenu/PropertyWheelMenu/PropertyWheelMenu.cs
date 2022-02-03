@@ -48,7 +48,7 @@ namespace DarkHelmet.BuildVision2
             public bool IsWidgetOpen => menuBody.IsWidgetOpen;
 
             private readonly RadialSelectionBox<PropertyWheelEntryBase, Label> propertyWheel, dupeWheel;
-            private readonly Body menuBody;
+            private readonly PropertyWheelMenuBody menuBody;
 
             private readonly ObjectPool<object> propertyEntryPool;
             private readonly List<PropertyWheelShortcutEntry> shortcutEntries;
@@ -58,7 +58,7 @@ namespace DarkHelmet.BuildVision2
             public PropertyWheelMenu(QuickActionMenu parent) : base(parent)
             {
                 this.quickActionMenu = parent;
-                menuBody = new Body(this) { };
+                menuBody = new PropertyWheelMenuBody(this) { };
 
                 // Selection wheel for block properties
                 propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(menuBody)

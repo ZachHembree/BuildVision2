@@ -2,6 +2,7 @@
 using RichHudFramework.IO;
 using RichHudFramework.UI;
 using System;
+using System.Diagnostics;
 using System.Text;
 using System.Collections.Generic;
 using VRage;
@@ -16,7 +17,7 @@ namespace DarkHelmet.BuildVision2
 {
     public sealed partial class QuickActionMenu : HudElementBase
     {
-        private class Body : HudElementBase
+        private class PropertyWheelMenuBody : HudElementBase
         {
             /// <summary>
             /// Returns true if a property widget is currently open
@@ -33,7 +34,7 @@ namespace DarkHelmet.BuildVision2
             }
 
             private readonly TexturedBox background;
-            private readonly Label summaryText;
+            private readonly Label summaryText, notificationText;
 
             private readonly ColorWidget colorWidget;
             private readonly ComboWidget comboWidget;
@@ -45,9 +46,11 @@ namespace DarkHelmet.BuildVision2
 
             private readonly RichText summaryBuilder;
             private readonly PropertyWheelMenu propertyWheelMenu;
+            private readonly Stopwatch notificationTimer;
+            private string notification;
             private int tick;
 
-            public Body(PropertyWheelMenu parent) : base(parent)
+            public PropertyWheelMenuBody(PropertyWheelMenu parent) : base(parent)
             {
                 this.propertyWheelMenu = parent;
                 background = new TexturedBox(this)
@@ -59,9 +62,14 @@ namespace DarkHelmet.BuildVision2
 
                 summaryText = new Label(this)
                 {
+                    DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
                     BuilderMode = TextBuilderModes.Wrapped,
-                    AutoResize = false,
-                    DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding
+                };
+
+                notificationText = new Label(summaryText)
+                {
+                    ParentAlignment = ParentAlignments.Bottom,
+                    BuilderMode = TextBuilderModes.Lined,
                 };
 
                 colorWidget = new ColorWidget(this) { Visible = false };
@@ -72,6 +80,7 @@ namespace DarkHelmet.BuildVision2
                 summaryBuilder = new RichText();
                 CloseWidgetCallback = CloseWidget;
 
+                notificationTimer = new Stopwatch();
                 Padding = new Vector2(90f);
             }
 
@@ -122,12 +131,19 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            public void ShowNotification(string notificationText)
+            {
+                this.notification = notificationText;
+                notificationTimer.Restart();
+            }
+
             protected override void Layout()
             {
                 if (tick == 0)
                 {
                     if (activeWidget == null)
                     {
+                        
                         PropertyBlock block = propertyWheelMenu.quickActionMenu.Target;
                         summaryBuilder.Clear();
                         summaryBuilder.Add("Build Vision\n", mainHeaderFormat);
@@ -136,6 +152,20 @@ namespace DarkHelmet.BuildVision2
                         {
                             if (subtype != null)
                                 subtype.GetSummary(summaryBuilder, bodyFormatCenter, valueFormatCenter);
+                        }
+
+                        ITextBuilder notificationBuidler = notificationText.TextBoard;
+                        
+                        if (notification != null && notificationTimer.ElapsedMilliseconds < notificationTime)
+                        {
+                            notificationBuidler.Clear();
+                            notificationBuidler.Append("\n", bodyFormatCenter);
+                            notificationBuidler.Append(notification, valueFormatCenter);
+                        }
+                        else
+                        {
+                            notificationBuidler.Clear();
+                            notification = null;
                         }
 
                         summaryText.Padding = .1f * (cachedSize - cachedPadding);

@@ -47,9 +47,15 @@ namespace DarkHelmet.BuildVision2
                 shortcutEntry.ShortcutAction();
             }
 
+            /// <summary>
+            /// Attempts to restore original property settings after paste
+            /// </summary>
             private void UndoPropertyPaste()
             {
-                Target.Duplicator.TryUndoPaste();
+                int copiedProperties = Target.Duplicator.TryUndoPaste();
+
+                if (copiedProperties > 0)
+                    menuBody.ShowNotification($"Paste undone");
             }
 
             /// <summary>
@@ -57,13 +63,21 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void CopyAllProperties(bool includeName = true)
             {
-                Target.Duplicator.CopyAllProperties(includeName);
+                int copiedProperties = Target.Duplicator.CopyAllProperties(includeName);
+                menuBody.ShowNotification($"Copied {copiedProperties} properties");
             }
 
+            /// <summary>
+            /// Writes previously copied properties to target block
+            /// </summary>
             private void PasteCopiedProperties()
             {
                 int pastedProperties = Target.Duplicator.TryPasteCopiedProperties();
-                ExceptionHandler.SendChatMessage($"Pasted {pastedProperties} properties");
+                
+                if (pastedProperties == -1)
+                    menuBody.ShowNotification($"Copied properties incompatible");
+                else if (pastedProperties > 0)
+                    menuBody.ShowNotification($"Pasted {pastedProperties} properties");
             }
         }
     }
