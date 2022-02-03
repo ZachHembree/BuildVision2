@@ -56,6 +56,15 @@ namespace DarkHelmet.BuildVision2
 
                 activeWheel.IsInputEnabled = BvBinds.EnableMouse.IsPressed;
 
+                if (BvBinds.ScrollUp.IsPressed)
+                {
+                    ScrollSelection(1);
+                }
+                if (BvBinds.ScrollDown.IsPressed)
+                {
+                    ScrollSelection(-1);
+                }
+
                 if (BvBinds.Select.IsReleased)
                 {
                     if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
@@ -63,13 +72,9 @@ namespace DarkHelmet.BuildVision2
                     else
                         HandlePropertySelection(selection);
                 }
-                else if (BvBinds.ScrollUp.IsPressed)
+                else if (BvBinds.Cancel.IsReleased)
                 {
-                    ScrollSelection(1);
-                }
-                else if (BvBinds.ScrollDown.IsPressed)
-                {
-                    ScrollSelection(-1);
+                    quickActionMenu.CloseMenu();
                 }
             }
 

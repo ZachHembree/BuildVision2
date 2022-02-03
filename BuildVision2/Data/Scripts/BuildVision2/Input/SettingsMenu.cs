@@ -44,8 +44,8 @@ namespace DarkHelmet.BuildVision2
                     Name = "Binds",
                     GroupContainer =
                     {
-                        { BvBinds.ModifierGroup, BindsConfig.DefaultModifiers },
-                        { BvBinds.MainGroup, BindsConfig.DefaultMain },
+                        { BvBinds.ModifierGroup, BindsConfig.DefaultMain },
+                        { BvBinds.MainGroup, BindsConfig.DefaultSecondary },
                     }
                 },
                 helpMain,

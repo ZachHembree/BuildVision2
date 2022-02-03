@@ -46,10 +46,17 @@ namespace DarkHelmet.BuildVision2
                         }
                     }
 
-                    if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
-                        HandleDuplicationInput();
+                    if (BvBinds.Cancel.IsReleased)
+                    {
+                        quickActionMenu.CloseMenu();
+                    }
                     else
-                        HandlePropertySelectionInput();
+                    {
+                        if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                            HandleDuplicationInput();
+                        else
+                            HandlePropertySelectionInput();
+                    }
                 }
             }
 

@@ -21,8 +21,8 @@ namespace DarkHelmet.BuildVision2
         {
             return new RichText
             {
-                { $"To open Build Vision, aim at the block you want to control and press press " }, { $"[{GetBindString(BvBinds.Open)}]", highlight }, {"; to close the menu, " },
-                { $"[{GetBindString(BvBinds.Hide)}]", highlight }, { ". Pressing and holding " }, {$"[{GetBindString(BvBinds.EnableMouse)}]", highlight}, 
+                { $"To open Build Vision, aim at the block you want to control and press press " }, { $"[{GetBindString(BvBinds.OpenRadial)}]", highlight }, {"; to close the menu, " },
+                { $"[{GetBindString(BvBinds.OpenList)}]", highlight }, { ". Pressing and holding " }, {$"[{GetBindString(BvBinds.EnableMouse)}]", highlight}, 
                 {" will allow you to use the mouse.\n\n" },
 
                 { $"[{GetBindString(BvBinds.ScrollUp)}]", highlight }, { $" and " }, { $"[{GetBindString(BvBinds.ScrollDown)}]", highlight }, 
@@ -34,8 +34,8 @@ namespace DarkHelmet.BuildVision2
 
                 { $"Main Binds:\n\n", subsection},
 
-                { $"\tOpen Menu:\t\t|\t[{GetBindString(BvBinds.Open)}]\n" },
-                { $"\tClose Menu:\t\t|\t[{GetBindString(BvBinds.Hide)}]\n" },
+                { $"\tOpen Menu:\t\t|\t[{GetBindString(BvBinds.OpenRadial)}]\n" },
+                { $"\tClose Menu:\t\t|\t[{GetBindString(BvBinds.OpenList)}]\n" },
                 { $"\tSelect:\t|\t[{GetBindString(BvBinds.Select)}]\n" },
                 { $"\tScroll Up:\t\t\t|\t[{GetBindString(BvBinds.ScrollUp)}]\n" },
                 { $"\tScroll Down:\t\t|\t[{GetBindString(BvBinds.ScrollDown)}]\n\n" },
@@ -81,8 +81,8 @@ namespace DarkHelmet.BuildVision2
             string bindHelp =
                 "\n---Build Vision 2 Binds---\n" +
                 $"Peek: [{GetBindString(BvBinds.EnableMouse)}]\n" +
-                $"Open: [{GetBindString(BvBinds.Open)}]\n" +
-                $"Close: [{GetBindString(BvBinds.Hide)}]\n" +
+                $"Open: [{GetBindString(BvBinds.OpenRadial)}]\n" +
+                $"Close: [{GetBindString(BvBinds.OpenList)}]\n" +
                 $"Select: [{GetBindString(BvBinds.Select)}]\n" +
                 $"Scroll Up: [{GetBindString(BvBinds.ScrollUp)}]\n" +
                 $"Scroll Down: [{GetBindString(BvBinds.ScrollDown)}]\n" +

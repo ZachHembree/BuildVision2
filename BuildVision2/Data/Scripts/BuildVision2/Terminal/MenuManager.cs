@@ -74,7 +74,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         public static void TryOpenMenu() =>
-            Instance.TryOpen();
+            Instance.TryOpenRadialMenu();
 
         public static void HideMenu() =>
             Instance.CloseMenu();
@@ -94,27 +94,6 @@ namespace DarkHelmet.BuildVision2
         {
             if (Open)
                 sendToOthers = false;
-        }
-
-        /// <summary>
-        /// Updates the menu each time it's called. Reopens menu if closed.
-        /// </summary>
-        public override void Update()
-        {
-            if (Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))
-                CloseMenu();
-        }
-
-        public override void HandleInput()
-        {
-            if (BvBinds.Open.IsNewPressed && !Open)
-            {
-                TryOpen();
-            }
-            else if (BvBinds.Hide.IsNewPressed && Open)
-            {
-                CloseMenu();
-            }
         }
 
         private MatrixD UpdateHudSpace()
@@ -164,17 +143,49 @@ namespace DarkHelmet.BuildVision2
             return MatrixD.CreateScale(scale, scale, 1d) * HudMain.PixelToWorld;
         }
 
+        public override void Update()
+        {
+            if (Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))
+                CloseMenu();
+        }
+
+        public override void HandleInput()
+        {
+            if (BvBinds.OpenRadial.IsNewPressed && !Open)
+            {
+                TryOpenRadialMenu();
+            }
+            else if (BvBinds.OpenList.IsNewPressed && !Open)
+            {
+                TryOpenListMenu();
+            }
+            else if (SharedBinds.Escape.IsNewPressed && Open)
+            {
+                CloseMenu();
+            }
+        }
+
+        /// <summary>
+        /// Attempts to open the radial property menu
+        /// </summary>
+        private void TryOpenRadialMenu()
+        {
+            if (quickActionMenu.MenuState == QuickActionMenuState.Closed && 
+                TryGetTarget() && CanAccessTargetBlock())
+            {
+                quickActionMenu.OpenRaidalMenu(Target);
+            }
+        }
+
         /// <summary>
         /// Attempts to open the menu and set it to peek
         /// </summary>
-        private void TryOpen()
+        private void TryOpenListMenu()
         {
-            if (TryGetTarget() && CanAccessTargetBlock())
+            if (quickActionMenu.MenuState == QuickActionMenuState.Closed &&
+                TryGetTarget() && CanAccessTargetBlock())
             {
-                if (quickActionMenu.MenuState == QuickActionMenuState.Closed)
-                {
-                    quickActionMenu.OpenRaidalMenu(Target);
-                }
+                quickActionMenu.OpenListMenu(Target);
             }
         }
 
@@ -307,9 +318,9 @@ namespace DarkHelmet.BuildVision2
         private bool CanAccessTargetBlock()
         {
             return Target.TBlock != null
-            && BlockInRange()
-            && Target.CanLocalPlayerAccess
-            && (!BvConfig.Current.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock));
+                && BlockInRange()
+                && Target.CanLocalPlayerAccess
+                && (!BvConfig.Current.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock));
         }
 
         /// <summary>

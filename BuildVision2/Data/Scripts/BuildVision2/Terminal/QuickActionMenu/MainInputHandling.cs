@@ -40,6 +40,9 @@ namespace DarkHelmet.BuildVision2
             {
                 propertyWheel.CloseMenu();
             }
+
+            if (MenuState == QuickActionMenuState.Closed)
+                CloseMenu();
         }
 
         private void OpenPropertyWheel()
