@@ -30,13 +30,19 @@ namespace DarkHelmet.BuildVision2
                     // Highlight selection
                     if (!body[selectionIndex].PropertyOpen)
                     {
+                        bool multXPressed = BvBinds.MultX.IsPressed,
+                            canWrap = !multXPressed && listWrapTimer.ElapsedMilliseconds > 300;
+                        int offset = multXPressed ? 4 : 1;
+
                         if (BvBinds.ScrollUp.IsNewPressed)
                         {
-                            OffsetSelectionIndex(-1);
+                            OffsetSelectionIndex(-offset, canWrap);
+                            listWrapTimer.Restart();
                         }
                         else if (BvBinds.ScrollDown.IsNewPressed)
                         {
-                            OffsetSelectionIndex(1);
+                            OffsetSelectionIndex(offset, canWrap);
+                            listWrapTimer.Restart();
                         }
                     }
 

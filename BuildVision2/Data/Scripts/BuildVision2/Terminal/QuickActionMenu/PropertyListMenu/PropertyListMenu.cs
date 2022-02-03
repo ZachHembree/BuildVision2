@@ -52,7 +52,7 @@ namespace DarkHelmet.BuildVision2
 
             private readonly ObjectPool<PropertyListEntry> entryPool;
             private readonly Label debugText;
-            private readonly Stopwatch notificationTimer;
+            private readonly Stopwatch listWrapTimer, notificationTimer;
             private string notification;
             private int textUpdateTick, selectionIndex;
 
@@ -123,6 +123,7 @@ namespace DarkHelmet.BuildVision2
 
                 entryPool = new ObjectPool<PropertyListEntry>(() => new PropertyListEntry(), x => x.Reset());
                 notificationTimer = new Stopwatch();
+                listWrapTimer = new Stopwatch();
             }
 
             public void OpenMenu()
@@ -158,6 +159,7 @@ namespace DarkHelmet.BuildVision2
                     }
                 }
 
+                listWrapTimer.Restart();
                 Visible = true;
             }
 
