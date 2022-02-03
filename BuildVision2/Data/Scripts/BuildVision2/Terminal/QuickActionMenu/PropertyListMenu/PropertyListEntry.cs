@@ -31,7 +31,6 @@ namespace DarkHelmet.BuildVision2
                 layout = new HudChain(false, this)
                 {
                     Padding = new Vector2(18f, 0f),
-                    SizingMode = HudChainSizingModes.FitChainBoth,
                     ParentAlignment = ParentAlignments.Left | ParentAlignments.Inner,
                     CollectionContainer = { name, value, postfix }
                 };
@@ -40,7 +39,7 @@ namespace DarkHelmet.BuildVision2
                 ParentAlignment = ParentAlignments.Left;
             }
 
-            protected override void Draw()
+            protected override void Layout()
             {
                 Width = layout.Width;
             }
@@ -162,7 +161,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Updates associated text label for the entry in the menu
             /// </summary>
-            public virtual void UpdateText(bool isDuplicating)
+            public virtual void UpdateText(bool isHighlighted, bool isDuplicating)
             {
                 ITextBoard nameTB = Element.name.TextBoard,
                     valueTB = Element.value.TextBoard,

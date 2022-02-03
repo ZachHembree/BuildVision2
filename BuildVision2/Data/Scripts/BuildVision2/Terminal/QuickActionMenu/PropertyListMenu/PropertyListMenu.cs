@@ -2,6 +2,7 @@
 using RichHudFramework.IO;
 using RichHudFramework.UI;
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using Sandbox.ModAPI;
 using VRage;
@@ -51,6 +52,8 @@ namespace DarkHelmet.BuildVision2
 
             private readonly ObjectPool<PropertyListEntry> entryPool;
             private readonly Label debugText;
+            private readonly Stopwatch notificationTimer;
+            private string notification;
             private int textUpdateTick, selectionIndex;
 
             public PropertyListMenu(QuickActionMenu parent) : base(parent)
@@ -68,12 +71,13 @@ namespace DarkHelmet.BuildVision2
 
                 body = new ScrollBox<PropertyListEntry, PropertyListEntryElement>(true)
                 {
+                    MemberMinSize = new Vector2(300f, 0f),
+                    SizingMode = HudChainSizingModes.ClampChainOffAxis | HudChainSizingModes.FitChainAlignAxis,
+                    Padding = new Vector2(30f, 16f),
                     Color = bodyColor,
                     EnableScrolling = false,
                     UseSmoothScrolling = false,
                     MinVisibleCount = 10,
-                    SizingMode = HudChainSizingModes.ClampChainOffAxis | HudChainSizingModes.FitChainAlignAxis,
-                    Padding = new Vector2(30f, 16f),
                 };
 
                 body.ScrollBar.Padding = new Vector2(12f, 16f);
@@ -111,13 +115,14 @@ namespace DarkHelmet.BuildVision2
                     }
                 };
 
-                entryPool = new ObjectPool<PropertyListEntry>(() => new PropertyListEntry(), x => x.Reset());
-
                 debugText = new Label(layout)
                 {
                     ParentAlignment = ParentAlignments.Right,
                     BuilderMode = TextBuilderModes.Lined
                 };
+
+                entryPool = new ObjectPool<PropertyListEntry>(() => new PropertyListEntry(), x => x.Reset());
+                notificationTimer = new Stopwatch();
             }
 
             public void OpenMenu()
@@ -164,6 +169,15 @@ namespace DarkHelmet.BuildVision2
                 Visible = false;
             }
 
+            /// <summary>
+            /// Shows a notification in the footer for a second or so
+            /// </summary>
+            public void ShowNotification(string notification)
+            {
+                this.notification = notification;
+                notificationTimer.Restart();
+            }
+
             private void UpdateConfig()
             {
                 incrZ = BvConfig.Current.block.colorMult.Z; // x64
@@ -183,26 +197,12 @@ namespace DarkHelmet.BuildVision2
                     else if (selectionIndex < body.Start)
                         body.Start = selectionIndex;
 
-                    // Update property text
-                    bool isDuplicatingProperties = (MenuState & QuickActionMenuState.PropertyDuplication) > 0;
-
-                    for (int i = 0; i < body.Collection.Count; i++)
-                    {
-                        PropertyListEntry entry = body.Collection[i];
-
-                        if (entry.Enabled && (textUpdateTick == 0 || i == selectionIndex))
-                            entry.UpdateText(isDuplicatingProperties);
-                    }
+                    UpdateBodyText();
+                    UpdateFooterText();
 
                     if (DrawDebug && textUpdateTick == 0)
                     {
-                        ITextBuilder textBuilder = debugText.TextBoard;
-                        textBuilder.Clear();
-                        textBuilder.Append($"Selection: {body[selectionIndex].NameText}\n");
-                        textBuilder.Append($"Selection Open: {body[selectionIndex].PropertyOpen}\n");
-                        textBuilder.Append($"Selection Type: {body[selectionIndex].AssocMember.GetType().Name}\n");
-                        textBuilder.Append($"Selection Value Text: {body[selectionIndex].AssocMember.ValueText}\n");
-                        textBuilder.Append($"Chat Open: {BindManager.IsChatOpen}\n");
+                        UpdateDebugText();
                     }
 
                     debugText.Visible = DrawDebug;
@@ -239,11 +239,70 @@ namespace DarkHelmet.BuildVision2
                     layout.Width = Math.Max(memberWidth, layout.MemberMinSize.X);
 
                     highlightBox.Size = new Vector2(
-                        bodySize.X - body.Divider.Width - body.ScrollBar.Width, 
+                        bodySize.X - body.Divider.Width - body.ScrollBar.Width,
                         body[selectionIndex].Element.Height + 2f
                     );
                     highlightBox.Offset = new Vector2(0f, body[selectionIndex].Element.Offset.Y - 1f);
                 };
+            }
+
+            private void UpdateBodyText()
+            {
+                bool isDuplicatingProperties = (MenuState & QuickActionMenuState.PropertyDuplication) > 0;
+
+                for (int i = 0; i < body.Collection.Count; i++)
+                {
+                    PropertyListEntry entry = body.Collection[i];
+
+                    if (entry.Enabled && (textUpdateTick == 0 || i == selectionIndex))
+                        entry.UpdateText(i == selectionIndex, isDuplicatingProperties);
+                }
+            }
+
+            /// <summary>
+            /// Updates footer text
+            /// </summary>
+            private void UpdateFooterText()
+            {
+                if (notification != null)
+                {
+                    footer.LeftTextBuilder.SetText($"[{notification}]");
+
+                    if (notificationTimer.ElapsedMilliseconds > notificationTime)
+                        notification = null;
+                }
+                else if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                {
+                    int copyCount = 0;
+
+                    for (int n = 0; n < body.Collection.Count; n++)
+                    {
+                        if (body.Collection[n].IsSelectedForDuplication)
+                            copyCount++;
+                    }
+
+                    footer.LeftTextBuilder.SetText($"[Copying {copyCount} of {body.EnabledCount}]", footerFormatLeft);
+                }
+                else
+                    footer.LeftTextBuilder.SetText($"[{body.VisStart + 1} - {body.VisStart + body.VisCount} of {body.EnabledCount}]", footerFormatLeft);
+
+                if (Target.IsWorking)
+                    footer.RightTextBuilder.SetText("[Working]", footerFormatLeft);
+                else if (Target.IsFunctional)
+                    footer.RightTextBuilder.SetText("[Functional]", footerFormatRight);
+                else
+                    footer.RightTextBuilder.SetText("[Incomplete]", blockIncFormat);
+            }
+
+            private void UpdateDebugText()
+            {
+                ITextBuilder textBuilder = debugText.TextBoard;
+                textBuilder.Clear();
+                textBuilder.Append($"Selection: {body[selectionIndex].NameText}\n");
+                textBuilder.Append($"Selection Open: {body[selectionIndex].PropertyOpen}\n");
+                textBuilder.Append($"Selection Type: {body[selectionIndex].AssocMember.GetType().Name}\n");
+                textBuilder.Append($"Selection Value Text: {body[selectionIndex].AssocMember.ValueText}\n");
+                textBuilder.Append($"Chat Open: {BindManager.IsChatOpen}\n");
             }
         }
     }
