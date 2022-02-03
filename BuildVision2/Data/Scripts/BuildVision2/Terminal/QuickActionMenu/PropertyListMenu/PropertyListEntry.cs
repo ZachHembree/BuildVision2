@@ -112,11 +112,11 @@ namespace DarkHelmet.BuildVision2
                 NameText.Format = bodyFormat;
             }
 
-            public void SetMember(int index, PropertyBlock target)
+            public void SetMember(PropertyBlock target, IBlockMember member, int index)
             {
                 this.target = target;
                 MemberIndex = index;
-                AssocMember = target.BlockMembers[index];
+                AssocMember = member;
             }
 
             public void Reset()

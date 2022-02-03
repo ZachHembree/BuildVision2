@@ -140,21 +140,21 @@ namespace DarkHelmet.BuildVision2
                         // Assign an entry for each color channel
                         var colorMember = blockMember as IBlockColor;
                         var entry = entryPool.Get();
-                        entry.SetMember(i, Target);
+                        entry.SetMember(Target, colorMember.ColorChannels[0], i);
                         body.Add(entry);
 
                         entry = entryPool.Get();
-                        entry.SetMember(i, Target);
+                        entry.SetMember(Target, colorMember.ColorChannels[1], i);
                         body.Add(entry);
 
                         entry = entryPool.Get();
-                        entry.SetMember(i, Target);
+                        entry.SetMember(Target, colorMember.ColorChannels[2], i);
                         body.Add(entry);
                     }
                     else
                     {
                         var entry = entryPool.Get();
-                        entry.SetMember(i, Target);
+                        entry.SetMember(Target, blockMember, i);
                         body.Add(entry);
                     }
                 }
