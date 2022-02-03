@@ -43,8 +43,11 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void HandleDupeSelection(PropertyWheelEntryBase selection)
             {
-                var shortcutEntry = selection as PropertyWheelShortcutEntry;
-                shortcutEntry.ShortcutAction();
+                if (BvBinds.Select.IsReleased)
+                {
+                    var shortcutEntry = selection as PropertyWheelShortcutEntry;
+                    shortcutEntry.ShortcutAction();
+                }
             }
 
             /// <summary>

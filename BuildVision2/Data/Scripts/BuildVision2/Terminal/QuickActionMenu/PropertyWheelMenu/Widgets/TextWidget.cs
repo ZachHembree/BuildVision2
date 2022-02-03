@@ -1,4 +1,5 @@
 ﻿using RichHudFramework.UI;
+using RichHudFramework.UI.Client;
 using System;
 using System.Text;
 using VRageMath;
@@ -56,14 +57,26 @@ namespace DarkHelmet.BuildVision2
                 CloseWidgetCallback = null;
             }
 
+            protected override void HandleInput(Vector2 cursorPos)
+            {
+                base.HandleInput(cursorPos);
+
+                if (BindManager.IsChatOpen && !textField.InputOpen)
+                    textField.OpenInput();
+                else if (!BindManager.IsChatOpen && textField.InputOpen)
+                    Confirm();
+            }
+
             protected override void Confirm()
             {
                 textMember.SetValueText(textField.TextBoard.ToString());
+                textField.CloseInput();
                 CloseWidgetCallback();
             }
 
             protected override void Cancel()
             {
+                textField.CloseInput();
                 CloseWidgetCallback();
             }
         }

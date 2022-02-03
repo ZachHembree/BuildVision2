@@ -115,6 +115,14 @@ namespace DarkHelmet.BuildVision2
                             colorPicker.sliders[selectedChannel].Current -= offset;
                     }
                 }
+                else
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        if (colorPicker.sliders[i].MouseInput.HasFocus)
+                            selectedChannel = i;
+                    }
+                }
 
                 base.HandleInput(cursorPos);
             }

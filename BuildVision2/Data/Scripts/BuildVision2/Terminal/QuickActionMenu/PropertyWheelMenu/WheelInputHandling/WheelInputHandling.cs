@@ -64,17 +64,17 @@ namespace DarkHelmet.BuildVision2
                 {
                     ScrollSelection(-1);
                 }
-
-                if (BvBinds.Select.IsReleased)
+                
+                if (BvBinds.Cancel.IsReleased)
+                {
+                    quickActionMenu.CloseMenu();
+                }
+                else
                 {
                     if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
                         HandleDupeSelection(selection);
                     else
                         HandlePropertySelection(selection);
-                }
-                else if (BvBinds.Cancel.IsReleased)
-                {
-                    quickActionMenu.CloseMenu();
                 }
             }
 
@@ -85,23 +85,27 @@ namespace DarkHelmet.BuildVision2
             {
                 var propertyEntry = selection as PropertyWheelEntry;
 
-                if (selection is PropertyWheelShortcutEntry)
+                if (BvBinds.Select.IsReleased || 
+                    (propertyEntry?.BlockMember is IBlockTextMember && BindManager.IsChatOpen))
                 {
-                    var shortcut = selection as PropertyWheelShortcutEntry;
-                    shortcut.ShortcutAction();
-                }
-                else if (propertyEntry.BlockMember != null && selection.Enabled)
-                {
-                    if (propertyEntry.BlockMember is IBlockAction)
+                    if (selection is PropertyWheelShortcutEntry)
                     {
-                        var blockAction = propertyEntry.BlockMember as IBlockAction;
-                        blockAction.Action();
+                        var shortcut = selection as PropertyWheelShortcutEntry;
+                        shortcut.ShortcutAction();
                     }
-                    else
+                    else if (propertyEntry.BlockMember != null && selection.Enabled)
                     {
-                        menuBody.OpenBlockMemberWidget(propertyEntry.BlockMember);
-                        activeWheel.IsInputEnabled = false;
-                        MenuState = QuickActionMenuState.WidgetControl;
+                        if (propertyEntry.BlockMember is IBlockAction)
+                        {
+                            var blockAction = propertyEntry.BlockMember as IBlockAction;
+                            blockAction.Action();
+                        }
+                        else
+                        {
+                            menuBody.OpenBlockMemberWidget(propertyEntry.BlockMember);
+                            activeWheel.IsInputEnabled = false;
+                            MenuState = QuickActionMenuState.WidgetControl;
+                        }
                     }
                 }
             }
