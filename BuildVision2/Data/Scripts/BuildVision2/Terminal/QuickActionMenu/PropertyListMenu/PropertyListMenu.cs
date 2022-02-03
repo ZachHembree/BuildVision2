@@ -45,11 +45,13 @@ namespace DarkHelmet.BuildVision2
 
             private readonly LabelBox header;
             private readonly DoubleLabelBox footer;
-            private readonly ScrollSelectionBox<PropertyListEntry, PropertyListEntryElement, IBlockMember> body;
+            private readonly ScrollBox<PropertyListEntry, PropertyListEntryElement> body;
+            private readonly HighlightBox highlightBox;
             private readonly HudChain layout;
 
+            private readonly ObjectPool<PropertyListEntry> entryPool;
             private readonly Label debugText;
-            private int textUpdateTick;
+            private int textUpdateTick, selectionIndex;
 
             public PropertyListMenu(QuickActionMenu parent) : base(parent)
             {
@@ -64,27 +66,30 @@ namespace DarkHelmet.BuildVision2
                     Color = headerColor,
                 };
 
-                body = new ScrollSelectionBox<PropertyListEntry, PropertyListEntryElement, IBlockMember>()
+                body = new ScrollBox<PropertyListEntry, PropertyListEntryElement>(true)
                 {
                     Color = bodyColor,
-                    Format = bodyFormat,
-                    LineHeight = 19f,
-                    MemberPadding = Vector2.Zero,
-                    HighlightPadding = new Vector2(4f, 0),
-                    ListPadding = new Vector2(30f, 16f),
-                    IsMasking = false,
                     EnableScrolling = false,
                     UseSmoothScrolling = false,
                     MinVisibleCount = 10,
-                    SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.FitChainBoth
+                    SizingMode = HudChainSizingModes.ClampChainOffAxis | HudChainSizingModes.FitChainAlignAxis,
+                    Padding = new Vector2(30f, 16f),
                 };
 
-                body.MouseInput.Enabled = false;
-                body.hudChain.MemberMinSize = new Vector2(300f, 0f);
+                body.ScrollBar.Padding = new Vector2(12f, 16f);
+                body.ScrollBar.Width = 4f;
 
-                var scrollbar = body.hudChain.ScrollBar;
-                scrollbar.Padding = new Vector2(12f, 16f);
-                scrollbar.Width = 4f;
+                var border = new BorderBox(body)
+                {
+                    DimAlignment = DimAlignments.Both,
+                    Color = new Color(58, 68, 77),
+                    Thickness = 1f,
+                };
+
+                highlightBox = new HighlightBox(body.Background) 
+                {
+                    Padding = new Vector2(16f, 0f)
+                };
 
                 footer = new DoubleLabelBox()
                 {
@@ -106,6 +111,8 @@ namespace DarkHelmet.BuildVision2
                     }
                 };
 
+                entryPool = new ObjectPool<PropertyListEntry>(() => new PropertyListEntry(), x => x.Reset());
+
                 debugText = new Label(layout)
                 {
                     ParentAlignment = ParentAlignments.Right,
@@ -117,7 +124,6 @@ namespace DarkHelmet.BuildVision2
             {
                 CloseMenu();
                 UpdateConfig();
-                ExceptionHandler.SendChatMessage("List menu opened");
 
                 for (int i = 0; i < Target.BlockMembers.Count; i++)
                 {
@@ -127,19 +133,23 @@ namespace DarkHelmet.BuildVision2
                     {
                         // Assign an entry for each color channel
                         var colorMember = blockMember as IBlockColor;
-                        var entry = body.AddNew();
+                        var entry = entryPool.Get();
                         entry.SetMember(i, Target);
+                        body.Add(entry);
 
-                        entry = body.AddNew();
+                        entry = entryPool.Get();
                         entry.SetMember(i, Target);
+                        body.Add(entry);
 
-                        entry = body.AddNew();
+                        entry = entryPool.Get();
                         entry.SetMember(i, Target);
+                        body.Add(entry);
                     }
                     else
                     {
-                        var entry = body.AddNew();
+                        var entry = entryPool.Get();
                         entry.SetMember(i, Target);
+                        body.Add(entry);
                     }
                 }
 
@@ -148,7 +158,9 @@ namespace DarkHelmet.BuildVision2
 
             public void CloseMenu()
             {
-                body.ClearEntries();
+                entryPool.ReturnRange(body.Collection);
+                body.Clear();
+                selectionIndex = 0;
                 Visible = false;
             }
 
@@ -163,37 +175,75 @@ namespace DarkHelmet.BuildVision2
             {
                 Size = layout.Size;
 
-                if (body.EntryList.Count > 0)
+                if (body.Collection.Count > 0)
                 {
-                    if (body.SelectionIndex > body.hudChain.End)
-                        body.hudChain.End = body.SelectionIndex;
-                    else if (body.SelectionIndex < body.hudChain.Start)
-                        body.hudChain.Start = body.SelectionIndex;
+                    // Update visible range
+                    if (selectionIndex > body.End)
+                        body.End = selectionIndex;
+                    else if (selectionIndex < body.Start)
+                        body.Start = selectionIndex;
 
+                    // Update property text
                     bool isDuplicatingProperties = (MenuState & QuickActionMenuState.PropertyDuplication) > 0;
 
-                    foreach (PropertyListEntry entry in body)
+                    for (int i = 0; i < body.Collection.Count; i++)
                     {
-                        if (entry.Enabled && (textUpdateTick == 0 || entry == body.Selection))
-                            entry.UpdateText(entry == body.Selection, isDuplicatingProperties);
+                        PropertyListEntry entry = body.Collection[i];
+
+                        if (entry.Enabled && (textUpdateTick == 0 || i == selectionIndex))
+                            entry.UpdateText(isDuplicatingProperties);
                     }
 
                     if (DrawDebug && textUpdateTick == 0)
                     {
                         ITextBuilder textBuilder = debugText.TextBoard;
                         textBuilder.Clear();
-                        textBuilder.Append($"Selection: {body.Selection?.NameText}\n");
-                        textBuilder.Append($"Selection Open: {body.Selection?.PropertyOpen}\n");
-                        textBuilder.Append($"Selection Type: {body.Selection?.AssocMember.GetType().Name}\n");
-                        textBuilder.Append($"Selection Value Text: {body.Selection?.AssocMember.ValueText}\n");
+                        textBuilder.Append($"Selection: {body[selectionIndex].NameText}\n");
+                        textBuilder.Append($"Selection Open: {body[selectionIndex].PropertyOpen}\n");
+                        textBuilder.Append($"Selection Type: {body[selectionIndex].AssocMember.GetType().Name}\n");
+                        textBuilder.Append($"Selection Value Text: {body[selectionIndex].AssocMember.ValueText}\n");
                         textBuilder.Append($"Chat Open: {BindManager.IsChatOpen}\n");
                     }
 
                     debugText.Visible = DrawDebug;
-
-                    textUpdateTick++;
-                    textUpdateTick %= textTickDivider;
                 }
+
+                textUpdateTick++;
+                textUpdateTick %= textTickDivider;
+            }
+
+            protected override void Draw()
+            {
+                if (body.Collection.Count > 0)
+                {
+                    Vector2 bodySize = body.Size,
+                        bodyPadding = body.Padding;
+
+                    float memberWidth = 0f;
+                    int visCount = 0;
+                    var entries = body.Collection;
+
+                    for (int i = 0; i < entries.Count && visCount < body.VisCount; i++)
+                    {
+                        int j = Math.Min(body.VisStart + i, entries.Count - 1);
+                        HudElementBase element = entries[j].Element;
+
+                        if (element.Visible)
+                        {
+                            memberWidth = Math.Max(memberWidth, element.Width);
+                            visCount++;
+                        }
+                    }
+
+                    memberWidth += bodyPadding.X + body.ScrollBar.Width + body.Divider.Width;
+                    layout.Width = Math.Max(memberWidth, layout.MemberMinSize.X);
+
+                    highlightBox.Size = new Vector2(
+                        bodySize.X - body.Divider.Width - body.ScrollBar.Width, 
+                        body[selectionIndex].Element.Height + 2f
+                    );
+                    highlightBox.Offset = new Vector2(0f, body[selectionIndex].Element.Offset.Y - 1f);
+                };
             }
         }
     }

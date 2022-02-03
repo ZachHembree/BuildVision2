@@ -36,6 +36,7 @@ namespace DarkHelmet.BuildVision2
                     CollectionContainer = { name, value, postfix }
                 };
 
+                Height = 19f;
                 ParentAlignment = ParentAlignments.Left;
             }
 
@@ -45,7 +46,7 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private class PropertyListEntry : ListBoxEntry<PropertyListEntryElement, IBlockMember>
+        private class PropertyListEntry : ScrollBoxEntryTuple<PropertyListEntryElement, IBlockMember>
         {
             /// <summary>
             /// TextBoard backing the label element.
@@ -108,8 +109,7 @@ namespace DarkHelmet.BuildVision2
 
             public PropertyListEntry()
             {
-                // Resizing was disabled in the parent constructor, I'm just turning it back on.
-                Element.TextBoard.AutoResize = true;
+                SetElement(new PropertyListEntryElement());
                 NameText.Format = bodyFormat;
             }
 
@@ -120,15 +120,16 @@ namespace DarkHelmet.BuildVision2
                 AssocMember = target.BlockMembers[index];
             }
 
-            public override void Reset()
+            public void Reset()
             {
                 WaitingForChatInput = false;
                 PropertyOpen = false;
                 target = null;
                 MemberIndex = -1;
+                Enabled = true;
+                AssocMember = null;
 
                 CloseInput();
-                base.Reset();
             }
 
             /// <summary>
@@ -161,7 +162,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Updates associated text label for the entry in the menu
             /// </summary>
-            public virtual void UpdateText(bool highlight, bool isDuplicating)
+            public virtual void UpdateText(bool isDuplicating)
             {
                 ITextBoard nameTB = Element.name.TextBoard,
                     valueTB = Element.value.TextBoard,
@@ -171,23 +172,33 @@ namespace DarkHelmet.BuildVision2
                     disp = blockMember.FormattedValue,
                     status = blockMember.StatusText;
 
-                // Text format changes when selected
-                var nameFormat = highlight ? valueTB.Format : bodyFormat;
-                var valueFormat = highlight ? valueTB.Format : QuickActionMenu.valueFormat;
-                var dupeFormat = highlight ? valueTB.Format : dupeCrossFormat;
+                GlyphFormat dupeCrossFormat, bodyFormat, valueFormat;
+
+                if (PropertyOpen)
+                {
+                    dupeCrossFormat = QuickActionMenu.selectedFormat;
+                    bodyFormat = QuickActionMenu.selectedFormat;
+                    valueFormat = QuickActionMenu.selectedFormat;
+                }
+                else
+                {
+                    dupeCrossFormat = QuickActionMenu.dupeCrossFormat;
+                    bodyFormat = QuickActionMenu.bodyFormat;
+                    valueFormat = QuickActionMenu.valueFormat;
+                }
 
                 // Update Name
                 nameTB.Clear();
 
                 if (isDuplicating && IsSelectedForDuplication)
-                    nameTB.Append("+ ", dupeFormat);
+                    nameTB.Append("+ ", dupeCrossFormat);
 
                 if (name != null)
                 {
-                    nameTB.Append(name, nameFormat);
+                    nameTB.Append(name, bodyFormat);
 
                     if (disp != null || status != null)
-                        nameTB.Append(": ", nameFormat);
+                        nameTB.Append(": ", bodyFormat);
                 }
 
                 // Update Value
@@ -207,8 +218,8 @@ namespace DarkHelmet.BuildVision2
 
                 if (status != null)
                 {
-                    postTB.Append(' ', nameFormat);
-                    postTB.Append(status, nameFormat);
+                    postTB.Append(' ', bodyFormat);
+                    postTB.Append(status, bodyFormat);
                 }
             }
         }

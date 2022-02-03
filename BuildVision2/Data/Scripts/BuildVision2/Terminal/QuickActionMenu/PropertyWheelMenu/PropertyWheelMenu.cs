@@ -64,7 +64,7 @@ namespace DarkHelmet.BuildVision2
                 propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(menuBody)
                 {
                     BackgroundColor = bodyColor,
-                    HighlightColor = selectionBoxColor,
+                    HighlightColor = highlightColor,
                     ZOffset = -1,
                 };
 
@@ -73,7 +73,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     Visible = false,
                     BackgroundColor = bodyColor,
-                    HighlightColor = selectionBoxColor,
+                    HighlightColor = highlightColor,
                     ZOffset = -1,
                     CollectionContainer =
                     {
@@ -137,7 +137,6 @@ namespace DarkHelmet.BuildVision2
             public void OpenMenu()
             {
                 Clear();
-                ExceptionHandler.SendChatMessage("Wheel Menu Opened");
 
                 // Add entries for block members
                 for (int i = 0; i < Target.BlockMembers.Count; i++)

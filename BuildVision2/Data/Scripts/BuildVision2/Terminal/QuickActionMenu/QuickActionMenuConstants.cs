@@ -32,7 +32,8 @@ namespace DarkHelmet.BuildVision2
         private static readonly Color
             headerColor = new Color(41, 54, 62, 225),
             bodyColor = new Color(70, 78, 86, 225),
-            selectionBoxColor = new Color(41, 54, 62, 225);
+            highlightColor = TerminalFormatting.DarkSlateGrey,
+            highlightFocusColor = TerminalFormatting.Mint;
         private static readonly GlyphFormat
             listHeaderFormat = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f),
             mainHeaderFormat = new GlyphFormat(Color.White, TextAlignment.Center, 1f, FontStyles.Underline),
@@ -44,7 +45,7 @@ namespace DarkHelmet.BuildVision2
             footerFormatRight = footerFormatLeft.WithAlignment(TextAlignment.Right),
             dupeCrossFormat = bodyFormat.WithColor(new Color(0, 30, 220)),
             highlightFormat = bodyFormat.WithColor(new Color(220, 180, 50)),
-            selectedFormat = bodyFormat.WithColor(new Color(50, 200, 50)),
+            selectedFormat = bodyFormat.WithColor(TerminalFormatting.Charcoal),
             blockIncFormat = footerFormatRight.WithColor(new Color(200, 35, 35));
 
         private const long notificationTime = 1500;

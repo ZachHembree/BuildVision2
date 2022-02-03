@@ -25,35 +25,31 @@ namespace DarkHelmet.BuildVision2
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (body.EntryList.Count > 0)
+                if (body.Collection.Count > 0)
                 {
                     // Highlight selection
-                    if (body.Selection == null || !body.Selection.PropertyOpen)
+                    if (!body[selectionIndex].PropertyOpen)
                     {
                         if (BvBinds.ScrollUp.IsNewPressed)
                         {
-                            body.OffsetSelectionIndex(-1);
+                            OffsetSelectionIndex(-1);
                         }
                         else if (BvBinds.ScrollDown.IsNewPressed)
                         {
-                            body.OffsetSelectionIndex(1);
+                            OffsetSelectionIndex(1);
                         }
                     }
 
-                    // Select highlighted entry
-                    if (body.Selection != null)
-                    {
-                        if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
-                            HandleDuplicationInput();
-                        else
-                            HandlePropertySelectionInput();
-                    }
+                    if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                        HandleDuplicationInput();
+                    else
+                        HandlePropertySelectionInput();
                 }
             }
 
             private void HandleDuplicationInput()
             {
-                var selection = body.Selection;
+                var selection = body[selectionIndex];
 
                 if (BvBinds.Select.IsReleased)
                     selection.IsSelectedForDuplication = !selection.IsSelectedForDuplication;
@@ -61,7 +57,7 @@ namespace DarkHelmet.BuildVision2
 
             private void HandlePropertySelectionInput()
             {
-                var selection = body.Selection;
+                var selection = body[selectionIndex];
                 IBlockMember blockMember = selection.AssocMember;
 
                 if (BvBinds.Select.IsReleased)
@@ -96,6 +92,11 @@ namespace DarkHelmet.BuildVision2
                     else if (blockMember is IBlockTextMember)
                         HandleTextInput();
                 }
+
+                if (selection.PropertyOpen)
+                    highlightBox.Color = highlightFocusColor;
+                else
+                    highlightBox.Color = highlightColor;
             }
 
             /// <summary>
@@ -103,11 +104,11 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void HandleActionInput()
             {
-                IBlockMember blockMember = body.Selection.AssocMember;
+                IBlockMember blockMember = body[selectionIndex].AssocMember;
                 var member = blockMember as IBlockAction;
 
                 member.Action();
-                body.Selection.PropertyOpen = false;
+                body[selectionIndex].PropertyOpen = false;
             }
 
             /// <summary>
@@ -121,7 +122,7 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    IBlockMember blockMember = body.Selection.AssocMember;
+                    IBlockMember blockMember = body[selectionIndex].AssocMember;
                     var floatMember = blockMember as IBlockNumericValue<float>;
                     float offset = floatMember.Increment,
                         value = floatMember.Value;
@@ -155,7 +156,7 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    IBlockMember blockMember = body.Selection.AssocMember;
+                    IBlockMember blockMember = body[selectionIndex].AssocMember;
                     var colorMember = blockMember as IBlockNumericValue<byte>;
                     int offset = 1;
 
@@ -181,7 +182,7 @@ namespace DarkHelmet.BuildVision2
 
             private void HandleComboInput()
             {
-                IBlockMember blockMember = body.Selection.AssocMember;
+                IBlockMember blockMember = body[selectionIndex].AssocMember;
                 var comboBox = blockMember as IBlockComboBox;
                 var entries = comboBox.ComboEntries as List<KeyValuePair<long, StringBuilder>>;
                 int index = entries.FindIndex(x => x.Key == comboBox.Value);
@@ -197,23 +198,124 @@ namespace DarkHelmet.BuildVision2
 
             private void HandleTextInput()
             {
-                PropertyListEntry selection = body.Selection;
+                PropertyListEntry selection = body[selectionIndex];
 
                 if (BindManager.IsChatOpen)
                 {
                     if (!selection.InputOpen)
                     {
                         IBlockMember blockMember = selection.AssocMember;
-                        selection.ValueText.SetText(blockMember.ValueText);
+                        selection.ValueText.SetText(blockMember.ValueText, selectedFormat);
                         selection.OpenInput();
                         selection.WaitingForChatInput = false;
                     }
                 }
                 else
                 {
-                    selection.ValueText.SetText(textEntryWarning);
+                    selection.ValueText.SetText(textEntryWarning, selectedFormat);
                     selection.WaitingForChatInput = true;
                 }
+            }
+
+            /// <summary>
+            /// Offsets selection index in the direction of the offset. If wrap == true, the index will wrap around
+            /// if the offset places it out of range.
+            /// </summary>
+            public void OffsetSelectionIndex(int offset, bool wrap = false)
+            {
+                int index = selectionIndex,
+                    dir = offset > 0 ? 1 : -1,
+                    absOffset = Math.Abs(offset);
+
+                if (dir > 0)
+                {
+                    for (int i = 0; i < absOffset; i++)
+                    {
+                        if (wrap)
+                            index = (index + dir) % body.Collection.Count;
+                        else
+                            index = Math.Min(index + dir, body.Collection.Count - 1);
+
+                        index = FindFirstEnabled(index, wrap);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < absOffset; i++)
+                    {
+                        if (wrap)
+                            index = (index + dir) % body.Collection.Count;
+                        else
+                            index = Math.Max(index + dir, 0);
+
+                        if (index < 0)
+                            index += body.Collection.Count;
+
+                        index = FindLastEnabled(index, wrap);
+                    }
+                }
+
+                selectionIndex = index;
+            }
+
+            /// <summary>
+            /// Returns first enabled element at or after the given index. Wraps around.
+            /// </summary>
+            private int FindFirstEnabled(int index, bool wrap)
+            {
+                if (wrap)
+                {
+                    int j = index;
+
+                    for (int n = 0; n < 2 * body.Collection.Count; n++)
+                    {
+                        if (body.Collection[j].Enabled)
+                            return j;
+
+                        j++;
+                        j %= body.Collection.Count;
+                    }
+                }
+                else
+                {
+                    for (int n = index; n < body.Collection.Count; n++)
+                    {
+                        if (body.Collection[n].Enabled)
+                            return n;
+                    }
+                }
+
+                return -1;
+            }
+
+            /// <summary>
+            /// Returns preceeding enabled element at or after the given index. Wraps around.
+            /// </summary>
+            private int FindLastEnabled(int index, bool wrap)
+            {
+                if (wrap)
+                {
+                    int j = index;
+
+                    for (int n = 0; n < 2 * body.Collection.Count; n++)
+                    {
+                        if (body.Collection[j].Enabled)
+                            return j;
+
+                        j++;
+                        j %= body.Collection.Count;
+                    }
+                }
+                else
+                {
+                    for (int n = index; n >= 0; n--)
+                    {
+                        if (body.Collection[n].Enabled)
+                            return n;
+                    }
+                }
+
+                return -1;
             }
         }
     }
