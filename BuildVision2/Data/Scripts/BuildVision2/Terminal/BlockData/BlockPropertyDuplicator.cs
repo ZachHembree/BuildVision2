@@ -115,6 +115,7 @@ namespace DarkHelmet.BuildVision2
             IBlockMember member = Block.BlockMembers[index];
 
             entry.isSelectedForDuplication = isSelected && entry.canDuplicate && member.Enabled;
+            dupeEntries[index] = entry;
         }
 
         /// <summary>
@@ -190,10 +191,10 @@ namespace DarkHelmet.BuildVision2
         {
             for (int i = 0; i < dupeEntries.Count; i++)
             {
-                BlockPropertyDupeEntry container = dupeEntries[i];
-                container.isSelectedForDuplication = false;
+                BlockPropertyDupeEntry entry = dupeEntries[i];
+                entry.isSelectedForDuplication = false;
 
-                dupeEntries[i] = container;
+                dupeEntries[i] = entry;
             }
         }
 
