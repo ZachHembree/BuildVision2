@@ -301,9 +301,10 @@ namespace DarkHelmet.BuildVision2
                 ITextBuilder textBuilder = debugText.TextBoard;
                 textBuilder.Clear();
                 textBuilder.Append($"Selection: {body[selectionIndex].NameText}\n");
-                textBuilder.Append($"Selection Open: {body[selectionIndex].PropertyOpen}\n");
-                textBuilder.Append($"Selection Type: {body[selectionIndex].AssocMember.GetType().Name}\n");
-                textBuilder.Append($"Selection Value Text: {body[selectionIndex].AssocMember.ValueText}\n");
+                textBuilder.Append($"Open: {body[selectionIndex].PropertyOpen}\n");
+                textBuilder.Append($"Is Duplicating: {body[selectionIndex].IsSelectedForDuplication}\n");
+                textBuilder.Append($"Type: {body[selectionIndex].AssocMember.GetType().Name}\n");
+                textBuilder.Append($"Value Text: {body[selectionIndex].AssocMember.ValueText}\n");
                 textBuilder.Append($"Chat Open: {BindManager.IsChatOpen}\n");
             }
         }

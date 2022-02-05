@@ -84,6 +84,16 @@ namespace DarkHelmet.BuildVision2
                         },
                         new PropertyWheelShortcutEntry()
                         {
+                            Text = "Open List",
+                            ShortcutAction = OpenDupeList,
+                        },
+                        new PropertyWheelShortcutEntry()
+                        {
+                            Text = "Open List and Select All",
+                            ShortcutAction = OpenDupeListAndSelectAll,
+                        },
+                        new PropertyWheelShortcutEntry()
+                        {
                             Text = "Copy All but Name",
                             ShortcutAction = () => CopyAllProperties(false),
                         },

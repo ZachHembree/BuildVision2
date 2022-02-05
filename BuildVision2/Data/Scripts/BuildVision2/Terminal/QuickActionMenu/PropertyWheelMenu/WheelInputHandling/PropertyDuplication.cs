@@ -51,6 +51,25 @@ namespace DarkHelmet.BuildVision2
             }
 
             /// <summary>
+            /// Opens property list in duplication mode
+            /// </summary>
+            private void OpenDupeList()
+            {
+                quickActionMenu.OpenPropertyList();
+                MenuState |= QuickActionMenuState.PropertyDuplication;
+            }
+
+            /// <summary>
+            /// Selects all properties for duplication and opens list in duplication mode
+            /// </summary>
+            private void OpenDupeListAndSelectAll()
+            {
+                quickActionMenu.OpenPropertyList();
+                Target.Duplicator.SelectAllProperties();
+                MenuState |= QuickActionMenuState.PropertyDuplication;
+            }
+
+            /// <summary>
             /// Attempts to restore original property settings after paste
             /// </summary>
             private void UndoPropertyPaste()

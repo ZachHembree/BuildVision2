@@ -49,7 +49,9 @@ namespace DarkHelmet.BuildVision2
         {
             propertyList.CloseMenu();
             propertyWheel.OpenMenu();
-            MenuState = QuickActionMenuState.WheelMenuControl;
+
+            MenuState &= ~QuickActionMenuState.ListMenuControl;
+            MenuState |= QuickActionMenuState.WheelMenuControl;
         }
 
         /// <summary>
@@ -59,7 +61,9 @@ namespace DarkHelmet.BuildVision2
         {
             propertyWheel.CloseMenu();
             propertyList.OpenMenu();
-            MenuState = QuickActionMenuState.ListMenuControl;
+
+            MenuState &= ~QuickActionMenuState.WheelMenuControl;
+            MenuState |= QuickActionMenuState.ListMenuControl;
         }
     }
 }

@@ -43,7 +43,7 @@ namespace DarkHelmet.BuildVision2
             valueFormatCenter = valueFormat.WithAlignment(TextAlignment.Center),
             footerFormatLeft = bodyFormat.WithColor(new Color(220, 235, 245)),
             footerFormatRight = footerFormatLeft.WithAlignment(TextAlignment.Right),
-            dupeCrossFormat = bodyFormat.WithColor(new Color(0, 30, 220)),
+            dupeCrossFormat = bodyFormat.WithColor(new Color(0, 220, 30)),
             highlightFormat = bodyFormat.WithColor(new Color(200, 180, 100)),
             selectedFormat = bodyFormat.WithColor(TerminalFormatting.Charcoal),
             blockIncFormat = footerFormatRight.WithColor(new Color(200, 35, 35));
