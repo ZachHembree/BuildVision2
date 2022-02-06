@@ -54,6 +54,7 @@ namespace DarkHelmet.BuildVision2
             private readonly ObjectPool<object> propertyEntryPool;
             private readonly List<PropertyWheelShortcutEntry> shortcutEntries;
             private RadialSelectionBox<PropertyWheelEntryBase, Label> activeWheel;
+            private readonly PrioritizedBlockMembers prioritizer;
             private readonly StringBuilder notifText;
             private int textUpdateTick;
 
@@ -144,6 +145,7 @@ namespace DarkHelmet.BuildVision2
                     x => (x as PropertyWheelEntry).Reset()
                 );
                 notifText = new StringBuilder();
+                prioritizer = new PrioritizedBlockMembers();
             }
 
             /// <summary>
@@ -160,12 +162,13 @@ namespace DarkHelmet.BuildVision2
             public void OpenMenu()
             {
                 Clear();
+                prioritizer.SetMembers(16, Target.TBlock.GetType(), Target.BlockMembers);
 
                 // Add entries for block members
-                for (int i = 0; i < Target.BlockMembers.Count; i++)
+                for (int i = 0; i < prioritizer.MemberIndices.Count; i++)
                 {
                     var entry = propertyEntryPool.Get() as PropertyWheelEntry;
-                    entry.SetMember(i, Target);
+                    entry.SetMember(prioritizer.MemberIndices[i], Target);
                     propertyWheel.Add(entry);
                 }
 

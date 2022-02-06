@@ -14,22 +14,28 @@ namespace DarkHelmet.BuildVision2
 {
     public class PrioritizedBlockMembers
     {
-        public IReadOnlyList<IBlockMember> PrioritizedMembers => _prioritizedMembers;
+        public IReadOnlyList<int> MemberIndices => prioritizedIndices;
 
         private static readonly IReadOnlyDictionary<string, uint> GlobalPreset = new Dictionary<string, uint>()
         {
             { "Name", 10 },
             { "CustomName", 10 },
-            { "ChargeMode", 5 },
             { "OnOff", 10 },
+            { "ChargeMode", 5 },
+            { "Color", 5 },
             { "Stockpile", 5 },
             { "Override", 5 },
+            { "ShareInertiaTensor", 5 },
+            { "RotorLock", 5 },
+            { "Torque", 5 },
+            { "BrakingTorque", 5 },
             { "UpperLimit", 5 },
+            { "Displacement", 5 },
+            { "LowerLimit", 5 },
         };
 
         private readonly Dictionary<Type, Dictionary<string, uint>> defaultPrioritiesTable;
 
-        private readonly List<IBlockMember> _prioritizedMembers;
         private readonly List<uint> weightedIndices;
         private readonly List<int> prioritizedIndices;
 
@@ -41,23 +47,23 @@ namespace DarkHelmet.BuildVision2
         {
             defaultPrioritiesTable = new Dictionary<Type, Dictionary<string, uint>>();
 
-            _prioritizedMembers = new List<IBlockMember>();
             weightedIndices = new List<uint>();
             prioritizedIndices = new List<int>();
         }
 
-        public void SetMembers(int memberLimit, Type type, IReadOnlyList<IBlockMember> blockMembers)
+        public void SetMembers(int memberLimit, Type type, 
+            IReadOnlyList<IBlockMember> blockMembers, Dictionary<string, uint> priorityMap = null)
         {
             ClearMembers();
-
-            if (!defaultPrioritiesTable.ContainsKey(type))
-                GenerateTypePreset(type);
 
             this.memberLimit = memberLimit;
             this.blockMembers = blockMembers;
 
+            if (!defaultPrioritiesTable.ContainsKey(type))
+                GenerateTypePreset(type);
+
             defaultPriorities = defaultPrioritiesTable[type];
-            priorityMap = defaultPriorities;
+            this.priorityMap = priorityMap ?? defaultPriorities;
 
             GetMemberPriorities();
             GetPrioritizedMembers();
@@ -68,7 +74,6 @@ namespace DarkHelmet.BuildVision2
             blockMembers = null;
             priorityMap = null;
             prioritizedIndices.Clear();
-            _prioritizedMembers.Clear();
             weightedIndices.Clear();
         }
 
@@ -82,17 +87,20 @@ namespace DarkHelmet.BuildVision2
 
                 if (!GlobalPreset.TryGetValue(member.PropName, out priority))
                 {
-                    if (member is IBlockAction)
+                    if (member.ValueType == BlockMemberValueTypes.None)
                         priority = 9;
-                    else if (member is IBlockNumericValue<float>)
+                    else if (member.ValueType == BlockMemberValueTypes.Float)
                         priority = 2;
-                    else if (member is IBlockNumericValue<Color>)
+                    else if (member.ValueType == BlockMemberValueTypes.Color)
+                        priority = 2;
+                    else if (member.ValueType == BlockMemberValueTypes.Combo)
                         priority = 2;
                     else
                         priority = 1;
                 }
 
-                newPreset.Add(member.PropName, priority);
+                if (!newPreset.ContainsKey(member.PropName))
+                    newPreset.Add(member.PropName, priority);
             }
 
             defaultPrioritiesTable.Add(type, newPreset);
@@ -105,12 +113,14 @@ namespace DarkHelmet.BuildVision2
                 IBlockMember member = blockMembers[(int)i];
                 uint priority;
 
-                if (!priorityMap.TryGetValue(member.PropName, out priority))
-                    priority = defaultPriorities[member.PropName];
+                if (!priorityMap.TryGetValue(member.PropName, out priority)
+                    && !defaultPriorities.TryGetValue(member.PropName, out priority))
+                    priority = 1;
 
                 weightedIndices.Add((priority << 16) | i);
             }
 
+            // Sort ascending
             weightedIndices.Sort();
         }
 
@@ -130,12 +140,8 @@ namespace DarkHelmet.BuildVision2
                     break;
             }
 
+            // Sort by index to restore normal order
             prioritizedIndices.Sort();
-
-            foreach (int index in prioritizedIndices)
-            {
-                _prioritizedMembers.Add(blockMembers[index]);
-            }
         }
     }
 }
