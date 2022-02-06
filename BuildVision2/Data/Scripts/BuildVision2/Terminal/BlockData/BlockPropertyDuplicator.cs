@@ -106,6 +106,22 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
+        /// Returns number of entries that can be duplicated
+        /// </summary>
+        public int GetValidEntryCount()
+        {
+            int count = 0;
+
+            for (int i = 0; i < dupeEntries.Count; i++)
+            {
+                if (dupeEntries[i].canDuplicate && Block.BlockMembers[i].Enabled)
+                    count++;
+            }
+
+            return count;
+        }
+
+        /// <summary>
         /// Returns number of selected entries
         /// </summary>
         public int GetSelectedEntryCount()

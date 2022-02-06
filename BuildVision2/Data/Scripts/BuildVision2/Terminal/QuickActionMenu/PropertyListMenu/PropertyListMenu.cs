@@ -283,7 +283,9 @@ namespace DarkHelmet.BuildVision2
                             copyCount++;
                     }
 
-                    footer.LeftTextBuilder.SetText($"[Copying {copyCount} of {body.EnabledCount}]", footerFormatLeft);
+                    footer.LeftTextBuilder.SetText(
+                        $"[Copying {Target.Duplicator.GetSelectedEntryCount()} " +
+                        $"of {Target.Duplicator.GetValidEntryCount()}]", footerFormatLeft);
                 }
                 else
                     footer.LeftTextBuilder.SetText($"[{body.VisStart + 1} - {body.VisStart + body.VisCount} of {body.EnabledCount}]", footerFormatLeft);
@@ -301,10 +303,11 @@ namespace DarkHelmet.BuildVision2
                 ITextBuilder textBuilder = debugText.TextBoard;
                 textBuilder.Clear();
                 textBuilder.Append($"Selection: {body[selectionIndex].NameText}\n");
-                textBuilder.Append($"Open: {body[selectionIndex].PropertyOpen}\n");
-                textBuilder.Append($"Is Duplicating: {body[selectionIndex].IsSelectedForDuplication}\n");
+                textBuilder.Append($"ID: {body[selectionIndex].AssocMember.PropName}\n");
                 textBuilder.Append($"Type: {body[selectionIndex].AssocMember.GetType().Name}\n");
                 textBuilder.Append($"Value Text: {body[selectionIndex].AssocMember.ValueText}\n");
+                textBuilder.Append($"Open: {body[selectionIndex].PropertyOpen}\n");
+                textBuilder.Append($"Is Duplicating: {body[selectionIndex].IsSelectedForDuplication}\n");
                 textBuilder.Append($"Chat Open: {BindManager.IsChatOpen}\n");
             }
         }

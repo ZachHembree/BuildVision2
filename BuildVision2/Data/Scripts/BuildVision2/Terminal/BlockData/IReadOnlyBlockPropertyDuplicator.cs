@@ -21,6 +21,11 @@ namespace DarkHelmet.BuildVision2
         void ClearSelection();
 
         /// <summary>
+        /// Returns number of entries that can be duplicated
+        /// </summary>
+        int GetValidEntryCount();
+
+        /// <summary>
         /// Returns number of selected entries
         /// </summary>
         int GetSelectedEntryCount();
