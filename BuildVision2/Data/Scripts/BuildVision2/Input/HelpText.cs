@@ -89,13 +89,7 @@ namespace DarkHelmet.BuildVision2
                 $"---Multipliers---\n" +
                 $"MultX: [{GetBindString(BvBinds.MultX)}]\n" +
                 $"MultY: [{GetBindString(BvBinds.MultY)}]\n" +
-                $"MultZ: [{GetBindString(BvBinds.MultZ)}]\n" +
-                $"---Copy/Paste---\n" +
-                $"ToggleSelectMode: [{GetBindString(BvBinds.ToggleSelectMode)}]\n" +
-                $"SelectAll: [{GetBindString(BvBinds.SelectAll)}]\n" +
-                $"CopySelection: [{GetBindString(BvBinds.CopySelection)}]\n" +
-                $"PasteProperties: [{GetBindString(BvBinds.PasteProperties)}]\n" +
-                $"UndoPaste: [{GetBindString(BvBinds.UndoPaste)}]";
+                $"MultZ: [{GetBindString(BvBinds.MultZ)}]\n";
 
             return bindHelp;
         }

@@ -15,8 +15,8 @@ namespace DarkHelmet.BuildVision2
             {
                 return new BindsConfig
                 {
-                    modifierGroup = ModifierGroup.GetBindDefinitions(),
-                    mainGroup = MainGroup.GetBindDefinitions(),
+                    modifierGroup = MainGroup.GetBindDefinitions(),
+                    mainGroup = SecondaryGroup.GetBindDefinitions(),
                 };
             }
             set
@@ -40,15 +40,8 @@ namespace DarkHelmet.BuildVision2
         public static IBind MultY { get; private set; }
         public static IBind MultZ { get; private set; }
 
-        // REMOVE THESE
-        public static IBind ToggleSelectMode { get; private set; }
-        public static IBind SelectAll { get; private set; }
-        public static IBind CopySelection { get; private set; }
-        public static IBind PasteProperties { get; private set; }
-        public static IBind UndoPaste { get; private set; }
-
-        public static IBindGroup ModifierGroup { get { return Instance.mainGroup; } }
-        public static IBindGroup MainGroup { get { return Instance.secondaryGroup; } }
+        public static IBindGroup MainGroup { get { return Instance.mainGroup; } }
+        public static IBindGroup SecondaryGroup { get { return Instance.secondaryGroup; } }
 
         private static BvBinds Instance
         {
