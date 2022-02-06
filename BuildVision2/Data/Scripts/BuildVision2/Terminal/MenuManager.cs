@@ -173,7 +173,7 @@ namespace DarkHelmet.BuildVision2
             if (quickActionMenu.MenuState == QuickActionMenuState.Closed && 
                 TryGetTarget() && CanAccessTargetBlock())
             {
-                quickActionMenu.OpenRaidalMenu(Target);
+                quickActionMenu.OpenPropertyWheel(Target);
             }
         }
 
@@ -185,7 +185,7 @@ namespace DarkHelmet.BuildVision2
             if (quickActionMenu.MenuState == QuickActionMenuState.Closed &&
                 TryGetTarget() && CanAccessTargetBlock())
             {
-                quickActionMenu.OpenListMenu(Target);
+                quickActionMenu.OpenPropertyList(Target);
             }
         }
 

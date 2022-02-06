@@ -48,6 +48,7 @@ namespace DarkHelmet.BuildVision2
             private readonly PropertyWheelMenu propertyWheelMenu;
             private readonly Stopwatch notificationTimer;
             private string notification;
+            private bool contNotification;
             private int tick;
 
             public PropertyWheelMenuBody(PropertyWheelMenu parent) : base(parent)
@@ -131,9 +132,10 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public void ShowNotification(string notificationText)
+            public void ShowNotification(string notificationText, bool continuous = false)
             {
                 this.notification = notificationText;
+                contNotification = continuous;
                 notificationTimer.Restart();
             }
 
@@ -143,7 +145,6 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (activeWidget == null)
                     {
-                        
                         PropertyBlock block = propertyWheelMenu.quickActionMenu.Target;
                         summaryBuilder.Clear();
                         summaryBuilder.Add("Build Vision\n", mainHeaderFormat);
@@ -161,6 +162,12 @@ namespace DarkHelmet.BuildVision2
                             notificationBuidler.Clear();
                             notificationBuidler.Append("\n", bodyFormatCenter);
                             notificationBuidler.Append(notification, valueFormatCenter);
+
+                            if (contNotification)
+                            {
+                                notification = null;
+                                contNotification = false;
+                            }
                         }
                         else
                         {

@@ -81,6 +81,23 @@ namespace DarkHelmet.BuildVision2
             }
 
             /// <summary>
+            /// Copies properties selected for duplication to clipboard
+            /// </summary>
+            private void CopySelectedProperties()
+            {
+                int copiedProperties = Target.Duplicator.CopySelectedProperties();
+                menuBody.ShowNotification($"Copied {copiedProperties} properties");
+            }
+
+            /// <summary>
+            /// Clears duplication selection
+            /// </summary>
+            private void ClearSelection()
+            {
+                Target.Duplicator.ClearSelection();
+            }
+
+            /// <summary>
             /// Selects all enabled properties in the current target and copies them to the clipboard
             /// </summary>
             private void CopyAllProperties(bool includeName = true)

@@ -94,6 +94,16 @@ namespace DarkHelmet.BuildVision2
                         },
                         new PropertyWheelShortcutEntry()
                         {
+                            Text = "Clear Selection",
+                            ShortcutAction = ClearSelection,
+                        },
+                        new PropertyWheelShortcutEntry()
+                        {
+                            Text = "Copy Selected",
+                            ShortcutAction = CopySelectedProperties,
+                        },
+                        new PropertyWheelShortcutEntry()
+                        {
                             Text = "Copy All but Name",
                             ShortcutAction = () => CopyAllProperties(false),
                         },
@@ -173,12 +183,12 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void Clear()
             {
-                StopPropertyDuplication();
                 menuBody.CloseWidget();
 
                 propertyEntryPool.ReturnRange(propertyWheel.EntryList, 0,
                     propertyWheel.EntryList.Count - shortcutEntries.Count);
 
+                propertyWheel.SetSelectionAt(0);
                 propertyWheel.Clear();
                 propertyWheel.IsInputEnabled = false;
             }
@@ -190,6 +200,11 @@ namespace DarkHelmet.BuildVision2
 
                 if (textUpdateTick == 0)
                 {
+                    int selectedEntryCount = Target.Duplicator.GetSelectedEntryCount();
+
+                    if (selectedEntryCount > 0)
+                        menuBody.ShowNotification($"{selectedEntryCount} properties selected", true);
+
                     foreach (PropertyWheelEntryBase baseEntry in propertyWheel)
                     {
                         var entry = baseEntry as PropertyWheelEntry;

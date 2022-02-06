@@ -32,9 +32,17 @@ namespace DarkHelmet.BuildVision2
                     else
                     {
                         if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                        {
                             activeWheel = dupeWheel;
+                            propertyWheel.Visible = false;
+                            dupeWheel.Visible = true;
+                        }
                         else
+                        {
                             activeWheel = propertyWheel;
+                            propertyWheel.Visible = true;
+                            dupeWheel.Visible = false;
+                        }
 
                         if (menuBody.IsWidgetOpen)
                             menuBody.CloseWidget();

@@ -106,6 +106,22 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
+        /// Returns number of selected entries
+        /// </summary>
+        public int GetSelectedEntryCount()
+        {
+            int count = 0;
+
+            foreach (BlockPropertyDupeEntry entry in dupeEntries)
+            {
+                if (entry.isSelectedForDuplication)
+                    count++;
+            }
+
+            return count;
+        }
+
+        /// <summary>
         /// Sets the selection <see cref="BlockPropertyDupeEntry"/> at the corresponding index.
         /// Will not allow unsupported/disabled properties to be selected for duplication.
         /// </summary>

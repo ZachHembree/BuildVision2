@@ -21,6 +21,11 @@ namespace DarkHelmet.BuildVision2
         void ClearSelection();
 
         /// <summary>
+        /// Returns number of selected entries
+        /// </summary>
+        int GetSelectedEntryCount();
+
+        /// <summary>
         /// Creates a copy of all valid block properties.
         /// </summary>
         int CopyAllProperties(bool includeName = true);

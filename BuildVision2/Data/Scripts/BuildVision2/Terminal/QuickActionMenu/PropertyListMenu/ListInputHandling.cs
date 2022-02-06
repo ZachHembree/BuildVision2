@@ -48,7 +48,10 @@ namespace DarkHelmet.BuildVision2
 
                     if (BvBinds.Cancel.IsReleased)
                     {
-                        quickActionMenu.CloseMenu();
+                        if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                            quickActionMenu.OpenPropertyWheel();
+                        else
+                            quickActionMenu.CloseMenu();
                     }
                     else
                     {

@@ -59,7 +59,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Opens the wheel menu and populates it with properties from the given property block
         /// </summary>
-        public void OpenRaidalMenu(PropertyBlock target)
+        public void OpenPropertyWheel(PropertyBlock target)
         {
             CloseMenu();
             Target = target;
@@ -71,7 +71,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Opens the property list menu and populates it with properties from the given property block
         /// </summary>
-        public void OpenListMenu(PropertyBlock target)
+        public void OpenPropertyList(PropertyBlock target)
         {
             CloseMenu();
             Target = target;
