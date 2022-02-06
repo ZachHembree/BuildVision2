@@ -2,6 +2,7 @@
 using RichHudFramework.IO;
 using RichHudFramework.UI;
 using System;
+using System.Text;
 using System.Collections.Generic;
 using VRage;
 using VRage.ModAPI;
@@ -53,6 +54,7 @@ namespace DarkHelmet.BuildVision2
             private readonly ObjectPool<object> propertyEntryPool;
             private readonly List<PropertyWheelShortcutEntry> shortcutEntries;
             private RadialSelectionBox<PropertyWheelEntryBase, Label> activeWheel;
+            private readonly StringBuilder notifText;
             private int textUpdateTick;
 
             public PropertyWheelMenu(QuickActionMenu parent) : base(parent)
@@ -141,6 +143,7 @@ namespace DarkHelmet.BuildVision2
                     () => new PropertyWheelEntry(),
                     x => (x as PropertyWheelEntry).Reset()
                 );
+                notifText = new StringBuilder();
             }
 
             /// <summary>
@@ -203,7 +206,12 @@ namespace DarkHelmet.BuildVision2
                     int selectedEntryCount = Target.Duplicator.GetSelectedEntryCount();
 
                     if (selectedEntryCount > 0)
-                        menuBody.ShowNotification($"{selectedEntryCount} properties selected", true);
+                    {
+                        notifText.Clear();
+                        notifText.Append(selectedEntryCount);
+                        notifText.Append(" properties selected");
+                        menuBody.ShowNotification(notifText, true);
+                    }
 
                     foreach (PropertyWheelEntryBase baseEntry in propertyWheel)
                     {

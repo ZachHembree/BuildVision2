@@ -77,7 +77,11 @@ namespace DarkHelmet.BuildVision2
                 int copiedProperties = Target.Duplicator.TryUndoPaste();
 
                 if (copiedProperties > 0)
-                    menuBody.ShowNotification($"Paste undone");
+                {
+                    notifText.Clear();
+                    notifText.Append("Paste undone");
+                    menuBody.ShowNotification(notifText);
+                }
             }
 
             /// <summary>
@@ -86,7 +90,12 @@ namespace DarkHelmet.BuildVision2
             private void CopySelectedProperties()
             {
                 int copiedProperties = Target.Duplicator.CopySelectedProperties();
-                menuBody.ShowNotification($"Copied {copiedProperties} properties");
+
+                notifText.Clear();
+                notifText.Append("Copied ");
+                notifText.Append(copiedProperties);
+                notifText.Append(" properties");
+                menuBody.ShowNotification(notifText);
             }
 
             /// <summary>
@@ -103,7 +112,12 @@ namespace DarkHelmet.BuildVision2
             private void CopyAllProperties(bool includeName = true)
             {
                 int copiedProperties = Target.Duplicator.CopyAllProperties(includeName);
-                menuBody.ShowNotification($"Copied {copiedProperties} properties");
+
+                notifText.Clear();
+                notifText.Append("Copied ");
+                notifText.Append(copiedProperties);
+                notifText.Append(" properties");
+                menuBody.ShowNotification(notifText);
             }
 
             /// <summary>
@@ -112,11 +126,20 @@ namespace DarkHelmet.BuildVision2
             private void PasteCopiedProperties()
             {
                 int pastedProperties = Target.Duplicator.TryPasteCopiedProperties();
-                
+                notifText.Clear();
+
                 if (pastedProperties == -1)
-                    menuBody.ShowNotification($"Copied properties incompatible");
+                {
+                    notifText.Append("Copied properties incompatible");
+                    menuBody.ShowNotification(notifText);
+                }
                 else if (pastedProperties > 0)
-                    menuBody.ShowNotification($"Pasted {pastedProperties} properties");
+                {
+                    notifText.Append("Pasted ");
+                    notifText.Append(pastedProperties);
+                    notifText.Append(" properties");
+                    menuBody.ShowNotification(notifText);
+                }
             }
         }
     }

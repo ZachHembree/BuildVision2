@@ -47,7 +47,7 @@ namespace DarkHelmet.BuildVision2
             private readonly RichText summaryBuilder;
             private readonly PropertyWheelMenu propertyWheelMenu;
             private readonly Stopwatch notificationTimer;
-            private string notification;
+            private StringBuilder notification;
             private bool contNotification;
             private int tick;
 
@@ -132,7 +132,7 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public void ShowNotification(string notificationText, bool continuous = false)
+            public void ShowNotification(StringBuilder notificationText, bool continuous = false)
             {
                 this.notification = notificationText;
                 contNotification = continuous;
