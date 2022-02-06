@@ -43,7 +43,15 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public Vector3D ModelOffset { get; private set; }
 
+        /// <summary>
+        /// Controls serialization/deserialization of terminal block properties for duplication
+        /// </summary>
         public IReadOnlyBlockPropertyDuplicator Duplicator { get; }
+
+        /// <summary>
+        /// Controls prioritization of block properties
+        /// </summary>
+        public IReadOnlyBlockPropertyPrioritizer Prioritizer { get; }
 
         private readonly List<BlockMemberBase> blockMembers;
         private readonly List<BlockPropertyBase> blockProperties;
@@ -56,7 +64,9 @@ namespace DarkHelmet.BuildVision2
         private readonly BvPropPool<TextProperty> textPropPool;
         private readonly StringBuilder nameBuilder;
         private readonly List<MyTerminalControlComboBoxItem> comboItemBuffer;
+
         private readonly BlockPropertyDuplicator duplicator;
+        private readonly BlockPropertyPrioritizer prioritizer;
 
         public PropertyBlock()
         {
@@ -73,7 +83,10 @@ namespace DarkHelmet.BuildVision2
             comboItemBuffer = new List<MyTerminalControlComboBoxItem>();
 
             duplicator = new BlockPropertyDuplicator();
+            prioritizer = new BlockPropertyPrioritizer();
+
             Duplicator = duplicator;
+            Prioritizer = prioritizer;
         }
 
         public override void SetBlock(TerminalGrid grid, IMyTerminalBlock tBlock)
@@ -92,7 +105,14 @@ namespace DarkHelmet.BuildVision2
             blockMembers.Clear();
             blockProperties.Clear();
             ModelOffset = Vector3D.Zero;
+
             duplicator.Reset();
+            prioritizer.Reset();
+        }
+
+        public override void Update()
+        {
+            prioritizer.UpdatePrioritizedMembers();
         }
 
         private void GenerateProperties()
@@ -104,6 +124,7 @@ namespace DarkHelmet.BuildVision2
             GetScrollableActions();
 
             duplicator.SetBlockMembers(this);
+            prioritizer.SetBlockMembers(16, TBlock.GetType(), blockMembers);
         }
 
         public int GetEnabledElementCount()

@@ -57,26 +57,13 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Opens the wheel menu and populates it with properties from the given property block
+        /// Opens the menu using the given target with the given initial state
         /// </summary>
-        public void OpenPropertyWheel(PropertyBlock target)
+        public void OpenMenu(PropertyBlock target, QuickActionMenuState initialState)
         {
             CloseMenu();
             Target = target;
-
-            MenuState = QuickActionMenuState.WheelMenuControl;
-            Visible = true;
-        }
-
-        /// <summary>
-        /// Opens the property list menu and populates it with properties from the given property block
-        /// </summary>
-        public void OpenPropertyList(PropertyBlock target)
-        {
-            CloseMenu();
-            Target = target;
-
-            MenuState = QuickActionMenuState.ListMenuControl;
+            MenuState = initialState;
             Visible = true;
         }
 

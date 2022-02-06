@@ -145,6 +145,11 @@ namespace DarkHelmet.BuildVision2
 
         public override void Update()
         {
+            if (Open)
+            {
+                Target.Update();
+            }
+
             if (Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))
                 CloseMenu();
         }
@@ -173,7 +178,7 @@ namespace DarkHelmet.BuildVision2
             if (quickActionMenu.MenuState == QuickActionMenuState.Closed && 
                 TryGetTarget() && CanAccessTargetBlock())
             {
-                quickActionMenu.OpenPropertyWheel(Target);
+                quickActionMenu.OpenMenu(Target, QuickActionMenuState.WheelMenuControl);
             }
         }
 
@@ -185,7 +190,7 @@ namespace DarkHelmet.BuildVision2
             if (quickActionMenu.MenuState == QuickActionMenuState.Closed &&
                 TryGetTarget() && CanAccessTargetBlock())
             {
-                quickActionMenu.OpenPropertyList(Target);
+                quickActionMenu.OpenMenu(Target, QuickActionMenuState.ListMenuControl);
             }
         }
 

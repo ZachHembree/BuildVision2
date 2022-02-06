@@ -41,7 +41,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns true if the menu is open and visible
             /// </summary>
-            public bool IsOpen => Visible;
+            public bool IsOpen { get; set; }
 
             /// <summary>
             /// Returns true if a property widget is currently open
@@ -54,7 +54,7 @@ namespace DarkHelmet.BuildVision2
             private readonly ObjectPool<object> propertyEntryPool;
             private readonly List<PropertyWheelShortcutEntry> shortcutEntries;
             private RadialSelectionBox<PropertyWheelEntryBase, Label> activeWheel;
-            private readonly PrioritizedBlockMembers prioritizer;
+            private readonly BlockPropertyPrioritizer prioritizer;
             private readonly StringBuilder notifText;
             private int textUpdateTick;
 
@@ -145,7 +145,7 @@ namespace DarkHelmet.BuildVision2
                     x => (x as PropertyWheelEntry).Reset()
                 );
                 notifText = new StringBuilder();
-                prioritizer = new PrioritizedBlockMembers();
+                prioritizer = new BlockPropertyPrioritizer();
             }
 
             /// <summary>
@@ -161,26 +161,39 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public void OpenMenu()
             {
-                Clear();
-                prioritizer.SetMembers(16, Target.TBlock.GetType(), Target.BlockMembers);
-
-                // Add entries for block members
-                for (int i = 0; i < prioritizer.MemberIndices.Count; i++)
+                if (!IsOpen)
                 {
-                    var entry = propertyEntryPool.Get() as PropertyWheelEntry;
-                    entry.SetMember(prioritizer.MemberIndices[i], Target);
-                    propertyWheel.Add(entry);
+                    Clear();
+
+                    // Add entries for block members
+                    for (int i = 0; i < Target.BlockMembers.Count; i++)
+                    {
+                        var entry = propertyEntryPool.Get() as PropertyWheelEntry;
+                        entry.SetMember(i, Target);
+                        propertyWheel.Add(entry);
+                    }
+
+                    // Append registered shortcuts to end
+                    propertyWheel.AddRange(shortcutEntries);
+                    propertyWheel.IsInputEnabled = true;
                 }
 
-                // Append registered shortcuts to end
-                propertyWheel.AddRange(shortcutEntries);
-                propertyWheel.IsInputEnabled = true;
+                IsOpen = true;
                 Visible = true;
+            }
+
+            public void HideMenu()
+            {
+                if (IsOpen)
+                {
+                    Visible = false;
+                }
             }
 
             public void CloseMenu()
             {
                 Clear();
+                IsOpen = false;
                 Visible = false;
             }
 

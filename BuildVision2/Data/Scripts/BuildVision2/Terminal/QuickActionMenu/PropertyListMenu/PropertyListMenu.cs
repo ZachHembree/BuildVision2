@@ -42,7 +42,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns true if the list is open
             /// </summary>
-            public bool IsOpen => Visible;
+            public bool IsOpen { get; set; }
 
             private readonly LabelBox header;
             private readonly DoubleLabelBox footer;
@@ -128,39 +128,52 @@ namespace DarkHelmet.BuildVision2
 
             public void OpenMenu()
             {
-                CloseMenu();
-                UpdateConfig();
-
-                for (int i = 0; i < Target.BlockMembers.Count; i++)
+                if (!IsOpen)
                 {
-                    IBlockMember blockMember = Target.BlockMembers[i];
+                    CloseMenu();
+                    UpdateConfig();
 
-                    if (blockMember is IBlockColor)
+                    for (int i = 0; i < Target.BlockMembers.Count; i++)
                     {
-                        // Assign an entry for each color channel
-                        var colorMember = blockMember as IBlockColor;
-                        var entry = entryPool.Get();
-                        entry.SetMember(Target, colorMember.ColorChannels[0], i);
-                        body.Add(entry);
+                        IBlockMember blockMember = Target.BlockMembers[i];
 
-                        entry = entryPool.Get();
-                        entry.SetMember(Target, colorMember.ColorChannels[1], i);
-                        body.Add(entry);
+                        if (blockMember is IBlockColor)
+                        {
+                            // Assign an entry for each color channel
+                            var colorMember = blockMember as IBlockColor;
+                            var entry = entryPool.Get();
+                            entry.SetMember(Target, colorMember.ColorChannels[0], i);
+                            body.Add(entry);
 
-                        entry = entryPool.Get();
-                        entry.SetMember(Target, colorMember.ColorChannels[2], i);
-                        body.Add(entry);
+                            entry = entryPool.Get();
+                            entry.SetMember(Target, colorMember.ColorChannels[1], i);
+                            body.Add(entry);
+
+                            entry = entryPool.Get();
+                            entry.SetMember(Target, colorMember.ColorChannels[2], i);
+                            body.Add(entry);
+                        }
+                        else
+                        {
+                            var entry = entryPool.Get();
+                            entry.SetMember(Target, blockMember, i);
+                            body.Add(entry);
+                        }
                     }
-                    else
-                    {
-                        var entry = entryPool.Get();
-                        entry.SetMember(Target, blockMember, i);
-                        body.Add(entry);
-                    }
+
+                    listWrapTimer.Restart();
+                    IsOpen = true;
                 }
 
-                listWrapTimer.Restart();
                 Visible = true;
+            }
+
+            public void HideMenu()
+            {
+                if (IsOpen)
+                {
+                    Visible = false;
+                }
             }
 
             public void CloseMenu()
@@ -169,6 +182,7 @@ namespace DarkHelmet.BuildVision2
                 body.Clear();
                 selectionIndex = 0;
                 Visible = false;
+                IsOpen = false;
             }
 
             /// <summary>

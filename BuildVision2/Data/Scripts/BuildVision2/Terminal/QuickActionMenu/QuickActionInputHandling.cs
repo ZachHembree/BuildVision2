@@ -47,7 +47,7 @@ namespace DarkHelmet.BuildVision2
 
         private void OpenPropertyWheel()
         {
-            propertyList.CloseMenu();
+            propertyList.HideMenu();
             propertyWheel.OpenMenu();
 
             MenuState &= ~QuickActionMenuState.ListMenuControl;
@@ -59,7 +59,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void OpenPropertyList()
         {
-            propertyWheel.CloseMenu();
+            propertyWheel.HideMenu();
             propertyList.OpenMenu();
 
             MenuState &= ~QuickActionMenuState.WheelMenuControl;
