@@ -259,7 +259,7 @@ namespace RichHudFramework
             /// If you need to update input, use HandleInput().
             /// </summary>
             public override void BeginInput()
-            {                
+            {
                 if (!ExceptionHandler.ClientsPaused)
                 {
                     try
@@ -323,7 +323,10 @@ namespace RichHudFramework
                             Layout();
 
                             // Update cached values for use on draw and by child nodes
-                            UpdateCache();
+                            cachedPadding = Padding;
+                            cachedSize = new Vector2(Width, Height);
+                            cachedPosition = cachedOrigin + Offset;
+
                             UpdateMasking();
                         }
                     }
@@ -346,6 +349,7 @@ namespace RichHudFramework
                     {
                         if (Visible)
                         {
+                            UpdateCache();
                             Draw();
                         }
                     }
@@ -383,8 +387,8 @@ namespace RichHudFramework
             /// </summary>
             private void UpdateMasking()
             {
-                if (_parentFull != null && 
-                    (_parentFull.State & HudElementStates.IsMasked) > 0 && 
+                if (_parentFull != null &&
+                    (_parentFull.State & HudElementStates.IsMasked) > 0 &&
                     (State & HudElementStates.CanIgnoreMasking) == 0
                 )
                     State |= HudElementStates.IsMasked;

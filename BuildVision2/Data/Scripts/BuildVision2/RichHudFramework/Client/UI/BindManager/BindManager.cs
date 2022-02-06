@@ -62,7 +62,7 @@ namespace RichHudFramework
             /// <summary>
             /// MyAPIGateway.Gui.ChatEntryVisible, but actually usable for input polling
             /// </summary>
-            public static bool IsChatOpen { get; private set; }
+            public static bool IsChatOpen => (bool)_instance.GetOrSetMemberFunc(null, (int)BindClientAccessors.IsChatOpen);
 
             private static BindManager Instance
             {
@@ -88,7 +88,6 @@ namespace RichHudFramework
 
             private readonly ReadOnlyApiCollection<IBindGroup> groups;
             private readonly ReadOnlyApiCollection<IControl> controls;
-            private int chatInputTick;
 
             private static SeBlacklistModes lastBlacklist, tmpBlacklist;
 
@@ -114,8 +113,6 @@ namespace RichHudFramework
 
                 groups = new ReadOnlyApiCollection<IBindGroup>(x => new BindGroup(x), GetGroupCountFunc);
                 controls = new ReadOnlyApiCollection<IControl>(x => new Control(x), GetControlCountFunc);
-
-                IsChatOpen = false;
             }
 
             public static void Init()
@@ -130,24 +127,6 @@ namespace RichHudFramework
             {
                 UnloadAction();
                 _instance = null;
-            }
-
-            public override void HandleInput()
-            {
-                if (SharedBinds.Enter.IsNewPressed)
-                {
-                    IsChatOpen = !IsChatOpen;
-                    chatInputTick = 0;
-                }
-
-                // Synchronize with actual value every second or so
-                if (chatInputTick == 60)
-                {
-                    IsChatOpen = MyAPIGateway.Gui.ChatEntryVisible;
-                }
-
-                chatInputTick++;
-                chatInputTick %= 60;
             }
 
             /// <summary>

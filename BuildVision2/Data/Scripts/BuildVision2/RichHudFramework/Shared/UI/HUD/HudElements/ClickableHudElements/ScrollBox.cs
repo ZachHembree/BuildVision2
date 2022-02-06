@@ -502,7 +502,7 @@ namespace RichHudFramework.UI
         {
             int preloadRange = Math.Max((End - Start) * 2, 10),
                 preloadStart = MathHelper.Clamp(Start - preloadRange, 0, hudCollectionList.Count - 1),
-                preloadCount = MathHelper.Clamp((End + preloadRange) - preloadStart, 0, hudCollectionList.Count - preloadStart);
+                preloadCount = MathHelper.Clamp((2 * preloadRange), 0, hudCollectionList.Count - preloadStart);
             HudElementStates memberFlags = HudElementStates.CanPreload;
 
             if (UseSmoothScrolling)

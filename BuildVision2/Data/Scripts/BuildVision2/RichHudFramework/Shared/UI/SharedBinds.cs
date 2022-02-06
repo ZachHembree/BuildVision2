@@ -37,6 +37,7 @@ namespace RichHudFramework.UI
 
         public static IBind Control { get { return Instance.sharedModifiers[0]; } }
         public static IBind Shift { get { return Instance.sharedModifiers[1]; } }
+        public static IBind Alt { get { return Instance.sharedModifiers[2]; } }
 
         private static SharedBinds Instance
         {
@@ -80,6 +81,7 @@ namespace RichHudFramework.UI
             {
                 { "shift", MyKeys.Shift },
                 { "control", MyKeys.Control },
+                { "alt", MyKeys.Alt },
             });
         }
 

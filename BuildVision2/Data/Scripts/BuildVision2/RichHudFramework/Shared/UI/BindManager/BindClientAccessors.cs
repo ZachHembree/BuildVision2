@@ -77,5 +77,10 @@ namespace RichHudFramework.UI
         /// in/out: SeBlacklistModes
         /// </summary>
         RequestBlacklistMode = 7,
+
+        /// <summary>
+        /// out: bool
+        /// </summary>
+        IsChatOpen = 8,
     }
 }

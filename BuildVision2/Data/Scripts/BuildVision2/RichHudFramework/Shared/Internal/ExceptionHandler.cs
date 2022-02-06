@@ -487,10 +487,13 @@ namespace RichHudFramework.Internal
 
                 Run(() =>
                 {
-                    clients[n].CanUpdate = false;
-                    clients[n].BeforeClose();
+                    if (clients[n].CanUpdate)
+                        clients[n].BeforeClose();
+
                     success = true;
                 });
+
+                clients[n].CanUpdate = false;
 
                 if (success)
                     WriteToLog($"[{typeName}] Session component stopped.", true);

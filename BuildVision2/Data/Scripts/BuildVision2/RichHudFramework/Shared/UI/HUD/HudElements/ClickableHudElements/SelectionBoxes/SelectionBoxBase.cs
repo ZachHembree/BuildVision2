@@ -399,9 +399,14 @@ namespace RichHudFramework.UI
 
         protected void SetFocusFormat(int index)
         {
-            lastSelection.Item1 = hudChain[index];
-            ITextBoard textBoard = lastSelection.Item1.Element.TextBoard;
-            lastSelection.Item2 = textBoard.Format;
+            var selection = hudChain[index];
+            ITextBoard textBoard = selection.Element.TextBoard;
+
+            if (lastSelection.Item1 != selection)
+            {
+                lastSelection.Item1 = selection;
+                lastSelection.Item2 = textBoard.Format;
+            }
 
             textBoard.SetFormatting(textBoard.Format.WithColor(FocusTextColor));
         }
