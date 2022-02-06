@@ -18,7 +18,25 @@ namespace DarkHelmet.BuildVision2
     {
         protected override void HandleInput(Vector2 cursorPos)
         {
-            BindManager.RequestTempBlacklist(SeBlacklistModes.Mouse);
+            if (MenuState == QuickActionMenuState.Peek)
+            {
+                if (BvBinds.OpenRadial.IsNewPressed)
+                {
+                    MenuState = QuickActionMenuState.WheelMenuControl;
+                }
+                else if (BvBinds.OpenList.IsNewPressed)
+                {
+                    MenuState = QuickActionMenuState.ListMenuControl;
+                }
+                else
+                {
+                    propertyWheel.OpenSummary();
+                }
+            }
+            else
+            {
+                BindManager.RequestTempBlacklist(SeBlacklistModes.Mouse);
+            }
 
             // Open menus corresponding to their state flags
             if ((MenuState & QuickActionMenuState.WheelMenuControl) > 0 && !propertyWheel.IsOpen)

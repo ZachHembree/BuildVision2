@@ -18,13 +18,11 @@ namespace DarkHelmet.BuildVision2
     public enum QuickActionMenuState : int
     {
         Closed = 0x0,
-
-        WheelMenuControl = 0x1,
-        WidgetControl = WheelMenuControl | 0x2,
-
-        ListMenuControl = 0x4,
-
-        PropertyDuplication = 0x8,
+        Peek = 0x1,
+        WheelMenuControl = 0x2,
+        WidgetControl = WheelMenuControl | 0x4,
+        ListMenuControl = 0x8,
+        PropertyDuplication = 0x10,
     }
 
     public sealed partial class QuickActionMenu : HudElementBase

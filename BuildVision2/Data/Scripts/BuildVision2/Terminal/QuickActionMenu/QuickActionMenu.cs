@@ -61,7 +61,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void OpenMenu(PropertyBlock target, QuickActionMenuState initialState)
         {
-            CloseMenu();
+            if (MenuState != QuickActionMenuState.Peek)
+                CloseMenu();
+
             Target = target;
             MenuState = initialState;
             Visible = true;
@@ -82,10 +84,10 @@ namespace DarkHelmet.BuildVision2
 
         protected override void Layout()
         {
-            if ((MenuState & QuickActionMenuState.WheelMenuControl) > 0)
-                Size = propertyWheel.Size;
-            else
+            if ((MenuState & QuickActionMenuState.ListMenuControl) > 0)
                 Size = propertyList.Size;
+            else
+                Size = propertyWheel.Size;
 
             if (DrawDebug && textUpdateTick == 0)
             {

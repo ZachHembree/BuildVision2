@@ -170,10 +170,7 @@ namespace DarkHelmet.BuildVision2
 
             public void HideMenu()
             {
-                if (IsOpen)
-                {
-                    Visible = false;
-                }
+                Visible = false;
             }
 
             public void CloseMenu()

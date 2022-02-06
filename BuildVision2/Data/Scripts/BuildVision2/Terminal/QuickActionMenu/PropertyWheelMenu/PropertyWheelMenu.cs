@@ -54,7 +54,6 @@ namespace DarkHelmet.BuildVision2
             private readonly ObjectPool<object> propertyEntryPool;
             private readonly List<PropertyWheelShortcutEntry> shortcutEntries;
             private RadialSelectionBox<PropertyWheelEntryBase, Label> activeWheel;
-            private readonly BlockPropertyPrioritizer prioritizer;
             private readonly StringBuilder notifText;
             private int textUpdateTick;
 
@@ -66,6 +65,7 @@ namespace DarkHelmet.BuildVision2
                 // Selection wheel for block properties
                 propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(menuBody)
                 {
+                    Visible = false,
                     BackgroundColor = bodyColor,
                     HighlightColor = highlightColor,
                     ZOffset = -1,
@@ -145,7 +145,6 @@ namespace DarkHelmet.BuildVision2
                     x => (x as PropertyWheelEntry).Reset()
                 );
                 notifText = new StringBuilder();
-                prioritizer = new BlockPropertyPrioritizer();
             }
 
             /// <summary>
@@ -176,25 +175,33 @@ namespace DarkHelmet.BuildVision2
                     // Append registered shortcuts to end
                     propertyWheel.AddRange(shortcutEntries);
                     propertyWheel.IsInputEnabled = true;
+                    propertyWheel.Visible = true;
+                    dupeWheel.Visible = false;
                 }
 
                 IsOpen = true;
                 Visible = true;
             }
 
+            public void OpenSummary()
+            {
+                propertyWheel.Visible = false;
+                dupeWheel.Visible = false;
+                Visible = true;
+            }
+
             public void HideMenu()
             {
-                if (IsOpen)
-                {
-                    Visible = false;
-                }
+                Visible = false;
+                propertyWheel.Visible = false;
+                dupeWheel.Visible = false;
             }
 
             public void CloseMenu()
             {
                 Clear();
+                HideMenu();
                 IsOpen = false;
-                Visible = false;
             }
 
             /// <summary>
@@ -214,8 +221,15 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
-                Size = propertyWheel.Size;
-                menuBody.Size = 1.05f * propertyWheel.Size * propertyWheel.polyBoard.InnerRadius;
+                if (MenuState == QuickActionMenuState.Peek)
+                {
+                    Size = menuBody.Size;
+                }
+                else
+                {
+                    Size = propertyWheel.Size;
+                    menuBody.Size = 1.05f * propertyWheel.Size * propertyWheel.polyBoard.InnerRadius;
+                }
 
                 if (textUpdateTick == 0)
                 {

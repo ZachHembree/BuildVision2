@@ -48,6 +48,7 @@ namespace DarkHelmet.BuildVision2
         private readonly TerminalGrid targetGrid, tempGrid;
         private readonly List<IMySlimBlock> targetBuffer;
 
+        private readonly Stopwatch peekTimer;
         private readonly IMyHudNotification hudNotification;
         private Vector2 lastPos;
 
@@ -65,6 +66,7 @@ namespace DarkHelmet.BuildVision2
             hudNotification = MyAPIGateway.Utilities.CreateNotification("", 1000, MyFontEnum.Red);
 
             RichHudCore.LateMessageEntered += MessageHandler;
+            peekTimer = new Stopwatch();
         }
 
         public static void Init()
@@ -148,14 +150,25 @@ namespace DarkHelmet.BuildVision2
             if (Open)
             {
                 Target.Update();
-            }
 
-            if (Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))
-                CloseMenu();
+                if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None)
+                    CloseMenu();
+            }
         }
 
         public override void HandleInput()
         {
+            if (quickActionMenu.MenuState == QuickActionMenuState.Peek)
+            {
+                if (BvBinds.EnableMouse.IsPressed && BvConfig.Current.general.enablePeek)
+                {
+                    if (peekTimer.ElapsedMilliseconds > 100)
+                        TryOpenPeekMenu();
+                }
+                else
+                    CloseMenu();
+            }
+
             if (BvBinds.OpenRadial.IsNewPressed && !Open)
             {
                 TryOpenRadialMenu();
@@ -163,6 +176,10 @@ namespace DarkHelmet.BuildVision2
             else if (BvBinds.OpenList.IsNewPressed && !Open)
             {
                 TryOpenListMenu();
+            }
+            else if (BvBinds.EnableMouse.IsNewPressed && !Open)
+            {
+                TryOpenPeekMenu();
             }
             else if (SharedBinds.Escape.IsNewPressed && Open)
             {
@@ -183,14 +200,26 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Attempts to open the menu and set it to peek
+        /// Attempts to open the menu to the property list
         /// </summary>
         private void TryOpenListMenu()
         {
-            if (quickActionMenu.MenuState == QuickActionMenuState.Closed &&
+            if (quickActionMenu.MenuState == QuickActionMenuState.Closed && 
                 TryGetTarget() && CanAccessTargetBlock())
             {
                 quickActionMenu.OpenMenu(Target, QuickActionMenuState.ListMenuControl);
+            }
+        }
+
+        /// <summary>
+        /// Attempts to show block property summary
+        /// </summary>
+        private void TryOpenPeekMenu()
+        {
+            if (TryGetTarget() && CanAccessTargetBlock())
+            {
+                quickActionMenu.OpenMenu(Target, QuickActionMenuState.Peek);
+                peekTimer.Restart();
             }
         }
 

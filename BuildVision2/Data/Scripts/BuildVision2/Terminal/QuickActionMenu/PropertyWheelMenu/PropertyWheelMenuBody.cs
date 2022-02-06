@@ -65,6 +65,8 @@ namespace DarkHelmet.BuildVision2
                 {
                     DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
                     BuilderMode = TextBuilderModes.Wrapped,
+                    IsMasking = true,
+                    IsSelectivelyMasked = true,
                 };
 
                 notificationText = new Label(summaryText)
@@ -145,43 +147,58 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (activeWidget == null)
                     {
-                        PropertyBlock block = propertyWheelMenu.quickActionMenu.Target;
-                        summaryBuilder.Clear();
-                        summaryBuilder.Add("Build Vision\n", mainHeaderFormat);
+                        UpdateText();
+                    }
 
-                        foreach (SuperBlock.SubtypeAccessorBase subtype in block.SubtypeAccessors)
-                        {
-                            if (subtype != null)
-                                subtype.GetSummary(summaryBuilder, bodyFormatCenter, valueFormatCenter);
-                        }
-
-                        ITextBuilder notificationBuidler = notificationText.TextBoard;
-                        
-                        if (notification != null && notificationTimer.ElapsedMilliseconds < notificationTime)
-                        {
-                            notificationBuidler.Clear();
-                            notificationBuidler.Append("\n", bodyFormatCenter);
-                            notificationBuidler.Append(notification, valueFormatCenter);
-
-                            if (contNotification)
-                            {
-                                notification = null;
-                                contNotification = false;
-                            }
-                        }
-                        else
-                        {
-                            notificationBuidler.Clear();
-                            notification = null;
-                        }
-
-                        summaryText.Padding = .1f * (cachedSize - cachedPadding);
-                        summaryText.TextBoard.SetText(summaryBuilder);
+                    if (MenuState == QuickActionMenuState.Peek)
+                    {
+                        Size = new Vector2(250f);
+                        Padding = new Vector2(30f);
+                    }
+                    else
+                    {
+                        Padding = new Vector2(90f);
                     }
                 }
 
                 tick++;
                 tick %= textTickDivider;
+            }
+
+            private void UpdateText()
+            {
+                PropertyBlock block = propertyWheelMenu.quickActionMenu.Target;
+                summaryBuilder.Clear();
+                summaryBuilder.Add("Build Vision\n", mainHeaderFormat);
+
+                foreach (SuperBlock.SubtypeAccessorBase subtype in block.SubtypeAccessors)
+                {
+                    if (subtype != null)
+                        subtype.GetSummary(summaryBuilder, bodyFormatCenter, valueFormatCenter);
+                }
+
+                ITextBuilder notificationBuidler = notificationText.TextBoard;
+
+                if (notification != null && notificationTimer.ElapsedMilliseconds < notificationTime)
+                {
+                    notificationBuidler.Clear();
+                    notificationBuidler.Append("\n", bodyFormatCenter);
+                    notificationBuidler.Append(notification, valueFormatCenter);
+
+                    if (contNotification)
+                    {
+                        notification = null;
+                        contNotification = false;
+                    }
+                }
+                else
+                {
+                    notificationBuidler.Clear();
+                    notification = null;
+                }
+
+                summaryText.Padding = .1f * (cachedSize - cachedPadding);
+                summaryText.TextBoard.SetText(summaryBuilder);
             }
         }
     }
