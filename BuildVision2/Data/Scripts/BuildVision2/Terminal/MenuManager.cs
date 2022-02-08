@@ -67,6 +67,7 @@ namespace DarkHelmet.BuildVision2
 
             RichHudCore.LateMessageEntered += MessageHandler;
             peekTimer = new Stopwatch();
+            peekTimer.Start();
         }
 
         public static void Init()
@@ -158,14 +159,15 @@ namespace DarkHelmet.BuildVision2
 
         public override void HandleInput()
         {
-            if (quickActionMenu.MenuState == QuickActionMenuState.Peek)
+            if (quickActionMenu.MenuState == QuickActionMenuState.Peek ||
+                quickActionMenu.MenuState == QuickActionMenuState.Closed)
             {
                 if (BvBinds.EnableMouse.IsPressed && BvConfig.Current.general.enablePeek)
                 {
                     if (peekTimer.ElapsedMilliseconds > 100)
                         TryOpenPeekMenu();
                 }
-                else
+                else if (quickActionMenu.MenuState == QuickActionMenuState.Peek)
                     CloseMenu();
             }
 
@@ -176,10 +178,6 @@ namespace DarkHelmet.BuildVision2
             else if (BvBinds.OpenList.IsNewPressed && !Open)
             {
                 TryOpenListMenu();
-            }
-            else if (BvBinds.EnableMouse.IsNewPressed && !Open)
-            {
-                TryOpenPeekMenu();
             }
             else if (SharedBinds.Escape.IsNewPressed && Open)
             {
