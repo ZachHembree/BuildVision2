@@ -112,26 +112,29 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Updates associated text label for the entry in the menu
             /// </summary>
-            public void UpdateText()
+            public void UpdateText(bool selected)
             {
                 StringBuilder name = BlockMember.Name,
                     disp = BlockMember.FormattedValue,
                     status = BlockMember.StatusText;
 
+                var fmtName = selected ? selectedFormatCenter : bodyFormatCenter;
+                var fmtValue = selected ? selectedFormatCenter : valueFormatCenter;
+
                 textBuf.Clear();
 
                 if (name != null)
                 {
-                    textBuf.Add(name, bodyFormatCenter);
+                    textBuf.Add(name, fmtName);
 
                     if (disp != null || status != null)
-                        textBuf.Add(":\n", bodyFormatCenter);
+                        textBuf.Add(":\n", fmtName);
                 }
 
                 if (disp != null)
                 {
-                    textBuf.Add(' ', valueFormatCenter);
-                    textBuf.Add(disp, valueFormatCenter);
+                    textBuf.Add(' ', fmtValue);
+                    textBuf.Add(disp, fmtValue);
                 }
 
                 Element.Text = textBuf;

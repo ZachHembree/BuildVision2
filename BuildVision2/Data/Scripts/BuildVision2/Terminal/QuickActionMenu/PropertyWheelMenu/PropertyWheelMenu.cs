@@ -229,6 +229,27 @@ namespace DarkHelmet.BuildVision2
                 {
                     Size = propertyWheel.Size;
                     menuBody.Size = 1.05f * propertyWheel.Size * propertyWheel.polyBoard.InnerRadius;
+
+                    if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
+                    {
+                        propertyWheel.HighlightColor = highlightFocusColor;
+                    }
+                    else
+                    {
+                        propertyWheel.HighlightColor = highlightColor;
+                    }
+
+                    if (textUpdateTick == 0 && (MenuState & QuickActionMenuState.PropertyDuplication) == 0)
+                    {
+                        foreach (PropertyWheelEntryBase baseEntry in propertyWheel)
+                        {
+                            var entry = baseEntry as PropertyWheelEntry;
+
+                            if (entry != null && entry.Enabled)
+                                entry.UpdateText(entry == propertyWheel.Selection 
+                                    && (MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl);
+                        }
+                    }
                 }
 
                 if (textUpdateTick == 0)
@@ -241,14 +262,6 @@ namespace DarkHelmet.BuildVision2
                         notifText.Append(selectedEntryCount);
                         notifText.Append(" properties selected");
                         menuBody.ShowNotification(notifText, true);
-                    }
-
-                    foreach (PropertyWheelEntryBase baseEntry in propertyWheel)
-                    {
-                        var entry = baseEntry as PropertyWheelEntry;
-
-                        if (entry != null && entry.Enabled)
-                            entry.UpdateText();
                     }
                 }
 

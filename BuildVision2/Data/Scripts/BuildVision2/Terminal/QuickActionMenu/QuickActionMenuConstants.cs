@@ -39,10 +39,11 @@ namespace DarkHelmet.BuildVision2
             valueFormat = bodyFormat.WithColor(new Color(210, 210, 210)),
             bodyFormatCenter = bodyFormat.WithAlignment(TextAlignment.Center),
             valueFormatCenter = valueFormat.WithAlignment(TextAlignment.Center),
+            selectedFormatCenter = bodyFormatCenter.WithColor(TerminalFormatting.Charcoal),
             footerFormatLeft = bodyFormat.WithColor(new Color(220, 235, 245)),
             footerFormatRight = footerFormatLeft.WithAlignment(TextAlignment.Right),
             dupeCrossFormat = bodyFormat.WithColor(new Color(0, 220, 30)),
-            highlightFormat = bodyFormat.WithColor(new Color(200, 180, 100)),
+            highlightFormat = bodyFormat.WithColor(new Color(210, 190, 90)),
             selectedFormat = bodyFormat.WithColor(TerminalFormatting.Charcoal),
             blockIncFormat = footerFormatRight.WithColor(new Color(200, 35, 35));
 

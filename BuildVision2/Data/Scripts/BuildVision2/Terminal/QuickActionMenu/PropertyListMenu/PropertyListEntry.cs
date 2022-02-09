@@ -183,7 +183,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     dupeCrossFormat = QuickActionMenu.dupeCrossFormat;
                     bodyFormat = QuickActionMenu.bodyFormat;
-                    valueFormat = QuickActionMenu.valueFormat;
+                    valueFormat = isHighlighted ? QuickActionMenu.highlightFormat : QuickActionMenu.valueFormat;
                 }
 
                 // Update Name
