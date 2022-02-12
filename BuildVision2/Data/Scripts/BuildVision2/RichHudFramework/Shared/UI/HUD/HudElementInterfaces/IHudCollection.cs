@@ -51,27 +51,27 @@ namespace RichHudFramework
             /// <summary>
             /// Adds an element of type <see cref="TElement"/> to the collection.
             /// </summary>
-            void Add(TElement element);
+            void Add(TElement element, bool preload = false);
 
             /// <summary>
             /// Adds an element of type <see cref="TElementContainer"/> to the collection.
             /// </summary>
-            void Add(TElementContainer element);
+            void Add(TElementContainer element, bool preload = false);
 
             /// <summary>
             /// Add the given range to the end of the collection.
             /// </summary>
-            void AddRange(IReadOnlyList<TElementContainer> newContainers);
+            void AddRange(IReadOnlyList<TElementContainer> newContainers, bool preload = false);
 
             /// <summary>
             /// Adds an element of type <see cref="TElementContainer"/> at the given index.
             /// </summary>
-            void Insert(int index, TElementContainer container);
+            void Insert(int index, TElementContainer container, bool preload = false);
 
             /// <summary>
             /// Insert the given range into the collection.
             /// </summary>
-            void InsertRange(int index, IReadOnlyList<TElementContainer> newContainers);
+            void InsertRange(int index, IReadOnlyList<TElementContainer> newContainers, bool preload = false);
 
             /// <summary>
             /// Removes the specified element from the collection.
