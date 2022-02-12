@@ -228,6 +228,8 @@ namespace RichHudFramework
 
                 private static void Init()
                 {
+                    BillBoardUtils.Init();
+
                     if (_instance == null)
                         new HudMain();
                 }

@@ -9,6 +9,9 @@ namespace RichHudFramework
 
         namespace Rendering
         {
+            using Client;
+            using Server;
+
             public class MatBoard
             {
                 /// <summary>

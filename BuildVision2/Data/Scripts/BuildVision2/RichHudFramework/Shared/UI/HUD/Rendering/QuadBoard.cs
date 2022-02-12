@@ -11,11 +11,11 @@ namespace RichHudFramework
 {
     namespace UI
     {
-        using Client;
-        using Server;
-
         namespace Rendering
         {
+            using Client;
+            using Server;
+
             /// <summary>
             /// Bounding box paired with another as a mask for clipping billboards
             /// </summary>
