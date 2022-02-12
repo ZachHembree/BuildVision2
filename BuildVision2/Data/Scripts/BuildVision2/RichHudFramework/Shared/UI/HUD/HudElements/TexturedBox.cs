@@ -44,7 +44,7 @@ namespace RichHudFramework.UI
 
                 box.bounds = new BoundingBox2(cachedPosition - halfSize, cachedPosition + halfSize);
                 box.mask = maskingBox;
-                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
             }
         }
     }

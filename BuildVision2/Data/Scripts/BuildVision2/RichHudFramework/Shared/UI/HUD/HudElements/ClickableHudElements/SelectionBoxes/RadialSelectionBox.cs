@@ -223,7 +223,7 @@ namespace RichHudFramework.UI
         {
             Vector2 size = cachedSize - cachedPadding;
             polyBoard.Color = BackgroundColor;
-            polyBoard.Draw(size, cachedOrigin, ref HudSpace.PlaneToWorldRef[0]);
+            polyBoard.Draw(size, cachedOrigin, HudSpace.PlaneToWorldRef);
 
             if (SelectionIndex != -1)
             {
@@ -233,7 +233,7 @@ namespace RichHudFramework.UI
                 Vector2I slice = new Vector2I(0, entrySize - 1) + (selectionVisPos * entrySize);
 
                 polyBoard.Color = HighlightColor;
-                polyBoard.Draw(size, cachedOrigin, ref HudSpace.PlaneToWorldRef[0], slice);
+                polyBoard.Draw(size, cachedOrigin, slice, HudSpace.PlaneToWorldRef);
             }
         }
     }

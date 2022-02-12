@@ -56,25 +56,25 @@ namespace RichHudFramework.UI
                 halfSize = new Vector2(thickness, height) * .5f;
                 pos = cachedPosition + new Vector2((-width + thickness) * .5f, 0f);
                 box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
-                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                 // Top
                 halfSize = new Vector2(width, thickness) * .5f;
                 pos = cachedPosition + new Vector2(0f, (height - thickness) * .5f);
                 box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
-                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                 // Right
                 halfSize = new Vector2(thickness, height) * .5f;
                 pos = cachedPosition + new Vector2((width - thickness) * .5f, 0f);
                 box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
-                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                 // Bottom
                 halfSize = new Vector2(width, thickness) * .5f;
                 pos = cachedPosition + new Vector2(0f, (-height + thickness) * .5f);
                 box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
-                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
             }
         }
     }

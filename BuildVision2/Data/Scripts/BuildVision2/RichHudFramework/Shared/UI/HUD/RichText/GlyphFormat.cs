@@ -161,6 +161,17 @@ namespace RichHudFramework
                     && Data.Item4 == format.Data.Item4;
             }
 
+            /// <summary>
+            /// Determines whether or not two given <see cref="GlyphFormat"/>s share the same configuration.
+            /// </summary>
+            public bool Equals(GlyphFormat format)
+            {
+                return Data.Item1 == format.Data.Item1
+                    && Data.Item2 == format.Data.Item2
+                    && Data.Item3 == format.Data.Item3
+                    && Data.Item4 == format.Data.Item4;
+            }
+
             public bool DataEqual(GlyphFormatMembers data)
             {
                 return Data.Item1 == data.Item1

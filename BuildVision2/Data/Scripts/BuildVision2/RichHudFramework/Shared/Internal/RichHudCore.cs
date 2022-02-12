@@ -1,7 +1,6 @@
 ﻿using Sandbox.ModAPI;
 using System;
 using System.Diagnostics;
-using Sandbox.ModAPI;
 using VRage;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;

@@ -712,7 +712,7 @@ namespace RichHudFramework.UI
                     Vector2 tbOffset = text.TextOffset, bounds = new Vector2(-text.Size.X * .5f, text.Size.X * .5f);
 
                     for (int n = 0; n < highlightList.Count; n++)
-                        highlightList[n].Draw(highlightBoard, Origin, tbOffset, bounds, ref HudSpace.PlaneToWorldRef[0]);
+                        highlightList[n].Draw(highlightBoard, Origin, tbOffset, bounds, HudSpace.PlaneToWorldRef);
                 }
             }
 
@@ -784,7 +784,7 @@ namespace RichHudFramework.UI
             {
                 public Vector2 size, offset;
 
-                public void Draw(MatBoard matBoard, Vector2 origin, Vector2 tbOffset, Vector2 xBounds, ref MatrixD matrix)
+                public void Draw(MatBoard matBoard, Vector2 origin, Vector2 tbOffset, Vector2 xBounds, MatrixD[] matrixRef)
                 {
                     CroppedBox box = default(CroppedBox);
                     Vector2 clipSize, clipPos;
@@ -803,7 +803,7 @@ namespace RichHudFramework.UI
                     clipSize *= .5f;
                     box.bounds = new BoundingBox2(clipPos - clipSize, clipPos + clipSize);
 
-                    matBoard.Draw(ref box, ref matrix);
+                    matBoard.Draw(ref box, matrixRef);
                 }
             }
         }

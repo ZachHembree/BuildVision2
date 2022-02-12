@@ -96,7 +96,27 @@ namespace RichHudFramework
             /// <summary>
             /// out: HudInputMode (int)
             /// </summary>
-            InputMode = 18
+            InputMode = 18,
+
+            /// <summary>
+            /// in: Action
+            /// </summary>
+            SetBeforeDrawCallback = 19,
+
+            /// <summary>
+            /// in: Action
+            /// </summary>
+            SetAfterDrawCallback = 20,
+
+            /// <summary>
+            /// in: Action
+            /// </summary>
+            SetBeforeInputCallback = 21,
+
+            /// <summary>
+            /// in: Action
+            /// </summary>
+            SetAfterInputCallback = 22,
         }
 
         public enum HudInputMode : int

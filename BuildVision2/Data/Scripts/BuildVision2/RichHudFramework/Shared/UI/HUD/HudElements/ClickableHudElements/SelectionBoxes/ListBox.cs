@@ -58,11 +58,6 @@ namespace RichHudFramework.UI
         /// </summary>
         public Color SliderHighlight { get { return hudChain.SliderHighlight; } set { hudChain.SliderHighlight = value; } }
 
-        /// <summary>
-        /// Minimum number of elements visible in the list at any given time.
-        /// </summary>
-        public int MinVisibleCount { get { return hudChain.MinVisibleCount; } set { hudChain.MinVisibleCount = value; } }
-
         protected override Vector2I ListRange => hudChain.ClipRange;
 
         protected override Vector2 ListSize

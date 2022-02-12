@@ -190,19 +190,25 @@ namespace RichHudFramework.Internal
         /// </summary>
         private void ReportExceptionInternal(Exception e)
         {
-            string message = e.ToString();
+            if (e == null)
+                e = new Exception("Null exception reported.");
 
-            if (!exceptionMessages.Contains(message))
-                exceptionMessages.Add(message);
+            lock (exceptionMessages)
+            {
+                string message = e.ToString();
 
-            if (exceptionCount == 0)
-                errorTimer.Restart();
+                if (!exceptionMessages.Contains(message))
+                    exceptionMessages.Add(message);
 
-            exceptionCount++;
+                if (exceptionCount == 0)
+                    errorTimer.Restart();
 
-            // Exception loop, respond immediately
-            if (exceptionCount > exceptionLoopCount && errorTimer.ElapsedMilliseconds < exceptionLoopTime)
-                PauseClients();
+                exceptionCount++;
+
+                // Exception loop, respond immediately
+                if (exceptionCount > exceptionLoopCount && errorTimer.ElapsedMilliseconds < exceptionLoopTime)
+                    PauseClients();
+            }
         }
 
         /// <summary>

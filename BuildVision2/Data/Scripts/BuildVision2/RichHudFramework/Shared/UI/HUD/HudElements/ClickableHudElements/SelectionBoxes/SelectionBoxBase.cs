@@ -355,7 +355,7 @@ namespace RichHudFramework.UI
 
         protected virtual void UpdateSelectionFormatting()
         {
-            if (lastSelection.Item1 != null && lastSelection.Item1 != Selection)
+            if (lastSelection.Item1 != null)
             {
                 ITextBoard textBoard = lastSelection.Item1.Element.TextBoard;
                 textBoard.SetFormatting(lastSelection.Item2);
@@ -401,12 +401,8 @@ namespace RichHudFramework.UI
         {
             var selection = hudChain[index];
             ITextBoard textBoard = selection.Element.TextBoard;
-
-            if (lastSelection.Item1 != selection)
-            {
-                lastSelection.Item1 = selection;
-                lastSelection.Item2 = textBoard.Format;
-            }
+            lastSelection.Item1 = selection;
+            lastSelection.Item2 = textBoard.Format;
 
             textBoard.SetFormatting(textBoard.Format.WithColor(FocusTextColor));
         }
@@ -445,7 +441,7 @@ namespace RichHudFramework.UI
                 box.mask = maskingBox;
 
                 if (hudBoard.Color.A > 0)
-                    hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                    hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                 // Left align the tab
                 Vector2 tabPos = cachedPosition,
@@ -456,7 +452,7 @@ namespace RichHudFramework.UI
                 if (CanDrawTab && tabBoard.Color.A > 0)
                 {
                     box.bounds = new BoundingBox2(tabPos - tabSize, tabPos + tabSize);
-                    tabBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                    hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
                 }
             }
         }

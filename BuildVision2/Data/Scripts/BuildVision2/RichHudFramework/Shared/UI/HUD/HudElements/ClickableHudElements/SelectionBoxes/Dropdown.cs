@@ -214,7 +214,8 @@ namespace RichHudFramework.UI
         {
             if (Selection != null)
             {
-                display.name.TextBoard.SetText(Selection.Element.TextBoard.GetText());
+                var fmt = display.MouseInput.HasFocus ? Format.WithColor(listBox.FocusTextColor) : Format;
+                display.name.TextBoard.SetText(Selection.Element.TextBoard.ToString(), fmt);
                 CloseList();
             }
         }

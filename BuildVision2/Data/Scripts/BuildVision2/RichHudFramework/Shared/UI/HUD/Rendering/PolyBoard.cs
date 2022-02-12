@@ -82,13 +82,13 @@ namespace RichHudFramework.UI.Rendering
         protected readonly MaterialFrame matFrame;
         protected readonly List<int> triangles;
         protected readonly List<Vector2> vertices;
-        protected readonly List<Vector3D> drawVertices;
+        protected readonly List<Vector2> drawVertices;
 
         public PolyBoard()
         {
             triangles = new List<int>();
             vertices = new List<Vector2>();
-            drawVertices = new List<Vector3D>();
+            drawVertices = new List<Vector2>();
 
             matFrame = new MaterialFrame();
             polyMat = PolyMaterial.Default;
@@ -101,7 +101,7 @@ namespace RichHudFramework.UI.Rendering
         /// <summary>
         /// Draws a polygon using billboards
         /// </summary>
-        public virtual void Draw(Vector2 size, Vector2 origin, ref MatrixD matrix)
+        public virtual void Draw(Vector2 size, Vector2 origin, MatrixD[] matrixRef)
         {
             if (_sides > 2)
             {
@@ -118,19 +118,17 @@ namespace RichHudFramework.UI.Rendering
                 // Generate final vertices for drawing from unscaled vertices
                 for (int i = 0; i < drawVertices.Count; i++)
                 {
-                    var point = new Vector3D(origin + size * vertices[i], 0d);
-                    Vector3D.TransformNoProjection(ref point, ref matrix, out point);
-                    drawVertices[i] = point;
+                    drawVertices[i] = origin + size * vertices[i];
                 }
 
-                BillBoardUtils.AddTriangles(triangles, drawVertices, ref polyMat);
+                BillBoardUtils.AddTriangles(triangles, drawVertices, ref polyMat, matrixRef);
             }
         }
 
         /// <summary>
         /// Draws the given range of faces
         /// </summary>
-        public virtual void Draw(Vector2 size, Vector2 origin, ref MatrixD matrix, Vector2I faceRange)
+        public virtual void Draw(Vector2 size, Vector2 origin, Vector2I faceRange, MatrixD[] matrixRef)
         {
             if (_sides > 2)
             {
@@ -146,19 +144,15 @@ namespace RichHudFramework.UI.Rendering
 
                 // Generate final vertices for drawing from unscaled vertices
                 int max = drawVertices.Count - 1;
-                var point = new Vector3D(origin + size * vertices[max], 0d);
-                Vector3D.TransformNoProjection(ref point, ref matrix, out point);
-                drawVertices[max] = point;
+                drawVertices[max] = origin + size * vertices[max];
 
-                for (int i = faceRange.X; i <= (faceRange.Y + 1); i++)
+                for (int i = 0; i < drawVertices.Count; i++)
                 {
-                    point = new Vector3D(origin + size * vertices[i % max], 0d);
-                    Vector3D.TransformNoProjection(ref point, ref matrix, out point);
-                    drawVertices[i % max] = point;
+                    drawVertices[i] = origin + size * vertices[i];
                 }
 
                 faceRange *= 3;
-                BillBoardUtils.AddTriangleRange(faceRange, triangles, drawVertices, ref polyMat);
+                BillBoardUtils.AddTriangleRange(faceRange, triangles, drawVertices, ref polyMat, matrixRef);
             }
         }
 
@@ -185,7 +179,7 @@ namespace RichHudFramework.UI.Rendering
             drawVertices.Clear();
 
             for (int i = 0; i < vertices.Count; i++)
-                drawVertices.Add(Vector3D.Zero);
+                drawVertices.Add(Vector2.Zero);
 
             updateMatFit = true;
         }

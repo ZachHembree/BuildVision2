@@ -1,4 +1,5 @@
 ﻿using VRageMath;
+using System;
 
 namespace RichHudFramework
 {
@@ -88,7 +89,7 @@ namespace RichHudFramework
                 /// Draws a billboard in world space facing the +Z direction of the matrix given. Units in meters,
                 /// matrix transform notwithstanding. Dont forget to compensate for perspective scaling!
                 /// </summary
-                public void Draw(ref CroppedBox box, ref MatrixD matrix)
+                public void Draw(ref CroppedBox box, MatrixD[] matrixRef)
                 {
                     ContainmentType containment = ContainmentType.Contains;
 
@@ -104,12 +105,8 @@ namespace RichHudFramework
                             updateMatFit = false;
                         }
 
-                        if (containment == ContainmentType.Contains)
-                            minBoard.Draw(ref box, ref matrix);
-                        else if (containment == ContainmentType.Intersects && matFrame.Material == Material.Default)
-                            minBoard.DrawCropped(ref box, ref matrix);
-                        else
-                            minBoard.DrawCroppedTex(ref box, ref matrix);
+                        if (containment != ContainmentType.Disjoint)
+                            minBoard.Draw(ref box, matrixRef);
                     }
                 }     
             }
