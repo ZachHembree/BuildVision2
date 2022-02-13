@@ -48,6 +48,15 @@ namespace DarkHelmet.BuildVision2
 
             protected override void HandleInput(Vector2 cursorPos)
             {
+                if (BvBinds.Cancel.IsNewPressed)
+                {
+                    cancelButton.MouseInput.GetInputFocus();
+                }
+                else if (BvBinds.Select.IsNewPressed && !BvBinds.EnableMouse.IsPressed)
+                {
+                    confirmButton.MouseInput.GetInputFocus();
+                }
+
                 if (cancelButton.MouseInput.IsLeftReleased || BvBinds.Cancel.IsReleased)
                 {
                     Cancel();
