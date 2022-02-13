@@ -37,7 +37,7 @@ namespace DarkHelmet.BuildVision2
                     box.mask = maskingBox;
 
                     if (hudBoard.Color.A > 0)
-                        hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                        hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                     // Left align the tab
                     Vector2 tabPos = cachedPosition,
@@ -48,7 +48,7 @@ namespace DarkHelmet.BuildVision2
                     if (CanDrawTab && tabBoard.Color.A > 0)
                     {
                         box.bounds = new BoundingBox2(tabPos - tabSize, tabPos + tabSize);
-                        tabBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                        tabBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
                     }
                 }
             }

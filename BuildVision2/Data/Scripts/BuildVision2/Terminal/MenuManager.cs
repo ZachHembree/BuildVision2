@@ -77,7 +77,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         public static void TryOpenMenu() =>
-            Instance.TryOpenRadialMenu();
+            Instance.TryOpenWheelMenu();
 
         public static void HideMenu() =>
             Instance.CloseMenu();
@@ -171,14 +171,28 @@ namespace DarkHelmet.BuildVision2
                     CloseMenu();
             }
 
-            if (BvBinds.OpenRadial.IsNewPressed && !Open)
+            if ((quickActionMenu.MenuState & QuickActionMenuState.WheelMenuControl) == 0)
             {
-                TryOpenRadialMenu();
+                if (BvBinds.OpenWheelDupe.IsNewPressed)
+                {
+                    TryOpenWheelDupe();
+                }
+                else if (BvBinds.OpenWheel.IsNewPressed)
+                {
+                    TryOpenWheelMenu();
+                }
             }
-            else if (BvBinds.OpenList.IsNewPressed && !Open)
+            else if ((quickActionMenu.MenuState & QuickActionMenuState.ListMenuControl) == 0)
             {
-                TryOpenListMenu();
-            }
+                if (BvBinds.OpenListDupe.IsNewPressed)
+                {
+                    TryOpenListDupe();
+                }
+                else if (BvBinds.OpenList.IsNewPressed)
+                {
+                    TryOpenListMenu();
+                }
+            }            
             else if (SharedBinds.Escape.IsNewPressed && Open)
             {
                 CloseMenu();
@@ -188,12 +202,20 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Attempts to open the radial property menu
         /// </summary>
-        private void TryOpenRadialMenu()
+        private void TryOpenWheelMenu()
         {
-            if (quickActionMenu.MenuState == QuickActionMenuState.Closed && 
-                TryGetTarget() && CanAccessTargetBlock())
+            if (TryGetTarget() && CanAccessTargetBlock())
             {
                 quickActionMenu.OpenMenu(Target, QuickActionMenuState.WheelMenuControl);
+            }
+        }
+
+        private void TryOpenWheelDupe()
+        {
+            if ((quickActionMenu.MenuState & QuickActionMenuState.PropertyDuplication) == 0 &&
+                TryGetTarget() && CanAccessTargetBlock())
+            {
+                quickActionMenu.OpenMenu(Target, QuickActionMenuState.WheelMenuControl | QuickActionMenuState.PropertyDuplication);
             }
         }
 
@@ -202,10 +224,18 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void TryOpenListMenu()
         {
-            if (quickActionMenu.MenuState == QuickActionMenuState.Closed && 
-                TryGetTarget() && CanAccessTargetBlock())
+            if (TryGetTarget() && CanAccessTargetBlock())
             {
                 quickActionMenu.OpenMenu(Target, QuickActionMenuState.ListMenuControl);
+            }
+        }
+
+        private void TryOpenListDupe()
+        {
+            if ((quickActionMenu.MenuState & QuickActionMenuState.PropertyDuplication) == 0 &&
+                TryGetTarget() && CanAccessTargetBlock())
+            {
+                quickActionMenu.OpenMenu(Target, QuickActionMenuState.ListMenuControl | QuickActionMenuState.PropertyDuplication);
             }
         }
 

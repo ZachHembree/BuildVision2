@@ -20,7 +20,7 @@ namespace DarkHelmet.BuildVision2
         {
             if (MenuState == QuickActionMenuState.Peek)
             {
-                if (BvBinds.OpenRadial.IsNewPressed)
+                if (BvBinds.OpenWheel.IsNewPressed)
                 {
                     MenuState = QuickActionMenuState.WheelMenuControl;
                 }

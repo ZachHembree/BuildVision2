@@ -21,7 +21,7 @@ namespace DarkHelmet.BuildVision2
         {
             return new RichText
             {
-                { $"To open Build Vision, aim at the block you want to control and press press " }, { $"[{GetBindString(BvBinds.OpenRadial)}]", highlight }, {"; to close the menu, " },
+                { $"To open Build Vision, aim at the block you want to control and press press " }, { $"[{GetBindString(BvBinds.OpenWheel)}]", highlight }, {"; to close the menu, " },
                 { $"[{GetBindString(BvBinds.OpenList)}]", highlight }, { ". Pressing and holding " }, {$"[{GetBindString(BvBinds.EnableMouse)}]", highlight}, 
                 {" will allow you to use the mouse.\n\n" },
 
@@ -34,7 +34,7 @@ namespace DarkHelmet.BuildVision2
 
                 { $"Main Binds:\n\n", subsection},
 
-                { $"\tOpen Menu:\t\t|\t[{GetBindString(BvBinds.OpenRadial)}]\n" },
+                { $"\tOpen Menu:\t\t|\t[{GetBindString(BvBinds.OpenWheel)}]\n" },
                 { $"\tClose Menu:\t\t|\t[{GetBindString(BvBinds.OpenList)}]\n" },
                 { $"\tSelect:\t|\t[{GetBindString(BvBinds.Select)}]\n" },
                 { $"\tScroll Up:\t\t\t|\t[{GetBindString(BvBinds.ScrollUp)}]\n" },
@@ -81,7 +81,7 @@ namespace DarkHelmet.BuildVision2
             string bindHelp =
                 "\n---Build Vision 2 Binds---\n" +
                 $"Peek: [{GetBindString(BvBinds.EnableMouse)}]\n" +
-                $"Open: [{GetBindString(BvBinds.OpenRadial)}]\n" +
+                $"Open: [{GetBindString(BvBinds.OpenWheel)}]\n" +
                 $"Close: [{GetBindString(BvBinds.OpenList)}]\n" +
                 $"Select: [{GetBindString(BvBinds.Select)}]\n" +
                 $"Scroll Up: [{GetBindString(BvBinds.ScrollUp)}]\n" +

@@ -263,8 +263,10 @@ namespace DarkHelmet.BuildVision2
                 { "MultX", MyKeys.Alt },
                 { "MultY", MyKeys.Shift },
                 { "MultZ", MyKeys.Alt, MyKeys.Shift },
-                { "OpenRadial", MyKeys.Control, RichHudControls.MousewheelUp },
+                { "OpenWheel", MyKeys.Control, RichHudControls.MousewheelUp },
+                { "OpenWheelDupe", MyKeys.Control, MyKeys.Shift, RichHudControls.MousewheelUp },
                 { "OpenList", MyKeys.Control, RichHudControls.MousewheelDown },
+                { "OpenListDupe", MyKeys.Control, MyKeys.Shift, RichHudControls.MousewheelDown },
             }.GetBindDefinitions(),
             defaultMain = new BindGroupInitializer
             {

@@ -65,8 +65,8 @@ namespace DarkHelmet.BuildVision2
                 {
                     DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
                     BuilderMode = TextBuilderModes.Wrapped,
-                    IsMasking = true,
-                    IsSelectivelyMasked = true,
+                    //IsMasking = true,
+                    //IsSelectivelyMasked = true,
                 };
 
                 notificationText = new Label(summaryText)
