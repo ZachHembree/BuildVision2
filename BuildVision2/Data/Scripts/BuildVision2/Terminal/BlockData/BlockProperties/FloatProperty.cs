@@ -201,38 +201,6 @@ namespace DarkHelmet.BuildVision2
 
                 return increment;
             }
-
-            /// <summary>
-            /// Gets value to add or subtract from the property based on multipliers used.
-            /// </summary>
-            private float GetStep()
-            {
-                float inc;
-
-                if (BvBinds.MultZ.IsPressed)
-                    inc = Increment * Cfg.floatMult.Z;
-                else if (BvBinds.MultY.IsPressed)
-                    inc = Increment * Cfg.floatMult.Y;
-                else if (BvBinds.MultX.IsPressed)
-                    inc = Increment * Cfg.floatMult.X;
-                else
-                    inc = Increment;
-
-                return inc.Round(3);
-            }
-
-            /// <summary>
-            /// Changes property float value based on given delta.
-            /// </summary>
-            private void ChangePropValue(float value)
-            {
-                float current = GetValue();
-
-                if (float.IsInfinity(current))
-                    current = 0f;
-
-                SetValue((float)Math.Round(MathHelper.Clamp((current + value), MinValue, MaxValue), 4));
-            }
         }
     }
 }

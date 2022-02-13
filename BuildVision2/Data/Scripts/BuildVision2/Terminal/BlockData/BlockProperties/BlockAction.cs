@@ -142,7 +142,7 @@ namespace DarkHelmet.BuildVision2
             public static void GetDoorActions(PropertyBlock block, List<BlockMemberBase> members)
             {
                 members.Add(GetBlockAction(
-                    MyTexts.TrySubstitute("Open/Close"), null,
+                    MyTexts.TrySubstitute("Open / Close"), null,
                     block.Door.ToggleDoor, block));
             }
 

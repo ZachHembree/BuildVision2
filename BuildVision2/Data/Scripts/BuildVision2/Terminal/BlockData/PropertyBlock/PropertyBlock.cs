@@ -5,6 +5,7 @@ using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System.Collections.Generic;
 using System.Text;
+using System;
 using VRage;
 using VRageMath;
 using VRage.ModAPI;
@@ -184,28 +185,38 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private static void GetTooltipName(ITerminalProperty prop, StringBuilder dst)
         {
-            dst.Clear();
-
             if (prop is IMyTerminalControlTitleTooltip)
             {
                 var tooltip = prop as IMyTerminalControlTitleTooltip;
-                int trailingCharacters = 0;
                 StringBuilder name = MyTexts.Get(tooltip.Title);
 
-                for (int n = name.Length - 1; n >= 0; n--)
+                // Exclude leading spaces
+                int start = 0;
+
+                for (int i = 0; i < name.Length; i++)
                 {
-                    if ((name[n] >= '0' && name[n] <= '9') || name[n] >= 'A')
+                    if (name[i] > ' ')
                         break;
-                    else
-                        trailingCharacters++;
+
+                    start++;
                 }
 
-                dst.EnsureCapacity(name.Length - trailingCharacters);
+                dst.Clear();
+                dst.EnsureCapacity(name.Length - start);
 
-                for (int n = 0; n < (name.Length - trailingCharacters); n++)
+                for (int n = start; n < name.Length; n++)
                 {
-                    if (name[n] >= ' ')
-                        dst.Append(name[n]);
+                    char ch = name[n],
+                        nextCh = name[Math.Min(n + 1, name.Length - 1)];
+
+                    if (
+                        // Exclude special chars and most punctuation
+                        (ch == ' ' || ch >= 'A' || (ch >= '0' && ch <= '9') ) 
+                        // Exclude repeating and trailing spaces
+                        && !(nextCh == ' ' && ch == ' ') )
+                    {
+                        dst.Append(ch);
+                    }
                 }
             }
         }
@@ -217,10 +228,21 @@ namespace DarkHelmet.BuildVision2
         {
             if (src != null)
             {
-                dst.Clear();
-                dst.EnsureCapacity(src.Length);
+                // Exclude leading spaces
+                int start = 0;
 
-                for (int n = 0; n < src.Length; n++)
+                for (int i = 0; i < src.Length; i++)
+                {
+                    if (src[i] > ' ')
+                        break;
+
+                    start++;
+                }
+
+                dst.Clear();
+                dst.EnsureCapacity(src.Length - start);
+
+                for (int n = start; n < src.Length; n++)
                 {
                     if (src[n] >= ' ')
                         dst.Append(src[n]);

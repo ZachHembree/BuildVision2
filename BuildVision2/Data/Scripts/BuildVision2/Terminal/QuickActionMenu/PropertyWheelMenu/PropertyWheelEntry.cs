@@ -133,7 +133,6 @@ namespace DarkHelmet.BuildVision2
 
                 if (disp != null)
                 {
-                    textBuf.Add(' ', fmtValue);
                     textBuf.Add(disp, fmtValue);
                 }
 
