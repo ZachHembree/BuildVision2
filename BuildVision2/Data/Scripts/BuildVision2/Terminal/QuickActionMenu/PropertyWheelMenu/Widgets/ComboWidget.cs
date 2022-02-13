@@ -46,7 +46,9 @@ namespace DarkHelmet.BuildVision2
 
                 initValue = blockComboMember.Value;
                 int selectedIndex = comboBox.HudCollection.FindIndex(x => x.AssocMember.Key == initValue);
+
                 comboBox.SetSelectionAt(selectedIndex);
+                comboBox.MouseInput.GetInputFocus();
             }
 
             public override void Reset()
