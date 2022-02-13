@@ -2,6 +2,7 @@
 using RichHudFramework.UI.Rendering;
 using RichHudFramework;
 using System.Text;
+using System;
 using VRageMath;
 
 namespace DarkHelmet.BuildVision2
@@ -105,11 +106,13 @@ namespace DarkHelmet.BuildVision2
             public bool InputOpen => Element.value.InputOpen;
 
             private PropertyBlock target;
+            private readonly StringBuilder textBuf;
 
             public PropertyListEntry()
             {
                 SetElement(new PropertyListEntryElement());
                 NameText.Format = bodyFormat;
+                textBuf = new StringBuilder();
             }
 
             public void SetMember(PropertyBlock target, IBlockMember member, int index)
@@ -194,7 +197,13 @@ namespace DarkHelmet.BuildVision2
 
                 if (name != null)
                 {
-                    nameTB.Append(name, bodyFormat);
+                    textBuf.Clear();
+                    textBuf.AppendSubstring(name, 0, Math.Min(name.Length, maxEntryCharCount));
+
+                    if (name.Length > maxEntryCharCount)
+                        textBuf.Append("...");
+
+                    nameTB.Append(textBuf, bodyFormat);
 
                     if (disp != null || status != null)
                         nameTB.Append(": ", bodyFormat);

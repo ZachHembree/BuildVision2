@@ -91,12 +91,12 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public IBlockMember BlockMember { get; private set; }
 
-            private readonly RichText textBuf;
+            private readonly StringBuilder textBuf;
             private PropertyBlock target;
 
             public PropertyWheelEntry()
             {
-                textBuf = new RichText();
+                textBuf = new StringBuilder();
             }
 
             /// <summary>
@@ -115,28 +115,38 @@ namespace DarkHelmet.BuildVision2
             public void UpdateText(bool selected)
             {
                 StringBuilder name = BlockMember.Name,
-                    disp = BlockMember.FormattedValue,
-                    status = BlockMember.StatusText;
+                    disp = BlockMember.FormattedValue;
+                ITextBuilder tb = Element.TextBoard;
 
-                var fmtName = selected ? selectedFormatCenter : bodyFormatCenter;
+                var fmtName = selected ? selectedFormatCenter : nameFormatCenter;
                 var fmtValue = selected ? selectedFormatCenter : valueFormatCenter;
 
-                textBuf.Clear();
+                tb.Clear();
 
                 if (name != null)
                 {
-                    textBuf.Add(name, fmtName);
+                    textBuf.Clear();
+                    textBuf.AppendSubstring(name, 0, Math.Min(name.Length, maxEntryCharCount));
 
-                    if (disp != null || status != null)
-                        textBuf.Add(":\n", fmtName);
+                    if (name.Length > maxEntryCharCount)
+                        textBuf.Append("...");
+
+                    if (disp != null)
+                        textBuf.Append(":\n");
+
+                    tb.Append(textBuf, fmtName);
                 }
 
                 if (disp != null)
                 {
-                    textBuf.Add(disp, fmtValue);
-                }
+                    textBuf.Clear();
+                    textBuf.AppendSubstring(disp, 0, Math.Min(disp.Length, maxEntryCharCount));
 
-                Element.Text = textBuf;
+                    if (disp.Length > maxEntryCharCount)
+                        textBuf.Append("...");
+
+                    tb.Append(textBuf, fmtValue);
+                }
             }
 
             public override void Reset()

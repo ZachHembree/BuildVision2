@@ -174,7 +174,7 @@ namespace DarkHelmet.BuildVision2
                 foreach (SuperBlock.SubtypeAccessorBase subtype in block.SubtypeAccessors)
                 {
                     if (subtype != null)
-                        subtype.GetSummary(summaryBuilder, bodyFormatCenter, valueFormatCenter);
+                        subtype.GetSummary(summaryBuilder, bodyFormatCenter, bodyValueFormatCenter);
                 }
 
                 ITextBuilder notificationBuidler = notificationText.TextBoard;
@@ -183,7 +183,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     notificationBuidler.Clear();
                     notificationBuidler.Append("\n", bodyFormatCenter);
-                    notificationBuidler.Append(notification, valueFormatCenter);
+                    notificationBuidler.Append(notification, bodyValueFormatCenter);
 
                     if (contNotification)
                     {
