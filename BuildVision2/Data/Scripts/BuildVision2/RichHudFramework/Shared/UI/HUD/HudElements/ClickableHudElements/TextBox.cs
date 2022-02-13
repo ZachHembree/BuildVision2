@@ -453,9 +453,9 @@ namespace RichHudFramework.UI
                         Vector2 size = ch.Size,
                             pos = ch.Offset + text.TextOffset;
                         BoundingBox2 textBounds = BoundingBox2.CreateFromHalfExtent(Vector2.Zero, .5f * text.Size),
-                            charBounds = BoundingBox2.CreateFromHalfExtent(pos, .4f * size);
+                            charBounds = BoundingBox2.CreateFromHalfExtent(pos, .5f * Vector2.Max(size, new Vector2(8f)));
 
-                        if (textBounds.Contains(charBounds) == ContainmentType.Contains)
+                        if (textBounds.Contains(charBounds) != ContainmentType.Disjoint)
                             isCharVisible = true;
                     }
 
