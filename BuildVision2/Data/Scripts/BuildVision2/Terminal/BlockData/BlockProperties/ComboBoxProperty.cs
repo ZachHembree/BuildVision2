@@ -127,6 +127,12 @@ namespace DarkHelmet.BuildVision2
                 return 0;
             }
 
+            public override void SetValue(long value)
+            {
+                int index = MathHelper.Clamp((int)value, 0, comboEntries.Count - 1);
+                base.SetValue(comboEntries[index].Key);
+            }
+
             public override bool TryParseValue(string valueData, out long value) =>
                 long.TryParse(valueData, out value);
         }

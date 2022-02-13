@@ -320,6 +320,17 @@ namespace DarkHelmet.BuildVision2
                 textBuilder.Append($"Open: {body[selectionIndex].PropertyOpen}\n");
                 textBuilder.Append($"Is Duplicating: {body[selectionIndex].IsSelectedForDuplication}\n");
                 textBuilder.Append($"Chat Open: {BindManager.IsChatOpen}\n");
+
+                if (body[selectionIndex].AssocMember is IBlockComboBox)
+                {
+                    var member = body[selectionIndex].AssocMember as IBlockComboBox;
+                    textBuilder.Append($"Value: {member.Value}\n");
+
+                    for (int i = 0; i < member.ComboEntries.Count; i++)
+                    {
+                        textBuilder.Append($"Entry {member.ComboEntries[i].Key}: {member.ComboEntries[i].Value}\n");
+                    }
+                }
             }
         }
     }

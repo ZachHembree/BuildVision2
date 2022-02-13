@@ -202,18 +202,20 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void HandleComboInput()
             {
-                IBlockMember blockMember = body[selectionIndex].AssocMember;
-                var comboBox = blockMember as IBlockComboBox;
-                var entries = comboBox.ComboEntries as List<KeyValuePair<long, StringBuilder>>;
-                int index = entries.FindIndex(x => x.Key == comboBox.Value);
+                if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
+                {
+                    IBlockMember blockMember = body[selectionIndex].AssocMember;
+                    var comboBox = blockMember as IBlockComboBox;
+                    var entries = comboBox.ComboEntries as List<KeyValuePair<long, StringBuilder>>;
+                    int index = (int)comboBox.Value;
 
-                if (BvBinds.ScrollUp.IsNewPressed)
-                    index++;
-                else if (BvBinds.ScrollDown.IsNewPressed)
-                    index--;
+                    if (BvBinds.ScrollUp.IsNewPressed)
+                        index = MathHelper.Clamp(index + 1, 0, entries.Count - 1);
+                    else if (BvBinds.ScrollDown.IsNewPressed)
+                        index = MathHelper.Clamp(index - 1, 0, entries.Count - 1);
 
-                index = MathHelper.Clamp(index, 0, entries.Count - 1);
-                comboBox.Value = entries[index].Key;
+                    comboBox.Value = index;
+                }
             }
 
             private void HandleTextInput()

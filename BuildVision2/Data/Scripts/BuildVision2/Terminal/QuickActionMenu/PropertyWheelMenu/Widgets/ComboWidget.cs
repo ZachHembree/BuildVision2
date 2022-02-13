@@ -45,9 +45,7 @@ namespace DarkHelmet.BuildVision2
                     comboBox.Add(entry.Value, entry);
 
                 initValue = blockComboMember.Value;
-                int selectedIndex = comboBox.HudCollection.FindIndex(x => x.AssocMember.Key == initValue);
-
-                comboBox.SetSelectionAt(selectedIndex);
+                comboBox.SetSelectionAt((int)blockComboMember.Value);
                 comboBox.MouseInput.GetInputFocus();
             }
 
@@ -60,14 +58,15 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Confirm()
             {
-                if (comboBox.Selection != null)
-                    blockComboMember.Value = comboBox.Selection.AssocMember.Key;
+                if (comboBox.SelectionIndex != -1)
+                    blockComboMember.Value = comboBox.SelectionIndex;
 
                 CloseWidgetCallback();
             }
 
             protected override void Cancel()
             {
+                blockComboMember.Value = initValue;
                 CloseWidgetCallback();
             }
 
