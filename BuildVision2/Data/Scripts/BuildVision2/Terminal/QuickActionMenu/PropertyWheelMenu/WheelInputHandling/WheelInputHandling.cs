@@ -94,7 +94,8 @@ namespace DarkHelmet.BuildVision2
                 var propertyEntry = selection as PropertyWheelEntry;
 
                 if (BvBinds.Select.IsReleased || 
-                    (propertyEntry?.BlockMember is IBlockTextMember && BindManager.IsChatOpen))
+                    (propertyEntry?.BlockMember is IBlockTextMember 
+                    && SharedBinds.Enter.IsNewPressed && BindManager.IsChatOpen))
                 {
                     if (selection is PropertyWheelShortcutEntry)
                     {

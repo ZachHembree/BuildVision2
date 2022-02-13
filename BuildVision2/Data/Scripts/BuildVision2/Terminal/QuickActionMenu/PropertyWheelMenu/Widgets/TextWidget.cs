@@ -1,4 +1,4 @@
-﻿using RichHudFramework.UI;
+using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using System;
 using System.Text;
@@ -48,6 +48,11 @@ namespace DarkHelmet.BuildVision2
                 label.TextBoard.SetText(textMember.Name);
                 textField.TextBoard.SetText(textValueMember.Value);
                 textField.CharFilterFunc = textMember.CharFilterFunc;
+
+                if (BindManager.IsChatOpen && !textField.InputOpen)
+                    textField.OpenInput();
+
+                textField.MouseInput.GetInputFocus();
             }
 
             public override void Reset()
@@ -61,10 +66,16 @@ namespace DarkHelmet.BuildVision2
             {
                 base.HandleInput(cursorPos);
 
-                if (BindManager.IsChatOpen && !textField.InputOpen)
-                    textField.OpenInput();
-                else if (!BindManager.IsChatOpen && textField.InputOpen)
-                    Confirm();
+                if (SharedBinds.Enter.IsNewPressed)
+                {
+                    if (BindManager.IsChatOpen && !textField.InputOpen)
+                    {
+                        textField.OpenInput();
+                        textField.MouseInput.GetInputFocus();
+                    }
+                    else if (!BindManager.IsChatOpen && textField.InputOpen)
+                        Confirm();
+                }
             }
 
             protected override void Confirm()
