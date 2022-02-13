@@ -30,18 +30,17 @@ namespace DarkHelmet.BuildVision2
                     // Highlight selection
                     if (!body[selectionIndex].PropertyOpen)
                     {
-                        bool multXPressed = BvBinds.MultX.IsPressed,
-                            canWrap = !multXPressed && listWrapTimer.ElapsedMilliseconds > 300;
+                        bool multXPressed = BvBinds.MultX.IsPressed;
                         int offset = multXPressed ? 4 : 1;
 
                         if (BvBinds.ScrollUp.IsNewPressed)
                         {
-                            OffsetSelectionIndex(-offset, canWrap);
+                            OffsetSelectionIndex(-offset);
                             listWrapTimer.Restart();
                         }
                         else if (BvBinds.ScrollDown.IsNewPressed)
                         {
-                            OffsetSelectionIndex(offset, canWrap);
+                            OffsetSelectionIndex(offset);
                             listWrapTimer.Restart();
                         }
                     }
@@ -198,6 +197,9 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            /// <summary>
+            /// Handles input for comboboxes
+            /// </summary>
             private void HandleComboInput()
             {
                 IBlockMember blockMember = body[selectionIndex].AssocMember;
@@ -239,29 +241,33 @@ namespace DarkHelmet.BuildVision2
             /// Offsets selection index in the direction of the offset. If wrap == true, the index will wrap around
             /// if the offset places it out of range.
             /// </summary>
-            public void OffsetSelectionIndex(int offset, bool wrap = false)
+            public void OffsetSelectionIndex(int offset)
             {
+                bool canWrap = !BvBinds.MultX.IsPressed && listWrapTimer.ElapsedMilliseconds > 300;
                 int index = selectionIndex,
                     dir = offset > 0 ? 1 : -1,
-                    absOffset = Math.Abs(offset);
+                    absOffset = canWrap ? 1 : Math.Abs(offset);
 
                 if (dir > 0)
                 {
                     for (int i = 0; i < absOffset; i++)
                     {
-                        if (wrap)
+                        if (canWrap)
                             index = (index + dir) % body.Collection.Count;
                         else
                             index = Math.Min(index + dir, body.Collection.Count - 1);
 
-                        index = FindFirstEnabled(index, wrap);
+                        index = FindFirstEnabled(index, canWrap);
                     }
+
+                    if (index < selectionIndex)
+                        listWrapTimer.Restart();
                 }
                 else
                 {
                     for (int i = 0; i < absOffset; i++)
                     {
-                        if (wrap)
+                        if (canWrap)
                             index = (index + dir) % body.Collection.Count;
                         else
                             index = Math.Max(index + dir, 0);
@@ -269,8 +275,11 @@ namespace DarkHelmet.BuildVision2
                         if (index < 0)
                             index += body.Collection.Count;
 
-                        index = FindLastEnabled(index, wrap);
+                        index = FindLastEnabled(index, canWrap);
                     }
+
+                    if (index > selectionIndex)
+                        listWrapTimer.Restart();
                 }
 
                 selectionIndex = index;
