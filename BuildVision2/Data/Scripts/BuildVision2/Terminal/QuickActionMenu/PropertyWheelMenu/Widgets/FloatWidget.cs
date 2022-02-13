@@ -1,4 +1,5 @@
 ﻿using RichHudFramework.UI;
+using RichHudFramework.UI.Client;
 using System;
 using VRageMath;
 
@@ -29,7 +30,7 @@ namespace DarkHelmet.BuildVision2
                     Spacing = 8f,
                     CollectionContainer =
                     {
-                        textField,
+                        { textField, true },
                         sliderBox,
                         buttonChain
                     }
@@ -69,11 +70,12 @@ namespace DarkHelmet.BuildVision2
                 {
                     floatMember.Value = sliderBox.Current;
 
-                    if (SharedBinds.Control.IsNewPressed && sliderBox.MouseInput.IsNewLeftClicked)
-                    {
+                    if (BindManager.IsChatOpen && !useManualEntry)
                         OpenFieldInput();
-                    }
-                    else if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
+                    else if (!BindManager.IsChatOpen && useManualEntry)
+                        Confirm();
+
+                    if (!useManualEntry && (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed))
                     {
                         float offset = floatMember.Increment;
 
@@ -100,9 +102,7 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Confirm()
             {
-                if (!useManualEntry)
-                { }
-                else
+                if (useManualEntry)
                 {
                     float newValue;
 
@@ -135,6 +135,8 @@ namespace DarkHelmet.BuildVision2
                 sliderBox.Visible = false;
 
                 textField.TextBoard.SetText(floatMember.ValueText);
+                textField.OpenInput();
+
                 useManualEntry = true;
             }
 
@@ -143,6 +145,7 @@ namespace DarkHelmet.BuildVision2
                 textField.Visible = false;
                 sliderBox.Visible = true;
                 useManualEntry = false;
+                textField.CloseInput();
             }
         }
     }

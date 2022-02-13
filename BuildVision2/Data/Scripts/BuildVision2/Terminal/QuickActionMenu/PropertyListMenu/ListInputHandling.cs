@@ -46,6 +46,8 @@ namespace DarkHelmet.BuildVision2
                         }
                     }
 
+                    selectionIndex = MathHelper.Clamp(selectionIndex, 0, body.Count - 1);
+
                     if (BvBinds.Cancel.IsReleased)
                     {
                         if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
