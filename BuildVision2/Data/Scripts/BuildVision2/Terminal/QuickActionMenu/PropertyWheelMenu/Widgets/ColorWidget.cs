@@ -86,45 +86,63 @@ namespace DarkHelmet.BuildVision2
             {
                 colorMember.Value = colorPicker.Color;
 
-                if (!BvBinds.EnableMouse.IsPressed)
+                if (cancelButton.MouseInput.IsLeftReleased || BvBinds.Cancel.IsReleased)
                 {
-                    if (!channelSelected)
+                    Cancel();
+                }
+                else if (confirmButton.MouseInput.IsLeftReleased ||
+                    (BvBinds.Select.IsReleased && !BvBinds.EnableMouse.IsPressed))
+                {
+                    Confirm();
+                }
+                else 
+                {
+                    if (!BvBinds.EnableMouse.IsPressed)
                     {
-                        if (BvBinds.ScrollUp.IsNewPressed)
-                            selectedChannel--;
-                        else if (BvBinds.ScrollDown.IsNewPressed)
-                            selectedChannel++;
+                        if (!channelSelected)
+                        {
+                            if (BvBinds.ScrollUp.IsNewPressed)
+                                selectedChannel--;
+                            else if (BvBinds.ScrollDown.IsNewPressed)
+                                selectedChannel++;
 
-                        selectedChannel = MathHelper.Clamp(selectedChannel, 0, 2);
-                        colorPicker.SetChannelFocused(selectedChannel);
+                            if (BvBinds.Cancel.IsNewPressed)
+                                cancelButton.MouseInput.GetInputFocus();
+                            else if (!BvBinds.Cancel.IsPressed)
+                            {
+                                selectedChannel = MathHelper.Clamp(selectedChannel, 0, 2);
+                                colorPicker.SetChannelFocused(selectedChannel);
+                            }
+                        }
+                        else
+                        {
+                            int offset = 1;
+
+                            if (BvBinds.MultZ.IsPressed)
+                                offset *= incrZ;
+                            else if (BvBinds.MultY.IsPressed)
+                                offset *= incrY;
+                            else if (BvBinds.MultX.IsPressed)
+                                offset *= incrX;
+
+                            if (BvBinds.ScrollUp.IsNewPressed)
+                                colorPicker.sliders[selectedChannel].Current += offset;
+                            else if (BvBinds.ScrollDown.IsNewPressed)
+                                colorPicker.sliders[selectedChannel].Current -= offset;
+
+                            if (BvBinds.Select.IsNewPressed)
+                                confirmButton.MouseInput.GetInputFocus();
+                        }
                     }
                     else
                     {
-                        int offset = 1;
-
-                        if (BvBinds.MultZ.IsPressed)
-                            offset *= incrZ;
-                        else if (BvBinds.MultY.IsPressed)
-                            offset *= incrY;
-                        else if (BvBinds.MultX.IsPressed)
-                            offset *= incrX;
-
-                        if (BvBinds.ScrollUp.IsNewPressed)
-                            colorPicker.sliders[selectedChannel].Current += offset;
-                        else if (BvBinds.ScrollDown.IsNewPressed)
-                            colorPicker.sliders[selectedChannel].Current -= offset;
+                        for (int i = 0; i < 3; i++)
+                        {
+                            if (colorPicker.sliders[i].MouseInput.HasFocus)
+                                selectedChannel = i;
+                        }
                     }
                 }
-                else
-                {
-                    for (int i = 0; i < 3; i++)
-                    {
-                        if (colorPicker.sliders[i].MouseInput.HasFocus)
-                            selectedChannel = i;
-                    }
-                }
-
-                base.HandleInput(cursorPos);
             }
         }
     }
