@@ -24,7 +24,7 @@ namespace RichHudFramework.Client
         public const ClientSubtypes subtype = ClientSubtypes.Full;
 
         private const long modID = 1965654081, queueID = 1314086443;
-        private const int vID = 9;
+        private const int vID = 10;
 
         public static bool Registered => Instance != null ? Instance.registered : false;
         private static RichHudClient Instance { get; set; }
