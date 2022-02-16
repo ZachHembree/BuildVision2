@@ -106,18 +106,18 @@ namespace RichHudFramework.UI
         public SliderBox(HudParentBase parent) : base(parent)
         {
             background = new TexturedBox(this)
-            { 
-                DimAlignment = DimAlignments.Both 
+            {
+                DimAlignment = DimAlignments.Both
             };
 
             border = new BorderBox(background)
-            { 
-                Thickness = 1f, 
-                DimAlignment = DimAlignments.Both, 
+            {
+                Thickness = 1f,
+                DimAlignment = DimAlignments.Both,
             };
 
-            slide = new SliderBar(this) 
-            { 
+            slide = new SliderBar(this)
+            {
                 DimAlignment = DimAlignments.Both,
                 SliderSize = new Vector2(14f, 28f),
                 BarHeight = 5f
@@ -164,12 +164,6 @@ namespace RichHudFramework.UI
                     Percent += 0.01f;
                 }
             }
-            else if (!MouseInput.IsMousedOver)
-            {
-                lastBarColor = BarColor;
-                lastSliderColor = SliderColor;
-                lastBackgroundColor = BackgroundColor;
-            }
         }
 
         protected virtual void CursorEnter(object sender, EventArgs args)
@@ -212,6 +206,10 @@ namespace RichHudFramework.UI
         {
             if (UseFocusFormatting && !MouseInput.IsMousedOver)
             {
+                lastBarColor = BarColor;
+                lastSliderColor = SliderColor;
+                lastBackgroundColor = BackgroundColor;
+
                 SliderColor = SliderFocusColor;
                 BarColor = BarFocusColor;
                 BackgroundColor = BackgroundFocusColor;

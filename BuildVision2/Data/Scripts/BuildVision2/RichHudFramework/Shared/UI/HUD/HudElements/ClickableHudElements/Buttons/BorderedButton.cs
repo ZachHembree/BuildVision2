@@ -81,11 +81,6 @@ namespace RichHudFramework.UI
                     _mouseInput.OnLeftClick();
                 }
             }
-            else if (!MouseInput.IsMousedOver)
-            {
-                lastColor = Color;
-                lastTextColor = TextBoard.Format.Color;
-            }
         }
 
         protected override void CursorEnter(object sender, EventArgs args)

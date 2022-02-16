@@ -185,15 +185,6 @@ namespace RichHudFramework.UI
             TextChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        protected override void HandleInput(Vector2 cursorPos)
-        {
-            if (!MouseInput.HasFocus && !MouseInput.IsMousedOver)
-            {
-                lastColor = Color;
-                lastTextColor = TextBoard.Format.Color;
-            }
-        }
-
         protected virtual void CursorEnter(object sender, EventArgs args)
         {
             if (HighlightEnabled)
