@@ -77,14 +77,14 @@ namespace DarkHelmet.BuildVision2
         }
 
         public static void TryOpenMenu() =>
-            Instance.TryOpenWheelMenu();
+            Instance.TryOpenMenuInternal();
 
-        public static void HideMenu() =>
-            Instance.CloseMenu();
+        public static void CloseMenu() =>
+            Instance.CloseMenuInternal();
 
         public override void Close()
         {
-            CloseMenu();
+            CloseMenuInternal();
             RichHudCore.LateMessageEntered -= MessageHandler;
             Target = null;
             Instance = null;
@@ -153,7 +153,7 @@ namespace DarkHelmet.BuildVision2
                 Target.Update();
 
                 if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None)
-                    CloseMenu();
+                    CloseMenuInternal();
             }
         }
 
@@ -162,99 +162,45 @@ namespace DarkHelmet.BuildVision2
             if (quickActionMenu.MenuState == QuickActionMenuState.Peek ||
                 quickActionMenu.MenuState == QuickActionMenuState.Closed)
             {
+                if (quickActionMenu.MenuState == QuickActionMenuState.Closed)
+                {
+                    if (BvBinds.OpenWheelDupe.IsNewPressed || BvBinds.OpenWheel.IsNewPressed ||
+                        BvBinds.OpenList.IsNewPressed || BvBinds.OpenListDupe.IsNewPressed)
+                    {
+                        TryOpenMenuInternal();
+                    }
+                }
+
                 if (BvBinds.EnableMouse.IsPressed && BvConfig.Current.general.enablePeek)
                 {
                     if (peekTimer.ElapsedMilliseconds > 100)
-                        TryOpenPeekMenu();
+                        TryOpenMenuInternal();
                 }
                 else if (quickActionMenu.MenuState == QuickActionMenuState.Peek)
-                    CloseMenu();
+                    CloseMenuInternal();
             }
 
-            if ((quickActionMenu.MenuState & QuickActionMenuState.WheelMenuControl) == 0)
+            if (SharedBinds.Escape.IsNewPressed && Open)
             {
-                if (BvBinds.OpenWheelDupe.IsNewPressed)
-                {
-                    TryOpenWheelDupe();
-                }
-                else if (BvBinds.OpenWheel.IsNewPressed)
-                {
-                    TryOpenWheelMenu();
-                }
-            }
-            else if ((quickActionMenu.MenuState & QuickActionMenuState.ListMenuControl) == 0)
-            {
-                if (BvBinds.OpenListDupe.IsNewPressed)
-                {
-                    TryOpenListDupe();
-                }
-                else if (BvBinds.OpenList.IsNewPressed)
-                {
-                    TryOpenListMenu();
-                }
-            }            
-            else if (SharedBinds.Escape.IsNewPressed && Open)
-            {
-                CloseMenu();
+                CloseMenuInternal();
             }
         }
 
         /// <summary>
         /// Attempts to open the radial property menu
         /// </summary>
-        private void TryOpenWheelMenu()
+        private void TryOpenMenuInternal()
         {
             if (TryGetTarget() && CanAccessTargetBlock())
             {
-                quickActionMenu.OpenMenu(Target, QuickActionMenuState.WheelMenuControl);
-            }
-        }
-
-        private void TryOpenWheelDupe()
-        {
-            if ((quickActionMenu.MenuState & QuickActionMenuState.PropertyDuplication) == 0 &&
-                TryGetTarget() && CanAccessTargetBlock())
-            {
-                quickActionMenu.OpenMenu(Target, QuickActionMenuState.WheelMenuControl | QuickActionMenuState.PropertyDuplication);
-            }
-        }
-
-        /// <summary>
-        /// Attempts to open the menu to the property list
-        /// </summary>
-        private void TryOpenListMenu()
-        {
-            if (TryGetTarget() && CanAccessTargetBlock())
-            {
-                quickActionMenu.OpenMenu(Target, QuickActionMenuState.ListMenuControl);
-            }
-        }
-
-        private void TryOpenListDupe()
-        {
-            if ((quickActionMenu.MenuState & QuickActionMenuState.PropertyDuplication) == 0 &&
-                TryGetTarget() && CanAccessTargetBlock())
-            {
-                quickActionMenu.OpenMenu(Target, QuickActionMenuState.ListMenuControl | QuickActionMenuState.PropertyDuplication);
-            }
-        }
-
-        /// <summary>
-        /// Attempts to show block property summary
-        /// </summary>
-        private void TryOpenPeekMenu()
-        {
-            if (TryGetTarget() && CanAccessTargetBlock())
-            {
-                quickActionMenu.OpenMenu(Target, QuickActionMenuState.Peek);
-                peekTimer.Restart();
+                quickActionMenu.OpenMenu(Target);
             }
         }
 
         /// <summary>
         /// Hide the scroll menu and clear target
         /// </summary>
-        private void CloseMenu()
+        private void CloseMenuInternal()
         {
             Target.Reset();
             targetGrid.Reset();

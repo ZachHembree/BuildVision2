@@ -18,7 +18,7 @@ namespace DarkHelmet.BuildVision2
     {
         protected override void HandleInput(Vector2 cursorPos)
         {
-            if (MenuState == QuickActionMenuState.Peek)
+            if (MenuState == QuickActionMenuState.Closed || MenuState == QuickActionMenuState.Peek)
             {
                 if (BvBinds.OpenWheel.IsNewPressed)
                 {
@@ -28,10 +28,15 @@ namespace DarkHelmet.BuildVision2
                 {
                     MenuState = QuickActionMenuState.ListMenuControl;
                 }
-                else
+                else if (BvBinds.EnableMouse.IsPressed)
                 {
-                    propertyWheel.OpenSummary();
+                    MenuState = QuickActionMenuState.Peek;
                 }
+            }
+
+            if (MenuState == QuickActionMenuState.Peek)
+            {
+                propertyWheel.OpenSummary();
             }
             else
             {

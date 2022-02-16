@@ -30,7 +30,7 @@ namespace DarkHelmet.BuildVision2
                 // Debug/Testing
                 { "debugInfo", x => QuickActionMenu.DrawDebug = !QuickActionMenu.DrawDebug },
                 { "open", x => MenuManager.TryOpenMenu() },
-                { "close", x => MenuManager.HideMenu() },
+                { "close", x => MenuManager.CloseMenu() },
                 { "reload", x => ExceptionHandler.ReloadClients() },
                 { "crash", x => Crash() },
                 { "printControlsToLog", x => LogIO.WriteToLogStart($"Control List:\n{HelpText.controlList}") },
