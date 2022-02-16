@@ -128,7 +128,7 @@ namespace RichHudFramework
                         matTable.Add(matrixRef, matrixID);
                     }
 
-                    int triangleCount = indices.Count / 3,
+                    int triangleCount = (range.Y - range.X) / 3,
                         bbRemaining = bbPool.Count - bbDataBack.Count,
                         bbToAdd = Math.Max(triangleCount - bbRemaining, 0);
 
@@ -642,7 +642,7 @@ namespace RichHudFramework
 
                     // Get triangle count, ensure enough billboards are in the pool and add them to the
                     // render queue before writing QB data to buffer
-                    int triangleCount = indices.Count / 3,
+                    int triangleCount = (range.Y - range.X) / 3,
                         bbRemaining = bbPool.Count - bbDataBack.Count,
                         bbToAdd = Math.Max(triangleCount - bbRemaining, 0);
 

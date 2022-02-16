@@ -452,7 +452,7 @@ namespace RichHudFramework.UI
                 if (CanDrawTab && tabBoard.Color.A > 0)
                 {
                     box.bounds = new BoundingBox2(tabPos - tabSize, tabPos + tabSize);
-                    hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
+                    tabBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
                 }
             }
         }
