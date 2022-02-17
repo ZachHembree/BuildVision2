@@ -169,7 +169,7 @@ namespace DarkHelmet.BuildVision2
             var opacity = new TerminalSlider()
             {
                 Name = "Menu opacity",
-                Min = 0f,
+                Min = .5f,
                 Max = 1f,
                 Value = BvConfig.Current.hudConfig.hudOpacity,
                 ValueText = $"{(BvConfig.Current.hudConfig.hudOpacity * 100f).Round()}%",

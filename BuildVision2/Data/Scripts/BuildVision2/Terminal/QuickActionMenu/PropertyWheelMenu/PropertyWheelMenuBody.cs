@@ -33,7 +33,7 @@ namespace DarkHelmet.BuildVision2
                 set { propertyWheelMenu.quickActionMenu.MenuState = value; }
             }
 
-            private readonly TexturedBox background;
+            public readonly TexturedBox background;
             private readonly Label summaryText, notificationText;
 
             private readonly ColorWidget colorWidget;

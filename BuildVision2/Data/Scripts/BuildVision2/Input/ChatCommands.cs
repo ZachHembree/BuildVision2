@@ -18,17 +18,13 @@ namespace DarkHelmet.BuildVision2
             CmdManager.GetOrCreateGroup("/bv2", new CmdGroupInitializer 
             {
                 { "help", x => RichHudTerminal.OpenToPage(helpMain) },
-                { "printBinds", x => ExceptionHandler.SendChatMessage(HelpText.GetPrintBindsMessage()) },
                 { "bind", x => UpdateBind(x[0], x.GetSubarray(1)), 2 },
                 { "resetBinds", x => BvBinds.Cfg = BindsConfig.Defaults },
                 { "save", x => BvConfig.SaveStart() },
                 { "load", x => BvConfig.LoadStart() },
                 { "resetConfig", x => BvConfig.ResetConfig() },
-                { "toggleAutoclose", x => Cfg.general.closeIfNotInView = !Cfg.general.closeIfNotInView },
-                { "toggleOpenWhileHolding", x => Cfg.general.canOpenIfHolding = !Cfg.general.canOpenIfHolding },
 
                 // Debug/Testing
-                { "debugInfo", x => QuickActionMenu.DrawDebug = !QuickActionMenu.DrawDebug },
                 { "open", x => MenuManager.TryOpenMenu() },
                 { "close", x => MenuManager.CloseMenu() },
                 { "reload", x => ExceptionHandler.ReloadClients() },
@@ -37,10 +33,10 @@ namespace DarkHelmet.BuildVision2
                 { "export", x => ExportBlockData() },
                 { "import", x => TryImportBlockData() },
                 { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(MenuManager.Target?.SubtypeId.ToString() ?? "No Target")}") },
+                { "toggleDebug", x => QuickActionMenu.DrawDebug = !QuickActionMenu.DrawDebug },
                 { "toggleBoundingBox", x => MenuManager.DrawBoundingBox = !MenuManager.DrawBoundingBox },
                 { "targetBench", TargetBench, 1 },
                 { "getTarget", x => GetTarget() },
-                { "echo", x => ExceptionHandler.SendChatMessage($"echo: {x[0]}") },
             });
         }
 

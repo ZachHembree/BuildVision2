@@ -28,7 +28,7 @@ namespace DarkHelmet.BuildVision2
                 else if (BvBinds.EnableMouse.IsPressed)
                     MenuState = QuickActionMenuState.Peek;
             }
-
+            
             // Start duplication
             if ((MenuState & QuickActionMenuState.PropertyDuplication) == 0 
                 && (MenuState & QuickActionMenuState.PropertyOpen) == 0)

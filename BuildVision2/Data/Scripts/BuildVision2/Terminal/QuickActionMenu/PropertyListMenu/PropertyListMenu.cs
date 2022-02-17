@@ -200,6 +200,12 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
+                float opacity = BvConfig.Current.hudConfig.hudOpacity;
+                header.Color = header.Color.SetAlphaPct(opacity);
+                body.Color = body.Color.SetAlphaPct(opacity);
+                footer.Color = footer.Color.SetAlphaPct(opacity);
+                body.MinVisibleCount = BvConfig.Current.hudConfig.maxVisible;
+
                 Size = layout.Size;
 
                 if (body.Collection.Count > 0)

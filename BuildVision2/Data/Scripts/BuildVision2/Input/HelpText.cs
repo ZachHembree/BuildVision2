@@ -76,24 +76,6 @@ namespace DarkHelmet.BuildVision2
             };
         }
 
-        public static string GetPrintBindsMessage()
-        {
-            string bindHelp =
-                "\n---Build Vision 2 Binds---\n" +
-                $"Peek: [{GetBindString(BvBinds.EnableMouse)}]\n" +
-                $"Open: [{GetBindString(BvBinds.OpenWheel)}]\n" +
-                $"Close: [{GetBindString(BvBinds.OpenList)}]\n" +
-                $"Select: [{GetBindString(BvBinds.Select)}]\n" +
-                $"Scroll Up: [{GetBindString(BvBinds.ScrollUp)}]\n" +
-                $"Scroll Down: [{GetBindString(BvBinds.ScrollDown)}]\n" +
-                $"---Multipliers---\n" +
-                $"MultX: [{GetBindString(BvBinds.MultX)}]\n" +
-                $"MultY: [{GetBindString(BvBinds.MultY)}]\n" +
-                $"MultZ: [{GetBindString(BvBinds.MultZ)}]\n";
-
-            return bindHelp;
-        }
-
         private static string GetBindString(IBind bind)
         {
             IList<IControl> combo = bind.GetCombo();

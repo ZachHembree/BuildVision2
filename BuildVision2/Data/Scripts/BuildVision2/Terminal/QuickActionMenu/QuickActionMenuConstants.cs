@@ -26,8 +26,8 @@ namespace DarkHelmet.BuildVision2
     public sealed partial class QuickActionMenu : HudElementBase
     {
         private static readonly Color
-            headerColor = new Color(41, 54, 62, 225),
-            bodyColor = new Color(70, 78, 86, 225),
+            headerColor = new Color(41, 54, 62),
+            bodyColor = new Color(70, 78, 86),
             highlightColor = TerminalFormatting.DarkSlateGrey,
             highlightFocusColor = TerminalFormatting.Mint;
         private static readonly GlyphFormat

@@ -168,7 +168,7 @@ namespace DarkHelmet.BuildVision2
             {
                 resolutionScaling = true,
                 hudScale = 1f,
-                hudOpacity = 0.9f,
+                hudOpacity = 0.85f,
                 maxVisible = 14,
                 clampHudPos = true,
                 useCustomPos = false,

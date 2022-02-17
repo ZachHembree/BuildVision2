@@ -137,6 +137,19 @@ namespace DarkHelmet.BuildVision2
 
                 if ((lastPos - menuPos).LengthSquared() > 4f)
                 {
+                    if (BvConfig.Current.hudConfig.useCustomPos)
+                    {
+                        if (menuPos.X < 0)
+                            menuPos.X += .5f * quickActionMenu.Width;
+                        else
+                            menuPos.X -= .5f * quickActionMenu.Width;
+
+                        if (menuPos.Y < 0)
+                            menuPos.Y += .5f * quickActionMenu.Height;
+                        else
+                            menuPos.Y -= .5f * quickActionMenu.Height;
+                    }
+
                     quickActionMenu.Offset = menuPos;
                     lastPos = menuPos;
                 }
@@ -152,7 +165,7 @@ namespace DarkHelmet.BuildVision2
             {
                 Target.Update();
 
-                if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None)
+                if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || RichHudTerminal.Open)
                     CloseMenuInternal();
             }
         }

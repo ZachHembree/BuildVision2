@@ -221,6 +221,11 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
+                float opacity = BvConfig.Current.hudConfig.hudOpacity;
+                menuBody.background.Color = menuBody.background.Color.SetAlphaPct(opacity);
+                propertyWheel.BackgroundColor = propertyWheel.BackgroundColor.SetAlphaPct(opacity);
+                dupeWheel.BackgroundColor = dupeWheel.BackgroundColor.SetAlphaPct(opacity);
+
                 if (MenuState == QuickActionMenuState.Peek)
                 {
                     Size = menuBody.Size;
