@@ -173,12 +173,12 @@ namespace DarkHelmet.BuildVision2
                     }
 
                     // Append registered shortcuts to end
-                    propertyWheel.AddRange(shortcutEntries);
-                    propertyWheel.IsInputEnabled = true;
-                    propertyWheel.Visible = true;
-                    dupeWheel.Visible = false;
+                    propertyWheel.AddRange(shortcutEntries);               
                 }
 
+                propertyWheel.IsInputEnabled = true;
+                propertyWheel.Visible = true;
+                dupeWheel.Visible = false;
                 IsOpen = true;
                 Visible = true;
             }

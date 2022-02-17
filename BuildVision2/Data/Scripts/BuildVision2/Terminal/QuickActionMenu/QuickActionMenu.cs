@@ -84,7 +84,7 @@ namespace DarkHelmet.BuildVision2
 
         protected override void Layout()
         {
-            if ((MenuState & QuickActionMenuState.ListMenuControl) > 0)
+            if ((MenuState & QuickActionMenuState.ListMenuOpen) > 0)
                 Size = propertyList.Size;
             else
                 Size = propertyWheel.Size;

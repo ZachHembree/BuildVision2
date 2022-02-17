@@ -34,6 +34,17 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            if ((MenuState & QuickActionMenuState.PropertyDuplication) == 0)
+            {
+                if (BvBinds.StartDupe.IsNewPressed)
+                {
+                    MenuState |= QuickActionMenuState.PropertyDuplication;
+
+                    if ((MenuState & QuickActionMenuState.Controlled) == 0)
+                        MenuState |= QuickActionMenuState.WheelMenuControl;
+                }
+            }
+
             if (MenuState == QuickActionMenuState.Peek)
             {
                 propertyWheel.OpenSummary();
@@ -44,22 +55,22 @@ namespace DarkHelmet.BuildVision2
             }
 
             // Open menus corresponding to their state flags
-            if ((MenuState & QuickActionMenuState.WheelMenuControl) > 0 && !propertyWheel.IsOpen)
+            if ((MenuState & QuickActionMenuState.WheelMenuOpen) > 0 && !propertyWheel.IsOpen)
             {
                 OpenPropertyWheel();
             }
-            else if ((MenuState & QuickActionMenuState.ListMenuControl) > 0 && !propertyList.IsOpen)
+            else if ((MenuState & QuickActionMenuState.ListMenuOpen) > 0 && !propertyList.IsOpen)
             {
                 OpenPropertyList();
             }
 
             // Close menus if not in the correct state. Probably redundant.
-            if ((MenuState & QuickActionMenuState.ListMenuControl) == 0 && propertyList.IsOpen)
+            if ((MenuState & QuickActionMenuState.ListMenuOpen) == 0 && propertyList.IsOpen)
             {
                 propertyList.CloseMenu();
             }
 
-            if ((MenuState & QuickActionMenuState.WheelMenuControl) == 0 && propertyWheel.IsOpen)
+            if ((MenuState & QuickActionMenuState.WheelMenuOpen) == 0 && propertyWheel.IsOpen)
             {
                 propertyWheel.CloseMenu();
             }

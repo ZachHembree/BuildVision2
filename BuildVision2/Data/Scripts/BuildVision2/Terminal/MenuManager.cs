@@ -164,8 +164,8 @@ namespace DarkHelmet.BuildVision2
             {
                 if (quickActionMenu.MenuState == QuickActionMenuState.Closed)
                 {
-                    if (BvBinds.OpenWheelDupe.IsNewPressed || BvBinds.OpenWheel.IsNewPressed ||
-                        BvBinds.OpenList.IsNewPressed || BvBinds.OpenListDupe.IsNewPressed)
+                    if (BvBinds.StartDupe.IsNewPressed || BvBinds.OpenWheel.IsNewPressed ||
+                        BvBinds.OpenList.IsNewPressed)
                     {
                         TryOpenMenuInternal();
                     }

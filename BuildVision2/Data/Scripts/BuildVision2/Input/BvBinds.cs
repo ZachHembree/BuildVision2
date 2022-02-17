@@ -28,9 +28,8 @@ namespace DarkHelmet.BuildVision2
 
         public static IBind EnableMouse { get; private set; }
         public static IBind OpenWheel { get; private set; }
-        public static IBind OpenWheelDupe { get; private set; }
+        public static IBind StartDupe { get; private set; }
         public static IBind OpenList { get; private set; }
-        public static IBind OpenListDupe { get; private set; }
 
         public static IBind Select { get; private set; }
         public static IBind Cancel { get; private set; }
@@ -95,9 +94,8 @@ namespace DarkHelmet.BuildVision2
             MultY = mainGroup["MultY"];
             MultZ = mainGroup["MultZ"];
             OpenWheel = mainGroup["OpenWheel"];
-            OpenWheelDupe = mainGroup["OpenWheelDupe"];
+            StartDupe = mainGroup["StartDupe"];
             OpenList = mainGroup["OpenList"];
-            OpenListDupe = mainGroup["OpenListDupe"];
 
             EnableMouse = secondaryGroup["EnableMouse"];
             Select = secondaryGroup["Select"];

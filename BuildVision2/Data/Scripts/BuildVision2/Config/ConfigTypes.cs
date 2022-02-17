@@ -260,13 +260,12 @@ namespace DarkHelmet.BuildVision2
         private static readonly BindDefinition[]
             defaultModifiers = new BindGroupInitializer
             {
-                { "MultX", MyKeys.Alt },
+                { "MultX", MyKeys.Control },
                 { "MultY", MyKeys.Shift },
-                { "MultZ", MyKeys.Alt, MyKeys.Shift },
+                { "MultZ", MyKeys.Control, MyKeys.Shift },
                 { "OpenWheel", MyKeys.Control, RichHudControls.MousewheelUp },
-                { "OpenWheelDupe", MyKeys.Control, MyKeys.Shift, RichHudControls.MousewheelUp },
+                { "StartDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelUp },
                 { "OpenList", MyKeys.Control, RichHudControls.MousewheelDown },
-                { "OpenListDupe", MyKeys.Control, MyKeys.Shift, RichHudControls.MousewheelDown },
             }.GetBindDefinitions(),
             defaultMain = new BindGroupInitializer
             {
