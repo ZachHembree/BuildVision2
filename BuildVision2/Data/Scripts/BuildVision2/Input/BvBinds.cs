@@ -15,21 +15,25 @@ namespace DarkHelmet.BuildVision2
             {
                 return new BindsConfig
                 {
-                    modifierGroup = MainGroup.GetBindDefinitions(),
-                    mainGroup = SecondaryGroup.GetBindDefinitions(),
+                    modifierGroup = ModifierGroup.GetBindDefinitions(),
+                    mainGroup = MainGroup.GetBindDefinitions(),
+                    secondaryGroup = SecondaryGroup.GetBindDefinitions()
                 };
             }
             set
             {
-                Instance.mainGroup.TryLoadBindData(value.modifierGroup);
-                Instance.secondaryGroup.TryLoadBindData(value.mainGroup);
+                Instance.modifierGroup.TryLoadBindData(value.modifierGroup);
+                Instance.mainGroup.TryLoadBindData(value.mainGroup);
+                Instance.secondaryGroup.TryLoadBindData(value.secondaryGroup);
             }
         }
 
         public static IBind EnableMouse { get; private set; }
         public static IBind OpenWheel { get; private set; }
-        public static IBind StartDupe { get; private set; }
         public static IBind OpenList { get; private set; }
+
+        public static IBind StartDupe { get; private set; }
+        public static IBind StopDupe { get; private set; }
 
         public static IBind Select { get; private set; }
         public static IBind Cancel { get; private set; }
@@ -41,6 +45,7 @@ namespace DarkHelmet.BuildVision2
         public static IBind MultY { get; private set; }
         public static IBind MultZ { get; private set; }
 
+        public static IBindGroup ModifierGroup { get { return Instance.modifierGroup; } }
         public static IBindGroup MainGroup { get { return Instance.mainGroup; } }
         public static IBindGroup SecondaryGroup { get { return Instance.secondaryGroup; } }
 
@@ -56,14 +61,17 @@ namespace DarkHelmet.BuildVision2
             set { _instance = value; }
         }
         private static BvBinds _instance;
-        private readonly IBindGroup mainGroup, secondaryGroup;
+        private readonly IBindGroup modifierGroup, mainGroup, secondaryGroup;
 
         private BvBinds() : base(false, true)
         {
-            mainGroup = BindManager.GetOrCreateGroup("BvMain");
+            modifierGroup = BindManager.GetOrCreateGroup("Modifiers");
+            modifierGroup.RegisterBinds(BindsConfig.DefaultModifiers);
+
+            mainGroup = BindManager.GetOrCreateGroup("Main");
             mainGroup.RegisterBinds(BindsConfig.DefaultMain);
 
-            secondaryGroup = BindManager.GetOrCreateGroup("BvSecondary");
+            secondaryGroup = BindManager.GetOrCreateGroup("Secondary");
             secondaryGroup.RegisterBinds(BindsConfig.DefaultSecondary);
         }
 
@@ -90,16 +98,18 @@ namespace DarkHelmet.BuildVision2
 
         private void UpdateBindProperties()
         {
-            MultX = mainGroup["MultX"];
-            MultY = mainGroup["MultY"];
-            MultZ = mainGroup["MultZ"];
-            OpenWheel = mainGroup["OpenWheel"];
-            StartDupe = mainGroup["StartDupe"];
-            OpenList = mainGroup["OpenList"];
+            MultX = modifierGroup["MultX/Mouse"];
+            MultY = modifierGroup["MultY"];
+            MultZ = modifierGroup["MultZ"];
+            EnableMouse = MultX;
 
-            EnableMouse = secondaryGroup["EnableMouse"];
-            Select = secondaryGroup["Select"];
-            Cancel = secondaryGroup["Cancel"];
+            OpenWheel = mainGroup["OpenWheel"];
+            OpenList = mainGroup["OpenList"];
+            StartDupe = mainGroup["StartDupe"];
+            StopDupe = mainGroup["StopDupe"];
+
+            Select = secondaryGroup["Select/Confirm"];
+            Cancel = secondaryGroup["Cancel/Back"];
             ScrollUp = secondaryGroup["ScrollUp"];
             ScrollDown = secondaryGroup["ScrollDown"];
         }

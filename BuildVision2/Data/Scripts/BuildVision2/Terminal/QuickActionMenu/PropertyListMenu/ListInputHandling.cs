@@ -98,6 +98,8 @@ namespace DarkHelmet.BuildVision2
                 // Handle input for selected entry
                 if (selection.PropertyOpen)
                 {
+                    MenuState |= QuickActionMenuState.PropertyOpen;
+
                     if (blockMember is IBlockAction)
                         HandleActionInput();
                     else if (blockMember is IBlockNumericValue<float>)
@@ -109,6 +111,8 @@ namespace DarkHelmet.BuildVision2
                     else if (blockMember is IBlockTextMember)
                         HandleTextInput();
                 }
+                else
+                    MenuState &= ~QuickActionMenuState.PropertyOpen;
 
                 if (selection.PropertyOpen)
                     highlightBox.Color = highlightFocusColor;

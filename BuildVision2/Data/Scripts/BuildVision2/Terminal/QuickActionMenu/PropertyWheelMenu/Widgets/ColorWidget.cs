@@ -58,7 +58,7 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Confirm()
             {
-                if (channelSelected)
+                if (channelSelected || BvBinds.EnableMouse.IsPressed)
                 {
                     channelSelected = false;
                     CloseWidgetCallback();
@@ -114,25 +114,6 @@ namespace DarkHelmet.BuildVision2
                                 colorPicker.SetChannelFocused(selectedChannel);
                             }
                         }
-                        else
-                        {
-                            int offset = 1;
-
-                            if (BvBinds.MultZ.IsPressed)
-                                offset *= incrZ;
-                            else if (BvBinds.MultY.IsPressed)
-                                offset *= incrY;
-                            else if (BvBinds.MultX.IsPressed)
-                                offset *= incrX;
-
-                            if (BvBinds.ScrollUp.IsNewPressed)
-                                colorPicker.sliders[selectedChannel].Current += offset;
-                            else if (BvBinds.ScrollDown.IsNewPressed)
-                                colorPicker.sliders[selectedChannel].Current -= offset;
-
-                            if (BvBinds.Select.IsNewPressed)
-                                confirmButton.MouseInput.GetInputFocus();
-                        }
                     }
                     else
                     {
@@ -141,6 +122,26 @@ namespace DarkHelmet.BuildVision2
                             if (colorPicker.sliders[i].MouseInput.HasFocus)
                                 selectedChannel = i;
                         }
+                    }
+
+                    if (channelSelected)
+                    {
+                        int offset = 1;
+
+                        if (BvBinds.MultZ.IsPressed)
+                            offset *= incrZ;
+                        else if (BvBinds.MultY.IsPressed)
+                            offset *= incrY;
+                        else if (BvBinds.MultX.IsPressed)
+                            offset *= incrX;
+
+                        if (BvBinds.ScrollUp.IsNewPressed)
+                            colorPicker.sliders[selectedChannel].Current += offset;
+                        else if (BvBinds.ScrollDown.IsNewPressed)
+                            colorPicker.sliders[selectedChannel].Current -= offset;
+
+                        if (BvBinds.Select.IsNewPressed)
+                            confirmButton.MouseInput.GetInputFocus();
                     }
                 }
             }

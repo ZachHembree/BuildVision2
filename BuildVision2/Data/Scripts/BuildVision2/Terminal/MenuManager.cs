@@ -187,7 +187,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Attempts to open the radial property menu
+        /// Attempts to open the property menu
         /// </summary>
         private void TryOpenMenuInternal()
         {
@@ -198,7 +198,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Hide the scroll menu and clear target
+        /// Hide the menu and clear target
         /// </summary>
         private void CloseMenuInternal()
         {

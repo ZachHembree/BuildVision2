@@ -253,41 +253,51 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public class BindsConfig : Config<BindsConfig>
     {
-        public static BindDefinition[] DefaultMain => defaultModifiers.Clone() as BindDefinition[];
+        public static BindDefinition[] DefaultModifiers => defaultModifiers.Clone() as BindDefinition[];
 
-        public static BindDefinition[] DefaultSecondary => defaultMain.Clone() as BindDefinition[];
+        public static BindDefinition[] DefaultMain => defaultMain.Clone() as BindDefinition[];
+
+        public static BindDefinition[] DefaultSecondary => defaultSecondary.Clone() as BindDefinition[];
 
         private static readonly BindDefinition[]
             defaultModifiers = new BindGroupInitializer
             {
-                { "MultX", MyKeys.Control },
+                { "MultX/Mouse", MyKeys.Control },
                 { "MultY", MyKeys.Shift },
                 { "MultZ", MyKeys.Control, MyKeys.Shift },
-                { "OpenWheel", MyKeys.Control, RichHudControls.MousewheelUp },
-                { "StartDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelUp },
-                { "OpenList", MyKeys.Control, RichHudControls.MousewheelDown },
+                
             }.GetBindDefinitions(),
             defaultMain = new BindGroupInitializer
             {
-                { "EnableMouse", MyKeys.Control },
-                { "Select", MyKeys.LeftButton },
-                { "Cancel", MyKeys.RightButton },
+                { "OpenWheel", MyKeys.Control, RichHudControls.MousewheelUp },
+                { "OpenList", MyKeys.Control, RichHudControls.MousewheelDown },
+                { "StartDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelUp },
+                { "StopDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelDown },
+            }.GetBindDefinitions(),
+            defaultSecondary = new BindGroupInitializer
+            {
+                { "Select/Confirm", MyKeys.LeftButton },
+                { "Cancel/Back", MyKeys.RightButton },
                 { "ScrollUp", RichHudControls.MousewheelUp },
                 { "ScrollDown", RichHudControls.MousewheelDown },
             }.GetBindDefinitions();
 
-        [XmlArray("MainGroup")]
+        [XmlArray("ModifierGroup")]
         public BindDefinition[] modifierGroup;
 
-        [XmlArray("SecondaryGroup")]
+        [XmlArray("MainGroup")]
         public BindDefinition[] mainGroup;
+
+        [XmlArray("SecondaryGroup")]
+        public BindDefinition[] secondaryGroup;
 
         protected override BindsConfig GetDefaults()
         {
             return new BindsConfig
             {
-                modifierGroup = DefaultMain,
-                mainGroup = DefaultSecondary
+                modifierGroup = DefaultModifiers,
+                mainGroup = DefaultMain,
+                secondaryGroup = DefaultSecondary
             };
         }
 
@@ -297,10 +307,13 @@ namespace DarkHelmet.BuildVision2
         public override void Validate()
         {
             if (modifierGroup == null)
-                modifierGroup = DefaultMain;
+                modifierGroup = DefaultModifiers;
 
             if (mainGroup == null)
-                mainGroup = DefaultSecondary;
+                mainGroup = DefaultMain;
+
+            if (secondaryGroup == null)
+                secondaryGroup = DefaultSecondary;
         }
     }
 }
