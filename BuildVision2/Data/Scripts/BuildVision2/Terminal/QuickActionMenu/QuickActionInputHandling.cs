@@ -18,36 +18,7 @@ namespace DarkHelmet.BuildVision2
     {
         protected override void HandleInput(Vector2 cursorPos)
         {
-            // Open property controls or remian in peek mode
-            if (MenuState == QuickActionMenuState.Closed || MenuState == QuickActionMenuState.Peek)
-            {
-                if (BvBinds.OpenWheel.IsNewPressed)
-                    MenuState = QuickActionMenuState.WheelMenuControl;
-                else if (BvBinds.OpenList.IsNewPressed)
-                    MenuState = QuickActionMenuState.ListMenuControl;
-                else if (BvBinds.EnableMouse.IsPressed)
-                    MenuState = QuickActionMenuState.Peek;
-            }
-            
-            // Start duplication
-            if ((MenuState & QuickActionMenuState.PropertyDuplication) == 0 
-                && (MenuState & QuickActionMenuState.PropertyOpen) == 0)
-            {
-                if (BvBinds.StartDupe.IsNewPressed)
-                {
-                    MenuState |= QuickActionMenuState.PropertyDuplication;
-
-                    // If not controlled, open wheel menu
-                    if ((MenuState & QuickActionMenuState.Controlled) == 0)
-                        MenuState |= QuickActionMenuState.WheelMenuControl;
-                }
-            }
-            // Stop duplication
-            else if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0 
-                && BvBinds.StopDupe.IsNewPressed)
-            {
-                MenuState &= ~QuickActionMenuState.PropertyDuplication;
-            }
+            GetStateMain();
 
             if (MenuState == QuickActionMenuState.Peek)
                 // Only draw wheel body while peeking
@@ -70,6 +41,40 @@ namespace DarkHelmet.BuildVision2
 
             if (MenuState == QuickActionMenuState.Closed)
                 CloseMenu();
+        }
+
+        private void GetStateMain()
+        {
+            // Open property controls or remian in peek mode
+            if (MenuState == QuickActionMenuState.Closed || MenuState == QuickActionMenuState.Peek)
+            {
+                if (BvBinds.OpenWheel.IsNewPressed)
+                    MenuState = QuickActionMenuState.WheelMenuControl;
+                else if (BvBinds.OpenList.IsNewPressed)
+                    MenuState = QuickActionMenuState.ListMenuControl;
+                else if (BvBinds.EnableMouse.IsPressed)
+                    MenuState = QuickActionMenuState.Peek;
+            }
+
+            // Start duplication
+            if ((MenuState & QuickActionMenuState.PropertyDuplication) == 0
+                && (MenuState & QuickActionMenuState.PropertyOpen) == 0)
+            {
+                if (BvBinds.StartDupe.IsNewPressed)
+                {
+                    MenuState |= QuickActionMenuState.PropertyDuplication;
+
+                    // If not controlled, open wheel menu
+                    if ((MenuState & QuickActionMenuState.Controlled) == 0)
+                        MenuState |= QuickActionMenuState.WheelMenuControl;
+                }
+            }
+            // Stop duplication
+            else if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0
+                && BvBinds.StopDupe.IsNewPressed)
+            {
+                MenuState &= ~QuickActionMenuState.PropertyDuplication;
+            }
         }
 
         /// <summary>
