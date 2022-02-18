@@ -25,9 +25,9 @@ namespace DarkHelmet.BuildVision2
         public static bool Open => instance?.quickActionMenu.Visible ?? false;
 
         /// <summary>
-        /// Returns the menu's current mode (peek/control/copy)
+        /// Returns the menu's current state
         /// </summary>
-        public static ScrollMenuModes MenuMode { get; private set; }
+        public static QuickActionMenuState MenuState => instance?.quickActionMenu.MenuState ?? QuickActionMenuState.Closed;
 
         /// <summary>
         /// If true, then the bounding box of the target block will be drawn. Used for debugging.

@@ -26,7 +26,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Build Vision menu modes
     /// </summary>
-    public enum ScrollMenuModes : int
+    public enum BvMenuModes : int
     {
         /// <summary>
         /// Menu currently set to peek
@@ -55,7 +55,7 @@ namespace DarkHelmet.BuildVision2
         Open = 1,
 
         /// <summary>
-        /// out: int (ScrollMenuModes)
+        /// out: int (MenuModes)
         /// </summary>
         MenuMode = 2,
 
@@ -82,7 +82,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Returns the menu's current mode (peek/control/copy)
         /// </summary>
-        public static ScrollMenuModes MenuMode { get; private set; }
+        public static BvMenuModes MenuMode { get; private set; }
 
         /// <summary>
         /// Returns the targeted block. Null if there isn't one.
@@ -203,7 +203,7 @@ namespace DarkHelmet.BuildVision2
             if (registered)
             {
                 Open = (bool)(GetOrSetMemberFunc(null, (int)BvApiAccessors.Open));
-                MenuMode = (ScrollMenuModes)GetOrSetMemberFunc(null, (int)BvApiAccessors.MenuMode);
+                MenuMode = (BvMenuModes)GetOrSetMemberFunc(null, (int)BvApiAccessors.MenuMode);
                 TargetBlock = GetOrSetMemberFunc(null, (int)BvApiAccessors.Target) as IMyTerminalBlock;
             }
         }
@@ -225,7 +225,7 @@ namespace DarkHelmet.BuildVision2
                 registered = false;
                 TargetBlock = null;
                 Open = false;
-                MenuMode = default(ScrollMenuModes);
+                MenuMode = default(BvMenuModes);
 
                 UnregisterAction();
                 EnterQueue();
