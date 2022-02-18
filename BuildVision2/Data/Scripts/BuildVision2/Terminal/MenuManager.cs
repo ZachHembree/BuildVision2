@@ -22,7 +22,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// If true, then the menu is open
         /// </summary>
-        public static bool Open => Instance.quickActionMenu.Visible;
+        public static bool Open => instance?.quickActionMenu.Visible ?? false;
 
         /// <summary>
         /// Returns the menu's current mode (peek/control/copy)
@@ -34,12 +34,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static bool DrawBoundingBox { get; set; }
 
-        private static MenuManager Instance
-        {
-            get { Init(); return _instance; }
-            set { _instance = value; }
-        }
-        private static MenuManager _instance;
+        private static MenuManager instance;
 
         private readonly QuickActionMenu quickActionMenu;
         private readonly CustomSpaceNode hudSpace;
@@ -72,22 +67,22 @@ namespace DarkHelmet.BuildVision2
 
         public static void Init()
         {
-            if (_instance == null)
-                _instance = new MenuManager();
+            if (instance == null)
+                instance = new MenuManager();
         }
 
         public static void TryOpenMenu() =>
-            Instance.TryOpenMenuInternal();
+            instance?.TryOpenMenuInternal();
 
         public static void CloseMenu() =>
-            Instance.CloseMenuInternal();
+            instance?.CloseMenuInternal();
 
         public override void Close()
         {
             CloseMenuInternal();
             RichHudCore.LateMessageEntered -= MessageHandler;
             Target = null;
-            Instance = null;
+            instance = null;
         }
 
         /// <summary>
@@ -269,7 +264,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock target)
         {
-            return Instance.TryGetTargetedBlockInternal(maxDist, out target);
+            target = null;
+            return instance?.TryGetTargetedBlockInternal(maxDist, out target) ?? false;
         }
 
         /// <summary>

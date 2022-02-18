@@ -79,11 +79,11 @@ namespace DarkHelmet.BuildVision2
         {
             if (ExceptionHandler.IsClient)
             {
-                BvConfig.Save();
-
-                if (ExceptionHandler.Unloading)
-                    Instance = null;
+                BvConfig.Save();                
             }
+
+            if (ExceptionHandler.Unloading)
+                Instance = null;
         }
     }
 
