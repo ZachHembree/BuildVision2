@@ -249,9 +249,9 @@ namespace DarkHelmet.BuildVision2
             {
                 Name = "Set custom position",
                 AlignToEdge = true,
-                Value = BvConfig.Current.hudConfig.hudPos,
                 CustomValueGetter = () => BvConfig.Current.hudConfig.hudPos,
                 ControlChangedHandler = ((sender, args) => BvConfig.Current.hudConfig.hudPos = (sender as TerminalDragBox).Value),
+                Value = BvConfig.Current.hudConfig.hudPos,
             };
 
             var tile2 = new ControlTile()

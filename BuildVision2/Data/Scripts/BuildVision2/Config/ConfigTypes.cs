@@ -176,7 +176,7 @@ namespace DarkHelmet.BuildVision2
                 maxVisible = 14,
                 clampHudPos = true,
                 useCustomPos = false,
-                hudPos = new Vector2(-0.483125f, 0.47f)
+                hudPos = new Vector2(-0.4823f, 0.4676f)
             };
         }
 
