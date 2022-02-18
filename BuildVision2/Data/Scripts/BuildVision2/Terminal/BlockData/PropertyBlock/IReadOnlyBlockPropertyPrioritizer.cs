@@ -11,6 +11,11 @@ namespace DarkHelmet.BuildVision2
         IReadOnlyList<uint> WeightedIndices { get; }
 
         /// <summary>
+        /// Returns number of prioritized & enabled and prioritized
+        /// </summary>
+        int PrioritizedMemberCount { get; }
+
+        /// <summary>
         /// Returns true if the member at the given index is enabled and has priority
         /// </summary>
         bool GetIsMemberEnabledAndPrioritized(int index);

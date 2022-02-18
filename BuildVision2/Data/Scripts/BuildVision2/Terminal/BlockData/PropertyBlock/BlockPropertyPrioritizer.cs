@@ -46,6 +46,11 @@ namespace DarkHelmet.BuildVision2
         public IReadOnlyList<uint> WeightedIndices => weightedIndices;
 
         /// <summary>
+        /// Returns number of prioritized & enabled and prioritized
+        /// </summary>
+        public int PrioritizedMemberCount => prioritizedMembers.Count;
+
+        /// <summary>
         /// Cached, dynamically generated default priority tables
         /// </summary>
         private readonly Dictionary<Type, Dictionary<string, uint>> defaultPrioritiesTable;
@@ -98,6 +103,7 @@ namespace DarkHelmet.BuildVision2
         public void UpdatePrioritizedMembers()
         {
             int remaining = memberLimit;
+            priorityList.Clear();
 
             for (int i = weightedIndices.Count - 1; i >= 0; i--)
             {

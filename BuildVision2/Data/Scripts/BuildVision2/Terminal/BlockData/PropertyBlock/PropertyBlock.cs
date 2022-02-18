@@ -36,7 +36,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Total number of block members currently enabled and visible
         /// </summary>
-        public int EnabledMembers => GetEnabledElementCount();
+        public int EnabledMemberCount => GetEnabledElementCount();
 
         /// <summary>
         /// The difference between the center of the bounding box and the position reported by

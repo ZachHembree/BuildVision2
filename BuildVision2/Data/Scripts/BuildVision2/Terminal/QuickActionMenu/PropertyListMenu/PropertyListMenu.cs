@@ -325,7 +325,6 @@ namespace DarkHelmet.BuildVision2
                 textBuilder.Append($"Value Text: {body[selectionIndex].AssocMember.ValueText}\n");
                 textBuilder.Append($"Open: {body[selectionIndex].PropertyOpen}\n");
                 textBuilder.Append($"Is Duplicating: {body[selectionIndex].IsSelectedForDuplication}\n");
-                textBuilder.Append($"Chat Open: {BindManager.IsChatOpen}\n");
 
                 if (body[selectionIndex].AssocMember is IBlockComboBox)
                 {

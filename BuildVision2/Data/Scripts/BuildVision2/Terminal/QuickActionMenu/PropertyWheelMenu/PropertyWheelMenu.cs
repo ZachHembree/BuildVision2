@@ -50,6 +50,7 @@ namespace DarkHelmet.BuildVision2
 
             private readonly RadialSelectionBox<PropertyWheelEntryBase, Label> propertyWheel, dupeWheel;
             private readonly PropertyWheelMenuBody menuBody;
+            private readonly Label debugText;
 
             private readonly ObjectPool<object> propertyEntryPool;
             private readonly List<PropertyWheelShortcutEntry> shortcutEntries;
@@ -145,6 +146,13 @@ namespace DarkHelmet.BuildVision2
                     x => (x as PropertyWheelEntry).Reset()
                 );
                 notifText = new StringBuilder();
+
+                debugText = new Label(this)
+                {
+                    Visible = false,
+                    BuilderMode = TextBuilderModes.Lined,
+                    ParentAlignment = ParentAlignments.Right
+                };
             }
 
             /// <summary>
@@ -268,10 +276,41 @@ namespace DarkHelmet.BuildVision2
                         notifText.Append(" properties selected");
                         menuBody.ShowNotification(notifText, true);
                     }
+
+                    debugText.Visible = DrawDebug;
+
+                    if (DrawDebug)
+                        UpdateDebugText();
                 }
 
                 textUpdateTick++;
                 textUpdateTick %= textTickDivider;
+            }
+
+            private void UpdateDebugText()
+            {             
+                ITextBuilder textBuilder = debugText.TextBoard;
+                PropertyWheelEntryBase selection = activeWheel.Selection;
+                var propertyEntry = selection as PropertyWheelEntry;
+
+                textBuilder.Clear();
+
+                if (selection != null)
+                {
+                    textBuilder.Append($"Prioritized Members: {Target.Prioritizer.PrioritizedMemberCount}\n");
+                    textBuilder.Append($"Enabled Members: {Target.EnabledMemberCount}\n");
+                    textBuilder.Append($"Selection: {selection.Element.TextBoard}\n");
+
+                    if (propertyEntry != null)
+                    {
+                        textBuilder.Append($"ID: {propertyEntry.BlockMember.PropName}\n");
+                        textBuilder.Append($"Type: {propertyEntry.BlockMember.GetType().Name}\n");
+                        textBuilder.Append($"Entry Enabled: {propertyEntry.Enabled}\n");
+                        textBuilder.Append($"Prop Enabled: {propertyEntry.BlockMember.Enabled}\n");
+                        textBuilder.Append($"Value Text: {propertyEntry.BlockMember.ValueText}\n");
+                        textBuilder.Append($"Is Duplicating: {propertyEntry.IsSelectedForDuplication}\n");
+                    }                  
+                }
             }
         }
     }
