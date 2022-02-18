@@ -144,6 +144,9 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "EnableResolutionScaling")]
         public bool resolutionScaling;
 
+        [XmlElement(ElementName = "CursorSensitivity")]
+        public float cursorSensitivity;
+
         [XmlElement(ElementName = "HudScale")]
         public float hudScale;
 
@@ -167,6 +170,7 @@ namespace DarkHelmet.BuildVision2
             return new HudConfig
             {
                 resolutionScaling = true,
+                cursorSensitivity = .4f,
                 hudScale = 1f,
                 hudOpacity = 0.85f,
                 maxVisible = 14,

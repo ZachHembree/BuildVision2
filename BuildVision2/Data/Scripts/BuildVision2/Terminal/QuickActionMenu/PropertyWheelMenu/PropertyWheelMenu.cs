@@ -243,6 +243,9 @@ namespace DarkHelmet.BuildVision2
                     Size = propertyWheel.Size;
                     menuBody.Size = 1.05f * propertyWheel.Size * propertyWheel.polyBoard.InnerRadius;
 
+                    if (activeWheel != null)
+                        activeWheel.CursorSensitivity = BvConfig.Current.hudConfig.cursorSensitivity;
+
                     if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
                     {
                         propertyWheel.HighlightColor = highlightFocusColor;
