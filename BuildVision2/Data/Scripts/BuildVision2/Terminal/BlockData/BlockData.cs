@@ -15,12 +15,12 @@ namespace DarkHelmet.BuildVision2
         public string blockTypeID;
 
         [ProtoMember(2)]
-        public IList<PropertyData> terminalProperties;
+        public List<PropertyData> propertyList;
 
-        public BlockData(string blockTypeID, IList<PropertyData> terminalProperties)
+        public BlockData(string blockTypeID, List<PropertyData> terminalProperties)
         {
             this.blockTypeID = blockTypeID;
-            this.terminalProperties = terminalProperties;
+            this.propertyList = terminalProperties;
         }
     }
 
@@ -30,7 +30,7 @@ namespace DarkHelmet.BuildVision2
         [ProtoMember(1)]
         public string name;
 
-        [ProtoMember(3)]
+        [ProtoMember(2)]
         public byte[] valueData;
 
         public PropertyData(string propertyID, byte[] valueData)

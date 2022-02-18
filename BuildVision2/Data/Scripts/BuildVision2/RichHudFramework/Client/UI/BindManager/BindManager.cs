@@ -1,6 +1,7 @@
 ﻿using RichHudFramework.Client;
 using System;
 using System.Collections.Generic;
+using Sandbox.ModAPI;
 using VRage;
 using VRageMath;
 using VRage.Input;
@@ -53,9 +54,15 @@ namespace RichHudFramework
                     if (_instance == null)
                         Init();
 
+                    lastBlacklist = value;
                     _instance.GetOrSetMemberFunc(value, (int)BindClientAccessors.RequestBlacklistMode);
                 }
             }
+
+            /// <summary>
+            /// MyAPIGateway.Gui.ChatEntryVisible, but actually usable for input polling
+            /// </summary>
+            public static bool IsChatOpen => (bool)_instance.GetOrSetMemberFunc(null, (int)BindClientAccessors.IsChatOpen);
 
             private static BindManager Instance
             {
@@ -81,6 +88,8 @@ namespace RichHudFramework
 
             private readonly ReadOnlyApiCollection<IBindGroup> groups;
             private readonly ReadOnlyApiCollection<IControl> controls;
+
+            private static SeBlacklistModes lastBlacklist, tmpBlacklist;
 
             private BindManager() : base(ApiModuleTypes.BindManager, false, true)
             {
@@ -118,6 +127,21 @@ namespace RichHudFramework
             {
                 UnloadAction();
                 _instance = null;
+            }
+
+            /// <summary>
+            /// Sets a temporary control blacklist cleared after every frame. Blacklists set via
+            /// property will persist regardless.
+            /// </summary>
+            public static void RequestTempBlacklist(SeBlacklistModes mode)
+            {
+                tmpBlacklist |= mode;
+            }
+
+            public override void Draw()
+            {
+                GetOrSetMemberFunc(lastBlacklist | tmpBlacklist, (int)BindClientAccessors.RequestBlacklistMode);
+                tmpBlacklist = SeBlacklistModes.None;
             }
 
             /// <summary>

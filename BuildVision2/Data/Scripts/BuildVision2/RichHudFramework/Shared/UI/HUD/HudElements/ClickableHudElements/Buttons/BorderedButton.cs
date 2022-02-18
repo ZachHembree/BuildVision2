@@ -1,7 +1,7 @@
 ﻿using System;
 using VRageMath;
 
-namespace RichHudFramework.UI.Server
+namespace RichHudFramework.UI
 {
     /// <summary>
     /// LabelBoxButton modified to roughly match the appearance of buttons in the SE terminal.

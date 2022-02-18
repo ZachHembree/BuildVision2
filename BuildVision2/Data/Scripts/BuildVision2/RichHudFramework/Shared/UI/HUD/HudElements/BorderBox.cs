@@ -48,32 +48,33 @@ namespace RichHudFramework.UI
                 box.mask = maskingBox;
 
                 float thickness = _thickness, 
-                    height = _size.Y, width = _size.X;
+                    height = cachedSize.Y - cachedPadding.Y, 
+                    width = cachedSize.X - cachedPadding.X;
                 Vector2 halfSize, pos;
 
                 // Left
                 halfSize = new Vector2(thickness, height) * .5f;
                 pos = cachedPosition + new Vector2((-width + thickness) * .5f, 0f);
                 box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
-                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                 // Top
                 halfSize = new Vector2(width, thickness) * .5f;
                 pos = cachedPosition + new Vector2(0f, (height - thickness) * .5f);
                 box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
-                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                 // Right
                 halfSize = new Vector2(thickness, height) * .5f;
                 pos = cachedPosition + new Vector2((width - thickness) * .5f, 0f);
                 box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
-                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                 // Bottom
                 halfSize = new Vector2(width, thickness) * .5f;
                 pos = cachedPosition + new Vector2(0f, (-height + thickness) * .5f);
                 box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
-                hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
             }
         }
     }

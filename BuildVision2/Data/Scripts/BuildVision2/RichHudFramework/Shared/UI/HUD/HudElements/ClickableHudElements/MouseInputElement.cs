@@ -30,6 +30,8 @@ namespace RichHudFramework.UI
                     IsRightClicked = false;
                     IsNewLeftClicked = false;
                     IsNewRightClicked = false;
+                    IsLeftReleased = false;
+                    IsRightReleased = false;
                 }
             }
         }
@@ -74,7 +76,10 @@ namespace RichHudFramework.UI
         /// </summary>
         public event EventHandler LostInputFocus;
 
-        public bool Enabled { get { return Visible; } set { Visible = value; } }
+        /// <summary>
+        /// Enables/disables mouse input for this element
+        /// </summary>
+        public bool Enabled { get { return UseCursor; } set { UseCursor = value; } }
 
         /// <summary>
         /// Indicates whether or not the element has input focus.
@@ -92,14 +97,24 @@ namespace RichHudFramework.UI
         public bool IsRightClicked { get; private set; }
 
         /// <summary>
-        /// True if the element was just with the left mouse button
+        /// True if the element was just clicked with the left mouse button
         /// </summary>
         public bool IsNewLeftClicked { get; private set; }
 
         /// <summary>
-        /// True if the element was just with the right mouse button
+        /// True if the element was just clicked with the right mouse button
         /// </summary>
         public bool IsNewRightClicked { get; private set; }
+
+        /// <summary>
+        /// True if the element was just released after being left clicked
+        /// </summary>
+        public bool IsLeftReleased { get; private set; }
+
+        /// <summary>
+        /// True if the element was just released after being right clicked
+        /// </summary>
+        public bool IsRightReleased { get; private set; }
 
         private bool mouseCursorEntered;
         private bool hasFocus;
@@ -177,7 +192,9 @@ namespace RichHudFramework.UI
                     OnLeftClick();
                 }
                 else
+                {
                     IsNewLeftClicked = false;
+                }
 
                 if (SharedBinds.RightButton.IsNewPressed)
                 {
@@ -185,7 +202,9 @@ namespace RichHudFramework.UI
                     OnRightClick();
                 }
                 else
+                {
                     IsNewRightClicked = false;
+                }
             }
             else
             {
@@ -199,20 +218,26 @@ namespace RichHudFramework.UI
                     LoseFocus();
 
                 IsNewLeftClicked = false;
-                IsNewRightClicked = false;
+                IsNewRightClicked = false;                
             }
 
             if (!SharedBinds.LeftButton.IsPressed && IsLeftClicked)
             {
                 LeftReleased?.Invoke(_parent, EventArgs.Empty);
+                IsLeftReleased = true;
                 IsLeftClicked = false;
             }
+            else
+                IsLeftReleased = false;
 
             if (!SharedBinds.RightButton.IsPressed && IsRightClicked)
             {
                 RightReleased?.Invoke(_parent, EventArgs.Empty);
+                IsRightReleased = true;
                 IsRightClicked = false;
             }
+            else
+                IsRightReleased = false;
         }
 
         /// <summary>
@@ -223,6 +248,7 @@ namespace RichHudFramework.UI
             LeftClicked?.Invoke(_parent, EventArgs.Empty);
             IsLeftClicked = true;
             IsNewLeftClicked = true;
+            IsLeftReleased = false;
         }
 
         /// <summary>
@@ -233,6 +259,7 @@ namespace RichHudFramework.UI
             RightClicked?.Invoke(_parent, EventArgs.Empty);
             IsRightClicked = true;
             IsNewRightClicked = true;
+            IsRightReleased = false;
         }
 
         /// <summary>

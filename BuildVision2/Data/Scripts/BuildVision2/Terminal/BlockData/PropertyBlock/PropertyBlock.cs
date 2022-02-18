@@ -5,6 +5,7 @@ using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System.Collections.Generic;
 using System.Text;
+using System;
 using VRage;
 using VRageMath;
 using VRage.ModAPI;
@@ -12,7 +13,7 @@ using VRage.ModAPI;
 namespace DarkHelmet.BuildVision2
 {
     /// <summary>
-    /// Block property data used by the menu
+    /// Collection of wrapper objects used to interop with SE terminal system
     /// </summary>
     public partial class PropertyBlock : SuperBlock
     {
@@ -35,7 +36,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Total number of block members currently enabled and visible
         /// </summary>
-        public int EnabledMembers => GetEnabledElementCount();
+        public int EnabledMemberCount => GetEnabledElementCount();
 
         /// <summary>
         /// The difference between the center of the bounding box and the position reported by
@@ -43,8 +44,18 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public Vector3D ModelOffset { get; private set; }
 
+        /// <summary>
+        /// Controls serialization/deserialization of terminal block properties for duplication
+        /// </summary>
+        public IReadOnlyBlockPropertyDuplicator Duplicator { get; }
+
+        /// <summary>
+        /// Controls prioritization of block properties
+        /// </summary>
+        public IReadOnlyBlockPropertyPrioritizer Prioritizer { get; }
+
         private readonly List<BlockMemberBase> blockMembers;
-        private readonly List<BvTerminalPropertyBase> blockProperties;
+        private readonly List<BlockPropertyBase> blockProperties;
 
         private readonly BvPropPool<BlockAction> blockActionPool;
         private readonly BvPropPool<BoolProperty> boolPropPool;
@@ -54,6 +65,9 @@ namespace DarkHelmet.BuildVision2
         private readonly BvPropPool<TextProperty> textPropPool;
         private readonly StringBuilder nameBuilder;
         private readonly List<MyTerminalControlComboBoxItem> comboItemBuffer;
+
+        private readonly BlockPropertyDuplicator duplicator;
+        private readonly BlockPropertyPrioritizer prioritizer;
 
         public PropertyBlock()
         {
@@ -66,8 +80,14 @@ namespace DarkHelmet.BuildVision2
             nameBuilder = new StringBuilder();
 
             blockMembers = new List<BlockMemberBase>();
-            blockProperties = new List<BvTerminalPropertyBase>();
+            blockProperties = new List<BlockPropertyBase>();
             comboItemBuffer = new List<MyTerminalControlComboBoxItem>();
+
+            duplicator = new BlockPropertyDuplicator();
+            prioritizer = new BlockPropertyPrioritizer();
+
+            Duplicator = duplicator;
+            Prioritizer = prioritizer;
         }
 
         public override void SetBlock(TerminalGrid grid, IMyTerminalBlock tBlock)
@@ -86,6 +106,14 @@ namespace DarkHelmet.BuildVision2
             blockMembers.Clear();
             blockProperties.Clear();
             ModelOffset = Vector3D.Zero;
+
+            duplicator.Reset();
+            prioritizer.Reset();
+        }
+
+        public override void Update()
+        {
+            prioritizer.UpdatePrioritizedMembers();
         }
 
         private void GenerateProperties()
@@ -95,6 +123,9 @@ namespace DarkHelmet.BuildVision2
 
             GetScrollableProps();
             GetScrollableActions();
+
+            duplicator.SetBlockMembers(this);
+            prioritizer.SetBlockMembers(13, TBlock.GetType(), blockMembers);
         }
 
         public int GetEnabledElementCount()
@@ -121,9 +152,9 @@ namespace DarkHelmet.BuildVision2
             if (blockMembers.Count == 0)
                 GenerateProperties();
 
-            foreach (PropertyData propData in src.terminalProperties)
+            foreach (PropertyData propData in src.propertyList)
             {
-                BvTerminalPropertyBase prop = blockProperties.Find(x => x.PropName.IsTextEqual(propData.name));
+                BlockPropertyBase prop = blockProperties.Find(x => x.PropName == propData.name);
 
                 if (prop != null)
                 {
@@ -138,17 +169,20 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Exports block terminal settings as a serializable <see cref="BlockData"/>
         /// </summary>
-        public BlockData ExportSettings()
+        public void ExportSettings(ref BlockData blockData)
         {
             if (blockProperties.Count == 0)
                 GenerateProperties();
 
-            var propData = new List<PropertyData>(blockProperties.Count);
-
             for (int n = 0; n < blockProperties.Count; n++)
-                propData.Add(blockProperties[n].GetPropertyData());
+            {
+                PropertyData? data = blockProperties[n].GetPropertyData();
 
-            return new BlockData(TypeID, propData);
+                if (data != null)
+                    blockData.propertyList.Add(data.Value);
+            }
+
+            blockData.blockTypeID = TypeID;
         }
 
         /// <summary>
@@ -156,28 +190,38 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private static void GetTooltipName(ITerminalProperty prop, StringBuilder dst)
         {
-            dst.Clear();
-
             if (prop is IMyTerminalControlTitleTooltip)
             {
                 var tooltip = prop as IMyTerminalControlTitleTooltip;
-                int trailingCharacters = 0;
                 StringBuilder name = MyTexts.Get(tooltip.Title);
 
-                for (int n = name.Length - 1; n >= 0; n--)
+                // Exclude leading spaces
+                int start = 0;
+
+                for (int i = 0; i < name.Length; i++)
                 {
-                    if ((name[n] >= '0' && name[n] <= '9') || name[n] >= 'A')
+                    if (name[i] > ' ')
                         break;
-                    else
-                        trailingCharacters++;
+
+                    start++;
                 }
 
-                dst.EnsureCapacity(name.Length - trailingCharacters);
+                dst.Clear();
+                dst.EnsureCapacity(name.Length - start);
 
-                for (int n = 0; n < (name.Length - trailingCharacters); n++)
+                for (int n = start; n < name.Length; n++)
                 {
-                    if (name[n] >= ' ')
-                        dst.Append(name[n]);
+                    char ch = name[n],
+                        nextCh = name[Math.Min(n + 1, name.Length - 1)];
+
+                    if (
+                        // Exclude special chars and most punctuation
+                        (ch == ' ' || ch >= 'A' || (ch >= '0' && ch <= '9') ) 
+                        // Exclude repeating and trailing spaces
+                        && !(nextCh == ' ' && ch == ' ') )
+                    {
+                        dst.Append(ch);
+                    }
                 }
             }
         }
@@ -189,10 +233,21 @@ namespace DarkHelmet.BuildVision2
         {
             if (src != null)
             {
-                dst.Clear();
-                dst.EnsureCapacity(src.Length);
+                // Exclude leading spaces
+                int start = 0;
 
-                for (int n = 0; n < src.Length; n++)
+                for (int i = 0; i < src.Length; i++)
+                {
+                    if (src[i] > ' ')
+                        break;
+
+                    start++;
+                }
+
+                dst.Clear();
+                dst.EnsureCapacity(src.Length - start);
+
+                for (int n = start; n < src.Length; n++)
                 {
                     if (src[n] >= ' ')
                         dst.Append(src[n]);
@@ -259,7 +314,7 @@ namespace DarkHelmet.BuildVision2
                             var colorProp = prop as ITerminalProperty<Color>;
 
                             if (colorProp.CanAccessValue(TBlock))
-                                ColorProperty.AddColorProperties(nameBuilder, colorProp, this);
+                                blockProperties.Add(ColorProperty.GetProperty(nameBuilder, colorProp, this));
                         }
                     }
                 }

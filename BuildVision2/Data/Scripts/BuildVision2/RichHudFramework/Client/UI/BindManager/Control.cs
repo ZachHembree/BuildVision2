@@ -32,6 +32,16 @@ namespace RichHudFramework
                 /// </summary>
                 public bool IsPressed => (bool)(_instance.GetControlMember(Index, (int)ControlAccessors.IsPressed) ?? false);
 
+                /// <summary>
+                /// Returns true if the control was just pressed
+                /// </summary>
+                public bool IsNewPressed => (bool)(_instance.GetControlMember(Index, (int)ControlAccessors.IsNewPressed) ?? false);
+
+                /// <summary>
+                /// Returns true if the control was just released
+                /// </summary>
+                public bool IsReleased => (bool)(_instance.GetControlMember(Index, (int)ControlAccessors.IsReleased) ?? false);
+
                 // <summary>
                 /// Returns true if the control doesn't represent a boolean value. For example, MwUp/Dn
                 /// represent scroll wheel movement, but don't return an exact position/displacement.

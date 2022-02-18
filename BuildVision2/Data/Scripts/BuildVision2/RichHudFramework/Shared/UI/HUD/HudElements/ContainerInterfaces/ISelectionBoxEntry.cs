@@ -14,6 +14,8 @@ namespace RichHudFramework.UI
          where TElement : HudElementBase
     {
         bool AllowHighlighting { get; set; }
+
+        void Reset();
     }
 
     /// <summary>

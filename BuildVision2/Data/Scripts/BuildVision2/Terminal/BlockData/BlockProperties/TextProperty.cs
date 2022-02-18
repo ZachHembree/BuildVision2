@@ -11,11 +11,13 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Field for changing block property text. 
         /// </summary>
-        private class TextProperty : BvTerminalProperty<ITerminalProperty<StringBuilder>, StringBuilder>, IBlockTextMember
+        private class TextProperty : BvTerminalProperty<ITerminalProperty<StringBuilder>, StringBuilder>, IBlockTextMember, IBlockValue<StringBuilder>
         {
-            public override StringBuilder Display { get { CleanText(GetValue(), valueBuilder); return valueBuilder; } }
+            public StringBuilder Value { get { return GetValue(); } set { SetValue(value); } } 
 
-            public override StringBuilder Status => null;
+            public override StringBuilder FormattedValue { get { CleanText(GetValue(), valueBuilder); return valueBuilder; } }
+
+            public override StringBuilder StatusText => null;
 
             public Func<char, bool> CharFilterFunc { get; }
 
@@ -26,6 +28,7 @@ namespace DarkHelmet.BuildVision2
             {
                 CharFilterFunc = FilterCharInput;
                 valueBuilder = new StringBuilder();
+                ValueType = BlockMemberValueTypes.Text;
             }
 
             public override void SetProperty(StringBuilder name, ITerminalProperty<StringBuilder> property, PropertyBlock block)
@@ -63,11 +66,11 @@ namespace DarkHelmet.BuildVision2
                 SetValue(valueBuilder);
             }
 
-            public override PropertyData GetPropertyData()
+            public override PropertyData? GetPropertyData()
             {
                 byte[] valueData;
 
-                if (Utils.ProtoBuf.TrySerialize(GetValue().ToString(), out valueData) == null)
+                if (Utils.ProtoBuf.TrySerialize(GetValue()?.ToString() ?? "", out valueData) == null)
                 {
                     return new PropertyData(PropName.ToString(), valueData);
                 }

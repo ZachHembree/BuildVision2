@@ -18,34 +18,31 @@ namespace DarkHelmet.BuildVision2
             CmdManager.GetOrCreateGroup("/bv2", new CmdGroupInitializer 
             {
                 { "help", x => RichHudTerminal.OpenToPage(helpMain) },
-                { "printBinds", x => ExceptionHandler.SendChatMessage(HelpText.GetPrintBindsMessage()) },
                 { "bind", x => UpdateBind(x[0], x.GetSubarray(1)), 2 },
                 { "resetBinds", x => BvBinds.Cfg = BindsConfig.Defaults },
                 { "save", x => BvConfig.SaveStart() },
                 { "load", x => BvConfig.LoadStart() },
                 { "resetConfig", x => BvConfig.ResetConfig() },
-                { "toggleAutoclose", x => Cfg.general.closeIfNotInView = !Cfg.general.closeIfNotInView },
-                { "toggleOpenWhileHolding", x => Cfg.general.canOpenIfHolding = !Cfg.general.canOpenIfHolding },
 
                 // Debug/Testing
-                { "open", x => PropertiesMenu.TryOpenMenu() },
-                { "close", x => PropertiesMenu.HideMenu() },
+                { "open", x => MenuManager.TryOpenMenu() },
+                { "close", x => MenuManager.CloseMenu() },
                 { "reload", x => ExceptionHandler.ReloadClients() },
                 { "crash", x => Crash() },
                 { "printControlsToLog", x => LogIO.WriteToLogStart($"Control List:\n{HelpText.controlList}") },
                 { "export", x => ExportBlockData() },
                 { "import", x => TryImportBlockData() },
-                { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(PropertiesMenu.Target?.SubtypeId.ToString() ?? "No Target")}") },
-                { "toggleBoundingBox", x => PropertiesMenu.DrawBoundingBox = !PropertiesMenu.DrawBoundingBox },
+                { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(MenuManager.Target?.SubtypeId.ToString() ?? "No Target")}") },
+                { "toggleDebug", x => QuickActionMenu.DrawDebug = !QuickActionMenu.DrawDebug },
+                { "toggleBoundingBox", x => MenuManager.DrawBoundingBox = !MenuManager.DrawBoundingBox },
                 { "targetBench", TargetBench, 1 },
                 { "getTarget", x => GetTarget() },
-                { "echo", x => ExceptionHandler.SendChatMessage($"echo: {x[0]}") },
             });
         }
 
         private static void UpdateBind(string bindName, string[] controls)
         {
-            IBind bind = BvBinds.OpenGroup.GetBind(bindName);
+            IBind bind = BvBinds.ModifierGroup.GetBind(bindName);
 
             if (bind == null)
                 bind = BvBinds.MainGroup.GetBind(bindName);
@@ -58,7 +55,7 @@ namespace DarkHelmet.BuildVision2
 
         private void TryImportBlockData()
         {
-            LocalFileIO blockIO = new LocalFileIO($"{PropertiesMenu.Target?.TypeID}.bin");
+            LocalFileIO blockIO = new LocalFileIO($"{MenuManager.Target?.TypeID}.bin");
             byte[] byteData;
 
             if (blockIO.FileExists && blockIO.TryRead(out byteData) == null)
@@ -66,16 +63,20 @@ namespace DarkHelmet.BuildVision2
                 BlockData data;
 
                 if (Utils.ProtoBuf.TryDeserialize(byteData, out data) == null)
-                    PropertiesMenu.Target.ImportSettings(data);
+                    MenuManager.Target.ImportSettings(data);
             }
         }
 
         private void ExportBlockData()
         {
-            LocalFileIO blockIO = new LocalFileIO($"{PropertiesMenu.Target?.TypeID}.bin");
+            BlockData blockData = default(BlockData);
+            blockData.propertyList = new List<PropertyData>();
+            MenuManager.Target?.ExportSettings(ref blockData);
+
+            LocalFileIO blockIO = new LocalFileIO($"{MenuManager.Target?.TypeID}.bin");
             byte[] byteData;
 
-            if (Utils.ProtoBuf.TrySerialize(PropertiesMenu.Target?.ExportSettings(), out byteData) == null)
+            if (Utils.ProtoBuf.TrySerialize(blockData, out byteData) == null)
                 blockIO.TryWrite(byteData);
         }
 
@@ -83,7 +84,7 @@ namespace DarkHelmet.BuildVision2
         {
             IMyTerminalBlock tblock;
 
-            if (PropertiesMenu.TryGetTargetedBlock(100d, out tblock))
+            if (MenuManager.TryGetTargetedBlock(100d, out tblock))
             {
                 int iterations;
                 bool getProperties = false;
@@ -104,7 +105,7 @@ namespace DarkHelmet.BuildVision2
                 for (int n = 0; n < iterations; n++)
                 {
                     IMyTerminalBlock temp;
-                    PropertiesMenu.TryGetTargetedBlock(100d, out temp);
+                    MenuManager.TryGetTargetedBlock(100d, out temp);
                     pBlock.SetBlock(grid, tblock);
 
                     if (getProperties)
@@ -129,9 +130,9 @@ namespace DarkHelmet.BuildVision2
         {
             IMyTerminalBlock tblock;
             
-            if (PropertiesMenu.TryGetTargetedBlock(100d, out tblock))
+            if (MenuManager.TryGetTargetedBlock(100d, out tblock))
             {
-                ExceptionHandler.SendChatMessage($"Target: {tblock.GetType()}\nAccess: {LocalPlayer.GetBlockAccessPermissions(tblock)}");
+                ExceptionHandler.SendChatMessage($"Target: {tblock.GetType()}\nAccess: {tblock.GetAccessPermissions()}");
             }
             else
                 ExceptionHandler.SendChatMessage($"Error: No target found.");

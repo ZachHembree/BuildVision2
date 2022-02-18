@@ -124,6 +124,8 @@ namespace DarkHelmet.BuildVision2
             AddBlockSubtypes();
         }
 
+        public virtual void Update() { }
+
         public virtual void Reset()
         {
             for (int i = 0; i < subtypeAccessors.Count; i++)

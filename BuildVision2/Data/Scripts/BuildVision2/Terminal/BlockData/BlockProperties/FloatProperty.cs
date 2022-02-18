@@ -16,9 +16,17 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Block Terminal Property of a Float
         /// </summary>
-        private class FloatProperty : NumericPropertyBase<float>
+        private class FloatProperty : NumericPropertyBase<float>, IBlockNumericValue<float>
         {
-            public override StringBuilder Display
+            public float Value { get { return GetValue(); } set { SetValue(value); } }
+
+            public float MaxValue { get; private set; }
+
+            public float MinValue { get; private set; }
+
+            public float Increment { get; private set; }
+
+            public override StringBuilder FormattedValue
             {
                 get 
                 {
@@ -29,11 +37,11 @@ namespace DarkHelmet.BuildVision2
                         return writerText;
                     }
                     else
-                        return Value;
+                        return ValueText;
                 } 
             }
 
-            public override StringBuilder Value 
+            public override StringBuilder ValueText 
             {
                 get 
                 {
@@ -44,7 +52,7 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public override StringBuilder Status 
+            public override StringBuilder StatusText 
             {
                 get 
                 {
@@ -67,7 +75,6 @@ namespace DarkHelmet.BuildVision2
             private Action<IMyTerminalBlock, StringBuilder> SliderWriter;
             private Action<StringBuilder> GetStatusFunc;
             private Func<float> GetScaleFunc;
-            private float minValue, maxValue, increment;
             private BvPropPool<FloatProperty> poolParent;
 
             static FloatProperty()
@@ -84,6 +91,8 @@ namespace DarkHelmet.BuildVision2
                 GetPistonExtensionFunc = GetPistonExtension;
                 GetRotorAngleFunc = GetRotorAngle;
                 GetThrustEffectFunc = GetThrustEffect;
+
+                ValueType = BlockMemberValueTypes.Float;
             }
 
             public override void SetProperty(StringBuilder name, ITerminalProperty<float> property, PropertyBlock block)
@@ -96,11 +105,11 @@ namespace DarkHelmet.BuildVision2
                 var slider = control as IMyTerminalControlSlider;
                 SliderWriter = slider?.Writer;
 
-                minValue = property.GetMinimum(block.TBlock);
-                maxValue = property.GetMaximum(block.TBlock);
-                increment = GetIncrement();
+                MinValue = property.GetMinimum(block.TBlock);
+                MaxValue = property.GetMaximum(block.TBlock);
+                Increment = GetIncrement();
 
-                if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Thruster) && PropName.IsTextEqual("Override"))
+                if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Thruster) && PropName == "Override")
                     GetScaleFunc = GetThrustEffectFunc;
                 else
                     GetScaleFunc = GetDefaultScaleFunc;
@@ -136,17 +145,11 @@ namespace DarkHelmet.BuildVision2
                 return prop;
             }
 
-            public override void ScrollDown() =>
-                ChangePropValue(-GetStep());
-
-            public override void ScrollUp() =>
-                ChangePropValue(+GetStep());
-
             public override float GetValue() =>
                 base.GetValue() * GetScaleFunc();
 
             public override void SetValue(float value) =>
-                base.SetValue(MathHelper.Clamp((value / GetScaleFunc()).Round(6), minValue, maxValue));
+                base.SetValue(MathHelper.Clamp((value / GetScaleFunc()).Round(6), MinValue, MaxValue));
 
             public override bool TryParseValue(string text, out float value) =>
                 float.TryParse(text, out value);
@@ -178,13 +181,13 @@ namespace DarkHelmet.BuildVision2
                     increment = 90f;
                 else
                 {
-                    if (float.IsInfinity(minValue) || float.IsInfinity(maxValue))
+                    if (float.IsInfinity(MinValue) || float.IsInfinity(MaxValue))
                         increment = 1f;
                     else
                     {
-                        double range = Math.Abs(maxValue - minValue), exp;
+                        double range = Math.Abs(MaxValue - MinValue), exp;
 
-                        if (minValue != 0f && maxValue != 0f)
+                        if (MinValue != 0f && MaxValue != 0f)
                             exp = Math.Truncate(Math.Log10(1.1 * range));
                         else
                             exp = Math.Truncate(Math.Log10(2.2 * range));
@@ -197,38 +200,6 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 return increment;
-            }
-
-            /// <summary>
-            /// Gets value to add or subtract from the property based on multipliers used.
-            /// </summary>
-            private float GetStep()
-            {
-                float inc;
-
-                if (BvBinds.MultZ.IsPressed)
-                    inc = increment * Cfg.floatMult.Z;
-                else if (BvBinds.MultY.IsPressed)
-                    inc = increment * Cfg.floatMult.Y;
-                else if (BvBinds.MultX.IsPressed)
-                    inc = increment * Cfg.floatMult.X;
-                else
-                    inc = increment;
-
-                return inc.Round(3);
-            }
-
-            /// <summary>
-            /// Changes property float value based on given delta.
-            /// </summary>
-            private void ChangePropValue(float value)
-            {
-                float current = GetValue();
-
-                if (float.IsInfinity(current))
-                    current = 0f;
-
-                SetValue((float)Math.Round(MathHelper.Clamp((current + value), minValue, maxValue), 4));
             }
         }
     }

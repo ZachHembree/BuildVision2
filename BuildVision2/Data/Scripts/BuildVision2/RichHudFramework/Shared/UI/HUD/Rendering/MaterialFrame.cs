@@ -93,23 +93,6 @@ namespace RichHudFramework
                     );
                 }
             }
-
-            /// <summary>
-            /// Defines a quad comprised of four <see cref="Vector2"/>s.
-            /// </summary>
-            public struct FlatQuad
-            {
-                public Vector2 Point0, Point1, Point2, Point3;
-
-                public FlatQuad(Vector2 Point0, Vector2 Point1, Vector2 Point2, Vector2 Point3)
-                {
-                    this.Point0 = Point0;
-                    this.Point1 = Point1;
-                    this.Point2 = Point2;
-                    this.Point3 = Point3;
-                }
-            }
-
         }
     }
 }

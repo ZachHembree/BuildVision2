@@ -10,6 +10,11 @@ namespace DarkHelmet.BuildVision2
         private abstract class BlockMemberBase : IBlockMember
         {
             /// <summary>
+            /// Unique identifier associated with the property
+            /// </summary>
+            public abstract string PropName { get; }
+
+            /// <summary>
             /// Retrieves the name of the block property
             /// </summary>
             public virtual StringBuilder Name { get; protected set; }
@@ -17,22 +22,27 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Retrieves the value as a <see cref="StringBuilder"/> using formatting specific to the member.
             /// </summary>
-            public abstract StringBuilder Display { get; }
+            public abstract StringBuilder FormattedValue { get; }
 
             /// <summary>
             /// Retrieves the current value of the block member as an unformatted <see cref="StringBuilder"/>
             /// </summary>
-            public virtual StringBuilder Value => Display;
+            public virtual StringBuilder ValueText => FormattedValue;
 
             /// <summary>
             /// Additional information following the value of the member.
             /// </summary>
-            public abstract StringBuilder Status { get; }
+            public abstract StringBuilder StatusText { get; }
 
             /// <summary>
             /// Indicates whether or not a given <see cref="IBlockMember"/> should be shown in the terminal.
             /// </summary>
             public virtual bool Enabled { get; protected set; }
+
+            /// <summary>
+            /// Returns the type of data stored by the block member, if any.
+            /// </summary>
+            public virtual BlockMemberValueTypes ValueType { get; protected set; }
 
             public abstract void Reset();
 

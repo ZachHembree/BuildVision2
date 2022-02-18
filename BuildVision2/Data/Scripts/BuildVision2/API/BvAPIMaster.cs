@@ -94,18 +94,30 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        private static BvMenuModes GetApiMode()
+        {
+            BvMenuModes mode;
+
+            if ((MenuManager.MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                mode = BvMenuModes.Dupe;
+            else if ((MenuManager.MenuState & QuickActionMenuState.Controlled) > 0)
+                mode = BvMenuModes.Control;
+            else
+                mode = BvMenuModes.Peek;
+
+            return mode;
+        }
+
         private static object GetOrSetMembers(object data, int memberEnum)
         {
-            bool running = BvMain.Instance?.CanUpdate ?? false;
-
             switch ((BvApiAccessors)memberEnum)
             {
                 case BvApiAccessors.Open:
-                    return running ? PropertiesMenu.Open : false;
+                    return MenuManager.Open;
                 case BvApiAccessors.MenuMode:
-                    return running ? PropertiesMenu.MenuMode : default(ScrollMenuModes);
+                    return GetApiMode();
                 case BvApiAccessors.Target:
-                    return running ? PropertiesMenu.Target?.TBlock : null;
+                    return MenuManager.Target?.TBlock;
             }
 
             return null;

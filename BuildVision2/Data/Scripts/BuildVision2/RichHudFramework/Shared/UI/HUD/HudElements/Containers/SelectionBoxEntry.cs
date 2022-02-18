@@ -19,6 +19,12 @@ namespace RichHudFramework.UI
             Enabled = true;
             AllowHighlighting = true;
         }
+
+        public virtual void Reset()
+        {
+            Enabled = true;
+            AllowHighlighting = true;
+        }
     }
 
     public class SelectionBoxEntryTuple<TElement, TValue>
@@ -26,6 +32,13 @@ namespace RichHudFramework.UI
         where TElement : HudElementBase
     {
         public TValue AssocMember { get; set; }
+
+        public override void Reset()
+        {
+            Enabled = true;
+            AllowHighlighting = true;
+            AssocMember = default(TValue);
+        }
     }
 
 }

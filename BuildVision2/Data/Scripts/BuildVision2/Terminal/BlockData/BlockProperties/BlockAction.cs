@@ -18,9 +18,11 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BlockAction : BlockMemberBase, IBlockAction
         {
-            public override StringBuilder Display { get { GetValueFunc(dispBuilder); return dispBuilder; } }
+            public override string PropName => _propName;
 
-            public override StringBuilder Status 
+            public override StringBuilder FormattedValue { get { GetValueFunc(dispBuilder); return dispBuilder; } }
+
+            public override StringBuilder StatusText 
             { 
                 get 
                 {
@@ -37,7 +39,15 @@ namespace DarkHelmet.BuildVision2
             private Action<StringBuilder> GetValueFunc, GetPostfixFunc;
             private Action action;
             private BvPropPool<BlockAction> poolParent;
-            private StringBuilder dispBuilder, statusBuilder;
+            private string _propName;
+            private readonly StringBuilder dispBuilder, statusBuilder;
+
+            public BlockAction()
+            {
+                dispBuilder = new StringBuilder();
+                statusBuilder = new StringBuilder();
+                ValueType = BlockMemberValueTypes.None;
+            }
 
             public void SetAction(Action<StringBuilder> GetValueFunc, Action<StringBuilder> GetPostfixFunc, Action Action, PropertyBlock block)
             {
@@ -46,9 +56,6 @@ namespace DarkHelmet.BuildVision2
 
                 Name = null;
                 Enabled = true;
-
-                dispBuilder = new StringBuilder();
-                statusBuilder = new StringBuilder();
 
                 this.GetValueFunc = GetValueFunc;
                 this.GetPostfixFunc = GetPostfixFunc;
@@ -69,17 +76,10 @@ namespace DarkHelmet.BuildVision2
                 poolParent.Return(this);
             }
 
-            public static BlockAction GetBlockAction(Action<StringBuilder> GetValueFunc, Action<StringBuilder> GetPostfixFunc, Action Action, PropertyBlock block)
-            {
-                BlockAction blockAction = block.blockActionPool.Get();
-                blockAction.SetAction(GetValueFunc, GetPostfixFunc, Action, block);
-
-                return blockAction;
-            }
-
             public static BlockAction GetBlockAction(string value, Action<StringBuilder> GetPostfixFunc, Action Action, PropertyBlock block)
             {
                 BlockAction blockAction = block.blockActionPool.Get();
+                blockAction._propName = value;
                 blockAction.SetAction(x => { if (x.Length == 0) x.Append(value); }, GetPostfixFunc, Action, block);
 
                 return blockAction;
@@ -96,14 +96,6 @@ namespace DarkHelmet.BuildVision2
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
                 block.TBlock.GetActions(terminalActions);
 
-                IMyTerminalAction hotBarAttach = terminalActions.Find(x => x.Id == "Attach");
-                Action AttachAction;
-
-                if (hotBarAttach != null)
-                    AttachAction = () => hotBarAttach.Apply(block.TBlock);
-                else
-                    AttachAction = block.MechConnection.AttachHead;
-
                 members.Add(GetBlockAction(
                     // Name
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_Attach),
@@ -115,7 +107,7 @@ namespace DarkHelmet.BuildVision2
                         x.Append(block.MechConnection.GetLocalizedAttachStatus());
                         x.Append(')');
                     },
-                    AttachAction, block));
+                    block.MechConnection.AttachHead, block));
                 members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_Detach), null,
                     block.MechConnection.DetachHead, block));
@@ -150,7 +142,7 @@ namespace DarkHelmet.BuildVision2
             public static void GetDoorActions(PropertyBlock block, List<BlockMemberBase> members)
             {
                 members.Add(GetBlockAction(
-                    MyTexts.TrySubstitute("Open/Close"), null,
+                    MyTexts.TrySubstitute("Open / Close"), null,
                     block.Door.ToggleDoor, block));
             }
 

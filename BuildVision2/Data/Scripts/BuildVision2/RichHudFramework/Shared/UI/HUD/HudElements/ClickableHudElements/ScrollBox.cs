@@ -41,7 +41,7 @@ namespace RichHudFramework.UI
                         _absMaxSize.X = (value - scrollBarPadding);
                 }
                 else
-                    _absMinLengthInternal = _size.X;
+                    _minLengthInternal = _size.X;
             }
         }
 
@@ -63,7 +63,7 @@ namespace RichHudFramework.UI
                         _absMaxSize.Y = (value - scrollBarPadding);
                 }
                 else
-                    _absMinLengthInternal = _size.Y;
+                    _minLengthInternal = _size.Y;
             }
         }
 
@@ -77,7 +77,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Minimum total length (on the align axis) of visible members allowed in the scrollbox.
         /// </summary>
-        public float MinLength { get { return _absMinLength; } set { _absMinLength = value; } }
+        public float MinLength { get { return _minLength; } set { _minLength = value; } }
 
         /// <summary>
         /// Index of the first element in the visible range in the chain.
@@ -209,7 +209,7 @@ namespace RichHudFramework.UI
         public TexturedBox Divider { get; protected set; }
         public TexturedBox Background { get; protected set; }
 
-        protected float scrollBarPadding, _absMinLength, _absMinLengthInternal;
+        protected float scrollBarPadding, _minLength, _minLengthInternal;
         protected int _intStart, _intEnd, _start, _end, firstEnabled;
 
         public ScrollBox(bool alignVertical, HudParentBase parent = null) : base(alignVertical, parent)
@@ -274,7 +274,7 @@ namespace RichHudFramework.UI
             UpdateMemberSizes();
 
             // Get the list length
-            float rangeLength = Math.Max(_absMinLength, _absMinLengthInternal);
+            float rangeLength = Math.Max(_minLength, _minLengthInternal);
 
             // Update visible range
             float totalEnabledLength = 0f, scrollOffset = 0f;
@@ -333,7 +333,8 @@ namespace RichHudFramework.UI
         private void UpdateElementRange(float length, out float totalEnabledLength, out float scrollOffset)
         {
             float spacing = Spacing,
-                scrollCurrent = ScrollBar.Current;
+                scrollCurrent = ScrollBar.Current,
+                minVisLength = 0f;
 
             EnabledCount = 0;
             _intEnd = -1;
@@ -345,8 +346,13 @@ namespace RichHudFramework.UI
             {
                 if (hudCollectionList[i].Enabled)
                 {
-                    float elementSize = hudCollectionList[i].Element.Size[alignAxis],
-                        delta = totalEnabledLength + elementSize - scrollCurrent - length;
+                    float elementSize = hudCollectionList[i].Element.Size[alignAxis];
+
+                    if (EnabledCount < MinVisibleCount)
+                        minVisLength += elementSize;
+
+                    length = Math.Max(minVisLength, length);
+                    float delta = totalEnabledLength + elementSize - scrollCurrent - length;
 
                     // Get first enabled element
                     if (firstEnabled == -1)
@@ -496,7 +502,7 @@ namespace RichHudFramework.UI
         {
             int preloadRange = Math.Max((End - Start) * 2, 10),
                 preloadStart = MathHelper.Clamp(Start - preloadRange, 0, hudCollectionList.Count - 1),
-                preloadCount = MathHelper.Clamp((End + preloadRange) - preloadStart, 0, hudCollectionList.Count - preloadStart);
+                preloadCount = MathHelper.Clamp((2 * preloadRange), 0, hudCollectionList.Count - preloadStart);
             HudElementStates memberFlags = HudElementStates.CanPreload;
 
             if (UseSmoothScrolling)

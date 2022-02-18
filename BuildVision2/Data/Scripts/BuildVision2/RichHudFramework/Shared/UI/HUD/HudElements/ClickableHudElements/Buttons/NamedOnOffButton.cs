@@ -3,7 +3,7 @@ using VRage;
 using VRageMath;
 using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
-namespace RichHudFramework.UI.Server
+namespace RichHudFramework.UI
 {
     /// <summary>
     /// An On/Off button with a label over it

@@ -1,7 +1,7 @@
 ﻿using RichHudFramework.UI.Rendering;
 using VRageMath;
 
-namespace RichHudFramework.UI.Server
+namespace RichHudFramework.UI
 {
     /// <summary>
     /// Named checkbox designed to mimic the appearance of checkboxes used in the SE terminal.

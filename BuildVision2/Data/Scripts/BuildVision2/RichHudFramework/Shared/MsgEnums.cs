@@ -13,6 +13,7 @@
         HudMain = 2,
         FontManager = 3,
         SettingsMenu = 4,
+        BillBoardUtils = 5
     }
 
     public enum ClientDataAccessors : int

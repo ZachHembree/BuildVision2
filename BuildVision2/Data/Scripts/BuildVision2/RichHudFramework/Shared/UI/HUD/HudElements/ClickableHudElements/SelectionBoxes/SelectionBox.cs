@@ -20,7 +20,13 @@ namespace RichHudFramework.UI
         : SelectionBox<HudChain<TContainer, TElement>, TContainer, TElement, TValue>
         where TContainer : class, IListBoxEntry<TElement, TValue>, new()
         where TElement : HudElementBase, IMinLabelElement
-    { }
+    {
+        public ChainSelectionBox(HudParentBase parent) : base(parent)
+        { }
+
+        public ChainSelectionBox() : base(null)
+        { }
+    }
 
     /// <summary>
     /// Generic SelectionBox using ScrollBox
@@ -29,7 +35,60 @@ namespace RichHudFramework.UI
         : SelectionBox<ScrollBox<TContainer, TElement>, TContainer, TElement, TValue>
         where TContainer : class, IListBoxEntry<TElement, TValue>, new()
         where TElement : HudElementBase, IMinLabelElement
-    { }
+    {
+        /// <summary>
+        /// Background color
+        /// </summary>
+        public Color Color { get { return hudChain.Color; } set { hudChain.Color = value; } }
+
+        /// <summary>
+        /// If enabled scrolling using the scrollbar and mousewheel will be allowed
+        /// </summary>
+        public virtual bool EnableScrolling { get { return hudChain.EnableScrolling; } set { hudChain.EnableScrolling = value; } }
+
+        /// <summary>
+        /// Enable/disable smooth scrolling and range clipping
+        /// </summary>
+        public virtual bool UseSmoothScrolling { get { return hudChain.UseSmoothScrolling; } set { hudChain.UseSmoothScrolling = value; } }
+
+        /// <summary>
+        /// Minimum number of visible elements allowed. Supercedes maximum length. If the number of elements that
+        /// can fit within the maximum length is less than this value, then this element will expand beyond its maximum
+        /// size.
+        /// </summary>
+        public virtual int MinVisibleCount { get { return hudChain.MinVisibleCount; } set { hudChain.MinVisibleCount = value; } }
+
+        /// <summary>
+        /// Minimum total length (on the align axis) of visible members allowed in the scrollbox.
+        /// </summary>
+        public virtual float MinLength { get { return hudChain.MinLength; } set { hudChain.MinLength = value; } }
+
+        protected override float HighlightWidth =>
+            hudChain.Size.X - cachedPadding.X - hudChain.ScrollBar.Width - hudChain.Padding.X - HighlightPadding.X;
+
+        public ScrollSelectionBox(HudParentBase parent) : base(parent)
+        { }
+
+        public ScrollSelectionBox() : base(null)
+        { }
+
+        protected override void HandleInput(Vector2 cursorPos)
+        {
+            base.HandleInput(cursorPos);
+
+            if (listInput.KeyboardScroll)
+            {
+                if (listInput.HighlightIndex > hudChain.End)
+                {
+                    hudChain.End = listInput.HighlightIndex;
+                }
+                else if (listInput.HighlightIndex < hudChain.Start)
+                {
+                    hudChain.Start = listInput.HighlightIndex;
+                }
+            }
+        }
+    }
 
     /// <summary>
     /// Generic list of pooled, selectable entries of fixed size.
@@ -44,6 +103,11 @@ namespace RichHudFramework.UI
         /// Padding applied to list members.
         /// </summary>
         public Vector2 MemberPadding { get; set; }
+
+        /// <summary>
+        /// Sets padding for the list independent of selection box padding.
+        /// </summary>
+        public virtual Vector2 ListPadding { get { return hudChain.Padding; } set { hudChain.Padding = value; } }
 
         /// <summary>
         /// Height of entries in the list.
@@ -75,6 +139,16 @@ namespace RichHudFramework.UI
 
         public SelectionBox() : this(null)
         { }
+
+        /// <summary>
+        /// Adds a new pooled container entry to the list in its default state and returns it.
+        /// </summary>
+        public TContainer AddNew()
+        {
+            TContainer entry = entryPool.Get();
+            hudChain.Add(entry);
+            return entry;
+        }
 
         /// <summary>
         /// Adds a new member to the list box with the given name and associated
@@ -150,9 +224,7 @@ namespace RichHudFramework.UI
         /// </summary>
         public void RemoveRange(int index, int count)
         {
-            for (int n = index; n < index + count; n++)
-                entryPool.Return(hudChain.Collection[n]);
-
+            entryPool.ReturnRange(hudChain.Collection, index, count - index);
             hudChain.RemoveRange(index, count);
         }
 
@@ -161,9 +233,8 @@ namespace RichHudFramework.UI
         /// </summary>
         public void ClearEntries()
         {
-            for (int n = 0; n < hudChain.Collection.Count; n++)
-                entryPool.Return(hudChain.Collection[n]);
-
+            ClearSelection();
+            entryPool.ReturnRange(hudChain.Collection);
             hudChain.Clear();
         }
 
@@ -202,9 +273,7 @@ namespace RichHudFramework.UI
             if (Selection == entry)
                 listInput.ClearSelection();
 
-            entry.Element.TextBoard.Clear();
-            entry.AssocMember = default(TValue);
-            entry.Enabled = true;
+            entry.Reset();
         }
 
         public virtual object GetOrSetMember(object data, int memberEnum)

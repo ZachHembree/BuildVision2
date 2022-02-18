@@ -82,9 +82,12 @@ namespace RichHudFramework.UI
         /// </summary>
         public void SetSelectionAt(int index)
         {
-            SelectionIndex = MathHelper.Clamp(index, 0, Entries.Count - 1);
-            Selection.Enabled = true;
-            SelectionChanged?.Invoke(this, EventArgs.Empty);
+            if (index != SelectionIndex)
+            {
+                SelectionIndex = MathHelper.Clamp(index, 0, Entries.Count - 1);
+                Selection.Enabled = true;
+                SelectionChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         /// <summary>
@@ -94,12 +97,53 @@ namespace RichHudFramework.UI
         {
             int index = Entries.FindIndex(x => member.Equals(x));
 
-            if (index != -1)
+            if (index != -1 && index != SelectionIndex)
             {
                 SelectionIndex = MathHelper.Clamp(index, 0, Entries.Count - 1);
                 Selection.Enabled = true;
                 SelectionChanged?.Invoke(this, EventArgs.Empty);
             }
+        }
+
+        /// <summary>
+        /// Offsets selection index in the direction of the offset. If wrap == true, the index will wrap around
+        /// if the offset places it out of range.
+        /// </summary>
+        public void OffsetSelectionIndex(int offset, bool wrap = false)
+        {
+            int index = SelectionIndex,
+                dir = offset > 0 ? 1 : -1,
+                absOffset = Math.Abs(offset);
+
+            if (dir > 0)
+            {
+                for (int i = 0; i < absOffset; i++)
+                {
+                    if (wrap)
+                        index = (index + dir) % Entries.Count;
+                    else
+                        index = Math.Min(index + dir, Entries.Count - 1);
+
+                    index = FindFirstEnabled(index, wrap);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < absOffset; i++)
+                {
+                    if (wrap)
+                        index = (index + dir) % Entries.Count;
+                    else
+                        index = Math.Max(index + dir, 0);
+
+                    if (index < 0)
+                        index += Entries.Count;
+
+                    index = FindLastEnabled(index, wrap);
+                }
+            }
+
+            SetSelectionAt(index);
         }
 
         /// <summary>
@@ -138,13 +182,29 @@ namespace RichHudFramework.UI
             {
                 if (SharedBinds.UpArrow.IsNewPressed || SharedBinds.UpArrow.IsPressedAndHeld)
                 {
-                    HighlightIndex--;
+                    for (int i = HighlightIndex - 1; i >= 0; i--)
+                    {
+                        if (Entries[i].Enabled)
+                        {
+                            HighlightIndex = i;
+                            break;
+                        }
+                    }
+
                     KeyboardScroll = true;
                     lastCursorPos = cursorPos;
                 }
                 else if (SharedBinds.DownArrow.IsNewPressed || SharedBinds.DownArrow.IsPressedAndHeld)
                 {
-                    HighlightIndex++;
+                    for (int i = HighlightIndex + 1; i < Entries.Count; i++)
+                    {
+                        if (Entries[i].Enabled)
+                        {
+                            HighlightIndex = i;
+                            break;
+                        }
+                    }
+
                     KeyboardScroll = true;
                     lastCursorPos = cursorPos;
                 }
@@ -210,5 +270,64 @@ namespace RichHudFramework.UI
             HighlightIndex = MathHelper.Clamp(HighlightIndex, 0, Entries.Count - 1);
         }
 
+        /// <summary>
+        /// Returns first enabled element at or after the given index. Wraps around.
+        /// </summary>
+        private int FindFirstEnabled(int index, bool wrap)
+        {
+            if (wrap)
+            {
+                int j = index;
+
+                for (int n = 0; n < 2 * Entries.Count; n++)
+                {
+                    if (Entries[j].Enabled)
+                        return j;
+
+                    j++;
+                    j %= Entries.Count;
+                }
+            }
+            else
+            {
+                for (int n = index; n < Entries.Count; n++)
+                {
+                    if (Entries[n].Enabled)
+                        return n;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Returns preceeding enabled element at or after the given index. Wraps around.
+        /// </summary>
+        private int FindLastEnabled(int index, bool wrap)
+        {
+            if (wrap)
+            {
+                int j = index;
+
+                for (int n = 0; n < 2 * Entries.Count; n++)
+                {
+                    if (Entries[j].Enabled)
+                        return j;
+
+                    j++;
+                    j %= Entries.Count;
+                }
+            }
+            else
+            {
+                for (int n = index; n >= 0; n--)
+                {
+                    if (Entries[n].Enabled)
+                        return n;
+                }
+            }
+
+            return -1;
+        }
     }
 }

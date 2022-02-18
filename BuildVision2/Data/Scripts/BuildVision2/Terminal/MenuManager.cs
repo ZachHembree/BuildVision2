@@ -12,7 +12,7 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    public sealed partial class PropertiesMenu : BvComponentBase
+    public sealed partial class MenuManager : BvComponentBase
     {
         /// <summary>
         /// Currently targeted terminal block
@@ -22,38 +22,32 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// If true, then the menu is open
         /// </summary>
-        public static bool Open { get { return Instance.scrollMenu.Visible; } set { Instance.scrollMenu.Visible = value; } }
+        public static bool Open => instance?.quickActionMenu.Visible ?? false;
 
         /// <summary>
-        /// Returns the menu's current mode (peek/control/copy)
+        /// Returns the menu's current state
         /// </summary>
-        public static ScrollMenuModes MenuMode => Instance.scrollMenu.MenuMode;
+        public static QuickActionMenuState MenuState => instance?.quickActionMenu.MenuState ?? QuickActionMenuState.Closed;
 
         /// <summary>
         /// If true, then the bounding box of the target block will be drawn. Used for debugging.
         /// </summary>
         public static bool DrawBoundingBox { get; set; }
 
-        private static PropertiesMenu Instance
-        {
-            get { Init(); return _instance; }
-            set { _instance = value; }
-        }
-        private static PropertiesMenu _instance;
+        private static MenuManager instance;
 
-        private readonly BvScrollMenu scrollMenu;
+        private readonly QuickActionMenu quickActionMenu;
         private readonly CustomSpaceNode hudSpace;
         private readonly BoundingBoard boundingBox;
 
         private readonly TerminalGrid targetGrid, tempGrid;
         private readonly List<IMySlimBlock> targetBuffer;
-        private IMyTerminalBlock lastPastedTarget;
 
-        private BlockData clipboard, pasteBackup;
-        private Stopwatch peekRefresh;
+        private readonly Stopwatch peekTimer;
         private readonly IMyHudNotification hudNotification;
+        private Vector2 lastPos;
 
-        private PropertiesMenu() : base(false, true)
+        private MenuManager() : base(false, true)
         {
             DrawBoundingBox = false;
             targetGrid = new TerminalGrid();
@@ -62,33 +56,33 @@ namespace DarkHelmet.BuildVision2
             Target = new PropertyBlock();
 
             hudSpace = new CustomSpaceNode(HudMain.Root) { UpdateMatrixFunc = UpdateHudSpace };
-            scrollMenu = new BvScrollMenu(hudSpace) { Visible = false };
+            quickActionMenu = new QuickActionMenu(hudSpace) { Visible = false };
             boundingBox = new BoundingBoard();
             hudNotification = MyAPIGateway.Utilities.CreateNotification("", 1000, MyFontEnum.Red);
 
             RichHudCore.LateMessageEntered += MessageHandler;
-            peekRefresh = new Stopwatch();
-            peekRefresh.Start();
+            peekTimer = new Stopwatch();
+            peekTimer.Start();
         }
 
         public static void Init()
         {
-            if (_instance == null)
-                _instance = new PropertiesMenu();
+            if (instance == null)
+                instance = new MenuManager();
         }
 
         public static void TryOpenMenu() =>
-            Instance.TryOpen();
+            instance?.TryOpenMenuInternal();
 
-        public static void HideMenu() =>
-            Instance.Hide();
+        public static void CloseMenu() =>
+            instance?.CloseMenuInternal();
 
         public override void Close()
         {
-            Hide();
+            CloseMenuInternal();
             RichHudCore.LateMessageEntered -= MessageHandler;
             Target = null;
-            Instance = null;
+            instance = null;
         }
 
         /// <summary>
@@ -96,84 +90,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void MessageHandler(string message, ref bool sendToOthers)
         {
-            if (scrollMenu.Visible)
+            if (Open)
                 sendToOthers = false;
-        }
-
-        /// <summary>
-        /// Updates the menu each time it's called. Reopens menu if closed.
-        /// </summary>
-        public override void Update()
-        {
-            if (Open && (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None))
-                Hide();
-
-            if (Target.TBlock != null && Open)
-                scrollMenu.UpdateText();
-        }
-
-        public override void HandleInput()
-        {
-            if (!HudMain.Cursor.Visible)
-            {
-                // Open/Hide
-                if (BvBinds.Open.IsNewPressed && BvBinds.Hide.IsNewPressed)
-                    ToggleOpen();
-                else if (BvBinds.Open.IsNewPressed)
-                    TryOpen();
-                else if (BvBinds.Hide.IsNewPressed || SharedBinds.Escape.IsNewPressed)
-                    Hide();
-
-                // Peek
-                if (BvConfig.Current.general.enablePeek)
-                {
-                    if (BvBinds.Peek.IsPressed && (!Open || scrollMenu.MenuMode == ScrollMenuModes.Peek))
-                    {
-                        // Acquire peek target on new press and reacquire every 100ms until bind is released
-                        if (BvBinds.Peek.IsNewPressed || peekRefresh.ElapsedMilliseconds > 100)
-                        {
-                            TryPeek();
-                            peekRefresh.Restart();
-                        }
-                    }
-                    else if (BvBinds.Peek.IsReleased && Open && scrollMenu.MenuMode == ScrollMenuModes.Peek)
-                        Hide();
-                }
-
-                // Copy/paste
-                if (Target.TBlock != null && Open)
-                {
-                    // Copy properties
-                    if (BvBinds.CopySelection.IsNewPressed && scrollMenu.MenuMode == ScrollMenuModes.Dupe)
-                    {
-                        clipboard = new BlockData(Target.TypeID, scrollMenu.GetDuplicationRange());
-                        scrollMenu.ShowNotification($"Copied {clipboard.terminalProperties.Count} Properties");
-                    }
-
-                    // Attempt to paste copied properties
-                    if (BvBinds.PasteProperties.IsNewPressed && !clipboard.Equals(default(BlockData)) && clipboard.terminalProperties.Count > 0)
-                    {
-                        if (clipboard.blockTypeID == Target.TypeID)
-                        {
-                            pasteBackup = Target.ExportSettings();
-                            lastPastedTarget = Target.TBlock;
-
-                            int importCount = Target.ImportSettings(clipboard);
-                            scrollMenu.ShowNotification($"Pasted {importCount} Properties");
-                        }
-                        else
-                            scrollMenu.ShowNotification($"Paste Incompatible");
-                    }
-
-                    // Undo paste if the last pasted block is selected
-                    if (BvBinds.UndoPaste.IsNewPressed && Target.TBlock == lastPastedTarget)
-                    {
-                        Target.ImportSettings(pasteBackup);
-                        scrollMenu.ShowNotification("Paste Undone");
-                        lastPastedTarget = null;
-                    }
-                }
-            }
         }
 
         private MatrixD UpdateHudSpace()
@@ -188,10 +106,6 @@ namespace DarkHelmet.BuildVision2
                 if (DrawBoundingBox) // Debug target bounding box
                     boundingBox.Draw(Target.TBlock);
 
-                // Update opacity, visible range and UI scale based on config
-                scrollMenu.BgOpacity = BvConfig.Current.hudConfig.hudOpacity;
-                scrollMenu.MaxVisible = BvConfig.Current.hudConfig.maxVisible;
-
                 Vector3D targetWorldPos, targetScreenPos;
                 Vector2 menuPos, screenBounds = Vector2.One / 2f;
 
@@ -201,13 +115,11 @@ namespace DarkHelmet.BuildVision2
                     targetScreenPos = LocalPlayer.GetWorldToScreenPos(targetWorldPos) / 2d;
 
                     menuPos = new Vector2((float)targetScreenPos.X, (float)targetScreenPos.Y);
-                    screenBounds -= HudMain.GetAbsoluteVector(scrollMenu.Size * scale / 2f);
-                    scrollMenu.AlignToEdge = false;
+                    screenBounds -= HudMain.GetAbsoluteVector(quickActionMenu.Size * scale / 2f);
                 }
                 else
                 {
                     menuPos = BvConfig.Current.hudConfig.hudPos;
-                    scrollMenu.AlignToEdge = true;
                 }
 
                 if (BvConfig.Current.hudConfig.clampHudPos)
@@ -216,61 +128,90 @@ namespace DarkHelmet.BuildVision2
                     menuPos.Y = MathHelper.Clamp(menuPos.Y, -screenBounds.Y, screenBounds.Y);
                 }
 
-                scrollMenu.Offset = HudMain.GetPixelVector(menuPos) / scale;
+                menuPos = HudMain.GetPixelVector(menuPos) / scale;
+
+                if (BvConfig.Current.hudConfig.useCustomPos)
+                {
+                    if (menuPos.X < 0)
+                        menuPos.X += .5f * quickActionMenu.Width;
+                    else
+                        menuPos.X -= .5f * quickActionMenu.Width;
+
+                    if (menuPos.Y < 0)
+                        menuPos.Y += .5f * quickActionMenu.Height;
+                    else
+                        menuPos.Y -= .5f * quickActionMenu.Height;
+                }
+
+                quickActionMenu.Offset = menuPos;
+                lastPos = menuPos;
             }
 
             // Rescale draw matrix based on config
             return MatrixD.CreateScale(scale, scale, 1d) * HudMain.PixelToWorld;
         }
 
-        /// <summary>
-        /// Toggles the menu open/closed
-        /// </summary>
-        private void ToggleOpen()
+        public override void Update()
         {
-            if (Open && scrollMenu.MenuMode != ScrollMenuModes.Peek)
-                Hide();
-            else
-                TryOpen();
+            if (Open)
+            {
+                Target.Update();
+
+                if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || RichHudTerminal.Open)
+                    CloseMenuInternal();
+            }
+        }
+
+        public override void HandleInput()
+        {
+            if (quickActionMenu.MenuState == QuickActionMenuState.Peek ||
+                quickActionMenu.MenuState == QuickActionMenuState.Closed)
+            {
+                if (quickActionMenu.MenuState == QuickActionMenuState.Closed)
+                {
+                    if (BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed 
+                        || BvBinds.StartDupe.IsNewPressed)
+                    {
+                        TryOpenMenuInternal();
+                    }
+                }
+
+                if (BvBinds.EnableMouse.IsPressed && BvConfig.Current.general.enablePeek)
+                {
+                    if (peekTimer.ElapsedMilliseconds > 100)
+                        TryOpenMenuInternal();
+                }
+                else if (quickActionMenu.MenuState == QuickActionMenuState.Peek)
+                    CloseMenuInternal();
+            }
+
+            if (SharedBinds.Escape.IsNewPressed && Open)
+            {
+                CloseMenuInternal();
+            }
         }
 
         /// <summary>
-        /// Attempts to open the menu and set it to peek
+        /// Attempts to open the property menu
         /// </summary>
-        private void TryPeek()
+        private void TryOpenMenuInternal()
         {
             if (TryGetTarget() && CanAccessTargetBlock())
             {
-                scrollMenu.MenuMode = ScrollMenuModes.Peek;
-                scrollMenu.UpdateTarget();
-                Open = true;
+                quickActionMenu.OpenMenu(Target);
             }
         }
 
         /// <summary>
-        /// Attempts to open the menu and set it to control
+        /// Hide the menu and clear target
         /// </summary>
-        private void TryOpen()
+        private void CloseMenuInternal()
         {
-            if (Open && scrollMenu.MenuMode == ScrollMenuModes.Peek)
-                scrollMenu.MenuMode = ScrollMenuModes.Control;
-            else if (TryGetTarget() && CanAccessTargetBlock())
-            {
-                scrollMenu.MenuMode = ScrollMenuModes.Control;
-                scrollMenu.UpdateTarget();
-                Open = true;
-            }
-        }
-
-        /// <summary>
-        /// Hide the scroll menu and clear target
-        /// </summary>
-        private void Hide()
-        {
-            Open = false;
             Target.Reset();
             targetGrid.Reset();
-            scrollMenu.Clear();
+
+            quickActionMenu.CloseMenu();
+            HudMain.EnableCursor = false;
         }
 
         /// <summary>
@@ -288,7 +229,7 @@ namespace DarkHelmet.BuildVision2
             {
                 if (block != null)
                 {
-                    TerminalPermissionStates permissions = LocalPlayer.GetBlockAccessPermissions(block);
+                    TerminalPermissionStates permissions = block.GetAccessPermissions();
                     
                     if ((permissions & TerminalPermissionStates.Granted) > 0)
                     {
@@ -320,7 +261,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock target)
         {
-            return Instance.TryGetTargetedBlockInternal(maxDist, out target);
+            target = null;
+            return instance?.TryGetTargetedBlockInternal(maxDist, out target) ?? false;
         }
 
         /// <summary>
@@ -390,9 +332,9 @@ namespace DarkHelmet.BuildVision2
         private bool CanAccessTargetBlock()
         {
             return Target.TBlock != null
-            && BlockInRange()
-            && Target.CanLocalPlayerAccess
-            && (!BvConfig.Current.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock));
+                && BlockInRange()
+                && Target.CanLocalPlayerAccess
+                && (!BvConfig.Current.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock));
         }
 
         /// <summary>

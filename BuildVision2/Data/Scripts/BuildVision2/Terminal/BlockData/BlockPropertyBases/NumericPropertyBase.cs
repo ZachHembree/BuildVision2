@@ -9,7 +9,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Property for numerical values. Allows scrolling and text input.
         /// </summary>
-        private abstract class NumericPropertyBase<TValue> : ScrollablePropertyBase<ITerminalProperty<TValue>, TValue>, IBlockTextMember
+        private abstract class NumericPropertyBase<TValue> : BvTerminalProperty<ITerminalProperty<TValue>, TValue>, IBlockTextMember
         {
             public Func<char, bool> CharFilterFunc { get; }
 

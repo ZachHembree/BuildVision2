@@ -5,6 +5,7 @@ using VRage;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRageMath;
+using RichHudFramework.UI;
 
 namespace RichHudFramework.Internal
 {
@@ -12,6 +13,10 @@ namespace RichHudFramework.Internal
     public sealed class RichHudCore : ModBase
     {
         public static RichHudCore Instance { get; private set; }
+
+        /// <summary>
+        /// Chat input event regestered later that the rest
+        /// </summary>
         public static event MessageEnteredDel LateMessageEntered;
 
         private readonly Stopwatch handlerRegTimer;

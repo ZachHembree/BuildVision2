@@ -1,56 +1,70 @@
 ﻿using RichHudFramework;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
-using VRageMath;
+using System.Collections.Generic;
 using System.Text;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
     public partial class PropertyBlock
     {
         /// <summary>
-        /// Block Terminal Property for individual color channels of a VRageMath.Color
+        /// Block Terminal Property for <see cref="VRageMath.Color"/>
         /// </summary>
-        private class ColorProperty : NumericPropertyBase<Color>
+        private class ColorProperty : NumericPropertyBase<Color>, IBlockColor
         {
-            public override StringBuilder Display 
+            public Color Value { get { return GetValue(); } set { SetValue(value); } }
+
+            public Color MinValue => Color.Black;
+
+            public Color MaxValue => Color.White;
+
+            public Color Increment => new Color(1, 1, 1);
+
+            public IReadOnlyList<IBlockNumericValue<byte>> ColorChannels { get; }
+
+            public override StringBuilder FormattedValue
             {
-                get 
+                get
                 {
                     dispBuilder.Clear();
-                    return dispBuilder.Append(GetValue().GetChannel(channel));
+                    Color value = GetValue();
+                    dispBuilder.Append(value.R);
+                    dispBuilder.Append(", ");
+                    dispBuilder.Append(value.G);
+                    dispBuilder.Append(", ");
+                    dispBuilder.Append(value.B);
+
+                    return dispBuilder;
                 }
             }
 
-            public override StringBuilder Status => null;
+            public override StringBuilder StatusText => null;
 
-            private int channel;
-            private static int incrX, incrY, incrZ, incr0;
             private BvPropPool<ColorProperty> poolParent;
-            protected readonly StringBuilder dispBuilder;
+
+            private readonly StringBuilder dispBuilder;
 
             public ColorProperty()
             {
                 dispBuilder = new StringBuilder();
+                ValueType = BlockMemberValueTypes.Color;
+
+                ColorChannels = new IBlockNumericValue<byte>[3]
+                {
+                    new ColorPropertyChannel(this, "R", 0),
+                    new ColorPropertyChannel(this, "G", 1),
+                    new ColorPropertyChannel(this, "B", 2),
+                };
             }
 
-            public void SetProperty(StringBuilder name, string suffix, ITerminalProperty<Color> property, PropertyBlock block, int channel)
+            public override void SetProperty(StringBuilder name, ITerminalProperty<Color> property, PropertyBlock block)
             {
                 base.SetProperty(name, property, block);
-                Name.Append(suffix);
-
-                PropName.Append('_');
-                PropName.Append(channel);
 
                 if (poolParent == null)
                     poolParent = block.colorPropPool;
-
-                incr0 = 1;
-                incrZ = (incr0 * Cfg.colorMult.Z); // x64
-                incrY = (incr0 * Cfg.colorMult.Y); // x16
-                incrX = (incr0 * Cfg.colorMult.X); // x8
-
-                this.channel = channel;
             }
 
             public override void Return()
@@ -58,37 +72,21 @@ namespace DarkHelmet.BuildVision2
                 poolParent.Return(this);
             }
 
-            /// <summary>
-            /// Returns a scrollable property for each color channel in an ITerminalProperty<Color> object
-            /// </summary>
-            public static void AddColorProperties(StringBuilder name, ITerminalProperty<Color> property, PropertyBlock block)
+            public static ColorProperty GetProperty(StringBuilder name, ITerminalProperty<Color> property, PropertyBlock block)
             {
-                ColorProperty r = block.colorPropPool.Get(), 
-                    g = block.colorPropPool.Get(),
-                    b = block.colorPropPool.Get();
+                ColorProperty prop = block.colorPropPool.Get();
+                prop.SetProperty(name, property, block);
 
-                r.SetProperty(name, $": R", property, block, 0);
-                g.SetProperty(name, $": G", property, block, 1);
-                b.SetProperty(name, $": B", property, block, 2);
-
-                block.blockProperties.Add(r);
-                block.blockProperties.Add(g);
-                block.blockProperties.Add(b);
+                return prop;
             }
-
-            public override void ScrollDown() =>
-                SetPropValue(false);
-
-            public override void ScrollUp() =>
-                SetPropValue(true);
 
             public override bool TryImportData(PropertyData data)
             {
-                byte value;
+                Color value;
 
                 if (Utils.ProtoBuf.TryDeserialize(data.valueData, out value) == null)
                 {
-                    SetValue(GetValue().SetChannel(channel, value));
+                    SetValue(value);
                     return true;
                 }
                 else
@@ -98,11 +96,11 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Retrieves the property data for the color channel associated with the control.
             /// </summary>
-            public override PropertyData GetPropertyData()
+            public override PropertyData? GetPropertyData()
             {
                 byte[] valueData;
 
-                if (Utils.ProtoBuf.TrySerialize(GetValue().GetChannel(channel), out valueData) == null)
+                if (Utils.ProtoBuf.TrySerialize(GetValue(), out valueData) == null)
                 {
                     return new PropertyData(PropName.ToString(), valueData);
                 }
@@ -115,46 +113,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public override bool TryParseValue(string valueData, out Color value)
             {
-                int result;
-                value = GetValue();
-
-                if (int.TryParse(valueData, out result))
-                {
-                    byte newValue = (byte)MathHelper.Clamp(result, 0, 255);
-
-                    value = value.SetChannel(channel, newValue);
-                    return true;
-                }
-
-                return false;
-            }
-
-            /// <summary>
-            /// Changes property color value based on given color delta.
-            /// </summary>
-            private void SetPropValue(bool increment)
-            {
-                Color current = GetValue();
-                int value = current.GetChannel(channel),
-                    mult = increment ? GetIncrement() : -GetIncrement();
-
-                current = current.SetChannel(channel, (byte)MathHelper.Clamp(value + mult, 0, 255));
-                SetValue(current);
-            }
-
-            /// <summary>
-            /// Gets value to add or subtract from the property based on multipliers used.
-            /// </summary>
-            private int GetIncrement()
-            {
-                if (BvBinds.MultZ.IsPressed)
-                    return incrZ;
-                else if (BvBinds.MultY.IsPressed)
-                    return incrY;
-                else if (BvBinds.MultX.IsPressed)
-                    return incrX;
-                else
-                    return incr0;
+                return Utils.Color.TryParseColor(valueData, out value, true);
             }
         }
     }

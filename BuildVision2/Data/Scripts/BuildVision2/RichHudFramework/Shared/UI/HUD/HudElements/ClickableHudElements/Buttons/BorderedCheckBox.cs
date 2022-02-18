@@ -1,7 +1,7 @@
 ﻿using System;
 using VRageMath;
 
-namespace RichHudFramework.UI.Server
+namespace RichHudFramework.UI
 {
     /// <summary>
     /// Bordered checkbox designed to mimic the appearance of the checkbox used in the SE terminal

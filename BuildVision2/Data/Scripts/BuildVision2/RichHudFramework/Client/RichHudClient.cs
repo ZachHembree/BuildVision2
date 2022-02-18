@@ -20,11 +20,11 @@ namespace RichHudFramework.Client
     /// </summary>
     public sealed class RichHudClient : RichHudComponentBase
     {
-        public static readonly Vector4I versionID = new Vector4I(1, 2, 0, 0); // Major, Minor, Rev, Hotfix
+        public static readonly Vector4I versionID = new Vector4I(1, 2, 2, 0); // Major, Minor, Rev, Hotfix
         public const ClientSubtypes subtype = ClientSubtypes.Full;
 
         private const long modID = 1965654081, queueID = 1314086443;
-        private const int vID = 9;
+        private const int vID = 10;
 
         public static bool Registered => Instance != null ? Instance.registered : false;
         private static RichHudClient Instance { get; set; }

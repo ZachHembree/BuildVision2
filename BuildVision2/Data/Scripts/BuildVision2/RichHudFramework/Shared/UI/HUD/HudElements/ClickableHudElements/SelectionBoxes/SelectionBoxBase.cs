@@ -37,11 +37,58 @@ namespace RichHudFramework.UI
         where TElement : HudElementBase, IMinLabelElement
         where TContainer : class, ISelectionBoxEntry<TElement>, new()
     {
+        /// <summary>
+        /// Background color
+        /// </summary>
+        public Color Color { get { return hudChain.Color; } set { hudChain.Color = value; } }
+
+        /// <summary>
+        /// If enabled scrolling using the scrollbar and mousewheel will be allowed
+        /// </summary>
+        public virtual bool EnableScrolling { get { return hudChain.EnableScrolling; } set { hudChain.EnableScrolling = value; } }
+
+        /// <summary>
+        /// Enable/disable smooth scrolling and range clipping
+        /// </summary>
+        public virtual bool UseSmoothScrolling { get { return hudChain.UseSmoothScrolling; } set { hudChain.UseSmoothScrolling = value; } }
+
+        /// <summary>
+        /// Minimum number of visible elements allowed. Supercedes maximum length. If the number of elements that
+        /// can fit within the maximum length is less than this value, then this element will expand beyond its maximum
+        /// size.
+        /// </summary>
+        public virtual int MinVisibleCount { get { return hudChain.MinVisibleCount; } set { hudChain.MinVisibleCount = value; } }
+
+        /// <summary>
+        /// Minimum total length (on the align axis) of visible members allowed in the scrollbox.
+        /// </summary>
+        public virtual float MinLength { get { return hudChain.MinLength; } set { hudChain.MinLength = value; } }
+
+        protected override float HighlightWidth =>
+            hudChain.Size.X - cachedPadding.X - hudChain.ScrollBar.Width - hudChain.Padding.X - HighlightPadding.X;
+
         public ScrollSelectionBoxBase(HudParentBase parent) : base(parent)
         { }
 
         public ScrollSelectionBoxBase() : base(null)
         { }
+
+        protected override void HandleInput(Vector2 cursorPos)
+        {
+            base.HandleInput(cursorPos);
+
+            if (listInput.KeyboardScroll)
+            {
+                if (listInput.HighlightIndex > hudChain.End)
+                {
+                    hudChain.End = listInput.HighlightIndex;
+                }
+                else if (listInput.HighlightIndex < hudChain.Start)
+                {
+                    hudChain.Start = listInput.HighlightIndex;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -159,12 +206,18 @@ namespace RichHudFramework.UI
         /// </summary>
         protected virtual Vector2 ListPos => hudChain.Position;
 
+        /// <summary>
+        /// Sets sizing mode for list chain
+        /// </summary>
+        public virtual HudChainSizingModes SizingMode { get { return hudChain.SizingMode; } set { hudChain.SizingMode = value; } }
+
+        protected virtual float HighlightWidth => hudChain.Size.X - cachedPadding.X - hudChain.Padding.X - HighlightPadding.X;
+
         public readonly TChain hudChain;
         protected readonly HighlightBox selectionBox, highlightBox;
         protected readonly ListInputElement<TContainer, TElement> listInput;
         protected readonly bool chainHidesDisabled;
-        protected TContainer lastSelection;
-        protected GlyphFormat lastFormat;
+        protected MyTuple<TContainer, GlyphFormat> lastSelection;
 
         public SelectionBoxBase(HudParentBase parent) : base(parent)
         {
@@ -212,6 +265,13 @@ namespace RichHudFramework.UI
         /// </summary>
         public void SetSelectionAt(int index) =>
             listInput.SetSelectionAt(index);
+
+        /// <summary>
+        /// Offsets selection index in the direction of the offset. If wrap == true, the index will wrap around
+        /// if the offset places it out of range.
+        /// </summary>
+        public void OffsetSelectionIndex(int offset, bool wrap = false) =>
+            listInput.OffsetSelectionIndex(offset, wrap);
 
         /// <summary>
         /// Sets the selection to the specified entry.
@@ -262,11 +322,17 @@ namespace RichHudFramework.UI
 
         protected virtual void UpdateSelectionPositions()
         {
+            float entryWidth = HighlightWidth;
+
             // Make sure the selection box highlights the current selection
             if (Selection != null && Selection.Element.Visible)
             {
-                selectionBox.Offset = Selection.Element.Position - selectionBox.Origin;
-                selectionBox.Size = Selection.Element.Size - HighlightPadding;
+                Vector2 offset = Selection.Element.Position - selectionBox.Origin;
+                offset.X -= (ListSize.X - entryWidth - HighlightPadding.X) / 2f;
+
+                selectionBox.Offset = offset;
+                selectionBox.Height = Selection.Element.Height - HighlightPadding.Y;
+                selectionBox.Width = entryWidth;
                 selectionBox.Visible = Selection.Element.Visible && Selection.AllowHighlighting;
             }
 
@@ -274,19 +340,27 @@ namespace RichHudFramework.UI
             if (listInput.HighlightIndex != listInput.SelectionIndex)
             {
                 TContainer entry = hudChain[listInput.HighlightIndex];
+                Vector2 offset = entry.Element.Position - highlightBox.Origin;
+                offset.X -= (ListSize.X - entryWidth - HighlightPadding.X) / 2f;
 
                 highlightBox.Visible = 
                     (listInput.IsMousedOver || listInput.HasFocus) 
                     && entry.Element.Visible && entry.AllowHighlighting;
 
-                highlightBox.Size = entry.Element.Size - HighlightPadding;
-                highlightBox.Offset = entry.Element.Position - highlightBox.Origin;
+                highlightBox.Height = entry.Element.Height - HighlightPadding.Y;
+                highlightBox.Width = entryWidth;
+                highlightBox.Offset = offset;
             }
         }
 
         protected virtual void UpdateSelectionFormatting()
         {
-            lastSelection?.Element.TextBoard.SetFormatting(lastFormat);
+            if (lastSelection.Item1 != null)
+            {
+                ITextBoard textBoard = lastSelection.Item1.Element.TextBoard;
+                textBoard.SetFormatting(lastSelection.Item2);
+                lastSelection.Item1 = null;
+            }
 
             if ((SelectionIndex == listInput.FocusIndex) && SelectionIndex != -1)
             {
@@ -297,7 +371,7 @@ namespace RichHudFramework.UI
                 {
                     if (hudChain[listInput.SelectionIndex].AllowHighlighting)
                     {
-                        SetHighlightFormat(listInput.SelectionIndex);
+                        SetFocusFormat(listInput.SelectionIndex);
                         selectionBox.Color = FocusColor;
                     }
                 }
@@ -312,7 +386,7 @@ namespace RichHudFramework.UI
                 {
                     if (hudChain[listInput.HighlightIndex].AllowHighlighting)
                     {
-                        SetHighlightFormat(listInput.HighlightIndex);
+                        SetFocusFormat(listInput.HighlightIndex);
                         highlightBox.Color = FocusColor;
                     }
                 }
@@ -323,12 +397,13 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected void SetHighlightFormat(int index)
+        protected void SetFocusFormat(int index)
         {
-            lastSelection = hudChain[index];
-            ITextBoard textBoard = lastSelection.Element.TextBoard;
+            var selection = hudChain[index];
+            ITextBoard textBoard = selection.Element.TextBoard;
+            lastSelection.Item1 = selection;
+            lastSelection.Item2 = textBoard.Format;
 
-            lastFormat = textBoard.Format;
             textBoard.SetFormatting(textBoard.Format.WithColor(FocusTextColor));
         }
 
@@ -366,7 +441,7 @@ namespace RichHudFramework.UI
                 box.mask = maskingBox;
 
                 if (hudBoard.Color.A > 0)
-                    hudBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                    hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                 // Left align the tab
                 Vector2 tabPos = cachedPosition,
@@ -377,7 +452,7 @@ namespace RichHudFramework.UI
                 if (CanDrawTab && tabBoard.Color.A > 0)
                 {
                     box.bounds = new BoundingBox2(tabPos - tabSize, tabPos + tabSize);
-                    tabBoard.Draw(ref box, ref HudSpace.PlaneToWorldRef[0]);
+                    tabBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
                 }
             }
         }

@@ -190,19 +190,25 @@ namespace RichHudFramework.Internal
         /// </summary>
         private void ReportExceptionInternal(Exception e)
         {
-            string message = e.ToString();
+            if (e == null)
+                e = new Exception("Null exception reported.");
 
-            if (!exceptionMessages.Contains(message))
-                exceptionMessages.Add(message);
+            lock (exceptionMessages)
+            {
+                string message = e.ToString();
 
-            if (exceptionCount == 0)
-                errorTimer.Restart();
+                if (!exceptionMessages.Contains(message))
+                    exceptionMessages.Add(message);
 
-            exceptionCount++;
+                if (exceptionCount == 0)
+                    errorTimer.Restart();
 
-            // Exception loop, respond immediately
-            if (exceptionCount > exceptionLoopCount && errorTimer.ElapsedMilliseconds < exceptionLoopTime)
-                PauseClients();
+                exceptionCount++;
+
+                // Exception loop, respond immediately
+                if (exceptionCount > exceptionLoopCount && errorTimer.ElapsedMilliseconds < exceptionLoopTime)
+                    PauseClients();
+            }
         }
 
         /// <summary>
@@ -487,10 +493,13 @@ namespace RichHudFramework.Internal
 
                 Run(() =>
                 {
-                    clients[n].CanUpdate = false;
-                    clients[n].BeforeClose();
+                    if (clients[n].CanUpdate)
+                        clients[n].BeforeClose();
+
                     success = true;
                 });
+
+                clients[n].CanUpdate = false;
 
                 if (success)
                     WriteToLog($"[{typeName}] Session component stopped.", true);

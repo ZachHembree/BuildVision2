@@ -25,6 +25,14 @@ namespace RichHudFramework.UI
             Element.TextBoard.AutoResize = false;
         }
 
+        public override void Reset()
+        {
+            Enabled = true;
+            AllowHighlighting = true;
+            AssocMember = default(TValue);
+            Element.TextBoard.Clear();
+        }
+
         public object GetOrSetMember(object data, int memberEnum)
         {
             var member = (ListBoxEntryAccessors)memberEnum;

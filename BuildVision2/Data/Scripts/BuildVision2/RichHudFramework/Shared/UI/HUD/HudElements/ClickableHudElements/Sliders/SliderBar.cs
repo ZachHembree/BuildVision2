@@ -220,7 +220,7 @@ namespace RichHudFramework.UI
         protected readonly TexturedBox slider, bar;
         protected readonly MouseInputElement mouseInput;
         protected Vector2 _barSize, _sliderSize;
-        protected Vector2 startCursorOffset;
+        protected Vector2 startCursorOffset, lastPos;
 
         protected float _min, _max, _current, _percent;
         protected bool canMoveSlider;
@@ -272,6 +272,9 @@ namespace RichHudFramework.UI
 
         protected override void Layout()
         {
+            Vector3 fullCurosrPos = HudSpace.CursorPos;
+            Vector2 cursorPos = new Vector2(fullCurosrPos.X, fullCurosrPos.Y);
+
             bar.Size = _barSize;
             slider.Size = _sliderSize;
             slider.Visible = SliderVisible;
@@ -289,11 +292,11 @@ namespace RichHudFramework.UI
                 bar.Color = BarColor;
             }
 
-            if (canMoveSlider)
+            if (canMoveSlider && (cursorPos - lastPos).LengthSquared() > 4f)
             {
                 float minOffset, maxOffset, pos;
-                Vector3 fullCurosrPos = HudSpace.CursorPos;
-                Vector2 cursorPos = new Vector2(fullCurosrPos.X, fullCurosrPos.Y) - startCursorOffset;
+                lastPos = cursorPos;
+                cursorPos -= startCursorOffset;
 
                 if (Vertical)
                 {

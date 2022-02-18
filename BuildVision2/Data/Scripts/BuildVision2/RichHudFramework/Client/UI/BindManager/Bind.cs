@@ -53,35 +53,41 @@ namespace RichHudFramework
                     /// <summary>
                     /// Invoked when the bind is first pressed.
                     /// </summary>
-                    public event Action NewPressed
-                    {
-                        add { _instance.GetOrSetBindMemberFunc(index, new EventData(true, value), (int)BindAccesssors.OnNewPress); }
-                        remove { _instance.GetOrSetBindMemberFunc(index, new EventData(false, value), (int)BindAccesssors.OnNewPress); }
-                    }
+                    public event EventHandler NewPressed;
 
                     /// <summary>
                     /// Invoked after the bind has been held and pressed for at least 500ms.
                     /// </summary>
-                    public event Action PressedAndHeld
-                    {
-                        add { _instance.GetOrSetBindMemberFunc(index, new EventData(true, value), (int)BindAccesssors.OnPressAndHold); }
-                        remove { _instance.GetOrSetBindMemberFunc(index, new EventData(false, value), (int)BindAccesssors.OnPressAndHold); }
-                    }
+                    public event EventHandler PressedAndHeld;
 
                     /// <summary>
                     /// Invoked after the bind has been released.
                     /// </summary>
-                    public event Action Released
-                    {
-                        add { _instance.GetOrSetBindMemberFunc(index, new EventData(true, value), (int)BindAccesssors.OnRelease); }
-                        remove { _instance.GetOrSetBindMemberFunc(index, new EventData(false, value), (int)BindAccesssors.OnRelease); }
-                    }
+                    public event EventHandler Released;
 
                     private readonly Vector2I index;
 
                     public Bind(Vector2I index)
                     {
                         this.index = index;
+                        _instance.GetOrSetBindMemberFunc(index, new EventData(true, OnNewPressed), (int)BindAccesssors.OnNewPress);
+                        _instance.GetOrSetBindMemberFunc(index, new EventData(true, OnPressedAndHeld), (int)BindAccesssors.OnPressAndHold);
+                        _instance.GetOrSetBindMemberFunc(index, new EventData(true, OnReleased), (int)BindAccesssors.OnRelease);
+                    }
+
+                    private void OnNewPressed()
+                    {
+                        NewPressed?.Invoke(this, EventArgs.Empty);
+                    }
+
+                    private void OnPressedAndHeld()
+                    {
+                        PressedAndHeld?.Invoke(this, EventArgs.Empty);
+                    }
+
+                    private void OnReleased()
+                    {
+                        Released?.Invoke(this, EventArgs.Empty);
                     }
 
                     /// <summary>

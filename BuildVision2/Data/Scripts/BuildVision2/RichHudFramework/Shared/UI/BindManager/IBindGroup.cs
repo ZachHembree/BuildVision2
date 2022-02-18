@@ -12,6 +12,11 @@ namespace RichHudFramework
         public interface IBindGroup : IReadOnlyList<IBind>
         {
             /// <summary>
+            /// Returns the bind with the name given, if it exists.
+            /// </summary>
+            IBind this[string name] { get; }
+
+            /// <summary>
             /// Bind group name
             /// </summary>
             string Name { get; }

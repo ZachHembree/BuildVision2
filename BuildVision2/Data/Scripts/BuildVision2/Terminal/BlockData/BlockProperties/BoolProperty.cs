@@ -16,11 +16,13 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Block Terminal Property of a Boolean
         /// </summary>
-        private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>, bool>, IBlockAction
+        private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>, bool>, IBlockAction, IBlockValue<bool>
         {
-            public override StringBuilder Display => GetPropStateText();
+            public bool Value { get { return GetValue(); } set { SetValue(value); } }
 
-            public override StringBuilder Status 
+            public override StringBuilder FormattedValue => GetPropStateText();
+
+            public override StringBuilder StatusText 
             {
                 get 
                 {
@@ -44,6 +46,7 @@ namespace DarkHelmet.BuildVision2
                 GetPowerDisplayFunc = GetPowerDisplay;
                 GetTankFillFunc = GetGasTankFillPercent;
                 statusBuilder = new StringBuilder();
+                ValueType = BlockMemberValueTypes.Bool;
             }
 
             public override void SetProperty(StringBuilder name, ITerminalProperty<bool> property, PropertyBlock block)

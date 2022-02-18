@@ -44,8 +44,9 @@ namespace DarkHelmet.BuildVision2
                     Name = "Binds",
                     GroupContainer =
                     {
-                        { BvBinds.OpenGroup, BindsConfig.DefaultOpen },
+                        { BvBinds.ModifierGroup, BindsConfig.DefaultModifiers },
                         { BvBinds.MainGroup, BindsConfig.DefaultMain },
+                        { BvBinds.SecondaryGroup, BindsConfig.DefaultSecondary },
                     }
                 },
                 helpMain,
@@ -137,13 +138,22 @@ namespace DarkHelmet.BuildVision2
 
         private ControlCategory GetGuiSettings()
         {
-            // Resolution scale
-            var resScaling = new TerminalCheckbox()
+            // Cursor sensitivity
+            var cursorSensitivity = new TerminalSlider()
             {
-                Name = "Resolution scaling",
-                Value = BvConfig.Current.hudConfig.resolutionScaling,
-                CustomValueGetter = () => BvConfig.Current.hudConfig.resolutionScaling,
-                ControlChangedHandler = ((sender, args) => BvConfig.Current.hudConfig.resolutionScaling = (sender as TerminalCheckbox).Value),
+                Name = "Cursor sensitivity",
+                Min = .1f,
+                Max = 1f,
+                Value = BvConfig.Current.hudConfig.cursorSensitivity,
+                ValueText = $"{(BvConfig.Current.hudConfig.hudScale * 100f).Round()}%",
+                CustomValueGetter = () => BvConfig.Current.hudConfig.cursorSensitivity,
+                ControlChangedHandler = (sender, args) =>
+                {
+                    var slider = sender as TerminalSlider;
+
+                    BvConfig.Current.hudConfig.cursorSensitivity = slider.Value;
+                    slider.ValueText = $"{(slider.Value * 100f).Round()}%";
+                }
             };
 
             // Menu size
@@ -168,7 +178,7 @@ namespace DarkHelmet.BuildVision2
             var opacity = new TerminalSlider()
             {
                 Name = "Menu opacity",
-                Min = 0f,
+                Min = .5f,
                 Max = 1f,
                 Value = BvConfig.Current.hudConfig.hudOpacity,
                 ValueText = $"{(BvConfig.Current.hudConfig.hudOpacity * 100f).Round()}%",
@@ -184,9 +194,18 @@ namespace DarkHelmet.BuildVision2
 
             var tile1 = new ControlTile()
             {
-                resScaling,
+                cursorSensitivity,
                 menuScale,
                 opacity,
+            };
+
+            // Resolution scale
+            var resScaling = new TerminalCheckbox()
+            {
+                Name = "Resolution scaling",
+                Value = BvConfig.Current.hudConfig.resolutionScaling,
+                CustomValueGetter = () => BvConfig.Current.hudConfig.resolutionScaling,
+                ControlChangedHandler = ((sender, args) => BvConfig.Current.hudConfig.resolutionScaling = (sender as TerminalCheckbox).Value),
             };
 
             // Max visible properties
@@ -230,13 +249,14 @@ namespace DarkHelmet.BuildVision2
             {
                 Name = "Set custom position",
                 AlignToEdge = true,
-                Value = BvConfig.Current.hudConfig.hudPos,
                 CustomValueGetter = () => BvConfig.Current.hudConfig.hudPos,
                 ControlChangedHandler = ((sender, args) => BvConfig.Current.hudConfig.hudPos = (sender as TerminalDragBox).Value),
+                Value = BvConfig.Current.hudConfig.hudPos,
             };
 
             var tile2 = new ControlTile()
             {
+                resScaling,
                 clampToEdges,
                 customPos,
                 setPosition,

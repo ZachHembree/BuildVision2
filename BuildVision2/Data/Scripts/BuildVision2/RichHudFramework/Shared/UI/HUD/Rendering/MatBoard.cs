@@ -1,4 +1,5 @@
 ﻿using VRageMath;
+using System;
 
 namespace RichHudFramework
 {
@@ -8,6 +9,9 @@ namespace RichHudFramework
 
         namespace Rendering
         {
+            using Client;
+            using Server;
+
             public class MatBoard
             {
                 /// <summary>
@@ -19,7 +23,7 @@ namespace RichHudFramework
                     set
                     {
                         if (value != color)
-                            minBoard.bbColor = QuadBoard.GetQuadBoardColor(value);
+                            minBoard.materialData.bbColor = BillBoardUtils.GetBillBoardBoardColor(value);
 
                         color = value;
                     }
@@ -37,7 +41,7 @@ namespace RichHudFramework
                         {
                             updateMatFit = true;
                             matFrame.Material = value;
-                            minBoard.textureID = value.TextureID;
+                            minBoard.materialData.textureID = value.TextureID;
                         }
                     }
                 }
@@ -88,7 +92,7 @@ namespace RichHudFramework
                 /// Draws a billboard in world space facing the +Z direction of the matrix given. Units in meters,
                 /// matrix transform notwithstanding. Dont forget to compensate for perspective scaling!
                 /// </summary
-                public void Draw(ref CroppedBox box, ref MatrixD matrix)
+                public void Draw(ref CroppedBox box, MatrixD[] matrixRef)
                 {
                     ContainmentType containment = ContainmentType.Contains;
 
@@ -100,16 +104,12 @@ namespace RichHudFramework
                         if (updateMatFit && matFrame.Material != Material.Default)
                         {
                             Vector2 boxSize = box.bounds.Size;
-                            minBoard.texCoords = matFrame.GetMaterialAlignment(boxSize.X / boxSize.Y);
+                            minBoard.materialData.texBounds = matFrame.GetMaterialAlignment(boxSize.X / boxSize.Y);
                             updateMatFit = false;
                         }
 
-                        if (containment == ContainmentType.Contains)
-                            minBoard.Draw(ref box, ref matrix);
-                        else if (containment == ContainmentType.Intersects && matFrame.Material == Material.Default)
-                            minBoard.DrawCropped(ref box, ref matrix);
-                        else
-                            minBoard.DrawCroppedTex(ref box, ref matrix);
+                        if (containment != ContainmentType.Disjoint)
+                            minBoard.Draw(ref box, matrixRef);
                     }
                 }     
             }

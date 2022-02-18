@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using VRage;
 using VRageMath;
+using RichHudFramework.UI.Rendering;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using FloatProp = VRage.MyTuple<System.Func<float>, System.Action<float>>;
 using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
@@ -218,23 +219,42 @@ namespace RichHudFramework
                     // Register update delegate
                     GetOrSetMemberFunc(safeAccessor, (int)HudMainAccessors.GetUpdateAccessors);
 
-                    root.CustomDrawAction = HudMasterDraw;
-                    root.CustomInputAction = HudMasterInput;
+                    GetOrSetMemberFunc(new Action(BeforeMasterDraw), (int)HudMainAccessors.SetBeforeDrawCallback);
+                    GetOrSetMemberFunc(new Action(AfterMasterDraw), (int)HudMainAccessors.SetAfterDrawCallback);
+                    GetOrSetMemberFunc(new Action(BeforeMasterInput), (int)HudMainAccessors.SetBeforeInputCallback);
+
                     UpdateCache();
                 }
 
                 private static void Init()
                 {
+                    BillBoardUtils.Init();
+
                     if (_instance == null)
                         new HudMain();
                 }
 
-                /// <summary>
-                /// Updates cached values used to render UI elements.
-                /// </summary>
-                private void HudMasterDraw()
+                private void BeforeMasterDraw()
                 {
                     UpdateCache();
+                    BillBoardUtils.BeginDraw();
+                }
+
+                private void AfterMasterDraw()
+                {
+                    BillBoardUtils.FinishDraw();
+                }
+
+                private void BeforeMasterInput()
+                {
+                    cursor.Update();
+                }
+
+                public override void Close()
+                {
+                    UnregisterAction();
+                    PixelToWorldRef = null;
+                    Instance = null;
                 }
 
                 private void UpdateCache()
@@ -255,18 +275,6 @@ namespace RichHudFramework
                         EnableCursor = (bool)GetOrSetMemberFunc(null, (int)HudMainAccessors.EnableCursor);
 
                     enableCursorLast = EnableCursor;
-                }
-
-                private void HudMasterInput()
-                {
-                    cursor.Update();
-                }
-
-                public override void Close()
-                {
-                    UnregisterAction();
-                    PixelToWorldRef = null;
-                    Instance = null;
                 }
 
                 /// <summary>
@@ -344,8 +352,6 @@ namespace RichHudFramework
 
                     public bool IsFacingCamera { get; }
 
-                    public Action CustomDrawAction, CustomInputAction;
-
                     public HudClientRoot()
                     {
                         accessorDelegates.Item2 = new MyTuple<Func<ushort>, Func<Vector3D>>(() => 0, null);
@@ -363,14 +369,8 @@ namespace RichHudFramework
 
                     protected override void Layout()
                     {
-                        CustomDrawAction?.Invoke();
                         PlaneToWorldRef[0] = PixelToWorldRef[0];
                         CursorPos = new Vector3(Cursor.ScreenPos.X, Cursor.ScreenPos.Y, 0f);
-                    }
-
-                    protected override void InputDepth()
-                    {
-                        CustomInputAction?.Invoke();
                     }
                 }
             }
