@@ -99,7 +99,7 @@ namespace RichHudFramework.UI
 
             Size = new Vector2(512f);
             MaxEntryCount = 8;
-            CursorSensitivity = 1f;
+            CursorSensitivity = .5f;
         }
 
         public void SetSelectionAt(int index)
@@ -173,9 +173,9 @@ namespace RichHudFramework.UI
                 {
                     // Find enabled entry with the offset that most closely matches
                     // the direction of the normal
-                    float dot = .2f;
+                    float dot = .1f;
                     int newSelection = -1;
-                    Vector2 normalizedOffset = CursorSensitivity * 0.2f * Vector2.Normalize(cursorOffset);
+                    Vector2 normalizedOffset = CursorSensitivity * 0.4f * Vector2.Normalize(cursorOffset);
                     cursorNormal = Vector2.Normalize(cursorNormal + normalizedOffset);
 
                     for (int i = 0; i < hudCollectionList.Count; i++)
