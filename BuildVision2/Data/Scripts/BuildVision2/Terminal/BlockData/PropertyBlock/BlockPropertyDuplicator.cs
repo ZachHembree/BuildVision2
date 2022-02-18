@@ -207,7 +207,10 @@ namespace DarkHelmet.BuildVision2
                 if (entry.isSelectedForDuplication && entry.canDuplicate && member.Enabled)
                 {
                     var property = member as IBlockProperty;
-                    propertyList.Add(property.GetPropertyData());
+                    PropertyData? data = property.GetPropertyData();
+
+                    if (data != null)
+                        propertyList.Add(data.Value);
                 }
             }
 

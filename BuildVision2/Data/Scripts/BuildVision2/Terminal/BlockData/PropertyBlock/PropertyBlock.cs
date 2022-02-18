@@ -175,7 +175,12 @@ namespace DarkHelmet.BuildVision2
                 GenerateProperties();
 
             for (int n = 0; n < blockProperties.Count; n++)
-                blockData.propertyList.Add(blockProperties[n].GetPropertyData());
+            {
+                PropertyData? data = blockProperties[n].GetPropertyData();
+
+                if (data != null)
+                    blockData.propertyList.Add(data.Value);
+            }
 
             blockData.blockTypeID = TypeID;
         }

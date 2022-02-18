@@ -15,7 +15,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns a serializable representation of the property.
             /// </summary>
-            public abstract PropertyData GetPropertyData();
+            public abstract PropertyData? GetPropertyData();
 
             /// <summary>
             /// Attempts to apply the given property data.
@@ -128,7 +128,7 @@ namespace DarkHelmet.BuildVision2
                     return false;
             }
 
-            public override PropertyData GetPropertyData()
+            public override PropertyData? GetPropertyData()
             {
                 byte[] valueData;
 

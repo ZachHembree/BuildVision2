@@ -63,7 +63,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Returns a serializable representation of the property.
         /// </summary>
-        PropertyData GetPropertyData();
+        PropertyData? GetPropertyData();
     }
 
     /// <summary>

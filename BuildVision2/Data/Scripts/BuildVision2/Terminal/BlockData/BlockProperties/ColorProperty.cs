@@ -96,7 +96,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Retrieves the property data for the color channel associated with the control.
             /// </summary>
-            public override PropertyData GetPropertyData()
+            public override PropertyData? GetPropertyData()
             {
                 byte[] valueData;
 

@@ -88,7 +88,7 @@ namespace DarkHelmet.BuildVision2
                 this.channel = channel;
             }
 
-            public PropertyData GetPropertyData()
+            public PropertyData? GetPropertyData()
             {
                 byte[] valueData;
 

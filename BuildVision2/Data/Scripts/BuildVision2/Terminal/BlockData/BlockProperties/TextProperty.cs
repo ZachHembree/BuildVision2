@@ -66,11 +66,11 @@ namespace DarkHelmet.BuildVision2
                 SetValue(valueBuilder);
             }
 
-            public override PropertyData GetPropertyData()
+            public override PropertyData? GetPropertyData()
             {
                 byte[] valueData;
 
-                if (Utils.ProtoBuf.TrySerialize(GetValue().ToString(), out valueData) == null)
+                if (Utils.ProtoBuf.TrySerialize(GetValue()?.ToString() ?? "", out valueData) == null)
                 {
                     return new PropertyData(PropName.ToString(), valueData);
                 }
