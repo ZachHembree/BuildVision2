@@ -28,38 +28,41 @@ namespace DarkHelmet.BuildVision2
                 if (body.Collection.Count > 0)
                 {
                     // Highlight selection
-                    if (!body[selectionIndex].PropertyOpen)
+                    if (!(BvBinds.StartDupe.IsPressed || BvBinds.StopDupe.IsPressed))
                     {
-                        bool multXPressed = BvBinds.MultX.IsPressed;
-                        int offset = multXPressed ? 4 : 1;
-
-                        if (BvBinds.ScrollUp.IsNewPressed)
+                        if(!body[selectionIndex].PropertyOpen)
                         {
-                            OffsetSelectionIndex(-offset);
-                            listWrapTimer.Restart();
+                            bool multXPressed = BvBinds.MultX.IsPressed;
+                            int offset = multXPressed ? 4 : 1;
+
+                            if (BvBinds.ScrollUp.IsNewPressed)
+                            {
+                                OffsetSelectionIndex(-offset);
+                                listWrapTimer.Restart();
+                            }
+                            else if (BvBinds.ScrollDown.IsNewPressed)
+                            {
+                                OffsetSelectionIndex(offset);
+                                listWrapTimer.Restart();
+                            }
                         }
-                        else if (BvBinds.ScrollDown.IsNewPressed)
+
+                        selectionIndex = MathHelper.Clamp(selectionIndex, 0, body.Count - 1);
+
+                        if (BvBinds.Cancel.IsReleased)
                         {
-                            OffsetSelectionIndex(offset);
-                            listWrapTimer.Restart();
+                            if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                                quickActionMenu.OpenPropertyWheel();
+                            else
+                                quickActionMenu.CloseMenu();
                         }
-                    }
-
-                    selectionIndex = MathHelper.Clamp(selectionIndex, 0, body.Count - 1);
-
-                    if (BvBinds.Cancel.IsReleased)
-                    {
-                        if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
-                            quickActionMenu.OpenPropertyWheel();
                         else
-                            quickActionMenu.CloseMenu();
-                    }
-                    else
-                    {
-                        if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
-                            HandleDuplicationInput();
-                        else
-                            HandlePropertySelectionInput();
+                        {
+                            if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                                HandleDuplicationInput();
+                            else
+                                HandlePropertySelectionInput();
+                        }
                     }
                 }
             }
