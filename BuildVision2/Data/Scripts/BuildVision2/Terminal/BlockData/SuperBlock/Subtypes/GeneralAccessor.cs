@@ -1,6 +1,7 @@
 ﻿using RichHudFramework.UI;
 using Sandbox.ModAPI;
 using System.Text;
+using System;
 using System.Collections.Generic;
 using VRage;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
@@ -25,13 +26,16 @@ namespace DarkHelmet.BuildVision2
 
         public class GeneralAccessor : SubtypeAccessorBase
         {
+            public const int MaxStringLength = 40;
+
             public string CustomName { get { return block.TBlock.CustomName; } set { block.TBlock.CustomName = value; } }
 
-            private readonly StringBuilder groupString;
+            private readonly StringBuilder groupString, nameBuilder;
             private readonly List<string> groupNames;
 
             public GeneralAccessor()
             {
+                nameBuilder = new StringBuilder();
                 groupString = new StringBuilder();
                 groupNames = new List<string>();
             }
@@ -50,7 +54,9 @@ namespace DarkHelmet.BuildVision2
                 builder.Add(MyTexts.TrySubstitute("Name"), nameFormat);
                 builder.Add(": ", nameFormat);
 
-                builder.Add(CustomName, valueFormat);
+                nameBuilder.Clear();
+                nameBuilder.AppendSubstringMax(CustomName, MaxStringLength);
+                builder.Add(nameBuilder, valueFormat);
                 builder.Add("\n", valueFormat);
 
                 if (groupString.Length > 0)
@@ -71,10 +77,15 @@ namespace DarkHelmet.BuildVision2
 
                 for (int n = 0; n < groupNames.Count; n++)
                 {
-                    if (n > 0)
-                        groupString.Append($", {groupNames[n]}");
+                    if (groupString.Length < MaxStringLength)
+                    {
+                        if (n > 0)
+                            groupString.AppendSubstringMax($", {groupNames[n]}", MaxStringLength - groupString.Length);
+                        else
+                            groupString.AppendSubstringMax(groupNames[n], MaxStringLength - groupString.Length);
+                    }
                     else
-                        groupString.Append(groupNames[n]);
+                        break;
                 }
             }
         }

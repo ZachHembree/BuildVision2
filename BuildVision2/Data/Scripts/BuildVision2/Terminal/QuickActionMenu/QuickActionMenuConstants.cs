@@ -53,6 +53,6 @@ namespace DarkHelmet.BuildVision2
 
         private const long notificationTime = 1500;
         private const int textTickDivider = 4;
-        private const int maxEntryCharCount = 30;
+        private const int maxEntryCharCount = 33;
     }
 }

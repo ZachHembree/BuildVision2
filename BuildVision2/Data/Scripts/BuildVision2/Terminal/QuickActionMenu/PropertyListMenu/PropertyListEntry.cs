@@ -198,11 +198,7 @@ namespace DarkHelmet.BuildVision2
                 if (name != null)
                 {
                     textBuf.Clear();
-                    textBuf.AppendSubstring(name, 0, Math.Min(name.Length, maxEntryCharCount));
-
-                    if (name.Length > maxEntryCharCount)
-                        textBuf.Append("...");
-
+                    textBuf.AppendSubstringMax(name, maxEntryCharCount);
                     nameTB.Append(textBuf, bodyFormat);
 
                     if (disp != null || status != null)

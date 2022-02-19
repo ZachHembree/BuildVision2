@@ -292,14 +292,14 @@ namespace DarkHelmet.BuildVision2
 
             private void UpdateDebugText()
             {             
-                ITextBuilder textBuilder = debugText.TextBoard;
-                PropertyWheelEntryBase selection = activeWheel.Selection;
-                var propertyEntry = selection as PropertyWheelEntry;
-
-                textBuilder.Clear();
+                PropertyWheelEntryBase selection = activeWheel?.Selection;
 
                 if (selection != null)
                 {
+                    var propertyEntry = selection as PropertyWheelEntry;
+                    ITextBuilder textBuilder = debugText.TextBoard;
+                    textBuilder.Clear();
+
                     textBuilder.Append($"Prioritized Members: {Target.Prioritizer.PrioritizedMemberCount}\n");
                     textBuilder.Append($"Enabled Members: {Target.EnabledMemberCount}\n");
                     textBuilder.Append($"Selection: {selection.Element.TextBoard}\n");

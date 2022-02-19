@@ -31,16 +31,39 @@ namespace DarkHelmet.BuildVision2
 
     public static class TerminalUtilities
     {
+        private static Dictionary<Type, bool> ownableBlockMap;
+        private static StringBuilder textBuf;
+
+        public static void Init()
+        {
+            ownableBlockMap = new Dictionary<Type, bool>();
+            textBuf = new StringBuilder();
+        }
+
+        public static void Close()
+        {
+            ownableBlockMap = null;
+            textBuf = null;
+        }
+
         /// <summary>
         /// Returns true if the block has ownership permissions
         /// </summary>
         public static bool GetIsBlockOwnable(this IMyTerminalBlock block)
         {
-            IMyCubeGrid grid = block.CubeGrid;
-            var def = MyDefinitionManager.Static.GetDefinition(block.BlockDefinition) as MyCubeBlockDefinition;
+            bool isOwnable;
 
-            // Terminal blocks with computers are ownable. If there are no bigOwners, the grid is unowned.
-            return def?.Components.Any(x => x.Definition.Id.SubtypeName == "Computer") ?? false;
+            if (!ownableBlockMap.TryGetValue(block.GetType(), out isOwnable))
+            {
+                IMyCubeGrid grid = block.CubeGrid;
+                var def = MyDefinitionManager.Static.GetDefinition(block.BlockDefinition) as MyCubeBlockDefinition;
+
+                // Terminal blocks with computers are ownable. If there are no bigOwners, the grid is unowned.
+                isOwnable = def?.Components.Any(x => x.Definition.Id.SubtypeName == "Computer") ?? false;
+                ownableBlockMap.Add(block.GetType(), isOwnable);
+            }
+
+            return isOwnable;
         }
 
         /// <summary>
@@ -115,6 +138,33 @@ namespace DarkHelmet.BuildVision2
             }
 
             return accessState;
+        }
+
+        /// <summary>
+        /// Appends the given string to the destination stringbuilder up to a maximum length
+        /// </summary>
+        public static void AppendSubstringMax(this StringBuilder dst, string src, int maxLength)
+        {
+            textBuf.Clear();
+            textBuf.Append(src);
+
+            maxLength = Math.Max(maxLength, 0);
+            dst.AppendSubstring(textBuf, 0, Math.Min(src.Length, maxLength - 3));
+
+            if (src.Length > maxLength - 3)
+                dst.Append("...");
+        }
+
+        /// <summary>
+        /// Appends the given string to the destination stringbuilder up to a maximum length
+        /// </summary>
+        public static void AppendSubstringMax(this StringBuilder dst, StringBuilder src, int maxLength)
+        {
+            maxLength = Math.Max(maxLength, 0);
+            dst.AppendSubstring(src, 0, Math.Min(src.Length, maxLength - 3));
+
+            if (src.Length > maxLength - 3)
+                dst.Append("...");
         }
 
         public static void GetForceDisplay(float newtons, StringBuilder sb)

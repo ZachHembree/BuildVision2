@@ -69,6 +69,7 @@ namespace DarkHelmet.BuildVision2
                 BvConfig.Load();
                 AddChatCommands();
                 InitSettingsMenu();
+                TerminalUtilities.Init();
                 MenuManager.Init();
             }
         }
@@ -83,7 +84,10 @@ namespace DarkHelmet.BuildVision2
             }
 
             if (ExceptionHandler.Unloading)
+            {
+                TerminalUtilities.Close();
                 Instance = null;
+            }
         }
     }
 
