@@ -145,11 +145,22 @@ namespace DarkHelmet.BuildVision2
                 return prop;
             }
 
-            public override float GetValue() =>
-                base.GetValue() * GetScaleFunc();
+            public override float GetValue()
+            {
+                float value = base.GetValue() * GetScaleFunc();
+                return value != float.NaN ? value : 0f;
+            }
 
-            public override void SetValue(float value) =>
-                base.SetValue(MathHelper.Clamp((value / GetScaleFunc()).Round(6), MinValue, MaxValue));
+            public override void SetValue(float value)
+            {
+                if (value != float.NaN)
+                {
+                    float effectiveness = GetScaleFunc(),
+                        rcpEffectiveness = effectiveness > 0f ? (1f / effectiveness) : 1f;
+
+                    base.SetValue(MathHelper.Clamp((value * rcpEffectiveness).Round(6), MinValue, MaxValue));
+                }
+            }
 
             public override bool TryParseValue(string text, out float value) =>
                 float.TryParse(text, out value);
