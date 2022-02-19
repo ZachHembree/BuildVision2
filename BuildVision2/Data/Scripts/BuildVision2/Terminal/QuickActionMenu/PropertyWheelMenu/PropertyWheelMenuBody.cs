@@ -65,8 +65,6 @@ namespace DarkHelmet.BuildVision2
                 {
                     DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
                     BuilderMode = TextBuilderModes.Wrapped,
-                    //IsMasking = true,
-                    //IsSelectivelyMasked = true,
                 };
 
                 notificationText = new Label(summaryText)
@@ -152,8 +150,8 @@ namespace DarkHelmet.BuildVision2
 
                     if (MenuState == QuickActionMenuState.Peek)
                     {
-                        Size = new Vector2(250f);
-                        Padding = new Vector2(30f);
+                        Size = new Vector2(270f);
+                        Padding = new Vector2(40f);
                     }
                     else
                     {
