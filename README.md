@@ -1,21 +1,26 @@
 ## Description:
-Build Vision 2 is a recreation and improvement upon the [original Build Vision by Jimmacle](https://steamcommunity.com/sharedfiles/filedetails/?id=756792814). This mod adds a context menu to the game designed to supplement the in-game terminal. Most of the time, the terminal is a perfectly acceptable way to configure blocks, but sometimes, it's just cumbersome. With BV, you can just point and click at a block and have immediate access to its settings, no need to go find a button panel and search for a name you likely can't remember.
+This is a quick access context menu, based on the [original Build Vision by Jimmacle](https://steamcommunity.com/sharedfiles/filedetails/?id=756792814), designed to supplement the game's terminal. Most of the time, the terminal works just fine for setting up blocks, but sometimes, it's cumbersome. With BV, you can just point and click at a block and have immediate access to its settings, no need to go find a button panel and search for a name you likely can't remember.
 
 This mod can be found on the Steam Workshop [here](https://steamcommunity.com/sharedfiles/filedetails/?id=1697184408).
 
-## Controls:
-All keybinds are configurable via the Rich Hud Terminal and through chat commands. To access the terminal, open chat, press F1, click "Build Vision" and then click on "Binds." If you're completely mad and just _have_ to use chat commands, see the /bv2 bind cmd in the Chat Commands section. A list of supported controls can be found [here](https://pastebin.com/mGNq3u1T).  
-  
-**Main Binds:**
+## Update 3.0:
+This update brings a complete redesign of Build Vision's UI and control scheme. The functionality is the same as it was in 2.5, but the old list menu has been (mostly) replaced with an easier-to-use wheel menu. The list menu is still available for properties not in the wheel menu, or if you simply prefer it. See the description below for the new binds and usage.
 
-If you don't need to change any settings, holding down the peek bind will show you a summary of the status/configuration of the block you're targeting, including information like its name, power and inventory usage. Just hold it down, aim at the block you want to check and release when you're done.  
+## Controls:
+The binds are configurable via the Rich Hud Terminal and through chat commands. To access the configuration press F2 to open the terminal, click "Build Vision" and then click on "Binds."
+  
+**Usage:**
+
+This is a quick access context menu for changing block settings, opened by aiming at the desired block and pressing either **Ctrl + MwUp** or **Ctrl + MwDn**. The first opens the wheel menu; the second opens the older list-style menu. Holding Ctrl (peek) will show a summary of the target block's current status without opening the controls.
+
+Mouse input can be enabled for the wheel menu by holding the **Peek** bind. Alternatively, you can use the same scrolling + multiplier controls listed below that are shared with the list menu. By default, the menu will close if you move more than 10 meters 4 large blocks from your target block. The exact distance can be customized in the settings.
   
 |Name|Controls|
 |--|--|
-|Peek|Control|
-|Open|Control + Middle Button|
-|Close|Shift + MiddleButton|
-|Select|MiddleButton|
+|Open Wheel|Control + MouseWheelUp|
+|Open List|Control + MouseWheelDown|
+|Select/Confirm|LeftButton|
+|Cancel/Back|RightButton|
 |Scroll Up|MouseWheelUp|
 |Scroll Down|MouseWheelDown|
   
@@ -23,34 +28,31 @@ Text fields are opened/closed by opening/closing chat and support the usage of t
   
 Numerical fields can be changed either by using the scroll wheel to increment/decrement their values or by opening them like a text field and typing in a value.  
   
-**Multiplier Binds:**  
+**Modifier/Multiplier Binds:**  
 
-The multiplier binds are used to change the speed a selected property will change with each tick of the scroll wheel, **1/10th** normal, **5x** normal, **10x**, etc. The base rate is proportional to the maximum value of the selected property. If you have a thruster override selected (probably with a maximum in the millions) that’s going to change in much larger increments than the targeting range of a turret (with a max around 800 meters, usually).  
-  
-The MultX bind, Ctrl by default, can also be used to scroll through the list faster. Just hold it down while scrolling.  
+The multiplier binds are used to change the speed a selected property will change with each tick of the scroll wheel, **1/10th** normal, **5x** normal, **10x**, etc. The base rate is proportional to the maximum value of the selected property. If you have a thruster override selected (probably with a maximum in the millions) that’s going to change in much larger increments than the targeting range of a turret (with a max around 800 meters, usually). 
+
+The MultX bind, Ctrl by default, can also be used to scroll through the list faster. Just hold it down while scrolling.
 
 |Name|Control|
 |--|--|
-|MultX (x0.1 for float values, x8 for colors)|Control|
+|MultX/Peek (x0.1 for float values, x8 for colors)|Control|
 |MultY (x5 for float values, x16 for colors)|Shift|
 |MultZ (x10 for float values, x64 for colors)|Control + Shift|
 
 
-**Copy/Paste Binds:**  
+**Property Duplication:**  
 
-These binds are used to copy settings between compatible block types. When in this mode, you can either select/deselect properties one at a time using the Scroll and Select binds or you can select them all at once using the Select All bind. Pressing Select All will also automatically change the menu to copy mode if not it's already enabled.  
+Property or settings duplication, as the name implies, is used to copy block settings from one block to another. The controls below can be used to quickly switch between dupe mode and normal control, but there are buttons for these controls in the wheel menu as well.
   
 |Name|Controls|
 |--|--|
-|Toggle Copy Mode|Home|
-|Select All|Insert|
-|Copy Selection|PageUp|
-|Paste Copied Properties|PageDown|
-|Undo Paste|Delete|
+|Start Dupe|Ctrl + Alt + MouseWheelUp|
+|Stop Dupe|Ctrl + Alt + MouseWheelDown|
 
 **Settings Menu:**
 
-This mod is using the Rich Hud Terminal for its settings menu and is accessed by opening chat and pressing F1. Through this menu, you can configure block targeting, change UI settings and configure your keybinds.  
+This mod is using the Rich HUD Terminal for its settings menu and, by default, can be opened by pressing F2. This menu allows you to configure block targeting, change UI settings and configure your keybinds.
   
 
 ## Chat Commands:
@@ -62,7 +64,6 @@ All chat commands must begin with “/bv2” and are not case-sensitive. The arg
 |--|--|
 |help|Opens help menu|
 |bindHelp|Help menu for changing key binds|
-|printBinds|Prints your current key binds to chat|
 |bind|[bindName] [control1] [control2] [control3]|
 |save|For manually saving the configuration|
 |load|For manually loading the config file|
