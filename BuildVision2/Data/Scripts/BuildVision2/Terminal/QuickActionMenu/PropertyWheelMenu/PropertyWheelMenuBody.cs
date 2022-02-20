@@ -191,8 +191,12 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    notificationBuidler.Clear();
                     notification = null;
+                    notificationBuidler.Clear();
+                    var target = propertyWheelMenu.quickActionMenu.Target;
+
+                    if (!target.IsFunctional)
+                        notificationBuidler.SetText("[Incomplete]", blockIncFormat.WithAlignment(TextAlignment.Center));
                 }
 
                 summaryText.Padding = .1f * (cachedSize - cachedPadding);
