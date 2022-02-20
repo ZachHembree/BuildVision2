@@ -33,9 +33,10 @@ namespace DarkHelmet.BuildVision2
             { "RotorLock", 5 },
             { "Torque", 5 },
             { "BrakingTorque", 5 },
+            { "Velocity", 5 },
             { "UpperLimit", 5 },
-            { "Displacement", 5 },
             { "LowerLimit", 5 },
+            { "Displacement", 5 },
             { "ShowOnHUD", 0 },
             { "ShowInToolbarConfig", 0 },
         };

@@ -46,7 +46,6 @@ namespace DarkHelmet.BuildVision2
         private readonly Stopwatch peekTimer;
         private readonly IMyHudNotification hudNotification;
         private Vector2 lastPos;
-        private bool gettingBP;
         private int bpTick;
 
         private MenuManager() : base(false, true)

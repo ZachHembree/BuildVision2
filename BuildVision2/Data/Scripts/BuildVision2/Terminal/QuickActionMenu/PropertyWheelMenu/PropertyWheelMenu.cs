@@ -58,8 +58,9 @@ namespace DarkHelmet.BuildVision2
             private readonly StringBuilder notifText;
             private int textUpdateTick;
 
-            public PropertyWheelMenu(QuickActionMenu parent) : base(parent)
+            public PropertyWheelMenu(QuickActionMenu parent) : base(null)
             {
+                Register(parent, true);
                 this.quickActionMenu = parent;
                 menuBody = new PropertyWheelMenuBody(this) { };
 

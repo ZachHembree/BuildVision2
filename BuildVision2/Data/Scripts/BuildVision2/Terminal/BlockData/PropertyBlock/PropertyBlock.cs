@@ -125,7 +125,7 @@ namespace DarkHelmet.BuildVision2
             GetScrollableActions();
 
             duplicator.SetBlockMembers(this);
-            prioritizer.SetBlockMembers(13, TBlock.GetType(), blockMembers);
+            prioritizer.SetBlockMembers(15, TBlock.GetType(), blockMembers);
         }
 
         public int GetEnabledElementCount()
