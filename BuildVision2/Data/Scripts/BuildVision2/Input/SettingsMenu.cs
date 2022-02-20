@@ -199,15 +199,6 @@ namespace DarkHelmet.BuildVision2
                 opacity,
             };
 
-            // Resolution scale
-            var resScaling = new TerminalCheckbox()
-            {
-                Name = "Resolution scaling",
-                Value = BvConfig.Current.hudConfig.resolutionScaling,
-                CustomValueGetter = () => BvConfig.Current.hudConfig.resolutionScaling,
-                ControlChangedHandler = ((sender, args) => BvConfig.Current.hudConfig.resolutionScaling = (sender as TerminalCheckbox).Value),
-            };
-
             // Max visible properties
             var maxVisible = new TerminalSlider()
             {
@@ -256,7 +247,6 @@ namespace DarkHelmet.BuildVision2
 
             var tile2 = new ControlTile()
             {
-                resScaling,
                 clampToEdges,
                 customPos,
                 setPosition,

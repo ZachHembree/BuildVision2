@@ -71,6 +71,9 @@ namespace DarkHelmet.BuildVision2
                 InitSettingsMenu();
                 TerminalUtilities.Init();
                 MenuManager.Init();
+
+                if (BvConfig.WasConfigOld)
+                    RichHudTerminal.OpenToPage(helpMain);
             }
         }
 

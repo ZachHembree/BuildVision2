@@ -10,6 +10,7 @@ namespace DarkHelmet.BuildVision2
     [XmlRoot, XmlType(TypeName = "BuildVisionSettings")]
     public class BvConfig : ConfigRoot<BvConfig>
     {
+        public static bool WasConfigOld { get; private set; }
         private const int vID = 10;
 
         [XmlElement(ElementName = "GeneralSettings")]
@@ -40,10 +41,12 @@ namespace DarkHelmet.BuildVision2
         {
             if (VersionID < vID)
             {
+                VersionID = vID;
                 general = TargetingConfig.Defaults;
                 hudConfig = HudConfig.Defaults;
                 block = PropBlockConfig.Defaults;
                 binds = BindsConfig.Defaults;
+                WasConfigOld = true;
             }
             else
             {

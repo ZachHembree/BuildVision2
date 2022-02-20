@@ -19,15 +19,25 @@ namespace DarkHelmet.BuildVision2
 
         public static RichText GetHelpMessage()
         {
-            return new RichText
+            return new RichText(GlyphFormat.White)
             {
+                { $"Update 3.0:\n\n", subsection },
+
+                $"This update brings a complete redesign of Build Vision's UI and control scheme. The functionality is the same as it was " +
+                $"in 2.5, but the old list menu has been (mostly) replaced with an easier-to-use wheel menu.\n\n",
+                
+                $"The list menu is still available for properties not in the wheel menu, or if you simply prefer it. See the description " +
+                $"below for the new binds and usage.\n\n",
+
+                { $"Usage:\n\n", subsection },
+
                 $"This is a quick access context menu for changing block settings, opened by aiming at the desired block and pressing either ",
                 {$"[{GetBindString(BvBinds.OpenWheel)}]", highlight}, " or ", {$"[{GetBindString(BvBinds.OpenList)}].", highlight}, " The first " +
                 "opens the wheel menu; the second opens the older list-style menu. Holding ", { $"[{GetBindString(BvBinds.MultX)}]", highlight },
                 $" (peek) will show a summary of the target block's current status without opening the controls.\n\n",
 
                 $"Mouse input can be enabled for the wheel menu by holding the ", {"Peek", highlight }, " bind. Alternatively, you can use the same " +
-                "scrolling + multiplier controls listed below  that are shared with the list menu. By default, the menu will close if you move more than " +
+                "scrolling + multiplier controls listed below that are shared with the list menu. By default, the menu will close if you move more than " +
                 "10 meters ", {"(4 large blocks)", highlight }, " from your target block. The exact distance can be customized in the settings section.\n\n",
 
                 { $"Main Binds:\n\n", subsection },
@@ -59,7 +69,7 @@ namespace DarkHelmet.BuildVision2
                 $"\tStope Dupe:\t\t|\t[{GetBindString(BvBinds.StopDupe)}]\n\n",
 
                 { $"Settings Menu:\n", subheader},
-                $"By default, this settings menu can be toggled by pressing ", { "F2", highlight }, " From here, you can configure block ",
+                $"By default, this settings menu can be toggled by pressing ", { "F2.", highlight }, " From here, you can configure block ",
                 $"targeting, change UI settings and configure your keybinds.\n\n",
 
                 { $"Chat Commands:\n", subheader},
