@@ -247,111 +247,88 @@ namespace DarkHelmet.BuildVision2
             }
 
             /// <summary>
-            /// Offsets selection index in the direction of the offset. If wrap == true, the index will wrap around
-            /// if the offset places it out of range.
+            /// Updates the selection index
             /// </summary>
-            public void OffsetSelectionIndex(int offset)
+            private void OffsetSelectionIndex(int offset)
             {
-                bool canWrap = !BvBinds.MultX.IsPressed && listWrapTimer.ElapsedMilliseconds > 300;
-                int index = selectionIndex,
-                    dir = offset > 0 ? 1 : -1,
-                    absOffset = canWrap ? 1 : Math.Abs(offset);
+                int min = GetFirstIndex(), max = GetLastIndex(), dir = (offset > 0) ? 1 : -1;
+                offset = Math.Abs(offset);
 
-                if (dir > 0)
+                for (int i = 1; i <= offset; i++)
                 {
-                    for (int i = 0; i < absOffset; i++)
+                    selectionIndex += dir;
+
+                    for (int j = selectionIndex; (j <= max && j >= min); j += dir)
                     {
-                        if (canWrap)
-                            index = (index + dir) % body.Collection.Count;
-                        else
-                            index = Math.Min(index + dir, body.Collection.Count - 1);
-
-                        index = FindFirstEnabled(index, canWrap);
+                        if (body.Collection[j].Enabled)
+                        {
+                            selectionIndex = j;
+                            break;
+                        }
                     }
+                }
 
-                    if (index < selectionIndex)
-                        listWrapTimer.Restart();
+                if (listWrapTimer.ElapsedMilliseconds > 300 && (selectionIndex > max || selectionIndex < min) 
+                    && !BvBinds.MultX.IsPressed)
+                {
+                    if (selectionIndex < min)
+                    {
+                        selectionIndex = max;
+                        body.End = selectionIndex;
+                    }
+                    else
+                    {
+                        selectionIndex = min;
+                        body.Start = selectionIndex;
+                    }
                 }
                 else
                 {
-                    for (int i = 0; i < absOffset; i++)
-                    {
-                        if (canWrap)
-                            index = (index + dir) % body.Collection.Count;
-                        else
-                            index = Math.Max(index + dir, 0);
+                    selectionIndex = MathHelper.Clamp(selectionIndex, min, max);
 
-                        if (index < 0)
-                            index += body.Collection.Count;
-
-                        index = FindLastEnabled(index, canWrap);
-                    }
-
-                    if (index > selectionIndex)
-                        listWrapTimer.Restart();
+                    if (selectionIndex < body.Start)
+                        body.Start = selectionIndex;
+                    else if (selectionIndex > body.End)
+                        body.End = selectionIndex;
                 }
-
-                selectionIndex = index;
             }
 
             /// <summary>
-            /// Returns first enabled element at or after the given index. Wraps around.
+            /// Returns the index of the first enabled property.
             /// </summary>
-            private int FindFirstEnabled(int index, bool wrap)
+            private int GetFirstIndex()
             {
-                if (wrap)
-                {
-                    int j = index;
+                int first = 0;
 
-                    for (int n = 0; n < 2 * body.Collection.Count; n++)
-                    {
-                        if (body.Collection[j].Enabled)
-                            return j;
-
-                        j++;
-                        j %= body.Collection.Count;
-                    }
-                }
-                else
+                for (int n = 0; n < body.Collection.Count; n++)
                 {
-                    for (int n = index; n < body.Collection.Count; n++)
+                    if (body.Collection[n].Enabled)
                     {
-                        if (body.Collection[n].Enabled)
-                            return n;
+                        first = n;
+                        break;
                     }
                 }
 
-                return -1;
+                return first;
             }
 
             /// <summary>
-            /// Returns preceeding enabled element at or after the given index. Wraps around.
+            /// Retrieves the index of the last enabled property.
             /// </summary>
-            private int FindLastEnabled(int index, bool wrap)
+            private int GetLastIndex()
             {
-                if (wrap)
-                {
-                    int j = index;
+                int last = 0;
 
-                    for (int n = 0; n < 2 * body.Collection.Count; n++)
-                    {
-                        if (body.Collection[j].Enabled)
-                            return j;
-
-                        j++;
-                        j %= body.Collection.Count;
-                    }
-                }
-                else
+                for (int n = body.Collection.Count - 1; n >= 0; n--)
                 {
-                    for (int n = index; n >= 0; n--)
+                    if (body.Collection[n].Enabled)
                     {
-                        if (body.Collection[n].Enabled)
-                            return n;
+                        last = n;
+                        break;
                     }
                 }
 
-                return -1;
+                return last;
             }
         }
     }
