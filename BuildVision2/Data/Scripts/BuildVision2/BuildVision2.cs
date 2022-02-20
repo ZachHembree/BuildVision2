@@ -38,7 +38,7 @@ namespace DarkHelmet.BuildVision2
 
             LogIO.FileName = "bvLog.txt";
             BvConfig.FileName = "BuildVision2Config.xml";
-
+            
             ExceptionHandler.ModName = "Build Vision";
             ExceptionHandler.PromptForReload = true;
             ExceptionHandler.RecoveryLimit = 3;

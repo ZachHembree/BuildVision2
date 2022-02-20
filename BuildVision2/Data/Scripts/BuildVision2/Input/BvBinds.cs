@@ -28,6 +28,8 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        public static IBind Blueprint { get; private set; }
+
         public static IBind EnableMouse { get; private set; }
         public static IBind OpenWheel { get; private set; }
         public static IBind OpenList { get; private set; }
@@ -61,10 +63,18 @@ namespace DarkHelmet.BuildVision2
             set { _instance = value; }
         }
         private static BvBinds _instance;
-        private readonly IBindGroup modifierGroup, mainGroup, secondaryGroup;
+        private readonly IBindGroup staticGroup, modifierGroup, mainGroup, secondaryGroup;
 
         private BvBinds() : base(false, true)
         {
+            staticGroup = BindManager.GetOrCreateGroup("Static");
+            staticGroup.RegisterBinds(new BindGroupInitializer() 
+            {
+                { "blueprint", MyKeys.Control, MyKeys.B }
+            });
+
+            Blueprint = staticGroup["blueprint"];
+
             modifierGroup = BindManager.GetOrCreateGroup("Modifiers");
             modifierGroup.RegisterBinds(BindsConfig.DefaultModifiers);
 
@@ -94,6 +104,22 @@ namespace DarkHelmet.BuildVision2
             BvConfig.OnConfigSave -= UpdateConfig;
             BvConfig.OnConfigLoad -= UpdateBinds;
             Instance = null;
+
+            Blueprint = null;
+            MultX = null;
+            MultY = null;
+            MultZ = null;
+            EnableMouse = null;
+
+            OpenWheel = null;
+            OpenList = null;
+            StartDupe = null;
+            StopDupe = null;
+
+            Select = null;
+            Cancel = null;
+            ScrollUp = null;
+            ScrollDown = null;
         }
 
         private void UpdateBindProperties()

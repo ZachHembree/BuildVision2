@@ -22,7 +22,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// If true, then the menu is open
         /// </summary>
-        public static bool Open => instance?.quickActionMenu.Visible ?? false;
+        public static bool Open => instance?.quickActionMenu.MenuState != QuickActionMenuState.Closed;
 
         /// <summary>
         /// Returns the menu's current state
@@ -46,6 +46,8 @@ namespace DarkHelmet.BuildVision2
         private readonly Stopwatch peekTimer;
         private readonly IMyHudNotification hudNotification;
         private Vector2 lastPos;
+        private bool gettingBP;
+        private int bpTick;
 
         private MenuManager() : base(false, true)
         {
@@ -103,6 +105,11 @@ namespace DarkHelmet.BuildVision2
 
             if (Target.TBlock != null && Open)
             {
+                if (BvBinds.Blueprint.IsNewPressed)
+                    bpTick = 0;
+                else
+                    bpTick++;
+
                 if (DrawBoundingBox) // Debug target bounding box
                     boundingBox.Draw(Target.TBlock);
 
@@ -143,8 +150,13 @@ namespace DarkHelmet.BuildVision2
                         menuPos.Y -= .5f * quickActionMenu.Height;
                 }
 
-                quickActionMenu.Offset = menuPos;
-                lastPos = menuPos;
+                if ((lastPos - menuPos).LengthSquared() > 16f)
+                {
+                    quickActionMenu.Offset = menuPos;
+                    lastPos = menuPos;
+                }
+
+                quickActionMenu.Visible = bpTick > 30;
             }
 
             // Rescale draw matrix based on config
@@ -222,8 +234,7 @@ namespace DarkHelmet.BuildVision2
             IMyTerminalBlock block;
 
             if (
-                (LocalPlayer.GetHudState() != HudState.Hidden) 
-                && (BvConfig.Current.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) 
+                (BvConfig.Current.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) 
                 && TryGetTargetedBlockInternal(BvConfig.Current.general.maxOpenRange, out block)
             )
             {
