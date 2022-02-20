@@ -38,8 +38,8 @@ namespace DarkHelmet.BuildVision2
 
         public QuickActionMenu(HudParentBase parent = null) : base(parent)
         {
-            propertyWheel = new PropertyWheelMenu(this) { Visible = false };
             propertyList = new PropertyListMenu(this) { Visible = false };
+            propertyWheel = new PropertyWheelMenu(this) { Visible = false };
 
             propertyWheel.RegisterShortcut(new PropertyWheelShortcutEntry()
             {
