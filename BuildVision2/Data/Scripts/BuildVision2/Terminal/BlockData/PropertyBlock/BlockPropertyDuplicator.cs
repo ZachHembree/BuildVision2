@@ -240,7 +240,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public int TryPasteCopiedProperties()
         {
-            if (copiedProperties.propertyList.Count > 0 && copiedProperties.blockTypeID == Block.TypeID)
+            if (copiedProperties.propertyList.Count == 0)
+                return 0;
+            else if (copiedProperties.blockTypeID == Block.TypeID)
             {
                 backup.Item1 = Block.TBlock;
                 Block.ExportSettings(ref backup.Item2);
@@ -248,7 +250,7 @@ namespace DarkHelmet.BuildVision2
                 return TryPasteSerializedProperties(copiedProperties);
             }
             else
-                return 0;
+                return -1;
         }
 
         /// <summary>
