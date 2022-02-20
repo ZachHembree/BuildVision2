@@ -11,7 +11,7 @@ The binds are configurable via the Rich Hud Terminal and through chat commands. 
   
 **Usage:**
 
-This is a quick access context menu for changing block settings, opened by aiming at the desired block and pressing either **Ctrl + MwUp** or **Ctrl + MwDn**. The first opens the wheel menu; the second opens the older list-style menu. Holding Ctrl (peek) will show a summary of the target block's current status without opening the controls.
+This menu is opened by aiming at the desired block and pressing either **Ctrl + MwUp** or **Ctrl + MwDn**. The first opens the wheel menu; the second opens the older list-style menu. Holding Ctrl (peek) will show a summary of the target block's current status without opening the controls.
 
 Mouse input can be enabled for the wheel menu by holding the **Peek** bind. Alternatively, you can use the same scrolling + multiplier controls listed below that are shared with the list menu. By default, the menu will close if you move more than 10 meters 4 large blocks from your target block. The exact distance can be customized in the settings.
   
