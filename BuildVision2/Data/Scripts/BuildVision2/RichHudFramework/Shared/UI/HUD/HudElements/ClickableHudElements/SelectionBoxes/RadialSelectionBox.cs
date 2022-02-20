@@ -169,11 +169,11 @@ namespace RichHudFramework.UI
 
                 Vector2 cursorOffset = cursorPos - lastCursorPos;
 
-                if (cursorOffset.LengthSquared() > 16f)
+                if (cursorOffset.LengthSquared() > 64f)
                 {
                     // Find enabled entry with the offset that most closely matches
                     // the direction of the normal
-                    float dot = .1f;
+                    float dot = .2f;
                     int newSelection = -1;
                     Vector2 normalizedOffset = CursorSensitivity * 0.4f * Vector2.Normalize(cursorOffset);
                     cursorNormal = Vector2.Normalize(cursorNormal + normalizedOffset);
