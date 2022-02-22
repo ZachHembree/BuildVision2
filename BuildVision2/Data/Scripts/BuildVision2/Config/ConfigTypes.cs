@@ -39,7 +39,7 @@ namespace DarkHelmet.BuildVision2
 
         public override void Validate()
         {
-            if (VersionID < vID)
+            if (VersionID != vID)
             {
                 VersionID = vID;
                 general = TargetingConfig.Defaults;
