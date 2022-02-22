@@ -2,6 +2,7 @@
 using RichHudFramework.IO;
 using RichHudFramework.UI;
 using System;
+using System.Text;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Sandbox.ModAPI;
@@ -53,7 +54,8 @@ namespace DarkHelmet.BuildVision2
             private readonly ObjectPool<PropertyListEntry> entryPool;
             private readonly Label debugText;
             private readonly Stopwatch listWrapTimer, notificationTimer;
-            private string notification;
+            private StringBuilder notification;
+            private bool contNotification;
             private int textUpdateTick, selectionIndex;
 
             public PropertyListMenu(QuickActionMenu parent) : base(parent)
@@ -185,9 +187,10 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Shows a notification in the footer for a second or so
             /// </summary>
-            public void ShowNotification(string notification)
+            public void ShowNotification(StringBuilder notification, bool continuous)
             {
                 this.notification = notification;
+                contNotification = continuous;
                 notificationTimer.Restart();
             }
 
@@ -283,12 +286,18 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void UpdateFooterText()
             {
-                if (notification != null)
+                if (notification != null && notificationTimer.ElapsedMilliseconds < notificationTime)
                 {
-                    footer.LeftTextBuilder.SetText($"[{notification}]");
+                    footer.LeftTextBuilder.Clear();
+                    footer.LeftTextBuilder.Append("[", footerFormatLeft);
+                    footer.LeftTextBuilder.Append(notification, footerFormatLeft);
+                    footer.LeftTextBuilder.Append("]", footerFormatLeft);
 
-                    if (notificationTimer.ElapsedMilliseconds > notificationTime)
+                    if (contNotification)
+                    {
                         notification = null;
+                        contNotification = false;
+                    }
                 }
                 else if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
                 {

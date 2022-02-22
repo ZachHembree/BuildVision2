@@ -202,7 +202,7 @@ namespace DarkHelmet.BuildVision2
             // Max visible properties
             var maxVisible = new TerminalSlider()
             {
-                Name = "Max visible properties",
+                Name = "List max visible properties",
                 Min = 6,
                 Max = 40,
                 Value = BvConfig.Current.hudConfig.maxVisible,

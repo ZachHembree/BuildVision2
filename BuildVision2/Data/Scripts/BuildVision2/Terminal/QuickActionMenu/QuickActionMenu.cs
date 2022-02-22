@@ -2,6 +2,7 @@
 using RichHudFramework.IO;
 using RichHudFramework.UI;
 using System;
+using System.Text;
 using System.Collections.Generic;
 using VRage;
 using VRage.ModAPI;
@@ -34,6 +35,7 @@ namespace DarkHelmet.BuildVision2
         private readonly PropertyWheelMenu propertyWheel;
         private readonly PropertyListMenu propertyList;
         private readonly Label debugText;
+        private readonly StringBuilder notifText;
         private int textUpdateTick;
 
         public QuickActionMenu(HudParentBase parent = null) : base(parent)
@@ -54,6 +56,8 @@ namespace DarkHelmet.BuildVision2
                 BuilderMode = TextBuilderModes.Lined,
                 ParentAlignment = ParentAlignments.Left
             };
+
+            notifText = new StringBuilder();
         }
 
         /// <summary>
@@ -81,6 +85,22 @@ namespace DarkHelmet.BuildVision2
             Target = null;
             Visible = false;
             MenuState = QuickActionMenuState.Closed;
+        }
+
+        /// <summary>
+        /// Shows a temporary notification. Set continuous == true, if continuously
+        /// updating text.
+        /// </summary>
+        public void ShowNotification(StringBuilder text, bool continuous = false)
+        {
+            if (propertyWheel.Visible)
+            {
+                propertyWheel.ShowNotification(text, continuous);   
+            }
+            else if (propertyList.Visible)
+            {
+                propertyList.ShowNotification(text, continuous);
+            }
         }
 
         protected override void Layout()

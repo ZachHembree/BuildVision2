@@ -24,7 +24,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
                     {
-                        if (!menuBody.IsWidgetOpen)
+                        if (!wheelBody.IsWidgetOpen)
                             MenuState = QuickActionMenuState.WheelMenuControl;
                         else
                             HudMain.EnableCursor = BvBinds.EnableMouse.IsPressed;
@@ -44,8 +44,8 @@ namespace DarkHelmet.BuildVision2
                             dupeWheel.Visible = false;
                         }
 
-                        if (menuBody.IsWidgetOpen)
-                            menuBody.CloseWidget();
+                        if (wheelBody.IsWidgetOpen)
+                            wheelBody.CloseWidget();
 
                         HandleWheelInput();
                     }
@@ -90,6 +90,18 @@ namespace DarkHelmet.BuildVision2
             }
 
             /// <summary>
+            /// Handles selection for an entry in the duplication selection wheel
+            /// </summary>
+            private void HandleDupeSelection(PropertyWheelEntryBase selection)
+            {
+                if (BvBinds.Select.IsReleased)
+                {
+                    var shortcutEntry = selection as PropertyWheelShortcutEntry;
+                    shortcutEntry.ShortcutAction();
+                }
+            }
+
+            /// <summary>
             /// Handles the selection of an entry in one of the selection wheels
             /// </summary>
             private void HandlePropertySelection(PropertyWheelEntryBase selection)
@@ -114,7 +126,7 @@ namespace DarkHelmet.BuildVision2
                         }
                         else
                         {
-                            menuBody.OpenBlockMemberWidget(propertyEntry.BlockMember);
+                            wheelBody.OpenBlockMemberWidget(propertyEntry.BlockMember);
                             activeWheel.IsInputEnabled = false;
                             MenuState = QuickActionMenuState.WidgetControl;
                         }

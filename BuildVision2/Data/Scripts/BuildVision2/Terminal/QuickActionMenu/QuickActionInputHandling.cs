@@ -18,6 +18,7 @@ namespace DarkHelmet.BuildVision2
     {
         protected override void HandleInput(Vector2 cursorPos)
         {
+            HandleDupeInput();
             UpdateStateMain(); 
         }
 

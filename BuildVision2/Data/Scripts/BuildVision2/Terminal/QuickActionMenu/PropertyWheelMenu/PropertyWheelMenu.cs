@@ -46,26 +46,25 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns true if a property widget is currently open
             /// </summary>
-            public bool IsWidgetOpen => menuBody.IsWidgetOpen;
+            public bool IsWidgetOpen => wheelBody.IsWidgetOpen;
 
             private readonly RadialSelectionBox<PropertyWheelEntryBase, Label> propertyWheel, dupeWheel;
-            private readonly PropertyWheelMenuBody menuBody;
+            private readonly PropertyWheelMenuBody wheelBody;
             private readonly Label debugText;
 
             private readonly ObjectPool<object> propertyEntryPool;
             private readonly List<PropertyWheelShortcutEntry> shortcutEntries;
             private RadialSelectionBox<PropertyWheelEntryBase, Label> activeWheel;
-            private readonly StringBuilder notifText;
             private int textUpdateTick;
 
             public PropertyWheelMenu(QuickActionMenu parent) : base(null)
             {
                 Register(parent, true);
                 this.quickActionMenu = parent;
-                menuBody = new PropertyWheelMenuBody(this) { };
+                wheelBody = new PropertyWheelMenuBody(this) { };
 
                 // Selection wheel for block properties
-                propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(menuBody)
+                propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(wheelBody)
                 {
                     Visible = false,
                     BackgroundColor = bodyColor,
@@ -74,7 +73,7 @@ namespace DarkHelmet.BuildVision2
                 };
 
                 // Selection wheel for dupe shortcuts
-                dupeWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(menuBody)
+                dupeWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(wheelBody)
                 {
                     Visible = false,
                     BackgroundColor = bodyColor,
@@ -85,47 +84,47 @@ namespace DarkHelmet.BuildVision2
                         new PropertyWheelShortcutEntry()
                         {
                             Text = "Back",
-                            ShortcutAction = StopPropertyDuplication,
+                            ShortcutAction = quickActionMenu.StopPropertyDuplication,
                         },
                         new PropertyWheelShortcutEntry()
                         {
                             Text = "Open List",
-                            ShortcutAction = OpenDupeList,
+                            ShortcutAction = quickActionMenu.OpenDupeList,
                         },
                         new PropertyWheelShortcutEntry()
                         {
                             Text = "Open List and Select All",
-                            ShortcutAction = OpenDupeListAndSelectAll,
+                            ShortcutAction = quickActionMenu.OpenDupeListAndSelectAll,
                         },
                         new PropertyWheelShortcutEntry()
                         {
                             Text = "Clear Selection",
-                            ShortcutAction = ClearSelection,
+                            ShortcutAction = quickActionMenu.ClearSelection,
                         },
                         new PropertyWheelShortcutEntry()
                         {
                             Text = "Copy Selected",
-                            ShortcutAction = CopySelectedProperties,
+                            ShortcutAction = quickActionMenu.CopySelectedProperties,
                         },
                         new PropertyWheelShortcutEntry()
                         {
                             Text = "Copy All but Name",
-                            ShortcutAction = () => CopyAllProperties(false),
+                            ShortcutAction = () => quickActionMenu.CopyAllProperties(false),
                         },
                         new PropertyWheelShortcutEntry()
                         {
                             Text = "Copy All",
-                            ShortcutAction = () => CopyAllProperties(true),
+                            ShortcutAction = () => quickActionMenu.CopyAllProperties(true),
                         },
                         new PropertyWheelShortcutEntry()
                         {
                             Text = "Paste",
-                            ShortcutAction = PasteCopiedProperties,
+                            ShortcutAction = quickActionMenu.PasteCopiedProperties,
                         },
                         new PropertyWheelShortcutEntry()
                         {
                             Text = "Undo",
-                            ShortcutAction = UndoPropertyPaste,
+                            ShortcutAction = quickActionMenu.UndoPropertyPaste,
                         },
                     }
                 };
@@ -136,7 +135,7 @@ namespace DarkHelmet.BuildVision2
                     new PropertyWheelShortcutEntry()
                     {
                         Text = "Copy Settings",
-                        ShortcutAction = StartPropertyDuplication,
+                        ShortcutAction = quickActionMenu.StartPropertyDuplication,
                     }
                 };
 
@@ -146,7 +145,6 @@ namespace DarkHelmet.BuildVision2
                     () => new PropertyWheelEntry(),
                     x => (x as PropertyWheelEntry).Reset()
                 );
-                notifText = new StringBuilder();
 
                 debugText = new Label(this)
                 {
@@ -213,12 +211,15 @@ namespace DarkHelmet.BuildVision2
                 IsOpen = false;
             }
 
+            public void ShowNotification(StringBuilder text, bool continuous) =>
+                wheelBody.ShowNotification(text, continuous);
+
             /// <summary>
             /// Clears all entries from the menu and closes any open widgets
             /// </summary>
             private void Clear()
             {
-                menuBody.CloseWidget();
+                wheelBody.CloseWidget();
 
                 propertyEntryPool.ReturnRange(propertyWheel.EntryList, 0,
                     propertyWheel.EntryList.Count - shortcutEntries.Count);
@@ -231,18 +232,18 @@ namespace DarkHelmet.BuildVision2
             protected override void Layout()
             {
                 float opacity = BvConfig.Current.hudConfig.hudOpacity;
-                menuBody.background.Color = menuBody.background.Color.SetAlphaPct(opacity);
+                wheelBody.background.Color = wheelBody.background.Color.SetAlphaPct(opacity);
                 propertyWheel.BackgroundColor = propertyWheel.BackgroundColor.SetAlphaPct(opacity);
                 dupeWheel.BackgroundColor = dupeWheel.BackgroundColor.SetAlphaPct(opacity);
 
                 if (MenuState == QuickActionMenuState.Peek)
                 {
-                    Size = menuBody.Size;
+                    Size = wheelBody.Size;
                 }
                 else
                 {
                     Size = propertyWheel.Size;
-                    menuBody.Size = 1.05f * propertyWheel.Size * propertyWheel.polyBoard.InnerRadius;
+                    wheelBody.Size = 1.05f * propertyWheel.Size * propertyWheel.polyBoard.InnerRadius;
 
                     if (activeWheel != null)
                         activeWheel.CursorSensitivity = BvConfig.Current.hudConfig.cursorSensitivity;
@@ -275,10 +276,10 @@ namespace DarkHelmet.BuildVision2
 
                     if (selectedEntryCount > 0)
                     {
-                        notifText.Clear();
-                        notifText.Append(selectedEntryCount);
-                        notifText.Append(" properties selected");
-                        menuBody.ShowNotification(notifText, true);
+                        quickActionMenu.notifText.Clear();
+                        quickActionMenu.notifText.Append(selectedEntryCount);
+                        quickActionMenu.notifText.Append(" properties selected");
+                        wheelBody.ShowNotification(quickActionMenu.notifText, true);
                     }
 
                     debugText.Visible = DrawDebug;

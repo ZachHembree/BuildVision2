@@ -36,6 +36,10 @@ namespace DarkHelmet.BuildVision2
 
         public static IBind StartDupe { get; private set; }
         public static IBind StopDupe { get; private set; }
+        public static IBind SelectAll { get; private set; }
+        public static IBind CopySelection { get; private set; }
+        public static IBind PasteProperties { get; private set; }
+        public static IBind UndoPaste { get; private set; }
 
         public static IBind Select { get; private set; }
         public static IBind Cancel { get; private set; }
@@ -113,8 +117,13 @@ namespace DarkHelmet.BuildVision2
 
             OpenWheel = null;
             OpenList = null;
+
             StartDupe = null;
             StopDupe = null;
+            SelectAll = null;
+            CopySelection = null;
+            PasteProperties = null;
+            UndoPaste = null;
 
             Select = null;
             Cancel = null;
@@ -131,8 +140,13 @@ namespace DarkHelmet.BuildVision2
 
             OpenWheel = mainGroup["OpenWheel"];
             OpenList = mainGroup["OpenList"];
+
             StartDupe = mainGroup["StartDupe"];
             StopDupe = mainGroup["StopDupe"];
+            SelectAll = mainGroup["SelectAll"];
+            CopySelection = mainGroup["CopySelection"];
+            PasteProperties = mainGroup["PasteProperties"];
+            UndoPaste = mainGroup["UndoPaste"];
 
             Select = secondaryGroup["Select/Confirm"];
             Cancel = secondaryGroup["Cancel/Back"];

@@ -16,6 +16,7 @@ namespace DarkHelmet.BuildVision2
         PropertyOpen = 0x8,
         PropertyDuplication = 0x10,
         Controlled = 0x20,
+        LegacyMode = 0x40,
 
         WheelMenuControl = WheelMenuOpen | Controlled,
         WidgetControl = WheelMenuControl | PropertyOpen,

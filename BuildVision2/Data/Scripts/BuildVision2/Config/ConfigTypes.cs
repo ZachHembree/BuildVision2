@@ -280,6 +280,10 @@ namespace DarkHelmet.BuildVision2
                 { "OpenList", MyKeys.Control, RichHudControls.MousewheelDown },
                 { "StartDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelUp },
                 { "StopDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelDown },
+                { "SelectAll", MyKeys.Insert },
+                { "CopySelection", MyKeys.PageUp },
+                { "PasteProperties", MyKeys.PageDown },
+                { "UndoPaste", MyKeys.Delete },
             }.GetBindDefinitions(),
             defaultSecondary = new BindGroupInitializer
             {
