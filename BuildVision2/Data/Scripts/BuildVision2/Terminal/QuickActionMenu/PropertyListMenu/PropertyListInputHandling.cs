@@ -21,7 +21,6 @@ namespace DarkHelmet.BuildVision2
         private partial class PropertyListMenu : HudElementBase
         {
             private static int incrX, incrY, incrZ;
-            private const string textEntryWarning = "Open Chat to Enable Input";
 
             protected override void HandleInput(Vector2 cursorPos)
             {

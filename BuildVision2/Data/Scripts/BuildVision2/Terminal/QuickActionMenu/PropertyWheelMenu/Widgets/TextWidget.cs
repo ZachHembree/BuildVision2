@@ -46,8 +46,12 @@ namespace DarkHelmet.BuildVision2
                 this.CloseWidgetCallback = CloseWidgetCallback;
 
                 label.TextBoard.SetText(textMember.Name);
-                textField.TextBoard.SetText(textValueMember.Value);
                 textField.CharFilterFunc = textMember.CharFilterFunc;
+
+                if (BindManager.IsChatOpen)
+                    textField.TextBoard.SetText(textValueMember.Value);
+                else
+                    textField.TextBoard.SetText(textEntryWarning);
 
                 if (BindManager.IsChatOpen && !textField.InputOpen)
                     textField.OpenInput();
@@ -70,6 +74,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (BindManager.IsChatOpen && !textField.InputOpen)
                     {
+                        textField.TextBoard.SetText(textValueMember.Value);
                         textField.OpenInput();
                         textField.MouseInput.GetInputFocus();
                     }
@@ -80,8 +85,12 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Confirm()
             {
-                textMember.SetValueText(textField.TextBoard.ToString());
-                textField.CloseInput();
+                if (!BindManager.IsChatOpen && textField.InputOpen)
+                {
+                    textMember.SetValueText(textField.TextBoard.ToString());
+                    textField.CloseInput();
+                }
+
                 CloseWidgetCallback();
             }
 

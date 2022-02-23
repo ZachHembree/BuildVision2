@@ -52,6 +52,7 @@ namespace DarkHelmet.BuildVision2
             footerFormatRight = footerFormatLeft.WithAlignment(TextAlignment.Right),
             blockIncFormat = footerFormatRight.WithColor(new Color(200, 35, 35));
 
+        private const string textEntryWarning = "Open Chat to Enable Input";
         private const long notificationTime = 1500;
         private const int textTickDivider = 4;
         private const int maxEntryCharCount = 33;
