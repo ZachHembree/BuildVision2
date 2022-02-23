@@ -243,7 +243,7 @@ namespace RichHudFramework.UI
 
         protected override void HandleInput(Vector2 cursorPos)
         {
-            ScrollBar.MouseInput.Enabled = EnableScrolling;
+            ScrollBar.MouseInput.InputEnabled = EnableScrolling;
 
             if (hudCollectionList.Count > 0 && EnableScrolling && (IsMousedOver || ScrollBar.IsMousedOver))
             {

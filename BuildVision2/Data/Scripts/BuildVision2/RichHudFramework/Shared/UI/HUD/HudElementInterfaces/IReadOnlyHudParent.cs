@@ -32,7 +32,9 @@ namespace RichHudFramework
             IsMasked = 0x200,
             IsMasking = 0x400,
             IsSelectivelyMasked = 0x800,
-            CanIgnoreMasking = 0x1000
+            CanIgnoreMasking = 0x1000,
+            IsInputEnabled = 0x2000,
+            WasParentInputEnabled = 0x4000
         }
 
         public struct HudLayerData
@@ -127,10 +129,14 @@ namespace RichHudFramework
             IReadOnlyHudSpaceNode HudSpace { get; }
 
             /// <summary>
-            /// Determines whether or not the element will be drawn and/or accept
-            /// input.
+            /// Returns true if the element can be drawn and/or accept input
             /// </summary>
             bool Visible { get; }
+
+            /// <summary>
+            /// Returns true if input is enabled can update
+            /// </summary>
+            bool InputEnabled { get; }
 
             /// <summary>
             /// Used to change the draw order of the UI element. Lower offsets place the element

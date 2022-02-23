@@ -26,7 +26,8 @@ namespace RichHudFramework
         /// </summary>
         public abstract partial class HudNodeBase : HudParentBase, IReadOnlyHudNode
         {
-            protected const HudElementStates nodeVisible = HudElementStates.IsVisible | HudElementStates.WasParentVisible | HudElementStates.IsRegistered;
+            protected const HudElementStates nodeVisible = HudElementStates.IsVisible | HudElementStates.WasParentVisible | HudElementStates.IsRegistered,
+                nodeInputEnabled = HudElementStates.IsInputEnabled | HudElementStates.WasParentInputEnabled;
             protected const int maxPreloadDepth = 5;
 
             /// <summary>
@@ -43,6 +44,11 @@ namespace RichHudFramework
             /// Determines whether or not an element will be drawn or process input. Visible by default.
             /// </summary>
             public override bool Visible => (State & nodeVisible) == nodeVisible;
+
+            /// <summary>
+            /// Returns true if input is enabled can update
+            /// </summary>
+            public override bool InputEnabled => (State & nodeInputEnabled) == nodeInputEnabled;
 
             /// <summary>
             /// Indicates whether or not the element has been registered to a parent.
@@ -69,6 +75,35 @@ namespace RichHudFramework
                 ParentVisible = true;
 
                 Register(parent);
+            }
+
+            /// <summary>
+            /// Starts input update in a try-catch block. Useful for manually updating UI elements.
+            /// Exceptions are reported client-side. Do not override this unless you have a good reason for it.
+            /// If you need to update input, use HandleInput().
+            /// </summary>
+            public override void BeginInput()
+            {
+                if (!ExceptionHandler.ClientsPaused)
+                {
+                    try
+                    {
+                        State &= ~HudElementStates.WasParentInputEnabled;
+
+                        if (_parent != null)
+                            State |= _parent.InputEnabled ? HudElementStates.WasParentInputEnabled : HudElementStates.None;
+
+                        if (Visible && InputEnabled)
+                        {
+                            Vector3 cursorPos = HudSpace.CursorPos;
+                            HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionHandler.ReportException(e);
+                    }
+                }
             }
 
             /// <summary>

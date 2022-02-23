@@ -264,9 +264,12 @@ namespace RichHudFramework
                 {
                     try
                     {
-                        State &= ~HudElementStates.IsMousedOver;
+                        State &= ~(HudElementStates.IsMousedOver | HudElementStates.WasParentInputEnabled);
 
-                        if (Visible)
+                        if (_parent != null)
+                            State |= _parent.InputEnabled ? HudElementStates.WasParentInputEnabled : HudElementStates.None;
+
+                        if (Visible && InputEnabled)
                         {
                             Vector3 cursorPos = HudSpace.CursorPos;
                             bool mouseInBounds = (State & HudElementStates.IsMouseInBounds) > 0;

@@ -53,7 +53,7 @@ namespace RichHudFramework
             /// <summary>
             /// Determines whether the input element is enabled and accepting input
             /// </summary>
-            bool Enabled { get; set; }
+            bool InputEnabled { get; set; }
 
             /// <summary>
             /// True if the element is being clicked with the left mouse button

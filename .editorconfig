@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# CS0811: Fully qualified name is too long for debug information
+dotnet_diagnostic.CS0811.severity = none

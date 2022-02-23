@@ -31,7 +31,7 @@ namespace RichHudFramework
             public virtual IReadOnlyHudSpaceNode HudSpace { get; protected set; }
 
             /// <summary>
-            /// Determines whether or not an element will be drawn or process input. Visible by default.
+            /// Returns true if the element can be drawn and/or accept input
             /// </summary>
             public virtual bool Visible
             {
@@ -42,6 +42,21 @@ namespace RichHudFramework
                         State |= HudElementStates.IsVisible;
                     else
                         State &= ~HudElementStates.IsVisible;
+                }
+            }
+
+            /// <summary>
+            /// Returns true if input is enabled can update
+            /// </summary>
+            public virtual bool InputEnabled
+            {
+                get { return (State & HudElementStates.IsInputEnabled) > 0; }
+                set
+                {
+                    if (value)
+                        State |= HudElementStates.IsInputEnabled;
+                    else
+                        State &= ~HudElementStates.IsInputEnabled;
                 }
             }
 
@@ -63,7 +78,7 @@ namespace RichHudFramework
             public HudParentBase()
             {
                 State |= HudElementStates.IsRegistered;
-
+                InputEnabled = true;
                 Visible = true;
                 children = new List<HudNodeBase>();
 
@@ -89,7 +104,7 @@ namespace RichHudFramework
                 {
                     try
                     {
-                        if ((State & HudElementStates.CanUseCursor) > 0 && Visible)
+                        if ((State & HudElementStates.CanUseCursor) > 0 && Visible && InputEnabled)
                             InputDepth();
                     }
                     catch (Exception e)
@@ -110,7 +125,7 @@ namespace RichHudFramework
                 {
                     try
                     {
-                        if (Visible)
+                        if (Visible && InputEnabled)
                         {
                             Vector3 cursorPos = HudSpace.CursorPos;
                             HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
