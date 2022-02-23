@@ -70,7 +70,7 @@ namespace DarkHelmet.BuildVision2
                 AddChatCommands();
                 InitSettingsMenu();
                 TerminalUtilities.Init();
-                MenuManager.Init();
+                QuickActionHudSpace.Init();
 
                 if (BvConfig.WasConfigOld)
                     RichHudTerminal.OpenToPage(helpMain);
@@ -83,7 +83,8 @@ namespace DarkHelmet.BuildVision2
         {
             if (ExceptionHandler.IsClient)
             {
-                BvConfig.Save();                
+                BvConfig.Save();
+                QuickActionHudSpace.Close();
             }
 
             if (ExceptionHandler.Unloading)

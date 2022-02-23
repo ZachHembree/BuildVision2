@@ -12,7 +12,7 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    public sealed partial class MenuManager : BvComponentBase
+    public sealed partial class QuickActionHudSpace : HudSpaceNodeBase
     {
         /// <summary>
         /// Currently targeted terminal block
@@ -34,10 +34,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static bool DrawBoundingBox { get; set; }
 
-        private static MenuManager instance;
+        private static QuickActionHudSpace instance;
 
         private readonly QuickActionMenu quickActionMenu;
-        private readonly CustomSpaceNode hudSpace;
         private readonly BoundingBoard boundingBox;
 
         private readonly TerminalGrid targetGrid, tempGrid;
@@ -48,7 +47,7 @@ namespace DarkHelmet.BuildVision2
         private Vector2 lastPos;
         private int bpTick;
 
-        private MenuManager() : base(false, true)
+        private QuickActionHudSpace() : base(HudMain.Root)
         {
             DrawBoundingBox = false;
             targetGrid = new TerminalGrid();
@@ -56,8 +55,7 @@ namespace DarkHelmet.BuildVision2
             targetBuffer = new List<IMySlimBlock>();
             Target = new PropertyBlock();
 
-            hudSpace = new CustomSpaceNode(HudMain.Root) { UpdateMatrixFunc = UpdateHudSpace };
-            quickActionMenu = new QuickActionMenu(hudSpace) { Visible = false };
+            quickActionMenu = new QuickActionMenu(this) { Visible = false };
             boundingBox = new BoundingBoard();
             hudNotification = MyAPIGateway.Utilities.CreateNotification("", 1000, MyFontEnum.Red);
 
@@ -69,7 +67,7 @@ namespace DarkHelmet.BuildVision2
         public static void Init()
         {
             if (instance == null)
-                instance = new MenuManager();
+                instance = new QuickActionHudSpace();
         }
 
         public static void TryOpenMenu() =>
@@ -78,9 +76,9 @@ namespace DarkHelmet.BuildVision2
         public static void CloseMenu() =>
             instance?.CloseMenuInternal();
 
-        public override void Close()
+        public static void Close()
         {
-            CloseMenuInternal();
+            instance?.CloseMenuInternal();
             RichHudCore.LateMessageEntered -= MessageHandler;
             Target = null;
             instance = null;
@@ -89,13 +87,13 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Intercepts chat input when a property is open
         /// </summary>
-        private void MessageHandler(string message, ref bool sendToOthers)
+        private static void MessageHandler(string message, ref bool sendToOthers)
         {
             if (Open)
                 sendToOthers = false;
         }
 
-        private MatrixD UpdateHudSpace()
+        protected override void Layout()
         {
             float scale = BvConfig.Current.hudConfig.hudScale;
 
@@ -158,12 +156,6 @@ namespace DarkHelmet.BuildVision2
                 quickActionMenu.Visible = bpTick > 30;
             }
 
-            // Rescale draw matrix based on config
-            return MatrixD.CreateScale(scale, scale, 1d) * HudMain.PixelToWorld;
-        }
-
-        public override void Update()
-        {
             if (Open)
             {
                 Target.Update();
@@ -171,9 +163,13 @@ namespace DarkHelmet.BuildVision2
                 if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || RichHudTerminal.Open)
                     CloseMenuInternal();
             }
+
+            // Rescale draw matrix based on config
+            PlaneToWorldRef[0] = MatrixD.CreateScale(scale, scale, 1d) * HudMain.PixelToWorld;
+            base.Layout();
         }
 
-        public override void HandleInput()
+        protected override void HandleInput(Vector2 cursorPos)
         {
             if (quickActionMenu.MenuState == QuickActionMenuState.Peek ||
                 quickActionMenu.MenuState == QuickActionMenuState.Closed)

@@ -173,9 +173,9 @@ namespace DarkHelmet.BuildVision2
             return new HudConfig
             {
                 resolutionScaling = true,
-                cursorSensitivity = .4f,
+                cursorSensitivity = .6f,
                 hudScale = 1f,
-                hudOpacity = 0.85f,
+                hudOpacity = 0.8f,
                 maxVisible = 14,
                 clampHudPos = true,
                 useCustomPos = false,

@@ -98,9 +98,9 @@ namespace DarkHelmet.BuildVision2
         {
             BvMenuModes mode;
 
-            if ((MenuManager.MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+            if ((QuickActionHudSpace.MenuState & QuickActionMenuState.PropertyDuplication) > 0)
                 mode = BvMenuModes.Dupe;
-            else if ((MenuManager.MenuState & QuickActionMenuState.Controlled) > 0)
+            else if ((QuickActionHudSpace.MenuState & QuickActionMenuState.Controlled) > 0)
                 mode = BvMenuModes.Control;
             else
                 mode = BvMenuModes.Peek;
@@ -113,11 +113,11 @@ namespace DarkHelmet.BuildVision2
             switch ((BvApiAccessors)memberEnum)
             {
                 case BvApiAccessors.Open:
-                    return MenuManager.Open;
+                    return QuickActionHudSpace.Open;
                 case BvApiAccessors.MenuMode:
                     return GetApiMode();
                 case BvApiAccessors.Target:
-                    return MenuManager.Target?.TBlock;
+                    return QuickActionHudSpace.Target?.TBlock;
             }
 
             return null;
