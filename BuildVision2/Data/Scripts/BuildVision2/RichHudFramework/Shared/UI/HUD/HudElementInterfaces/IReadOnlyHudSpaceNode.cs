@@ -18,12 +18,6 @@ namespace RichHudFramework
             Vector3 CursorPos { get; }
 
             /// <summary>
-            /// If set to true, then the cursor will be drawn in the node's HUD space when being captured by thsi node.
-            /// True by default.
-            /// </summary>
-            bool DrawCursorInHudSpace { get; }
-
-            /// <summary>
             /// Delegate used to retrieve current hud space. Used for cursor depth testing.
             /// </summary>
             HudSpaceDelegate GetHudSpaceFunc { get; }

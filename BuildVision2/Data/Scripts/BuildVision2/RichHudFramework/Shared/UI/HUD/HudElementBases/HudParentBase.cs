@@ -261,8 +261,6 @@ namespace RichHudFramework
                         return ExceptionHandler.ModName;
                     case HudElementAccessors.LocalCursorPos:
                         return HudSpace?.CursorPos ?? Vector3.Zero;
-                    case HudElementAccessors.DrawCursorInHudSpace:
-                        return HudSpace?.DrawCursorInHudSpace ?? false;
                     case HudElementAccessors.PlaneToWorld:
                         return HudSpace?.PlaneToWorldRef[0] ?? default(MatrixD);
                     case HudElementAccessors.IsInFront:

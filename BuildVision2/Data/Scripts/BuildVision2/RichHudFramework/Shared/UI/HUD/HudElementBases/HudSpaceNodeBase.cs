@@ -56,12 +56,6 @@ namespace RichHudFramework
             public Vector3 CursorPos { get; protected set; }
 
             /// <summary>
-            /// If set to true, then the cursor will be drawn in the node's HUD space when being captured by thsi node.
-            /// True by default.
-            /// </summary>
-            public bool DrawCursorInHudSpace { get; set; }
-
-            /// <summary>
             /// Delegate used to retrieve current hud space. Used with cursor.
             /// </summary>
             public HudSpaceDelegate GetHudSpaceFunc { get; protected set; }
@@ -83,8 +77,7 @@ namespace RichHudFramework
 
             public HudSpaceNodeBase(HudParentBase parent = null) : base(parent)
             {
-                GetHudSpaceFunc = () => new MyTuple<bool, float, MatrixD>(DrawCursorInHudSpace, 1f, PlaneToWorldRef[0]);
-                DrawCursorInHudSpace = true;
+                GetHudSpaceFunc = () => new MyTuple<bool, float, MatrixD>(false, 1f, PlaneToWorldRef[0]);
                 GetNodeOriginFunc = () => PlaneToWorldRef[0].Translation;
                 PlaneToWorldRef = new MatrixD[1];
             }
