@@ -87,6 +87,7 @@ namespace RichHudFramework.UI
         protected int selectionVisPos, effectiveMaxCount;
         protected bool isStartPosStale;
         protected Vector2 lastCursorPos, cursorNormal;
+        private float lastDot;
         private bool _isInputEnabled;
 
         public RadialSelectionBox(HudParentBase parent = null) : base(parent)
@@ -162,6 +163,7 @@ namespace RichHudFramework.UI
 
                 if (isStartPosStale)
                 {
+                    lastDot = 0f;
                     cursorNormal = Vector2.Zero;
                     lastCursorPos = cursorPos;
                     isStartPosStale = false;
@@ -173,7 +175,7 @@ namespace RichHudFramework.UI
                 {
                     // Find enabled entry with the offset that most closely matches
                     // the direction of the normal
-                    float dot = .2f;
+                    float dot = .5f;
                     int newSelection = -1;
                     Vector2 normalizedOffset = CursorSensitivity * 0.4f * Vector2.Normalize(cursorOffset);
                     cursorNormal = Vector2.Normalize(cursorNormal + normalizedOffset);
@@ -187,9 +189,10 @@ namespace RichHudFramework.UI
                         {
                             float newDot = Vector2.Dot(element.Offset, cursorNormal);
 
-                            if (newDot > dot)
+                            if (newDot > dot && Math.Abs(lastDot - newDot) > .1f)
                             {
                                 dot = newDot;
+                                lastDot = dot;
                                 newSelection = i;
                             }
                         }
