@@ -237,6 +237,7 @@ namespace RichHudFramework
                 private void BeforeMasterDraw()
                 {
                     UpdateCache();
+                    cursor.Update();
                     BillBoardUtils.BeginDraw();
                 }
 
@@ -246,9 +247,7 @@ namespace RichHudFramework
                 }
 
                 private void BeforeMasterInput()
-                {
-                    cursor.Update();
-                }
+                { }
 
                 public override void Close()
                 {
