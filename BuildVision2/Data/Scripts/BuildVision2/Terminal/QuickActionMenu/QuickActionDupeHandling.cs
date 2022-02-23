@@ -18,16 +18,21 @@ namespace DarkHelmet.BuildVision2
     {
         private void HandleDupeInput()
         {
-            if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+            if (BvBinds.ToggleDupe.IsNewPressed && (MenuState & QuickActionMenuState.Controlled) > 0)
             {
-                if (BvBinds.SelectAll.IsNewPressed)
-                {
-                    Target.Duplicator.SelectAllProperties();
-                }
-                else if (BvBinds.CopySelection.IsNewPressed)
-                {
-                    CopySelectedProperties();
-                }
+                if ((MenuState & QuickActionMenuState.PropertyDuplication) == 0)
+                    StartPropertyDuplication();
+                else
+                    StopPropertyDuplication();
+            }
+            else if (BvBinds.SelectAll.IsNewPressed && (MenuState & QuickActionMenuState.Controlled) > 0)
+            {
+                StartPropertyDuplication();
+                Target.Duplicator.SelectAllProperties();
+            }
+            else if (BvBinds.CopySelection.IsNewPressed && (MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+            {
+                CopySelectedProperties();
             }
             else if (BvBinds.PasteProperties.IsNewPressed)
             {
@@ -40,7 +45,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Swtiches to duplication wheel and enables property duplication controls
+        /// Swtiches to duplication and enables property duplication controls
         /// </summary>
         private void StartPropertyDuplication()
         {
@@ -52,7 +57,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void StopPropertyDuplication()
         {
-            MenuState = QuickActionMenuState.WheelMenuControl;
+            MenuState &= ~QuickActionMenuState.PropertyDuplication;
+            Target.Duplicator.ClearSelection();
         }
 
         /// <summary>
@@ -102,6 +108,8 @@ namespace DarkHelmet.BuildVision2
             notifText.Append(copiedProperties);
             notifText.Append(" properties");
             ShowNotification(notifText);
+
+            StopPropertyDuplication();
         }
 
         /// <summary>
@@ -124,6 +132,8 @@ namespace DarkHelmet.BuildVision2
             notifText.Append(copiedProperties);
             notifText.Append(" properties");
             ShowNotification(notifText);
+
+            StopPropertyDuplication();
         }
 
         /// <summary>

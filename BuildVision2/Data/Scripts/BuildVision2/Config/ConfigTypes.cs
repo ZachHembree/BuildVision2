@@ -280,6 +280,7 @@ namespace DarkHelmet.BuildVision2
                 { "OpenList", MyKeys.Control, RichHudControls.MousewheelDown },
                 { "StartDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelUp },
                 { "StopDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelDown },
+                { "ToggleDupe", MyKeys.Home },
                 { "SelectAll", MyKeys.Insert },
                 { "CopySelection", MyKeys.PageUp },
                 { "PasteProperties", MyKeys.PageDown },
