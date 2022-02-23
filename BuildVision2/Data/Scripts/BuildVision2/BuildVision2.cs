@@ -77,6 +77,11 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
+        protected override void Update()
+        {
+            QuickActionHudSpace.Update();
+        }
+
         private void OnHudReset() { }
 
         public override void BeforeClose()

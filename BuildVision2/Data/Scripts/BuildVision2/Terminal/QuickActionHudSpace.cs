@@ -76,6 +76,9 @@ namespace DarkHelmet.BuildVision2
         public static void CloseMenu() =>
             instance?.CloseMenuInternal();
 
+        public static void Update() =>
+            instance?.UpdateInternal();
+
         public static void Close()
         {
             instance?.CloseMenuInternal();
@@ -93,6 +96,17 @@ namespace DarkHelmet.BuildVision2
                 sendToOthers = false;
         }
 
+        private void UpdateInternal()
+        {
+            if (Open)
+            {
+                Target.Update();
+
+                if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None)
+                    CloseMenuInternal();
+            }
+        }
+
         protected override void Layout()
         {
             float scale = BvConfig.Current.hudConfig.hudScale;
@@ -106,9 +120,6 @@ namespace DarkHelmet.BuildVision2
                     bpTick = 0;
                 else
                     bpTick++;
-
-                if (DrawBoundingBox) // Debug target bounding box
-                    boundingBox.Draw(Target.TBlock);
 
                 Vector3D targetWorldPos, targetScreenPos;
                 Vector2 menuPos, screenBounds = Vector2.One / 2f;
@@ -156,21 +167,22 @@ namespace DarkHelmet.BuildVision2
                 quickActionMenu.Visible = bpTick > 30;
             }
 
-            if (Open)
-            {
-                Target.Update();
-
-                if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || RichHudTerminal.Open)
-                    CloseMenuInternal();
-            }
-
             // Rescale draw matrix based on config
             PlaneToWorldRef[0] = MatrixD.CreateScale(scale, scale, 1d) * HudMain.PixelToWorld;
             base.Layout();
         }
 
+        protected override void Draw()
+        {
+            // Debug target bounding box
+            if (Target?.TBlock != null && DrawBoundingBox)
+                boundingBox.Draw(Target.TBlock);
+        }
+
         protected override void HandleInput(Vector2 cursorPos)
         {
+            quickActionMenu.InputEnabled = !RichHudTerminal.Open;
+
             if (quickActionMenu.MenuState == QuickActionMenuState.Peek ||
                 quickActionMenu.MenuState == QuickActionMenuState.Closed)
             {

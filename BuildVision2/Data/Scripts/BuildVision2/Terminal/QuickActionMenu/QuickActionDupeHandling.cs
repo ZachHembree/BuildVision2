@@ -109,7 +109,8 @@ namespace DarkHelmet.BuildVision2
             notifText.Append(" properties");
             ShowNotification(notifText);
 
-            StopPropertyDuplication();
+            if (copiedProperties > 0)
+                StopPropertyDuplication();
         }
 
         /// <summary>
