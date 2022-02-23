@@ -109,9 +109,10 @@ namespace RichHudFramework.UI
         {
             allowInput = true;
             UpdateInputOpen();
-            caret.SetPosition(int.MaxValue);
+            caret.SetPosition(0);
+            caret.SetPosition(short.MaxValue);
         }
-
+        
         /// <summary>
         /// Closes textbox input and clears the text selection.
         /// </summary>
@@ -154,7 +155,7 @@ namespace RichHudFramework.UI
         private void GainFocus(object sender, EventArgs args)
         {
             if (MoveToEndOnGainFocus)
-                caret.SetPosition(int.MaxValue);
+                caret.SetPosition(short.MaxValue);
         }
 
         private void LoseFocus(object sender, EventArgs args)
@@ -412,7 +413,7 @@ namespace RichHudFramework.UI
                 text.MoveToChar(CaretIndex);
             }
 
-            public void SetPosition(int offset)
+            public void SetPosition(short offset)
             {
                 Vector2I index = GetIndexFromOffset(offset);
 
@@ -420,6 +421,7 @@ namespace RichHudFramework.UI
                     caretMoved = true;
 
                 CaretIndex = index;
+                caretOffset = Math.Max(GetOffsetFromIndex(CaretIndex), 0);
                 text.MoveToChar(index);
             }
 
