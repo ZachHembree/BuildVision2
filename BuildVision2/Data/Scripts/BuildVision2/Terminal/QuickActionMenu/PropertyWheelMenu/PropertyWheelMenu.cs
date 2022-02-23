@@ -64,16 +64,17 @@ namespace DarkHelmet.BuildVision2
                 wheelBody = new PropertyWheelMenuBody(this) { };
 
                 // Selection wheel for block properties
-                propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(wheelBody)
+                propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>()
                 {
                     Visible = false,
                     BackgroundColor = bodyColor,
                     HighlightColor = highlightColor,
                     ZOffset = -1,
                 };
+                propertyWheel.Register(wheelBody, true);
 
                 // Selection wheel for dupe shortcuts
-                dupeWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(wheelBody)
+                dupeWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>()
                 {
                     Visible = false,
                     BackgroundColor = bodyColor,
@@ -128,6 +129,7 @@ namespace DarkHelmet.BuildVision2
                         },
                     }
                 };
+                dupeWheel.Register(wheelBody, true);
 
                 // Shortcuts to be added to the property wheel later
                 shortcutEntries = new List<PropertyWheelShortcutEntry>()
@@ -272,13 +274,13 @@ namespace DarkHelmet.BuildVision2
 
                 if (textUpdateTick == 0)
                 {
-                    int selectedEntryCount = Target.Duplicator.GetSelectedEntryCount();
-
-                    if (selectedEntryCount > 0)
-                    {
+                    if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                    { 
                         quickActionMenu.notifText.Clear();
-                        quickActionMenu.notifText.Append(selectedEntryCount);
-                        quickActionMenu.notifText.Append(" properties selected");
+                        quickActionMenu.notifText.Append("Copying ");
+                        quickActionMenu.notifText.Append(Target.Duplicator.GetSelectedEntryCount());
+                        quickActionMenu.notifText.Append(" of ");
+                        quickActionMenu.notifText.Append(Target.Duplicator.GetValidEntryCount());
                         wheelBody.ShowNotification(quickActionMenu.notifText, true);
                     }
 
