@@ -51,17 +51,20 @@ namespace RichHudFramework.UI.Rendering
                     updateMatFit = false;
                 }
 
+                faceRange.Y++;
                 faceRange *= 2;
+                // Outer vertex indices are even
+                faceRange.X -= faceRange.X % 2;
+                faceRange.Y -= faceRange.Y % 2;
 
                 // Generate final vertices for drawing from unscaled vertices
-                for (int i = faceRange.X; i <= (faceRange.Y + 3); i++)
+                for (int i = faceRange.X; i <= faceRange.Y + 1; i++)
                 {
                     drawVertices[i % drawVertices.Count] = origin + size * vertices[i % drawVertices.Count];
                 }
 
                 faceRange *= 3;
-                var range = new Vector2I(faceRange.X, faceRange.Y + 3);
-                BillBoardUtils.AddTriangleRange(range, triangles, drawVertices, ref polyMat, matrixRef);
+                BillBoardUtils.AddTriangleRange(faceRange, triangles, drawVertices, ref polyMat, matrixRef);
             }
         }
 
@@ -75,6 +78,9 @@ namespace RichHudFramework.UI.Rendering
 
             range.Y++;
             range *= 2;
+            // Outer vertex indices are even
+            range.X -= range.X % 2;
+            range.Y -= range.Y % 2;
 
             int max = vertices.Count;
             Vector2 sum = 

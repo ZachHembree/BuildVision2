@@ -580,7 +580,8 @@ namespace RichHudFramework
 
                     // Get triangle count, ensure enough billboards are in the pool and add them to the
                     // render queue before writing QB data to buffer
-                    int triangleCount = indices.Count / 3,
+                    int iMax = indices.Count, 
+                        triangleCount = indices.Count / 3,
                         bbRemaining = bbPool.Count - bbDataBack.Count,
                         bbToAdd = Math.Max(triangleCount - bbRemaining, 0);
 
@@ -604,15 +605,15 @@ namespace RichHudFramework
                             Item4 = new MyTuple<Vector4, BoundingBox2?>(mat.bbColor, null),
                             Item5 = new MyTuple<Vector2, Vector2, Vector2>
                             (
-                                mat.texCoords[indices[i]],
-                                mat.texCoords[indices[i + 1]],
-                                mat.texCoords[indices[i + 2]]
+                                mat.texCoords[indices[i % iMax]],
+                                mat.texCoords[indices[(i + 1) % iMax]],
+                                mat.texCoords[indices[(i + 2) % iMax]]
                             ),
                             Item6 = new MyTuple<Vector2, Vector2, Vector2>
                             (
-                                vertices[indices[i]],
-                                vertices[indices[i + 1]],
-                                vertices[indices[i + 2]]
+                                vertices[indices[i % iMax]],
+                                vertices[indices[(i + 1) % iMax]],
+                                vertices[indices[(i + 2) % iMax]]
                             ),
                         };
                         bbDataBack.Add(bb);
@@ -642,7 +643,8 @@ namespace RichHudFramework
 
                     // Get triangle count, ensure enough billboards are in the pool and add them to the
                     // render queue before writing QB data to buffer
-                    int triangleCount = (range.Y - range.X) / 3,
+                    int iMax = indices.Count,
+                        triangleCount = (range.Y - range.X) / 3,
                         bbRemaining = bbPool.Count - bbDataBack.Count,
                         bbToAdd = Math.Max(triangleCount - bbRemaining, 0);
 
@@ -666,15 +668,15 @@ namespace RichHudFramework
                             Item4 = new MyTuple<Vector4, BoundingBox2?>(mat.bbColor, null),
                             Item5 = new MyTuple<Vector2, Vector2, Vector2>
                             (
-                                mat.texCoords[indices[i]],
-                                mat.texCoords[indices[i + 1]],
-                                mat.texCoords[indices[i + 2]]
+                                mat.texCoords[indices[i % iMax]],
+                                mat.texCoords[indices[(i + 1) % iMax]],
+                                mat.texCoords[indices[(i + 2) % iMax]]
                             ),
                             Item6 = new MyTuple<Vector2, Vector2, Vector2>
                             (
-                                vertices[indices[i]],
-                                vertices[indices[i + 1]],
-                                vertices[indices[i + 2]]
+                                vertices[indices[i % iMax]],
+                                vertices[indices[(i + 1) % iMax]],
+                                vertices[indices[(i + 2) % iMax]]
                             ),
                         };
                         bbDataBack.Add(bb);
