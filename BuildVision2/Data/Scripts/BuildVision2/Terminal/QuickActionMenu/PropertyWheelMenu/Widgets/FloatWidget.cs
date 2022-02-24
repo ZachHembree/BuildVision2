@@ -92,7 +92,7 @@ namespace DarkHelmet.BuildVision2
 
                     if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
                     {
-                        float offset = floatMember.Increment;
+                        float offset = Math.Min(floatMember.Increment, 1E5f);
 
                         if (BvBinds.MultZ.IsPressed)
                             offset *= BvConfig.Current.block.floatMult.Z;
