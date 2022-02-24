@@ -61,6 +61,10 @@ namespace DarkHelmet.BuildVision2
                 Value = Cfg.targeting.enablePeek,
                 CustomValueGetter = () => Cfg.targeting.enablePeek,
                 ControlChangedHandler = ((sender, args) => Cfg.targeting.enablePeek = (sender as TerminalOnOffButton).Value),
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Enables/disables preview of block configuration"
+                },
             };
 
             // Close if not in view
@@ -96,7 +100,12 @@ namespace DarkHelmet.BuildVision2
 
                     Cfg.targeting.maxOpenRange = slider.Value;
                     slider.ValueText = $"{slider.Value.Round(1)}m";
-                }
+                },
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Build Vision will not open for target\n" +
+                    "blocks beyond this distance"
+                },
             };
 
             // Control range slider
@@ -114,7 +123,12 @@ namespace DarkHelmet.BuildVision2
 
                     Cfg.targeting.maxControlRange = slider.Value;
                     slider.ValueText = $"{slider.Value.Round(1)}m";
-                }
+                },
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Auto-close distance after Build Vision\n" +
+                    "has been opened"
+                },
             };
 
             var targetingResetButton = new TerminalButton()
@@ -155,7 +169,7 @@ namespace DarkHelmet.BuildVision2
             // Cursor sensitivity
             var cursorSensitivity = new TerminalSlider()
             {
-                Name = "Cursor sensitivity",
+                Name = "Wheel Cursor Sensitivity",
                 Min = .3f,
                 Max = 2f,
                 Value = BvConfig.Current.genUI.cursorSensitivity,
@@ -167,6 +181,10 @@ namespace DarkHelmet.BuildVision2
 
                     BvConfig.Current.genUI.cursorSensitivity = slider.Value;
                     slider.ValueText = $"{(slider.Value * 100f).Round()}%";
+                },
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Controls speed for scrolling using the mouse"
                 }
             };
 
@@ -266,6 +284,11 @@ namespace DarkHelmet.BuildVision2
                 Value = BvConfig.Current.genUI.clampHudPos,
                 CustomValueGetter = () => BvConfig.Current.genUI.clampHudPos,
                 ControlChangedHandler = ((sender, args) => BvConfig.Current.genUI.clampHudPos = (sender as TerminalCheckbox).Value),
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Prevents the menu from moving outside the bounds\n" +
+                    "of the screen"
+                },
             };
 
             // Use custom position
@@ -275,6 +298,10 @@ namespace DarkHelmet.BuildVision2
                 Value = BvConfig.Current.genUI.useCustomPos,
                 CustomValueGetter = () => BvConfig.Current.genUI.useCustomPos,
                 ControlChangedHandler = ((sender, args) => BvConfig.Current.genUI.useCustomPos = (sender as TerminalCheckbox).Value),
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Sets menu to a user-defined fixed position"
+                },
             };
 
             // Set custom position
@@ -320,7 +347,7 @@ namespace DarkHelmet.BuildVision2
             // Float divider
             var floatDiv = new TerminalTextField()
             {
-                Name = "Float Divider",
+                Name = "Base Float Divider",
                 Value = PropertyBlock.Cfg.floatDiv.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.floatDiv.ToString(),
@@ -334,7 +361,14 @@ namespace DarkHelmet.BuildVision2
                         PropertyBlock.Cfg.floatDiv = value;
                         PropertyBlock.Cfg.Validate();
                     }
-                }
+                },
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Used to define base increment for numerical values.\n" +
+                    "The value's range ~(max - min) is divided by this value\n" +
+                    "to obtain the base increment.\n" +
+                    "Larger values = smaller increments and vice versa."
+                },
             };
 
             var resetProps = new TerminalButton()
@@ -362,7 +396,11 @@ namespace DarkHelmet.BuildVision2
 
                     float.TryParse(textField.Value, out PropertyBlock.Cfg.floatMult.X);
                     PropertyBlock.Cfg.Validate();
-                }
+                },
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Scales the increment for numerical values e.g. X * base"
+                },
             };
 
             // Y
@@ -379,6 +417,10 @@ namespace DarkHelmet.BuildVision2
                     float.TryParse(textField.Value, out PropertyBlock.Cfg.floatMult.Y);
                     PropertyBlock.Cfg.Validate();
                 },
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Scales the increment for numerical values e.g. Y * base"
+                },
             };
 
             // Z
@@ -394,6 +436,10 @@ namespace DarkHelmet.BuildVision2
 
                     float.TryParse(textField.Value, out PropertyBlock.Cfg.floatMult.Z);
                     PropertyBlock.Cfg.Validate();
+                },
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Scales the increment for numerical values e.g. Z * base"
                 },
             };
 
@@ -418,6 +464,10 @@ namespace DarkHelmet.BuildVision2
                     int.TryParse(textField.Value, out PropertyBlock.Cfg.colorMult.X);
                     PropertyBlock.Cfg.Validate();
                 },
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Scales the increment for numerical values e.g. X * base"
+                },
             };
 
             // Y
@@ -434,13 +484,17 @@ namespace DarkHelmet.BuildVision2
                     int.TryParse(textField.Value, out PropertyBlock.Cfg.colorMult.Y);
                     PropertyBlock.Cfg.Validate();
                 },
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Scales the increment for numerical values e.g. Y * base"
+                },
             };
 
             // Z
             var colorMultZ = new TerminalTextField()
             {
-                Name = "Color Mult X",
-                Value = PropertyBlock.Cfg.colorMult.X.ToString(),
+                Name = "Color Mult Z",
+                Value = PropertyBlock.Cfg.colorMult.Z.ToString(),
                 CharFilterFunc = NumFilterFunc,
                 CustomValueGetter = () => PropertyBlock.Cfg.colorMult.Z.ToString(),
                 ControlChangedHandler = (sender, args) =>
@@ -449,6 +503,10 @@ namespace DarkHelmet.BuildVision2
 
                     int.TryParse(textField.Value, out PropertyBlock.Cfg.colorMult.Z);
                     PropertyBlock.Cfg.Validate();
+                },
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "Scales the increment for numerical values e.g. Z * base"
                 },
             };
 

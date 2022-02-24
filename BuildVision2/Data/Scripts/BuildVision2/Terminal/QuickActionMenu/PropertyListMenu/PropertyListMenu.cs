@@ -245,13 +245,13 @@ namespace DarkHelmet.BuildVision2
                         listBody.End = selectionIndex;
                     else if (selectionIndex < listBody.Start)
                         listBody.Start = selectionIndex;
+
+                    if (DrawDebug && textUpdateTick == 0)
+                        UpdateDebugText();
                 }
 
                 UpdateBodyText();
                 UpdateFooterText();
-
-                if (DrawDebug && textUpdateTick == 0)
-                    UpdateDebugText();
 
                 debugText.Visible = DrawDebug;
 
