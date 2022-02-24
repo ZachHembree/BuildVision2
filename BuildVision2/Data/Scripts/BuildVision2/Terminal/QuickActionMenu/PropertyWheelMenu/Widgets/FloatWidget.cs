@@ -46,7 +46,7 @@ namespace DarkHelmet.BuildVision2
                 this.CloseWidgetCallback = CloseWidgetCallback;
 
                 absRange = Math.Abs(floatMember.MaxValue - floatMember.MinValue);
-                logRange = Math.Log10(absRange);
+                logRange = Math.Ceiling(Math.Log10(absRange));
                 logMax = Math.Log10(Math.Abs(floatMember.MaxValue));
 
                 SetSliderValue(floatMember.Value);
@@ -149,7 +149,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void SetSliderValue(float current)
             {
-                if (absRange > 1E6)
+                if (absRange > floatPropLogThreshold)
                 {
                     current = MathHelper.Clamp(current, floatMember.MinValue, floatMember.MaxValue);
                     sliderBox.Current = (float)(Math.Log10(Math.Abs(current - floatMember.MinValue) + 1d) / logRange);
@@ -167,7 +167,7 @@ namespace DarkHelmet.BuildVision2
             {
                 double value = sliderBox.Current;
 
-                if (absRange > 1E6)
+                if (absRange > floatPropLogThreshold)
                 {
                     value = Math.Pow(10d, value * logRange) - 1d + floatMember.MinValue;
                 }

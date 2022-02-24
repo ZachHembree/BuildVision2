@@ -148,8 +148,20 @@ namespace DarkHelmet.BuildVision2
                 {
                     IBlockMember blockMember = listBody[selectionIndex].AssocMember;
                     var floatMember = blockMember as IBlockNumericValue<float>;
-                    float offset = floatMember.Increment,
+                    double absRange = Math.Abs(floatMember.MaxValue - floatMember.MinValue),
+                        logRange = Math.Ceiling(Math.Log10(absRange)),
+                        offset, value;
+
+                    if (absRange > floatPropLogThreshold)
+                    {
+                        offset = .1;
+                        value = (float)(Math.Log10(Math.Abs(floatMember.Value - floatMember.MinValue) + 1d) / logRange);
+                    }
+                    else
+                    {
                         value = floatMember.Value;
+                        offset = floatMember.Increment;
+                    }
 
                     if (BvBinds.MultZ.IsPressed)
                         offset *= BvConfig.Current.block.floatMult.Z;
@@ -159,13 +171,14 @@ namespace DarkHelmet.BuildVision2
                         offset *= BvConfig.Current.block.floatMult.X;
 
                     if (BvBinds.ScrollUp.IsNewPressed)
-                    {
-                        floatMember.Value = MathHelper.Clamp(value + offset, floatMember.MinValue, floatMember.MaxValue);
-                    }
+                        value += offset;
                     else if (BvBinds.ScrollDown.IsNewPressed)
-                    {
-                        floatMember.Value = MathHelper.Clamp(value - offset, floatMember.MinValue, floatMember.MaxValue);
-                    }
+                        value -= offset;
+
+                    if (absRange > floatPropLogThreshold)
+                        floatMember.Value = (float)(Math.Pow(10d, value * logRange) - 1d + floatMember.MinValue);
+                    else
+                        floatMember.Value = (float)value;
                 }
             }
 
