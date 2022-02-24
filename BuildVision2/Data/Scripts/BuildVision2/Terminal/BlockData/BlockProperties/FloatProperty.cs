@@ -104,7 +104,7 @@ namespace DarkHelmet.BuildVision2
 
                 var slider = control as IMyTerminalControlSlider;
                 SliderWriter = slider?.Writer;
-
+                
                 MinValue = property.GetMinimum(block.TBlock);
                 MaxValue = property.GetMaximum(block.TBlock);
                 Increment = GetIncrement();

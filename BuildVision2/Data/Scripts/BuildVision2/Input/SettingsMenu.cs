@@ -365,7 +365,7 @@ namespace DarkHelmet.BuildVision2
                 ToolTip = new RichText(ToolTip.DefaultText)
                 {
                     "Used to define base increment for numerical values.\n" +
-                    "The value's range ~(max - min) is divided by this value\n" +
+                    "The value's range ~|max - min| is divided by this value\n" +
                     "to obtain the base increment.\n" +
                     "Larger values = smaller increments and vice versa."
                 },

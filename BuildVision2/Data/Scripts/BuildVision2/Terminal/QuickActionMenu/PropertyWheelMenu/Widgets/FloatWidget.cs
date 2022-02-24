@@ -15,10 +15,16 @@ namespace DarkHelmet.BuildVision2
             private IBlockNumericValue<float> floatMember;
             private IBlockTextMember textMember;
             private float initValue;
+            private double absRange, logMax, logRange;
 
             public FloatWidget(HudParentBase parent = null) : base(parent)
             {
-                sliderBox = new CustomSliderBox() { Padding = Vector2.Zero };
+                sliderBox = new CustomSliderBox() 
+                { 
+                    Min = 0f,
+                    Max = 1f,
+                    Padding = Vector2.Zero,
+                };
 
                 var layout = new HudChain(true, this)
                 {
@@ -39,11 +45,12 @@ namespace DarkHelmet.BuildVision2
                 textMember = member as IBlockTextMember;
                 this.CloseWidgetCallback = CloseWidgetCallback;
 
-                sliderBox.Min = floatMember.MinValue;
-                sliderBox.Max = floatMember.MaxValue;
-                sliderBox.Current = floatMember.Value;
-                sliderBox.NameBuilder.SetText(floatMember.Name);
+                absRange = Math.Abs(floatMember.MaxValue - floatMember.MinValue);
+                logRange = Math.Log10(absRange);
+                logMax = Math.Log10(Math.Abs(floatMember.MaxValue));
 
+                SetSliderValue(floatMember.Value);
+                sliderBox.NameBuilder.SetText(floatMember.Name);
                 sliderBox.MouseInput.GetInputFocus();
                 sliderBox.CharFilterFunc = textMember.CharFilterFunc;
                 initValue = floatMember.Value;
@@ -81,9 +88,9 @@ namespace DarkHelmet.BuildVision2
                 }
                 else if (!sliderBox.IsTextInputOpen)
                 {
-                    floatMember.Value = sliderBox.Current;
+                    floatMember.Value = GetSliderValue();
 
-                    if (!sliderBox.IsTextInputOpen && (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed))
+                    if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
                     {
                         float offset = floatMember.Increment;
 
@@ -96,11 +103,11 @@ namespace DarkHelmet.BuildVision2
 
                         if (BvBinds.ScrollUp.IsNewPressed)
                         {
-                            sliderBox.Current += offset;
+                            SetSliderValue(floatMember.Value + offset);
                         }
                         else if (BvBinds.ScrollDown.IsNewPressed)
                         {
-                            sliderBox.Current -= offset;
+                            SetSliderValue(floatMember.Value - offset);
                         }
                     }
                 }
@@ -135,6 +142,41 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 CloseWidgetCallback?.Invoke();
+            }
+
+            /// <summary>
+            /// Sets slider value using unscaled value
+            /// </summary>
+            private void SetSliderValue(float current)
+            {
+                if (absRange > 1E6)
+                {
+                    current = MathHelper.Clamp(current, floatMember.MinValue, floatMember.MaxValue);
+                    sliderBox.Current = (float)(Math.Log10(Math.Abs(current - floatMember.MinValue) + 1d) / logRange);
+                }
+                else
+                {
+                    sliderBox.Current = (float)((current - floatMember.MinValue) / absRange);
+                }
+            }
+
+            /// <summary>
+            /// Returns slider value without scaling
+            /// </summary>
+            private float GetSliderValue()
+            {
+                double value = sliderBox.Current;
+
+                if (absRange > 1E6)
+                {
+                    value = Math.Pow(10d, value * logRange) - 1d + floatMember.MinValue;
+                }
+                else
+                {
+                    value = value * absRange + floatMember.MinValue;
+                }
+
+                return (float)value;
             }
 
             private class CustomSliderBox : NamedSliderBox
