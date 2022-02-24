@@ -24,15 +24,52 @@ namespace DarkHelmet.BuildVision2
 
         private void UpdateStateMain()
         {
+            GetStateInput();
+
+            if (MenuState == QuickActionMenuState.WheelPeek)
+                propertyWheel.OpenSummary();
+            else if (MenuState == QuickActionMenuState.ListPeek)
+                propertyList.OpenSummary();
+            else
+                BindManager.RequestTempBlacklist(SeBlacklistModes.Mouse);
+
+            // Open menus corresponding to their state flags
+            if (!propertyWheel.IsOpen && (MenuState & QuickActionMenuState.WheelMenuControl) == QuickActionMenuState.WheelMenuControl)
+                OpenPropertyWheel();
+            else if (!propertyList.IsOpen && (MenuState & QuickActionMenuState.ListMenuControl) == QuickActionMenuState.ListMenuControl)
+                OpenPropertyList();
+
+            // Close menus if not in the correct state. Probably redundant.
+            if ((MenuState & QuickActionMenuState.ListMenuControl) == 0 && propertyList.IsOpen)
+                propertyList.CloseMenu();
+
+            if ((MenuState & QuickActionMenuState.WheelMenuControl) == 0 && propertyWheel.IsOpen)
+                propertyWheel.CloseMenu();
+
+            if (MenuState == QuickActionMenuState.Closed)
+                CloseMenu();
+        }
+
+        private void GetStateInput()
+        {
             // Open property controls or remian in peek mode
-            if (MenuState == QuickActionMenuState.Closed || MenuState == QuickActionMenuState.Peek)
+            if (MenuState == QuickActionMenuState.Closed || (MenuState & QuickActionMenuState.Peek) > 0)
             {
                 if (BvBinds.OpenWheel.IsNewPressed)
+                {
                     MenuState = QuickActionMenuState.WheelMenuControl;
+                }
                 else if (BvBinds.OpenList.IsNewPressed)
+                {
                     MenuState = QuickActionMenuState.ListMenuControl;
+                }
                 else if (BvBinds.EnableMouse.IsPressed)
-                    MenuState = QuickActionMenuState.Peek;
+                {
+                    if (true) // Temporary
+                        MenuState = QuickActionMenuState.ListPeek;
+                    else
+                        MenuState = QuickActionMenuState.WheelPeek;
+                }
             }
 
             // Start duplication
@@ -54,28 +91,6 @@ namespace DarkHelmet.BuildVision2
             {
                 MenuState &= ~QuickActionMenuState.PropertyDuplication;
             }
-
-            if (MenuState == QuickActionMenuState.Peek)
-                // Only draw wheel body while peeking
-                propertyWheel.OpenSummary();
-            else
-                BindManager.RequestTempBlacklist(SeBlacklistModes.Mouse);
-
-            // Open menus corresponding to their state flags
-            if ((MenuState & QuickActionMenuState.WheelMenuOpen) > 0 && !propertyWheel.IsOpen)
-                OpenPropertyWheel();
-            else if ((MenuState & QuickActionMenuState.ListMenuOpen) > 0 && !propertyList.IsOpen)
-                OpenPropertyList();
-
-            // Close menus if not in the correct state. Probably redundant.
-            if ((MenuState & QuickActionMenuState.ListMenuOpen) == 0 && propertyList.IsOpen)
-                propertyList.CloseMenu();
-
-            if ((MenuState & QuickActionMenuState.WheelMenuOpen) == 0 && propertyWheel.IsOpen)
-                propertyWheel.CloseMenu();
-
-            if (MenuState == QuickActionMenuState.Closed)
-                CloseMenu();
         }
 
         /// <summary>

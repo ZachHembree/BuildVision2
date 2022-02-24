@@ -24,12 +24,13 @@ namespace DarkHelmet.BuildVision2
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (body.Collection.Count > 0)
+                if (listBody.Collection.Count > 0 
+                    && (MenuState & QuickActionMenuState.ListMenuControl) == QuickActionMenuState.ListMenuControl)
                 {
                     // Highlight selection
                     if (!(BvBinds.StartDupe.IsPressed || BvBinds.StopDupe.IsPressed))
                     {
-                        if(!body[selectionIndex].PropertyOpen)
+                        if(!listBody[selectionIndex].PropertyOpen)
                         {
                             bool multXPressed = BvBinds.MultX.IsPressed;
                             int offset = multXPressed ? 4 : 1;
@@ -46,7 +47,7 @@ namespace DarkHelmet.BuildVision2
                             }
                         }
 
-                        selectionIndex = MathHelper.Clamp(selectionIndex, 0, body.Count - 1);
+                        selectionIndex = MathHelper.Clamp(selectionIndex, 0, listBody.Count - 1);
 
                         if (BvBinds.Cancel.IsReleased)
                         {
@@ -68,7 +69,7 @@ namespace DarkHelmet.BuildVision2
 
             private void HandleDuplicationInput()
             {
-                var selection = body[selectionIndex];
+                var selection = listBody[selectionIndex];
 
                 if (BvBinds.Select.IsReleased)
                     selection.IsSelectedForDuplication = !selection.IsSelectedForDuplication;
@@ -76,7 +77,7 @@ namespace DarkHelmet.BuildVision2
 
             private void HandlePropertySelectionInput()
             {
-                var selection = body[selectionIndex];
+                var selection = listBody[selectionIndex];
                 IBlockMember blockMember = selection.AssocMember;
 
                 if (BvBinds.Select.IsReleased)
@@ -127,11 +128,11 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void HandleActionInput()
             {
-                IBlockMember blockMember = body[selectionIndex].AssocMember;
+                IBlockMember blockMember = listBody[selectionIndex].AssocMember;
                 var member = blockMember as IBlockAction;
 
                 member.Action();
-                body[selectionIndex].PropertyOpen = false;
+                listBody[selectionIndex].PropertyOpen = false;
             }
 
             /// <summary>
@@ -145,7 +146,7 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    IBlockMember blockMember = body[selectionIndex].AssocMember;
+                    IBlockMember blockMember = listBody[selectionIndex].AssocMember;
                     var floatMember = blockMember as IBlockNumericValue<float>;
                     float offset = floatMember.Increment,
                         value = floatMember.Value;
@@ -179,7 +180,7 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    IBlockMember blockMember = body[selectionIndex].AssocMember;
+                    IBlockMember blockMember = listBody[selectionIndex].AssocMember;
                     var colorMember = blockMember as IBlockNumericValue<byte>;
                     int offset = 1;
 
@@ -210,7 +211,7 @@ namespace DarkHelmet.BuildVision2
             {
                 if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
                 {
-                    IBlockMember blockMember = body[selectionIndex].AssocMember;
+                    IBlockMember blockMember = listBody[selectionIndex].AssocMember;
                     var comboBox = blockMember as IBlockComboBox;
                     var entries = comboBox.ComboEntries as List<KeyValuePair<long, StringBuilder>>;
                     int index = (int)comboBox.Value;
@@ -226,7 +227,7 @@ namespace DarkHelmet.BuildVision2
 
             private void HandleTextInput()
             {
-                PropertyListEntry selection = body[selectionIndex];
+                PropertyListEntry selection = listBody[selectionIndex];
 
                 if (BindManager.IsChatOpen)
                 {
@@ -259,7 +260,7 @@ namespace DarkHelmet.BuildVision2
 
                     for (int j = selectionIndex; (j <= max && j >= min); j += dir)
                     {
-                        if (body.Collection[j].Enabled)
+                        if (listBody.Collection[j].Enabled)
                         {
                             selectionIndex = j;
                             break;
@@ -273,22 +274,22 @@ namespace DarkHelmet.BuildVision2
                     if (selectionIndex < min)
                     {
                         selectionIndex = max;
-                        body.End = selectionIndex;
+                        listBody.End = selectionIndex;
                     }
                     else
                     {
                         selectionIndex = min;
-                        body.Start = selectionIndex;
+                        listBody.Start = selectionIndex;
                     }
                 }
                 else
                 {
                     selectionIndex = MathHelper.Clamp(selectionIndex, min, max);
 
-                    if (selectionIndex < body.Start)
-                        body.Start = selectionIndex;
-                    else if (selectionIndex > body.End)
-                        body.End = selectionIndex;
+                    if (selectionIndex < listBody.Start)
+                        listBody.Start = selectionIndex;
+                    else if (selectionIndex > listBody.End)
+                        listBody.End = selectionIndex;
                 }
             }
 
@@ -299,9 +300,9 @@ namespace DarkHelmet.BuildVision2
             {
                 int first = 0;
 
-                for (int n = 0; n < body.Collection.Count; n++)
+                for (int n = 0; n < listBody.Collection.Count; n++)
                 {
-                    if (body.Collection[n].Enabled)
+                    if (listBody.Collection[n].Enabled)
                     {
                         first = n;
                         break;
@@ -318,9 +319,9 @@ namespace DarkHelmet.BuildVision2
             {
                 int last = 0;
 
-                for (int n = body.Collection.Count - 1; n >= 0; n--)
+                for (int n = listBody.Collection.Count - 1; n >= 0; n--)
                 {
-                    if (body.Collection[n].Enabled)
+                    if (listBody.Collection[n].Enabled)
                     {
                         last = n;
                         break;

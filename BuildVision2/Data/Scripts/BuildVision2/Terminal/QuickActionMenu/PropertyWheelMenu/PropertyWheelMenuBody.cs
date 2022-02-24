@@ -148,7 +148,7 @@ namespace DarkHelmet.BuildVision2
                         UpdateText();
                     }
 
-                    if (MenuState == QuickActionMenuState.Peek)
+                    if (MenuState == QuickActionMenuState.WheelPeek)
                     {
                         Size = new Vector2(270f);
                         Padding = new Vector2(40f);

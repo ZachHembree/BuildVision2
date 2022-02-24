@@ -20,12 +20,14 @@ namespace DarkHelmet.BuildVision2
         {
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (propertyWheel.EntryList.Count > 0)
+                if (propertyWheel.EntryList.Count > 0 && (MenuState & QuickActionMenuState.WheelMenuControl) > 0)
                 {
                     if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
                     {
                         if (!wheelBody.IsWidgetOpen)
+                        {
                             MenuState = QuickActionMenuState.WheelMenuControl;
+                        }
                         else
                             HudMain.EnableCursor = BvBinds.EnableMouse.IsPressed;
                     }
@@ -128,6 +130,7 @@ namespace DarkHelmet.BuildVision2
                         {
                             wheelBody.OpenBlockMemberWidget(propertyEntry.BlockMember);
                             activeWheel.IsInputEnabled = false;
+
                             MenuState = QuickActionMenuState.WidgetControl;
                         }
                     }

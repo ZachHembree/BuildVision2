@@ -69,7 +69,6 @@ namespace DarkHelmet.BuildVision2
             {
                 CloseMenu();
                 Target = target;
-                Visible = true;
                 UpdateStateMain();
             }
         }

@@ -55,7 +55,7 @@ namespace DarkHelmet.BuildVision2
             targetBuffer = new List<IMySlimBlock>();
             Target = new PropertyBlock();
 
-            quickActionMenu = new QuickActionMenu(this) { Visible = false };
+            quickActionMenu = new QuickActionMenu(this);
             boundingBox = new BoundingBoard();
             hudNotification = MyAPIGateway.Utilities.CreateNotification("", 1000, MyFontEnum.Red);
 
@@ -183,7 +183,7 @@ namespace DarkHelmet.BuildVision2
         {
             quickActionMenu.InputEnabled = !RichHudTerminal.Open;
 
-            if (quickActionMenu.MenuState == QuickActionMenuState.Peek ||
+            if ((quickActionMenu.MenuState & QuickActionMenuState.Peek) > 0 ||
                 quickActionMenu.MenuState == QuickActionMenuState.Closed)
             {
                 if (quickActionMenu.MenuState == QuickActionMenuState.Closed)
@@ -200,7 +200,7 @@ namespace DarkHelmet.BuildVision2
                     if (peekTimer.ElapsedMilliseconds > 100)
                         TryOpenMenuInternal();
                 }
-                else if (quickActionMenu.MenuState == QuickActionMenuState.Peek)
+                else if ((quickActionMenu.MenuState & QuickActionMenuState.Peek) > 0)
                     CloseMenuInternal();
             }
 

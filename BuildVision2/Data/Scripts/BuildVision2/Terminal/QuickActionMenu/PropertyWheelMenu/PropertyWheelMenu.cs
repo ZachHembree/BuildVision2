@@ -238,7 +238,7 @@ namespace DarkHelmet.BuildVision2
                 propertyWheel.BackgroundColor = propertyWheel.BackgroundColor.SetAlphaPct(opacity);
                 dupeWheel.BackgroundColor = dupeWheel.BackgroundColor.SetAlphaPct(opacity);
 
-                if (MenuState == QuickActionMenuState.Peek)
+                if (MenuState == QuickActionMenuState.WheelPeek)
                 {
                     Size = wheelBody.Size;
                 }

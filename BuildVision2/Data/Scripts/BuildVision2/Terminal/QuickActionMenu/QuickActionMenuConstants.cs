@@ -16,12 +16,14 @@ namespace DarkHelmet.BuildVision2
         PropertyOpen = 0x8,
         PropertyDuplication = 0x10,
         Controlled = 0x20,
-        LegacyMode = 0x40,
+
+        ListPeek = Peek | ListMenuOpen,
+        WheelPeek = Peek | WheelMenuOpen,
 
         WheelMenuControl = WheelMenuOpen | Controlled,
         WidgetControl = WheelMenuControl | PropertyOpen,
         ListMenuControl = ListMenuOpen | Controlled,
-        PropertyControl = ListMenuControl | PropertyOpen,
+        ListPropertyControl = ListMenuControl | PropertyOpen,
     }
 
     public sealed partial class QuickActionMenu : HudElementBase
