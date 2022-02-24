@@ -84,7 +84,7 @@ namespace RichHudFramework.UI
 
         public readonly PuncturedPolyBoard polyBoard;
 
-        protected int selectionVisPos, effectiveMaxCount;
+        protected int selectionVisPos, effectiveMaxCount, minPolySize;
         protected bool isStartPosStale;
         protected Vector2 lastCursorPos, cursorNormal;
         private float lastDot;
@@ -98,6 +98,7 @@ namespace RichHudFramework.UI
                 Sides = 64
             };
 
+            minPolySize = 64;
             Size = new Vector2(512f);
             MaxEntryCount = 8;
             CursorSensitivity = .5f;
@@ -152,7 +153,7 @@ namespace RichHudFramework.UI
                 }
             }
 
-            polyBoard.Sides = Math.Max(effectiveMaxCount * 6, polyBoard.Sides);
+            polyBoard.Sides = Math.Max(effectiveMaxCount * 6, minPolySize);
         }
 
         protected override void HandleInput(Vector2 cursorPos)

@@ -161,7 +161,7 @@ namespace DarkHelmet.BuildVision2
                 hudScale = 1f,
                 hudOpacity = 0.8f,
                 listMaxVisible = 14,
-                wheelMaxVisible = 20,
+                wheelMaxVisible = 15,
                 clampHudPos = true,
                 useCustomPos = false,
                 hudPos = new Vector2(-0.4823f, 0.4676f)
