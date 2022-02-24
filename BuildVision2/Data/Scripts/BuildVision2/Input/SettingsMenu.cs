@@ -145,10 +145,11 @@ namespace DarkHelmet.BuildVision2
                 Value = Cfg.genUI.legacyModeEnabled,
                 CustomValueGetter = () => Cfg.genUI.legacyModeEnabled,
                 ControlChangedHandler = ((sender, args) => Cfg.genUI.legacyModeEnabled = (sender as TerminalOnOffButton).Value),
-                ToolTip = new ToolTip()
+                ToolTip = new RichText(ToolTip.DefaultText)
                 {
-                    text = new RichText("Makes old list menu the primary menu\nand reverts to the old v2.5 control scheme.", ToolTip.DefaultText),
-                },
+                    "Makes old list menu the primary menu\n" +
+                    "and reverts to the old v2.5 control scheme"
+                }
             };
 
             // Cursor sensitivity

@@ -57,6 +57,12 @@ namespace RichHudFramework
                 bgColor = DefaultBG;
                 this.GetToolTipFunc = GetToolTipFunc;
             }
+
+            /// <summary>
+            /// Implicitly converts <see cref="RichText"/> to <see cref="ToolTip"/>
+            /// </summary>
+            public static implicit operator ToolTip(RichText text) =>
+                new ToolTip() { text = text };
         }
     }
 }
