@@ -72,6 +72,7 @@ namespace RichHudFramework.UI
 
             name = new Label(this)
             {
+                AutoResize = false,
                 Format = TerminalFormatting.ControlFormat,
                 Text = "NewSlideBox",
                 Offset = new Vector2(0f, -18f),
@@ -80,6 +81,7 @@ namespace RichHudFramework.UI
 
             current = new Label(this)
             {
+                AutoResize = false,
                 Format = TerminalFormatting.ControlFormat,
                 Text = "Value",
                 Offset = new Vector2(0f, -18f),
@@ -97,6 +99,10 @@ namespace RichHudFramework.UI
         {
             Vector2 size = cachedSize - cachedPadding;
             sliderBox.Height = size.Y - Math.Max(name.Height, current.Height);
+
+            current.Size = current.Padding + current.TextBoard.TextSize;
+            name.Size = name.Padding + name.TextBoard.TextSize;
+            name.Width = Math.Max(size.X - current.Width - 10f, 0f);
         }
     }
 }
