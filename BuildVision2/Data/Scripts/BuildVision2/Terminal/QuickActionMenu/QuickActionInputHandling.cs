@@ -65,7 +65,7 @@ namespace DarkHelmet.BuildVision2
                 }
                 else if (BvBinds.EnableMouse.IsPressed)
                 {
-                    if (true) // Temporary
+                    if (BvConfig.Current.genUI.legacyModeEnabled)
                         MenuState = QuickActionMenuState.ListPeek;
                     else
                         MenuState = QuickActionMenuState.WheelPeek;

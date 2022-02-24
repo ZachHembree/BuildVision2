@@ -233,7 +233,7 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
-                float opacity = BvConfig.Current.hudConfig.hudOpacity;
+                float opacity = BvConfig.Current.genUI.hudOpacity;
                 wheelBody.background.Color = wheelBody.background.Color.SetAlphaPct(opacity);
                 propertyWheel.BackgroundColor = propertyWheel.BackgroundColor.SetAlphaPct(opacity);
                 dupeWheel.BackgroundColor = dupeWheel.BackgroundColor.SetAlphaPct(opacity);
@@ -248,7 +248,7 @@ namespace DarkHelmet.BuildVision2
                     wheelBody.Size = 1.05f * propertyWheel.Size * propertyWheel.polyBoard.InnerRadius;
 
                     if (activeWheel != null)
-                        activeWheel.CursorSensitivity = BvConfig.Current.hudConfig.cursorSensitivity;
+                        activeWheel.CursorSensitivity = BvConfig.Current.genUI.cursorSensitivity;
 
                     if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
                     {

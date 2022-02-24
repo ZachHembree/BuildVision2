@@ -228,13 +228,13 @@ namespace DarkHelmet.BuildVision2
             protected override void Layout()
             {
                 // Update colors
-                float opacity = BvConfig.Current.hudConfig.hudOpacity;
+                float opacity = BvConfig.Current.genUI.hudOpacity;
                 header.Color = header.Color.SetAlphaPct(opacity);
                 listBody.Color = listBody.Color.SetAlphaPct(opacity);
                 peekBody.Color = listBody.Color;
                 footer.Color = footer.Color.SetAlphaPct(opacity);
 
-                listBody.MinVisibleCount = BvConfig.Current.hudConfig.maxVisible;
+                listBody.MinVisibleCount = BvConfig.Current.genUI.listMaxVisible;
                 peekBody.Size = Vector2.Max(peekBody.TextBoard.TextSize + peekBody.TextPadding, new Vector2(300f, 0f));
                 Size = layout.Size;
 

@@ -58,27 +58,27 @@ namespace DarkHelmet.BuildVision2
             var peekToggleBox = new TerminalOnOffButton()
             {
                 Name = "Peek",
-                Value = Cfg.general.enablePeek,
-                CustomValueGetter = () => Cfg.general.enablePeek,
-                ControlChangedHandler = ((sender, args) => Cfg.general.enablePeek = (sender as TerminalOnOffButton).Value),
+                Value = Cfg.targeting.enablePeek,
+                CustomValueGetter = () => Cfg.targeting.enablePeek,
+                ControlChangedHandler = ((sender, args) => Cfg.targeting.enablePeek = (sender as TerminalOnOffButton).Value),
             };
 
             // Close if not in view
             var autoCloseBox = new TerminalCheckbox()
             {
                 Name = "Close if target not in sight",
-                Value = Cfg.general.closeIfNotInView,
-                CustomValueGetter = () => Cfg.general.closeIfNotInView,
-                ControlChangedHandler = ((sender, args) => Cfg.general.closeIfNotInView = (sender as TerminalCheckbox).Value),
+                Value = Cfg.targeting.closeIfNotInView,
+                CustomValueGetter = () => Cfg.targeting.closeIfNotInView,
+                ControlChangedHandler = ((sender, args) => Cfg.targeting.closeIfNotInView = (sender as TerminalCheckbox).Value),
             };
 
             // Can open while holding tools
             var toolOpenBox = new TerminalCheckbox()
             {
                 Name = "Can open while holding tools",
-                Value = Cfg.general.canOpenIfHolding,
-                CustomValueGetter = () => Cfg.general.canOpenIfHolding,
-                ControlChangedHandler = ((sender, args) => Cfg.general.canOpenIfHolding = (sender as TerminalCheckbox).Value),
+                Value = Cfg.targeting.canOpenIfHolding,
+                CustomValueGetter = () => Cfg.targeting.canOpenIfHolding,
+                ControlChangedHandler = ((sender, args) => Cfg.targeting.canOpenIfHolding = (sender as TerminalCheckbox).Value),
             };
 
             // Open range slider
@@ -87,14 +87,14 @@ namespace DarkHelmet.BuildVision2
                 Name = "Max open range",
                 Min = 2.5f,
                 Max = 20f,
-                ValueText = $"{Cfg.general.maxOpenRange.Round(1)}m",
-                Value = (float)Cfg.general.maxOpenRange,
-                CustomValueGetter = () => (float)Cfg.general.maxOpenRange,
+                ValueText = $"{Cfg.targeting.maxOpenRange.Round(1)}m",
+                Value = (float)Cfg.targeting.maxOpenRange,
+                CustomValueGetter = () => (float)Cfg.targeting.maxOpenRange,
                 ControlChangedHandler = (sender, args) =>
                 {
                     var slider = sender as TerminalSlider;
 
-                    Cfg.general.maxOpenRange = slider.Value;
+                    Cfg.targeting.maxOpenRange = slider.Value;
                     slider.ValueText = $"{slider.Value.Round(1)}m";
                 }
             };
@@ -105,14 +105,14 @@ namespace DarkHelmet.BuildVision2
                 Name = "Max control range",
                 Min = 2.5f,
                 Max = 60f,
-                ValueText = $"{Cfg.general.maxControlRange.Round(1)}m",
-                Value = (float)Cfg.general.maxControlRange.Round(1),
-                CustomValueGetter = () => (float)Cfg.general.maxControlRange,
+                ValueText = $"{Cfg.targeting.maxControlRange.Round(1)}m",
+                Value = (float)Cfg.targeting.maxControlRange.Round(1),
+                CustomValueGetter = () => (float)Cfg.targeting.maxControlRange,
                 ControlChangedHandler = (sender, args) =>
                 {
                     var slider = sender as TerminalSlider;
 
-                    Cfg.general.maxControlRange = slider.Value;
+                    Cfg.targeting.maxControlRange = slider.Value;
                     slider.ValueText = $"{slider.Value.Round(1)}m";
                 }
             };
@@ -120,7 +120,7 @@ namespace DarkHelmet.BuildVision2
             var targetingResetButton = new TerminalButton()
             {
                 Name = "Reset targeting settings",
-                ControlChangedHandler = (sender, args) => BvConfig.Current.general = TargetingConfig.Defaults,
+                ControlChangedHandler = (sender, args) => BvConfig.Current.targeting = TargetingConfig.Defaults,
             };
 
             return new ControlCategory()
@@ -138,22 +138,41 @@ namespace DarkHelmet.BuildVision2
 
         private ControlCategory GetGuiSettings()
         {
+            // Legacy mode toggle
+            var legacyToggleBox = new TerminalOnOffButton()
+            {
+                Name = "Legacy Mode",
+                Value = Cfg.genUI.legacyModeEnabled,
+                CustomValueGetter = () => Cfg.genUI.legacyModeEnabled,
+                ControlChangedHandler = ((sender, args) => Cfg.genUI.legacyModeEnabled = (sender as TerminalOnOffButton).Value),
+                ToolTip = new ToolTip()
+                {
+                    text = new RichText("Makes old list menu the primary menu\nand reverts to the old v2.5 control scheme.", ToolTip.DefaultText),
+                },
+            };
+
             // Cursor sensitivity
             var cursorSensitivity = new TerminalSlider()
             {
                 Name = "Cursor sensitivity",
-                Min = .1f,
-                Max = 1f,
-                Value = BvConfig.Current.hudConfig.cursorSensitivity,
-                ValueText = $"{(BvConfig.Current.hudConfig.hudScale * 100f).Round()}%",
-                CustomValueGetter = () => BvConfig.Current.hudConfig.cursorSensitivity,
+                Min = .3f,
+                Max = 2f,
+                Value = BvConfig.Current.genUI.cursorSensitivity,
+                ValueText = $"{(BvConfig.Current.genUI.hudScale * 100f).Round()}%",
+                CustomValueGetter = () => BvConfig.Current.genUI.cursorSensitivity,
                 ControlChangedHandler = (sender, args) =>
                 {
                     var slider = sender as TerminalSlider;
 
-                    BvConfig.Current.hudConfig.cursorSensitivity = slider.Value;
+                    BvConfig.Current.genUI.cursorSensitivity = slider.Value;
                     slider.ValueText = $"{(slider.Value * 100f).Round()}%";
                 }
+            };
+
+            var tile1 = new ControlTile()
+            {
+                legacyToggleBox,
+                cursorSensitivity,
             };
 
             // Menu size
@@ -162,14 +181,14 @@ namespace DarkHelmet.BuildVision2
                 Name = "Menu scale",
                 Min = .75f,
                 Max = 2f,
-                Value = BvConfig.Current.hudConfig.hudScale,
-                ValueText = $"{(BvConfig.Current.hudConfig.hudScale * 100f).Round()}%",
-                CustomValueGetter = () => BvConfig.Current.hudConfig.hudScale,
+                Value = BvConfig.Current.genUI.hudScale,
+                ValueText = $"{(BvConfig.Current.genUI.hudScale * 100f).Round()}%",
+                CustomValueGetter = () => BvConfig.Current.genUI.hudScale,
                 ControlChangedHandler = (sender, args) =>
                 {
                     var slider = sender as TerminalSlider;
 
-                    BvConfig.Current.hudConfig.hudScale = slider.Value;
+                    BvConfig.Current.genUI.hudScale = slider.Value;
                     slider.ValueText = $"{(slider.Value * 100f).Round()}%";
                 }
             };
@@ -180,59 +199,81 @@ namespace DarkHelmet.BuildVision2
                 Name = "Menu opacity",
                 Min = .5f,
                 Max = 1f,
-                Value = BvConfig.Current.hudConfig.hudOpacity,
-                ValueText = $"{(BvConfig.Current.hudConfig.hudOpacity * 100f).Round()}%",
-                CustomValueGetter = () => BvConfig.Current.hudConfig.hudOpacity,
+                Value = BvConfig.Current.genUI.hudOpacity,
+                ValueText = $"{(BvConfig.Current.genUI.hudOpacity * 100f).Round()}%",
+                CustomValueGetter = () => BvConfig.Current.genUI.hudOpacity,
                 ControlChangedHandler = (sender, args) =>
                 {
                     var slider = sender as TerminalSlider;
 
-                    BvConfig.Current.hudConfig.hudOpacity = slider.Value;
+                    BvConfig.Current.genUI.hudOpacity = slider.Value;
                     slider.ValueText = $"{(slider.Value * 100f).Round()}%";
                 }
             };
 
-            var tile1 = new ControlTile()
+            var tile2 = new ControlTile()
             {
-                cursorSensitivity,
                 menuScale,
                 opacity,
             };
 
             // Max visible properties
-            var maxVisible = new TerminalSlider()
+            var listMaxVisibleSlider = new TerminalSlider()
             {
-                Name = "List max visible properties",
+                Name = "List Max Visible",
                 Min = 6,
                 Max = 40,
-                Value = BvConfig.Current.hudConfig.maxVisible,
-                ValueText = $"{BvConfig.Current.hudConfig.maxVisible}",
-                CustomValueGetter = () => BvConfig.Current.hudConfig.maxVisible,
+                Value = BvConfig.Current.genUI.listMaxVisible,
+                ValueText = $"{BvConfig.Current.genUI.listMaxVisible}",
+                CustomValueGetter = () => BvConfig.Current.genUI.listMaxVisible,
                 ControlChangedHandler = (sender, args) =>
                 {
                     var slider = sender as TerminalSlider;
 
-                    BvConfig.Current.hudConfig.maxVisible = (int)slider.Value;
+                    BvConfig.Current.genUI.listMaxVisible = (int)slider.Value;
                     slider.ValueText = $"{(int)slider.Value}";
                 }
+            };
+
+            var wheelMaxVisibleSlider = new TerminalSlider()
+            {
+                Name = "Wheel Max Visible",
+                Min = 10,
+                Max = 30,
+                Value = BvConfig.Current.genUI.wheelMaxVisible,
+                ValueText = $"{BvConfig.Current.genUI.wheelMaxVisible}",
+                CustomValueGetter = () => BvConfig.Current.genUI.wheelMaxVisible,
+                ControlChangedHandler = (sender, args) =>
+                {
+                    var slider = sender as TerminalSlider;
+
+                    BvConfig.Current.genUI.wheelMaxVisible = (int)slider.Value;
+                    slider.ValueText = $"{(int)slider.Value}";
+                }
+            };
+
+            var tile3 = new ControlTile()
+            {
+                listMaxVisibleSlider,
+                wheelMaxVisibleSlider,
             };
 
             // Clamp to screen edges
             var clampToEdges = new TerminalCheckbox()
             {
                 Name = "Clamp to screen edges",
-                Value = BvConfig.Current.hudConfig.clampHudPos,
-                CustomValueGetter = () => BvConfig.Current.hudConfig.clampHudPos,
-                ControlChangedHandler = ((sender, args) => BvConfig.Current.hudConfig.clampHudPos = (sender as TerminalCheckbox).Value),
+                Value = BvConfig.Current.genUI.clampHudPos,
+                CustomValueGetter = () => BvConfig.Current.genUI.clampHudPos,
+                ControlChangedHandler = ((sender, args) => BvConfig.Current.genUI.clampHudPos = (sender as TerminalCheckbox).Value),
             };
 
             // Use custom position
             var customPos = new TerminalCheckbox()
             {
                 Name = "Use custom position",
-                Value = BvConfig.Current.hudConfig.useCustomPos,
-                CustomValueGetter = () => BvConfig.Current.hudConfig.useCustomPos,
-                ControlChangedHandler = ((sender, args) => BvConfig.Current.hudConfig.useCustomPos = (sender as TerminalCheckbox).Value),
+                Value = BvConfig.Current.genUI.useCustomPos,
+                CustomValueGetter = () => BvConfig.Current.genUI.useCustomPos,
+                ControlChangedHandler = ((sender, args) => BvConfig.Current.genUI.useCustomPos = (sender as TerminalCheckbox).Value),
             };
 
             // Set custom position
@@ -240,52 +281,34 @@ namespace DarkHelmet.BuildVision2
             {
                 Name = "Set custom position",
                 AlignToEdge = true,
-                CustomValueGetter = () => BvConfig.Current.hudConfig.hudPos,
-                ControlChangedHandler = ((sender, args) => BvConfig.Current.hudConfig.hudPos = (sender as TerminalDragBox).Value),
-                Value = BvConfig.Current.hudConfig.hudPos,
+                CustomValueGetter = () => BvConfig.Current.genUI.hudPos,
+                ControlChangedHandler = ((sender, args) => BvConfig.Current.genUI.hudPos = (sender as TerminalDragBox).Value),
+                Value = BvConfig.Current.genUI.hudPos,
             };
 
-            var tile2 = new ControlTile()
+            var tile4 = new ControlTile()
             {
                 clampToEdges,
                 customPos,
                 setPosition,
             };
 
-            var maxVisibleSlider = new TerminalSlider()
-            {
-                Name = "Max Visible Properties",
-                Min = 8,
-                Max = 40,
-                Value = BvConfig.Current.hudConfig.maxVisible,
-                ValueText = $"{BvConfig.Current.hudConfig.maxVisible}",
-                CustomValueGetter = () => BvConfig.Current.hudConfig.maxVisible,
-                ControlChangedHandler = (sender, args) =>
-                {
-                    var slider = sender as TerminalSlider;
-
-                    BvConfig.Current.hudConfig.maxVisible = (int)slider.Value.Round();
-                    slider.ValueText = $"{slider.Value.Round()}";
-                }
-            };
-
-            var resetGuiSettings = new TerminalButton()
+            var resetGuiButton = new TerminalButton()
             {
                 Name = "Reset GUI settings",
-                ControlChangedHandler = (sender, args) => BvConfig.Current.hudConfig = HudConfig.Defaults,
+                ControlChangedHandler = (sender, args) => BvConfig.Current.genUI = UIConfig.Defaults,
             };
 
-            var tile3 = new ControlTile()
+            var tile5 = new ControlTile()
             {
-                maxVisibleSlider,
-                resetGuiSettings,
+                resetGuiButton,
             };
 
             return new ControlCategory()
             {
                 HeaderText = "GUI Settings",
                 SubheaderText = "Customize appearance and menu positioning",
-                TileContainer = { tile1, tile2, tile3 }
+                TileContainer = { tile1, tile2, tile3, tile4, tile5 }
             };
         }
 

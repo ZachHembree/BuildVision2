@@ -113,7 +113,7 @@ namespace DarkHelmet.BuildVision2
 
         public override void Update()
         {
-            prioritizer.UpdatePrioritizedMembers();
+            prioritizer.UpdatePrioritizedMembers(BvConfig.Current.genUI.wheelMaxVisible);
         }
 
         private void GenerateProperties()
@@ -125,7 +125,7 @@ namespace DarkHelmet.BuildVision2
             GetScrollableActions();
 
             duplicator.SetBlockMembers(this);
-            prioritizer.SetBlockMembers(15, TBlock.GetType(), blockMembers);
+            prioritizer.SetBlockMembers(TBlock.GetType(), blockMembers);
         }
 
         public int GetEnabledElementCount()

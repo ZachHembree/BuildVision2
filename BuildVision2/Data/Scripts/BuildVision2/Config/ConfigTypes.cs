@@ -11,13 +11,13 @@ namespace DarkHelmet.BuildVision2
     public class BvConfig : ConfigRoot<BvConfig>
     {
         public static bool WasConfigOld { get; private set; }
-        private const int vID = 10;
+        private const int vID = 11;
 
-        [XmlElement(ElementName = "GeneralSettings")]
-        public TargetingConfig general;
+        [XmlElement(ElementName = "TargetingSettings")]
+        public TargetingConfig targeting;
 
-        [XmlElement(ElementName = "HudConfig")]
-        public HudConfig hudConfig;
+        [XmlElement(ElementName = "UISettings")]
+        public UIConfig genUI;
 
         [XmlElement(ElementName = "BlockPropertySettings")]
         public PropBlockConfig block;
@@ -30,8 +30,8 @@ namespace DarkHelmet.BuildVision2
             return new BvConfig
             {
                 VersionID = vID,
-                general = TargetingConfig.Defaults,
-                hudConfig = HudConfig.Defaults,
+                targeting = TargetingConfig.Defaults,
+                genUI = UIConfig.Defaults,
                 block = PropBlockConfig.Defaults,
                 binds = BindsConfig.Defaults
             };
@@ -42,23 +42,23 @@ namespace DarkHelmet.BuildVision2
             if (VersionID != vID)
             {
                 VersionID = vID;
-                general = TargetingConfig.Defaults;
-                hudConfig = HudConfig.Defaults;
+                targeting = TargetingConfig.Defaults;
+                genUI = UIConfig.Defaults;
                 block = PropBlockConfig.Defaults;
                 binds = BindsConfig.Defaults;
                 WasConfigOld = true;
             }
             else
             {
-                if (general != null)
-                    general.Validate();
+                if (targeting != null)
+                    targeting.Validate();
                 else
-                    general = TargetingConfig.Defaults;
+                    targeting = TargetingConfig.Defaults;
 
-                if (hudConfig != null)
-                    hudConfig.Validate();
+                if (genUI != null)
+                    genUI.Validate();
                 else
-                    hudConfig = HudConfig.Defaults;
+                    genUI = UIConfig.Defaults;
 
                 if (binds != null)
                     binds.Validate();
@@ -116,34 +116,14 @@ namespace DarkHelmet.BuildVision2
         }
     }
 
-    [Obsolete]
-    public class PropMenuConfig : Config<PropMenuConfig>
-    {
-        [XmlElement(ElementName = "ApiHudSettings")]
-        public HudConfig hudConfig;
-
-        protected override PropMenuConfig GetDefaults()
-        {
-            return new PropMenuConfig
-            {
-                hudConfig = HudConfig.Defaults,
-            };
-        }
-
-        public override void Validate()
-        {
-            if (hudConfig != null)
-                hudConfig.Validate();
-            else
-                hudConfig = HudConfig.Defaults;
-        }
-    }
-
     /// <summary>
-    /// Stores config information for the Text HUD based menu
+    /// Stores config information for the GUI
     /// </summary>
-    public class HudConfig : Config<HudConfig>
+    public class UIConfig : Config<UIConfig>
     {
+        [XmlElement(ElementName = "EnableLegacyMode")]
+        public bool legacyModeEnabled;
+
         [XmlElement(ElementName = "EnableResolutionScaling")]
         public bool resolutionScaling;
 
@@ -156,8 +136,11 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "HudOpacity")]
         public float hudOpacity;
 
-        [XmlElement(ElementName = "MaxVisibleItems")]
-        public int maxVisible;
+        [XmlElement(ElementName = "ListMaxVisibleItems")]
+        public int listMaxVisible;
+
+        [XmlElement(ElementName = "WheelMaxVisibleItems")]
+        public int wheelMaxVisible;
 
         [XmlElement(ElementName = "ClampHudToScreenEdges")]
         public bool clampHudPos;
@@ -168,15 +151,17 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "HudPosition")]
         public Vector2 hudPos;
 
-        protected override HudConfig GetDefaults()
+        protected override UIConfig GetDefaults()
         {
-            return new HudConfig
+            return new UIConfig
             {
+                legacyModeEnabled = false,
                 resolutionScaling = true,
-                cursorSensitivity = .6f,
+                cursorSensitivity = .8f,
                 hudScale = 1f,
                 hudOpacity = 0.8f,
-                maxVisible = 14,
+                listMaxVisible = 14,
+                wheelMaxVisible = 20,
                 clampHudPos = true,
                 useCustomPos = false,
                 hudPos = new Vector2(-0.4823f, 0.4676f)
@@ -188,14 +173,17 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public override void Validate()
         {
-            if (maxVisible == default(int))
-                maxVisible = Defaults.maxVisible;
+            cursorSensitivity = MathHelper.Clamp(cursorSensitivity, .3f, 2f);
+            listMaxVisible = MathHelper.Clamp(listMaxVisible, 6, 40);
+            wheelMaxVisible = MathHelper.Clamp(wheelMaxVisible, 10, 30);
 
             if (hudScale == default(float))
                 hudScale = Defaults.hudScale;
 
-            if (hudOpacity < 0f)
+            if (hudOpacity < 0f || hudOpacity > 1f)
                 hudOpacity = Defaults.hudOpacity;
+
+            hudPos = Vector2.Clamp(hudPos, -.49f * Vector2.One, .49f * Vector2.One);
         }
     }
 

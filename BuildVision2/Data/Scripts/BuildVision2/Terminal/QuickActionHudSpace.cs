@@ -109,9 +109,9 @@ namespace DarkHelmet.BuildVision2
 
         protected override void Layout()
         {
-            float scale = BvConfig.Current.hudConfig.hudScale;
+            float scale = BvConfig.Current.genUI.hudScale;
 
-            if (BvConfig.Current.hudConfig.resolutionScaling)
+            if (BvConfig.Current.genUI.resolutionScaling)
                 scale *= HudMain.ResScale;
 
             if (Target.TBlock != null && Open)
@@ -124,7 +124,7 @@ namespace DarkHelmet.BuildVision2
                 Vector3D targetWorldPos, targetScreenPos;
                 Vector2 menuPos, screenBounds = Vector2.One / 2f;
 
-                if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !BvConfig.Current.hudConfig.useCustomPos)
+                if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !BvConfig.Current.genUI.useCustomPos)
                 {
                     targetWorldPos = Target.Position + Target.ModelOffset * .75d;
                     targetScreenPos = LocalPlayer.GetWorldToScreenPos(targetWorldPos) / 2d;
@@ -134,10 +134,10 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    menuPos = BvConfig.Current.hudConfig.hudPos;
+                    menuPos = BvConfig.Current.genUI.hudPos;
                 }
 
-                if (BvConfig.Current.hudConfig.clampHudPos)
+                if (BvConfig.Current.genUI.clampHudPos)
                 {
                     menuPos.X = MathHelper.Clamp(menuPos.X, -screenBounds.X, screenBounds.X);
                     menuPos.Y = MathHelper.Clamp(menuPos.Y, -screenBounds.Y, screenBounds.Y);
@@ -145,7 +145,7 @@ namespace DarkHelmet.BuildVision2
 
                 menuPos = HudMain.GetPixelVector(menuPos) / scale;
 
-                if (BvConfig.Current.hudConfig.useCustomPos)
+                if (BvConfig.Current.genUI.useCustomPos)
                 {
                     if (menuPos.X < 0)
                         menuPos.X += .5f * quickActionMenu.Width;
@@ -195,7 +195,7 @@ namespace DarkHelmet.BuildVision2
                     }
                 }
 
-                if (BvBinds.EnableMouse.IsPressed && BvConfig.Current.general.enablePeek)
+                if (BvBinds.EnableMouse.IsPressed && BvConfig.Current.targeting.enablePeek)
                 {
                     if (peekTimer.ElapsedMilliseconds > 100)
                         TryOpenMenuInternal();
@@ -241,8 +241,8 @@ namespace DarkHelmet.BuildVision2
             IMyTerminalBlock block;
 
             if (
-                (BvConfig.Current.general.canOpenIfHolding || LocalPlayer.HasEmptyHands) 
-                && TryGetTargetedBlockInternal(BvConfig.Current.general.maxOpenRange, out block)
+                (BvConfig.Current.targeting.canOpenIfHolding || LocalPlayer.HasEmptyHands) 
+                && TryGetTargetedBlockInternal(BvConfig.Current.targeting.maxOpenRange, out block)
             )
             {
                 if (block != null)
@@ -352,7 +352,7 @@ namespace DarkHelmet.BuildVision2
             return Target.TBlock != null
                 && BlockInRange()
                 && Target.CanLocalPlayerAccess
-                && (!BvConfig.Current.general.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock));
+                && (!BvConfig.Current.targeting.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock));
         }
 
         /// <summary>
@@ -365,7 +365,7 @@ namespace DarkHelmet.BuildVision2
             if (Target.TBlock != null)
                 dist = (LocalPlayer.Position - Target.Position).LengthSquared();
 
-            return dist < (BvConfig.Current.general.maxControlRange * BvConfig.Current.general.maxControlRange);
+            return dist < (BvConfig.Current.targeting.maxControlRange * BvConfig.Current.targeting.maxControlRange);
         }
     }
 }

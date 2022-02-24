@@ -25,20 +25,20 @@ namespace DarkHelmet.BuildVision2
             { "Name", 10 },
             { "CustomName", 10 },
             { "OnOff", 10 },
-            { "ChargeMode", 5 },
-            { "Color", 5 },
-            { "Stockpile", 5 },
-            { "Override", 5 },
-            { "ShareInertiaTensor", 5 },
-            { "RotorLock", 5 },
-            { "Torque", 5 },
-            { "BrakingTorque", 5 },
-            { "Velocity", 5 },
-            { "UpperLimit", 5 },
-            { "LowerLimit", 5 },
-            { "Displacement", 5 },
-            { "ShowOnHUD", 0 },
-            { "ShowInToolbarConfig", 0 },
+            { "ChargeMode", 6 },
+            { "Color", 6 },
+            { "Stockpile", 6 },
+            { "Override", 6 },
+            { "ShareInertiaTensor", 6 },
+            { "RotorLock", 6 },
+            { "Torque", 6 },
+            { "BrakingTorque", 6 },
+            { "Velocity", 6 },
+            { "UpperLimit", 6 },
+            { "LowerLimit", 6 },
+            { "Displacement", 6 },
+            { "ShowOnHUD", 1 },
+            { "ShowInToolbarConfig", 1 },
         };
 
         /// <summary>
@@ -62,7 +62,6 @@ namespace DarkHelmet.BuildVision2
 
         private IReadOnlyList<IBlockMember> blockMembers;
         private Dictionary<string, uint> priorityMap, defaultPriorities;
-        private int memberLimit;
 
         public BlockPropertyPrioritizer()
         {
@@ -73,12 +72,11 @@ namespace DarkHelmet.BuildVision2
             prioritizedMembers = new HashSet<int>();
         }
 
-        public void SetBlockMembers(int memberLimit, Type type,
-            IReadOnlyList<IBlockMember> blockMembers, Dictionary<string, uint> priorityMap = null)
+        public void SetBlockMembers(Type type, IReadOnlyList<IBlockMember> blockMembers,
+            Dictionary<string, uint> priorityMap = null)
         {
             Reset();
 
-            this.memberLimit = memberLimit;
             this.blockMembers = blockMembers;
 
             if (!defaultPrioritiesTable.ContainsKey(type))
@@ -101,9 +99,9 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Updates list of prioritized members from existing weights, excluding disabled members.
         /// </summary>
-        public void UpdatePrioritizedMembers()
+        public void UpdatePrioritizedMembers(int limit)
         {
-            int remaining = memberLimit;
+            int remaining = limit;
             priorityList.Clear();
 
             for (int i = weightedIndices.Count - 1; i >= 0; i--)
@@ -159,13 +157,13 @@ namespace DarkHelmet.BuildVision2
                     if (member.ValueType == BlockMemberValueTypes.None)
                         priority = 9;
                     else if (member.ValueType == BlockMemberValueTypes.Float)
-                        priority = 2;
+                        priority = 5;
                     else if (member.ValueType == BlockMemberValueTypes.Color)
-                        priority = 2;
+                        priority = 5;
                     else if (member.ValueType == BlockMemberValueTypes.Combo)
-                        priority = 2;
+                        priority = 4;
                     else
-                        priority = 1;
+                        priority = 3;
                 }
 
                 if (!newPreset.ContainsKey(member.PropName))
