@@ -66,12 +66,12 @@ namespace DarkHelmet.BuildVision2
 
         public static void Init()
         {
-            if (instance == null)
-                instance = new QuickActionHudSpace();
+            Close();
+            instance = new QuickActionHudSpace();
         }
 
         public static void TryOpenMenu() =>
-            instance?.TryOpenMenuInternal();
+            instance?.TryOpenMenuInternal(QuickActionMenuState.WheelMenuControl);
 
         public static void CloseMenu() =>
             instance?.CloseMenuInternal();
@@ -213,11 +213,11 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Attempts to open the property menu
         /// </summary>
-        private void TryOpenMenuInternal()
+        private void TryOpenMenuInternal(QuickActionMenuState initialState = default(QuickActionMenuState))
         {
             if (TryGetTarget() && CanAccessTargetBlock())
             {
-                quickActionMenu.OpenMenu(Target);
+                quickActionMenu.OpenMenu(Target, initialState);
             }
         }
 

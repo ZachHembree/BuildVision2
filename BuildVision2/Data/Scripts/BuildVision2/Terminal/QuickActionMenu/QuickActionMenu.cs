@@ -63,11 +63,15 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Opens the menu using the given target
         /// </summary>
-        public void OpenMenu(PropertyBlock target)
+        public void OpenMenu(PropertyBlock target, QuickActionMenuState initialState = default(QuickActionMenuState))
         {
             if (MenuState == QuickActionMenuState.Closed || Target != target)
             {
                 CloseMenu();
+
+                if (initialState != default(QuickActionMenuState))
+                    MenuState = initialState;
+
                 Target = target;
                 UpdateStateMain();
             }
