@@ -32,9 +32,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (SliderWriter != null)
                     {
-                        writerText.Clear();
-                        SliderWriter(block.TBlock, writerText);
-                        return writerText;
+                        return GetFormattedValue();
                     }
                     else
                         return ValueText;
@@ -68,7 +66,7 @@ namespace DarkHelmet.BuildVision2
 
             private static readonly Func<float> GetDefaultScaleFunc;
 
-            private readonly StringBuilder writerText, valueBuilder, statusBuilder;
+            private readonly StringBuilder fmtValueBuilder, valueBuilder, statusBuilder, unitBuilder;
             private readonly Action<StringBuilder> GetPistonExtensionFunc, GetRotorAngleFunc;
             private readonly Func<float> GetThrustEffectFunc;
 
@@ -84,9 +82,10 @@ namespace DarkHelmet.BuildVision2
 
             public FloatProperty()
             {
-                writerText = new StringBuilder();
+                fmtValueBuilder = new StringBuilder();
                 valueBuilder = new StringBuilder();
                 statusBuilder = new StringBuilder();
+                unitBuilder = new StringBuilder();
 
                 GetPistonExtensionFunc = GetPistonExtension;
                 GetRotorAngleFunc = GetRotorAngle;
@@ -129,7 +128,7 @@ namespace DarkHelmet.BuildVision2
 
                 GetStatusFunc = null;
                 GetScaleFunc = null;
-                writerText.Clear();
+                fmtValueBuilder.Clear();
             }
 
             public override void Return()
@@ -164,6 +163,59 @@ namespace DarkHelmet.BuildVision2
 
             public override bool TryParseValue(string text, out float value) =>
                 float.TryParse(text, out value);
+
+            private StringBuilder GetFormattedValue()
+            {
+                // Get formatted text
+                fmtValueBuilder.Clear();
+                SliderWriter(block.TBlock, fmtValueBuilder);
+
+                int numLength = 0;
+                bool slashInPostFix = false;
+                unitBuilder.Clear();
+
+                // Parse out num length and postfix, if they exist
+                for (int i = 0; i < fmtValueBuilder.Length; i++)
+                {
+                    if (fmtValueBuilder[i] > ' ')
+                    {
+                        if (unitBuilder.Length == 0 && ((fmtValueBuilder[i] >= '0' && fmtValueBuilder[i] <= '9') ||
+                            fmtValueBuilder[i] == 'E' || fmtValueBuilder[i] == 'e' || fmtValueBuilder[i] == '-' ||
+                            fmtValueBuilder[i] == '+' || fmtValueBuilder[i] == '.' || fmtValueBuilder[i] == ':')
+                        )
+                            numLength++;
+                        else
+                        {
+                            unitBuilder.Append(fmtValueBuilder[i]);
+
+                            if (fmtValueBuilder[i] == '\\' || fmtValueBuilder[i] == '/')
+                                slashInPostFix = true;
+                        }
+                    }
+                }
+
+                // Don't process if it's not numerical or if units aren't order 0
+                if (numLength > 0 && !slashInPostFix)
+                {
+                    float value = GetValue(),
+                        magnitude;
+
+                    // Assumes metric-prefixed units, meaning at least two alphabetical characters (sans spacing),
+                    // where the first char is the prefix and the characters following are the unit type
+                    if (unitBuilder.Length > 1 && 
+                        ((unitBuilder[1] >= 'A' && unitBuilder[1] <= 'Z') || 
+                        (unitBuilder[1] >= 'a' && unitBuilder[1] <= 'z')) &&
+                        TerminalUtilities.MetricPrefixMagTable.TryGetValue(unitBuilder[0], out magnitude))
+                    {
+                        fmtValueBuilder.Clear();
+                        fmtValueBuilder.AppendFormat("{0:G5}", Math.Round(value / magnitude, 3));
+                        fmtValueBuilder.Append(' ');
+                        fmtValueBuilder.Append(unitBuilder);
+                    }                    
+                }
+
+                return fmtValueBuilder;
+            }
 
             private float GetThrustEffect() =>
                 block.Thruster.ThrustEffectiveness;

@@ -31,6 +31,51 @@ namespace DarkHelmet.BuildVision2
 
     public static class TerminalUtilities
     {
+        // Maps float magnitude to metrix prefixes i.e. 10E9 => G (Giga)
+        public static IReadOnlyDictionary<float, char> MetricMagPrefixTable = new Dictionary<float, char>
+        {
+            { 1E24f, 'Y' },
+            { 1E21f, 'Z' },
+            { 1E18f, 'E' },
+            { 1E15f, 'P' },
+            { 1E12f, 'T' },
+            { 1E9f, 'G' },
+            { 1E6f, 'M' },
+            { 1E3f, 'k' },
+            { 1E-1f, 'd' },
+            { 1E-2f, 'c' },
+            { 1E-3f, 'm' },
+        };
+        public static IReadOnlyDictionary<char, float> MetricPrefixMagTable = new Dictionary<char, float>
+        {
+            { 'Y', 1E24f },
+            { 'Z', 1E21f },
+            { 'E', 1E18f },
+            { 'P', 1E15f },
+            { 'T', 1E12f },
+            { 'G', 1E9f },
+            { 'M', 1E6f },
+            { 'k', 1E3f },
+            { 'd', 1E-1f },
+            { 'c', 1E-2f },
+            { 'm', 1E-3f },
+        };
+        public static ICollection<char> MetricPrefixes = new HashSet<char>
+        {
+            { 'Y' },
+            { 'Z' },
+            { 'E' },
+            { 'P' },
+            { 'T' },
+            { 'G' },
+            { 'M' },
+            { 'k' },
+            { 'd' },
+            { 'c' },
+            { 'm' },
+        };
+        public const float MetricPrefixMax = 1E24f, MetricPrefixMin = 1E-3f;
+
         private static Dictionary<Type, bool> ownableBlockMap;
         private static StringBuilder textBuf;
 

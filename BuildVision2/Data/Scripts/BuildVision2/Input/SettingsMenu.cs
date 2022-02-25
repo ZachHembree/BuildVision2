@@ -162,7 +162,7 @@ namespace DarkHelmet.BuildVision2
                 ToolTip = new RichText(ToolTip.DefaultText)
                 {
                     "Makes old list menu the primary menu\n" +
-                    "and reverts to the old v2.5 control scheme"
+                    "and reverts to the v2.5 control scheme"
                 }
             };
 
