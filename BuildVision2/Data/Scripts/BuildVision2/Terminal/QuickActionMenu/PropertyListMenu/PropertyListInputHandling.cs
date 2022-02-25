@@ -82,12 +82,16 @@ namespace DarkHelmet.BuildVision2
 
                 if (BvBinds.Select.IsReleased)
                     selection.PropertyOpen = !selection.PropertyOpen;
-                else if (!selection.PropertyOpen && BindManager.IsChatOpen && blockMember is IBlockTextMember)
+                else if (!selection.PropertyOpen && BindManager.IsChatOpen && 
+                    MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("CHAT_SCREEN")) && 
+                    blockMember is IBlockTextMember)
+                {
                     selection.PropertyOpen = true;
+                }
 
                 // Close text input on chat close or property deselect
-                if (!BindManager.IsChatOpen && selection.InputOpen ||
-                    !selection.PropertyOpen && selection.WaitingForChatInput)
+                if ((!BindManager.IsChatOpen && selection.InputOpen) ||
+                    (!selection.PropertyOpen && (selection.WaitingForChatInput || selection.InputOpen)))
                 {
                     // If no input was recieved, don't write anything
                     if (!selection.WaitingForChatInput)
