@@ -101,14 +101,15 @@ namespace DarkHelmet.BuildVision2
                         else if (BvBinds.MultX.IsPressed)
                             offset *= BvConfig.Current.block.floatMult.X;
 
+                        float value = floatMember.Value;
+
+                        if (float.IsInfinity(value))
+                            value = 0f;
+
                         if (BvBinds.ScrollUp.IsNewPressed)
-                        {
-                            SetSliderValue(floatMember.Value + offset);
-                        }
+                            SetSliderValue(value + offset);
                         else if (BvBinds.ScrollDown.IsNewPressed)
-                        {
-                            SetSliderValue(floatMember.Value - offset);
-                        }
+                            SetSliderValue(value - offset);
                     }
                 }
 

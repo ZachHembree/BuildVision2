@@ -189,10 +189,16 @@ namespace DarkHelmet.BuildVision2
                         else if (BvBinds.MultX.IsPressed)
                             offset *= BvConfig.Current.block.floatMult.X;
 
-                        if (BvBinds.ScrollUp.IsNewPressed)
-                            value += offset;
-                        else if (BvBinds.ScrollDown.IsNewPressed)
-                            value -= offset;
+                        if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
+                        {
+                            if (double.IsInfinity(value))
+                                value = 0d;
+
+                            if (BvBinds.ScrollUp.IsNewPressed)
+                                value += offset;
+                            else if (BvBinds.ScrollDown.IsNewPressed)
+                                value -= offset;
+                        }                        
 
                         if (absRange > floatPropLogThreshold)
                             floatMember.Value = (float)(Math.Pow(10d, value * logRange) - 1d + floatMember.MinValue);

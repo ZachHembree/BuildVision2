@@ -171,7 +171,7 @@ namespace DarkHelmet.BuildVision2
                 SliderWriter(block.TBlock, fmtValueBuilder);
 
                 int numLength = 0;
-                bool slashInPostFix = false;
+                bool nonCharPostfix = false;
                 unitBuilder.Clear();
 
                 // Parse out num length and postfix, if they exist
@@ -183,19 +183,25 @@ namespace DarkHelmet.BuildVision2
                             fmtValueBuilder[i] == 'E' || fmtValueBuilder[i] == 'e' || fmtValueBuilder[i] == '-' ||
                             fmtValueBuilder[i] == '+' || fmtValueBuilder[i] == '.' || fmtValueBuilder[i] == ':')
                         )
+                        {
                             numLength++;
+                        }
                         else
                         {
                             unitBuilder.Append(fmtValueBuilder[i]);
 
-                            if (fmtValueBuilder[i] == '\\' || fmtValueBuilder[i] == '/')
-                                slashInPostFix = true;
+                            if (!((fmtValueBuilder[i] >= 'A' && fmtValueBuilder[i] <= 'Z') ||
+                                (fmtValueBuilder[i] >= 'a' && fmtValueBuilder[i] <= 'z'))
+                            )
+                            {
+                                nonCharPostfix = true;
+                                break;
+                            }
                         }
                     }
                 }
 
-                // Don't process if it's not numerical or if units aren't order 0
-                if (numLength > 0 && !slashInPostFix)
+                if (numLength > 0 && !nonCharPostfix)
                 {
                     float value = GetValue(),
                         magnitude;
