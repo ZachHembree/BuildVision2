@@ -21,6 +21,7 @@ namespace DarkHelmet.BuildVision2
         private partial class PropertyListMenu : HudElementBase
         {
             private static int incrX, incrY, incrZ;
+            private object lastPropValue;
 
             protected override void HandleInput(Vector2 cursorPos)
             {
@@ -49,7 +50,7 @@ namespace DarkHelmet.BuildVision2
 
                         selectionIndex = MathHelper.Clamp(selectionIndex, 0, listBody.Count - 1);
 
-                        if (BvBinds.Cancel.IsReleased)
+                        if (BvBinds.Cancel.IsReleased && !listBody[selectionIndex].PropertyOpen)
                         {
                             if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
                                 quickActionMenu.OpenPropertyWheel();
@@ -82,6 +83,8 @@ namespace DarkHelmet.BuildVision2
 
                 if (BvBinds.Select.IsReleased)
                     selection.PropertyOpen = !selection.PropertyOpen;
+                else if (BvBinds.Cancel.IsReleased)
+                    selection.PropertyOpen = false;
                 else if (!selection.PropertyOpen && BindManager.IsChatOpen && 
                     MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("CHAT_SCREEN")) && 
                     blockMember is IBlockTextMember)
@@ -103,10 +106,8 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 // Handle input for selected entry
-                if (selection.PropertyOpen)
+                if (selection.PropertyOpen || lastPropValue != null)
                 {
-                    MenuState |= QuickActionMenuState.PropertyOpen;
-
                     if (blockMember is IBlockAction)
                         HandleActionInput();
                     else if (blockMember is IBlockNumericValue<float>)
@@ -118,13 +119,18 @@ namespace DarkHelmet.BuildVision2
                     else if (blockMember is IBlockTextMember)
                         HandleTextInput();
                 }
-                else
-                    MenuState &= ~QuickActionMenuState.PropertyOpen;
 
                 if (selection.PropertyOpen)
+                {
+                    MenuState |= QuickActionMenuState.PropertyOpen;
                     highlightBox.Color = highlightFocusColor;
+                }
                 else
+                {
+                    MenuState &= ~QuickActionMenuState.PropertyOpen;
+                    lastPropValue = null;
                     highlightBox.Color = highlightColor;
+                }
             }
 
             /// <summary>
@@ -132,11 +138,14 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void HandleActionInput()
             {
-                IBlockMember blockMember = listBody[selectionIndex].AssocMember;
-                var member = blockMember as IBlockAction;
+                if (listBody[selectionIndex].PropertyOpen)
+                {
+                    IBlockMember blockMember = listBody[selectionIndex].AssocMember;
+                    var member = blockMember as IBlockAction;
 
-                member.Action();
-                listBody[selectionIndex].PropertyOpen = false;
+                    member.Action();
+                    listBody[selectionIndex].PropertyOpen = false;
+                }
             }
 
             /// <summary>
@@ -144,45 +153,56 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void HandleFloatInput()
             {
-                if (BindManager.IsChatOpen)
+                IBlockMember blockMember = listBody[selectionIndex].AssocMember;
+                var floatMember = blockMember as IBlockNumericValue<float>;
+
+                if (listBody[selectionIndex].PropertyOpen)
                 {
-                    HandleTextInput();
+                    if (lastPropValue == null)
+                        lastPropValue = floatMember.Value;
+
+                    if (BindManager.IsChatOpen)
+                    {
+                        HandleTextInput();
+                    }
+                    else
+                    {
+                        double absRange = Math.Abs(floatMember.MaxValue - floatMember.MinValue),
+                            logRange = Math.Ceiling(Math.Log10(absRange)),
+                            offset, value;
+
+                        if (absRange > floatPropLogThreshold)
+                        {
+                            offset = .1;
+                            value = (float)(Math.Log10(Math.Abs(floatMember.Value - floatMember.MinValue) + 1d) / logRange);
+                        }
+                        else
+                        {
+                            value = floatMember.Value;
+                            offset = floatMember.Increment;
+                        }
+
+                        if (BvBinds.MultZ.IsPressed)
+                            offset *= BvConfig.Current.block.floatMult.Z;
+                        else if (BvBinds.MultY.IsPressed)
+                            offset *= BvConfig.Current.block.floatMult.Y;
+                        else if (BvBinds.MultX.IsPressed)
+                            offset *= BvConfig.Current.block.floatMult.X;
+
+                        if (BvBinds.ScrollUp.IsNewPressed)
+                            value += offset;
+                        else if (BvBinds.ScrollDown.IsNewPressed)
+                            value -= offset;
+
+                        if (absRange > floatPropLogThreshold)
+                            floatMember.Value = (float)(Math.Pow(10d, value * logRange) - 1d + floatMember.MinValue);
+                        else
+                            floatMember.Value = (float)value;
+                    }
                 }
-                else
+                else if (lastPropValue != null && lastPropValue is float && BvBinds.Cancel.IsReleased)
                 {
-                    IBlockMember blockMember = listBody[selectionIndex].AssocMember;
-                    var floatMember = blockMember as IBlockNumericValue<float>;
-                    double absRange = Math.Abs(floatMember.MaxValue - floatMember.MinValue),
-                        logRange = Math.Ceiling(Math.Log10(absRange)),
-                        offset, value;
-
-                    if (absRange > floatPropLogThreshold)
-                    {
-                        offset = .1;
-                        value = (float)(Math.Log10(Math.Abs(floatMember.Value - floatMember.MinValue) + 1d) / logRange);
-                    }
-                    else
-                    {
-                        value = floatMember.Value;
-                        offset = floatMember.Increment;
-                    }
-
-                    if (BvBinds.MultZ.IsPressed)
-                        offset *= BvConfig.Current.block.floatMult.Z;
-                    else if (BvBinds.MultY.IsPressed)
-                        offset *= BvConfig.Current.block.floatMult.Y;
-                    else if (BvBinds.MultX.IsPressed)
-                        offset *= BvConfig.Current.block.floatMult.X;
-
-                    if (BvBinds.ScrollUp.IsNewPressed)
-                        value += offset;
-                    else if (BvBinds.ScrollDown.IsNewPressed)
-                        value -= offset;
-
-                    if (absRange > floatPropLogThreshold)
-                        floatMember.Value = (float)(Math.Pow(10d, value * logRange) - 1d + floatMember.MinValue);
-                    else
-                        floatMember.Value = (float)value;
+                    floatMember.Value = (float)lastPropValue;
                 }
             }
 
@@ -191,33 +211,44 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void HandleColorInput()
             {
-                if (BindManager.IsChatOpen)
+                IBlockMember blockMember = listBody[selectionIndex].AssocMember;
+                var colorMember = blockMember as IBlockNumericValue<byte>;
+
+                if (listBody[selectionIndex].PropertyOpen)
                 {
-                    HandleTextInput();
+                    if (lastPropValue == null)
+                        lastPropValue = colorMember.Value;
+
+                    if (BindManager.IsChatOpen)
+                    {
+                        HandleTextInput();
+                    }
+                    else
+                    {
+                        int offset = 1;
+
+                        if (BvBinds.MultZ.IsPressed)
+                            offset *= incrZ;
+                        else if (BvBinds.MultY.IsPressed)
+                            offset *= incrY;
+                        else if (BvBinds.MultX.IsPressed)
+                            offset *= incrX;
+
+                        byte color = colorMember.Value;
+
+                        if (BvBinds.ScrollUp.IsNewPressed)
+                        {
+                            colorMember.Value = (byte)MathHelper.Clamp(color + offset, 0, 255);
+                        }
+                        else if (BvBinds.ScrollDown.IsNewPressed)
+                        {
+                            colorMember.Value = (byte)MathHelper.Clamp(color - offset, 0, 255);
+                        }
+                    }
                 }
-                else
+                else if (lastPropValue != null && lastPropValue is byte && BvBinds.Cancel.IsReleased)
                 {
-                    IBlockMember blockMember = listBody[selectionIndex].AssocMember;
-                    var colorMember = blockMember as IBlockNumericValue<byte>;
-                    int offset = 1;
-
-                    if (BvBinds.MultZ.IsPressed)
-                        offset *= incrZ;
-                    else if (BvBinds.MultY.IsPressed)
-                        offset *= incrY;
-                    else if (BvBinds.MultX.IsPressed)
-                        offset *= incrX;
-
-                    byte color = colorMember.Value;
-
-                    if (BvBinds.ScrollUp.IsNewPressed)
-                    {
-                        colorMember.Value = (byte)MathHelper.Clamp(color + offset, 0, 255);
-                    }
-                    else if (BvBinds.ScrollDown.IsNewPressed)
-                    {
-                        colorMember.Value = (byte)MathHelper.Clamp(color - offset, 0, 255);
-                    }
+                    colorMember.Value = (byte)lastPropValue;
                 }
             }
 
@@ -226,19 +257,30 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void HandleComboInput()
             {
-                if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
+                IBlockMember blockMember = listBody[selectionIndex].AssocMember;
+                var comboBox = blockMember as IBlockComboBox;
+
+                if (listBody[selectionIndex].PropertyOpen)
                 {
-                    IBlockMember blockMember = listBody[selectionIndex].AssocMember;
-                    var comboBox = blockMember as IBlockComboBox;
-                    var entries = comboBox.ComboEntries as List<KeyValuePair<long, StringBuilder>>;
-                    int index = (int)comboBox.Value;
+                    if (lastPropValue == null)
+                        lastPropValue = comboBox.Value;
 
-                    if (BvBinds.ScrollUp.IsNewPressed)
-                        index = MathHelper.Clamp(index + 1, 0, entries.Count - 1);
-                    else if (BvBinds.ScrollDown.IsNewPressed)
-                        index = MathHelper.Clamp(index - 1, 0, entries.Count - 1);
+                    if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
+                    {
+                        var entries = comboBox.ComboEntries as List<KeyValuePair<long, StringBuilder>>;
+                        int index = (int)comboBox.Value;
 
-                    comboBox.Value = index;
+                        if (BvBinds.ScrollUp.IsNewPressed)
+                            index = MathHelper.Clamp(index + 1, 0, entries.Count - 1);
+                        else if (BvBinds.ScrollDown.IsNewPressed)
+                            index = MathHelper.Clamp(index - 1, 0, entries.Count - 1);
+
+                        comboBox.Value = index;
+                    }
+                }
+                else if (lastPropValue != null && lastPropValue is long && BvBinds.Cancel.IsReleased)
+                {
+                    comboBox.Value = (long)lastPropValue;
                 }
             }
 
@@ -246,20 +288,30 @@ namespace DarkHelmet.BuildVision2
             {
                 PropertyListEntry selection = listBody[selectionIndex];
 
-                if (BindManager.IsChatOpen)
+                if (listBody[selectionIndex].PropertyOpen)
                 {
-                    if (!selection.InputOpen)
+                    if (lastPropValue == null)
+                        lastPropValue = selection.ValueText.ToString();
+
+                    if (BindManager.IsChatOpen)
                     {
-                        IBlockMember blockMember = selection.AssocMember;
-                        selection.ValueText.SetText(blockMember.ValueText, selectedFormat);
-                        selection.OpenInput();
-                        selection.WaitingForChatInput = false;
+                        if (!selection.InputOpen)
+                        {
+                            IBlockMember blockMember = selection.AssocMember;
+                            selection.ValueText.SetText(blockMember.ValueText, selectedFormat);
+                            selection.OpenInput();
+                            selection.WaitingForChatInput = false;
+                        }
+                    }
+                    else
+                    {
+                        selection.ValueText.SetText(textEntryWarning, selectedFormat);
+                        selection.WaitingForChatInput = true;
                     }
                 }
-                else
+                else if (lastPropValue != null && lastPropValue is string && BvBinds.Cancel.IsReleased)
                 {
-                    selection.ValueText.SetText(textEntryWarning, selectedFormat);
-                    selection.WaitingForChatInput = true;
+                    selection.SetValueText(lastPropValue as string);
                 }
             }
 
