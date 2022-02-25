@@ -219,9 +219,8 @@ namespace RichHudFramework
                     // Register update delegate
                     GetOrSetMemberFunc(safeAccessor, (int)HudMainAccessors.GetUpdateAccessors);
 
-                    GetOrSetMemberFunc(new Action(BeforeMasterDraw), (int)HudMainAccessors.SetBeforeDrawCallback);
-                    GetOrSetMemberFunc(new Action(AfterMasterDraw), (int)HudMainAccessors.SetAfterDrawCallback);
-                    GetOrSetMemberFunc(new Action(BeforeMasterInput), (int)HudMainAccessors.SetBeforeInputCallback);
+                    GetOrSetMemberFunc(new Action(() => ExceptionHandler.Run(BeforeMasterDraw)), (int)HudMainAccessors.SetBeforeDrawCallback);
+                    GetOrSetMemberFunc(new Action(() => ExceptionHandler.Run(AfterMasterDraw)), (int)HudMainAccessors.SetAfterDrawCallback);
 
                     UpdateCache();
                 }
@@ -245,15 +244,11 @@ namespace RichHudFramework
                 {
                     BillBoardUtils.FinishDraw();
                 }
-
-                private void BeforeMasterInput()
-                { }
-
+ 
                 public override void Close()
                 {
                     UnregisterAction();
-                    PixelToWorldRef = null;
-                    Instance = null;
+                    _instance = null;
                 }
 
                 private void UpdateCache()

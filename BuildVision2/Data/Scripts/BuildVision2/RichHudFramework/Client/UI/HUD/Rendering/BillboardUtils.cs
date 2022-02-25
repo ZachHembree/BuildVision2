@@ -82,7 +82,10 @@ namespace RichHudFramework
 
                 public override void Close()
                 {
-                    instance = null;
+                    if (ExceptionHandler.Unloading)
+                    {
+                        instance = null;
+                    }
                 }
 
                 public static void BeginDraw()
