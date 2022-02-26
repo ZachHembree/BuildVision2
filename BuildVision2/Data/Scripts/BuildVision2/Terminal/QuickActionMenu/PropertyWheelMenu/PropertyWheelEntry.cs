@@ -92,7 +92,7 @@ namespace DarkHelmet.BuildVision2
             public IBlockMember BlockMember { get; private set; }
 
             private readonly StringBuilder textBuf;
-            private PropertyBlock target;
+            private IPropertyBlock target;
 
             public PropertyWheelEntry()
             {
@@ -102,7 +102,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Sets block property member
             /// </summary>
-            public void SetMember(int index, PropertyBlock target)
+            public void SetMember(int index, IPropertyBlock target)
             {
                 MemberIndex = index;
                 this.target = target;

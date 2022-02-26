@@ -165,15 +165,10 @@ namespace DarkHelmet.BuildVision2
 
             private void UpdateText()
             {
-                PropertyBlock block = propertyWheelMenu.quickActionMenu.Target;
+                IPropertyBlock block = propertyWheelMenu.quickActionMenu.Target;
                 summaryBuilder.Clear();
                 summaryBuilder.Add("Build Vision\n", mainHeaderFormat);
-
-                foreach (SuperBlock.SubtypeAccessorBase subtype in block.SubtypeAccessors)
-                {
-                    if (subtype != null)
-                        subtype.GetSummary(summaryBuilder, bodyFormatCenter, bodyValueFormatCenter);
-                }
+                block.GetSummary(summaryBuilder, bodyFormatCenter, bodyValueFormatCenter);
 
                 ITextBuilder notificationBuidler = notificationText.TextBoard;
 

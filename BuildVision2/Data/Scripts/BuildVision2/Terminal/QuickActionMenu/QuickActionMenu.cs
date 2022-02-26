@@ -25,7 +25,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Currently assigned block target
         /// </summary>
-        public PropertyBlock Target { get; private set; }
+        public IPropertyBlock Target { get; private set; }
 
         /// <summary>
         /// Enables/disables debug text
@@ -63,7 +63,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Opens the menu using the given target
         /// </summary>
-        public void OpenMenu(PropertyBlock target, QuickActionMenuState initialState = default(QuickActionMenuState))
+        public void OpenMenu(IPropertyBlock target, QuickActionMenuState initialState = default(QuickActionMenuState))
         {
             if (MenuState == QuickActionMenuState.Closed || Target != target)
             {

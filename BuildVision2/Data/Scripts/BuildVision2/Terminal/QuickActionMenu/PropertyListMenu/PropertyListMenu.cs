@@ -38,7 +38,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns the current block target
             /// </summary>
-            private PropertyBlock Target => quickActionMenu.Target;
+            private IPropertyBlock Target => quickActionMenu.Target;
 
             /// <summary>
             /// Returns true if the list is open
@@ -300,13 +300,7 @@ namespace DarkHelmet.BuildVision2
                     if (textUpdateTick == 0)
                     {
                         peekBuilder.Clear();
-
-                        foreach (SuperBlock.SubtypeAccessorBase subtype in quickActionMenu.Target.SubtypeAccessors)
-                        {
-                            if (subtype != null)
-                                subtype.GetSummary(peekBuilder, bodyFormat, valueFormat);
-                        }
-
+                        quickActionMenu.Target.GetSummary(peekBuilder, bodyFormat, valueFormat);
                         peekBody.TextBoard.SetText(peekBuilder);
                     }
                 }

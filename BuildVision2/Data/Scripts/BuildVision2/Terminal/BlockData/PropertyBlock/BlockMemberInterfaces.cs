@@ -10,6 +10,7 @@ namespace DarkHelmet.BuildVision2
         None,
         Bool,
         Color,
+        ColorChannel,
         Combo,
         Float,
         Text

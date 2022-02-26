@@ -105,7 +105,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public bool InputOpen => Element.value.InputOpen;
 
-            private PropertyBlock target;
+            private IPropertyBlock target;
             private readonly StringBuilder textBuf;
 
             public PropertyListEntry()
@@ -115,7 +115,7 @@ namespace DarkHelmet.BuildVision2
                 textBuf = new StringBuilder();
             }
 
-            public void SetMember(PropertyBlock target, IBlockMember member, int index)
+            public void SetMember(IPropertyBlock target, IBlockMember member, int index)
             {
                 this.target = target;
                 MemberIndex = index;

@@ -28,15 +28,23 @@ namespace DarkHelmet.BuildVision2
     public struct PropertyData
     {
         [ProtoMember(1)]
-        public string name;
+        public string propName;
 
         [ProtoMember(2)]
         public byte[] valueData;
 
-        public PropertyData(string propertyID, byte[] valueData)
+        [ProtoMember(3)]
+        public bool enabled;
+
+        [ProtoMember(4)]
+        public BlockMemberValueTypes valueType;
+
+        public PropertyData(string propertyID, byte[] valueData, bool enabled, BlockMemberValueTypes valueType)
         {
-            this.name = propertyID;
+            this.propName = propertyID;
             this.valueData = valueData;
+            this.enabled = enabled;
+            this.valueType = valueType;
         }
     }
 }

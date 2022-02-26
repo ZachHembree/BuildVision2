@@ -72,7 +72,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (Utils.ProtoBuf.TrySerialize(GetValue()?.ToString() ?? "", out valueData) == null)
                 {
-                    return new PropertyData(PropName.ToString(), valueData);
+                    return new PropertyData(PropName.ToString(), valueData, Enabled, ValueType);
                 }
                 else
                     return default(PropertyData);

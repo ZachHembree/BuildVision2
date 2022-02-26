@@ -15,16 +15,16 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Collection of wrapper objects used to interop with SE terminal system
     /// </summary>
-    public partial class PropertyBlock : SuperBlock
+    public partial class PropertyBlock : SuperBlock, IPropertyBlock
     {
         public static PropBlockConfig Cfg { get { return BvConfig.Current.block; } set { BvConfig.Current.block = value; } }
 
         /// <summary>
         /// Read-only collection of block members
         /// </summary>
-        public IReadOnlyList<IBlockMember> BlockMembers 
+        public IReadOnlyList<IBlockMember> BlockMembers
         {
-            get 
+            get
             {
                 if (blockMembers == null || blockMembers.Count == 0)
                     GenerateProperties();
@@ -154,7 +154,7 @@ namespace DarkHelmet.BuildVision2
 
             foreach (PropertyData propData in src.propertyList)
             {
-                BlockPropertyBase prop = blockProperties.Find(x => x.PropName == propData.name);
+                BlockPropertyBase prop = blockProperties.Find(x => x.PropName == propData.propName);
 
                 if (prop != null)
                 {
@@ -216,9 +216,9 @@ namespace DarkHelmet.BuildVision2
 
                     if (
                         // Exclude special chars and most punctuation
-                        (ch == ' ' || ch >= 'A' || (ch >= '0' && ch <= '9') ) 
+                        (ch == ' ' || ch >= 'A' || (ch >= '0' && ch <= '9'))
                         // Exclude repeating and trailing spaces
-                        && !(nextCh == ' ' && ch == ' ') )
+                        && !(nextCh == ' ' && ch == ' '))
                     {
                         dst.Append(ch);
                     }
@@ -271,9 +271,9 @@ namespace DarkHelmet.BuildVision2
                 if (control != null && control.CanUseControl(TBlock))
                 {
                     GetTooltipName(prop, nameBuilder);
-                    
+
                     if (nameBuilder.Length > 0)
-                    {                        
+                    {
                         if (prop is ITerminalProperty<StringBuilder>)
                         {
                             var textProp = prop as ITerminalProperty<StringBuilder>;

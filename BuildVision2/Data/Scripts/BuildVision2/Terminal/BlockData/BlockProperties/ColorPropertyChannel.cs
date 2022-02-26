@@ -72,7 +72,7 @@ namespace DarkHelmet.BuildVision2
 
             public bool Enabled => parent.Enabled;
 
-            public BlockMemberValueTypes ValueType => BlockMemberValueTypes.Color;
+            public BlockMemberValueTypes ValueType => BlockMemberValueTypes.ColorChannel;
 
             private readonly ColorProperty parent;
             private readonly string suffix;
@@ -94,7 +94,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (Utils.ProtoBuf.TrySerialize(Value, out valueData) == null)
                 {
-                    return new PropertyData(PropName.ToString(), valueData);
+                    return new PropertyData(PropName.ToString(), valueData, Enabled, ValueType);
                 }
                 else
                     return default(PropertyData);

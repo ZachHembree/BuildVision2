@@ -36,7 +36,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns the current target block
             /// </summary>
-            private PropertyBlock Target => quickActionMenu.Target;
+            private IPropertyBlock Target => quickActionMenu.Target;
 
             /// <summary>
             /// Returns true if the menu is open and visible

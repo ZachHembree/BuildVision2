@@ -142,6 +142,18 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
+        /// Appends a summary of the block's current configuration
+        /// </summary>
+        public void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
+        {
+            foreach (SubtypeAccessorBase subtype in SubtypeAccessors)
+            {
+                if (subtype != null)
+                    subtype.GetSummary(builder, nameFormat, valueFormat);
+            }
+        }
+
+        /// <summary>
         /// Clears all references to the <see cref="IMyTerminalBlock"/> held by the <see cref="SuperBlock"/>.
         /// </summary>
         private void BlockClosing(IMyEntity entity)
