@@ -77,7 +77,7 @@ namespace DarkHelmet.BuildVision2
                         ScrollSelection(-1);
                     }
 
-                    if (BvBinds.Cancel.IsReleased)
+                    if (BvBinds.Cancel.IsNewPressed)
                     {
                         quickActionMenu.CloseMenu();
                     }
