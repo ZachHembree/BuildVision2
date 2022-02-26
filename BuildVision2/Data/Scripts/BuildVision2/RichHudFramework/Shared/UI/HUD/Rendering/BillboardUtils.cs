@@ -606,14 +606,14 @@ namespace RichHudFramework
                             Item5 = new MyTuple<Vector2, Vector2, Vector2>
                             (
                                 mat.texCoords[indices[i]],
-                                mat.texCoords[indices[i]],
-                                mat.texCoords[indices[i]]
+                                mat.texCoords[indices[i + 1]],
+                                mat.texCoords[indices[i + 2]]
                             ),
                             Item6 = new MyTuple<Vector2, Vector2, Vector2>
                             (
                                 vertices[indices[i]],
-                                vertices[indices[i]],
-                                vertices[indices[i]]
+                                vertices[indices[i + 1]],
+                                vertices[indices[i + 2]]
                             ),
                         };
                         bbDataBack.Add(bb);
