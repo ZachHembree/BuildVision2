@@ -40,7 +40,8 @@ namespace RichHudFramework
             {
                 var names = new List<string>();
 
-                names.Add(con1);
+                if (con1 != null)
+                    names.Add(con1);
 
                 if (con2 != null)
                     names.Add(con2);
@@ -58,7 +59,8 @@ namespace RichHudFramework
             {
                 var indices = new List<int>();
 
-                indices.Add(con1);
+                if (con1 != -1)
+                    indices.Add(con1);
 
                 if (con2 != -1)
                     indices.Add(con2);
@@ -72,11 +74,12 @@ namespace RichHudFramework
             /// <summary>
             /// Adds a bind with the given name and the given key combo.
             /// </summary>
-            public void Add(string bindName, ControlData con1, ControlData con2 = null, ControlData con3 = null)
+            public void Add(string bindName, ControlData con1 = null, ControlData con2 = null, ControlData con3 = null)
             {
                 var indices = new List<int>();
 
-                indices.Add(con1);
+                if (con1 != null)
+                    indices.Add(con1);
 
                 if (con2 != null)
                     indices.Add(con2);
