@@ -65,7 +65,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public void OpenMenu(IPropertyBlock target, QuickActionMenuState initialState = default(QuickActionMenuState))
         {
-            if (MenuState == QuickActionMenuState.Closed || Target != target)
+            if ((MenuState & QuickActionMenuState.Peek) == 0)
             {
                 CloseMenu();
 
