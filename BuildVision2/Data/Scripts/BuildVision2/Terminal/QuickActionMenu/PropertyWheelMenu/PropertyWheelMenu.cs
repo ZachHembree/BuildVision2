@@ -274,16 +274,6 @@ namespace DarkHelmet.BuildVision2
 
                 if (textUpdateTick == 0)
                 {
-                    if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
-                    { 
-                        quickActionMenu.notifText.Clear();
-                        quickActionMenu.notifText.Append("Copying ");
-                        quickActionMenu.notifText.Append(Target.Duplicator.GetSelectedEntryCount());
-                        quickActionMenu.notifText.Append(" of ");
-                        quickActionMenu.notifText.Append(Target.Duplicator.GetValidEntryCount());
-                        wheelBody.ShowNotification(quickActionMenu.notifText, true);
-                    }
-
                     debugText.Visible = DrawDebug;
 
                     if (DrawDebug)

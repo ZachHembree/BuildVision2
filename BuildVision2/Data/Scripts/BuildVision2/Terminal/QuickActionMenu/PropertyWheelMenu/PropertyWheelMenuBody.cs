@@ -44,9 +44,10 @@ namespace DarkHelmet.BuildVision2
             private readonly Action CloseWidgetCallback;
             private PropertyWheelWidgetBase activeWidget;
 
-            private readonly RichText summaryBuilder;
             private readonly PropertyWheelMenu propertyWheelMenu;
             private readonly Stopwatch notificationTimer;
+            private readonly RichText summaryBuilder;
+            private readonly StringBuilder textBuf;
             private StringBuilder notification;
             private bool contNotification;
             private int tick;
@@ -81,6 +82,7 @@ namespace DarkHelmet.BuildVision2
                 summaryBuilder = new RichText();
                 CloseWidgetCallback = CloseWidget;
 
+                textBuf = new StringBuilder();
                 notificationTimer = new Stopwatch();
                 Padding = new Vector2(90f);
             }
@@ -183,6 +185,15 @@ namespace DarkHelmet.BuildVision2
                         notification = null;
                         contNotification = false;
                     }
+                }
+                else if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                {
+                    textBuf.Clear();
+                    textBuf.Append("Copying ");
+                    textBuf.Append(block.Duplicator.GetSelectedEntryCount());
+                    textBuf.Append(" of ");
+                    textBuf.Append(block.Duplicator.GetValidEntryCount());
+                    notificationBuidler.SetText(textBuf, bodyValueFormatCenter);
                 }
                 else
                 {
