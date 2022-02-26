@@ -30,7 +30,7 @@ namespace DarkHelmet.BuildVision2
                 propertyWheel.OpenSummary();
             else if (MenuState == QuickActionMenuState.ListPeek)
                 propertyList.OpenSummary();
-            else
+            else if (!BvConfig.Current.genUI.legacyModeEnabled)
                 BindManager.RequestTempBlacklist(SeBlacklistModes.Mouse);
 
             // Open menus corresponding to their state flags

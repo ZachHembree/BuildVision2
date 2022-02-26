@@ -70,10 +70,13 @@ namespace DarkHelmet.BuildVision2
                 AddChatCommands();
                 InitSettingsMenu();
                 TerminalUtilities.Init();
-                QuickActionHudSpace.Init();
-
+                QuickActionHudSpace.Init();                
+                
                 if (BvConfig.WasConfigOld)
                     RichHudTerminal.OpenToPage(helpMain);
+
+                BvConfig.OnConfigLoad += UpdateBindPageVisibility;
+                UpdateBindPageVisibility();
             }
         }
 
@@ -90,6 +93,7 @@ namespace DarkHelmet.BuildVision2
             {
                 BvConfig.Save();
                 QuickActionHudSpace.Close();
+                BvConfig.OnConfigLoad -= UpdateBindPageVisibility;
             }
 
             if (ExceptionHandler.Unloading)
@@ -97,6 +101,12 @@ namespace DarkHelmet.BuildVision2
                 TerminalUtilities.Close();
                 Instance = null;
             }
+        }
+
+        private void UpdateBindPageVisibility()
+        {
+            bindsPage.Enabled = !BvConfig.Current.genUI.legacyModeEnabled;
+            legacyBindsPage.Enabled = BvConfig.Current.genUI.legacyModeEnabled;
         }
     }
 

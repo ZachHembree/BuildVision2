@@ -17,7 +17,8 @@ namespace DarkHelmet.BuildVision2
                 {
                     modifierGroup = ModifierGroup.GetBindDefinitions(),
                     mainGroup = MainGroup.GetBindDefinitions(),
-                    secondaryGroup = SecondaryGroup.GetBindDefinitions()
+                    secondaryGroup = SecondaryGroup.GetBindDefinitions(),
+                    dupeGroup = DupeGroup.GetBindDefinitions()
                 };
             }
             set
@@ -25,6 +26,8 @@ namespace DarkHelmet.BuildVision2
                 Instance.modifierGroup.TryLoadBindData(value.modifierGroup);
                 Instance.mainGroup.TryLoadBindData(value.mainGroup);
                 Instance.secondaryGroup.TryLoadBindData(value.secondaryGroup);
+                Instance.dupeGroup.TryLoadBindData(value.dupeGroup);
+                Instance.UpdateBindProperties();
             }
         }
 
@@ -33,6 +36,7 @@ namespace DarkHelmet.BuildVision2
         public static IBind EnableMouse { get; private set; }
         public static IBind OpenWheel { get; private set; }
         public static IBind OpenList { get; private set; }
+        public static IBind LegacyClose { get; private set; }
 
         public static IBind StartDupe { get; private set; }
         public static IBind StopDupe { get; private set; }
@@ -55,6 +59,7 @@ namespace DarkHelmet.BuildVision2
         public static IBindGroup ModifierGroup { get { return Instance.modifierGroup; } }
         public static IBindGroup MainGroup { get { return Instance.mainGroup; } }
         public static IBindGroup SecondaryGroup { get { return Instance.secondaryGroup; } }
+        public static IBindGroup DupeGroup { get { return Instance.dupeGroup; } }
 
         private static BvBinds Instance
         {
@@ -68,7 +73,7 @@ namespace DarkHelmet.BuildVision2
             set { _instance = value; }
         }
         private static BvBinds _instance;
-        private readonly IBindGroup staticGroup, modifierGroup, mainGroup, secondaryGroup;
+        private readonly IBindGroup staticGroup, modifierGroup, mainGroup, secondaryGroup, dupeGroup;
 
         private BvBinds() : base(false, true)
         {
@@ -88,6 +93,9 @@ namespace DarkHelmet.BuildVision2
 
             secondaryGroup = BindManager.GetOrCreateGroup("Secondary");
             secondaryGroup.RegisterBinds(BindsConfig.DefaultSecondary);
+
+            dupeGroup = BindManager.GetOrCreateGroup("Dupe");
+            dupeGroup.RegisterBinds(BindsConfig.DefaultDupe);
         }
 
         public static void Init()
@@ -118,6 +126,7 @@ namespace DarkHelmet.BuildVision2
 
             OpenWheel = null;
             OpenList = null;
+            LegacyClose = null;
 
             StartDupe = null;
             StopDupe = null;
@@ -141,29 +150,40 @@ namespace DarkHelmet.BuildVision2
             EnableMouse = MultX;
 
             OpenWheel = mainGroup["OpenWheel"];
-            OpenList = mainGroup["OpenList"];
 
-            StartDupe = mainGroup["StartDupe"];
-            StopDupe = mainGroup["StopDupe"];
-            ToggleDupe = mainGroup["ToggleDupe"];
-            SelectAll = mainGroup["SelectAll"];
-            CopySelection = mainGroup["CopySelection"];
-            PasteProperties = mainGroup["PasteProperties"];
-            UndoPaste = mainGroup["UndoPaste"];
+            if (BvConfig.Current.genUI.legacyModeEnabled)
+            {
+                OpenList = secondaryGroup["LegacyOpen"];
+                LegacyClose = mainGroup["LegacyClose"];
+            }
+            else
+            {
+                OpenList = mainGroup["OpenList"];
+                LegacyClose = null;
+            }
 
             Select = secondaryGroup["Select/Confirm"];
             Cancel = secondaryGroup["Cancel/Back"];
             ScrollUp = secondaryGroup["ScrollUp"];
             ScrollDown = secondaryGroup["ScrollDown"];
+
+            StartDupe = dupeGroup["StartDupe"];
+            StopDupe = dupeGroup["StopDupe"];
+            ToggleDupe = dupeGroup["ToggleDupe"];
+            SelectAll = dupeGroup["SelectAll"];
+            CopySelection = dupeGroup["CopySelection"];
+            PasteProperties = dupeGroup["PasteProperties"];
+            UndoPaste = dupeGroup["UndoPaste"];
         }
 
-        private void UpdateConfig() =>
+        private void UpdateConfig()
+        {
             BvConfig.Current.binds = Cfg;
+        }
 
         private void UpdateBinds()
         {
             Cfg = BvConfig.Current.binds;
-            _instance.UpdateBindProperties();
         }
     }
 }

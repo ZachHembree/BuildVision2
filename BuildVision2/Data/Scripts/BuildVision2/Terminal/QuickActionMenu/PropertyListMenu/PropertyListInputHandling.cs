@@ -50,9 +50,11 @@ namespace DarkHelmet.BuildVision2
 
                         selectionIndex = MathHelper.Clamp(selectionIndex, 0, listBody.Count - 1);
 
-                        if (BvBinds.Cancel.IsReleased && !listBody[selectionIndex].PropertyOpen)
+                        if (!listBody[selectionIndex].PropertyOpen && 
+                            (BvBinds.Cancel.IsNewPressed || 
+                            (BvConfig.Current.genUI.legacyModeEnabled && BvBinds.LegacyClose.IsNewPressed)))
                         {
-                            if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                            if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0 && !BvConfig.Current.genUI.legacyModeEnabled)
                                 quickActionMenu.OpenPropertyWheel();
                             else
                                 quickActionMenu.CloseMenu();

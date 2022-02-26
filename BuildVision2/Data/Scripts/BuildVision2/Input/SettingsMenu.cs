@@ -13,6 +13,7 @@ namespace DarkHelmet.BuildVision2
     public sealed partial class BvMain
     {
         private TextPage helpMain;
+        private RebindPage bindsPage, legacyBindsPage;
 
         private void InitSettingsMenu()
         {
@@ -24,6 +25,29 @@ namespace DarkHelmet.BuildVision2
                 HeaderText = "Build Vision Help",
                 SubHeaderText = "",
                 Text = HelpText.GetHelpMessage(),
+            };
+            bindsPage = new RebindPage()
+            {
+                Name = "Binds",
+                GroupContainer =
+                {
+                    { BvBinds.ModifierGroup, BindsConfig.DefaultModifiers },
+                    { BvBinds.MainGroup, BindsConfig.DefaultMain },
+                    { BvBinds.SecondaryGroup, BindsConfig.DefaultSecondary },
+                    { BvBinds.DupeGroup, BindsConfig.DefaultDupe },
+                }
+            };
+            legacyBindsPage = new RebindPage()
+            {
+                Name = "Binds",
+                Enabled = false,
+                GroupContainer =
+                {
+                    { BvBinds.ModifierGroup, BindsConfig.DefaultModifiers },
+                    { BvBinds.MainGroup, BindsConfig.DefaultLegacyMain },
+                    { BvBinds.SecondaryGroup, BindsConfig.DefaultLegacySecondary },
+                    { BvBinds.DupeGroup, BindsConfig.DefaultLegacyDupe },
+                }
             };
 
             RichHudTerminal.Root.AddRange(new IModRootMember[] 
@@ -39,16 +63,8 @@ namespace DarkHelmet.BuildVision2
                         GetHelpSettings(),
                     },
                 },
-                new RebindPage()
-                {
-                    Name = "Binds",
-                    GroupContainer =
-                    {
-                        { BvBinds.ModifierGroup, BindsConfig.DefaultModifiers },
-                        { BvBinds.MainGroup, BindsConfig.DefaultMain },
-                        { BvBinds.SecondaryGroup, BindsConfig.DefaultSecondary },
-                    }
-                },
+                bindsPage,
+                legacyBindsPage,
                 helpMain,
             });
         }
@@ -158,11 +174,43 @@ namespace DarkHelmet.BuildVision2
                 Name = "Legacy Mode",
                 Value = Cfg.genUI.legacyModeEnabled,
                 CustomValueGetter = () => Cfg.genUI.legacyModeEnabled,
-                ControlChangedHandler = ((sender, args) => Cfg.genUI.legacyModeEnabled = (sender as TerminalOnOffButton).Value),
+                ControlChangedHandler = (sender, args) => 
+                {
+                    bool value = (sender as TerminalOnOffButton).Value;
+
+                    if (value != Cfg.genUI.legacyModeEnabled)
+                    {
+                        Cfg.genUI.legacyModeEnabled = value;
+                        bindsPage.Enabled = !value;
+                        legacyBindsPage.Enabled = value;
+
+                        if (Cfg.genUI.legacyModeEnabled)
+                        {
+                            BvBinds.Cfg = new BindsConfig
+                            {
+                                modifierGroup = BindsConfig.DefaultModifiers,
+                                mainGroup = BindsConfig.DefaultLegacyMain,
+                                secondaryGroup = BindsConfig.DefaultLegacySecondary,
+                                dupeGroup = BindsConfig.DefaultLegacyDupe
+                            };
+                        }
+                        else
+                        {
+                            BvBinds.Cfg = new BindsConfig
+                            {
+                                modifierGroup = BindsConfig.DefaultModifiers,
+                                mainGroup = BindsConfig.DefaultMain,
+                                secondaryGroup = BindsConfig.DefaultSecondary,
+                                dupeGroup = BindsConfig.DefaultDupe
+                            };
+                        }
+                    }
+                },
                 ToolTip = new RichText(ToolTip.DefaultText)
                 {
                     "Makes old list menu the primary menu\n" +
-                    "and reverts to the v2.5 control scheme"
+                    "and reverts to the v2.5 control scheme.\n" +
+                    "Changing this will overwrite your binds."
                 }
             };
 

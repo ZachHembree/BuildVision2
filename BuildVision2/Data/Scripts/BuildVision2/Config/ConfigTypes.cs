@@ -254,25 +254,28 @@ namespace DarkHelmet.BuildVision2
 
         public static BindDefinition[] DefaultSecondary => defaultSecondary.Clone() as BindDefinition[];
 
+        public static BindDefinition[] DefaultDupe => defaultDupe.Clone() as BindDefinition[];
+
+        public static BindDefinition[] DefaultLegacyMain => defaultLegacyMain.Clone() as BindDefinition[];
+
+        public static BindDefinition[] DefaultLegacySecondary => defaultLegacySecondary.Clone() as BindDefinition[];
+
+        public static BindDefinition[] DefaultLegacyDupe => defaultLegacyDupe.Clone() as BindDefinition[];
+
         private static readonly BindDefinition[]
             defaultModifiers = new BindGroupInitializer
             {
                 { "MultX/Mouse", MyKeys.Control },
                 { "MultY", MyKeys.Shift },
                 { "MultZ", MyKeys.Control, MyKeys.Shift },
-                
+
             }.GetBindDefinitions(),
             defaultMain = new BindGroupInitializer
             {
                 { "OpenWheel", MyKeys.Control, RichHudControls.MousewheelUp },
                 { "OpenList", MyKeys.Control, RichHudControls.MousewheelDown },
-                { "StartDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelUp },
-                { "StopDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelDown },
-                { "ToggleDupe", MyKeys.Home },
-                { "SelectAll", MyKeys.Insert },
-                { "CopySelection", MyKeys.PageUp },
-                { "PasteProperties", MyKeys.PageDown },
-                { "UndoPaste", MyKeys.Delete },
+                { "LegacyClose" },
+
             }.GetBindDefinitions(),
             defaultSecondary = new BindGroupInitializer
             {
@@ -280,6 +283,46 @@ namespace DarkHelmet.BuildVision2
                 { "Cancel/Back", MyKeys.RightButton },
                 { "ScrollUp", RichHudControls.MousewheelUp },
                 { "ScrollDown", RichHudControls.MousewheelDown },
+                { "LegacyOpen", MyKeys.Control, MyKeys.MiddleButton },
+
+            }.GetBindDefinitions(),
+            defaultDupe = new BindGroupInitializer
+            {
+                { "StartDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelUp },
+                { "StopDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelDown },
+                { "ToggleDupe", MyKeys.Home },
+                { "SelectAll", MyKeys.Insert },
+                { "CopySelection", MyKeys.PageUp },
+                { "PasteProperties", MyKeys.PageDown },
+                { "UndoPaste", MyKeys.Delete },
+
+            }.GetBindDefinitions(),
+            defaultLegacyMain = new BindGroupInitializer
+            {
+                { "OpenWheel" },
+                { "OpenList" },
+                { "LegacyClose", MyKeys.Shift, MyKeys.MiddleButton },
+
+            }.GetBindDefinitions(),
+            defaultLegacySecondary = new BindGroupInitializer
+            {
+                { "Select/Confirm", MyKeys.MiddleButton },
+                { "Cancel/Back" },
+                { "ScrollUp", RichHudControls.MousewheelUp },
+                { "ScrollDown", RichHudControls.MousewheelDown },
+                { "LegacyOpen", MyKeys.Control, MyKeys.MiddleButton },
+
+            }.GetBindDefinitions(),
+            defaultLegacyDupe = new BindGroupInitializer
+            {
+                { "StartDupe" },
+                { "StopDupe" },
+                { "ToggleDupe", MyKeys.Home },
+                { "SelectAll", MyKeys.Insert },
+                { "CopySelection", MyKeys.PageUp },
+                { "PasteProperties", MyKeys.PageDown },
+                { "UndoPaste", MyKeys.Delete },
+
             }.GetBindDefinitions();
 
         [XmlArray("ModifierGroup")]
@@ -291,13 +334,17 @@ namespace DarkHelmet.BuildVision2
         [XmlArray("SecondaryGroup")]
         public BindDefinition[] secondaryGroup;
 
+        [XmlArray("DupeGroup")]
+        public BindDefinition[] dupeGroup;
+
         protected override BindsConfig GetDefaults()
         {
             return new BindsConfig
             {
                 modifierGroup = DefaultModifiers,
                 mainGroup = DefaultMain,
-                secondaryGroup = DefaultSecondary
+                secondaryGroup = DefaultSecondary,
+                dupeGroup = DefaultDupe
             };
         }
 
@@ -314,6 +361,9 @@ namespace DarkHelmet.BuildVision2
 
             if (secondaryGroup == null)
                 secondaryGroup = DefaultSecondary;
+
+            if (dupeGroup == null)
+                dupeGroup = DefaultSecondary;
         }
     }
 }
