@@ -106,7 +106,7 @@ namespace RichHudFramework.UI.Rendering
         /// </summary>
         public virtual void Draw(Vector2 size, Vector2 origin, MatrixD[] matrixRef)
         {
-            if (_sides > 2)
+            if (_sides > 2 && drawVertices.Count > 2)
             {
                 if (updateVertices)
                     GeneratePolygon();
@@ -133,7 +133,7 @@ namespace RichHudFramework.UI.Rendering
         /// </summary>
         public virtual void Draw(Vector2 size, Vector2 origin, Vector2I faceRange, MatrixD[] matrixRef)
         {
-            if (_sides > 2)
+            if (_sides > 2 && drawVertices.Count > 2)
             {
                 if (updateVertices)
                     GeneratePolygon();

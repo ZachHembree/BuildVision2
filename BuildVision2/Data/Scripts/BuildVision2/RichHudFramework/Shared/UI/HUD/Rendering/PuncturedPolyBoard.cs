@@ -39,7 +39,7 @@ namespace RichHudFramework.UI.Rendering
         /// </summary>
         public override void Draw(Vector2 size, Vector2 origin, Vector2I faceRange, MatrixD[] matrixRef)
         {
-            if (_sides > 2)
+            if (_sides > 2 && drawVertices.Count > 5)
             {
                 if (updateVertices)
                     GeneratePolygon();

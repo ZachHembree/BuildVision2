@@ -78,7 +78,7 @@ namespace RichHudFramework.UI
         public virtual Color HighlightColor { get; set; }
 
         /// <summary>
-        /// Cursor sensitivity for wheel scrolling on a scale from .1 to 1.
+        /// Cursor sensitivity for wheel scrolling on a scale from .3 to 2.
         /// </summary>
         public float CursorSensitivity { get; set; }
 
@@ -160,7 +160,7 @@ namespace RichHudFramework.UI
         {
             if (IsInputEnabled)
             {
-                CursorSensitivity = MathHelper.Clamp(CursorSensitivity, 0.1f, 1f);
+                CursorSensitivity = MathHelper.Clamp(CursorSensitivity, 0.3f, 2f);
 
                 if (isStartPosStale)
                 {
@@ -226,16 +226,15 @@ namespace RichHudFramework.UI
         protected override void Draw()
         {
             Vector2 size = cachedSize - cachedPadding;
+            int entrySize = polyBoard.Sides / effectiveMaxCount;
             polyBoard.Color = BackgroundColor;
             polyBoard.Draw(size, cachedOrigin, HudSpace.PlaneToWorldRef);
 
-            if (SelectionIndex != -1)
+            if (SelectionIndex != -1 && selectionVisPos != -1 && entrySize > 0)
             {
                 UpdateVisPos();
 
-                int entrySize = polyBoard.Sides / effectiveMaxCount;
                 Vector2I slice = new Vector2I(0, entrySize - 1) + (selectionVisPos * entrySize);
-
                 polyBoard.Color = HighlightColor;
                 polyBoard.Draw(size, cachedOrigin, slice, HudSpace.PlaneToWorldRef);
             }
