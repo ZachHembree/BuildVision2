@@ -42,7 +42,6 @@ namespace DarkHelmet.BuildVision2
         private readonly TerminalGrid targetGrid, tempGrid;
         private readonly List<IMySlimBlock> targetBuffer;
 
-        private readonly Stopwatch peekTimer;
         private readonly IMyHudNotification hudNotification;
         private Vector2 lastPos;
         private int bpTick;
@@ -60,8 +59,6 @@ namespace DarkHelmet.BuildVision2
             hudNotification = MyAPIGateway.Utilities.CreateNotification("", 1000, MyFontEnum.Red);
 
             RichHudCore.LateMessageEntered += MessageHandler;
-            peekTimer = new Stopwatch();
-            peekTimer.Start();
         }
 
         public static void Init()
@@ -183,31 +180,25 @@ namespace DarkHelmet.BuildVision2
         {
             quickActionMenu.InputEnabled = !RichHudTerminal.Open;
 
-            if ((quickActionMenu.MenuState & QuickActionMenuState.Peek) > 0 ||
-                quickActionMenu.MenuState == QuickActionMenuState.Closed)
+            if (BvConfig.Current.genUI.legacyModeEnabled ||
+                ((quickActionMenu.MenuState & QuickActionMenuState.Peek) > 0 || quickActionMenu.MenuState == QuickActionMenuState.Closed) )
             {
-                if (quickActionMenu.MenuState == QuickActionMenuState.Closed)
-                {
-                    if (BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed 
-                        || BvBinds.StartDupe.IsNewPressed)
-                    {
-                        TryOpenMenuInternal();
-                    }
-                }
+                if (BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed || BvBinds.StartDupe.IsNewPressed)
+                    TryOpenMenuInternal();
+            }
 
+            if ((quickActionMenu.MenuState & QuickActionMenuState.Peek) > 0 || quickActionMenu.MenuState == QuickActionMenuState.Closed)
+            {
                 if (BvBinds.EnableMouse.IsPressed && BvConfig.Current.targeting.enablePeek)
                 {
-                    if (peekTimer.ElapsedMilliseconds > 100)
-                        TryOpenMenuInternal();
+                    TryOpenMenuInternal();
                 }
                 else if ((quickActionMenu.MenuState & QuickActionMenuState.Peek) > 0)
                     CloseMenuInternal();
             }
 
             if (SharedBinds.Escape.IsNewPressed && Open)
-            {
                 CloseMenuInternal();
-            }
         }
 
         /// <summary>
