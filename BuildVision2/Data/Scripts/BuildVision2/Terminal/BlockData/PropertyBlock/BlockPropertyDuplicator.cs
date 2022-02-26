@@ -54,14 +54,15 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Returns the block targeted for property duplication.
         /// </summary>
-        public PropertyBlock Block { get; private set; }
+        public PropertyBlock Block { get; }
 
         private readonly List<BlockPropertyDupeEntry> dupeEntries;
         private BlockData copiedProperties;
         private MyTuple<IMyTerminalBlock, BlockData> backup;
 
-        public BlockPropertyDuplicator()
+        public BlockPropertyDuplicator(PropertyBlock block)
         {
+            Block = block;
             dupeEntries = new List<BlockPropertyDupeEntry>();
             DupeEntries = dupeEntries;
 
@@ -73,22 +74,21 @@ namespace DarkHelmet.BuildVision2
         /// Assigns the given <see cref="PropertyBlock"/> as the current target and generates
         /// a parallel list of dupe entries correspondin to its block members.
         /// </summary>
-        public void SetBlockMembers(PropertyBlock block)
+        public void UpdateBlockMembers()
         {
             Reset();
-            Block = block;
 
             // Clear backup if target changes
-            if (backup.Item1 != block.TBlock)
+            if (backup.Item1 != Block.TBlock)
             {
                 backup.Item1 = null;
                 backup.Item2.blockTypeID = null;
                 backup.Item2.propertyList.Clear();
             }
 
-            for (int i = 0; i < block.BlockMembers.Count; i++)
+            for (int i = 0; i < Block.BlockMembers.Count; i++)
             {
-                IBlockMember member = block.BlockMembers[i];
+                IBlockMember member = Block.BlockMembers[i];
                 bool canDuplicate = member is IBlockProperty;
                 var entry = new BlockPropertyDupeEntry(canDuplicate);
 
@@ -102,7 +102,6 @@ namespace DarkHelmet.BuildVision2
         public void Reset()
         {
             dupeEntries.Clear();
-            Block = null;
         }
 
         /// <summary>

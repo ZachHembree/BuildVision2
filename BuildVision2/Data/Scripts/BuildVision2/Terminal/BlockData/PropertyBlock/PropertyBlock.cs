@@ -83,7 +83,7 @@ namespace DarkHelmet.BuildVision2
             blockProperties = new List<BlockPropertyBase>();
             comboItemBuffer = new List<MyTerminalControlComboBoxItem>();
 
-            duplicator = new BlockPropertyDuplicator();
+            duplicator = new BlockPropertyDuplicator(this);
             prioritizer = new BlockPropertyPrioritizer();
 
             Duplicator = duplicator;
@@ -124,7 +124,7 @@ namespace DarkHelmet.BuildVision2
             GetScrollableProps();
             GetScrollableActions();
 
-            duplicator.SetBlockMembers(this);
+            duplicator.UpdateBlockMembers();
             prioritizer.SetBlockMembers(TBlock.GetType(), blockMembers);
         }
 
