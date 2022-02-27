@@ -53,7 +53,7 @@ namespace DarkHelmet.BuildVision2
         private void GetStateInput()
         {
             // Open property controls or remian in peek mode
-            if (MenuState == QuickActionMenuState.Closed || (MenuState & QuickActionMenuState.Peek) > 0)
+            if ((MenuState & QuickActionMenuState.Controlled) == 0)
             {
                 if (BvBinds.OpenWheel.IsNewPressed)
                 {

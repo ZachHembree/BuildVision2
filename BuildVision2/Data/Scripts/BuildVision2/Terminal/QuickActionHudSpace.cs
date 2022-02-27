@@ -179,20 +179,18 @@ namespace DarkHelmet.BuildVision2
         protected override void HandleInput(Vector2 cursorPos)
         {
             quickActionMenu.InputEnabled = !RichHudTerminal.Open;
+            bool tryOpen = BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed || BvBinds.StartDupe.IsNewPressed;
 
-            if (BvConfig.Current.genUI.legacyModeEnabled ||
-                ((quickActionMenu.MenuState & QuickActionMenuState.Peek) > 0 || quickActionMenu.MenuState == QuickActionMenuState.Closed) )
+            if (BvConfig.Current.genUI.legacyModeEnabled || (MenuState & QuickActionMenuState.Controlled) == 0)
             {
-                if (BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed || BvBinds.StartDupe.IsNewPressed)
+                if (tryOpen)
                     TryOpenMenuInternal();
             }
 
-            if ((quickActionMenu.MenuState & QuickActionMenuState.Peek) > 0 || quickActionMenu.MenuState == QuickActionMenuState.Closed)
+            if ((MenuState & QuickActionMenuState.Controlled) == 0)
             {
                 if (BvBinds.EnableMouse.IsPressed && BvConfig.Current.targeting.enablePeek)
-                {
                     TryOpenMenuInternal();
-                }
                 else if ((quickActionMenu.MenuState & QuickActionMenuState.Peek) > 0)
                     CloseMenuInternal();
             }

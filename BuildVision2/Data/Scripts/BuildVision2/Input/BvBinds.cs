@@ -36,7 +36,6 @@ namespace DarkHelmet.BuildVision2
         public static IBind EnableMouse { get; private set; }
         public static IBind OpenWheel { get; private set; }
         public static IBind OpenList { get; private set; }
-        public static IBind LegacyClose { get; private set; }
 
         public static IBind StartDupe { get; private set; }
         public static IBind StopDupe { get; private set; }
@@ -126,7 +125,6 @@ namespace DarkHelmet.BuildVision2
 
             OpenWheel = null;
             OpenList = null;
-            LegacyClose = null;
 
             StartDupe = null;
             StopDupe = null;
@@ -154,16 +152,15 @@ namespace DarkHelmet.BuildVision2
             if (BvConfig.Current.genUI.legacyModeEnabled)
             {
                 OpenList = secondaryGroup["LegacyOpen"];
-                LegacyClose = mainGroup["LegacyClose"];
+                Cancel = mainGroup["LegacyClose"];
             }
             else
             {
                 OpenList = mainGroup["OpenList"];
-                LegacyClose = null;
+                Cancel = secondaryGroup["Cancel/Back"];
             }
 
             Select = secondaryGroup["Select/Confirm"];
-            Cancel = secondaryGroup["Cancel/Back"];
             ScrollUp = secondaryGroup["ScrollUp"];
             ScrollDown = secondaryGroup["ScrollDown"];
 
