@@ -197,6 +197,9 @@ namespace DarkHelmet.BuildVision2
 
             if (SharedBinds.Escape.IsNewPressed && Open)
                 CloseMenuInternal();
+
+            if (!Open)
+                Target.Reset();
         }
 
         /// <summary>
@@ -244,9 +247,11 @@ namespace DarkHelmet.BuildVision2
                         {
                             targetGrid.SetGrid(block.CubeGrid);
                             Target.SetBlock(targetGrid, block);
-                        }
 
-                        return true;
+                            return true;
+                        }
+                        else
+                            return false;
                     }
                     else
                     {
