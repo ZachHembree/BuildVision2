@@ -123,7 +123,7 @@ namespace DarkHelmet.BuildVision2
                 debugBuilder.Append($"List Menu Open: {propertyList.IsOpen}\n");
                 debugBuilder.Append($"Cursor Mode: {HudMain.InputMode}\n");
                 debugBuilder.Append($"Blacklist Mode: {BindManager.BlacklistMode}\n");
-                debugBuilder.Append($"Enable Cursor Pressed: {BvBinds.EnableMouse.IsPressed}\n");
+                debugBuilder.Append($"Enable Cursor Pressed: {BvBinds.MultXOrMouse.IsPressed}\n");
             }
 
             debugText.Visible = DrawDebug;

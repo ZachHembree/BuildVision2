@@ -29,7 +29,7 @@ namespace DarkHelmet.BuildVision2
                             MenuState = QuickActionMenuState.WheelMenuControl;
                         }
                         else
-                            HudMain.EnableCursor = BvBinds.EnableMouse.IsPressed;
+                            HudMain.EnableCursor = BvBinds.MultXOrMouse.IsPressed;
                     }
                     else
                     {
@@ -61,10 +61,10 @@ namespace DarkHelmet.BuildVision2
             {
                 var selection = activeWheel.Selection;
 
-                if (BvBinds.EnableMouse.IsPressed)
+                if (BvBinds.MultXOrMouse.IsPressed)
                     BindManager.RequestTempBlacklist(SeBlacklistModes.MouseAndCam);
 
-                activeWheel.IsInputEnabled = BvBinds.EnableMouse.IsPressed;
+                activeWheel.IsInputEnabled = BvBinds.MultXOrMouse.IsPressed;
 
                 if (!(BvBinds.StartDupe.IsPressed || BvBinds.StopDupe.IsPressed))
                 {

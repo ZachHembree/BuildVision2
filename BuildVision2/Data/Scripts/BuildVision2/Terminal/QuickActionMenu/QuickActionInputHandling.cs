@@ -63,7 +63,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     MenuState = QuickActionMenuState.ListMenuControl;
                 }
-                else if (BvBinds.EnableMouse.IsPressed)
+                else if (BvBinds.MultXOrMouse.IsPressed)
                 {
                     if (BvConfig.Current.genUI.legacyModeEnabled)
                         MenuState = QuickActionMenuState.ListPeek;

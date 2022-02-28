@@ -52,7 +52,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     cancelButton.MouseInput.GetInputFocus();
                 }
-                else if (BvBinds.Select.IsNewPressed && !BvBinds.EnableMouse.IsPressed)
+                else if (BvBinds.Select.IsNewPressed && !BvBinds.MultXOrMouse.IsPressed)
                 {
                     confirmButton.MouseInput.GetInputFocus();
                 }
@@ -62,7 +62,7 @@ namespace DarkHelmet.BuildVision2
                     Cancel();
                 }
                 else if (confirmButton.MouseInput.IsLeftReleased ||
-                    (BvBinds.Select.IsReleased && !BvBinds.EnableMouse.IsPressed))
+                    (BvBinds.Select.IsReleased && !BvBinds.MultXOrMouse.IsPressed))
                 {
                     Confirm();
                 }

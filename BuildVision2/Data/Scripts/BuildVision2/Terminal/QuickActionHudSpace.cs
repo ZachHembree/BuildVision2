@@ -189,7 +189,7 @@ namespace DarkHelmet.BuildVision2
 
             if ((MenuState & QuickActionMenuState.Controlled) == 0)
             {
-                if (BvBinds.EnableMouse.IsPressed && BvConfig.Current.targeting.enablePeek)
+                if (BvBinds.MultXOrMouse.IsPressed && BvConfig.Current.targeting.enablePeek)
                     TryOpenMenuInternal();
                 else if ((quickActionMenu.MenuState & QuickActionMenuState.Peek) > 0)
                     CloseMenuInternal();

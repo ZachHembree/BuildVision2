@@ -110,7 +110,7 @@ namespace DarkHelmet.BuildVision2
                             offset *= BvConfig.Current.block.floatMult.Z;
                         else if (BvBinds.MultY.IsPressed)
                             offset *= BvConfig.Current.block.floatMult.Y;
-                        else if (BvBinds.MultX.IsPressed)
+                        else if (BvBinds.MultXOrMouse.IsPressed)
                             offset *= BvConfig.Current.block.floatMult.X;
 
                         float value = floatMember.Value;

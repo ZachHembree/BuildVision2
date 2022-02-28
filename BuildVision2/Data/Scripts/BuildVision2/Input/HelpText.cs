@@ -33,7 +33,7 @@ namespace DarkHelmet.BuildVision2
 
                 $"This menu is opened by aiming at the desired block and pressing either ", {$"[{GetBindString(BvBinds.OpenWheel)}]", highlight}, 
                 " or ", {$"[{GetBindString(BvBinds.OpenList)}].", highlight}, " The first opens the wheel menu; the second opens the older " +
-                "list-style menu. Holding ", { $"[{GetBindString(BvBinds.MultX)}]", highlight }, $" (peek) will show a summary of the target " +
+                "list-style menu. Holding ", { $"[{GetBindString(BvBinds.MultXOrMouse)}]", highlight }, $" (peek) will show a summary of the target " +
                 $"block's current status without opening the controls. Pressing ", {$"[{GetBindString(BvBinds.Cancel)}]", highlight}, " (Cancel/Back) " +
                 "will close the menu.\n\n",
 
@@ -51,7 +51,7 @@ namespace DarkHelmet.BuildVision2
 
                 { "Selection:\n", subsection},
                 "There are two ways to select properties: scrolling or by moving the mouse. To highlight with the mouse, hold ",
-                { $"[{GetBindString(BvBinds.MultX)}]", highlight }, " (MultX/Peek), and move your mouse either clockwise or counterclockwise, like you're " +
+                { $"[{GetBindString(BvBinds.MultXOrMouse)}]", highlight }, " (MultX/Peek), and move your mouse either clockwise or counterclockwise, like you're " +
                 "tracing a circle.\n\n",
 
                 "Pressing ", { "Select/Confirm", highlight }, " will open the highlighted property. Pressing that bind again will confirm any changes. " +
@@ -79,7 +79,7 @@ namespace DarkHelmet.BuildVision2
                 $"The multiplier binds are used to change the ", {"speed", highlight }, " at which a selected property will change with each tick of the scroll wheel, ",
                 { $"1/10th", highlight }, $" normal, ", {$"5x", highlight }, $" normal, ", {$"10x", highlight }, $", etc.\n\n",
 
-                $"\tMultX/Peek (x{BvConfig.Current.block.floatMult.X}):\t|\t[{GetBindString(BvBinds.MultX)}]\n",
+                $"\tMultX/Peek (x{BvConfig.Current.block.floatMult.X}):\t|\t[{GetBindString(BvBinds.MultXOrMouse)}]\n",
                 $"\tMultY (x{BvConfig.Current.block.floatMult.Y}):\t\t\t|\t[{GetBindString(BvBinds.MultY)}]\n",
                 $"\tMultZ (x{BvConfig.Current.block.floatMult.Z}):\t\t\t|\t[{GetBindString(BvBinds.MultZ)}]\n\n",
 

@@ -33,7 +33,7 @@ namespace DarkHelmet.BuildVision2
                     {
                         if(!listBody[selectionIndex].PropertyOpen)
                         {
-                            bool multXPressed = BvBinds.MultX.IsPressed;
+                            bool multXPressed = BvBinds.MultXOrMouse.IsPressed;
                             int offset = multXPressed ? 4 : 1;
 
                             if (BvBinds.ScrollUp.IsNewPressed)
@@ -191,7 +191,7 @@ namespace DarkHelmet.BuildVision2
                             offset *= BvConfig.Current.block.floatMult.Z;
                         else if (BvBinds.MultY.IsPressed)
                             offset *= BvConfig.Current.block.floatMult.Y;
-                        else if (BvBinds.MultX.IsPressed)
+                        else if (BvBinds.MultXOrMouse.IsPressed)
                             offset *= BvConfig.Current.block.floatMult.X;
 
                         if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
@@ -242,7 +242,7 @@ namespace DarkHelmet.BuildVision2
                             offset *= incrZ;
                         else if (BvBinds.MultY.IsPressed)
                             offset *= incrY;
-                        else if (BvBinds.MultX.IsPressed)
+                        else if (BvBinds.MultXOrMouse.IsPressed)
                             offset *= incrX;
 
                         byte color = colorMember.Value;
@@ -349,7 +349,7 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 if (listWrapTimer.ElapsedMilliseconds > 300 && (selectionIndex > max || selectionIndex < min) 
-                    && !BvBinds.MultX.IsPressed)
+                    && !BvBinds.MultXOrMouse.IsPressed)
                 {
                     if (selectionIndex < min)
                     {

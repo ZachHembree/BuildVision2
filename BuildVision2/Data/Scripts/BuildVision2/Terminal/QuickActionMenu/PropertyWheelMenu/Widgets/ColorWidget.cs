@@ -58,7 +58,7 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Confirm()
             {
-                if (channelSelected || BvBinds.EnableMouse.IsPressed)
+                if (channelSelected || BvBinds.MultXOrMouse.IsPressed)
                 {
                     channelSelected = false;
                     CloseWidgetCallback();
@@ -91,13 +91,13 @@ namespace DarkHelmet.BuildVision2
                     Cancel();
                 }
                 else if (confirmButton.MouseInput.IsLeftReleased ||
-                    (BvBinds.Select.IsReleased && !BvBinds.EnableMouse.IsPressed))
+                    (BvBinds.Select.IsReleased && !BvBinds.MultXOrMouse.IsPressed))
                 {
                     Confirm();
                 }
                 else 
                 {
-                    if (!BvBinds.EnableMouse.IsPressed)
+                    if (!BvBinds.MultXOrMouse.IsPressed)
                     {
                         if (!channelSelected)
                         {
@@ -132,7 +132,7 @@ namespace DarkHelmet.BuildVision2
                             offset *= incrZ;
                         else if (BvBinds.MultY.IsPressed)
                             offset *= incrY;
-                        else if (BvBinds.MultX.IsPressed)
+                        else if (BvBinds.MultXOrMouse.IsPressed)
                             offset *= incrX;
 
                         if (BvBinds.ScrollUp.IsNewPressed)

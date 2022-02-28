@@ -33,7 +33,6 @@ namespace DarkHelmet.BuildVision2
 
         public static IBind Blueprint { get; private set; }
 
-        public static IBind EnableMouse { get; private set; }
         public static IBind OpenWheel { get; private set; }
         public static IBind OpenList { get; private set; }
 
@@ -51,7 +50,7 @@ namespace DarkHelmet.BuildVision2
         public static IBind ScrollUp { get; private set; }
         public static IBind ScrollDown { get; private set; }
 
-        public static IBind MultX { get; private set; }
+        public static IBind MultXOrMouse { get; private set; }
         public static IBind MultY { get; private set; }
         public static IBind MultZ { get; private set; }
 
@@ -118,10 +117,9 @@ namespace DarkHelmet.BuildVision2
             Instance = null;
 
             Blueprint = null;
-            MultX = null;
+            MultXOrMouse = null;
             MultY = null;
             MultZ = null;
-            EnableMouse = null;
 
             OpenWheel = null;
             OpenList = null;
@@ -142,10 +140,9 @@ namespace DarkHelmet.BuildVision2
 
         private void UpdateBindProperties()
         {
-            MultX = modifierGroup["MultX/Mouse"];
+            MultXOrMouse = modifierGroup["MultX/Mouse"];
             MultY = modifierGroup["MultY"];
             MultZ = modifierGroup["MultZ"];
-            EnableMouse = MultX;
 
             OpenWheel = mainGroup["OpenWheel"];
 
