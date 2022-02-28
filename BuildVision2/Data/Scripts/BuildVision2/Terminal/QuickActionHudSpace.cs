@@ -43,7 +43,9 @@ namespace DarkHelmet.BuildVision2
         private readonly List<IMySlimBlock> targetBuffer;
 
         private readonly IMyHudNotification hudNotification;
+        private readonly Stopwatch frameTimer;
         private Vector2 lastPos;
+        private float posLerpFactor;
         private int bpTick;
 
         private QuickActionHudSpace() : base(HudMain.Root)
@@ -54,10 +56,12 @@ namespace DarkHelmet.BuildVision2
             targetBuffer = new List<IMySlimBlock>();
             Target = new PropertyBlock();
 
+            frameTimer = new Stopwatch();
             quickActionMenu = new QuickActionMenu(this);
             boundingBox = new BoundingBoard();
             hudNotification = MyAPIGateway.Utilities.CreateNotification("", 1000, MyFontEnum.Red);
 
+            frameTimer.Start();
             RichHudCore.LateMessageEntered += MessageHandler;
         }
 
@@ -155,19 +159,27 @@ namespace DarkHelmet.BuildVision2
                         menuPos.Y -= .5f * quickActionMenu.Height;
                 }
 
-                if ((lastPos - menuPos).LengthSquared() > 16f 
+                if ((lastPos - menuPos).LengthSquared() > 1f 
                     && !(HudMain.EnableCursor && SharedBinds.LeftButton.IsPressed))
                 {
-                    quickActionMenu.Offset = menuPos;
+                    posLerpFactor = 0f;
                     lastPos = menuPos;
-                }
+                }                
 
+                if (BvConfig.Current.genUI.useCustomPos)
+                    posLerpFactor = 1f;
+
+                float lerpScale = frameTimer.ElapsedMilliseconds / 16.6667f;
+                posLerpFactor = Math.Min(posLerpFactor + .3f * lerpScale, 1f);
+                quickActionMenu.Offset = Vector2.Lerp(quickActionMenu.Offset, lastPos, posLerpFactor);
                 quickActionMenu.Visible = bpTick > 30;
             }
 
             // Rescale draw matrix based on config
             PlaneToWorldRef[0] = MatrixD.CreateScale(scale, scale, 1d) * HudMain.PixelToWorld;
             base.Layout();
+
+            frameTimer.Restart();
         }
 
         protected override void Draw()
