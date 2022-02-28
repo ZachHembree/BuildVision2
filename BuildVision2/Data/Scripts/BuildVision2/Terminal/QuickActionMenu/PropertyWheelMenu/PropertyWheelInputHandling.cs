@@ -20,37 +20,39 @@ namespace DarkHelmet.BuildVision2
         {
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (propertyWheel.EntryList.Count > 0 && (MenuState & QuickActionMenuState.WheelMenuControl) > 0)
+                if (propertyWheel.EntryList.Count > 0)
                 {
-                    if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
+                    if ((MenuState & QuickActionMenuState.WheelMenuControl) == QuickActionMenuState.WheelMenuControl)
                     {
-                        if (!wheelBody.IsWidgetOpen)
+                        if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
                         {
-                            MenuState = QuickActionMenuState.WheelMenuControl;
-                        }
-                        else
-                            HudMain.EnableCursor = BvBinds.MultXOrMouse.IsPressed;
-                    }
-                    else
-                    {
-                        if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
-                        {
-                            activeWheel = dupeWheel;
-                            propertyWheel.Visible = false;
-                            dupeWheel.Visible = true;
+                            if (!wheelBody.IsWidgetOpen)
+                                MenuState = QuickActionMenuState.WheelMenuControl;
+                            else
+                                HudMain.EnableCursor = BvBinds.MultXOrMouse.IsPressed;
                         }
                         else
                         {
-                            activeWheel = propertyWheel;
-                            propertyWheel.Visible = true;
-                            dupeWheel.Visible = false;
+                            if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                            {
+                                activeWheel = dupeWheel;
+                                propertyWheel.Visible = false;
+                                dupeWheel.Visible = true;
+                            }
+                            else
+                            {
+                                activeWheel = propertyWheel;
+                                propertyWheel.Visible = true;
+                                dupeWheel.Visible = false;
+                            }
+
+                            if (wheelBody.IsWidgetOpen)
+                                wheelBody.CloseWidget();
+
+                            HandleWheelInput();
                         }
-
-                        if (wheelBody.IsWidgetOpen)
-                            wheelBody.CloseWidget();
-
-                        HandleWheelInput();
                     }
+
                 }
             }
 
@@ -69,13 +71,9 @@ namespace DarkHelmet.BuildVision2
                 if (!(BvBinds.StartDupe.IsPressed || BvBinds.StopDupe.IsPressed))
                 {
                     if (BvBinds.ScrollUp.IsPressed)
-                    {
                         ScrollSelection(1);
-                    }
                     if (BvBinds.ScrollDown.IsPressed)
-                    {
                         ScrollSelection(-1);
-                    }
 
                     if (BvBinds.Cancel.IsNewPressed)
                     {

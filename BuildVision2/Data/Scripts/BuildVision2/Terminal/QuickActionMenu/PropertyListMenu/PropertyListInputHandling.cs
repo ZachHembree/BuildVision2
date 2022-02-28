@@ -25,49 +25,51 @@ namespace DarkHelmet.BuildVision2
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (listBody.Collection.Count > 0 
-                    && (MenuState & QuickActionMenuState.ListMenuControl) == QuickActionMenuState.ListMenuControl)
+                if (listBody.Collection.Count > 0)
                 {
-                    // Highlight selection
-                    if (!(BvBinds.StartDupe.IsPressed || BvBinds.StopDupe.IsPressed))
+                    if ((MenuState & QuickActionMenuState.ListMenuControl) == QuickActionMenuState.ListMenuControl)
                     {
-                        if(!listBody[selectionIndex].PropertyOpen)
+                        // Highlight selection
+                        if (!(BvBinds.StartDupe.IsPressed || BvBinds.StopDupe.IsPressed))
                         {
-                            bool multXPressed = BvBinds.MultXOrMouse.IsPressed;
-                            int offset = multXPressed ? 4 : 1;
-
-                            if (BvBinds.ScrollUp.IsNewPressed)
+                            if (!listBody[selectionIndex].PropertyOpen)
                             {
-                                OffsetSelectionIndex(-offset);
-                                listWrapTimer.Restart();
+                                bool multXPressed = BvBinds.MultXOrMouse.IsPressed;
+                                int offset = multXPressed ? 4 : 1;
+
+                                if (BvBinds.ScrollUp.IsNewPressed)
+                                {
+                                    OffsetSelectionIndex(-offset);
+                                    listWrapTimer.Restart();
+                                }
+                                else if (BvBinds.ScrollDown.IsNewPressed)
+                                {
+                                    OffsetSelectionIndex(offset);
+                                    listWrapTimer.Restart();
+                                }
                             }
-                            else if (BvBinds.ScrollDown.IsNewPressed)
-                            {
-                                OffsetSelectionIndex(offset);
-                                listWrapTimer.Restart();
-                            }
-                        }
 
-                        selectionIndex = MathHelper.Clamp(selectionIndex, 0, listBody.Count - 1);
+                            selectionIndex = MathHelper.Clamp(selectionIndex, 0, listBody.Count - 1);
 
-                        if ((!listBody[selectionIndex].PropertyOpen || BvConfig.Current.genUI.legacyModeEnabled)
-                            && BvBinds.Cancel.IsNewPressed)
-                        {
-                            if ((MenuState & QuickActionMenuState.WheelShortcutOpened) > 0
-                                && !BvConfig.Current.genUI.legacyModeEnabled)
+                            if ((!listBody[selectionIndex].PropertyOpen || BvConfig.Current.genUI.legacyModeEnabled)
+                                && BvBinds.Cancel.IsNewPressed)
                             {
-                                quickActionMenu.OpenPropertyWheel();
-                                MenuState &= ~QuickActionMenuState.WheelShortcutOpened;
+                                if ((MenuState & QuickActionMenuState.WheelShortcutOpened) > 0
+                                    && !BvConfig.Current.genUI.legacyModeEnabled)
+                                {
+                                    quickActionMenu.OpenPropertyWheel();
+                                    MenuState &= ~QuickActionMenuState.WheelShortcutOpened;
+                                }
+                                else
+                                    quickActionMenu.CloseMenu();
                             }
                             else
-                                quickActionMenu.CloseMenu();
-                        }
-                        else
-                        {
-                            if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
-                                HandleDuplicationInput();
-                            else
-                                HandlePropertySelectionInput();
+                            {
+                                if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                                    HandleDuplicationInput();
+                                else
+                                    HandlePropertySelectionInput();
+                            }
                         }
                     }
                 }
