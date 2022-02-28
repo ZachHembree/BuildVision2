@@ -32,16 +32,20 @@ namespace DarkHelmet.BuildVision2
             headerColor = new Color(41, 54, 62),
             bodyColor = new Color(70, 78, 86),
             highlightColor = TerminalFormatting.DarkSlateGrey,
-            highlightFocusColor = TerminalFormatting.Mint;
+            highlightFocusColor = TerminalFormatting.Mint,
+            highlightTextColor = new Color(210, 190, 90),
+            valueTextColor = new Color(210, 210, 210);
         public static readonly GlyphFormat
             listHeaderFormat = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f),
-            mainHeaderFormat = new GlyphFormat(Color.White, TextAlignment.Center, 1f, FontStyles.Underline),
+            wheelHeaderFormat = new GlyphFormat(Color.White, TextAlignment.Center, 1f, FontStyles.Underline),
 
             bodyFormat = new GlyphFormat(Color.White, textSize: .885f),
             bodyFormatCenter = bodyFormat.WithAlignment(TextAlignment.Center),
 
-            valueFormat = bodyFormat.WithColor(new Color(210, 210, 210)),
-            highlightFormat = bodyFormat.WithColor(new Color(210, 190, 90)),
+            wheelNameColor = new GlyphFormat(Color.White, textSize: 1f),
+            wheelValueColor = new GlyphFormat(valueTextColor),
+            valueFormat = bodyFormat.WithColor(valueTextColor),
+            highlightFormat = bodyFormat.WithColor(highlightTextColor),
             selectedFormat = bodyFormat.WithColor(TerminalFormatting.Charcoal),
             dupeCrossFormat = bodyFormat.WithColor(new Color(0, 220, 30)),
 

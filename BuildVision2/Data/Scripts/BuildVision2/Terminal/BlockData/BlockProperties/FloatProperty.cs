@@ -113,7 +113,7 @@ namespace DarkHelmet.BuildVision2
                 else
                     GetScaleFunc = GetDefaultScaleFunc;
 
-                if (property.Id == "UpperLimit")
+                if (property.Id == "Velocity")
                 {
                     if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Rotor))
                         GetStatusFunc = GetRotorAngleFunc;

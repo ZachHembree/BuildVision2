@@ -15,7 +15,7 @@ namespace DarkHelmet.BuildVision2
             private IBlockNumericValue<float> floatMember;
             private IBlockTextMember textMember;
             private float initValue;
-            private double absRange, logMax, logRange;
+            private double absRange, logRange;
 
             public FloatWidget(HudParentBase parent = null) : base(parent)
             {
@@ -47,7 +47,6 @@ namespace DarkHelmet.BuildVision2
 
                 absRange = Math.Abs(floatMember.MaxValue - floatMember.MinValue);
                 logRange = Math.Ceiling(Math.Log10(absRange));
-                logMax = Math.Log10(Math.Abs(floatMember.MaxValue));
 
                 SetSliderValue(floatMember.Value);
                 sliderBox.NameBuilder.SetText(floatMember.Name);
@@ -71,7 +70,20 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
-                sliderBox.ValueBuilder.SetText(floatMember.FormattedValue);
+                if (!sliderBox.IsTextInputOpen)
+                {
+                    ITextBuilder valueBuilder = sliderBox.ValueBuilder;
+
+                    valueBuilder.Clear();
+
+                    if (floatMember.StatusText != null && floatMember.StatusText.Length > 0)
+                    {
+                        valueBuilder.Append(floatMember.StatusText, wheelValueColor);
+                        valueBuilder.Append(" ");
+                    }
+
+                    valueBuilder.Append(floatMember.FormattedValue, wheelNameColor);
+                }
             }
 
             protected override void HandleInput(Vector2 cursorPos)
