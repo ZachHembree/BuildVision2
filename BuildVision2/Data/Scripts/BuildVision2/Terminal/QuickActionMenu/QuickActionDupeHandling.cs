@@ -66,7 +66,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void OpenDupeList()
         {
-            OpenPropertyList();
+            OpenPropertyList(true);
             MenuState |= QuickActionMenuState.PropertyDuplication;
         }
 
@@ -75,7 +75,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void OpenDupeListAndSelectAll()
         {
-            OpenPropertyList();
+            OpenPropertyList(true);
             Target.Duplicator.SelectAllProperties();
             MenuState |= QuickActionMenuState.PropertyDuplication;
         }

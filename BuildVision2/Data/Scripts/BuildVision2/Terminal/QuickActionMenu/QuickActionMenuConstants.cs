@@ -16,6 +16,7 @@ namespace DarkHelmet.BuildVision2
         PropertyOpen = 0x8,
         PropertyDuplication = 0x10,
         Controlled = 0x20,
+        WheelShortcutOpened = 0x40,
 
         ListPeek = Peek | ListMenuOpen,
         WheelPeek = Peek | WheelMenuOpen,

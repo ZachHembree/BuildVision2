@@ -46,7 +46,7 @@ namespace DarkHelmet.BuildVision2
             propertyWheel.RegisterShortcut(new PropertyWheelShortcutEntry()
             {
                 Text = "Open List Menu",
-                ShortcutAction = OpenPropertyList
+                ShortcutAction = () => OpenPropertyList(true)
             });
 
             debugText = new Label(this)

@@ -108,13 +108,16 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Opens the list menu
         /// </summary>
-        private void OpenPropertyList()
+        private void OpenPropertyList(bool isShortcut = false)
         {
             propertyWheel.HideMenu();
             propertyList.OpenMenu();
 
             MenuState &= ~(QuickActionMenuState.WheelMenuControl | QuickActionMenuState.Peek);
             MenuState |= QuickActionMenuState.ListMenuControl;
+
+            if (isShortcut)
+                MenuState |= QuickActionMenuState.WheelShortcutOpened;
         }
     }
 }
