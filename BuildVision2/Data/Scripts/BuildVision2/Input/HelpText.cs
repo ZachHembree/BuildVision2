@@ -26,35 +26,35 @@ namespace DarkHelmet.BuildVision2
                 $"This update brings a complete redesign of Build Vision's UI and control scheme. The functionality is the same as it was " +
                 $"in 2.5, but the old list menu has been (mostly) replaced with an easier-to-use wheel menu.\n\n",
                 
-                $"The list menu is still available for properties not in the wheel menu and the old control scheme can be restored using the " +
-                $"Legacy Mode option in the settings. See the description below for the new binds and usage.\n\n",
+                $"The list menu is still available for properties not in the wheel menu and the old control scheme can be restored using the ",
+                { "Legacy Mode", highlight }, " option in the settings. See the description below for the new binds and usage.\n\n",
 
                 { "Usage \n\n", subheader },
 
                 $"This menu is opened by aiming at the desired block and pressing either ", {$"[{GetBindString(BvBinds.OpenWheel)}]", highlight}, 
                 " or ", {$"[{GetBindString(BvBinds.OpenList)}].", highlight}, " The first opens the wheel menu; the second opens the older " +
                 "list-style menu. Holding ", { $"[{GetBindString(BvBinds.MultX)}]", highlight }, $" (peek) will show a summary of the target " +
-                $"block's current status without opening the controls. Pressing ", {$"[{GetBindString(BvBinds.Cancel)}]", highlight}, "(Back/Cancel) " +
+                $"block's current status without opening the controls. Pressing ", {$"[{GetBindString(BvBinds.Cancel)}]", highlight}, " (Cancel/Back) " +
                 "will close the menu.\n\n",
 
-                $"By default, the menu will close if you move more than  10 meters ", {"(4 large blocks)", highlight }, " from your target block. " +
+                $"By default, the menu will close if you move more than 10 meters ", {"(4 large blocks)", highlight }, " from your target block. " +
                 "The exact distance can be customized in the settings section.\n\n",
 
                 { "Main Binds \n\n", subheader },
 
-                $"\tOpen Wheel:\t\t|\t[{GetBindString(BvBinds.OpenWheel)}]\n",
-                $"\tOpen List:\t\t|\t[{GetBindString(BvBinds.OpenList)}]\n",
-                $"\tSelect/Confirm:\t|\t[{GetBindString(BvBinds.Select)}]\n",
-                $"\tCancel/Back:\t|\t[{GetBindString(BvBinds.Cancel)}]\n",
-                $"\tScroll Up:\t\t\t|\t[{GetBindString(BvBinds.ScrollUp)}]\n",
-                $"\tScroll Down:\t\t|\t[{GetBindString(BvBinds.ScrollDown)}]\n\n",
+                $"\tOpen Wheel\t\t|\t[{GetBindString(BvBinds.OpenWheel)}]\n",
+                $"\tOpen List\t\t|\t[{GetBindString(BvBinds.OpenList)}]\n",
+                $"\tSelect/Confirm\t|\t[{GetBindString(BvBinds.Select)}]\n",
+                $"\tCancel/Back\t|\t[{GetBindString(BvBinds.Cancel)}]\n",
+                $"\tScroll Up\t\t\t|\t[{GetBindString(BvBinds.ScrollUp)}]\n",
+                $"\tScroll Down\t\t|\t[{GetBindString(BvBinds.ScrollDown)}]\n\n",
 
                 { "Selection:\n", subsection},
                 "There are two ways to select properties: scrolling or by moving the mouse. To highlight with the mouse, hold ",
-                { $"[{GetBindString(BvBinds.MultX)}]", highlight }, " (Peek), and move your mouse either clockwise or counterclockwise, like you're " +
+                { $"[{GetBindString(BvBinds.MultX)}]", highlight }, " (MultX/Peek), and move your mouse either clockwise or counterclockwise, like you're " +
                 "tracing a circle.\n\n",
 
-                "Pressing ", { "Select/Confirm", highlight }, " will open the highlighted property. Pressing that bind again will confirm any changes." +
+                "Pressing ", { "Select/Confirm", highlight }, " will open the highlighted property. Pressing that bind again will confirm any changes. " +
                 "Pressing ", { "Back/Cancel", highlight }, " will close the property without saving changes; pressing it again will close the menu.\n\n",
 
                 { "Note:", highlight }, " The list menu only supports scrolling with the mouse wheel (or scroll binds).\n\n",
@@ -63,14 +63,14 @@ namespace DarkHelmet.BuildVision2
                 "Properties can be changed using the scroll wheel in conjunction with the multiplier binds listed below, with text-only fields being the " +
                 "only exception.\n\n",
                
-                "Alternatively, ",{ "Peek", highlight }, " will allow you to use your cursor in the wheel menu with the control in the center. Depending on " +
+                "Alternatively, ",{ "MultX/Peek", highlight }, " will allow you to use your cursor in the wheel menu with the control in the center. Depending on " +
                 "the use case, this is often easier.\n\n",
 
                 { "Text:\n", subsection},
-                "Text fields are opened/closed with chat (Enter) and support the usage of the usual Ctrl+A/X/C/V binds to select, cut, copy and paste text. " +
-                "Fair warning: you'll only be able to copy text within Build Vision; it won't work with the terminal or anything else.\n\n" +
+                "Text fields are opened/closed with ", { "chat", highlight }, " (Enter) and support the usage of the usual Ctrl+A/X/C/V binds to select, cut, " +
+                "copy and paste text.  Fair warning: you'll only be able to copy text within Build Vision; it won't work with the terminal or anything else.\n\n" +
 
-                "Opening chat (pressing Enter) while a text field is highlighted will open text input automatically.\n\n",
+                "Opening ", { "chat", highlight }, " (pressing Enter) while a text field is highlighted will open text input automatically.\n\n",
 
                 { "Note:", highlight }, " Most numerical fields support text input.\n\n",
 
