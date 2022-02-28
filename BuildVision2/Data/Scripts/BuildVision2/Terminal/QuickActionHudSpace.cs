@@ -155,7 +155,8 @@ namespace DarkHelmet.BuildVision2
                         menuPos.Y -= .5f * quickActionMenu.Height;
                 }
 
-                if ((lastPos - menuPos).LengthSquared() > 16f)
+                if ((lastPos - menuPos).LengthSquared() > 16f 
+                    && !(HudMain.EnableCursor && SharedBinds.LeftButton.IsPressed))
                 {
                     quickActionMenu.Offset = menuPos;
                     lastPos = menuPos;
