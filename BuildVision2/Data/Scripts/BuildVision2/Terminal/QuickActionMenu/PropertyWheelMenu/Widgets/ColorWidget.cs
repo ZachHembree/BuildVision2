@@ -144,9 +144,9 @@ namespace DarkHelmet.BuildVision2
                         else if (BvBinds.MultXOrMouse.IsPressed)
                             offset *= incrX;
 
-                        if (BvBinds.ScrollUp.IsNewPressed)
+                        if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
                             colorPicker.sliders[selectedChannel].Current += offset;
-                        else if (BvBinds.ScrollDown.IsNewPressed)
+                        else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
                             colorPicker.sliders[selectedChannel].Current -= offset;                        
                     }
                 }

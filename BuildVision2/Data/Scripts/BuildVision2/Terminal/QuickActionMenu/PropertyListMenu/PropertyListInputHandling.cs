@@ -37,12 +37,12 @@ namespace DarkHelmet.BuildVision2
                                 bool multXPressed = BvBinds.MultXOrMouse.IsPressed;
                                 int offset = multXPressed ? 4 : 1;
 
-                                if (BvBinds.ScrollUp.IsNewPressed)
+                                if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
                                 {
                                     OffsetSelectionIndex(-offset);
                                     listWrapTimer.Restart();
                                 }
-                                else if (BvBinds.ScrollDown.IsNewPressed)
+                                else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
                                 {
                                     OffsetSelectionIndex(offset);
                                     listWrapTimer.Restart();
@@ -172,7 +172,7 @@ namespace DarkHelmet.BuildVision2
                     {
                         HandleTextInput();
                     }
-                    else
+                    else if (BvBinds.ScrollUp.IsPressed || BvBinds.ScrollDown.IsPressed)
                     {
                         double absRange = Math.Abs(floatMember.MaxValue - floatMember.MinValue),
                             logRange = Math.Ceiling(Math.Log10(absRange)),
@@ -196,16 +196,13 @@ namespace DarkHelmet.BuildVision2
                         else if (BvBinds.MultXOrMouse.IsPressed)
                             offset *= BvConfig.Current.block.floatMult.X;
 
-                        if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
-                        {
-                            if (double.IsInfinity(value))
-                                value = 0d;
+                        if (double.IsInfinity(value))
+                            value = 0d;
 
-                            if (BvBinds.ScrollUp.IsNewPressed)
-                                value += offset;
-                            else if (BvBinds.ScrollDown.IsNewPressed)
-                                value -= offset;
-                        }                        
+                        if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
+                            value += offset;
+                        else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
+                            value -= offset;
 
                         if (absRange > floatPropLogThreshold)
                             floatMember.Value = (float)(Math.Pow(10d, value * logRange) - 1d + floatMember.MinValue);
@@ -249,11 +246,11 @@ namespace DarkHelmet.BuildVision2
 
                         byte color = colorMember.Value;
 
-                        if (BvBinds.ScrollUp.IsNewPressed)
+                        if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
                         {
                             colorMember.Value = (byte)MathHelper.Clamp(color + offset, 0, 255);
                         }
-                        else if (BvBinds.ScrollDown.IsNewPressed)
+                        else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
                         {
                             colorMember.Value = (byte)MathHelper.Clamp(color - offset, 0, 255);
                         }
@@ -278,14 +275,14 @@ namespace DarkHelmet.BuildVision2
                     if (lastPropValue == null)
                         lastPropValue = comboBox.Value;
 
-                    if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
+                    if (BvBinds.ScrollUp.IsPressed || BvBinds.ScrollDown.IsPressed)
                     {
                         var entries = comboBox.ComboEntries as List<KeyValuePair<long, StringBuilder>>;
                         int index = (int)comboBox.Value;
 
-                        if (BvBinds.ScrollUp.IsNewPressed)
+                        if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
                             index = MathHelper.Clamp(index + 1, 0, entries.Count - 1);
-                        else if (BvBinds.ScrollDown.IsNewPressed)
+                        else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
                             index = MathHelper.Clamp(index - 1, 0, entries.Count - 1);
 
                         comboBox.Value = index;

@@ -74,13 +74,13 @@ namespace DarkHelmet.BuildVision2
             {
                 base.HandleInput(cursorPos);
 
-                if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
+                if (BvBinds.ScrollUp.IsPressed || BvBinds.ScrollDown.IsPressed)
                 {
                     int index = comboBox.SelectionIndex;
 
-                    if (BvBinds.ScrollUp.IsNewPressed)
+                    if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
                         index++;
-                    else if (BvBinds.ScrollDown.IsNewPressed)
+                    else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
                         index--;
 
                     comboBox.SetSelectionAt(index);

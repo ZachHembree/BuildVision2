@@ -102,7 +102,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     floatMember.Value = GetSliderValue();
 
-                    if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollDown.IsNewPressed)
+                    if (BvBinds.ScrollUp.IsPressed || BvBinds.ScrollDown.IsPressed)
                     {
                         float offset = Math.Min(floatMember.Increment, 1E5f);
 
@@ -118,9 +118,9 @@ namespace DarkHelmet.BuildVision2
                         if (float.IsInfinity(value))
                             value = 0f;
 
-                        if (BvBinds.ScrollUp.IsNewPressed)
+                        if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
                             SetSliderValue(value + offset);
-                        else if (BvBinds.ScrollDown.IsNewPressed)
+                        else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
                             SetSliderValue(value - offset);
                     }
                 }

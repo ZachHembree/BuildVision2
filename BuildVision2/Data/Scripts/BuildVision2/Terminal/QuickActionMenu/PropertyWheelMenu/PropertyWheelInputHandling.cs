@@ -70,9 +70,9 @@ namespace DarkHelmet.BuildVision2
 
                 if (!(BvBinds.StartDupe.IsPressed || BvBinds.StopDupe.IsPressed))
                 {
-                    if (BvBinds.ScrollUp.IsPressed)
+                    if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
                         ScrollSelection(1);
-                    if (BvBinds.ScrollDown.IsPressed)
+                    if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
                         ScrollSelection(-1);
 
                     if (BvBinds.Cancel.IsNewPressed)
