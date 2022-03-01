@@ -105,6 +105,16 @@ namespace DarkHelmet.BuildVision2
         /// Standard increment
         /// </summary>
         T Increment { get; }
+        
+        /// <summary>
+        /// Returns true if the value is an integral value
+        /// </summary>
+        bool IsInteger { get; }
+
+        /// <summary>
+        /// Returns true if the property accepts increments scaled using configurable multipliers
+        /// </summary>
+        bool CanUseMultipliers { get; }
     }
 
     public interface IBlockColor : IBlockNumericValue<Color>

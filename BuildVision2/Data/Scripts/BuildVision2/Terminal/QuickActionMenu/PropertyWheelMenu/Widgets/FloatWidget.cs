@@ -106,12 +106,20 @@ namespace DarkHelmet.BuildVision2
                     {
                         float offset = Math.Min(floatMember.Increment, 1E5f);
 
-                        if (BvBinds.MultZ.IsPressed)
-                            offset *= BvConfig.Current.block.floatMult.Z;
-                        else if (BvBinds.MultY.IsPressed)
-                            offset *= BvConfig.Current.block.floatMult.Y;
-                        else if (BvBinds.MultXOrMouse.IsPressed)
-                            offset *= BvConfig.Current.block.floatMult.X;
+                        if (floatMember.CanUseMultipliers)
+                        {
+                            float mult = 1f;
+
+                            if (BvBinds.MultZ.IsPressed)
+                                mult = BvConfig.Current.block.floatMult.Z;
+                            else if (BvBinds.MultY.IsPressed)
+                                mult = BvConfig.Current.block.floatMult.Y;
+                            else if (BvBinds.MultXOrMouse.IsPressed)
+                                mult = BvConfig.Current.block.floatMult.X;
+
+                            if (!floatMember.IsInteger || MathHelper.IsEqual((float)(mult * offset), (int)(mult * offset)))
+                                offset *= mult;
+                        }
 
                         float value = floatMember.Value;
 

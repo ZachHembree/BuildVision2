@@ -101,16 +101,19 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void CopySelectedProperties()
         {
-            int copiedProperties = Target.Duplicator.CopySelectedProperties();
+            if (Target.Duplicator.GetSelectedEntryCount() > 0)
+            {
+                int copiedProperties = Target.Duplicator.CopySelectedProperties();
 
-            notifText.Clear();
-            notifText.Append("Copied ");
-            notifText.Append(copiedProperties);
-            notifText.Append(" properties");
-            ShowNotification(notifText);
+                notifText.Clear();
+                notifText.Append("Copied ");
+                notifText.Append(copiedProperties);
+                notifText.Append(" properties");
+                ShowNotification(notifText);
 
-            if (copiedProperties > 0)
-                StopPropertyDuplication();
+                if (copiedProperties > 0)
+                    StopPropertyDuplication();
+            }
         }
 
         /// <summary>

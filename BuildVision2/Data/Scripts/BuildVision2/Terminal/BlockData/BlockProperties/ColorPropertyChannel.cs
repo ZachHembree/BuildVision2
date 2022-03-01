@@ -28,6 +28,10 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            public bool CanUseMultipliers { get; }
+
+            public bool IsInteger { get; }
+
             public Func<char, bool> CharFilterFunc => parent.CharFilterFunc;
 
             public string PropName
@@ -86,6 +90,8 @@ namespace DarkHelmet.BuildVision2
                 this.parent = parent;
                 this.suffix = suffix;
                 this.channel = channel;
+                CanUseMultipliers = true;
+                IsInteger = false;
             }
 
             public PropertyData? GetPropertyData()

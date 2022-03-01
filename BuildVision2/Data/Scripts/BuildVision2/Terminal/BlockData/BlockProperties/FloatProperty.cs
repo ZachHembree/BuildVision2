@@ -90,7 +90,6 @@ namespace DarkHelmet.BuildVision2
                 GetPistonExtensionFunc = GetPistonExtension;
                 GetRotorAngleFunc = GetRotorAngle;
                 GetThrustEffectFunc = GetThrustEffect;
-
                 ValueType = BlockMemberValueTypes.Float;
             }
 
@@ -120,6 +119,11 @@ namespace DarkHelmet.BuildVision2
                     else if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Piston))
                         GetStatusFunc = GetPistonExtensionFunc;
                 }
+
+                if (property.Id == "X" || property.Id == "Y" || property.Id == "Z" || property.Id.StartsWith("Rot"))
+                    IsInteger = true;
+                else
+                    IsInteger = false;
             }
 
             public override void Reset()
@@ -157,7 +161,7 @@ namespace DarkHelmet.BuildVision2
                     float effectiveness = GetScaleFunc(),
                         rcpEffectiveness = effectiveness > 0f ? (1f / effectiveness) : 1f;
 
-                    base.SetValue(MathHelper.Clamp((value * rcpEffectiveness).Round(6), MinValue, MaxValue));
+                    base.SetValue((float)MathHelper.Clamp(Math.Round(value * rcpEffectiveness, 5), MinValue, MaxValue));
                 }
             }
 
@@ -259,10 +263,15 @@ namespace DarkHelmet.BuildVision2
             {
                 float increment;
 
-                if (property.Id.StartsWith("Rot")) // Increment exception for projectors
+                if (property.Id.StartsWith("Rot"))
+                {
                     increment = 90f;
+                    CanUseMultipliers = false;
+                }
                 else
                 {
+                    CanUseMultipliers = true;
+
                     if (float.IsInfinity(MinValue) || float.IsInfinity(MaxValue))
                         increment = 1f;
                     else

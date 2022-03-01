@@ -13,9 +13,15 @@ namespace DarkHelmet.BuildVision2
         {
             public Func<char, bool> CharFilterFunc { get; }
 
+            public bool CanUseMultipliers { get; protected set; }
+
+            public bool IsInteger { get; protected set; }
+
             public NumericPropertyBase()
             {
                 CharFilterFunc = FilterCharInput;
+                CanUseMultipliers = true;
+                IsInteger = false;
             }
 
             protected virtual bool FilterCharInput(char x) =>
