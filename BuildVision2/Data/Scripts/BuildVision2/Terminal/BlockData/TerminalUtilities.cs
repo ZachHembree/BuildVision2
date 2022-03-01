@@ -74,6 +74,10 @@ namespace DarkHelmet.BuildVision2
             { 'c' },
             { 'm' },
         };
+        public static IReadOnlyList<string> SpecialPrefixes = new string[]
+        {
+            "°", "m/s", "rpm"
+        };
         public const float MetricPrefixMax = 1E24f, MetricPrefixMin = 1E-3f;
 
         private static Dictionary<Type, bool> ownableBlockMap;

@@ -195,29 +195,42 @@ namespace DarkHelmet.BuildVision2
                             )
                             {
                                 nonCharPostfix = true;
-                                break;
                             }
                         }
                     }
                 }
 
-                if (numLength > 0 && !nonCharPostfix)
+                if (numLength > 0 && unitBuilder.Length > 0)
                 {
                     float value = GetValue(),
-                        magnitude;
+                        magnitude = -1f;
 
                     // Assumes metric-prefixed units, meaning at least two alphabetical characters (sans spacing),
                     // where the first char is the prefix and the characters following are the unit type
-                    if (unitBuilder.Length > 1 && 
-                        ((unitBuilder[1] >= 'A' && unitBuilder[1] <= 'Z') || 
+                    bool isMetricPrefixValue = !nonCharPostfix && unitBuilder.Length > 1 &&
+                        ((unitBuilder[1] >= 'A' && unitBuilder[1] <= 'Z') ||
                         (unitBuilder[1] >= 'a' && unitBuilder[1] <= 'z')) &&
-                        TerminalUtilities.MetricPrefixMagTable.TryGetValue(unitBuilder[0], out magnitude))
+                        TerminalUtilities.MetricPrefixMagTable.TryGetValue(unitBuilder[0], out magnitude);
+
+                    if (!isMetricPrefixValue)
+                    {
+                        foreach (string prefix in TerminalUtilities.SpecialPrefixes)
+                        {
+                            if (unitBuilder.IsTextEqual(prefix))
+                            {
+                                magnitude = 1f;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (magnitude > 0f)
                     {
                         fmtValueBuilder.Clear();
                         fmtValueBuilder.AppendFormat("{0:G5}", Math.Round(value / magnitude, 3));
                         fmtValueBuilder.Append(' ');
                         fmtValueBuilder.Append(unitBuilder);
-                    }                    
+                    }
                 }
 
                 return fmtValueBuilder;

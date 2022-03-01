@@ -170,7 +170,7 @@ namespace DarkHelmet.BuildVision2
                     posLerpFactor = 1f;
 
                 float lerpScale = frameTimer.ElapsedMilliseconds / 16.6667f;
-                posLerpFactor = Math.Min(posLerpFactor + .3f * lerpScale, 1f);
+                posLerpFactor = Math.Min(posLerpFactor + .4f * lerpScale, 1f);
                 quickActionMenu.Offset = Vector2.Lerp(quickActionMenu.Offset, lastPos, posLerpFactor);
                 quickActionMenu.Visible = bpTick > 30;
             }
