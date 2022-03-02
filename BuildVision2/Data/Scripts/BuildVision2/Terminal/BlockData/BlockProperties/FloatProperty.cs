@@ -18,14 +18,24 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class FloatProperty : NumericPropertyBase<float>, IBlockNumericValue<float>
         {
-            public float Value { get { return GetValue(); } set { SetValue(value); } }
-
+            /// <summary>
+            /// Maximum allowable value
+            /// </summary>
             public float MaxValue { get; private set; }
 
+            /// <summary>
+            /// Minimum allowable value
+            /// </summary>
             public float MinValue { get; private set; }
 
+            /// <summary>
+            /// Standard increment
+            /// </summary>
             public float Increment { get; private set; }
 
+            /// <summary>
+            /// Retrieves the value as a <see cref="StringBuilder"/> using formatting specific to the member.
+            /// </summary>
             public override StringBuilder FormattedValue
             {
                 get 
@@ -39,17 +49,23 @@ namespace DarkHelmet.BuildVision2
                 } 
             }
 
+            /// <summary>
+            /// Retrieves the current value of the block member as an unformatted <see cref="StringBuilder"/>
+            /// </summary>
             public override StringBuilder ValueText 
             {
                 get 
                 {
                     valueBuilder.Clear();
-                    valueBuilder.AppendFormat("{0:G6}", Math.Round(GetValue(), 4));
+                    valueBuilder.AppendFormat("{0:G6}", Math.Round(Value, 4));
 
                     return valueBuilder;
                 }
             }
 
+            /// <summary>
+            /// Additional information following the value of the member.
+            /// </summary>
             public override StringBuilder StatusText 
             {
                 get 
@@ -102,7 +118,8 @@ namespace DarkHelmet.BuildVision2
 
                 var slider = control as IMyTerminalControlSlider;
                 SliderWriter = slider?.Writer;
-                
+
+                Flags = BlockPropertyFlags.None;
                 MinValue = property.GetMinimum(block.TBlock);
                 MaxValue = property.GetMaximum(block.TBlock);
                 Increment = GetIncrement();
@@ -121,9 +138,7 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 if (property.Id == "X" || property.Id == "Y" || property.Id == "Z" || property.Id.StartsWith("Rot"))
-                    IsInteger = true;
-                else
-                    IsInteger = false;
+                    Flags |= BlockPropertyFlags.IsIntegral;
             }
 
             public override void Reset()
@@ -148,13 +163,13 @@ namespace DarkHelmet.BuildVision2
                 return prop;
             }
 
-            public override float GetValue()
+            protected override float GetValue()
             {
                 float value = base.GetValue() * GetScaleFunc();
                 return value != float.NaN ? value : 0f;
             }
 
-            public override void SetValue(float value)
+            protected override void SetValue(float value)
             {
                 if (value != float.NaN)
                 {
@@ -266,11 +281,10 @@ namespace DarkHelmet.BuildVision2
                 if (property.Id.StartsWith("Rot"))
                 {
                     increment = 90f;
-                    CanUseMultipliers = false;
                 }
                 else
                 {
-                    CanUseMultipliers = true;
+                    Flags |= BlockPropertyFlags.CanUseMultipliers;
 
                     if (float.IsInfinity(MinValue) || float.IsInfinity(MaxValue))
                         increment = 1f;

@@ -18,8 +18,6 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class BoolProperty : BvTerminalProperty<ITerminalProperty<bool>, bool>, IBlockAction, IBlockValue<bool>
         {
-            public bool Value { get { return GetValue(); } set { SetValue(value); } }
-
             public override StringBuilder FormattedValue => GetPropStateText();
 
             public override StringBuilder StatusText 
@@ -114,7 +112,7 @@ namespace DarkHelmet.BuildVision2
             }
 
             public void Action() =>
-                SetValue(!GetValue());
+                Value = !Value;
 
             public override bool TryParseValue(string valueData, out bool value) =>
                 bool.TryParse(valueData, out value);
@@ -124,7 +122,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private StringBuilder GetPropStateText()
             {
-                if (GetValue())
+                if (Value)
                     return MyTexts.Get(OnText);
                 else
                     return MyTexts.Get(OffText);

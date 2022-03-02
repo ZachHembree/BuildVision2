@@ -15,10 +15,14 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ComboBoxProperty : BvTerminalValueControl<IMyTerminalControlCombobox, long>, IBlockComboBox
         {
-            public long Value { get{ return GetValue(); } set { SetValue(value); } }
-
+            /// <summary>
+            /// Localized selection options for combo box
+            /// </summary>
             public IReadOnlyList<KeyValuePair<long, StringBuilder>> ComboEntries => comboEntries;
 
+            /// <summary>
+            /// Retrieves the value as a <see cref="StringBuilder"/> using formatting specific to the member.
+            /// </summary>
             public override StringBuilder FormattedValue 
             {
                 get 
@@ -32,6 +36,9 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            /// <summary>
+            /// Additional information following the value of the member.
+            /// </summary>
             public override StringBuilder StatusText 
             { 
                 get
@@ -114,7 +121,7 @@ namespace DarkHelmet.BuildVision2
                 sb.Append("%)");
             }
 
-            public override long GetValue()
+            protected override long GetValue()
             {
                 long key = base.GetValue();
 
@@ -127,7 +134,7 @@ namespace DarkHelmet.BuildVision2
                 return 0;
             }
 
-            public override void SetValue(long value)
+            protected override void SetValue(long value)
             {
                 int index = MathHelper.Clamp((int)value, 0, comboEntries.Count - 1);
                 base.SetValue(comboEntries[index].Key);

@@ -10,18 +10,31 @@ namespace DarkHelmet.BuildVision2
         /// Property for numerical values. Allows scrolling and text input.
         /// </summary>
         private abstract class NumericPropertyBase<TValue> : BvTerminalProperty<ITerminalProperty<TValue>, TValue>, IBlockTextMember
+            where TValue : IEquatable<TValue>
         {
+            /// <summary>
+            /// Get/sets the value associated with the property
+            /// </summary>
+            public override TValue Value
+            {
+                get { return _value; }
+                set
+                {
+                    if (!_value.Equals(value))
+                        valueChanged = true;
+
+                    _value = value;
+                }
+            }
+
+            /// <summary>
+            /// Delegate used for filtering text input. Returns true if a given character is in the accepted range.
+            /// </summary>
             public Func<char, bool> CharFilterFunc { get; }
-
-            public bool CanUseMultipliers { get; protected set; }
-
-            public bool IsInteger { get; protected set; }
 
             public NumericPropertyBase()
             {
                 CharFilterFunc = FilterCharInput;
-                CanUseMultipliers = true;
-                IsInteger = false;
             }
 
             protected virtual bool FilterCharInput(char x) =>
@@ -32,7 +45,7 @@ namespace DarkHelmet.BuildVision2
                 TValue newValue;
 
                 if (TryParseValue(value, out newValue))
-                    SetValue(newValue);
+                    Value = newValue;
             }
         }
     }

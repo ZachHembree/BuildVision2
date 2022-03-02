@@ -62,6 +62,9 @@ namespace DarkHelmet.BuildVision2
                 action = Action;
             }
 
+            public override void Update()
+            { }
+
             public override void Reset()
             {
                 dispBuilder.Clear();

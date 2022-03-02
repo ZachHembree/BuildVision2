@@ -12,12 +12,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ColorPropertyChannel : IBlockNumericValue<byte>
         {
-            public byte MinValue => 0;
-
-            public byte MaxValue => 255;
-
-            public byte Increment => 1;
-
+            /// <summary>
+            /// Gets/sets the member's value
+            /// </summary>
             public byte Value
             {
                 get { return parent.Value.GetChannel(channel); }
@@ -28,12 +25,34 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
-            public bool CanUseMultipliers { get; }
+            /// <summary>
+            /// Minimum allowable value
+            /// </summary>
+            public byte MinValue { get; }
 
-            public bool IsInteger { get; }
+            /// <summary>
+            /// Maximum allowable value
+            /// </summary>
+            public byte MaxValue { get; }
 
+            /// <summary>
+            /// Standard increment
+            /// </summary>
+            public byte Increment { get; }
+
+            /// <summary>
+            /// Returns flags associated with the property
+            /// </summary>
+            public virtual BlockPropertyFlags Flags { get; protected set; }
+
+            /// <summary>
+            /// Delegate used for filtering text input. Returns true if a given character is in the accepted range.
+            /// </summary>
             public Func<char, bool> CharFilterFunc => parent.CharFilterFunc;
 
+            /// <summary>
+            /// Unique identifier associated with the property
+            /// </summary>
             public string PropName
             {
                 get
@@ -47,6 +66,9 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            /// <summary>
+            /// Retrieves the name of the block property
+            /// </summary>
             public StringBuilder Name
             {
                 get
@@ -60,8 +82,14 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            /// <summary>
+            /// Retrieves the value as a <see cref="StringBuilder"/> using formatting specific to the member.
+            /// </summary>
             public StringBuilder FormattedValue => ValueText;
 
+            /// <summary>
+            /// Retrieves the current value of the block member as an unformatted <see cref="StringBuilder"/>
+            /// </summary>
             public StringBuilder ValueText
             {
                 get
@@ -72,10 +100,19 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            /// <summary>
+            /// Additional information following the value of the member.
+            /// </summary>
             public StringBuilder StatusText => null;
 
+            /// <summary>
+            /// Indicates whether or not a given <see cref="IBlockMember"/> should be shown in the terminal.
+            /// </summary>
             public bool Enabled => parent.Enabled;
 
+            /// <summary>
+            /// Returns the type of data stored by this member, if any.
+            /// </summary>
             public BlockMemberValueTypes ValueType => BlockMemberValueTypes.ColorChannel;
 
             private readonly ColorProperty parent;
@@ -90,8 +127,11 @@ namespace DarkHelmet.BuildVision2
                 this.parent = parent;
                 this.suffix = suffix;
                 this.channel = channel;
-                CanUseMultipliers = true;
-                IsInteger = false;
+
+                Flags = BlockPropertyFlags.IsIntegral | BlockPropertyFlags.CanUseMultipliers;
+                MinValue = 0;
+                MaxValue = 1;
+                Increment = 1;
             }
 
             public PropertyData? GetPropertyData()

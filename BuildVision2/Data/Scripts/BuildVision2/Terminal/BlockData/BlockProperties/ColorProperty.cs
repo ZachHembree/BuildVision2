@@ -14,22 +14,35 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class ColorProperty : NumericPropertyBase<Color>, IBlockColor
         {
-            public Color Value { get { return GetValue(); } set { SetValue(value); } }
+            /// <summary>
+            /// Minimum allowable value
+            /// </summary>
+            public Color MinValue { get; }
 
-            public Color MinValue => Color.Black;
+            /// <summary>
+            /// Maximum allowable value
+            /// </summary>
+            public Color MaxValue { get; }
 
-            public Color MaxValue => Color.White;
+            /// <summary>
+            /// Standard increment
+            /// </summary>
+            public Color Increment { get; }
 
-            public Color Increment => new Color(1, 1, 1);
-
+            /// <summary>
+            /// Associated color channels as byte-value block members
+            /// </summary>
             public IReadOnlyList<IBlockNumericValue<byte>> ColorChannels { get; }
 
+            /// <summary>
+            /// Retrieves the value as a <see cref="StringBuilder"/> using formatting specific to the member.
+            /// </summary>
             public override StringBuilder FormattedValue
             {
                 get
                 {
                     dispBuilder.Clear();
-                    Color value = GetValue();
+                    Color value = Value;
                     dispBuilder.Append(value.R);
                     dispBuilder.Append(", ");
                     dispBuilder.Append(value.G);
@@ -40,16 +53,22 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            /// <summary>
+            /// Additional information following the value of the member.
+            /// </summary>
             public override StringBuilder StatusText => null;
 
             private BvPropPool<ColorProperty> poolParent;
-
             private readonly StringBuilder dispBuilder;
 
             public ColorProperty()
             {
-                dispBuilder = new StringBuilder();
+                MinValue = Color.Black;
+                MaxValue = Color.White;
+                Increment = new Color(1, 1, 1);
+                Flags = BlockPropertyFlags.IsIntegral | BlockPropertyFlags.CanUseMultipliers;
                 ValueType = BlockMemberValueTypes.Color;
+                dispBuilder = new StringBuilder();
 
                 ColorChannels = new IBlockNumericValue<byte>[3]
                 {
@@ -86,7 +105,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (Utils.ProtoBuf.TryDeserialize(data.valueData, out value) == null)
                 {
-                    SetValue(value);
+                    Value = value;
                     return true;
                 }
                 else
@@ -100,9 +119,9 @@ namespace DarkHelmet.BuildVision2
             {
                 byte[] valueData;
 
-                if (Utils.ProtoBuf.TrySerialize(GetValue(), out valueData) == null)
+                if (Utils.ProtoBuf.TrySerialize(Value, out valueData) == null)
                 {
-                    return new PropertyData(PropName.ToString(), valueData, Enabled, ValueType);
+                    return new PropertyData(PropName, valueData, Enabled, ValueType);
                 }
                 else
                     return default(PropertyData);

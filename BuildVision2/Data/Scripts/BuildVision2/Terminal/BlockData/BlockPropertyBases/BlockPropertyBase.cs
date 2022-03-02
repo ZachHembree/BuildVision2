@@ -13,6 +13,11 @@ namespace DarkHelmet.BuildVision2
         private abstract class BlockPropertyBase : BlockMemberBase, IBlockProperty
         {
             /// <summary>
+            /// Returns flags associated with the property
+            /// </summary>
+            public virtual BlockPropertyFlags Flags { get; protected set; }
+
+            /// <summary>
             /// Returns a serializable representation of the property.
             /// </summary>
             public abstract PropertyData? GetPropertyData();
@@ -21,43 +26,56 @@ namespace DarkHelmet.BuildVision2
             /// Attempts to apply the given property data.
             /// </summary>
             public abstract bool TryImportData(PropertyData data);
+
+            public BlockPropertyBase()
+            {
+                Flags = BlockPropertyFlags.CanUseMultipliers;
+            }
         }
 
         /// <summary>
         /// Base class for Build Vision terminal properties that make use of SE's <see cref="ITerminalProperty"/>
         /// </summary>
-        private abstract class BlockPropertyBase<TProp, TValue> : BlockPropertyBase 
+        private abstract class BlockPropertyBase<TProp, TValue> : BlockPropertyBase
             where TProp : class, ITerminalProperty
         {
             public override string PropName => property?.Id;
 
-            public override bool Enabled 
-            { 
-                get 
+            /// <summary>
+            /// Get/sets the value associated with the property
+            /// </summary>
+            public virtual TValue Value
+            {
+                get { return _value; }
+                set
                 {
-                    try
-                    {
-                        return control.Enabled(block.TBlock) && control.Visible(block.TBlock);
-                    }
-                    catch { }
+                    if (!_value.Equals(value))
+                        valueChanged = true;
 
-                    return false;
-                } 
+                    _value = value;
+                }
             }
+
+            /// <summary>
+            /// Returns true if the associated terminal control is enabled and visible
+            /// </summary>
+            public override bool Enabled { get; protected set; }
 
             protected TProp property;
             protected IMyTerminalControl control;
             protected PropertyBlock block;
-
-            private Func<IMyTerminalBlock, TValue> Getter;
-            private Action<IMyTerminalBlock, TValue> Setter;
+            protected Func<IMyTerminalBlock, TValue> Getter;
+            protected Action<IMyTerminalBlock, TValue> Setter;
+            protected TValue _value;
+            protected bool valueChanged;
 
             public BlockPropertyBase()
             {
                 Name = new StringBuilder();
             }
 
-            protected virtual void SetPropertyInternal(StringBuilder name, TProp property, PropertyBlock block, Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
+            protected virtual void SetPropertyInternal(StringBuilder name, TProp property, PropertyBlock block,
+                Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
             {
                 Name.Clear();
                 Name.Append(name);
@@ -70,6 +88,9 @@ namespace DarkHelmet.BuildVision2
                 this.Setter = Setter;
             }
 
+            /// <summary>
+            /// Resets the property object for reuse
+            /// </summary>
             public override void Reset()
             {
                 Name.Clear();
@@ -80,13 +101,34 @@ namespace DarkHelmet.BuildVision2
 
                 this.Getter = null;
                 this.Setter = null;
+
+                Enabled = false;
+                _value = default(TValue);
+                valueChanged = false;
+            }
+
+            public override void Update()
+            {
+                Enabled = GetEnabled();
+
+                if (Enabled)
+                {
+                    TValue newValue = GetValue();
+
+                    if (!valueChanged)
+                        _value = newValue;
+                    else
+                        SetValue(_value);                    
+                }
+
+                valueChanged = false;
             }
 
             /// <summary>
-            /// Safely retrieves the current value of the property. Will return default if the property is not enabled
-            /// or if an error occurs.
+            /// Returns the value of the associated block property to the given value, if the corresponding control
+            /// is enabled
             /// </summary>
-            public virtual TValue GetValue()
+            protected virtual TValue GetValue()
             {
                 if (Enabled)
                 {
@@ -101,9 +143,10 @@ namespace DarkHelmet.BuildVision2
             }
 
             /// <summary>
-            /// Safely sets the current value of the property to the one given if the property is enabled.
+            /// Sets the value of the associated block property to the given value, if the corresponding control
+            /// is enabled
             /// </summary>
-            public virtual void SetValue(TValue value)
+            protected virtual void SetValue(TValue value)
             {
                 if (Enabled)
                 {
@@ -115,13 +158,27 @@ namespace DarkHelmet.BuildVision2
                 }
             }
 
+            /// <summary>
+            /// Returns true if the associated control is enabled and visible
+            /// </summary>
+            protected virtual bool GetEnabled()
+            {
+                try
+                {
+                    return control.Enabled(block.TBlock) && control.Visible(block.TBlock);
+                }
+                catch { }
+
+                return false;
+            }
+
             public override bool TryImportData(PropertyData data)
             {
                 TValue value;
 
                 if (Utils.ProtoBuf.TryDeserialize(data.valueData, out value) == null)
                 {
-                    SetValue(value);
+                    Value = value;
                     return true;
                 }
                 else
@@ -132,7 +189,7 @@ namespace DarkHelmet.BuildVision2
             {
                 byte[] valueData;
 
-                if (Utils.ProtoBuf.TrySerialize(GetValue(), out valueData) == null)
+                if (Utils.ProtoBuf.TrySerialize(Value, out valueData) == null)
                 {
                     return new PropertyData(PropName.ToString(), valueData, Enabled, ValueType);
                 }
@@ -143,7 +200,8 @@ namespace DarkHelmet.BuildVision2
             public abstract bool TryParseValue(string valueData, out TValue value);
         }
 
-        private abstract class BvTerminalProperty<TProp, TValue> : BlockPropertyBase<TProp, TValue> where TProp : class, ITerminalProperty<TValue>
+        private abstract class BvTerminalProperty<TProp, TValue> : BlockPropertyBase<TProp, TValue> 
+            where TProp : class, ITerminalProperty<TValue>
         {
             public virtual void SetProperty(StringBuilder name, TProp property, PropertyBlock block)
             {
@@ -151,7 +209,8 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        private abstract class BvTerminalValueControl<TProp, TValue> : BlockPropertyBase<TProp, TValue> where TProp : class, IMyTerminalValueControl<TValue>
+        private abstract class BvTerminalValueControl<TProp, TValue> : BlockPropertyBase<TProp, TValue> 
+            where TProp : class, IMyTerminalValueControl<TValue>
         {
             public virtual void SetProperty(StringBuilder name, TProp property, PropertyBlock block)
             {

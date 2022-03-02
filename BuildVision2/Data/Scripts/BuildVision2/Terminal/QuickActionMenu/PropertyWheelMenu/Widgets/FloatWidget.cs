@@ -106,7 +106,7 @@ namespace DarkHelmet.BuildVision2
                     {
                         float offset = Math.Min(floatMember.Increment, 1E5f);
 
-                        if (floatMember.CanUseMultipliers)
+                        if ((floatMember.Flags & BlockPropertyFlags.CanUseMultipliers) > 0)
                         {
                             float mult = 1f;
 
@@ -117,8 +117,11 @@ namespace DarkHelmet.BuildVision2
                             else if (BvBinds.MultXOrMouse.IsPressed)
                                 mult = BvConfig.Current.block.floatMult.X;
 
-                            if (!floatMember.IsInteger || MathHelper.IsEqual((float)(mult * offset), (int)(mult * offset)))
+                            if ((floatMember.Flags & BlockPropertyFlags.IsIntegral) == 0 
+                                || MathHelper.IsEqual((float)(mult * offset), (int)(mult * offset)))
+                            {
                                 offset *= mult;
+                            }
                         }
 
                         float value = floatMember.Value;

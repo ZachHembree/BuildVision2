@@ -5,15 +5,29 @@ using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    public enum BlockMemberValueTypes
+    /// <summary>
+    /// Types of data used for <see cref="PropertyBlock"/> members
+    /// </summary>
+    public enum BlockMemberValueTypes : int
     {
-        None,
-        Bool,
-        Color,
-        ColorChannel,
-        Combo,
-        Float,
-        Text
+        None = 0,
+        Bool = 1,
+        Color = 2,
+        ColorChannel = 3,
+        Combo = 4,
+        Float = 5,
+        Text = 6
+    }
+
+    /// <summary>
+    /// Flags assigned to block member wrappers used w/<see cref="PropertyBlock"/>
+    /// </summary>
+    [Flags]
+    public enum BlockPropertyFlags : int
+    {
+        None = 0,
+        IsIntegral = 0x1,
+        CanUseMultipliers = 0x2,
     }
 
     public interface IBlockMember
@@ -62,6 +76,11 @@ namespace DarkHelmet.BuildVision2
     public interface IBlockProperty : IBlockMember
     {
         /// <summary>
+        /// Returns flags associated with the property
+        /// </summary>
+        BlockPropertyFlags Flags { get; }
+
+        /// <summary>
         /// Returns a serializable representation of the property.
         /// </summary>
         PropertyData? GetPropertyData();
@@ -72,8 +91,14 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public interface IBlockTextMember : IBlockProperty
     {
+        /// <summary>
+        /// Delegate used for filtering text input. Returns true if a given character is in the accepted range.
+        /// </summary>
         Func<char, bool> CharFilterFunc { get; }
 
+        /// <summary>
+        /// Assigns value as string, parses if nececessary.
+        /// </summary>
         void SetValueText(string text);
     }
 
@@ -105,16 +130,6 @@ namespace DarkHelmet.BuildVision2
         /// Standard increment
         /// </summary>
         T Increment { get; }
-        
-        /// <summary>
-        /// Returns true if the value is an integral value
-        /// </summary>
-        bool IsInteger { get; }
-
-        /// <summary>
-        /// Returns true if the property accepts increments scaled using configurable multipliers
-        /// </summary>
-        bool CanUseMultipliers { get; }
     }
 
     public interface IBlockColor : IBlockNumericValue<Color>
@@ -128,7 +143,7 @@ namespace DarkHelmet.BuildVision2
     public interface IBlockComboBox : IBlockValue<long>
     {
         /// <summary>
-        /// Selection options for combo box
+        /// Localized selection options for combo box
         /// </summary>
         IReadOnlyList<KeyValuePair<long, StringBuilder>> ComboEntries { get; }
     }

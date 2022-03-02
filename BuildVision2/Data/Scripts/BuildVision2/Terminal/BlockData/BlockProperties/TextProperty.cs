@@ -13,12 +13,36 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private class TextProperty : BvTerminalProperty<ITerminalProperty<StringBuilder>, StringBuilder>, IBlockTextMember, IBlockValue<StringBuilder>
         {
-            public StringBuilder Value { get { return GetValue(); } set { SetValue(value); } } 
+            /// <summary>
+            /// Get/sets the value associated with the property
+            /// </summary>
+            public override StringBuilder Value
+            {
+                get { CleanText(GetValue(), valueBuilder); return valueBuilder; }
+                set
+                {
+                    if (value != null)
+                    {
+                        valueBuilder.Clear();
+                        valueBuilder.Append(value);
+                        SetValue(valueBuilder);
+                    }
+                }
+            }
 
+            /// <summary>
+            /// Retrieves the value as a <see cref="StringBuilder"/> using formatting specific to the member.
+            /// </summary>
             public override StringBuilder FormattedValue { get { CleanText(GetValue(), valueBuilder); return valueBuilder; } }
 
+            /// <summary>
+            /// Additional information following the value of the member.
+            /// </summary>
             public override StringBuilder StatusText => null;
 
+            /// <summary>
+            /// Delegate used for filtering text input. Returns true if a given character is in the accepted range.
+            /// </summary>
             public Func<char, bool> CharFilterFunc { get; }
 
             protected readonly StringBuilder valueBuilder;
@@ -50,6 +74,11 @@ namespace DarkHelmet.BuildVision2
                 poolParent.Return(this);
             }
 
+            public override void Update()
+            {
+                Enabled = GetEnabled();
+            }
+
             public static TextProperty GetProperty(StringBuilder name, ITerminalProperty<StringBuilder> property, PropertyBlock block)
             {
                 TextProperty prop = block.textPropPool.Get();
@@ -61,18 +90,21 @@ namespace DarkHelmet.BuildVision2
             public void SetValueText(string text)
             {
                 valueBuilder.Clear();
-                valueBuilder.Append(text);
 
-                SetValue(valueBuilder);
+                if (text != null)
+                {
+                    valueBuilder.Append(text);
+                    SetValue(valueBuilder);
+                }
             }
 
             public override PropertyData? GetPropertyData()
             {
                 byte[] valueData;
 
-                if (Utils.ProtoBuf.TrySerialize(GetValue()?.ToString() ?? "", out valueData) == null)
+                if (Utils.ProtoBuf.TrySerialize(Value?.ToString() ?? "", out valueData) == null)
                 {
-                    return new PropertyData(PropName.ToString(), valueData, Enabled, ValueType);
+                    return new PropertyData(PropName, valueData, Enabled, ValueType);
                 }
                 else
                     return default(PropertyData);

@@ -44,11 +44,19 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public virtual BlockMemberValueTypes ValueType { get; protected set; }
 
+            /// <summary>
+            /// Synchronizes the state of the block member with the associated terminal properties
+            /// </summary>
+            public abstract void Update();
+
             public abstract void Reset();
 
             public abstract void Return();
         }
 
+        /// <summary>
+        /// Manages pool of property block members
+        /// </summary>
         private class BvPropPool<T> : ObjectPool<T>
             where T : BlockMemberBase, new()
         {
