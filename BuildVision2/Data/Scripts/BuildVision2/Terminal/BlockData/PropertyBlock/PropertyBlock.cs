@@ -18,7 +18,7 @@ namespace DarkHelmet.BuildVision2
     public partial class PropertyBlock : SuperBlock, IPropertyBlock
     {
         public static PropBlockConfig Cfg { get { return BvConfig.Current.block; } set { BvConfig.Current.block = value; } }
-        private const int updateTickDiv = 3;
+        private const int updateTickDiv = 30;
 
         /// <summary>
         /// Read-only collection of block members
@@ -100,6 +100,9 @@ namespace DarkHelmet.BuildVision2
 
         public override void Reset()
         {
+            tick = 0;
+            Update();
+
             base.Reset();
 
             for (int i = 0; i < blockMembers.Count; i++)
@@ -117,11 +120,8 @@ namespace DarkHelmet.BuildVision2
         {
             prioritizer.UpdatePrioritizedMembers(BvConfig.Current.genUI.wheelMaxVisible);
 
-            if (tick == 0)
-            {
-                foreach (BlockMemberBase member in blockMembers)
-                    member.Update();
-            }
+            foreach (BlockMemberBase member in blockMembers)
+                member.Update(tick == 0);
 
             tick++;
             tick %= updateTickDiv;
@@ -134,6 +134,8 @@ namespace DarkHelmet.BuildVision2
 
             GetScrollableProps();
             GetScrollableActions();
+
+            tick = 0;
             Update();
 
             duplicator.UpdateBlockMembers();

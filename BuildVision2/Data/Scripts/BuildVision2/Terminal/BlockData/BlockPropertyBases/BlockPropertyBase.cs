@@ -107,21 +107,26 @@ namespace DarkHelmet.BuildVision2
                 valueChanged = false;
             }
 
-            public override void Update()
+            public override void Update(bool sync)
             {
                 Enabled = GetEnabled();
 
                 if (Enabled)
                 {
-                    TValue newValue = GetValue();
+                    if (valueChanged && sync || !valueChanged)
+                    {
+                        if (valueChanged)
+                            SetValue(_value);
 
-                    if (!valueChanged)
+                        TValue newValue = GetValue();
                         _value = newValue;
+                        valueChanged = false;
+                    }
                     else
-                        SetValue(_value);                    
+                        SetValue(_value);
                 }
-
-                valueChanged = false;
+                else
+                    valueChanged = false;
             }
 
             /// <summary>

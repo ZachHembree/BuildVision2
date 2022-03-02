@@ -74,7 +74,7 @@ namespace DarkHelmet.BuildVision2
                 poolParent.Return(this);
             }
 
-            public override void Update()
+            public override void Update(bool sync)
             {
                 Enabled = GetEnabled();
             }

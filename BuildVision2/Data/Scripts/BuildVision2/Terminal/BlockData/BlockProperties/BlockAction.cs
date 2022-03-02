@@ -62,7 +62,7 @@ namespace DarkHelmet.BuildVision2
                 action = Action;
             }
 
-            public override void Update()
+            public override void Update(bool sync)
             { }
 
             public override void Reset()

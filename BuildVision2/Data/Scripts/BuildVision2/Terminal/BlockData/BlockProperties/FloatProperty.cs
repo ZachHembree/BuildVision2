@@ -176,7 +176,8 @@ namespace DarkHelmet.BuildVision2
                     float effectiveness = GetScaleFunc(),
                         rcpEffectiveness = effectiveness > 0f ? (1f / effectiveness) : 1f;
 
-                    base.SetValue((float)MathHelper.Clamp(Math.Round(value * rcpEffectiveness, 5), MinValue, MaxValue));
+                    value = (float)Math.Round(value * rcpEffectiveness, 5);
+                    base.SetValue((float)MathHelper.Clamp(value, MinValue, MaxValue));
                 }
             }
 

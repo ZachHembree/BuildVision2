@@ -47,7 +47,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Synchronizes the state of the block member with the associated terminal properties
             /// </summary>
-            public abstract void Update();
+            public abstract void Update(bool sync);
 
             public abstract void Reset();
 
