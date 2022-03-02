@@ -121,7 +121,7 @@ namespace RichHudFramework.UI
         {
             // Get enabled elements and effective max count
             EnabledCount = 0;
-            SelectionIndex = MathHelper.Clamp(SelectionIndex, 0, hudCollectionList.Count - 1);
+            SelectionIndex = MathHelper.Clamp(SelectionIndex, -1, hudCollectionList.Count - 1);
 
             for (int i = 0; i < hudCollectionList.Count; i++)
             {
@@ -212,14 +212,18 @@ namespace RichHudFramework.UI
         protected void UpdateVisPos()
         {
             selectionVisPos = -1;
+            SelectionIndex = MathHelper.Clamp(SelectionIndex, -1, hudCollectionList.Count - 1);
 
-            // Find visible offset index
-            for (int i = 0; i <= SelectionIndex; i++)
+            if (hudCollectionList.Count > 0 && SelectionIndex != -1)
             {
-                TContainer container = hudCollectionList[i];
+                // Find visible offset index
+                for (int i = 0; i <= SelectionIndex; i++)
+                {
+                    TContainer container = hudCollectionList[i];
 
-                if (container.Enabled)
-                    selectionVisPos++;
+                    if (container.Enabled)
+                        selectionVisPos++;
+                }
             }
         }
 
@@ -228,12 +232,12 @@ namespace RichHudFramework.UI
             Vector2 size = cachedSize - cachedPadding;
             int entrySize = polyBoard.Sides / effectiveMaxCount;
             polyBoard.Color = BackgroundColor;
+            UpdateVisPos();
+
             polyBoard.Draw(size, cachedOrigin, HudSpace.PlaneToWorldRef);
 
-            if (SelectionIndex != -1 && selectionVisPos != -1 && entrySize > 0)
+            if (selectionVisPos != -1 && entrySize > 0)
             {
-                UpdateVisPos();
-
                 Vector2I slice = new Vector2I(0, entrySize - 1) + (selectionVisPos * entrySize);
                 polyBoard.Color = HighlightColor;
                 polyBoard.Draw(size, cachedOrigin, slice, HudSpace.PlaneToWorldRef);

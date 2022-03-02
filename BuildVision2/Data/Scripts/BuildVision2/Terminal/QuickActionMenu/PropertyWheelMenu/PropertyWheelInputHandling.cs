@@ -144,7 +144,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void ScrollSelection(int offset)
             {
-                int index = activeWheel.SelectionIndex,
+                int index = Math.Max(activeWheel.SelectionIndex, 0),
                     dir = offset > 0 ? 1 : -1,
                     absOffset = Math.Abs(offset);
 
