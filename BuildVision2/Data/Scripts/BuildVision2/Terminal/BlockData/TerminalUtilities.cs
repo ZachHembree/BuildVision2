@@ -404,5 +404,22 @@ namespace DarkHelmet.BuildVision2
             else
                 return false;
         }
+
+        /// <summary>
+        /// Returns true if the given character is in the range of characters used for
+        /// numeric strings, 0-9, E/e, +/-, ., :
+        /// </summary>
+        public static bool IsNumeric(this char ch)
+        {
+            return (ch >= '0' && ch <= '9') || ch == 'E' || ch == 'e' || ch == '-' || ch == '+' || ch == '.' || ch == ':';
+        }
+
+        /// <summary>
+        /// Returns true if the given character is alphabetical, A-z
+        /// </summary>
+        public static bool IsAlphabetical(this char ch)
+        {
+            return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
+        }
     }
 }

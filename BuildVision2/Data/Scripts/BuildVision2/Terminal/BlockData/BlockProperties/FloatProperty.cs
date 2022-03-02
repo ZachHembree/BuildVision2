@@ -185,23 +185,21 @@ namespace DarkHelmet.BuildVision2
 
             private StringBuilder GetFormattedValue()
             {
+                int numLength = 0;
+                bool nonCharPostfix = false;
+
                 // Get formatted text
                 fmtValueBuilder.Clear();
                 SliderWriter(block.TBlock, fmtValueBuilder);
 
-                int numLength = 0;
-                bool nonCharPostfix = false;
+                // Parse out num length and postfix, if they exist
                 unitBuilder.Clear();
 
-                // Parse out num length and postfix, if they exist
                 for (int i = 0; i < fmtValueBuilder.Length; i++)
                 {
                     if (fmtValueBuilder[i] > ' ')
                     {
-                        if (unitBuilder.Length == 0 && ((fmtValueBuilder[i] >= '0' && fmtValueBuilder[i] <= '9') ||
-                            fmtValueBuilder[i] == 'E' || fmtValueBuilder[i] == 'e' || fmtValueBuilder[i] == '-' ||
-                            fmtValueBuilder[i] == '+' || fmtValueBuilder[i] == '.' || fmtValueBuilder[i] == ':')
-                        )
+                        if (unitBuilder.Length == 0 && fmtValueBuilder[i].IsNumeric())
                         {
                             numLength++;
                         }
@@ -209,39 +207,38 @@ namespace DarkHelmet.BuildVision2
                         {
                             unitBuilder.Append(fmtValueBuilder[i]);
 
-                            if (!((fmtValueBuilder[i] >= 'A' && fmtValueBuilder[i] <= 'Z') ||
-                                (fmtValueBuilder[i] >= 'a' && fmtValueBuilder[i] <= 'z'))
-                            )
-                            {
+                            if (!nonCharPostfix && !fmtValueBuilder[i].IsAlphabetical())
                                 nonCharPostfix = true;
-                            }
                         }
                     }
                 }
 
-                if (numLength > 0 && unitBuilder.Length > 0)
+                if (numLength > 0)
                 {
                     float value = GetValue(),
                         magnitude = -1f;
 
-                    // Assumes metric-prefixed units, meaning at least two alphabetical characters (sans spacing),
-                    // where the first char is the prefix and the characters following are the unit type
-                    bool isMetricPrefixValue = !nonCharPostfix && unitBuilder.Length > 1 &&
-                        ((unitBuilder[1] >= 'A' && unitBuilder[1] <= 'Z') ||
-                        (unitBuilder[1] >= 'a' && unitBuilder[1] <= 'z')) &&
-                        TerminalUtilities.MetricPrefixMagTable.TryGetValue(unitBuilder[0], out magnitude);
-
-                    if (!isMetricPrefixValue)
+                    if (unitBuilder.Length > 0)
                     {
-                        foreach (string prefix in TerminalUtilities.SpecialPrefixes)
+                        // Assumes metric-prefixed units, meaning at least two alphabetical characters (sans spacing),
+                        // where the first char is the prefix and the characters following are the unit type
+                        bool isMetricPrefixValue = !nonCharPostfix && unitBuilder.Length > 1 && unitBuilder[1].IsAlphabetical() 
+                            && TerminalUtilities.MetricPrefixMagTable.TryGetValue(unitBuilder[0], out magnitude);
+
+                        if (!isMetricPrefixValue)
                         {
-                            if (unitBuilder.IsTextEqual(prefix))
+                            foreach (string prefix in TerminalUtilities.SpecialPrefixes)
                             {
-                                magnitude = 1f;
-                                break;
+                                if (unitBuilder.IsTextEqual(prefix))
+                                {
+                                    magnitude = 1f;
+                                    break;
+                                }
                             }
                         }
                     }
+                    else
+                        magnitude = 1f;
 
                     if (magnitude > 0f)
                     {
