@@ -32,6 +32,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         public static IBind Blueprint { get; private set; }
+        public static IBind OpenBpList { get; private set; }
 
         public static IBind OpenWheel { get; private set; }
         public static IBind OpenList { get; private set; }
@@ -78,10 +79,12 @@ namespace DarkHelmet.BuildVision2
             staticGroup = BindManager.GetOrCreateGroup("Static");
             staticGroup.RegisterBinds(new BindGroupInitializer() 
             {
-                { "blueprint", MyKeys.Control, MyKeys.B }
+                { "blueprint", MyKeys.Control, MyKeys.B },
+                { "openBpList", MyKeys.F10 }
             });
 
             Blueprint = staticGroup["blueprint"];
+            OpenBpList = staticGroup["openBpList"];
 
             modifierGroup = BindManager.GetOrCreateGroup("Modifiers");
             modifierGroup.RegisterBinds(BindsConfig.DefaultModifiers);
@@ -117,6 +120,8 @@ namespace DarkHelmet.BuildVision2
             Instance = null;
 
             Blueprint = null;
+            OpenBpList = null;
+
             MultXOrMouse = null;
             MultY = null;
             MultZ = null;

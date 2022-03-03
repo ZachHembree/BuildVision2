@@ -6,6 +6,7 @@ using Sandbox.ModAPI;
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using VRage.Utils;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
@@ -46,7 +47,8 @@ namespace DarkHelmet.BuildVision2
         private readonly Stopwatch frameTimer;
         private Vector2 lastPos;
         private float posLerpFactor;
-        private int bpTick;
+        private int bpTick, bpMenuTick;
+        private bool isPlayerBlueprinting, isBpListOpen;
 
         private QuickActionHudSpace() : base(HudMain.Root)
         {
@@ -103,8 +105,11 @@ namespace DarkHelmet.BuildVision2
             {
                 Target.Update();
 
-                if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None)
+                if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None 
+                    || isPlayerBlueprinting || isBpListOpen)
+                {
                     CloseMenuInternal();
+                }
             }
         }
 
@@ -117,11 +122,6 @@ namespace DarkHelmet.BuildVision2
 
             if (Target.TBlock != null && Open)
             {
-                if (BvBinds.Blueprint.IsNewPressed)
-                    bpTick = 0;
-                else
-                    bpTick++;
-
                 Vector3D targetWorldPos, targetScreenPos;
                 Vector2 menuPos, screenBounds = Vector2.One / 2f;
 
@@ -191,6 +191,8 @@ namespace DarkHelmet.BuildVision2
 
         protected override void HandleInput(Vector2 cursorPos)
         {
+            UpdateBpInput();
+
             quickActionMenu.InputEnabled = !RichHudTerminal.Open;
             bool tryOpen = BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed || BvBinds.StartDupe.IsNewPressed;
 
@@ -216,11 +218,65 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
+        /// Heuristics used to infer blueprint usage
+        /// </summary>
+        private void UpdateBpInput()
+        {
+            if (!isBpListOpen)
+            {
+                if (!isPlayerBlueprinting)
+                {
+                    if (MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None && !BindManager.IsChatOpen 
+                        && (SharedBinds.Paste.IsNewPressed || SharedBinds.Copy.IsNewPressed))
+                    {
+                        isPlayerBlueprinting = true;
+                    }
+                }
+                else
+                {
+                    if (MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || SharedBinds.LeftButton.IsNewPressed
+                        || SharedBinds.Escape.IsNewPressed || MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("SLOT0")) )
+                    {
+                        isPlayerBlueprinting = false;
+                    }
+                }
+            }
+            
+            if (!isBpListOpen)
+            {
+                if (MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None && !BindManager.IsChatOpen 
+                    && BvBinds.OpenBpList.IsNewPressed)
+                {
+                    isBpListOpen = true;
+                }
+            }
+            else if (bpMenuTick > 30)
+            {
+                if (MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || !MyAPIGateway.Gui.IsCursorVisible 
+                    || BindManager.IsChatOpen || SharedBinds.Escape.IsNewPressed)
+                {
+                    isBpListOpen = false;
+                    isPlayerBlueprinting = !SharedBinds.Escape.IsNewPressed;
+                }
+            }
+
+            if (!isBpListOpen)
+                bpMenuTick = 0;
+            else
+                bpMenuTick++;
+
+            if (BvBinds.Blueprint.IsNewPressed || isBpListOpen)
+                bpTick = 0;
+            else
+                bpTick++;
+        }
+
+        /// <summary>
         /// Attempts to open the property menu
         /// </summary>
         private void TryOpenMenuInternal(QuickActionMenuState initialState = default(QuickActionMenuState))
         {
-            if (TryGetTarget() && CanAccessTargetBlock())
+            if (!isPlayerBlueprinting && TryGetTarget() && CanAccessTargetBlock())
             {
                 quickActionMenu.OpenMenu(Target, initialState);
             }
