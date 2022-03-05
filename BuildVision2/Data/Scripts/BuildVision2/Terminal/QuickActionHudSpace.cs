@@ -123,31 +123,27 @@ namespace DarkHelmet.BuildVision2
             if (Target.TBlock != null && Open)
             {
                 Vector3D targetWorldPos, targetScreenPos;
-                Vector2 menuPos, screenBounds = Vector2.One / 2f;
+                Vector2 screenBounds = new Vector2(HudMain.ScreenWidth, HudMain.ScreenHeight) * HudMain.ResScale * .5f,
+                    menuPos;
 
-                if (LocalPlayer.IsLookingInBlockDir(Target.TBlock) && !BvConfig.Current.genUI.useCustomPos)
+                if (!BvConfig.Current.genUI.useCustomPos)
                 {
-                    targetWorldPos = Target.Position + Target.ModelOffset * .75d;
-                    targetScreenPos = LocalPlayer.GetWorldToScreenPos(targetWorldPos) / 2d;
+                    if (LocalPlayer.IsLookingInBlockDir(Target.TBlock))
+                    {
+                        targetWorldPos = Target.Position + Target.ModelOffset * .75d;
+                        targetScreenPos = LocalPlayer.GetWorldToScreenPos(targetWorldPos) / 2d;
 
-                    menuPos = new Vector2((float)targetScreenPos.X, (float)targetScreenPos.Y);
-                    screenBounds -= HudMain.GetAbsoluteVector(quickActionMenu.Size * scale / 2f);
+                        menuPos = new Vector2((float)targetScreenPos.X, (float)targetScreenPos.Y);
+                        menuPos = HudMain.GetPixelVector(menuPos) / scale;
+                    }
+                    else
+                        menuPos = lastPos;
                 }
                 else
                 {
                     menuPos = BvConfig.Current.genUI.hudPos;
-                }
+                    menuPos = HudMain.GetPixelVector(menuPos) / scale;
 
-                if (BvConfig.Current.genUI.clampHudPos)
-                {
-                    menuPos.X = MathHelper.Clamp(menuPos.X, -screenBounds.X, screenBounds.X);
-                    menuPos.Y = MathHelper.Clamp(menuPos.Y, -screenBounds.Y, screenBounds.Y);
-                }
-
-                menuPos = HudMain.GetPixelVector(menuPos) / scale;
-
-                if (BvConfig.Current.genUI.useCustomPos)
-                {
                     if (menuPos.X < 0)
                         menuPos.X += .5f * quickActionMenu.Width;
                     else
@@ -159,8 +155,14 @@ namespace DarkHelmet.BuildVision2
                         menuPos.Y -= .5f * quickActionMenu.Height;
                 }
 
-                if ((lastPos - menuPos).LengthSquared() > 1f 
-                    && !(HudMain.EnableCursor && SharedBinds.LeftButton.IsPressed))
+                if (BvConfig.Current.genUI.clampHudPos || BvConfig.Current.genUI.useCustomPos)
+                {
+                    screenBounds -= .5f * quickActionMenu.Size;
+                    menuPos.X = MathHelper.Clamp(menuPos.X, -screenBounds.X, screenBounds.X);
+                    menuPos.Y = MathHelper.Clamp(menuPos.Y, -screenBounds.Y, screenBounds.Y);
+                }
+
+                if ((lastPos - menuPos).LengthSquared() > 1f && !(HudMain.EnableCursor && SharedBinds.LeftButton.IsPressed))
                 {
                     posLerpFactor = 0f;
                     lastPos = menuPos;
@@ -171,6 +173,7 @@ namespace DarkHelmet.BuildVision2
 
                 float lerpScale = frameTimer.ElapsedMilliseconds / 16.6667f;
                 posLerpFactor = Math.Min(posLerpFactor + .4f * lerpScale, 1f);
+
                 quickActionMenu.Offset = Vector2.Lerp(quickActionMenu.Offset, lastPos, posLerpFactor);
                 quickActionMenu.Visible = bpTick > 30;
             }
