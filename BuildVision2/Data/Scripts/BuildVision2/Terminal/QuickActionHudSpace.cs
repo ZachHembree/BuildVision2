@@ -191,7 +191,7 @@ namespace DarkHelmet.BuildVision2
 
         protected override void HandleInput(Vector2 cursorPos)
         {
-            UpdateBpInput();
+            UpdateBpInputMonitoring();
 
             quickActionMenu.InputEnabled = !RichHudTerminal.Open;
             bool tryOpen = BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed || BvBinds.StartDupe.IsNewPressed;
@@ -220,35 +220,32 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Heuristics used to infer blueprint usage
         /// </summary>
-        private void UpdateBpInput()
+        private void UpdateBpInputMonitoring()
         {
+            bool canBp = MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None && !BindManager.IsChatOpen
+                    && !MyAPIGateway.Gui.IsCursorVisible;
+
             if (!isBpListOpen)
             {
                 if (!isPlayerBlueprinting)
                 {
-                    if (MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None && !BindManager.IsChatOpen 
-                        && (SharedBinds.Paste.IsNewPressed || SharedBinds.Copy.IsNewPressed))
-                    {
+                    if (canBp && (SharedBinds.Paste.IsNewPressed || SharedBinds.Copy.IsNewPressed))
                         isPlayerBlueprinting = true;
-                    }
                 }
                 else
                 {
-                    if (MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || SharedBinds.LeftButton.IsNewPressed
-                        || SharedBinds.Escape.IsNewPressed || MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("SLOT0")) )
+                    if (!canBp || SharedBinds.LeftButton.IsNewPressed || SharedBinds.Escape.IsNewPressed 
+                        || MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("SLOT0")) )
                     {
                         isPlayerBlueprinting = false;
                     }
                 }
             }
-            
+
             if (!isBpListOpen)
             {
-                if (MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None && !BindManager.IsChatOpen 
-                    && BvBinds.OpenBpList.IsNewPressed)
-                {
+                if (canBp && BvBinds.OpenBpList.IsNewPressed)
                     isBpListOpen = true;
-                }
             }
             else if (bpMenuTick > 30)
             {
