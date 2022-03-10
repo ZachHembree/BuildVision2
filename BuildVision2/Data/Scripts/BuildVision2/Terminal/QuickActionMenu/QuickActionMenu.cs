@@ -70,7 +70,9 @@ namespace DarkHelmet.BuildVision2
                 CloseMenu();
 
                 if (initialState != default(QuickActionMenuState))
+                {
                     MenuState = initialState;
+                }
 
                 Target = target;
                 UpdateStateMain();
@@ -85,8 +87,6 @@ namespace DarkHelmet.BuildVision2
             propertyWheel.CloseMenu();
             propertyList.CloseMenu();
 
-            Target = null;
-            Visible = false;
             MenuState = QuickActionMenuState.Closed;
         }
 

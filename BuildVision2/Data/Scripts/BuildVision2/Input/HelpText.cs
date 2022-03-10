@@ -43,9 +43,9 @@ namespace DarkHelmet.BuildVision2
                 { "Main Binds \n\n", subheader },
 
                 $"\tOpen Wheel\t\t|\t[{GetBindString(BvBinds.OpenWheel)}]\n",
-                $"\tOpen List\t\t|\t[{GetBindString(BvBinds.OpenList)}]\n",
+                $"\tOpen List\t\t\t|\t[{GetBindString(BvBinds.OpenList)}]\n",
                 $"\tSelect/Confirm\t|\t[{GetBindString(BvBinds.Select)}]\n",
-                $"\tCancel/Back\t|\t[{GetBindString(BvBinds.Cancel)}]\n",
+                $"\tCancel/Back\t\t|\t[{GetBindString(BvBinds.Cancel)}]\n",
                 $"\tScroll Up\t\t\t|\t[{GetBindString(BvBinds.ScrollUp)}]\n",
                 $"\tScroll Down\t\t|\t[{GetBindString(BvBinds.ScrollDown)}]\n\n",
 

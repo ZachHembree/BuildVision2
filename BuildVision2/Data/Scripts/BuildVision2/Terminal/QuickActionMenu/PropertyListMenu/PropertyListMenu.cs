@@ -192,6 +192,7 @@ namespace DarkHelmet.BuildVision2
                 peekBody.Visible = true;
                 listBody.Visible = false;
                 Visible = true;
+                IsOpen = false;
             }
 
             public void HideMenu()

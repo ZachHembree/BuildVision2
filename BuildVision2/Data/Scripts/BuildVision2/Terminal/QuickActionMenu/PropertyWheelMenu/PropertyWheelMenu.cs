@@ -197,6 +197,7 @@ namespace DarkHelmet.BuildVision2
                 propertyWheel.Visible = false;
                 dupeWheel.Visible = false;
                 Visible = true;
+                IsOpen = false;
             }
 
             public void HideMenu()
