@@ -2,6 +2,7 @@
 using RichHudFramework.IO;
 using RichHudFramework.UI;
 using System;
+using Sandbox.ModAPI;
 using System.Collections.Generic;
 using VRage;
 using VRage.ModAPI;
@@ -112,8 +113,8 @@ namespace DarkHelmet.BuildVision2
                 var propertyEntry = selection as PropertyWheelEntry;
 
                 if (BvBinds.Select.IsReleased || 
-                    (propertyEntry?.BlockMember is IBlockTextMember 
-                    && SharedBinds.Enter.IsNewPressed && BindManager.IsChatOpen))
+                    (propertyEntry?.BlockMember is IBlockTextMember && BindManager.IsChatOpen
+                    && MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("CHAT_SCREEN")) ))
                 {
                     if (selection is PropertyWheelShortcutEntry)
                     {

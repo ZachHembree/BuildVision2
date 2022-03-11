@@ -2,6 +2,8 @@
 using RichHudFramework.UI.Client;
 using RichHudFramework.UI.Rendering;
 using System;
+using Sandbox.ModAPI;
+using VRage.Utils;
 using VRageMath;
 
 namespace DarkHelmet.BuildVision2
@@ -88,15 +90,15 @@ namespace DarkHelmet.BuildVision2
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (SharedBinds.Enter.IsNewPressed)
+                if (BindManager.IsChatOpen && !sliderBox.IsTextInputOpen
+                    && MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("CHAT_SCREEN")) )
                 {
-                    if (BindManager.IsChatOpen && !sliderBox.IsTextInputOpen)
-                    {
-                        sliderBox.FieldText.SetText(textMember.ValueText);
-                        sliderBox.OpenTextInput();
-                    }
-                    else if (!BindManager.IsChatOpen && sliderBox.IsTextInputOpen)
-                        Confirm();
+                    sliderBox.FieldText.SetText(textMember.ValueText);
+                    sliderBox.OpenTextInput();
+                }
+                else if (!BindManager.IsChatOpen && sliderBox.IsTextInputOpen && SharedBinds.Enter.IsNewPressed)
+                {
+                    Confirm();
                 }
                 else if (!sliderBox.IsTextInputOpen)
                 {
