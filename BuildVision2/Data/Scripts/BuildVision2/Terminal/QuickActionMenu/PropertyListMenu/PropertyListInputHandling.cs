@@ -216,9 +216,9 @@ namespace DarkHelmet.BuildVision2
                             value -= offset;
 
                         if (absRange > floatPropLogThreshold)
-                            floatMember.Value = (float)(Math.Pow(10d, value * logRange) - 1d + floatMember.MinValue);
-                        else
-                            floatMember.Value = (float)value;
+                            value = (Math.Pow(10d, value * logRange) - 1d + floatMember.MinValue);
+
+                        floatMember.Value = (float)MathHelper.Clamp(value, floatMember.MinValue, floatMember.MaxValue);
                     }
                 }
                 else if (lastPropValue != null && lastPropValue is float && BvBinds.Cancel.IsReleased)
