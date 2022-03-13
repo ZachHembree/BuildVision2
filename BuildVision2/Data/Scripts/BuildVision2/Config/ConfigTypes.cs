@@ -69,6 +69,9 @@ namespace DarkHelmet.BuildVision2
                     block.Validate();
                 else
                     block = PropBlockConfig.Defaults;
+
+                if (genUI.legacyModeEnabled)
+                    targeting.canOpenIfPlacing = true;
             }
         }
     }
@@ -81,8 +84,8 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "CloseIfTargetNotInView")]
         public bool closeIfNotInView;
 
-        [XmlElement(ElementName = "CanOpenIfHandsNotEmpty")]
-        public bool canOpenIfHolding;
+        [XmlElement(ElementName = "CanOpenIfPlacing")]
+        public bool canOpenIfPlacing;
 
         [XmlElement(ElementName = "maxOpenRange")]
         public double maxOpenRange;
@@ -96,7 +99,7 @@ namespace DarkHelmet.BuildVision2
             {
                 enablePeek = true,
                 closeIfNotInView = true,
-                canOpenIfHolding = true,
+                canOpenIfPlacing = false,
                 maxOpenRange = 10d,
                 maxControlRange = 10d
             };

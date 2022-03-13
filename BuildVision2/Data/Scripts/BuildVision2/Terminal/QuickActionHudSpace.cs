@@ -300,17 +300,17 @@ namespace DarkHelmet.BuildVision2
         private bool TryGetTarget()
         {
             IMyTerminalBlock block;
+            bool canDisplaceBlock = LocalPlayer.CurrentBuilderBlock != null && !BvConfig.Current.targeting.canOpenIfPlacing,
+                canTarget = !canDisplaceBlock || BvConfig.Current.genUI.legacyModeEnabled;
 
-            if (
-                (BvConfig.Current.targeting.canOpenIfHolding || LocalPlayer.HasEmptyHands) 
-                && TryGetTargetedBlockInternal(BvConfig.Current.targeting.maxOpenRange, out block)
-            )
+            if (canTarget && TryGetTargetedBlockInternal(BvConfig.Current.targeting.maxOpenRange, out block))
             {
                 if (block != null)
                 {
                     TerminalPermissionStates permissions = block.GetAccessPermissions();
-                    
-                    if ((permissions & TerminalPermissionStates.Granted) > 0)
+
+                    if ((permissions & TerminalPermissionStates.Granted) > 0 
+                        || LocalPlayer.HasAdminSetting(MyAdminSettingsEnum.UseTerminals))
                     {
                         if (Target.TBlock == null || block != Target.TBlock)
                         {
@@ -353,7 +353,8 @@ namespace DarkHelmet.BuildVision2
         {
             IMyCubeGrid cubeGrid;
             IHitInfo rayInfo;
-            Vector3D headPos = LocalPlayer.HeadTransform.Translation, forward = LocalPlayer.HeadTransform.Forward;
+            MatrixD transform = LocalPlayer.HeadTransform;
+            Vector3D headPos = transform.Translation, forward = transform.Forward;
             LineD line = new LineD(headPos, headPos + forward * maxDist);
             target = null;
 

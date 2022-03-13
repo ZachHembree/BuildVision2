@@ -33,9 +33,25 @@ namespace DarkHelmet.BuildVision2
         public static IMyPlayer Player { get { return MyAPIGateway.Session.LocalHumanPlayer; } }
 
         /// <summary>
+        /// Returns local players admin settings
+        /// </summary>
+        public static MyAdminSettingsEnum AdminSettings
+        {
+            get
+            {
+                MyAdminSettingsEnum settings;
+
+                if (!MyAPIGateway.Session.TryGetAdminSettings(Player.SteamUserId, out settings))
+                    settings = MyAdminSettingsEnum.None;
+
+                return settings;
+            }
+        }
+
+        /// <summary>
         /// Returns the currently controlled object as an IMyCharacter
         /// </summary>
-        public static IMyCharacter PlyEnt { get { return MyAPIGateway.Session.ControlledObject as IMyCharacter; } }
+        public static IMyCharacter PlyEnt { get { return MyAPIGateway.Session.Player.Character; } }
 
         /// <summary>
         /// Returns the object builder for PlyEnt, provided PlyEnt isn't null
@@ -83,6 +99,12 @@ namespace DarkHelmet.BuildVision2
             else
                 return false;
         }
+
+        /// <summary>
+        /// Returns true if the current admin setting is enabled for the player
+        /// </summary>
+        public static bool HasAdminSetting(MyAdminSettingsEnum flag) =>
+            (AdminSettings & flag) == flag;
 
         /// <summary>
         /// Tries to retrieve targeted <see cref="IMyCubeBlock"/> on a grid within a given distance.

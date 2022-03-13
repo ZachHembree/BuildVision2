@@ -95,10 +95,16 @@ namespace DarkHelmet.BuildVision2
             // Can open while holding tools
             var toolOpenBox = new TerminalCheckbox()
             {
-                Name = "Can open while holding tools",
-                Value = Cfg.targeting.canOpenIfHolding,
-                CustomValueGetter = () => Cfg.targeting.canOpenIfHolding,
-                ControlChangedHandler = ((sender, args) => Cfg.targeting.canOpenIfHolding = (sender as TerminalCheckbox).Value),
+                Name = "Can open while placing",
+                Value = Cfg.targeting.canOpenIfPlacing,
+                CustomValueGetter = () => Cfg.targeting.canOpenIfPlacing,
+                ControlChangedHandler = ((sender, args) => Cfg.targeting.canOpenIfPlacing = (sender as TerminalCheckbox).Value),
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "If unchecked, Build Vision will not open\n" +
+                    "while placing blocks. Only works if Legacy\n" +
+                    "Mode is off."
+                },
             };
 
             // Open range slider
