@@ -113,7 +113,8 @@ namespace DarkHelmet.BuildVision2
         {
             IMyCubeGrid grid;
             IMySlimBlock slimBlock;
-            LineD line = new LineD(HeadTransform.Translation, HeadTransform.Translation + HeadTransform.Forward * maxDist);
+            MatrixD transform = MyAPIGateway.Session.Camera.WorldMatrix;
+            LineD line = new LineD(transform.Translation, transform.Translation + transform.Forward * maxDist);
             double dist;
             fatBlock = null;
 
@@ -173,8 +174,9 @@ namespace DarkHelmet.BuildVision2
 
             if (PlyEnt != null)
             {
-                start = HeadTransform.Translation;
-                end = start + HeadTransform.Forward * maxDist;
+                MatrixD transform = MyAPIGateway.Session.Camera.WorldMatrix;
+                start = transform.Translation;
+                end = start + transform.Forward * maxDist;
 
                 MyAPIGateway.Physics.CastRay(start, end, out rayInfo, CollisionLayers.CollisionLayerWithoutCharacter);
                 grid = rayInfo?.HitEntity.GetTopMostParent() as IMyCubeGrid;

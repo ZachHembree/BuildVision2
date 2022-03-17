@@ -353,7 +353,7 @@ namespace DarkHelmet.BuildVision2
         {
             IMyCubeGrid cubeGrid;
             IHitInfo rayInfo;
-            MatrixD transform = LocalPlayer.HeadTransform;
+            MatrixD transform = MyAPIGateway.Session.Camera.WorldMatrix;
             Vector3D headPos = transform.Translation, forward = transform.Forward;
             LineD line = new LineD(headPos, headPos + forward * maxDist);
             target = null;
@@ -427,7 +427,12 @@ namespace DarkHelmet.BuildVision2
             double dist = double.PositiveInfinity;
 
             if (Target.TBlock != null)
-                dist = (LocalPlayer.Position - Target.Position).LengthSquared();
+            {
+                if (MyAPIGateway.Session.IsCameraUserControlledSpectator)
+                    dist = (MyAPIGateway.Session.Camera.Position - Target.Position).LengthSquared();
+                else
+                    dist = (LocalPlayer.Position - Target.Position).LengthSquared();
+            }
 
             return dist < (BvConfig.Current.targeting.maxControlRange * BvConfig.Current.targeting.maxControlRange);
         }
