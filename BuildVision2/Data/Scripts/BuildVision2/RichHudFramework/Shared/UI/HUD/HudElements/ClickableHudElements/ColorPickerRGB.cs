@@ -205,6 +205,34 @@ namespace RichHudFramework.UI
                 focusedChannel = channel;
         }
 
+        protected override void Layout()
+        {
+            _color = new Color()
+            {
+                R = (byte)Math.Round(sliders[0].Current),
+                G = (byte)Math.Round(sliders[1].Current),
+                B = (byte)Math.Round(sliders[2].Current),
+                A = 255
+            };
+
+            valueBuilder.Clear();
+            valueBuilder.Append("R: ");
+            valueBuilder.Append(_color.R);
+            sliderText[0].TextBoard.SetText(valueBuilder);
+
+            valueBuilder.Clear();
+            valueBuilder.Append("G: ");
+            valueBuilder.Append(_color.G);
+            sliderText[1].TextBoard.SetText(valueBuilder);
+
+            valueBuilder.Clear();
+            valueBuilder.Append("B: ");
+            valueBuilder.Append(_color.B);
+            sliderText[2].TextBoard.SetText(valueBuilder);
+
+            display.Color = _color;
+        }
+
         protected override void HandleInput(Vector2 cursorPos)
         {
             if (focusedChannel != -1)
@@ -231,31 +259,6 @@ namespace RichHudFramework.UI
                     break;
                 }
             }
-
-            _color = new Color()
-            {
-                R = (byte)Math.Round(sliders[0].Current),
-                G = (byte)Math.Round(sliders[1].Current),
-                B = (byte)Math.Round(sliders[2].Current),
-                A = 255
-            };
-
-            valueBuilder.Clear();
-            valueBuilder.Append("R: ");
-            valueBuilder.Append(_color.R);
-            sliderText[0].TextBoard.SetText(valueBuilder);
-
-            valueBuilder.Clear();
-            valueBuilder.Append("G: ");
-            valueBuilder.Append(_color.G);
-            sliderText[1].TextBoard.SetText(valueBuilder);
-
-            valueBuilder.Clear();
-            valueBuilder.Append("B: ");
-            valueBuilder.Append(_color.B);
-            sliderText[2].TextBoard.SetText(valueBuilder);
-
-            display.Color = _color;
         }
     }
 }
