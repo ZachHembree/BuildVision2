@@ -64,12 +64,14 @@ namespace DarkHelmet.BuildVision2
                 {
                     Material = Material.CircleMat,
                     Color = headerColor,
+                    Size = Vector2.Zero,
                 };
 
                 summaryLabel = new Label(this)
                 {
                     AutoResize = false,
                     BuilderMode = TextBuilderModes.Wrapped,
+                    Width = 200f,
                 };
 
                 notificationText = new Label(this)
@@ -93,6 +95,7 @@ namespace DarkHelmet.BuildVision2
                 notificationTimer = new Stopwatch();
 
                 Padding = new Vector2(wheelBodyPadding);
+                Size = 1.05f * propertyWheelMenu.Size * propertyWheelMenu.InnerDiam;
             }
 
             public void OpenBlockMemberWidget(IBlockMember member)

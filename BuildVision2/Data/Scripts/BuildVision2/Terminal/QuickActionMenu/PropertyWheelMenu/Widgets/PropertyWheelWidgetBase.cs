@@ -49,6 +49,7 @@ namespace DarkHelmet.BuildVision2
 
                 MouseInput = new MouseInputElement(this)
                 {
+                    ZOffset = 10,
                     DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
                     ShareCursor = true,
                 };

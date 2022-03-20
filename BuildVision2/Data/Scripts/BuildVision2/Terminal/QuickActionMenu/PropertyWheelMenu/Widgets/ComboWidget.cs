@@ -69,24 +69,33 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Cancel()
             {
-                comboBox.SetSelectionAt((int)blockComboMember.Value);
+                comboBox.SetSelectionAt((int)initValue);
                 Confirm();
+            }
+
+            protected override void Layout()
+            {
+                Height = _parentFull.Height + cachedPadding.Y;
             }
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                base.HandleInput(cursorPos);
-
-                if (BvBinds.ScrollUp.IsPressed || BvBinds.ScrollDown.IsPressed)
+                if (!comboBox.Open && blockComboMember != null)
                 {
-                    int index = comboBox.SelectionIndex;
+                    if (BvBinds.ScrollUp.IsPressed || BvBinds.ScrollDown.IsPressed)
+                    {
+                        int index = comboBox.SelectionIndex;
 
-                    if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
-                        index++;
-                    else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
-                        index--;
+                        if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
+                            index++;
+                        else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
+                            index--;
 
-                    comboBox.SetSelectionAt(index);
+                        comboBox.SetSelectionAt(index);                      
+                    }
+
+                    blockComboMember.Value = comboBox.SelectionIndex;
+                    base.HandleInput(cursorPos);
                 }
             }
         }
