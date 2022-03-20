@@ -27,6 +27,16 @@ namespace DarkHelmet.BuildVision2
 
         private void UpdateStateMain()
         {
+            // Close menus if not in the correct state
+            if ((MenuState & QuickActionMenuState.ListMenuControl) == 0 && propertyList.IsOpen)
+                propertyList.CloseMenu();
+
+            if ((MenuState & QuickActionMenuState.WheelMenuControl) == 0 && propertyWheel.IsOpen)
+                propertyWheel.CloseMenu();
+
+            if (MenuState == QuickActionMenuState.Closed)
+                CloseMenu();
+
             GetStateInput();
 
             if (MenuState == QuickActionMenuState.WheelPeek)
@@ -41,16 +51,6 @@ namespace DarkHelmet.BuildVision2
                 OpenPropertyWheel();
             else if (!propertyList.IsOpen && (MenuState & QuickActionMenuState.ListMenuControl) == QuickActionMenuState.ListMenuControl)
                 OpenPropertyList();
-
-            // Close menus if not in the correct state. Probably redundant.
-            if ((MenuState & QuickActionMenuState.ListMenuControl) == 0 && propertyList.IsOpen)
-                propertyList.CloseMenu();
-
-            if ((MenuState & QuickActionMenuState.WheelMenuControl) == 0 && propertyWheel.IsOpen)
-                propertyWheel.CloseMenu();
-
-            if (MenuState == QuickActionMenuState.Closed)
-                CloseMenu();
         }
 
         private void GetStateInput()

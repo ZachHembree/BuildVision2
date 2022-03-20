@@ -39,7 +39,7 @@ namespace DarkHelmet.BuildVision2
             }
 
             public readonly TexturedBox background;
-            private readonly Label summaryText, notificationText;
+            private readonly Label summaryLabel, notificationText;
 
             private readonly ColorWidget colorWidget;
             private readonly ComboWidget comboWidget;
@@ -55,6 +55,7 @@ namespace DarkHelmet.BuildVision2
             private StringBuilder notification;
             private bool contNotification;
             private int tick;
+            private float animPos;
 
             public PropertyWheelMenuBody(PropertyWheelMenu parent) : base(parent)
             {
@@ -63,19 +64,21 @@ namespace DarkHelmet.BuildVision2
                 {
                     Material = Material.CircleMat,
                     Color = headerColor,
-                    DimAlignment = DimAlignments.Both
                 };
 
-                summaryText = new Label(this)
+                summaryLabel = new Label(this)
                 {
-                    DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
+                    AutoResize = false,
                     BuilderMode = TextBuilderModes.Wrapped,
                 };
 
-                notificationText = new Label(summaryText)
+                notificationText = new Label(this)
                 {
-                    ParentAlignment = ParentAlignments.Bottom,
-                    BuilderMode = TextBuilderModes.Lined,
+                    AutoResize = true,
+                    ParentAlignment = ParentAlignments.Bottom | ParentAlignments.Inner,
+                    BuilderMode = TextBuilderModes.Wrapped,
+                    Width = 150f,
+                    Offset = new Vector2(0f, 30f),
                 };
 
                 colorWidget = new ColorWidget(this) { Visible = false };
@@ -88,10 +91,8 @@ namespace DarkHelmet.BuildVision2
 
                 textBuf = new StringBuilder();
                 notificationTimer = new Stopwatch();
-                Padding = new Vector2(90f);
 
-                UseCursor = true;
-                ShareCursor = true;
+                Padding = new Vector2(wheelBodyPadding);
             }
 
             public void OpenBlockMemberWidget(IBlockMember member)
@@ -125,7 +126,7 @@ namespace DarkHelmet.BuildVision2
 
                 ActiveWidget = widget;
                 ActiveWidget.Visible = true;
-                summaryText.Visible = false;
+                summaryLabel.Visible = false;
             }
 
             public void CloseWidget()
@@ -133,7 +134,7 @@ namespace DarkHelmet.BuildVision2
                 if (ActiveWidget != null)
                 {
                     HudMain.EnableCursor = false;
-                    summaryText.Visible = true;
+                    summaryLabel.Visible = true;
                     ActiveWidget.Reset();
                     ActiveWidget.Visible = false;
                     ActiveWidget = null;
@@ -154,17 +155,41 @@ namespace DarkHelmet.BuildVision2
                     if (ActiveWidget == null)
                     {
                         UpdateText();
-                    }
+                    }                    
+                }
 
-                    if (MenuState == QuickActionMenuState.WheelPeek)
-                    {
-                        Size = new Vector2(270f);
-                        Padding = new Vector2(40f);
-                    }
-                    else
-                    {
-                        Padding = new Vector2(90f);
-                    }
+                if (MenuState == QuickActionMenuState.WheelPeek)
+                {
+                    Padding = new Vector2(wheelBodyPeekPadding);
+                    Size = new Vector2(maxPeekWrapWidth);
+                }
+                else
+                {
+                    Padding = new Vector2(wheelBodyPadding);
+                    Size = 1.05f * propertyWheelMenu.Size * propertyWheelMenu.InnerDiam;
+                }
+
+                summaryLabel.Size = new Vector2(maxPeekWrapWidth - wheelBodyPeekPadding);
+
+                Vector2 textSize = new Vector2(summaryLabel.TextBoard.TextSize.Length());
+                textSize.Y += notificationText.Height;
+                textSize = new Vector2(Math.Max(textSize.X, textSize.Y));
+                textSize = Vector2.Min(Size, textSize);
+                textSize = new Vector2(Math.Max(textSize.X, textSize.Y));
+
+                if (MenuState == QuickActionMenuState.WheelPeek)
+                {
+                    Size = textSize + Padding;
+                    summaryLabel.Size = new Vector2(textSize.X, textSize.Y - notificationText.Height);
+                }
+
+                if ((background.Size - Size).LengthSquared() > 1f)
+                    animPos = 0f;
+
+                if (animPos < 1f)
+                {
+                    animPos += .3f;
+                    background.Size = Vector2.Lerp(background.Size, Size, animPos * QuickActionHudSpace.AnimScale);
                 }
 
                 tick++;
@@ -211,8 +236,7 @@ namespace DarkHelmet.BuildVision2
                         notificationBuidler.SetText("[Incomplete]", blockIncFormat.WithAlignment(TextAlignment.Center));
                 }
 
-                summaryText.Padding = .1f * (cachedSize - cachedPadding);
-                summaryText.TextBoard.SetText(summaryBuilder);
+                summaryLabel.TextBoard.SetText(summaryBuilder);
             }
         }
     }

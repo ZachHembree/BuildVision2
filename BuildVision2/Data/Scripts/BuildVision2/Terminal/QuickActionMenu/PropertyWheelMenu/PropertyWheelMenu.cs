@@ -48,6 +48,11 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public bool IsWidgetOpen => wheelBody.IsWidgetOpen;
 
+            /// <summary>
+            /// Normalized inner diameter of the wheel, [0, 1]
+            /// </summary>
+            public float InnerDiam => propertyWheel.polyBoard.InnerRadius;
+
             private readonly RadialSelectionBox<PropertyWheelEntryBase, Label> propertyWheel, dupeWheel;
             private readonly PropertyWheelMenuBody wheelBody;
             private readonly Label debugText;
@@ -253,7 +258,6 @@ namespace DarkHelmet.BuildVision2
                 else
                 {
                     Size = propertyWheel.Size;
-                    wheelBody.Size = 1.05f * propertyWheel.Size * propertyWheel.polyBoard.InnerRadius;
 
                     if (activeWheel != null)
                         activeWheel.CursorSensitivity = BvConfig.Current.genUI.cursorSensitivity;

@@ -64,5 +64,8 @@ namespace DarkHelmet.BuildVision2
         private const int textTickDivider = 4;
         private const int maxEntryCharCount = 33;
         private const double floatPropLogThreshold = 1E6;
+        private const float maxPeekWrapWidth = 270f, 
+            wheelBodyPeekPadding = 42f, 
+            wheelBodyPadding = 90f;
     }
 }

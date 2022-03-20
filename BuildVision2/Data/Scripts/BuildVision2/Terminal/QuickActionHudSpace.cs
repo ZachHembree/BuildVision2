@@ -35,6 +35,11 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static bool DrawBoundingBox { get; set; }
 
+        /// <summary>
+        /// Anim speed normalized to 60fps
+        /// </summary>
+        public static float AnimScale => instance.lerpScale;
+
         private static QuickActionHudSpace instance;
 
         private readonly QuickActionMenu quickActionMenu;
@@ -46,7 +51,7 @@ namespace DarkHelmet.BuildVision2
         private readonly IMyHudNotification hudNotification;
         private readonly Stopwatch frameTimer;
         private Vector2 lastPos;
-        private float posLerpFactor;
+        private float posLerpFactor, lerpScale;
         private int bpTick, bpMenuTick;
         private bool isPlayerBlueprinting, isBpListOpen;
 
@@ -171,7 +176,7 @@ namespace DarkHelmet.BuildVision2
                 if (BvConfig.Current.genUI.useCustomPos)
                     posLerpFactor = 1f;
 
-                float lerpScale = frameTimer.ElapsedMilliseconds / 16.6667f;
+                lerpScale = frameTimer.ElapsedMilliseconds / 16.6667f;
                 posLerpFactor = Math.Min(posLerpFactor + .4f * lerpScale, 1f);
 
                 quickActionMenu.Offset = Vector2.Lerp(quickActionMenu.Offset, lastPos, posLerpFactor);
