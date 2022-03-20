@@ -285,7 +285,7 @@ namespace RichHudFramework.UI
         protected virtual void UpdateSelection(Vector2 cursorPos)
         {
             Vector2 cursorOffset = cursorPos;
-
+            
             if (UseGestureInput)
                 cursorOffset -= lastCursorPos;
             else
@@ -295,14 +295,13 @@ namespace RichHudFramework.UI
             {
                 // Find enabled entry with the offset that most closely matches
                 // the direction of the normal
-                float dot = .1f;
+                float dot = .5f;
                 int newSelection = -1;
 
                 if (UseGestureInput)
                 {
                     Vector2 normalizedOffset = CursorSensitivity * 0.4f * Vector2.Normalize(cursorOffset);
                     cursorNormal = Vector2.Normalize(cursorNormal + normalizedOffset);
-                    dot = .5f;
                 }
                 else
                     cursorNormal = Vector2.Normalize(cursorOffset);
@@ -316,7 +315,7 @@ namespace RichHudFramework.UI
                     {
                         float newDot = (float)Math.Round(Vector2.Dot(element.Offset, cursorNormal), 4);
 
-                        if (newDot > dot && Math.Abs(lastDot - newDot) > .1f)
+                        if (newDot > dot)
                         {
                             dot = newDot;
                             lastDot = dot;
