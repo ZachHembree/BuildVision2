@@ -363,7 +363,7 @@ namespace DarkHelmet.BuildVision2
             LineD line = new LineD(headPos, headPos + forward * maxDist);
             target = null;
 
-            if (LocalPlayer.TryGetTargetedGrid(line, out cubeGrid, out rayInfo))
+            if (LocalPlayer.IsControllingCharacter && LocalPlayer.TryGetTargetedGrid(line, out cubeGrid, out rayInfo))
             {
                 // Retrieve blocks within about half a block of the ray intersection point.
                 var sphere = new BoundingSphereD(rayInfo.Position, (cubeGrid.GridSizeEnum == MyCubeSize.Large) ? 1.3 : .3);
@@ -421,7 +421,8 @@ namespace DarkHelmet.BuildVision2
             return Target.TBlock != null
                 && BlockInRange()
                 && Target.CanLocalPlayerAccess
-                && (!BvConfig.Current.targeting.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock));
+                && (!BvConfig.Current.targeting.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock))
+                && LocalPlayer.IsControllingCharacter;
         }
 
         /// <summary>
@@ -432,12 +433,7 @@ namespace DarkHelmet.BuildVision2
             double dist = double.PositiveInfinity;
 
             if (Target.TBlock != null)
-            {
-                if (MyAPIGateway.Session.IsCameraUserControlledSpectator)
-                    dist = (MyAPIGateway.Session.Camera.Position - Target.Position).LengthSquared();
-                else
-                    dist = (LocalPlayer.Position - Target.Position).LengthSquared();
-            }
+                dist = (MyAPIGateway.Session.Camera.Position - Target.Position).LengthSquared();
 
             return dist < (BvConfig.Current.targeting.maxControlRange * BvConfig.Current.targeting.maxControlRange);
         }

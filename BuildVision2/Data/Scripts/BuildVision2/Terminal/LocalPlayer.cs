@@ -49,9 +49,14 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Returns the currently controlled object as an IMyCharacter
+        /// Returns local character
         /// </summary>
         public static IMyCharacter PlyEnt { get { return MyAPIGateway.Session.Player.Character; } }
+
+        /// <summary>
+        /// Returns true if the controlled object is the ply character
+        /// </summary>
+        public static bool IsControllingCharacter => MyAPIGateway.Session.ControlledObject == MyAPIGateway.Session.Player.Character;
 
         /// <summary>
         /// Returns the object builder for PlyEnt, provided PlyEnt isn't null

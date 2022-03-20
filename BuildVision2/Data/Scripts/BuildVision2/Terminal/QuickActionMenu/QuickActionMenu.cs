@@ -12,6 +12,7 @@ using RichHudFramework;
 using RichHudFramework.UI.Rendering;
 using RichHudFramework.UI.Client;
 using RichHudFramework.Internal;
+using Sandbox.ModAPI;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -117,6 +118,7 @@ namespace DarkHelmet.BuildVision2
             {
                 ITextBuilder debugBuilder = debugText.TextBoard;
                 debugBuilder.Clear();
+                debugBuilder.Append($"ConObj: {MyAPIGateway.Session.ControlledObject.GetType().Name}\n");
                 debugBuilder.Append($"State: {MenuState}\n");
                 debugBuilder.Append($"Wheel Menu Open: {propertyWheel.IsOpen}\n");
                 debugBuilder.Append($"IsWidgetOpen: {propertyWheel.IsWidgetOpen}\n");
