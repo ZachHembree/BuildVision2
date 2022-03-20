@@ -78,7 +78,7 @@ namespace RichHudFramework
             /// <summary>
             /// Adds an element of type <see cref="TElement"/> to the chain.
             /// </summary>
-            public void Add(TElement element, bool preload = false)
+            public virtual void Add(TElement element, bool preload = false)
             {
                 var newContainer = new TElementContainer();
                 newContainer.SetElement(element);
@@ -88,7 +88,7 @@ namespace RichHudFramework
             /// <summary>
             /// Adds an element of type <see cref="TElementContainer"/> to the chain.
             /// </summary>
-            public void Add(TElementContainer container, bool preload = false)
+            public virtual void Add(TElementContainer container, bool preload = false)
             {
                 if (container.Element.Registered)
                     throw new Exception("HUD Element already registered!");
@@ -102,7 +102,7 @@ namespace RichHudFramework
             /// <summary>
             /// Add the given range to the end of the chain.
             /// </summary>
-            public void AddRange(IReadOnlyList<TElementContainer> newContainers, bool preload = false)
+            public virtual void AddRange(IReadOnlyList<TElementContainer> newContainers, bool preload = false)
             {
                 NodeUtils.RegisterNodes<TElementContainer, TElement>(this, children, newContainers, preload);
                 hudCollectionList.AddRange(newContainers);
@@ -111,7 +111,7 @@ namespace RichHudFramework
             /// <summary>
             /// Adds an element of type <see cref="TElementContainer"/> at the given index.
             /// </summary>
-            public void Insert(int index, TElementContainer container, bool preload = false)
+            public virtual void Insert(int index, TElementContainer container, bool preload = false)
             {
                 if (container.Element.Register(this, preload))
                     hudCollectionList.Insert(index, container);
@@ -122,7 +122,7 @@ namespace RichHudFramework
             /// <summary>
             /// Insert the given range into the chain.
             /// </summary>
-            public void InsertRange(int index, IReadOnlyList<TElementContainer> newContainers, bool preload = false)
+            public virtual void InsertRange(int index, IReadOnlyList<TElementContainer> newContainers, bool preload = false)
             {
                 NodeUtils.RegisterNodes<TElementContainer, TElement>(this, children, newContainers, preload);
                 hudCollectionList.InsertRange(index, newContainers);
@@ -131,7 +131,7 @@ namespace RichHudFramework
             /// <summary>
             /// Removes the specified element from the collection.
             /// </summary>
-            public bool Remove(TElementContainer entry)
+            public virtual bool Remove(TElementContainer entry)
             {
                 if (entry.Element.Parent == this && hudCollectionList.Count > 0)
                 {
@@ -149,7 +149,7 @@ namespace RichHudFramework
             /// <summary>
             /// Removes the chain member that meets the conditions required by the predicate.
             /// </summary>
-            public bool Remove(Func<TElementContainer, bool> predicate)
+            public virtual bool Remove(Func<TElementContainer, bool> predicate)
             {
                 if (hudCollectionList.Count > 0)
                 {
@@ -172,7 +172,7 @@ namespace RichHudFramework
             /// <summary>
             /// Remove the element at the given index.
             /// </summary>
-            public bool RemoveAt(int index)
+            public virtual bool RemoveAt(int index)
             {
                 if (hudCollectionList[index].Element.Parent == this && hudCollectionList.Count > 0)
                 {
@@ -190,7 +190,7 @@ namespace RichHudFramework
             /// <summary>
             /// Removes the specfied range from the collection. Normal child elements not affected.
             /// </summary>
-            public void RemoveRange(int index, int count)
+            public virtual void RemoveRange(int index, int count)
             {
                 NodeUtils.UnregisterNodes<TElementContainer, TElement>(this, children, hudCollectionList, index, count);
                 hudCollectionList.RemoveRange(index, count);
@@ -199,7 +199,7 @@ namespace RichHudFramework
             /// <summary>
             /// Remove all elements in the collection. Does not affect normal child elements.
             /// </summary>
-            public void Clear()
+            public virtual void Clear()
             {
                 NodeUtils.UnregisterNodes<TElementContainer, TElement>(this, children, hudCollectionList, 0, hudCollectionList.Count);
                 hudCollectionList.Clear();
@@ -208,7 +208,7 @@ namespace RichHudFramework
             /// <summary>
             /// Finds the chain member that meets the conditions required by the predicate.
             /// </summary>
-            public TElementContainer Find(Func<TElementContainer, bool> predicate)
+            public virtual TElementContainer Find(Func<TElementContainer, bool> predicate)
             {
                 return hudCollectionList.Find(x => predicate(x));
             }
@@ -216,7 +216,7 @@ namespace RichHudFramework
             /// <summary>
             /// Finds the index of the chain member that meets the conditions required by the predicate.
             /// </summary>
-            public int FindIndex(Func<TElementContainer, bool> predicate)
+            public virtual int FindIndex(Func<TElementContainer, bool> predicate)
             {
                 return hudCollectionList.FindIndex(x => predicate(x));
             }
@@ -224,13 +224,13 @@ namespace RichHudFramework
             /// <summary>
             /// Returns true if the given element is in the collection.
             /// </summary>
-            public bool Contains(TElementContainer item) =>
+            public virtual bool Contains(TElementContainer item) =>
                 hudCollectionList.Contains(item);
 
             /// <summary>
             /// Copies the contents of the collection to the given array starting at the index specified in the target array.
             /// </summary>
-            public void CopyTo(TElementContainer[] array, int arrayIndex) =>
+            public virtual void CopyTo(TElementContainer[] array, int arrayIndex) =>
                 hudCollectionList.CopyTo(array, arrayIndex);
 
             public override bool RemoveChild(HudNodeBase child)

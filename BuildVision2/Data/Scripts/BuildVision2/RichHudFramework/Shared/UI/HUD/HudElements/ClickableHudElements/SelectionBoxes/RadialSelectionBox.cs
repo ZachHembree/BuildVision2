@@ -23,7 +23,7 @@ namespace RichHudFramework.UI
         public virtual IReadOnlyList<TContainer> EntryList => hudCollectionList;
 
         /// <summary>
-        /// Currently highlighted entry
+        /// Currently selected entry
         /// </summary>
         public virtual TContainer Selection 
         {
@@ -37,9 +37,28 @@ namespace RichHudFramework.UI
         }
 
         /// <summary>
+        /// Currently highlighted entry
+        /// </summary>
+        public virtual TContainer HighlightedEntry
+        {
+            get
+            {
+                if (HighlightIndex >= 0 && HighlightIndex < hudCollectionList.Count)
+                    return hudCollectionList[HighlightIndex];
+                else
+                    return default(TContainer);
+            }
+        }
+
+        /// <summary>
         /// Returns the index of the current selection. Returns -1 if nothing is selected.
         /// </summary>
         public virtual int SelectionIndex { get; protected set; }
+
+        /// <summary>
+        /// Returns the index of the entry currently highlighted. Returns -1 if nothing is highlighted.
+        /// </summary>
+        public virtual int HighlightIndex { get; protected set; }
 
         /// <summary>
         /// Maximum number of entries. Used to determine subdivisions in circle. If enabled
@@ -53,19 +72,28 @@ namespace RichHudFramework.UI
         public virtual int EnabledCount { get; protected set; }
 
         /// <summary>
-        /// Enables/disables highlighting
+        /// Returns true if input is enabled can update
         /// </summary>
-        public virtual bool IsInputEnabled
+        public override bool InputEnabled
         {
-            get { return _isInputEnabled; }
             set
             {
-                if (_isInputEnabled != value)
+                bool current = (State & nodeInputEnabled) == nodeInputEnabled;
+
+                if (current != value)
                     isStartPosStale = true;
 
-                _isInputEnabled = value;
+                if (value)
+                    State |= HudElementStates.IsInputEnabled;
+                else
+                    State &= ~HudElementStates.IsInputEnabled;
             }
         }
+
+        /// <summary>
+        /// True if using mouse gestures for input instead of cursor
+        /// </summary>
+        public virtual bool UseGestureInput { get; set; }
 
         /// <summary>
         /// Background color for the polyboard
@@ -78,37 +106,53 @@ namespace RichHudFramework.UI
         public virtual Color HighlightColor { get; set; }
 
         /// <summary>
+        /// Selection color for the polyboard
+        /// </summary>
+        public virtual Color SelectionColor { get; set; }
+
+        /// <summary>
         /// Cursor sensitivity for wheel scrolling on a scale from .3 to 2.
         /// </summary>
         public float CursorSensitivity { get; set; }
 
         public readonly PuncturedPolyBoard polyBoard;
 
-        protected int selectionVisPos, effectiveMaxCount, minPolySize;
+        protected int selectionVisPos, highlightVisPos, effectiveMaxCount, minPolySize;
         protected bool isStartPosStale;
         protected Vector2 lastCursorPos, cursorNormal;
         private float lastDot;
-        private bool _isInputEnabled;
 
         public RadialSelectionBox(HudParentBase parent = null) : base(parent)
         {
             polyBoard = new PuncturedPolyBoard()
             {
-                Color = new Color(255, 255, 255, 128),
                 Sides = 64
             };
+
+            BackgroundColor = new Color(70, 78, 86);
+            HighlightColor = TerminalFormatting.DarkSlateGrey;
+            SelectionColor = TerminalFormatting.Mint;
 
             minPolySize = 64;
             Size = new Vector2(512f);
             MaxEntryCount = 8;
             CursorSensitivity = .5f;
+
+            UseGestureInput = false;
+            UseCursor = true;
         }
 
+        /// <summary>
+        /// Sets the selection to the entry at the corresponding index
+        /// </summary>
         public void SetSelectionAt(int index)
         {
             SelectionIndex = MathHelper.Clamp(index, 0, hudCollectionList.Count - 1);
         }
 
+        /// <summary>
+        /// Sets selection to the given entry, if it is in the collection
+        /// </summary>
         public void SetSelection(TContainer container)
         {
             int index = FindIndex(x => x.Equals(container));
@@ -117,11 +161,49 @@ namespace RichHudFramework.UI
                 SelectionIndex = index;
         }
 
+        /// <summary>
+        /// Highlights the entry at the given index
+        /// </summary>
+        public void SetHighlightAt(int index)
+        {
+            HighlightIndex = MathHelper.Clamp(index, 0, hudCollectionList.Count - 1);
+        }
+
+        /// <summary>
+        /// Highlights the given entry, if it's in the collection
+        /// </summary>
+        public void SetHighlight(TContainer container)
+        {
+            int index = FindIndex(x => x.Equals(container));
+
+            if (index != -1)
+                HighlightIndex = index;
+        }
+
+        public override void Clear()
+        {
+            HighlightIndex = -1;
+            SelectionIndex = -1;
+            base.Clear();
+        }
+
+        public void ClearHighlight()
+        {
+            HighlightIndex = -1;
+        }
+
+        public void ClearSelection()
+        {
+            SelectionIndex = -1;
+        }
+
         protected override void Layout()
         {
             // Get enabled elements and effective max count
             EnabledCount = 0;
             SelectionIndex = MathHelper.Clamp(SelectionIndex, -1, hudCollectionList.Count - 1);
+            HighlightIndex = MathHelper.Clamp(HighlightIndex, -1, hudCollectionList.Count - 1);
+            CursorSensitivity = MathHelper.Clamp(CursorSensitivity, 0.3f, 2f);
 
             for (int i = 0; i < hudCollectionList.Count; i++)
             {
@@ -156,12 +238,34 @@ namespace RichHudFramework.UI
             polyBoard.Sides = Math.Max(effectiveMaxCount * 6, minPolySize);
         }
 
+        protected override void InputDepth()
+        {
+            State &= ~HudElementStates.IsMouseInBounds;
+
+            if (HudMain.InputMode != HudInputMode.NoInput && (HudSpace?.IsFacingCamera ?? false))
+            {
+                Vector2 size = cachedSize - cachedPadding,
+                    aspect = new Vector2(size.Y / size.X, size.X / size.Y),
+                    cursorPos = new Vector2(HudSpace.CursorPos.X, HudSpace.CursorPos.Y) - cachedPosition;
+
+                cursorPos *= aspect;
+
+                float max = .5f * (cachedSize.X - cachedPadding.X),
+                    min = polyBoard.InnerRadius * max,
+                    offsetLen = cursorPos.Length();
+
+                if (offsetLen > min && offsetLen < max)
+                {
+                    State |= HudElementStates.IsMouseInBounds;
+                    HudMain.Cursor.TryCaptureHudSpace(HudSpace.CursorPos.Z, HudSpace.GetHudSpaceFunc);
+                }
+            }
+        }
+
         protected override void HandleInput(Vector2 cursorPos)
         {
-            if (IsInputEnabled)
+            if (UseGestureInput || IsMousedOver)
             {
-                CursorSensitivity = MathHelper.Clamp(CursorSensitivity, 0.3f, 2f);
-
                 if (isStartPosStale)
                 {
                     lastDot = 0f;
@@ -170,38 +274,7 @@ namespace RichHudFramework.UI
                     isStartPosStale = false;
                 }
 
-                Vector2 cursorOffset = cursorPos - lastCursorPos;
-
-                if (cursorOffset.LengthSquared() > 64f)
-                {
-                    // Find enabled entry with the offset that most closely matches
-                    // the direction of the normal
-                    float dot = .5f;
-                    int newSelection = -1;
-                    Vector2 normalizedOffset = CursorSensitivity * 0.4f * Vector2.Normalize(cursorOffset);
-                    cursorNormal = Vector2.Normalize(cursorNormal + normalizedOffset);
-
-                    for (int i = 0; i < hudCollectionList.Count; i++)
-                    {
-                        TContainer container = hudCollectionList[i];
-                        TElement element = container.Element;
-
-                        if (container.Enabled)
-                        {
-                            float newDot = Vector2.Dot(element.Offset, cursorNormal);
-
-                            if (newDot > dot && Math.Abs(lastDot - newDot) > .1f)
-                            {
-                                dot = newDot;
-                                lastDot = dot;
-                                newSelection = i;
-                            }
-                        }
-                    }
-
-                    lastCursorPos = cursorPos;
-                    SelectionIndex = newSelection;
-                }
+                UpdateSelection(cursorPos);   
             }
             else
             {
@@ -209,20 +282,85 @@ namespace RichHudFramework.UI
             }
         }
 
+        protected virtual void UpdateSelection(Vector2 cursorPos)
+        {
+            Vector2 cursorOffset = cursorPos;
+
+            if (UseGestureInput)
+                cursorOffset -= lastCursorPos;
+            else
+                cursorOffset -= cachedPosition;
+
+            if (cursorOffset.LengthSquared() > 64f)
+            {
+                // Find enabled entry with the offset that most closely matches
+                // the direction of the normal
+                float dot = .1f;
+                int newSelection = -1;
+
+                if (UseGestureInput)
+                {
+                    Vector2 normalizedOffset = CursorSensitivity * 0.4f * Vector2.Normalize(cursorOffset);
+                    cursorNormal = Vector2.Normalize(cursorNormal + normalizedOffset);
+                    dot = .5f;
+                }
+                else
+                    cursorNormal = Vector2.Normalize(cursorOffset);
+
+                for (int i = 0; i < hudCollectionList.Count; i++)
+                {
+                    TContainer container = hudCollectionList[i];
+                    TElement element = container.Element;
+
+                    if (container.Enabled)
+                    {
+                        float newDot = (float)Math.Round(Vector2.Dot(element.Offset, cursorNormal), 4);
+
+                        if (newDot > dot && Math.Abs(lastDot - newDot) > .1f)
+                        {
+                            dot = newDot;
+                            lastDot = dot;
+                            newSelection = i;
+                        }
+                    }
+                }
+
+                lastCursorPos = cursorPos;
+                HighlightIndex = newSelection;
+            }
+        }
+
         protected void UpdateVisPos()
         {
             selectionVisPos = -1;
+            highlightVisPos = -1;
             SelectionIndex = MathHelper.Clamp(SelectionIndex, -1, hudCollectionList.Count - 1);
+            HighlightIndex = MathHelper.Clamp(HighlightIndex, -1, hudCollectionList.Count - 1);
 
-            if (hudCollectionList.Count > 0 && SelectionIndex != -1)
+            if (hudCollectionList.Count > 0)
             {
-                // Find visible offset index
-                for (int i = 0; i <= SelectionIndex; i++)
+                if (SelectionIndex != -1)
                 {
-                    TContainer container = hudCollectionList[i];
+                    // Find visible offset index
+                    for (int i = 0; i <= SelectionIndex; i++)
+                    {
+                        TContainer container = hudCollectionList[i];
 
-                    if (container.Enabled)
-                        selectionVisPos++;
+                        if (container.Enabled)
+                            selectionVisPos++;
+                    }
+                }
+
+                if (HighlightIndex != -1)
+                {
+                    // Find visible offset index
+                    for (int i = 0; i <= HighlightIndex; i++)
+                    {
+                        TContainer container = hudCollectionList[i];
+
+                        if (container.Enabled)
+                            highlightVisPos++;
+                    }
                 }
             }
         }
@@ -236,11 +374,21 @@ namespace RichHudFramework.UI
 
             polyBoard.Draw(size, cachedOrigin, HudSpace.PlaneToWorldRef);
 
-            if (selectionVisPos != -1 && entrySize > 0)
+            if (entrySize > 0)
             {
-                Vector2I slice = new Vector2I(0, entrySize - 1) + (selectionVisPos * entrySize);
-                polyBoard.Color = HighlightColor;
-                polyBoard.Draw(size, cachedOrigin, slice, HudSpace.PlaneToWorldRef);
+                if (selectionVisPos != -1 && (highlightVisPos != selectionVisPos || !UseGestureInput))
+                {
+                    Vector2I slice = new Vector2I(0, entrySize - 1) + (selectionVisPos * entrySize);
+                    polyBoard.Color = SelectionColor;
+                    polyBoard.Draw(size, cachedOrigin, slice, HudSpace.PlaneToWorldRef);
+                }
+
+                if (highlightVisPos != -1 && (highlightVisPos != selectionVisPos || UseGestureInput))
+                {
+                    Vector2I slice = new Vector2I(0, entrySize - 1) + (highlightVisPos * entrySize);
+                    polyBoard.Color = HighlightColor;
+                    polyBoard.Draw(size, cachedOrigin, slice, HudSpace.PlaneToWorldRef);
+                }
             }
         }
     }
