@@ -27,10 +27,10 @@ namespace DarkHelmet.BuildVision2
                 };
                 textField = new TextField();
 
-                var layout = new HudChain(true, this)
+                layout = new HudChain(true, this)
                 {
                     DimAlignment = DimAlignments.Width,
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
                     Spacing = 8f,
                     CollectionContainer =
                     {
@@ -63,9 +63,11 @@ namespace DarkHelmet.BuildVision2
 
             public override void Reset()
             {
+                CloseWidgetCallback = null;
+
+                Confirm();
                 textValueMember = null;
                 textMember = null;
-                CloseWidgetCallback = null;
             }
 
             protected override void HandleInput(Vector2 cursorPos)
@@ -87,19 +89,17 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Confirm()
             {
-                if (!BindManager.IsChatOpen && textField.InputOpen)
-                {
+                if (textField.InputOpen)
                     textMember.SetValueText(textField.TextBoard.ToString());
-                    textField.CloseInput();
-                }
 
-                CloseWidgetCallback();
+                textField.CloseInput();
+                CloseWidgetCallback?.Invoke();
             }
 
             protected override void Cancel()
             {
-                textField.CloseInput();
-                CloseWidgetCallback();
+                textField.TextBoard.SetText(textValueMember.Value);
+                Confirm();
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using RichHudFramework.UI;
+using RichHudFramework.UI.Client;
 using System;
 using VRageMath;
 
@@ -6,10 +7,15 @@ namespace DarkHelmet.BuildVision2
 {
     public sealed partial class QuickActionMenu
     {
-        private abstract class PropertyWheelWidgetBase : HudElementBase
+        private abstract class PropertyWheelWidgetBase : HudElementBase, IClickableElement
         {
+            public override bool IsMousedOver => MouseInput.IsMousedOver;
+
+            public IMouseInput MouseInput { get; protected set; }
+
             protected readonly BorderedButton cancelButton, confirmButton;
             protected readonly HudChain buttonChain;
+            protected HudChain layout;
 
             protected Action CloseWidgetCallback;
 
@@ -40,32 +46,44 @@ namespace DarkHelmet.BuildVision2
                 };
 
                 DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding;
+
+                MouseInput = new MouseInputElement(this)
+                {
+                    DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                    ShareCursor = true,
+                };
             }
 
             public abstract void SetData(object data, Action CloseWidgetCallback);
 
             public abstract void Reset();
 
+            protected override void Layout()
+            {
+                Height = layout.Height + cachedPadding.Y;
+            }
+
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (BvBinds.Cancel.IsNewPressed)
+                if (IsMousedOver)
                 {
-                    cancelButton.MouseInput.GetInputFocus();
+                    if (cancelButton.MouseInput.IsLeftReleased)
+                        Cancel();
+                    else if (confirmButton.MouseInput.IsLeftReleased)
+                        Confirm();
                 }
-                else if (BvBinds.Select.IsNewPressed && !BvBinds.MultXOrMouse.IsPressed)
+                else
                 {
-                    confirmButton.MouseInput.GetInputFocus();
-                }
+                    if (BvBinds.Cancel.IsNewPressed)
+                        cancelButton.MouseInput.GetInputFocus();
+                    else if (BvBinds.Select.IsNewPressed)
+                        confirmButton.MouseInput.GetInputFocus();
 
-                if (cancelButton.MouseInput.IsLeftReleased || BvBinds.Cancel.IsReleased)
-                {
-                    Cancel();
-                }
-                else if (confirmButton.MouseInput.IsLeftReleased ||
-                    (BvBinds.Select.IsReleased && !BvBinds.MultXOrMouse.IsPressed))
-                {
-                    Confirm();
-                }
+                    if (BvBinds.Cancel.IsReleased)
+                        Cancel();
+                    else if (BvBinds.Select.IsReleased)
+                        Confirm();
+                }                
             }
 
             protected abstract void Confirm();

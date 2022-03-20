@@ -23,10 +23,10 @@ namespace DarkHelmet.BuildVision2
                     MinVisibleCount = 4,
                 };
 
-                var layout = new HudChain(true, this)
+                layout = new HudChain(true, this)
                 {
                     DimAlignment = DimAlignments.Width,
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
                     Spacing = 8f,
                     CollectionContainer =
                     {
@@ -51,8 +51,10 @@ namespace DarkHelmet.BuildVision2
 
             public override void Reset()
             {
-                blockComboMember = null;
                 CloseWidgetCallback = null;
+
+                Confirm();
+                blockComboMember = null;
                 comboBox.ClearEntries();
             }
 
@@ -61,13 +63,14 @@ namespace DarkHelmet.BuildVision2
                 if (comboBox.SelectionIndex != -1)
                     blockComboMember.Value = comboBox.SelectionIndex;
 
-                CloseWidgetCallback();
+                comboBox.CloseList();
+                CloseWidgetCallback?.Invoke();
             }
 
             protected override void Cancel()
             {
-                blockComboMember.Value = initValue;
-                CloseWidgetCallback();
+                comboBox.SetSelectionAt((int)blockComboMember.Value);
+                Confirm();
             }
 
             protected override void HandleInput(Vector2 cursorPos)

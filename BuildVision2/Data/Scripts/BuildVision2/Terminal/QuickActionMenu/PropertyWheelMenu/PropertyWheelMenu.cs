@@ -69,6 +69,7 @@ namespace DarkHelmet.BuildVision2
                     Visible = false,
                     BackgroundColor = bodyColor,
                     HighlightColor = highlightColor,
+                    SelectionColor = highlightFocusColor,
                     ZOffset = -1,
                 };
                 propertyWheel.Register(wheelBody, true);
@@ -79,6 +80,7 @@ namespace DarkHelmet.BuildVision2
                     Visible = false,
                     BackgroundColor = bodyColor,
                     HighlightColor = highlightColor,
+                    SelectionColor = highlightFocusColor,
                     ZOffset = -1,
                     CollectionContainer =
                     {
@@ -137,7 +139,11 @@ namespace DarkHelmet.BuildVision2
                     new PropertyWheelShortcutEntry()
                     {
                         Text = "Copy Settings",
-                        ShortcutAction = quickActionMenu.StartPropertyDuplication,
+                        ShortcutAction = () =>
+                        {
+                            MenuState = QuickActionMenuState.WheelMenuControl;
+                            quickActionMenu.StartPropertyDuplication();
+                        },
                     }
                 };
 
@@ -182,10 +188,12 @@ namespace DarkHelmet.BuildVision2
                     }
 
                     // Append registered shortcuts to end
-                    propertyWheel.AddRange(shortcutEntries);               
+                    propertyWheel.AddRange(shortcutEntries);
+                    propertyWheel.SetHighlightAt(0);
+                    dupeWheel.SetHighlightAt(0);
                 }
 
-                propertyWheel.IsInputEnabled = true;
+                propertyWheel.InputEnabled = true;
                 propertyWheel.Visible = true;
                 dupeWheel.Visible = false;
                 IsOpen = true;
@@ -227,9 +235,8 @@ namespace DarkHelmet.BuildVision2
                 propertyEntryPool.ReturnRange(propertyWheel.EntryList, 0,
                     propertyWheel.EntryList.Count - shortcutEntries.Count);
 
-                propertyWheel.SetSelectionAt(0);
+                dupeWheel.ClearSelection();
                 propertyWheel.Clear();
-                propertyWheel.IsInputEnabled = false;
             }
 
             protected override void Layout()
@@ -250,15 +257,6 @@ namespace DarkHelmet.BuildVision2
 
                     if (activeWheel != null)
                         activeWheel.CursorSensitivity = BvConfig.Current.genUI.cursorSensitivity;
-
-                    if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
-                    {
-                        propertyWheel.HighlightColor = highlightFocusColor;
-                    }
-                    else
-                    {
-                        propertyWheel.HighlightColor = highlightColor;
-                    }
 
                     if (textUpdateTick == 0 && (MenuState & QuickActionMenuState.PropertyDuplication) == 0)
                     {

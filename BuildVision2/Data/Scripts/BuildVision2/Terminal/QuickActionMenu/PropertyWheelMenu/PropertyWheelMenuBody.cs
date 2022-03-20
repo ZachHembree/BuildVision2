@@ -22,7 +22,12 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Returns true if a property widget is currently open
             /// </summary>
-            public bool IsWidgetOpen => activeWidget != null;
+            public bool IsWidgetOpen => ActiveWidget != null;
+
+            /// <summary>
+            /// Current open widget. Null if closed.
+            /// </summary>
+            public PropertyWheelWidgetBase ActiveWidget { get; private set; }
 
             /// <summary>
             /// Gets/sets the menu's state
@@ -42,7 +47,6 @@ namespace DarkHelmet.BuildVision2
             private readonly TextWidget textWidget;
 
             private readonly Action CloseWidgetCallback;
-            private PropertyWheelWidgetBase activeWidget;
 
             private readonly PropertyWheelMenu propertyWheelMenu;
             private readonly Stopwatch notificationTimer;
@@ -85,6 +89,9 @@ namespace DarkHelmet.BuildVision2
                 textBuf = new StringBuilder();
                 notificationTimer = new Stopwatch();
                 Padding = new Vector2(90f);
+
+                UseCursor = true;
+                ShareCursor = true;
             }
 
             public void OpenBlockMemberWidget(IBlockMember member)
@@ -114,23 +121,22 @@ namespace DarkHelmet.BuildVision2
             private void OpenWidget(PropertyWheelWidgetBase widget, object data)
             {
                 CloseWidget();
-
                 widget.SetData(data, CloseWidgetCallback);
-                activeWidget = widget;
 
-                activeWidget.Visible = true;
+                ActiveWidget = widget;
+                ActiveWidget.Visible = true;
                 summaryText.Visible = false;
             }
 
             public void CloseWidget()
             {
-                if (activeWidget != null)
+                if (ActiveWidget != null)
                 {
                     HudMain.EnableCursor = false;
-                    activeWidget.Reset();
-                    activeWidget.Visible = false;
                     summaryText.Visible = true;
-                    activeWidget = null;
+                    ActiveWidget.Reset();
+                    ActiveWidget.Visible = false;
+                    ActiveWidget = null;
                 }
             }
 
@@ -145,7 +151,7 @@ namespace DarkHelmet.BuildVision2
             {
                 if (tick == 0)
                 {
-                    if (activeWidget == null)
+                    if (ActiveWidget == null)
                     {
                         UpdateText();
                     }

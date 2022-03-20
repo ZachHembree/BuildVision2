@@ -20,11 +20,11 @@ namespace DarkHelmet.BuildVision2
             {
                 colorPicker = new ColorPickerRGB();
 
-                var layout = new HudChain(true, this)
+                layout = new HudChain(true, this)
                 {
                     Padding = new Vector2(20f),
                     DimAlignment = DimAlignments.Width,
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
                     Spacing = 8f,
                     CollectionContainer =
                     {
@@ -59,7 +59,7 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Confirm()
             {
-                if (channelSelected || BvBinds.MultXOrMouse.IsPressed)
+                if (channelSelected || IsMousedOver)
                 {
                     channelSelected = false;
                     CloseWidgetCallback();
@@ -92,13 +92,13 @@ namespace DarkHelmet.BuildVision2
                     Cancel();
                 }
                 else if (confirmButton.MouseInput.IsLeftReleased ||
-                    (BvBinds.Select.IsReleased && !BvBinds.MultXOrMouse.IsPressed))
+                    (BvBinds.Select.IsReleased && !IsMousedOver))
                 {
                     Confirm();
                 }
                 else 
                 {
-                    if (!BvBinds.MultXOrMouse.IsPressed)
+                    if (!IsMousedOver)
                     {
                         if (!channelSelected)
                         {

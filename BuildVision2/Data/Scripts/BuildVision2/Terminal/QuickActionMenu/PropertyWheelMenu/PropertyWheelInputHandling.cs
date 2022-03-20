@@ -25,12 +25,33 @@ namespace DarkHelmet.BuildVision2
                 {
                     if ((MenuState & QuickActionMenuState.WheelMenuControl) == QuickActionMenuState.WheelMenuControl)
                     {
+                        if (BvBinds.MultXOrMouse.IsPressed)
+                            BindManager.RequestTempBlacklist(SeBlacklistModes.MouseAndCam);
+
+                        if (activeWheel != null)
+                        {
+                            if ((MenuState & QuickActionMenuState.PropertyOpen) == 0 ^ activeWheel.UseGestureInput)
+                                activeWheel.SetHighlightAt(activeWheel.SelectionIndex);
+
+                            activeWheel.InputEnabled = BvBinds.MultXOrMouse.IsPressed || HudMain.Cursor.Visible;
+                            activeWheel.UseGestureInput = (MenuState & QuickActionMenuState.PropertyOpen) == 0;
+                        }
+
                         if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
                         {
                             if (!wheelBody.IsWidgetOpen)
                                 MenuState = QuickActionMenuState.WheelMenuControl;
                             else
+                            {
+                                wheelBody.ActiveWidget.InputEnabled = !activeWheel.IsMousedOver;
                                 HudMain.EnableCursor = BvBinds.MultXOrMouse.IsPressed;
+                            }
+
+                            if (activeWheel.IsMousedOver && SharedBinds.LeftButton.IsReleased
+                                && !wheelBody.ActiveWidget.MouseInput.IsLeftClicked)
+                            {
+                                HandleWheelInput();
+                            }
                         }
                         else
                         {
@@ -50,10 +71,10 @@ namespace DarkHelmet.BuildVision2
                             if (wheelBody.IsWidgetOpen)
                                 wheelBody.CloseWidget();
 
+                            activeWheel.ClearSelection();
                             HandleWheelInput();
                         }
                     }
-
                 }
             }
 
@@ -62,12 +83,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void HandleWheelInput()
             {
-                var selection = activeWheel.Selection;
-
-                if (BvBinds.MultXOrMouse.IsPressed)
-                    BindManager.RequestTempBlacklist(SeBlacklistModes.MouseAndCam);
-
-                activeWheel.IsInputEnabled = BvBinds.MultXOrMouse.IsPressed;
+                var entry = activeWheel.HighlightedEntry;
 
                 if (!(BvBinds.StartDupe.IsPressed || BvBinds.StopDupe.IsPressed))
                 {
@@ -86,9 +102,9 @@ namespace DarkHelmet.BuildVision2
                     else
                     {
                         if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
-                            HandleDupeSelection(selection);
+                            HandleDupeSelection(entry);
                         else
-                            HandlePropertySelection(selection);
+                            HandlePropertySelection(entry);
                     }
                 }
             }
@@ -96,11 +112,11 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Handles selection for an entry in the duplication selection wheel
             /// </summary>
-            private void HandleDupeSelection(PropertyWheelEntryBase selection)
+            private void HandleDupeSelection(PropertyWheelEntryBase entry)
             {
                 if (BvBinds.Select.IsReleased)
                 {
-                    var shortcutEntry = selection as PropertyWheelShortcutEntry;
+                    var shortcutEntry = entry as PropertyWheelShortcutEntry;
                     shortcutEntry.ShortcutAction();
                 }
             }
@@ -108,32 +124,35 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Handles the selection of an entry in one of the selection wheels
             /// </summary>
-            private void HandlePropertySelection(PropertyWheelEntryBase selection)
+            private void HandlePropertySelection(PropertyWheelEntryBase entry)
             {
-                var propertyEntry = selection as PropertyWheelEntry;
+                var propertyEntry = entry as PropertyWheelEntry;
+                bool clicked = BvBinds.Select.IsReleased && !activeWheel.IsMousedOver
+                    || SharedBinds.LeftButton.IsReleased && activeWheel.IsMousedOver;
 
-                if (BvBinds.Select.IsReleased || 
-                    (propertyEntry?.BlockMember is IBlockTextMember && BindManager.IsChatOpen
-                    && MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("CHAT_SCREEN")) ))
+                if (clicked || (
+                    propertyEntry?.BlockMember is IBlockTextMember 
+                    && BindManager.IsChatOpen
+                    && MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("CHAT_SCREEN")) 
+                ))
                 {
-                    if (selection is PropertyWheelShortcutEntry)
+                    if (entry is PropertyWheelShortcutEntry)
                     {
-                        var shortcut = selection as PropertyWheelShortcutEntry;
+                        var shortcut = entry as PropertyWheelShortcutEntry;
                         shortcut.ShortcutAction();
                     }
-                    else if (propertyEntry.BlockMember != null && selection.Enabled)
+                    else if (propertyEntry.BlockMember != null && entry.Enabled)
                     {
                         if (propertyEntry.BlockMember is IBlockAction)
                         {
                             var blockAction = propertyEntry.BlockMember as IBlockAction;
                             blockAction.Action();
                         }
-                        else
+                        else if (entry != activeWheel.Selection)
                         {
                             wheelBody.OpenBlockMemberWidget(propertyEntry.BlockMember);
-                            activeWheel.IsInputEnabled = false;
-
                             MenuState = QuickActionMenuState.WidgetControl;
+                            activeWheel.SetSelectionAt(activeWheel.HighlightIndex);
                         }
                     }
                 }
@@ -145,7 +164,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void ScrollSelection(int offset)
             {
-                int index = Math.Max(activeWheel.SelectionIndex, 0),
+                int index = Math.Max(activeWheel.HighlightIndex, 0),
                     dir = offset > 0 ? 1 : -1,
                     absOffset = Math.Abs(offset);
 
@@ -170,7 +189,7 @@ namespace DarkHelmet.BuildVision2
                     }
                 }
 
-                activeWheel.SetSelectionAt(index);
+                activeWheel.SetHighlightAt(index);
             }
 
             /// <summary>

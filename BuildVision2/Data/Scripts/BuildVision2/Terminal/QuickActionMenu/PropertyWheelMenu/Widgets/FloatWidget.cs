@@ -21,17 +21,17 @@ namespace DarkHelmet.BuildVision2
 
             public FloatWidget(HudParentBase parent = null) : base(parent)
             {
-                sliderBox = new CustomSliderBox() 
-                { 
+                sliderBox = new CustomSliderBox()
+                {
                     Min = 0f,
                     Max = 1f,
                     Padding = Vector2.Zero,
                 };
 
-                var layout = new HudChain(true, this)
+                layout = new HudChain(true, this)
                 {
                     DimAlignment = DimAlignments.Width,
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
                     Spacing = 8f,
                     CollectionContainer =
                     {
@@ -72,10 +72,11 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
+                base.Layout();
+
                 if (!sliderBox.IsTextInputOpen)
                 {
                     ITextBuilder valueBuilder = sliderBox.ValueBuilder;
-
                     valueBuilder.Clear();
 
                     if (floatMember.StatusText != null && floatMember.StatusText.Length > 0)
