@@ -153,6 +153,20 @@ namespace DarkHelmet.BuildVision2
                 },
             };
 
+            // Close if not in view
+            var specLimitBox = new TerminalCheckbox()
+            {
+                Name = "Limit spectator range",
+                Value = Cfg.targeting.isSpecRangeLimited,
+                CustomValueGetter = () => Cfg.targeting.isSpecRangeLimited,
+                ControlChangedHandler = ((sender, args) => Cfg.targeting.isSpecRangeLimited = (sender as TerminalCheckbox).Value),
+                ToolTip = new RichText(ToolTip.DefaultText)
+                {
+                    "If enabled the auto-close distance will be\n" +
+                    "enforced for the spectator camera."
+                },
+            };
+
             var targetingResetButton = new TerminalButton()
             {
                 Name = "Reset targeting settings",
@@ -166,7 +180,7 @@ namespace DarkHelmet.BuildVision2
                 TileContainer =
                 {
                     new ControlTile() { peekToggleBox, autoCloseBox, toolOpenBox, },
-                    new ControlTile() { openRangeSlider, controlRangeSlider, },
+                    new ControlTile() { openRangeSlider, controlRangeSlider, specLimitBox },
                     new ControlTile() { targetingResetButton }
                 },
             };

@@ -119,6 +119,7 @@ namespace DarkHelmet.BuildVision2
                 ITextBuilder debugBuilder = debugText.TextBoard;
                 debugBuilder.Clear();
                 debugBuilder.Append($"ConObj: {MyAPIGateway.Session.ControlledObject.GetType().Name}\n");
+                debugBuilder.Append($"SpecCam: {LocalPlayer.IsSpectating}\n");
                 debugBuilder.Append($"State: {MenuState}\n");
                 debugBuilder.Append($"Wheel Menu Open: {propertyWheel.IsOpen}\n");
                 debugBuilder.Append($"IsWidgetOpen: {propertyWheel.IsWidgetOpen}\n");

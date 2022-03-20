@@ -55,7 +55,7 @@ namespace DarkHelmet.BuildVision2
         private float posLerpFactor, lerpScale;
         private int bpTick, bpMenuTick;
         private bool isPlayerBlueprinting, isBpListOpen;
-        private Vector2 lastSpecSpeeds;
+        private Vector2? lastSpecSpeeds;
 
         private QuickActionHudSpace() : base(HudMain.Root)
         {
@@ -65,12 +65,13 @@ namespace DarkHelmet.BuildVision2
             targetBuffer = new List<IMySlimBlock>();
             Target = new PropertyBlock();
 
-            frameTimer = new Stopwatch();
             quickActionMenu = new QuickActionMenu(this);
             boundingBox = new BoundingBoard();
             hudNotification = MyAPIGateway.Utilities.CreateNotification("", 1000, MyFontEnum.Red);
 
+            frameTimer = new Stopwatch();
             frameTimer.Start();
+
             RichHudCore.LateMessageEntered += MessageHandler;
         }
 
@@ -185,10 +186,10 @@ namespace DarkHelmet.BuildVision2
                 quickActionMenu.Offset = Vector2.Lerp(quickActionMenu.Offset, lastPos, posLerpFactor);
                 quickActionMenu.Visible = bpTick > 30;
 
-                if (specCon != null)
+                if (specCon != null && lastSpecSpeeds != null)
                 {
-                    specCon.SpeedModeAngular = lastSpecSpeeds.X;
-                    specCon.SpeedModeLinear = lastSpecSpeeds.Y;
+                    specCon.SpeedModeAngular = lastSpecSpeeds.Value.X;
+                    specCon.SpeedModeLinear = lastSpecSpeeds.Value.Y;
                 }
             }
             else if (specCon != null)
@@ -376,7 +377,8 @@ namespace DarkHelmet.BuildVision2
             LineD line = new LineD(headPos, headPos + forward * maxDist);
             target = null;
 
-            if (LocalPlayer.IsControllingCharacter && LocalPlayer.TryGetTargetedGrid(line, out cubeGrid, out rayInfo))
+            if ((LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating) 
+                && LocalPlayer.TryGetTargetedGrid(line, out cubeGrid, out rayInfo))
             {
                 // Retrieve blocks within about half a block of the ray intersection point.
                 var sphere = new BoundingSphereD(rayInfo.Position, (cubeGrid.GridSizeEnum == MyCubeSize.Large) ? 1.3 : .3);
@@ -435,7 +437,7 @@ namespace DarkHelmet.BuildVision2
                 && BlockInRange()
                 && Target.CanLocalPlayerAccess
                 && (!BvConfig.Current.targeting.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock))
-                && LocalPlayer.IsControllingCharacter;
+                && (LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating);
         }
 
         /// <summary>
@@ -443,12 +445,19 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private bool BlockInRange()
         {
-            double dist = double.PositiveInfinity;
+            if (LocalPlayer.IsSpectating && !BvConfig.Current.targeting.isSpecRangeLimited)
+            {
+                return true;
+            }
+            else
+            {
+                double dist = double.PositiveInfinity;
 
-            if (Target.TBlock != null)
-                dist = (MyAPIGateway.Session.Camera.Position - Target.Position).LengthSquared();
+                if (Target.TBlock != null)
+                    dist = (MyAPIGateway.Session.Camera.Position - Target.Position).LengthSquared();
 
-            return dist < (BvConfig.Current.targeting.maxControlRange * BvConfig.Current.targeting.maxControlRange);
+                return dist < (BvConfig.Current.targeting.maxControlRange * BvConfig.Current.targeting.maxControlRange);
+            }                
         }
     }
 }

@@ -93,6 +93,9 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "maxControlRange")]
         public double maxControlRange;
 
+        [XmlElement(ElementName = "limitSpecRange")]
+        public bool isSpecRangeLimited;
+
         protected override TargetingConfig GetDefaults()
         {
             return new TargetingConfig
@@ -101,7 +104,8 @@ namespace DarkHelmet.BuildVision2
                 closeIfNotInView = true,
                 canOpenIfPlacing = false,
                 maxOpenRange = 10d,
-                maxControlRange = 10d
+                maxControlRange = 10d,
+                isSpecRangeLimited = false
             };
         }
 

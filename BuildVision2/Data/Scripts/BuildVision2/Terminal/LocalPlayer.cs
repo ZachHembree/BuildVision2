@@ -5,6 +5,7 @@ using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using VRage;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.Entity;
@@ -57,6 +58,11 @@ namespace DarkHelmet.BuildVision2
         /// Returns true if the controlled object is the ply character
         /// </summary>
         public static bool IsControllingCharacter => MyAPIGateway.Session.ControlledObject == MyAPIGateway.Session.Player.Character;
+
+        /// <summary>
+        /// Returns true if the player is in spectator mode
+        /// </summary>
+        public static bool IsSpectating => MyAPIGateway.Session.CameraController is MySpectator;
 
         /// <summary>
         /// Returns the object builder for PlyEnt, provided PlyEnt isn't null
