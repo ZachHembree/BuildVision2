@@ -10,6 +10,7 @@ using VRage.Utils;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
+using VRage;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -54,6 +55,7 @@ namespace DarkHelmet.BuildVision2
         private float posLerpFactor, lerpScale;
         private int bpTick, bpMenuTick;
         private bool isPlayerBlueprinting, isBpListOpen;
+        private Vector2 lastSpecSpeeds;
 
         private QuickActionHudSpace() : base(HudMain.Root)
         {
@@ -120,6 +122,7 @@ namespace DarkHelmet.BuildVision2
 
         protected override void Layout()
         {
+            var specCon = MyAPIGateway.Session.CameraController as MySpectator;
             float scale = BvConfig.Current.genUI.hudScale;
 
             if (BvConfig.Current.genUI.resolutionScaling)
@@ -181,6 +184,16 @@ namespace DarkHelmet.BuildVision2
 
                 quickActionMenu.Offset = Vector2.Lerp(quickActionMenu.Offset, lastPos, posLerpFactor);
                 quickActionMenu.Visible = bpTick > 30;
+
+                if (specCon != null)
+                {
+                    specCon.SpeedModeAngular = lastSpecSpeeds.X;
+                    specCon.SpeedModeLinear = lastSpecSpeeds.Y;
+                }
+            }
+            else if (specCon != null)
+            {
+                lastSpecSpeeds = new Vector2(specCon.SpeedModeAngular, specCon.SpeedModeLinear);
             }
 
             // Rescale draw matrix based on config
