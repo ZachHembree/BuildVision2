@@ -94,8 +94,8 @@ namespace DarkHelmet.BuildVision2
                 textBuf = new StringBuilder();
                 notificationTimer = new Stopwatch();
 
-                Padding = new Vector2(wheelBodyPadding);
-                Size = 1.05f * propertyWheelMenu.Size * propertyWheelMenu.InnerDiam;
+                Padding = new Vector2(wheelBodyPeekPadding);
+                Size = new Vector2(maxPeekWrapWidth);
             }
 
             public void OpenBlockMemberWidget(IBlockMember member)

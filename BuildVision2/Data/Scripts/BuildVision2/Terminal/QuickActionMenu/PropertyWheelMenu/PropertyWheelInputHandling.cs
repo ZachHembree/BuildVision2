@@ -39,19 +39,19 @@ namespace DarkHelmet.BuildVision2
 
                         if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
                         {
+                            if (activeWheel.IsMousedOver && SharedBinds.LeftButton.IsReleased
+                                && !(wheelBody.ActiveWidget?.MouseInput.IsLeftClicked ?? false))
+                            {
+                                HandleWheelInput();
+                            }
+
                             if (!wheelBody.IsWidgetOpen)
                                 MenuState = QuickActionMenuState.WheelMenuControl;
                             else
                             {
-                                wheelBody.ActiveWidget.InputEnabled = !activeWheel.IsMousedOver;
+                                wheelBody.ActiveWidget.InputEnabled = !(activeWheel.IsMousedOver && SharedBinds.LeftButton.IsPressed);
                                 HudMain.EnableCursor = BvBinds.MultXOrMouse.IsPressed;
-                            }
-
-                            if (activeWheel.IsMousedOver && SharedBinds.LeftButton.IsReleased
-                                && !wheelBody.ActiveWidget.MouseInput.IsLeftClicked)
-                            {
-                                HandleWheelInput();
-                            }
+                            }                            
                         }
                         else
                         {
