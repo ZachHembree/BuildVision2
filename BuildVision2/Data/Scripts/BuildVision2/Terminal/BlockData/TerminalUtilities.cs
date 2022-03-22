@@ -373,6 +373,27 @@ namespace DarkHelmet.BuildVision2
             return false;
         }
 
+        /// <summary>
+        /// Returns true if the string builder contains the given substring
+        /// </summary>
+        public static bool ContainsSubstring(this StringBuilder text, int start, string substring)
+        {
+            if (text.Length >= substring.Length)
+            {
+                int count = 0;
+
+                for (int i = start; (i - start) < substring.Length && i < text.Length; i++)
+                {
+                    if (text[i] == substring[i - start])
+                        count++;
+                }
+
+                return count == substring.Length;
+            }
+            else
+                return false;
+        }
+
         public static bool IsTextEqual(this StringBuilder text, StringBuilder other)
         {
             if (text.Length == other.Length)
@@ -403,6 +424,29 @@ namespace DarkHelmet.BuildVision2
             }
             else
                 return false;
+        }
+
+        public static void GetBeautifiedTypeID(string subtypeId, StringBuilder textBuf)
+        {
+            textBuf.EnsureCapacity(subtypeId.Length + 4);
+            char left = 'A';
+
+            for (int n = 0; n < subtypeId.Length; n++)
+            {
+                char right = subtypeId[n];
+                bool rightCapital = right >= 'A' && right <= 'Z',
+                    rightNumber = right >= '0' && right <= '9',
+                    leftNumber = left >= '0' && left <= '9',
+                    leftCapital = left >= 'A' && left <= 'Z';
+
+                if (right == '_')
+                    right = ' ';
+                else if (!leftCapital && ((rightCapital && left != ' ') || (rightNumber && !leftNumber)))
+                    textBuf.Append(' ');
+
+                textBuf.Append(right);
+                left = right;
+            }
         }
 
         /// <summary>

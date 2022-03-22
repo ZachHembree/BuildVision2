@@ -160,6 +160,8 @@ namespace DarkHelmet.BuildVision2
                         priority = 5;
                     else if (member.ValueType == BlockMemberValueTypes.Color)
                         priority = 5;
+                    else if (member.ValueType == BlockMemberValueTypes.ColorHSV)
+                        priority = 5;
                     else if (member.ValueType == BlockMemberValueTypes.Combo)
                         priority = 4;
                     else

@@ -39,6 +39,8 @@ namespace DarkHelmet.BuildVision2
         private abstract class BlockPropertyBase<TProp, TValue> : BlockPropertyBase
             where TProp : class, ITerminalProperty
         {
+            private const string BuildAndRepairPrefix = "Build And Repair. ";
+
             public override string PropName => property?.Id;
 
             /// <summary>
@@ -69,6 +71,11 @@ namespace DarkHelmet.BuildVision2
             protected TValue _value;
             protected bool valueChanged;
 
+            /// <summary>
+            /// Exception flag for build and repair workarounds
+            /// </summary>
+            protected bool isBuildAndRepair;
+
             public BlockPropertyBase()
             {
                 Name = new StringBuilder();
@@ -77,6 +84,13 @@ namespace DarkHelmet.BuildVision2
             protected virtual void SetPropertyInternal(StringBuilder name, TProp property, PropertyBlock block,
                 Func<IMyTerminalBlock, TValue> Getter, Action<IMyTerminalBlock, TValue> Setter)
             {
+                // Build and Repair workaround
+                if (name.ContainsSubstring(0, BuildAndRepairPrefix))
+                {
+                    isBuildAndRepair = true;
+                    name.Remove(0, BuildAndRepairPrefix.Length);
+                }
+
                 Name.Clear();
                 Name.Append(name);
 
@@ -103,8 +117,9 @@ namespace DarkHelmet.BuildVision2
                 this.Setter = null;
 
                 Enabled = false;
-                _value = default(TValue);
                 valueChanged = false;
+                isBuildAndRepair = false;
+                _value = default(TValue);
             }
 
             public override void Update(bool sync)
@@ -170,7 +185,8 @@ namespace DarkHelmet.BuildVision2
             {
                 try
                 {
-                    return control.Enabled(block.TBlock) && control.Visible(block.TBlock);
+                    return (DebugVisibility || isBuildAndRepair) 
+                        || (control.Enabled(block.TBlock) && control.Visible(block.TBlock));
                 }
                 catch { }
 

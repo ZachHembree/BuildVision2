@@ -170,6 +170,22 @@ namespace DarkHelmet.BuildVision2
                             entry.SetMember(Target, colorMember.ColorChannels[2], i);
                             listBody.Add(entry);
                         }
+                        else if (blockMember is IBlockColorHSV)
+                        {
+                            // Assign an entry for each color channel
+                            var colorMember = blockMember as IBlockColorHSV;
+                            var entry = entryPool.Get();
+                            entry.SetMember(Target, colorMember.ColorChannels[0], i);
+                            listBody.Add(entry);
+
+                            entry = entryPool.Get();
+                            entry.SetMember(Target, colorMember.ColorChannels[1], i);
+                            listBody.Add(entry);
+
+                            entry = entryPool.Get();
+                            entry.SetMember(Target, colorMember.ColorChannels[2], i);
+                            listBody.Add(entry);
+                        }
                         else
                         {
                             var entry = entryPool.Get();

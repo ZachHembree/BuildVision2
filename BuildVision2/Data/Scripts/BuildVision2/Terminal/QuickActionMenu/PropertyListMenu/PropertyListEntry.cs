@@ -68,7 +68,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public override bool Enabled
             {
-                get { return base.Enabled && AssocMember != null && AssocMember.Enabled; }
+                get { return base.Enabled && (AssocMember != null && AssocMember.Enabled); }
             }
 
             /// <summary>

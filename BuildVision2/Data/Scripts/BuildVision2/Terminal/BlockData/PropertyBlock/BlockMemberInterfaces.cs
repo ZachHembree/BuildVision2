@@ -16,7 +16,8 @@ namespace DarkHelmet.BuildVision2
         ColorChannel = 3,
         Combo = 4,
         Float = 5,
-        Text = 6
+        Text = 6,
+        ColorHSV = 7,
     }
 
     /// <summary>
@@ -138,6 +139,14 @@ namespace DarkHelmet.BuildVision2
         /// RGB Color channels presented as individual byte properties
         /// </summary>
         IReadOnlyList<IBlockNumericValue<byte>> ColorChannels { get; }
+    }
+
+    public interface IBlockColorHSV : IBlockNumericValue<Vector3>
+    {
+        /// <summary>
+        /// HSV Color channels presented as individual float properties
+        /// </summary>
+        IReadOnlyList<IBlockNumericValue<float>> ColorChannels { get; }
     }
 
     public interface IBlockComboBox : IBlockValue<long>

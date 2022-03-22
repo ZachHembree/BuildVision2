@@ -3,7 +3,9 @@ using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System.Collections.Generic;
 using System.Text;
+using VRage.Game.ModAPI.Ingame;
 using VRageMath;
+using IMyCubeBlock = VRage.Game.ModAPI.Ingame.IMyCubeBlock;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -60,6 +62,7 @@ namespace DarkHelmet.BuildVision2
 
             private BvPropPool<ColorProperty> poolParent;
             private readonly StringBuilder dispBuilder;
+            private readonly HsvToRgbPropWrapper hsvWrapper;
 
             public ColorProperty()
             {
@@ -69,13 +72,14 @@ namespace DarkHelmet.BuildVision2
                 Flags = BlockPropertyFlags.IsIntegral | BlockPropertyFlags.CanUseMultipliers;
                 ValueType = BlockMemberValueTypes.Color;
                 dispBuilder = new StringBuilder();
-
                 ColorChannels = new IBlockNumericValue<byte>[3]
                 {
                     new ColorPropertyChannel(this, "R", 0),
                     new ColorPropertyChannel(this, "G", 1),
                     new ColorPropertyChannel(this, "B", 2),
                 };
+
+                hsvWrapper = new HsvToRgbPropWrapper();
             }
 
             public override void SetProperty(StringBuilder name, ITerminalProperty<Color> property, PropertyBlock block)
@@ -84,6 +88,18 @@ namespace DarkHelmet.BuildVision2
 
                 if (poolParent == null)
                     poolParent = block.colorPropPool;
+            }
+
+            public void SetProperty(StringBuilder name, ITerminalProperty<Vector3> property, PropertyBlock block)
+            {
+                hsvWrapper.HsvProp = property;
+                SetProperty(name, hsvWrapper, block);
+            }
+
+            public override void Reset()
+            {
+                hsvWrapper.HsvProp = null;
+                base.Reset();
             }
 
             public override void Return()
@@ -99,32 +115,12 @@ namespace DarkHelmet.BuildVision2
                 return prop;
             }
 
-            public override bool TryImportData(PropertyData data)
+            public static ColorProperty GetProperty(StringBuilder name, ITerminalProperty<Vector3> property, PropertyBlock block)
             {
-                Color value;
+                ColorProperty prop = block.colorPropPool.Get();
+                prop.SetProperty(name, property, block);
 
-                if (Utils.ProtoBuf.TryDeserialize(data.valueData, out value) == null)
-                {
-                    Value = value;
-                    return true;
-                }
-                else
-                    return false;
-            }
-
-            /// <summary>
-            /// Retrieves the property data for the color channel associated with the control.
-            /// </summary>
-            public override PropertyData? GetPropertyData()
-            {
-                byte[] valueData;
-
-                if (Utils.ProtoBuf.TrySerialize(Value, out valueData) == null)
-                {
-                    return new PropertyData(PropName, valueData, Enabled, ValueType);
-                }
-                else
-                    return default(PropertyData);
+                return prop;
             }
 
             /// <summary>
@@ -133,6 +129,48 @@ namespace DarkHelmet.BuildVision2
             public override bool TryParseValue(string valueData, out Color value)
             {
                 return Utils.Color.TryParseColor(valueData, out value, true);
+            }
+        }
+
+        /// <summary>
+        /// Compatibility layer for HSV colors
+        /// </summary>
+        protected class HsvToRgbPropWrapper : ITerminalProperty<Color>
+        {
+            public string Id => HsvProp.Id;
+
+            public string TypeName => "Color";
+
+            public ITerminalProperty<Vector3> HsvProp { get; set; }
+
+            public Color GetDefaultValue(IMyCubeBlock block)
+            {
+                return Color.Black;
+            }
+
+            public Color GetMaximum(IMyCubeBlock block)
+            {
+                return Color.White;
+            }
+
+            public Color GetMinimum(IMyCubeBlock block)
+            {
+                return Color.Black;
+            }
+
+            public Color GetMininum(IMyCubeBlock block)
+            {
+                return Color.Black;
+            }
+
+            public Color GetValue(IMyCubeBlock block)
+            {
+                return HsvProp.GetValue(block).HSVtoColor();
+            }
+
+            public void SetValue(IMyCubeBlock block, Color value)
+            {
+                HsvProp.SetValue(block, value.ColorToHSV());
             }
         }
     }

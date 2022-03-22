@@ -113,7 +113,7 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 // Handle input for selected entry
-                if (selection.PropertyOpen || lastPropValue != null)
+                if ((selection.PropertyOpen || lastPropValue != null))
                 {
                     if (blockMember is IBlockAction)
                         HandleActionInput();

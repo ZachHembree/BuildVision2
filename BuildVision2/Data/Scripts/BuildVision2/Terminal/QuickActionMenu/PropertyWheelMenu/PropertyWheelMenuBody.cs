@@ -42,6 +42,7 @@ namespace DarkHelmet.BuildVision2
             private readonly Label summaryLabel, notificationText;
 
             private readonly ColorWidget colorWidget;
+            private readonly ColorWidgetHSV colorWidgetHSV;
             private readonly ComboWidget comboWidget;
             private readonly FloatWidget floatWidget;
             private readonly TextWidget textWidget;
@@ -84,6 +85,7 @@ namespace DarkHelmet.BuildVision2
                 };
 
                 colorWidget = new ColorWidget(this) { Visible = false };
+                colorWidgetHSV = new ColorWidgetHSV(this) { Visible = false };
                 comboWidget = new ComboWidget(this) { Visible = false };
                 floatWidget = new FloatWidget(this) { Visible = false };
                 textWidget = new TextWidget(this) { Visible = false };
@@ -104,6 +106,9 @@ namespace DarkHelmet.BuildVision2
                 {
                     case BlockMemberValueTypes.Color:
                         OpenWidget(colorWidget, member);
+                        break;
+                    case BlockMemberValueTypes.ColorHSV:
+                        OpenWidget(colorWidgetHSV, member);
                         break;
                     case BlockMemberValueTypes.Combo:
                         OpenWidget(comboWidget, member);

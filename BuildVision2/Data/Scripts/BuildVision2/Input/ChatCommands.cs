@@ -34,6 +34,7 @@ namespace DarkHelmet.BuildVision2
                 { "import", x => TryImportBlockData() },
                 { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(QuickActionHudSpace.Target?.SubtypeId.ToString() ?? "No Target")}") },
                 { "toggleDebug", x => QuickActionMenu.DrawDebug = !QuickActionMenu.DrawDebug },
+                { "toggleVisDbg", x => PropertyBlock.DebugVisibility = !PropertyBlock.DebugVisibility },
                 { "toggleBoundingBox", x => QuickActionHudSpace.DrawBoundingBox = !QuickActionHudSpace.DrawBoundingBox },
                 { "targetBench", TargetBench, 1 },
                 { "getTarget", x => GetTarget() },

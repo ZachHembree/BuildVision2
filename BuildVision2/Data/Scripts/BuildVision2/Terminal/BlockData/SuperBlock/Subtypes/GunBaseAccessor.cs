@@ -42,7 +42,8 @@ namespace DarkHelmet.BuildVision2
                     ammoTypes.Clear();
                     (subtype.AmmoInventory as IMyInventory).GetAcceptedItems(ammoTypes);
 
-                    CleanTypeId(AmmoTypes[0].SubtypeId);
+                    AmmoName.Clear();
+                    TerminalUtilities.GetBeautifiedTypeID(AmmoTypes[0].SubtypeId, AmmoName);
                 }
             }
 
@@ -53,30 +54,6 @@ namespace DarkHelmet.BuildVision2
 
                 builder.Add(AmmoName, valueFormat);
                 builder.Add("\n", valueFormat);
-            }
-
-            private void CleanTypeId(string subtypeId)
-            {
-                AmmoName.Clear();
-                AmmoName.EnsureCapacity(subtypeId.Length + 4);
-                char left = 'A';
-
-                for (int n = 0; n < subtypeId.Length; n++)
-                {
-                    char right = subtypeId[n];
-                    bool rightCapital = right >= 'A' && right <= 'Z',
-                        rightNumber = right >= '0' && right <= '9',
-                        leftNumber = left >= '0' && left <= '9',
-                        leftCapital = left >= 'A' && left <= 'Z';
-
-                    if (right == '_')
-                        right = ' ';
-                    else if (!leftCapital && ((rightCapital && left != ' ') || (rightNumber && !leftNumber)))
-                        AmmoName.Append(' ');
-
-                    AmmoName.Append(right);
-                    left = right;
-                }
             }
         }
     }
