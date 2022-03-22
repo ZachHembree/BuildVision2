@@ -120,9 +120,20 @@ namespace DarkHelmet.BuildVision2
                 SliderWriter = slider?.Writer;
 
                 Flags = BlockPropertyFlags.None;
-                MinValue = property.GetMinimum(block.TBlock);
-                MaxValue = property.GetMaximum(block.TBlock);
-                Increment = GetIncrement();
+
+                // Why the hell is this so damn broken?
+                if (isBuildAndRepair)
+                {
+                    MinValue = -1000f;
+                    MaxValue = 1000f;
+                    Increment = 1f;
+                }
+                else
+                {
+                    MinValue = property.GetMinimum(block.TBlock);
+                    MaxValue = property.GetMaximum(block.TBlock);
+                    Increment = GetIncrement();
+                }
 
                 if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Thruster) && PropName == "Override")
                     GetScaleFunc = GetThrustEffectFunc;
