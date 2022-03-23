@@ -121,12 +121,12 @@ namespace DarkHelmet.BuildVision2
 
                 Flags = BlockPropertyFlags.None;
 
-                // Why the hell is this so damn broken?
                 if (isBuildAndRepair)
                 {
                     MinValue = -1000f;
                     MaxValue = 1000f;
                     Increment = 1f;
+                    Flags |= BlockPropertyFlags.CanUseMultipliers;
                 }
                 else
                 {

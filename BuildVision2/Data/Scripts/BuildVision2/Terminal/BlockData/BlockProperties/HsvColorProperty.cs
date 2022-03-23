@@ -26,7 +26,7 @@ namespace DarkHelmet.BuildVision2
                     if (_value.X != value.X || _value.Y != value.Y || _value.Z != value.Z)
                         valueChanged = true;
 
-                    _value = Vector3.Clamp(Vector3.Round(value), MinValue, MaxValue);
+                    _value = Vector3.Clamp(Vector3.Round(value, 2), MinValue, MaxValue);
                 }
             }
 
@@ -47,11 +47,11 @@ namespace DarkHelmet.BuildVision2
                 {
                     dispBuilder.Clear();
                     Vector3 value = Value;
-                    dispBuilder.Append(value.X.Round(2));
+                    dispBuilder.Append(value.X.Round(1));
                     dispBuilder.Append(", ");
-                    dispBuilder.Append(value.Y.Round(2));
+                    dispBuilder.Append(value.Y.Round(1));
                     dispBuilder.Append(", ");
-                    dispBuilder.Append(value.Z.Round(2));
+                    dispBuilder.Append(value.Z.Round(1));
 
                     return dispBuilder;
                 }

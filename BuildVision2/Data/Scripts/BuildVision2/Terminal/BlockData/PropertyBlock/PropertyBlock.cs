@@ -343,7 +343,7 @@ namespace DarkHelmet.BuildVision2
                             if (colorProp.CanAccessValue(TBlock))
                                 blockProperties.Add(ColorProperty.GetProperty(nameBuilder, colorProp, this));
                         }
-                        else if (prop is ITerminalProperty<Vector3>)
+                        else if (prop is ITerminalProperty<Vector3> && prop.Id.Contains("Color"))
                         {
                             var colorProp = prop as ITerminalProperty<Vector3>;
 

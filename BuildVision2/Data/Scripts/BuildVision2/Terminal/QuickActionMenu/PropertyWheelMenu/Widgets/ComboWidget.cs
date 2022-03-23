@@ -80,7 +80,7 @@ namespace DarkHelmet.BuildVision2
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (!comboBox.Open && blockComboMember != null)
+                if (!comboBox.Open && blockComboMember != null || !IsMousedOver)
                 {
                     if (BvBinds.ScrollUp.IsPressed || BvBinds.ScrollDown.IsPressed)
                     {
