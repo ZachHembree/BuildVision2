@@ -166,6 +166,8 @@ namespace DarkHelmet.BuildVision2
                     }                    
                 }
 
+                float lastWidth = Width - Padding.X;
+
                 if (MenuState == QuickActionMenuState.WheelPeek)
                 {
                     Padding = new Vector2(wheelBodyPeekPadding);
@@ -187,11 +189,15 @@ namespace DarkHelmet.BuildVision2
 
                 if (MenuState == QuickActionMenuState.WheelPeek)
                 {
+                    // Don't bother resizing for small changes
+                    if (Math.Abs(textSize.X - lastWidth) < 10f)
+                        textSize = new Vector2(lastWidth);
+
                     Size = textSize + Padding;
-                    summaryLabel.Size = new Vector2(textSize.X, textSize.Y - notificationText.Height);
+                    summaryLabel.Height = textSize.Y - notificationText.Height;
                 }
 
-                if ((background.Size - Size).LengthSquared() > 1f)
+                if ((background.Size - Size).LengthSquared() > 4f)
                     animPos = 0f;
 
                 if (animPos < 1f)
@@ -199,6 +205,8 @@ namespace DarkHelmet.BuildVision2
                     animPos += .3f;
                     background.Size = Vector2.Lerp(background.Size, Size, animPos * QuickActionHudSpace.AnimScale);
                 }
+                else
+                    background.Size = Size;
 
                 tick++;
                 tick %= textTickDivider;
