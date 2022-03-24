@@ -454,7 +454,10 @@ namespace DarkHelmet.BuildVision2
                 double dist = double.PositiveInfinity;
 
                 if (Target.TBlock != null)
+                {
                     dist = (MyAPIGateway.Session.Camera.Position - Target.Position).LengthSquared();
+                    dist = Math.Min(dist, (LocalPlayer.Position - Target.Position).LengthSquared());
+                }
 
                 return dist < (BvConfig.Current.targeting.maxControlRange * BvConfig.Current.targeting.maxControlRange);
             }                
