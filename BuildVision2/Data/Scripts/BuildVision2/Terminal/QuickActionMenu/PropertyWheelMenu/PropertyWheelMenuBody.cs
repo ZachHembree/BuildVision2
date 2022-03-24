@@ -181,6 +181,17 @@ namespace DarkHelmet.BuildVision2
 
                 summaryLabel.Size = new Vector2(maxPeekWrapWidth - wheelBodyPeekPadding);
 
+                // Dynamically reduce wrap with while peeking based on aspect ratio
+                if (MenuState == QuickActionMenuState.WheelPeek)
+                {
+                    Vector2 lastTextSize = summaryLabel.TextBoard.TextSize;
+
+                    // If the text is substantially wider than tall, reduce wrap width
+                    if (lastTextSize.X > 1.2f * lastTextSize.Y)
+                        summaryLabel.Width = Math.Max(.5f * (lastTextSize.X + lastTextSize.Y), minPeekWrapWidth);
+                }
+
+                // Dynamically resize background and label to accomodate text
                 Vector2 textSize = new Vector2(summaryLabel.TextBoard.TextSize.Length());
                 textSize.Y += notificationText.Height;
                 textSize = new Vector2(Math.Max(textSize.X, textSize.Y));
@@ -190,11 +201,11 @@ namespace DarkHelmet.BuildVision2
                 if (MenuState == QuickActionMenuState.WheelPeek)
                 {
                     // Don't bother resizing for small changes
-                    if (Math.Abs(textSize.X - lastWidth) < 10f)
+                    if (Math.Abs(textSize.X - lastWidth) < 15f)
                         textSize = new Vector2(lastWidth);
 
                     Size = textSize + Padding;
-                    summaryLabel.Height = textSize.Y - notificationText.Height;
+                    summaryLabel.Size = new Vector2(textSize.X, textSize.Y - notificationText.Height);
                 }
 
                 if ((background.Size - Size).LengthSquared() > 4f)
