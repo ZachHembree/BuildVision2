@@ -93,7 +93,6 @@ namespace DarkHelmet.BuildVision2
         {
             if (grid.PositionComp != null)
             {
-                BoundingBoxD aabb = BoundingBoxD.CreateFromSphere(sphere);
                 MatrixD matrix = grid.PositionComp.WorldMatrixNormalizedInv;
                 Vector3D result;
 
@@ -115,7 +114,6 @@ namespace DarkHelmet.BuildVision2
                     (int)Math.Round(boundingBox.Max.Z * gridSizeR)
                 );
 
-                int blockCount = (grid.Max - grid.Min).Volume();
                 Vector3I start = Vector3I.Max(Vector3I.Min(searchMin, searchMax), grid.Min);
                 Vector3I end = Vector3I.Min(Vector3I.Max(searchMin, searchMax), grid.Max);
 

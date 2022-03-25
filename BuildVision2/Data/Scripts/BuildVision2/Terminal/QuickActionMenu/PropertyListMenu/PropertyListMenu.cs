@@ -367,6 +367,8 @@ namespace DarkHelmet.BuildVision2
                         $"[Copying {Target.Duplicator.GetSelectedEntryCount()} " +
                         $"of {Target.Duplicator.GetValidEntryCount()}]", footerFormatLeft);
                 }
+                else if ((MenuState & QuickActionMenuState.Peek) > 0)
+                    footer.LeftTextBuilder.SetText("[Peeking]", footerFormatLeft);
                 else
                     footer.LeftTextBuilder.SetText($"[{listBody.VisStart + 1} - {listBody.VisStart + listBody.VisCount} of {listBody.EnabledCount}]", footerFormatLeft);
 

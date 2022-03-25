@@ -374,6 +374,10 @@ namespace DarkHelmet.BuildVision2
             IHitInfo rayInfo;
             MatrixD transform = MyAPIGateway.Session.Camera.WorldMatrix;
             Vector3D headPos = transform.Translation, forward = transform.Forward;
+
+            if (!LocalPlayer.IsSpectating)
+                headPos += (headPos - LocalPlayer.Position).Length() * forward;
+
             LineD line = new LineD(headPos, headPos + forward * maxDist);
             target = null;
 
@@ -455,7 +459,9 @@ namespace DarkHelmet.BuildVision2
 
                 if (Target.TBlock != null)
                 {
-                    dist = (MyAPIGateway.Session.Camera.Position - Target.Position).LengthSquared();
+                    if (LocalPlayer.IsSpectating)
+                        dist = (MyAPIGateway.Session.Camera.Position - Target.Position).LengthSquared();
+
                     dist = Math.Min(dist, (LocalPlayer.Position - Target.Position).LengthSquared());
                 }
 

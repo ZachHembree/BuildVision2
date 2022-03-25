@@ -77,12 +77,12 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Returns the matrix for the player's head
         /// </summary>
-        public static MatrixD HeadTransform { get { return PlyEnt != null ? PlyEnt.GetHeadMatrix(true) : MatrixD.Zero; } }
+        public static MatrixD HeadTransform { get { return PlyEnt?.GetHeadMatrix(true) ?? MatrixD.Zero; } }
 
         /// <summary>
         /// Returns players position in the world
         /// </summary>
-        public static Vector3D Position { get { return PlyEnt != null ? PlyEnt.GetPosition() : Vector3D.Zero; } }
+        public static Vector3D Position { get { return PlyEnt?.GetPosition() ?? Vector3D.Zero; } }
 
         /// <summary>
         /// Returns false if the player is holding a tool or a weapon
