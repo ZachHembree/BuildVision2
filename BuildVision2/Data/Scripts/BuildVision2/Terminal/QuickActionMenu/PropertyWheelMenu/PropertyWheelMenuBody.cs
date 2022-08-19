@@ -227,7 +227,8 @@ namespace DarkHelmet.BuildVision2
             {
                 IPropertyBlock block = propertyWheelMenu.quickActionMenu.Target;
                 summaryBuilder.Clear();
-                summaryBuilder.Add("Build Vision\n", wheelHeaderFormat);
+                summaryBuilder.Add(BvMain.modName, wheelHeaderFormat);
+                summaryBuilder.Add("\n", wheelHeaderFormat);
                 block.GetSummary(summaryBuilder, bodyFormatCenter, bodyValueFormatCenter);
 
                 ITextBuilder notificationBuidler = notificationText.TextBoard;

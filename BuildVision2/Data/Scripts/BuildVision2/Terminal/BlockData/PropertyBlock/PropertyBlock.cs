@@ -126,6 +126,7 @@ namespace DarkHelmet.BuildVision2
 
         public override void Update()
         {
+            base.Update();
             prioritizer.UpdatePrioritizedMembers(BvConfig.Current.genUI.wheelMaxVisible);
 
             foreach (BlockMemberBase member in blockMembers)

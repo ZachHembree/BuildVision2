@@ -9,6 +9,11 @@ namespace DarkHelmet.BuildVision2
     public interface IPropertyBlock
     {
         /// <summary>
+        /// Returns true if the underlying block exists and is valid
+        /// </summary>
+        bool IsValid { get; }
+
+        /// <summary>
         /// Block type identifier. Uses IMyCubeBlock.BlockDefinition.TypeIdString.
         /// </summary>
         string TypeID { get; }

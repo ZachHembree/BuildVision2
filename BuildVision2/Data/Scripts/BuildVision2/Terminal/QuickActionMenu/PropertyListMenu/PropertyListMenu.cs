@@ -68,7 +68,7 @@ namespace DarkHelmet.BuildVision2
                 header = new LabelBox()
                 {
                     Format = listHeaderFormat,
-                    Text = "Build Vision",
+                    Text = BvMain.modName,
                     AutoResize = false,
                     Size = new Vector2(300f, 34f),
                     Color = headerColor,

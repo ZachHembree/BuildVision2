@@ -1,4 +1,4 @@
-﻿using RichHudFramework.Client;
+using RichHudFramework.Client;
 using RichHudFramework.Internal;
 using RichHudFramework.IO;
 using RichHudFramework.UI;
@@ -25,6 +25,8 @@ namespace DarkHelmet.BuildVision2
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, -1)]
     public sealed partial class BvMain : ModBase
     {
+        public const string modName = "Build Vision";
+
         public static BvMain Instance { get; private set; }
 
         public static BvConfig Cfg => BvConfig.Current;
@@ -39,7 +41,7 @@ namespace DarkHelmet.BuildVision2
             LogIO.FileName = "bvLog.txt";
             BvConfig.FileName = "BuildVision2Config.xml";
             
-            ExceptionHandler.ModName = "Build Vision";
+            ExceptionHandler.ModName = modName;
             ExceptionHandler.PromptForReload = true;
             ExceptionHandler.RecoveryLimit = 3;
         }

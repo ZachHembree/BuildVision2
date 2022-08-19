@@ -101,14 +101,14 @@ namespace DarkHelmet.BuildVision2
                 ControlChangedHandler = ((sender, args) => Cfg.targeting.canOpenIfPlacing = (sender as TerminalCheckbox).Value),
                 ToolTip = new RichText(ToolTip.DefaultText)
                 {
-                    "If unchecked, Build Vision will not open\n" +
-                    "while placing blocks. Only works if Legacy\n" +
+                    "If unchecked, Build Vision will not open\n",
+                    "while placing blocks. Only works if Legacy\n",
                     "Mode is off."
                 },
             };
 
             // Open range slider
-            var openRangeSlider = new TerminalSlider()
+            var openRangeSliderMax = new TerminalSlider()
             {
                 Name = "Max open range",
                 Min = 2.5f,
@@ -125,7 +125,7 @@ namespace DarkHelmet.BuildVision2
                 },
                 ToolTip = new RichText(ToolTip.DefaultText)
                 {
-                    "Build Vision will not open for target\n" +
+                    "Build Vision will not open for target\n",
                     "blocks beyond this distance"
                 },
             };
@@ -148,7 +148,7 @@ namespace DarkHelmet.BuildVision2
                 },
                 ToolTip = new RichText(ToolTip.DefaultText)
                 {
-                    "Auto-close distance after Build Vision\n" +
+                    "Auto-close distance after Build Vision\n",
                     "has been opened"
                 },
             };
@@ -162,7 +162,7 @@ namespace DarkHelmet.BuildVision2
                 ControlChangedHandler = ((sender, args) => Cfg.targeting.isSpecRangeLimited = (sender as TerminalCheckbox).Value),
                 ToolTip = new RichText(ToolTip.DefaultText)
                 {
-                    "If enabled the auto-close distance will be\n" +
+                    "If enabled the auto-close distance will be\n",
                     "enforced for the spectator camera."
                 },
             };
@@ -180,8 +180,8 @@ namespace DarkHelmet.BuildVision2
                 TileContainer =
                 {
                     new ControlTile() { peekToggleBox, autoCloseBox, toolOpenBox, },
-                    new ControlTile() { openRangeSlider, controlRangeSlider, specLimitBox },
-                    new ControlTile() { targetingResetButton }
+                    new ControlTile() { openRangeSliderMax, controlRangeSlider },
+                    new ControlTile() { specLimitBox, targetingResetButton }
                 },
             };
         }

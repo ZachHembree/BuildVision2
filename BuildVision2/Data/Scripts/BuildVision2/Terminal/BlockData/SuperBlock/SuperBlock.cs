@@ -66,6 +66,11 @@ namespace DarkHelmet.BuildVision2
         public TerminalGrid TerminalGrid { get; private set; }
 
         /// <summary>
+        /// Returns true if the underlying block exists and is valid
+        /// </summary>
+        public bool IsValid => TBlock != null;
+
+        /// <summary>
         /// Block type identifier. Uses IMyCubeBlock.BlockDefinition.TypeIdString.
         /// </summary>
         public string TypeID { get; private set; }
@@ -158,6 +163,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void BlockClosing(IMyEntity entity)
         {
+            
             Reset();
         }
 
