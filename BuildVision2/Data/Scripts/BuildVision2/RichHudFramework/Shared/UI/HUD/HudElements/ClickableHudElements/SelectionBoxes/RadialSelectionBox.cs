@@ -148,6 +148,7 @@ namespace RichHudFramework.UI
         public void SetSelectionAt(int index)
         {
             SelectionIndex = MathHelper.Clamp(index, 0, hudCollectionList.Count - 1);
+            lastCursorPos = new Vector2(HudSpace.CursorPos.X, HudSpace.CursorPos.Y);
         }
 
         /// <summary>
@@ -159,6 +160,8 @@ namespace RichHudFramework.UI
 
             if (index != -1)
                 SelectionIndex = index;
+
+            lastCursorPos = new Vector2(HudSpace.CursorPos.X, HudSpace.CursorPos.Y);
         }
 
         /// <summary>
@@ -167,6 +170,7 @@ namespace RichHudFramework.UI
         public void SetHighlightAt(int index)
         {
             HighlightIndex = MathHelper.Clamp(index, 0, hudCollectionList.Count - 1);
+            lastCursorPos = new Vector2(HudSpace.CursorPos.X, HudSpace.CursorPos.Y);
         }
 
         /// <summary>
@@ -178,6 +182,8 @@ namespace RichHudFramework.UI
 
             if (index != -1)
                 HighlightIndex = index;
+
+            lastCursorPos = new Vector2(HudSpace.CursorPos.X, HudSpace.CursorPos.Y);
         }
 
         public override void Clear()
