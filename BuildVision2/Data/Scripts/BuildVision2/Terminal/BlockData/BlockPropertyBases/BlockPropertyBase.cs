@@ -185,8 +185,10 @@ namespace DarkHelmet.BuildVision2
             {
                 try
                 {
-                    return (DebugVisibility || isBuildAndRepair) 
-                        || (control.Enabled(block.TBlock) && control.Visible(block.TBlock));
+                    return 
+                        block?.TBlock != null && 
+                        ((DebugVisibility || isBuildAndRepair) 
+                        || (control.Enabled(block.TBlock) && control.Visible(block.TBlock)));
                 }
                 catch { }
 

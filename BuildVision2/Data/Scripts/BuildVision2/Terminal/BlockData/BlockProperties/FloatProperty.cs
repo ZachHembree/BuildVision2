@@ -40,7 +40,7 @@ namespace DarkHelmet.BuildVision2
             {
                 get 
                 {
-                    if (SliderWriter != null)
+                    if (SliderWriter != null && block?.TBlock != null)
                     {
                         return GetFormattedValue();
                     }
