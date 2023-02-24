@@ -760,8 +760,20 @@ namespace RichHudFramework.UI
                 highlightStale = false;
                 highlightList.Clear();
 
-                int startLine = Math.Max(Start.X, text.VisibleLineRange.X),
-                    endLine = Math.Min(End.X, text.VisibleLineRange.Y);
+                // Clamp line range
+                Vector2I lineRange = text.VisibleLineRange;
+                Start = new Vector2I(MathHelper.Clamp(Start.X, 0, text.Count - 1), Start.Y);
+                End = new Vector2I(MathHelper.Clamp(End.X, 0, text.Count - 1), End.Y);
+
+                // Clamp char range
+                if (text.Count > 0)
+                {
+                    Start = new Vector2I(Start.X, MathHelper.Clamp(Start.Y, 0, text[Start.X].Count - 1));
+                    End = new Vector2I(End.X, MathHelper.Clamp(End.Y, 0, text[End.X].Count - 1));
+                }
+
+                int startLine = Math.Max(Start.X, lineRange.X),
+                    endLine = Math.Min(End.X, lineRange.Y);
 
                 // Add start and end
                 if (Start.X == End.X && Start.X == startLine)

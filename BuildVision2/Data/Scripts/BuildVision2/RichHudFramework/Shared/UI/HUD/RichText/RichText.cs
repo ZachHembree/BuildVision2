@@ -15,7 +15,7 @@ namespace RichHudFramework
         /// <summary>
         /// Reusable rich text builder
         /// </summary>
-        public class RichText : IEnumerable<RichStringMembers>
+        public class RichText : IEnumerable<RichStringMembers>, IEquatable<RichText>
         {
             /// <summary>
             /// Default text formatting. Applied to strings with no other formatting given.
@@ -272,6 +272,85 @@ namespace RichHudFramework
                 List<RichStringMembers> text = apiData;
                 sbPool.ReturnRange(text, 0, text.Count);
                 text.Clear();
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                RichText other = obj as RichText;
+
+                if (apiData == other?.apiData)
+                    return true;
+                if (other != null)
+                    return Equals(other);
+                else
+                    return false;
+            }
+
+            public bool Equals(RichText other)
+            {
+                bool isFormatEqual = true,
+                    isTextEqual = true,
+                    isLengthEqual = true;
+
+                if (other == null)
+                    return false;
+                else if (apiData == other.apiData)
+                    return true;
+                else if(apiData.Count == other.apiData.Count)
+                {
+                    for (int i = 0; i < apiData.Count; i++)
+                    {
+                        if (apiData[i].Item1.Length != other.apiData[i].Item1.Length)
+                        {
+                            isLengthEqual = false;
+                            break;
+                        }
+                    }
+
+                    if (isLengthEqual)
+                    {
+                        for (int i = 0; i < apiData.Count; i++)
+                        {
+                            GlyphFormatMembers fmt = apiData[i].Item2,
+                                otherFmt = other.apiData[i].Item2;
+
+                            if (fmt.Item1 != otherFmt.Item1 ||
+                                fmt.Item2 != otherFmt.Item2 ||
+                                fmt.Item3 != otherFmt.Item3 ||
+                                fmt.Item4 != otherFmt.Item4)
+                            {
+                                isFormatEqual = false;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                        isFormatEqual = false;
+
+                    if (isFormatEqual)
+                    {
+                        for (int i = 0; i < apiData.Count; i++)
+                        {
+                            for (int j = 0; j < apiData[i].Item1.Length; j++)
+                            {
+                                if (apiData[i].Item1[j] != other.apiData[i].Item1[j])
+                                {
+                                    isTextEqual = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                    isLengthEqual = false;
+
+                return isLengthEqual && isFormatEqual && isTextEqual;
             }
 
             /// <summary>

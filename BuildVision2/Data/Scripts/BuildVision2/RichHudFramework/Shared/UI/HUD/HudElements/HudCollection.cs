@@ -34,7 +34,16 @@ namespace RichHudFramework
             /// <summary>
             /// Retrieves the element container at the given index.
             /// </summary>
-            public TElementContainer this[int index] => hudCollectionList[index];
+            public TElementContainer this[int index]
+            {
+                get
+                {
+                    if (hudCollectionList.Count == 0 || index < 0 || index >= hudCollectionList.Count)
+                        throw new Exception($"Collection index out of range. Index: {index} Count: {hudCollectionList.Count}");
+
+                    return hudCollectionList[index];
+                }
+            }
 
             /// <summary>
             /// Returns the number of containers in the collection.

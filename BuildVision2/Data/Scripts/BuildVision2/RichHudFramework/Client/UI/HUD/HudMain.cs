@@ -247,7 +247,7 @@ namespace RichHudFramework
  
                 public override void Close()
                 {
-                    UnregisterAction();
+                    UnregisterAction?.Invoke();
                     _instance = null;
                 }
 

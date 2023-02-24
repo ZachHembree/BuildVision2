@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using System;
+using System.Collections.Generic;
 using VRage;
 using VRageMath;
 using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
@@ -24,7 +26,7 @@ namespace RichHudFramework
         /// <summary>
         /// Defines the formatting of the characters in rich text types.
         /// </summary>
-        public struct GlyphFormat
+        public struct GlyphFormat : IEquatable<GlyphFormat>
         {
             public static readonly GlyphFormat 
                 Black = new GlyphFormat(),
