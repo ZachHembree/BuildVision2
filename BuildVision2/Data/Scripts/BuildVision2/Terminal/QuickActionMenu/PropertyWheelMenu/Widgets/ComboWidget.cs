@@ -3,6 +3,8 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using VRageMath;
+using RichHudFramework.UI.Rendering.Client;
+using RichHudFramework.UI.Rendering;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -38,6 +40,8 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetData(object member, Action CloseWidgetCallback)
             {
+                SetFont(FontManager.GetFont(BvConfig.Current.genUI.fontName));
+
                 blockComboMember = member as IBlockComboBox;
                 this.CloseWidgetCallback = CloseWidgetCallback;
 
@@ -56,6 +60,16 @@ namespace DarkHelmet.BuildVision2
                 Confirm();
                 blockComboMember = null;
                 comboBox.ClearEntries();
+            }
+
+            protected override void SetFont(IFontMin newFont)
+            {
+                base.SetFont(newFont);
+
+                if (newFont != null)
+                {
+                    comboBox.Format = comboBox.Format.WithFont(newFont);
+                }
             }
 
             protected override void Confirm()

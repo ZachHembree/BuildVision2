@@ -14,6 +14,7 @@ using RichHudFramework;
 using RichHudFramework.UI.Rendering;
 using RichHudFramework.UI.Client;
 using RichHudFramework.Internal;
+using RichHudFramework.UI.Rendering.Client;
 
 namespace DarkHelmet.BuildVision2
 {

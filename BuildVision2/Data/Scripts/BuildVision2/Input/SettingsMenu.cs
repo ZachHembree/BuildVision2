@@ -1,12 +1,14 @@
 ﻿using RichHudFramework;
 using RichHudFramework.Internal;
 using RichHudFramework.UI;
+using RichHudFramework.UI.Rendering;
 using RichHudFramework.UI.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using VRage;
 using VRageMath;
+using RichHudFramework.UI.Rendering.Client;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -389,6 +391,28 @@ namespace DarkHelmet.BuildVision2
                 setPosition,
             };
 
+            var fontSelection = new TerminalDropdown<string>()
+            {
+                Name = "Font",
+                ControlChangedHandler = (sender, args) =>
+                {
+                    var dd = sender as TerminalDropdown<string>;
+                    BvConfig.Current.genUI.fontName = dd.Value.AssocObject;
+                }
+            };
+
+            var loadFontsButton = new TerminalButton()
+            {
+                Name = "Load Fonts",
+                ControlChangedHandler = (sender, args) =>
+                {
+                    fontSelection.List.Clear();
+
+                    foreach (IFontMin font in FontManager.Fonts)
+                        fontSelection.List.Add(font.Name, font.Name);
+                }
+            };
+
             var resetGuiButton = new TerminalButton()
             {
                 Name = "Reset GUI settings",
@@ -397,6 +421,8 @@ namespace DarkHelmet.BuildVision2
 
             var tile5 = new ControlTile()
             {
+                fontSelection,
+                loadFontsButton,
                 resetGuiButton,
             };
 

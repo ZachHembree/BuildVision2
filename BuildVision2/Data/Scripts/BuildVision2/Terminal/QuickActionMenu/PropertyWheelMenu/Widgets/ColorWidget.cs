@@ -1,4 +1,6 @@
 ﻿using RichHudFramework.UI;
+using RichHudFramework.UI.Rendering;
+using RichHudFramework.UI.Rendering.Client;
 using System;
 using VRageMath;
 
@@ -36,6 +38,8 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetData(object member, Action CloseWidgetCallback)
             {
+                SetFont(FontManager.GetFont(BvConfig.Current.genUI.fontName));
+
                 colorMember = member as IBlockValue<Color>;
                 this.CloseWidgetCallback = CloseWidgetCallback;
 
@@ -55,6 +59,17 @@ namespace DarkHelmet.BuildVision2
                 channelSelected = false;
                 colorMember = null;
                 CloseWidgetCallback = null;
+            }
+
+            protected override void SetFont(IFontMin newFont)
+            {
+                base.SetFont(newFont);
+
+                if (newFont != null)
+                {
+                    colorPicker.NameBuilder.SetFormatting(colorPicker.NameBuilder.Format.WithFont(newFont));
+                    colorPicker.ValueFormat = colorPicker.ValueFormat.WithFont(newFont);
+                }
             }
 
             protected override void Confirm()

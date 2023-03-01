@@ -12,6 +12,7 @@ using RichHudFramework;
 using RichHudFramework.UI.Rendering;
 using RichHudFramework.UI.Client;
 using RichHudFramework.Internal;
+using RichHudFramework.UI.Rendering.Client;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -91,47 +92,47 @@ namespace DarkHelmet.BuildVision2
                     {
                         new PropertyWheelShortcutEntry()
                         {
-                            Text = "Back",
+                            Text = MyTexts.TrySubstitute("Back"),
                             ShortcutAction = quickActionMenu.StopPropertyDuplication,
                         },
                         new PropertyWheelShortcutEntry()
                         {
-                            Text = "Open List",
+                            Text = MyTexts.TrySubstitute("Open List"),
                             ShortcutAction = quickActionMenu.OpenDupeList,
                         },
                         new PropertyWheelShortcutEntry()
                         {
-                            Text = "Open List and Select All",
+                            Text = MyTexts.TrySubstitute("Open List and Select All"),
                             ShortcutAction = quickActionMenu.OpenDupeListAndSelectAll,
                         },
                         new PropertyWheelShortcutEntry()
                         {
-                            Text = "Clear Selection",
+                            Text = MyTexts.TrySubstitute("Clear Selection"),
                             ShortcutAction = quickActionMenu.ClearSelection,
                         },
                         new PropertyWheelShortcutEntry()
                         {
-                            Text = "Copy Selected",
+                            Text = MyTexts.TrySubstitute("Copy Selected"),
                             ShortcutAction = quickActionMenu.CopySelectedProperties,
                         },
                         new PropertyWheelShortcutEntry()
                         {
-                            Text = "Copy All but Name",
+                            Text = MyTexts.TrySubstitute("Copy All but Name"),
                             ShortcutAction = () => quickActionMenu.CopyAllProperties(false),
                         },
                         new PropertyWheelShortcutEntry()
                         {
-                            Text = "Copy All",
+                            Text = MyTexts.TrySubstitute("Copy All"),
                             ShortcutAction = () => quickActionMenu.CopyAllProperties(true),
                         },
                         new PropertyWheelShortcutEntry()
                         {
-                            Text = "Paste",
+                            Text = MyTexts.TrySubstitute("Paste"),
                             ShortcutAction = quickActionMenu.PasteCopiedProperties,
                         },
                         new PropertyWheelShortcutEntry()
                         {
-                            Text = "Undo",
+                            Text = MyTexts.TrySubstitute("Undo"),
                             ShortcutAction = quickActionMenu.UndoPropertyPaste,
                         },
                     }
@@ -143,7 +144,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     new PropertyWheelShortcutEntry()
                     {
-                        Text = "Copy Settings",
+                        Text = MyTexts.TrySubstitute("Copy Settings"),
                         ShortcutAction = () =>
                         {
                             MenuState = QuickActionMenuState.WheelMenuControl;
@@ -190,6 +191,22 @@ namespace DarkHelmet.BuildVision2
                         var entry = propertyEntryPool.Get() as PropertyWheelEntry;
                         entry.SetMember(i, Target);
                         propertyWheel.Add(entry);
+                    }
+
+                    // Update shortcut font
+                    IFontMin cfgFont = FontManager.GetFont(BvConfig.Current.genUI.fontName);
+
+                    if (cfgFont != null)
+                    {
+                        foreach (PropertyWheelShortcutEntry entry in shortcutEntries)
+                        {
+                            entry.TextBoard.SetFormatting(entry.TextBoard.Format.WithFont(cfgFont));
+                        }
+
+                        foreach (PropertyWheelShortcutEntry entry in dupeWheel)
+                        {
+                            entry.TextBoard.SetFormatting(entry.TextBoard.Format.WithFont(cfgFont));
+                        }
                     }
 
                     // Append registered shortcuts to end

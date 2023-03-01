@@ -5,6 +5,7 @@ using System;
 using Sandbox.ModAPI;
 using VRage.Utils;
 using VRageMath;
+using RichHudFramework.UI.Rendering.Client;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -43,6 +44,8 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetData(object member, Action CloseWidgetCallback)
             {
+                SetFont(FontManager.GetFont(BvConfig.Current.genUI.fontName));
+
                 floatMember = member as IBlockNumericValue<float>;
                 textMember = member as IBlockTextMember;
                 this.CloseWidgetCallback = CloseWidgetCallback;
@@ -60,6 +63,18 @@ namespace DarkHelmet.BuildVision2
                 {
                     sliderBox.FieldText.SetText(textMember.ValueText);
                     sliderBox.OpenTextInput();
+                }
+            }
+
+            protected override void SetFont(IFontMin newFont)
+            {
+                base.SetFont(newFont);
+
+                if (newFont != null)
+                {
+                    sliderBox.NameBuilder.SetFormatting(sliderBox.NameBuilder.Format.WithFont(newFont));
+                    sliderBox.ValueBuilder.SetFormatting(sliderBox.ValueBuilder.Format.WithFont(newFont));
+                    sliderBox.FieldText.SetFormatting(sliderBox.FieldText.Format.WithFont(newFont));
                 }
             }
 

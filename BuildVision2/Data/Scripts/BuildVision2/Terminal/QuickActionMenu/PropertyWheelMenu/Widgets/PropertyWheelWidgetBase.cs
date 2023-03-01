@@ -1,7 +1,12 @@
 ﻿using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
+using RichHudFramework.UI.Rendering.Client;
+using RichHudFramework.UI.Rendering;
 using System;
+using System.Reflection.Emit;
 using VRageMath;
+using VRage;
+using VRage.Utils;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -90,6 +95,18 @@ namespace DarkHelmet.BuildVision2
             protected abstract void Confirm();
 
             protected abstract void Cancel();
+
+            protected virtual void SetFont(IFontMin newFont)
+            {
+                if (newFont != null)
+                {
+                    confirmButton.Format = confirmButton.Format.WithFont(newFont);
+                    cancelButton.Format = cancelButton.Format.WithFont(newFont);
+
+                    confirmButton.Text = MyTexts.TrySubstitute("Confirm");
+                    confirmButton.Text = MyTexts.TrySubstitute("Cancel");
+                }
+            }
         }
     }
 }

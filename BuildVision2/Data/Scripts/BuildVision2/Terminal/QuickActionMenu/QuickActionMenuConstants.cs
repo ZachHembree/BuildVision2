@@ -1,6 +1,8 @@
 ﻿using RichHudFramework.UI;
 using RichHudFramework.UI.Rendering;
+using RichHudFramework.UI.Rendering.Client;
 using System;
+using System.Runtime.Remoting.Messaging;
 using VRageMath;
 
 namespace DarkHelmet.BuildVision2
@@ -36,7 +38,7 @@ namespace DarkHelmet.BuildVision2
             highlightFocusColor = TerminalFormatting.Mint,
             highlightTextColor = new Color(210, 190, 90),
             valueTextColor = new Color(210, 210, 210);
-        public static readonly GlyphFormat
+        public static GlyphFormat
             listHeaderFormat = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f),
             wheelHeaderFormat = new GlyphFormat(Color.White, TextAlignment.Center, 1f, FontStyles.Underline),
 
@@ -68,5 +70,35 @@ namespace DarkHelmet.BuildVision2
             minPeekWrapWidth = 190f,
             wheelBodyPeekPadding = 43f, 
             wheelBodyPadding = 90f;
+
+        public static void SetFont(string fontName)
+        {
+            IFontMin newFont = FontManager.GetFont(BvConfig.Current.genUI.fontName);
+
+            if (newFont != null)
+            {
+                listHeaderFormat = listHeaderFormat.WithFont(newFont.Regular);
+                wheelHeaderFormat = wheelHeaderFormat.WithFont(newFont.Underline);
+
+                bodyFormat = bodyFormat.WithFont(newFont.Regular);
+                bodyFormatCenter = bodyFormatCenter.WithFont(newFont.Regular);
+
+                wheelNameColor = wheelNameColor.WithFont(newFont.Regular);
+                wheelValueColor = wheelValueColor.WithFont(newFont.Regular);
+                valueFormat = valueFormat.WithFont(newFont.Regular);
+                highlightFormat = highlightFormat.WithFont(newFont.Regular);
+                selectedFormat = selectedFormat.WithFont(newFont.Regular);
+                dupeCrossFormat = dupeCrossFormat.WithFont(newFont.Regular);
+
+                bodyValueFormatCenter = bodyValueFormatCenter.WithFont(newFont.Regular);
+                nameFormatCenter = nameFormatCenter.WithFont(newFont.Regular);
+                valueFormatCenter = valueFormatCenter.WithFont(newFont.Regular);
+                selectedFormatCenter = selectedFormatCenter.WithFont(newFont.Regular);
+
+                footerFormatLeft = footerFormatLeft.WithFont(newFont.Regular);
+                footerFormatRight = footerFormatRight.WithFont(newFont.Regular);
+                blockIncFormat = blockIncFormat.WithFont(newFont.Regular);
+            }
+        }
     }
 }

@@ -69,6 +69,7 @@ namespace DarkHelmet.BuildVision2
             if ((MenuState & QuickActionMenuState.Peek) == 0)
             {
                 CloseMenu();
+                SetFont(BvConfig.Current.genUI.fontName);
 
                 if (initialState != default(QuickActionMenuState))
                 {

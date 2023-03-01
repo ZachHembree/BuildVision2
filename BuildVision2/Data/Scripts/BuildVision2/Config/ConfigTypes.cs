@@ -158,6 +158,9 @@ namespace DarkHelmet.BuildVision2
         [XmlElement(ElementName = "HudPosition")]
         public Vector2 hudPos;
 
+        [XmlElement(ElementName = "FontName")]
+        public string fontName;
+
         protected override UIConfig GetDefaults()
         {
             return new UIConfig
@@ -171,7 +174,8 @@ namespace DarkHelmet.BuildVision2
                 wheelMaxVisible = 16,
                 clampHudPos = true,
                 useCustomPos = false,
-                hudPos = new Vector2(-0.4823f, 0.4676f)
+                hudPos = new Vector2(-0.4823f, 0.4676f),
+                fontName = "SpaceEngineers"
             };
         }
 

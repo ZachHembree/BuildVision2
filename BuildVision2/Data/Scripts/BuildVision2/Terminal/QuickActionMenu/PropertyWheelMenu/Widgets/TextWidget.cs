@@ -5,6 +5,8 @@ using System.Text;
 using Sandbox.ModAPI;
 using VRage.Utils;
 using VRageMath;
+using RichHudFramework.UI.Rendering.Client;
+using RichHudFramework.UI.Rendering;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -43,6 +45,8 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetData(object member, Action CloseWidgetCallback)
             {
+                SetFont(FontManager.GetFont(BvConfig.Current.genUI.fontName));
+                    
                 textValueMember = member as IBlockValue<StringBuilder>;
                 textMember = member as IBlockTextMember;
                 this.CloseWidgetCallback = CloseWidgetCallback;
@@ -59,6 +63,17 @@ namespace DarkHelmet.BuildVision2
                     textField.OpenInput();
 
                 textField.MouseInput.GetInputFocus();
+            }
+
+            protected override void SetFont(IFontMin newFont)
+            {
+                base.SetFont(newFont);
+
+                if (newFont != null)
+                {
+                    label.TextBoard.SetFormatting(label.TextBoard.Format.WithFont(newFont));
+                    textField.TextBoard.SetFormatting(textField.TextBoard.Format.WithFont(newFont));
+                }
             }
 
             public override void Reset()
