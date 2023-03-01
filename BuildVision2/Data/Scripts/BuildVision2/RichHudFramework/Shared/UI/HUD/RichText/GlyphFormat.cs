@@ -114,6 +114,13 @@ namespace RichHudFramework
                 new GlyphFormat(Color, Alignment, TextSize, new Vector2I(font, 0));
 
             /// <summary>
+            /// Returns a copy of the <see cref="GlyphFormat"/> using the given font interface. Assumes regular
+            /// styling.
+            /// </summary>
+            public GlyphFormat WithFont(IFontMin font) =>
+                new GlyphFormat(Color, Alignment, TextSize, font.Regular);
+
+            /// <summary>
             /// Returns a copy of the <see cref="GlyphFormat"/> using the font style associated with the given index.
             /// </summary>
             public GlyphFormat WithFont(Vector2I fontStyle) =>

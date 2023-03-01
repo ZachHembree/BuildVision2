@@ -122,6 +122,9 @@ namespace RichHudFramework
                 /// </summary>
                 public static IFontMin GetFont(string name)
                 {
+                    if (name == null)
+                        return null;
+
                     FontMembers? members = Instance.GetFontFunc(name);
                     IFontMin font = null;
 

@@ -61,9 +61,24 @@ namespace RichHudFramework
                     public Vector2I Italic => new Vector2I(Index, 2);
 
                     /// <summary>
+                    /// Returns the index for the italicised version of this font
+                    /// </summary>
+                    public Vector2I Underline => new Vector2I(Index, 4);
+
+                    /// <summary>
                     /// Returns the index for the bold italic version of this font
                     /// </summary>
                     public Vector2I BoldItalic => new Vector2I(Index, 3);
+
+                    /// <summary>
+                    /// Returns the index for the bold underlined version of this font
+                    /// </summary>
+                    public Vector2I BoldUnderline => new Vector2I(Index, (int)(FontStyles.Bold | FontStyles.Underline));
+
+                    /// <summary>
+                    /// Returns the index for the bold italic underline version of this font
+                    /// </summary>
+                    public Vector2I BoldItalicUnderline => new Vector2I(Index, (int)(FontStyles.Bold | FontStyles.Italic | FontStyles.Underline));
 
                     private readonly Func<int, bool> IsFontDefinedFunc;
 

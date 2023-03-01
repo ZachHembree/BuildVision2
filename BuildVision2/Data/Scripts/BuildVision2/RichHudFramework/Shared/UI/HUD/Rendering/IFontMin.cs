@@ -64,9 +64,24 @@ namespace RichHudFramework.UI.Rendering
         Vector2I Italic { get; }
 
         /// <summary>
+        /// Retruns the index for the underlined version of the font
+        /// </summary>
+        Vector2I Underline { get; }
+
+        /// <summary>
         /// Returns the index for the bold italic version of this font
         /// </summary>
         Vector2I BoldItalic { get; }
+
+        /// <summary>
+        /// Returns the index for the bold underlined version of this font
+        /// </summary>
+        Vector2I BoldUnderline { get; }
+
+        /// <summary>
+        /// Returns the index for the bold italic underline version of this font
+        /// </summary>
+        Vector2I BoldItalicUnderline { get; }
 
         /// <summary>
         /// Returns true if the font is defined for the given style.
