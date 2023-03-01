@@ -97,6 +97,12 @@ namespace RichHudFramework.UI
             GetOrSetMemberFunc(index, (int)ListBoxAccessors.RemoveAt);
 
         /// <summary>
+        /// Clears all entries from the list
+        /// </summary>
+        public void Clear() =>
+            GetOrSetMemberFunc(null, (int)ListBoxAccessors.ClearEntries);
+
+        /// <summary>
         /// Sets the selection to the specified entry.
         /// </summary>
         public void SetSelection(EntryData<T> entry) =>
