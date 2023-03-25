@@ -265,7 +265,7 @@ namespace DarkHelmet.BuildVision2
             }
 
             private float GetThrustEffect() =>
-                block.Thruster.ThrustEffectiveness;
+                block?.Thruster?.ThrustEffectiveness ?? 0f;
 
             private void GetPistonExtension(StringBuilder sb)
             {

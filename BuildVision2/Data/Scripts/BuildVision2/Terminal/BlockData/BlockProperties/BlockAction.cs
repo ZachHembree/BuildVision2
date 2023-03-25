@@ -20,7 +20,7 @@ namespace DarkHelmet.BuildVision2
         {
             public override string PropName => _propName;
 
-            public override StringBuilder FormattedValue { get { GetValueFunc(dispBuilder); return dispBuilder; } }
+            public override StringBuilder FormattedValue { get { GetValueFunc?.Invoke(dispBuilder); return dispBuilder; } }
 
             public override StringBuilder StatusText 
             { 
@@ -28,7 +28,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (GetPostfixFunc != null)
                     {
-                        GetPostfixFunc(statusBuilder);
+                        GetPostfixFunc?.Invoke(statusBuilder);
                         return statusBuilder;
                     }
                     else
