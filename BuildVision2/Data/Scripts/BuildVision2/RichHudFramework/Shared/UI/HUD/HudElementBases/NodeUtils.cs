@@ -23,6 +23,8 @@ namespace RichHudFramework
                 /// </summary>
                 public static void RegisterNodes(HudParentBase newParent, List<HudNodeBase> children, IReadOnlyList<HudNodeBase> nodes, bool canPreload)
                 {
+                    bool parentVisible = (newParent.State & newParent.NodeVisibleMask) == newParent.NodeVisibleMask;
+
                     children.EnsureCapacity(children.Count + nodes.Count);
 
                     for (int n = 0; n < nodes.Count; n++)
@@ -30,7 +32,11 @@ namespace RichHudFramework
                         HudNodeBase node = nodes[n];
                         node.Parent = newParent;
                         node.State |= HudElementStates.IsRegistered;
-                        node.ParentVisible = newParent.Visible;
+
+                        if (parentVisible)
+                            node.State |= HudElementStates.WasParentVisible;
+                        else
+                            node.State &= ~HudElementStates.WasParentVisible;
 
                         children.Add(node);
 
@@ -48,6 +54,7 @@ namespace RichHudFramework
                     where TCon : IHudElementContainer<TNode>, new()
                     where TNode : HudNodeBase
                 {
+                    bool parentVisible = (newParent.State & newParent.NodeVisibleMask) == newParent.NodeVisibleMask;
                     children.EnsureCapacity(children.Count + nodes.Count);
 
                     for (int n = 0; n < nodes.Count; n++)
@@ -55,7 +62,11 @@ namespace RichHudFramework
                         HudNodeBase node = nodes[n].Element;
                         node.Parent = newParent;
                         node.State |= HudElementStates.IsRegistered;
-                        node.ParentVisible = newParent.Visible;
+
+                        if(parentVisible)
+                            node.State |= HudElementStates.WasParentVisible;
+                        else
+                            node.State &= ~HudElementStates.WasParentVisible;
 
                         children.Add(node);
 
@@ -114,7 +125,6 @@ namespace RichHudFramework
 
                             node.Parent = null;
                             node.State &= ~(HudElementStates.IsRegistered | HudElementStates.WasParentVisible);
-                            node.ParentVisible = false;
                         }
                     }
                 }

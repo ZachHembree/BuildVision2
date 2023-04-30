@@ -9,9 +9,10 @@ namespace RichHudFramework.UI
     using Server;
 
     /// <summary>
-    /// Base type for HUD windows. Supports dragging/resizing like pretty much every other window ever.
+    /// Basic window type with a header, body and border. Supports dragging/resizing like pretty much every 
+    /// other window ever.
     /// </summary>
-    public abstract class WindowBase : HudElementBase, IClickableElement
+    public class Window : HudElementBase, IClickableElement
     {
         /// <summary>
         /// Window header text
@@ -39,7 +40,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Determines the color of the body of the window.
         /// </summary>
-        public virtual Color BodyColor { get { return bodyBg.Color; } set { bodyBg.Color = value; } }
+        public virtual Color BodyColor { get { return windowBg.Color; } set { windowBg.Color = value; } }
 
         /// <summary>
         /// Minimum allowable size for the window.
@@ -87,7 +88,7 @@ namespace RichHudFramework.UI
         public readonly BorderBox border;
 
         protected readonly MouseInputElement inputInner, resizeInput;
-        protected readonly TexturedBox bodyBg;
+        protected readonly TexturedBox windowBg;
 
         protected readonly Action<byte> LoseFocusCallback;
         protected float cornerSize = 16f;
@@ -95,28 +96,27 @@ namespace RichHudFramework.UI
         protected int resizeDir;
         protected Vector2 cursorOffset, minimumSize;
 
-        public WindowBase(HudParentBase parent) : base(parent)
+        public Window(HudParentBase parent) : base(parent)
         {
             header = new LabelBoxButton(this)
             {
                 DimAlignment = DimAlignments.Width,
                 Height = 32f,
-                ParentAlignment = ParentAlignments.Top | ParentAlignments.Inner,
+                ParentAlignment = ParentAlignments.InnerTop,
                 ZOffset = 1,
                 Format = GlyphFormat.White.WithAlignment(TextAlignment.Center),
                 HighlightEnabled = false,
                 AutoResize = false,
             };
 
-            body = new EmptyHudElement(header)
+            body = new EmptyHudElement(this)
             {
-                DimAlignment = DimAlignments.Width,
-                ParentAlignment = ParentAlignments.Bottom,
+                ParentAlignment = ParentAlignments.InnerBottom,
             };
 
-            bodyBg = new TexturedBox(body)
+            windowBg = new TexturedBox(this)
             {
-                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                DimAlignment = DimAlignments.Size,
                 ZOffset = -2,
             };
 
@@ -124,20 +124,20 @@ namespace RichHudFramework.UI
             {
                 ZOffset = 1,
                 Thickness = 1f,
-                DimAlignment = DimAlignments.Both,
+                DimAlignment = DimAlignments.Size,
             };
 
             resizeInput = new MouseInputElement(this)
             {
                 ZOffset = sbyte.MaxValue,
                 Padding = new Vector2(16f),
-                DimAlignment = DimAlignments.Both,
+                DimAlignment = DimAlignments.Size,
                 CanIgnoreMasking = true
             };
             
             inputInner = new MouseInputElement(resizeInput)
             {
-                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                DimAlignment = DimAlignments.UnpaddedSize,
             };
 
             AllowResizing = true;
@@ -153,24 +153,8 @@ namespace RichHudFramework.UI
 
         protected override void Layout()
         {
-            body.Height = Height - header.Height;
-
-            if (Visible && WindowActive)
-            {
-                if (canMoveWindow)
-                {
-                    Vector3 cursorPos = HudSpace.CursorPos;
-                    Offset = new Vector2(cursorPos.X, cursorPos.Y) + cursorOffset - Origin;
-                }
-
-                if (canResize)
-                    Resize();
-            }
-            else
-            {
-                canMoveWindow = false;
-                canResize = false;
-            }
+            body.Height = CachedSize.Y - Padding.Y - header.Height;
+            body.Width = CachedSize.X - Padding.X;
         }
 
         protected void Resize()
@@ -247,6 +231,22 @@ namespace RichHudFramework.UI
                     canMoveWindow = false;
                     canResize = false;
                 }
+            }
+
+            if (WindowActive)
+            {
+                if (canMoveWindow)
+                {
+                    Offset = cursorPos + cursorOffset - Origin;
+                }
+
+                if (canResize)
+                    Resize();
+            }
+            else
+            {
+                canMoveWindow = false;
+                canResize = false;
             }
         }
 

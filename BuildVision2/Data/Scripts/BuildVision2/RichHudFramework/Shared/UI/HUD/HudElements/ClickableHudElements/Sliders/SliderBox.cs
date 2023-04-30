@@ -29,11 +29,6 @@ namespace RichHudFramework.UI
         public float Percent { get { return slide.Percent; } set { slide.Percent = value; } }
 
         /// <summary>
-        /// Border size. Included in total element size.
-        /// </summary>
-        public override Vector2 Padding { get { return slide.Padding; } set { slide.Padding = value; } }
-
-        /// <summary>
         /// Color of the slider bar
         /// </summary>
         public Color BarColor { get { return slide.BarColor; } set { slide.BarColor = value; } }
@@ -107,18 +102,18 @@ namespace RichHudFramework.UI
         {
             background = new TexturedBox(this)
             {
-                DimAlignment = DimAlignments.Both
+                DimAlignment = DimAlignments.Size
             };
 
             border = new BorderBox(background)
             {
                 Thickness = 1f,
-                DimAlignment = DimAlignments.Both,
+                DimAlignment = DimAlignments.Size,
             };
 
             slide = new SliderBar(this)
             {
-                DimAlignment = DimAlignments.Both,
+                DimAlignment = DimAlignments.UnpaddedSize,
                 SliderSize = new Vector2(14f, 28f),
                 BarHeight = 5f
             };

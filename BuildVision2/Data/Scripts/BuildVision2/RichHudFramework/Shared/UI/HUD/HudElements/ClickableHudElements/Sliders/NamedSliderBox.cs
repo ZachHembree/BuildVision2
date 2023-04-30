@@ -97,7 +97,7 @@ namespace RichHudFramework.UI
 
         protected override void Layout()
         {
-            Vector2 size = cachedSize - cachedPadding;
+            Vector2 size = CachedSize - Padding;
             sliderBox.Height = size.Y - Math.Max(name.Height, current.Height);
 
             current.Size = current.Padding + current.TextBoard.TextSize;

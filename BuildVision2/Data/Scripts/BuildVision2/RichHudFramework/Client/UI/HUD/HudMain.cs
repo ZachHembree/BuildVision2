@@ -326,8 +326,6 @@ namespace RichHudFramework
                 /// </summary>
                 private class HudClientRoot : HudParentBase, IReadOnlyHudSpaceNode
                 {
-                    public override bool Visible => true;
-
                     public bool DrawCursorInHudSpace { get; }
 
                     public Vector3 CursorPos { get; private set; }

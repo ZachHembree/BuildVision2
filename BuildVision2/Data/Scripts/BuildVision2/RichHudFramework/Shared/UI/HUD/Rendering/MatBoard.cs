@@ -23,7 +23,7 @@ namespace RichHudFramework
                     set
                     {
                         if (value != color)
-                            minBoard.materialData.bbColor = BillBoardUtils.GetBillBoardBoardColor(value);
+                            minBoard.materialData.bbColor = value.GetBbColor();
 
                         color = value;
                     }
@@ -108,8 +108,7 @@ namespace RichHudFramework
                             updateMatFit = false;
                         }
 
-                        if (containment != ContainmentType.Disjoint)
-                            minBoard.Draw(ref box, matrixRef);
+                        minBoard.Draw(ref box, matrixRef);
                     }
                 }     
             }

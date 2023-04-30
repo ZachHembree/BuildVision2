@@ -60,34 +60,33 @@ namespace RichHudFramework.UI
 
         private readonly Label name;
         private readonly BorderedCheckBox checkbox;
-        private readonly HudChain layout;
 
         public NamedCheckBox(HudParentBase parent) : base(parent)
         {
             name = new Label()
             {
                 Format = TerminalFormatting.ControlFormat.WithAlignment(TextAlignment.Right),
-                Text = "NewCheckbox",
-                AutoResize = false
+                Text = "NewCheckbox"
             };
 
             checkbox = new BorderedCheckBox();
 
-            layout = new HudChain(false, this)
+            var layout = new HudChain(false, this)
             {
+                DimAlignment = DimAlignments.UnpaddedSize,
                 Spacing = 17f,
-                CollectionContainer = { name, checkbox }
+                SizingMode = HudChainSizingModes.FitMembersOffAxis,
+                CollectionContainer = { { name, 1f }, checkbox }
             };
 
             AutoResize = true;
             Size = new Vector2(250f, 37f);
         }
 
-        protected override void Layout()
+        protected override void Draw()
         {
-            Vector2 size = cachedSize - cachedPadding;
-            checkbox.Size = new Vector2(size.Y);
-            name.Width = size.X - checkbox.Width - layout.Spacing;
+            if (AutoResize)
+                Width = checkbox.Width + name.TextBoard.TextSize.X + 17f + Padding.X;
         }
 
         public NamedCheckBox() : this(null)

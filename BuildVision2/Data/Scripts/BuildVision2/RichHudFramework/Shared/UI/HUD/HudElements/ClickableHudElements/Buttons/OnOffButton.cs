@@ -112,12 +112,12 @@ namespace RichHudFramework.UI
 
             background = new TexturedBox(this)
             {
-                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                DimAlignment = DimAlignments.UnpaddedSize,
             };
 
             bgBorder = new BorderBox(background)
             {
-                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                DimAlignment = DimAlignments.UnpaddedSize,
             };
 
             on = new LabelBox()
@@ -131,7 +131,7 @@ namespace RichHudFramework.UI
             onBorder = new BorderBox(on)
             {
                 Thickness = 2f,
-                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                DimAlignment = DimAlignments.UnpaddedSize,
             };
 
             off = new LabelBox()
@@ -145,15 +145,16 @@ namespace RichHudFramework.UI
             offBorder = new BorderBox(off)
             {
                 Thickness = 2f,
-                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                DimAlignment = DimAlignments.UnpaddedSize,
             };
 
             buttonChain = new HudChain(false, bgBorder)
             {
-                SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.FitChainBoth,
-                Padding = new Vector2(12f, 10f),
+                DimAlignment = DimAlignments.Size,
+                SizingMode = HudChainSizingModes.FitMembersOffAxis,
+                Padding = new Vector2(20f, 10f),
                 Spacing = 9f,
-                CollectionContainer = { on, off }
+                CollectionContainer = { { on, 1f }, { off, 1f } }
             };
 
             Size = new Vector2(166f, 58f);
@@ -182,10 +183,6 @@ namespace RichHudFramework.UI
 
         protected override void Layout()
         {
-            Vector2 buttonSize = cachedSize - cachedPadding - buttonChain.Padding;
-            buttonSize.X = buttonSize.X * .5f - buttonChain.Spacing;
-            buttonChain.MemberMaxSize = buttonSize;
-
             if (Value)
             {
                 on.Color = SelectionColor;
@@ -195,14 +192,6 @@ namespace RichHudFramework.UI
             {
                 off.Color = SelectionColor;
                 on.Color = UnselectedColor;
-            }
-        }
-
-        protected override void HandleInput(Vector2 cursorPos)
-        {
-            if (mouseInput.HasFocus && SharedBinds.Space.IsNewPressed)
-            {
-                mouseInput.OnLeftClick();
             }
 
             if (HighlightEnabled && mouseInput.IsMousedOver)
@@ -216,6 +205,14 @@ namespace RichHudFramework.UI
             else
             {
                 background.Color = BackgroundColor;
+            }
+        }
+
+        protected override void HandleInput(Vector2 cursorPos)
+        {
+            if (mouseInput.HasFocus && SharedBinds.Space.IsNewPressed)
+            {
+                mouseInput.OnLeftClick();
             }
         }
     }

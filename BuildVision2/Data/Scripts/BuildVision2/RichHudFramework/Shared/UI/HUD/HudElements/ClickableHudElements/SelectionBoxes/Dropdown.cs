@@ -135,11 +135,6 @@ namespace RichHudFramework.UI
         public Vector2 HighlightPadding { get { return listBox.HighlightPadding; } set { listBox.HighlightPadding = value; } }
 
         /// <summary>
-        /// Minimum number of elements visible in the list at any given time.
-        /// </summary>
-        public int MinVisibleCount { get { return listBox.MinVisibleCount; } set { listBox.MinVisibleCount = value; } }
-
-        /// <summary>
         /// Current selection. Null if empty.
         /// </summary>
         public TContainer Selection => listBox.Selection;
@@ -174,7 +169,7 @@ namespace RichHudFramework.UI
         {
             display = new DropdownDisplay(this)
             {
-                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                DimAlignment = DimAlignments.UnpaddedSize,
                 Text = "None"
             };
 
@@ -190,6 +185,7 @@ namespace RichHudFramework.UI
             listBox.Register(display, true);
             
             Size = new Vector2(331f, 43f);
+            DropdownHeight = 100f;
 
             display.MouseInput.LeftClicked += ClickDisplay;
             SelectionChanged += UpdateDisplay;
@@ -360,7 +356,6 @@ namespace RichHudFramework.UI
             public readonly Label name;
             public readonly TexturedBox arrow, divider;
 
-            private readonly HudChain layout;
             private readonly BorderBox border;
             private Color lastTextColor;
 
@@ -369,7 +364,7 @@ namespace RichHudFramework.UI
                 border = new BorderBox(this)
                 {
                     Thickness = 1f,
-                    DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                    DimAlignment = DimAlignments.UnpaddedSize,
                 };
 
                 name = new Label()
@@ -392,11 +387,11 @@ namespace RichHudFramework.UI
                     Material = arrowMat,
                 };
 
-                layout = new HudChain(false, this)
+                var layout = new HudChain(false, this)
                 {
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
-                    DimAlignment = DimAlignments.Height | DimAlignments.IgnorePadding,
-                    CollectionContainer = { name, divider, arrow }
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis,
+                    DimAlignment = DimAlignments.UnpaddedSize,
+                    CollectionContainer = { { name , 1f }, divider, arrow }
                 };
 
                 Format = TerminalFormatting.ControlFormat;
@@ -412,12 +407,6 @@ namespace RichHudFramework.UI
 
                 _mouseInput.GainedInputFocus += GainFocus;
                 _mouseInput.LostInputFocus += LoseFocus;
-            }
-
-            protected override void Layout()
-            {
-                base.Layout();
-                name.Width = (Width - Padding.X) - divider.Width - arrow.Width;
             }
 
             protected override void HandleInput(Vector2 cursorPos)

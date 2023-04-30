@@ -40,9 +40,9 @@ namespace RichHudFramework.UI
             if (hudBoard.Color.A > 0)
             {
                 CroppedBox box = default(CroppedBox);
-                Vector2 halfSize = (cachedSize - cachedPadding) * .5f;
+                Vector2 halfSize = (CachedSize - Padding) * .5f;
 
-                box.bounds = new BoundingBox2(cachedPosition - halfSize, cachedPosition + halfSize);
+                box.bounds = new BoundingBox2(Position - halfSize, Position + halfSize);
                 box.mask = maskingBox;
                 hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
             }

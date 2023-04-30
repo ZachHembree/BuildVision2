@@ -990,21 +990,6 @@ namespace RichHudFramework
                         });
                     }
                 }
-
-                /// <summary>
-                /// Converts a color to its normalized linear RGB equivalent. Assumes additive blending
-                /// with premultiplied alpha.
-                /// </summary>
-                public static Vector4 GetBillBoardBoardColor(Color color)
-                {
-                    float opacity = color.A / 255f;
-
-                    color.R = (byte)(color.R * opacity);
-                    color.G = (byte)(color.G * opacity);
-                    color.B = (byte)(color.B * opacity);
-
-                    return ((Vector4)color).ToLinearRGB();
-                }
             }
         }
     }

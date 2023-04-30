@@ -75,7 +75,7 @@ namespace RichHudFramework.UI
 
         protected override void Layout()
         {
-            Vector2 size = cachedSize - cachedPadding;
+            Vector2 size = CachedSize - Padding;
             slide.BarSize = size;
 
             if (Vertical)

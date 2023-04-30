@@ -69,43 +69,34 @@ namespace RichHudFramework.UI
         public bool ListOpen { get; protected set; }
 
         /// <summary>
-        /// Height of the treebox in pixels.
+        /// Height of the dropdown list
         /// </summary>
-        public override float Height
-        {
-            get
-            {
-                if (!ListOpen)
-                    return display.Height + Padding.Y;
-                else
-                    return display.Height + selectionBox.Height + Padding.Y;
-            }
-            set
-            {
-                if (Padding.Y < value)
-                    value -= Padding.Y;
+        public float DropdownHeight { get { return selectionBox.Height; } set { selectionBox.Height = value; } }
 
-                if (!ListOpen)
-                {
-                    display.Height = value;
-                }
-            }
-        }
+        /// <summary>
+        /// Determines how far to the right list members should be offset from the position of the header.
+        /// </summary>
+        public float IndentSize { get; set; }
 
         /// <summary>
         /// Name of the element as rendered on the display
         /// </summary>
-        public RichText Name { get { return display.Name; } set { display.Name = value; } }
+        public RichText Name { get { return labelButton.Name; } set { labelButton.Name = value; } }
 
         /// <summary>
         /// TextBoard backing the name label
         /// </summary>
-        public override ITextBoard TextBoard => display.name.TextBoard;
+        public override ITextBoard TextBoard => labelButton.name.TextBoard;
 
         /// <summary>
         /// Default format for member text;
         /// </summary>
-        public GlyphFormat Format { get { return display.Format; } set { display.Format = value; selectionBox.Format = value; } }
+        public GlyphFormat Format { get { return labelButton.Format; } set { labelButton.Format = value; selectionBox.Format = value; } }
+
+        /// <summary>
+        /// Height of the label for the dropdown
+        /// </summary>
+        public float LabelHeight { get { return labelButton.Height; } set { labelButton.Height = value; } }
 
         /// <summary>
         /// Text color used for entries that have input focus
@@ -115,7 +106,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Determines the color of the header's background/
         /// </summary>
-        public Color HeaderColor { get { return display.Color; } set { display.Color = value; } }
+        public Color HeaderColor { get { return labelButton.Color; } set { labelButton.Color = value; } }
 
         /// <summary>
         /// Default background color of the highlight box
@@ -148,54 +139,19 @@ namespace RichHudFramework.UI
         public int Count => selectionBox.Count;
 
         /// <summary>
-        /// Determines how far to the right list members should be offset from the position of the header.
-        /// </summary>
-        public float IndentSize { get { return _indentSize; } set { _indentSize = value; } }
-
-        /// <summary>
-        /// Sizing mode used by the chain containing the tree box's member list
-        /// </summary>
-        public HudChainSizingModes MemberSizingModes
-        {
-            get { return selectionBox.hudChain.SizingMode; }
-            set { selectionBox.hudChain.SizingMode = value; }
-        }
-
-        /// <summary>
-        /// Member lists' min member size
-        /// </summary>
-        public Vector2 MemberMinSize
-        {
-            get { return selectionBox.hudChain.MemberMinSize; }
-            set { selectionBox.hudChain.MemberMinSize = value; }
-        }
-
-        /// <summary>
-        /// Member lists' max member size
-        /// </summary>
-        public Vector2 MemberMaxSize
-        {
-            get { return selectionBox.hudChain.MemberMinSize; }
-            set { selectionBox.hudChain.MemberMinSize = value; }
-        }
-
-        /// <summary>
         /// Handles mouse input for the header.
         /// </summary>
-        public IMouseInput MouseInput => display.MouseInput;
-
-        public HudElementBase Display => display;
+        public IMouseInput MouseInput => labelButton.MouseInput;
 
         public readonly TSelectionBox selectionBox;
-        protected readonly TreeBoxDisplay display;
-        protected float _indentSize;
+        protected readonly TreeBoxDisplay labelButton;
 
         public TreeBoxBase(HudParentBase parent) : base(parent)
         {
-            display = new TreeBoxDisplay(this)
+            labelButton = new TreeBoxDisplay(this)
             {
-                ParentAlignment = ParentAlignments.Top | ParentAlignments.InnerV | ParentAlignments.UsePadding,
-                DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding
+                ParentAlignment = ParentAlignments.PaddedInnerTop,
+                DimAlignment = DimAlignments.UnpaddedWidth
             };
 
             selectionBox = new TSelectionBox()
@@ -204,21 +160,17 @@ namespace RichHudFramework.UI
                 ParentAlignment = ParentAlignments.Bottom,
                 HighlightPadding = Vector2.Zero
             };
-            selectionBox.Register(display, true);
+            selectionBox.Register(labelButton, true);
+            selectionBox.hudChain.SizingMode = HudChainSizingModes.FitMembersOffAxis;
 
-            selectionBox.hudChain.SizingMode =
-                HudChainSizingModes.FitMembersOffAxis |
-                HudChainSizingModes.ClampMembersAlignAxis |
-                HudChainSizingModes.ClampChainOffAxis |
-                HudChainSizingModes.FitChainAlignAxis;
-
-            Size = new Vector2(200f, 34f);
+            Width = 200f;
+            LabelHeight = 34f;
             IndentSize = 20f;
+            DropdownHeight = 100f;
 
             Format = GlyphFormat.Blueish;
-
-            display.Name = "NewTreeBox";
-            display.MouseInput.LeftClicked += ToggleList;
+            labelButton.Name = "NewTreeBox";
+            labelButton.MouseInput.LeftClicked += ToggleList;
         }
 
         public TreeBoxBase() : this(null)
@@ -252,26 +204,37 @@ namespace RichHudFramework.UI
 
         public void OpenList()
         {
-            selectionBox.Visible = true;
-            display.Open = true;
+            labelButton.Open = true;
             ListOpen = true;
         }
 
         public void CloseList()
         {
-            selectionBox.Visible = false;
-            display.Open = false;
+            labelButton.Open = false;
             ListOpen = false;
         }
 
         protected override void Layout()
         {
+            if (ListOpen)
+            {
+                selectionBox.Width = CachedSize.X - 2f * IndentSize - Padding.X;
+                selectionBox.Offset = new Vector2(IndentSize, 0f);
+                selectionBox.Height = CachedSize.Y - Padding.Y - labelButton.Height;
+            }
+        }
+
+        protected override void HandleInput(Vector2 cursorPos)
+        {
             selectionBox.Visible = ListOpen;
 
             if (ListOpen)
             {
-                selectionBox.Width = Width - 2f * IndentSize - Padding.X;
-                selectionBox.Offset = new Vector2(IndentSize, 0f);
+                Height = selectionBox.GetRangeSize().Y + labelButton.Height + Padding.Y;
+            }
+            else
+            {
+                Height = labelButton.Height + Padding.Y;
             }
         }
 
@@ -313,7 +276,6 @@ namespace RichHudFramework.UI
 
             public readonly Label name;
             private readonly TexturedBox arrow, divider, background;
-            private readonly HudChain layout;
             private readonly MouseInputElement mouseInput;
 
             private static readonly Material
@@ -325,7 +287,7 @@ namespace RichHudFramework.UI
                 background = new TexturedBox(this)
                 {
                     Color = TerminalFormatting.EbonyClay,
-                    DimAlignment = DimAlignments.Both,
+                    DimAlignment = DimAlignments.Size,
                 };
 
                 name = new Label()
@@ -351,22 +313,17 @@ namespace RichHudFramework.UI
                     Material = rightArrow,
                 };
 
-                layout = new HudChain(false, this)
+                var layout = new HudChain(false, this)
                 {
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
-                    DimAlignment = DimAlignments.Height | DimAlignments.IgnorePadding,
-                    CollectionContainer = { arrow, divider, name }
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis,
+                    DimAlignment = DimAlignments.UnpaddedSize,
+                    CollectionContainer = { arrow, divider, { name, 1f } }
                 };
 
                 mouseInput = new MouseInputElement(this)
                 {
-                    DimAlignment = DimAlignments.Both
+                    DimAlignment = DimAlignments.Size
                 };
-            }
-
-            protected override void Layout()
-            {
-                name.Width = (Width - Padding.X) - divider.Width - arrow.Width;
             }
         }
     }

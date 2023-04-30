@@ -28,17 +28,10 @@ namespace RichHudFramework
         /// </summary>
         public abstract class HudSpaceNodeBase : HudNodeBase, IReadOnlyHudSpaceNode
         {
-            protected const HudElementStates spaceNodeVisible = HudElementStates.IsVisible | HudElementStates.WasParentVisible;
-
             /// <summary>
             /// Node defining the coordinate space used to render the UI element
             /// </summary>
             public override IReadOnlyHudSpaceNode HudSpace => this;
-
-            /// <summary>
-            /// Returns true if the space node is visible and rendering.
-            /// </summary>
-            public override bool Visible => (State & spaceNodeVisible) == spaceNodeVisible;
 
             /// <summary>
             /// Returns the current draw matrix

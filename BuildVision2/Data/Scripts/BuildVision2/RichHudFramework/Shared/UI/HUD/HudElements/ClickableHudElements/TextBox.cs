@@ -427,8 +427,6 @@ namespace RichHudFramework.UI
 
             protected override void Layout()
             {
-                base.Layout();
-
                 if (caretMoved)
                 {
                     CaretMoved?.Invoke();

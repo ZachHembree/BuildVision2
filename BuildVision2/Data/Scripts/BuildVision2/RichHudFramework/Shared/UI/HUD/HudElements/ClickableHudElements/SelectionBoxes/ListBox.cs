@@ -84,17 +84,11 @@ namespace RichHudFramework.UI
 
         public ListBox(HudParentBase parent) : base(parent)
         {
-            hudChain.MinVisibleCount = 5;
             hudChain.Padding = new Vector2(0f, 8f);
         }
 
         public ListBox() : this(null)
         { }
-
-        protected override void Draw()
-        {
-            Size = hudChain.Size + Padding;
-        }
     }
 
 }
