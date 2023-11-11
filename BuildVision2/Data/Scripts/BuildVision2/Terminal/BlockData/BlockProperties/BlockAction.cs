@@ -99,6 +99,7 @@ namespace DarkHelmet.BuildVision2
                 List<IMyTerminalAction> terminalActions = new List<IMyTerminalAction>();
                 block.TBlock.GetActions(terminalActions);
 
+#if !PLUGIN_LOADER
                 members.Add(GetBlockAction(
                     // Name
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_Attach),
@@ -114,6 +115,7 @@ namespace DarkHelmet.BuildVision2
                 members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.BlockActionTitle_Detach), null,
                     block.MechConnection.DetachHead, block));
+#endif
 
                 foreach (IMyTerminalAction tAction in terminalActions)
                 {
@@ -154,11 +156,20 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public static void GetWarheadActions(PropertyBlock block, List<BlockMemberBase> members)
             {
+#if PLUGIN_LOADER
                 members.Add(GetBlockAction(
                     // Name
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StartCountdown),
                     // Status
-                    x => 
+                    null,
+                    block.Warhead.StartCountdown, block));
+#else
+
+                members.Add(GetBlockAction(
+                    // Name
+                    MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StartCountdown),
+                    // Status
+                    x =>
                     {
                         x.Clear();
                         x.Append('(');
@@ -166,6 +177,7 @@ namespace DarkHelmet.BuildVision2
                         x.Append("s)");
                     },
                     block.Warhead.StartCountdown, block));
+#endif
                 members.Add(GetBlockAction(
                     MyTexts.GetString(MySpaceTexts.TerminalControlPanel_Warhead_StopCountdown), null,
                     block.Warhead.StopCountdown, block));

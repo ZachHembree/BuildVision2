@@ -143,7 +143,11 @@ namespace DarkHelmet.BuildVision2
                 if (property.Id == "Velocity")
                 {
                     if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Rotor))
-                        GetStatusFunc = GetRotorAngleFunc;
+                    {
+#if !PLUGIN_LOADER
+                        GetStatusFunc = GetRotorAngleFunc;                   
+#endif
+                    }
                     else if (block.SubtypeId.UsesSubtype(TBlockSubtypes.Piston))
                         GetStatusFunc = GetPistonExtensionFunc;
                 }

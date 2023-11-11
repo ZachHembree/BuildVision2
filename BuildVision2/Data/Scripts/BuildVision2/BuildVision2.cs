@@ -79,6 +79,13 @@ namespace DarkHelmet.BuildVision2
 
                 BvConfig.OnConfigLoad += UpdateBindPageVisibility;
                 UpdateBindPageVisibility();
+
+#if PLUGIN_LOADER
+                ExceptionHandler.SendChatMessage(
+                    "Build Vision has been launched in client-only mode by the Plugin Loader. " +
+                    "Some functionality will be unavailable."
+                );
+#endif
             }
         }
 

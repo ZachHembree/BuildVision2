@@ -72,6 +72,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public static void SendEntityActionToServer(ServerBlockActions actionID, long entID, Action<byte[]> callback = null, bool uniqueCallback = true)
         {
+#if !PLUGIN_LOADER
             int callbackID = -1;
 
             if ((actionID & ServerBlockActions.RequireReply) == ServerBlockActions.RequireReply)
@@ -88,6 +89,7 @@ namespace DarkHelmet.BuildVision2
             }
             
             instance.clientOutgoing.Add(new ClientMessage(actionID, callbackID, entID));
+#endif
         }
 
         /// <summary>
