@@ -4,21 +4,22 @@ using ProtoBuf;
 namespace DarkHelmet.BuildVision2
 {
     [Flags]
-    public enum ServerBlockActions : ulong
+    public enum BvServerActions : ulong
     {
-        None =                      0x00000000,
-        MyMechanicalConnection =    0x00000001,
-        MotorStator =               0x00000002  | MyMechanicalConnection,
-        Warhead =                   0x00000004,
-        AirVent =                   0x00000008,
+        None =                      0,
+        MyMechanicalConnection =    1 << 0,
+        MotorStator =               1 << 1  | MyMechanicalConnection,
+        Warhead =                   1 << 2,
+        AirVent =                   1 << 3,
 
-        GetOrSendData =             0x04000000,
-        RequireReply =              0x08000000  | GetOrSendData,
-        AttachHead =                0x10000000  | GetOrSendData,
-        DetachHead =                0x20000000  | GetOrSendData,
-        GetAngle =                  0x40000000  | RequireReply,
-        GetTime =                   0x80000000  | RequireReply,
-        GetOxygen =                 0x100000000 | RequireReply,
+        GetOrSendData =             1 << 26,
+        RequireReply =              1 << 27  | GetOrSendData,
+        AttachHead =                1 << 28  | GetOrSendData,
+        DetachHead =                1 << 29  | GetOrSendData,
+        GetAngle =                  1 << 30  | RequireReply,
+        GetTime =                   1ul << 31  | RequireReply,
+        GetOxygen =                 1ul << 32 | RequireReply,
+        GetAlive =                  1ul << 33 | RequireReply,
     }
 
     public sealed partial class BvServer
@@ -81,7 +82,7 @@ namespace DarkHelmet.BuildVision2
             [ProtoMember(3)]
             public ulong actionID;
 
-            public ClientMessage(ServerBlockActions actionID, int callbackID, long entID)
+            public ClientMessage(BvServerActions actionID, int callbackID, long entID)
             {
                 this.actionID = (ulong)actionID;
                 this.callbackID = callbackID;

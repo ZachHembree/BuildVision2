@@ -15,6 +15,14 @@ namespace DarkHelmet.BuildVision2
     /// </summary>
     public sealed partial class BvServer : BvComponentBase
     {
+        public static bool IsAlive { get; private set; }
+
+#if PLUGIN_LOADER
+        public const bool IsPlugin = true;
+#else
+        public const bool IsPlugin = false;
+#endif
+
         private const ushort serverHandlerID = 16971;
         private static BvServer instance;
 
@@ -56,6 +64,16 @@ namespace DarkHelmet.BuildVision2
 
             instance.messageHandler = new SecureMsgHandler(instance.NetworkMessageHandler);
             MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(serverHandlerID, instance.messageHandler);
+
+            if (ExceptionHandler.IsServer)
+            {
+                IsAlive = true;
+            }
+            else
+            {
+                IsAlive = false;
+                SendEntityActionToServerInternal(BvServerActions.GetAlive, -1, x => IsAlive = true);
+            }
         }
 
         /// <summary>
@@ -64,18 +82,26 @@ namespace DarkHelmet.BuildVision2
         public override void Close()
         {
             MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(serverHandlerID, messageHandler);
+            IsAlive = false;
             instance = null;
+        }
+
+        public static void SendEntityActionToServer(BvServerActions actionID, long entID, Action<byte[]> callback = null, bool uniqueCallback = true)
+        {
+            if (IsAlive)
+            {
+                SendEntityActionToServerInternal(actionID, entID, callback, uniqueCallback);
+            }
         }
 
         /// <summary>
         /// Sends an entity action to be executed on the server
         /// </summary>
-        public static void SendEntityActionToServer(ServerBlockActions actionID, long entID, Action<byte[]> callback = null, bool uniqueCallback = true)
+        public static void SendEntityActionToServerInternal(BvServerActions actionID, long entID, Action<byte[]> callback = null, bool uniqueCallback = true)
         {
-#if !PLUGIN_LOADER
             int callbackID = -1;
 
-            if ((actionID & ServerBlockActions.RequireReply) == ServerBlockActions.RequireReply)
+            if ((actionID & BvServerActions.RequireReply) == BvServerActions.RequireReply)
             {
                 if (callback != null)
                 {
@@ -89,7 +115,6 @@ namespace DarkHelmet.BuildVision2
             }
             
             instance.clientOutgoing.Add(new ClientMessage(actionID, callbackID, entID));
-#endif
         }
 
         /// <summary>
@@ -241,23 +266,31 @@ namespace DarkHelmet.BuildVision2
 
             foreach (var message in receivedClientMessages)
             {
-                if (entID != message.Item2.entID)
-                    entity = MyAPIGateway.Entities.GetEntityById(message.Item2.entID);
+                var actionID = (BvServerActions)message.Item2.actionID;
 
-                var actionID = (ServerBlockActions)message.Item2.actionID;
-                entID = message.Item2.entID;
+                if (message.Item2.entID != -1)
+                {
+                    if (entID != message.Item2.entID)
+                        entity = MyAPIGateway.Entities.GetEntityById(message.Item2.entID);
 
-                if ((actionID & ServerBlockActions.MyMechanicalConnection) == ServerBlockActions.MyMechanicalConnection)
-                {
-                    HandleMechBlockMessages(entity, message, ref currentClient);
+                    entID = message.Item2.entID;
+
+                    if ((actionID & BvServerActions.MyMechanicalConnection) == BvServerActions.MyMechanicalConnection)
+                    {
+                        HandleMechBlockMessages(entity, message, ref currentClient);
+                    }
+                    else if ((actionID & BvServerActions.Warhead) == BvServerActions.Warhead)
+                    {
+                        HandleWarheadMessages(entity, message, ref currentClient);
+                    }
+                    else if ((actionID & BvServerActions.AirVent) == BvServerActions.AirVent)
+                    {
+                        HandleAirVentMessages(entity, message, ref currentClient);
+                    }
                 }
-                else if ((actionID & ServerBlockActions.Warhead) == ServerBlockActions.Warhead)
+                else if ((actionID & BvServerActions.GetAlive) == BvServerActions.GetAlive)
                 {
-                    HandleWarheadMessages(entity, message, ref currentClient);
-                }
-                else if ((actionID & ServerBlockActions.AirVent) == ServerBlockActions.AirVent)
-                {
-                    HandleAirVentMessages(entity, message, ref currentClient);
+                    AddServerReply(message, true, ref currentClient);
                 }
             }
         }
@@ -276,19 +309,19 @@ namespace DarkHelmet.BuildVision2
         private void HandleMechBlockMessages(IMyEntity entity, MyTuple<ulong, ClientMessage> message, ref ulong? currentClient)
         {
             var mechBlock = entity as IMyMechanicalConnectionBlock;
-            var actionID = (ServerBlockActions)message.Item2.actionID;
+            var actionID = (BvServerActions)message.Item2.actionID;
 
-            if ((actionID & ServerBlockActions.AttachHead) == ServerBlockActions.AttachHead)
+            if ((actionID & BvServerActions.AttachHead) == BvServerActions.AttachHead)
             {
                 mechBlock.Attach();
             }
-            else if ((actionID & ServerBlockActions.DetachHead) == ServerBlockActions.DetachHead)
+            else if ((actionID & BvServerActions.DetachHead) == BvServerActions.DetachHead)
             {
                 mechBlock.Detach();
             }
-            else if ((actionID & ServerBlockActions.MotorStator) == ServerBlockActions.MotorStator)
+            else if ((actionID & BvServerActions.MotorStator) == BvServerActions.MotorStator)
             {
-                if ((actionID & ServerBlockActions.GetAngle) == ServerBlockActions.GetAngle)
+                if ((actionID & BvServerActions.GetAngle) == BvServerActions.GetAngle)
                 {
                     var rotor = entity as IMyMotorStator;
                     AddServerReply(message, rotor.Angle, ref currentClient);
@@ -298,9 +331,9 @@ namespace DarkHelmet.BuildVision2
 
         private void HandleWarheadMessages(IMyEntity entity, MyTuple<ulong, ClientMessage> message, ref ulong? currentClient)
         {
-            var actionID = (ServerBlockActions)message.Item2.actionID;
+            var actionID = (BvServerActions)message.Item2.actionID;
 
-            if ((actionID & ServerBlockActions.GetTime) == ServerBlockActions.GetTime)
+            if ((actionID & BvServerActions.GetTime) == BvServerActions.GetTime)
             {
                 var warhead = entity as IMyWarhead;
                 AddServerReply(message, warhead.DetonationTime, ref currentClient);
@@ -309,9 +342,9 @@ namespace DarkHelmet.BuildVision2
 
         private void HandleAirVentMessages(IMyEntity entity, MyTuple<ulong, ClientMessage> message, ref ulong? currentClient)
         {
-            var actionID = (ServerBlockActions)message.Item2.actionID;
+            var actionID = (BvServerActions)message.Item2.actionID;
 
-            if ((actionID & ServerBlockActions.GetOxygen) == ServerBlockActions.GetOxygen)
+            if ((actionID & BvServerActions.GetOxygen) == BvServerActions.GetOxygen)
             {
                 var vent = entity as IMyAirVent;
                 AddServerReply(message, vent.GetOxygenLevel(), ref currentClient);

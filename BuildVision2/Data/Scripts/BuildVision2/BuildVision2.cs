@@ -1,21 +1,21 @@
+using ProtoBuf;
+using RichHudFramework;
 using RichHudFramework.Client;
 using RichHudFramework.Internal;
 using RichHudFramework.IO;
 using RichHudFramework.UI;
+using RichHudFramework.UI.Client;
+using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using VRage;
+using VRage.Game;
+using VRage.Game.Components;
+using VRage.Game.Entity;
+using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
-using VRage.Game;
-using VRage.Game.ModAPI;
-using VRage.Game.Entity;
-using Sandbox.ModAPI;
-using VRage.Game.Components;
-using RichHudFramework;
-using RichHudFramework.UI.Client;
-using ProtoBuf;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -40,7 +40,7 @@ namespace DarkHelmet.BuildVision2
 
             LogIO.FileName = "bvLog.txt";
             BvConfig.FileName = "BuildVision2Config.xml";
-            
+
             ExceptionHandler.ModName = modName;
             ExceptionHandler.PromptForReload = true;
             ExceptionHandler.RecoveryLimit = 3;
@@ -72,20 +72,13 @@ namespace DarkHelmet.BuildVision2
                 AddChatCommands();
                 InitSettingsMenu();
                 TerminalUtilities.Init();
-                QuickActionHudSpace.Init();                
-                
+                QuickActionHudSpace.Init();
+
                 if (BvConfig.WasConfigOld)
                     RichHudTerminal.OpenToPage(helpMain);
 
                 BvConfig.OnConfigLoad += UpdateBindPageVisibility;
                 UpdateBindPageVisibility();
-
-#if PLUGIN_LOADER
-                ExceptionHandler.SendChatMessage(
-                    "Build Vision has been launched in client-only mode by the Plugin Loader. " +
-                    "Some functionality will be unavailable."
-                );
-#endif
             }
         }
 

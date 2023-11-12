@@ -28,7 +28,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     BvServer.SendEntityActionToServer
                     (
-                        ServerBlockActions.Warhead | ServerBlockActions.GetTime,
+                        BvServerActions.Warhead | BvServerActions.GetTime,
                         subtype.EntityId,
                         DetonationTimeCallback
                     );
@@ -91,7 +91,7 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-#if !PLUGIN_LOADER
+if (BvServer.IsAlive) {
                 var buf = block.textBuffer;
 
                 builder.Add(MyTexts.GetString(MySpaceTexts.TerminalControlPanel_TimerDelay), nameFormat);
@@ -101,7 +101,7 @@ namespace DarkHelmet.BuildVision2
                 buf.Append(Math.Truncate(CountdownTime));
                 buf.Append("s\n");
                 builder.Add(buf, valueFormat);
-#endif
+}
 
                 builder.Add(MyTexts.GetString(MySpaceTexts.TerminalStatus), nameFormat);
                 builder.Add(": ", nameFormat);
