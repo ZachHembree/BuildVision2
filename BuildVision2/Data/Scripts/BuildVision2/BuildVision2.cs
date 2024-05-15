@@ -22,7 +22,7 @@ namespace DarkHelmet.BuildVision2
     /// <summary>
     /// Build Vision main class
     /// </summary>
-    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, -1)]
+    [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation, -1)]
     public sealed partial class BvMain : ModBase
     {
         public const string modName = "Build Vision";

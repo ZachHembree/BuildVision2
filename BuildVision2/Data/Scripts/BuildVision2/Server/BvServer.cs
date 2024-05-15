@@ -97,7 +97,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Sends an entity action to be executed on the server
         /// </summary>
-        public static void SendEntityActionToServerInternal(BvServerActions actionID, long entID, Action<byte[]> callback = null, bool uniqueCallback = true)
+        private static void SendEntityActionToServerInternal(BvServerActions actionID, long entID, Action<byte[]> callback = null, bool uniqueCallback = true)
         {
             int callbackID = -1;
 
