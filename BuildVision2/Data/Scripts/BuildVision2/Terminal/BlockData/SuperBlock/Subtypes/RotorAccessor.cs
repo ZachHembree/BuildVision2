@@ -28,7 +28,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     BvServer.SendEntityActionToServer
                     (
-                        ServerBlockActions.MotorStator | ServerBlockActions.GetAngle, 
+                        BvServerActions.MotorStator | BvServerActions.GetAngle, 
                         subtype.EntityId,
                         RotorAngleCallback
                     );
@@ -68,8 +68,10 @@ namespace DarkHelmet.BuildVision2
                     builder.Add(RotorLock ? MyTexts.GetString(MySpaceTexts.HudInfoOn) : MyTexts.GetString(MySpaceTexts.HudInfoOff), valueFormat);
                     builder.Add("\n", valueFormat);
 
+if (BvServer.IsAlive) {
                     builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_MotorCurrentAngle), nameFormat);
                     builder.Add($"{Angle.RadiansToDegrees():F2}°\n", valueFormat);
+}
                 }
             }
 

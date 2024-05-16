@@ -44,7 +44,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     BvServer.SendEntityActionToServer
                     (
-                        ServerBlockActions.AirVent | ServerBlockActions.GetOxygen,
+                        BvServerActions.AirVent | BvServerActions.GetOxygen,
                         subtype.EntityId,
                         OxygenCallback
                     );
@@ -83,9 +83,11 @@ namespace DarkHelmet.BuildVision2
                     builder.Add(MyTexts.GetString(Depressurize ? MySpaceTexts.SwitchText_On : MySpaceTexts.SwitchText_Off), valueFormat);
                     builder.Add("\n", valueFormat);
 
+if (BvServer.IsAlive) {
                     // Oxy pct
                     builder.Add(MyTexts.GetString(MySpaceTexts.HudInfoOxygen), nameFormat);
                     builder.Add($"{(OxygenLevel * 100f):F2}%\n", valueFormat);
+}
                 }
 
                 // Vent status

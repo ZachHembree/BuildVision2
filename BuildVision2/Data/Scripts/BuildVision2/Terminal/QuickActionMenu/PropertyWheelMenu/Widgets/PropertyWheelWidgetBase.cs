@@ -104,7 +104,7 @@ namespace DarkHelmet.BuildVision2
                     cancelButton.Format = cancelButton.Format.WithFont(newFont);
 
                     confirmButton.Text = MyTexts.TrySubstitute("Confirm");
-                    confirmButton.Text = MyTexts.TrySubstitute("Cancel");
+                    cancelButton.Text = MyTexts.TrySubstitute("Cancel");
                 }
             }
         }

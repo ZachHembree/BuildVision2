@@ -43,7 +43,7 @@ namespace DarkHelmet.BuildVision2
             public void AttachHead()
             {
                 //subtype.Attach();
-                BvServer.SendEntityActionToServer(ServerBlockActions.MyMechanicalConnection | ServerBlockActions.AttachHead, subtype.EntityId);
+                BvServer.SendEntityActionToServer(BvServerActions.MyMechanicalConnection | BvServerActions.AttachHead, subtype.EntityId);
             }
 
             /// <summary>
@@ -52,7 +52,7 @@ namespace DarkHelmet.BuildVision2
             public void DetachHead()
             {
                 //subtype.Detach(); -- Bug: This isn't being synchronized with the DS, yet Attach() is.
-                BvServer.SendEntityActionToServer(ServerBlockActions.MyMechanicalConnection | ServerBlockActions.DetachHead, subtype.EntityId);
+                BvServer.SendEntityActionToServer(BvServerActions.MyMechanicalConnection | BvServerActions.DetachHead, subtype.EntityId);
             }
 
             /// <summary>

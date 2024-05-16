@@ -42,6 +42,7 @@ namespace DarkHelmet.BuildVision2
         public static float AnimScale => instance.lerpScale;
 
         private static QuickActionHudSpace instance;
+        private static bool wasInitialized = false;
 
         private readonly QuickActionMenu quickActionMenu;
         private readonly BoundingBoard boundingBox;
@@ -298,6 +299,16 @@ namespace DarkHelmet.BuildVision2
             if (!isPlayerBlueprinting && TryGetTarget() && CanAccessTargetBlock())
             {
                 quickActionMenu.OpenMenu(Target, initialState);
+
+                if (!wasInitialized && !BvServer.IsAlive && BvServer.IsPlugin)
+                {
+                    ExceptionHandler.SendChatMessage(
+                        "Build Vision has been launched in client-only mode by the Plugin Loader. " +
+                        "Some functionality may be unavailable."
+                    );
+
+                    wasInitialized = true;
+                }
             }
         }
 
