@@ -26,9 +26,11 @@ namespace DarkHelmet.BuildVision2
                 {
                     Format = valueFormatCenter,
                     VertCenterText = true,
+                    AutoResize = false,
                     BuilderMode = TextBuilderModes.Wrapped,
                     Padding = new Vector2(20f),
-                    Width = 90f
+                    Width = 90f,
+                    Height = 100f
                 });
             }
 

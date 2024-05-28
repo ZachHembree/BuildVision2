@@ -71,6 +71,9 @@ namespace DarkHelmet.BuildVision2
             wheelBodyPeekPadding = 43f, 
             wheelBodyPadding = 90f;
 
+        public static readonly Vector2
+            propertyListEntrySize = new Vector2(37f, 20f);
+
         public static void SetFont(string fontName)
         {
             IFontMin newFont = FontManager.GetFont(BvConfig.Current.genUI.fontName);

@@ -31,8 +31,8 @@ namespace DarkHelmet.BuildVision2
 
                 layout = new HudChain(true, this)
                 {
-                    DimAlignment = DimAlignments.Width,
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
+                    DimAlignment = DimAlignments.UnpaddedSize,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersCenter,
                     Spacing = 8f,
                     CollectionContainer =
                     {
@@ -87,8 +87,6 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
-                base.Layout();
-
                 if (!sliderBox.IsTextInputOpen)
                 {
                     ITextBuilder valueBuilder = sliderBox.ValueBuilder;
@@ -240,8 +238,8 @@ namespace DarkHelmet.BuildVision2
                     textField = new TextField()
                     {
                         Height = 47f,
-                        DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
-                        ParentAlignment = ParentAlignments.Bottom | ParentAlignments.InnerV,
+                        DimAlignment = DimAlignments.UnpaddedWidth,
+                        ParentAlignment = ParentAlignments.InnerBottom,
                         Visible = false,
                     };
                     textField.Register(this, true);

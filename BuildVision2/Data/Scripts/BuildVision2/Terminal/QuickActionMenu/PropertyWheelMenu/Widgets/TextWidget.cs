@@ -25,14 +25,14 @@ namespace DarkHelmet.BuildVision2
                 label = new Label()
                 {
                     Format = GlyphFormat.Blueish.WithSize(1.08f),
-                    ParentAlignment = ParentAlignments.Left | ParentAlignments.Inner
+                    ParentAlignment = ParentAlignments.InnerLeft
                 };
                 textField = new TextField();
 
                 layout = new HudChain(true, this)
                 {
-                    DimAlignment = DimAlignments.Width,
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
+                    DimAlignment = DimAlignments.UnpaddedSize,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersCenter,
                     Spacing = 8f,
                     CollectionContainer =
                     {

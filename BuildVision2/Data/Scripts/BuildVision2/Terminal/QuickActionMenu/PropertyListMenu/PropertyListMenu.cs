@@ -77,13 +77,11 @@ namespace DarkHelmet.BuildVision2
 
                 listBody = new ScrollBox<PropertyListEntry, PropertyListEntryElement>(true)
                 {
-                    MemberMinSize = new Vector2(300f, 0f),
-                    SizingMode = HudChainSizingModes.ClampChainOffAxis | HudChainSizingModes.FitChainAlignAxis,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis,
                     Padding = new Vector2(30f, 16f),
                     Color = bodyColor,
                     EnableScrolling = false,
                     UseSmoothScrolling = false,
-                    MinVisibleCount = 10,
                     Visible = false,
                 };
 
@@ -121,8 +119,7 @@ namespace DarkHelmet.BuildVision2
 
                 layout = new HudChain(true, this)
                 {
-                    MemberMinSize = new Vector2(300f, 0f),
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis,
                     CollectionContainer =
                     {
                         header,
@@ -245,6 +242,8 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
+                listBody.SetMemberSize(new Vector2(0f, 20f));
+
                 // Update colors
                 float opacity = BvConfig.Current.genUI.hudOpacity;
                 header.Color = header.Color.SetAlphaPct(opacity);
@@ -252,11 +251,36 @@ namespace DarkHelmet.BuildVision2
                 peekBody.Color = listBody.Color;
                 footer.Color = footer.Color.SetAlphaPct(opacity);
 
-                listBody.MinVisibleCount = BvConfig.Current.genUI.listMaxVisible;
-                peekBody.Size = Vector2.Max(peekBody.TextBoard.TextSize + peekBody.TextPadding, new Vector2(300f, 0f));
-                Size = layout.Size;
+                int maxVis = Math.Min(BvConfig.Current.genUI.listMaxVisible, listBody.EnabledCount),
+                    visCount = 0;
+                Vector2 listSize = Vector2.Zero;
 
-                if (listBody.Collection.Count > 0)
+                for (int i = listBody.Start; i < listBody.Count; i++)
+                {
+                    if (listBody[i].Enabled)
+                    {
+                        if (visCount < maxVis)
+                        {
+                            Vector2 memberSize = listBody[i].Element.Size;
+                            listSize.X = MathHelper.Max(listSize.X, memberSize.X);
+                            listSize.Y += memberSize.Y;
+
+                            visCount++;
+                        }
+                        else
+                            break; 
+                    }
+                }
+
+                listBody.UnpaddedSize = listSize;
+                peekBody.Size = Vector2.Max(peekBody.TextBoard.TextSize + peekBody.TextPadding, new Vector2(300f, 0f));
+
+                Vector2 layoutSize = layout.GetRangeSize();
+                layoutSize.X = Math.Max(listBody.Width, 300f);
+                layout.Size = layoutSize;
+                Size = layoutSize;
+
+                if (listBody.Count > 0)
                 {
                     // Update visible range
                     if (selectionIndex > listBody.End)
@@ -279,10 +303,9 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Draw()
             {
-                if (listBody.Collection.Count > 0)
+                if (listBody.Count > 0)
                 {
-                    Vector2 bodySize = listBody.Size,
-                        bodyPadding = listBody.Padding;
+                    Vector2 bodySize = listBody.Size;
 
                     float memberWidth = 0f;
                     int visCount = 0;
@@ -299,9 +322,6 @@ namespace DarkHelmet.BuildVision2
                             visCount++;
                         }
                     }
-
-                    memberWidth += bodyPadding.X + listBody.ScrollBar.Width + listBody.Divider.Width;
-                    layout.Width = Math.Max(memberWidth, layout.MemberMinSize.X);
 
                     highlightBox.Size = new Vector2(
                         bodySize.X - listBody.Divider.Width - listBody.ScrollBar.Width,

@@ -25,8 +25,8 @@ namespace DarkHelmet.BuildVision2
                 layout = new HudChain(true, this)
                 {
                     Padding = new Vector2(20f),
-                    DimAlignment = DimAlignments.Width,
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
+                    DimAlignment = DimAlignments.UnpaddedSize,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersCenter,
                     Spacing = 8f,
                     CollectionContainer =
                     {

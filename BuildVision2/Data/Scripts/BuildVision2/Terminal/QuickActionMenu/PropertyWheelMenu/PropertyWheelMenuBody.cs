@@ -78,7 +78,7 @@ namespace DarkHelmet.BuildVision2
                 notificationText = new Label(this)
                 {
                     AutoResize = true,
-                    ParentAlignment = ParentAlignments.Bottom | ParentAlignments.Inner,
+                    ParentAlignment = ParentAlignments.InnerBottom,
                     BuilderMode = TextBuilderModes.Wrapped,
                     Width = 150f,
                     Offset = new Vector2(0f, 30f),

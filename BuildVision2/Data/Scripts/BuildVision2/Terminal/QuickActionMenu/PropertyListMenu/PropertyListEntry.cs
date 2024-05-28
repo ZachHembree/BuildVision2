@@ -4,6 +4,7 @@ using RichHudFramework;
 using System.Text;
 using System;
 using VRageMath;
+using RichHudFramework.UI.Client;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -18,31 +19,39 @@ namespace DarkHelmet.BuildVision2
 
             public readonly Label name, postfix;
             public readonly TextBox value;
-            private readonly HudChain layout;
+            public readonly HudChain layout;
 
             public PropertyListEntryElement() : base(null)
             {
-                name = new Label();
-                postfix = new Label();
+                name = new Label() { Text = "Name: " };
+                postfix = new Label() { Text = "(Postfix)" };
                 value = new TextBox()
                 {
-                    UseCursor = false,
+                    Text = "Value",
+                    UseCursor = false
                 };
-
+                
                 layout = new HudChain(false, this)
                 {
-                    Padding = new Vector2(18f, 0f),
-                    ParentAlignment = ParentAlignments.Left | ParentAlignments.Inner,
+                    Offset = new Vector2(8f, 0f),
+                    ParentAlignment = ParentAlignments.PaddedInnerLeft,
+                    DimAlignment = DimAlignments.UnpaddedHeight,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersStart,
                     CollectionContainer = { name, value, postfix }
                 };
 
-                Height = 19f;
-                ParentAlignment = ParentAlignments.Left;
+                Padding = new Vector2(18f, 0f);
+                Size = propertyListEntrySize;
+                ParentAlignment = ParentAlignments.PaddedInnerLeft;
             }
 
-            protected override void Layout()
+            protected override void HandleInput(Vector2 cursorPos)
             {
-                Width = layout.Width;
+                Vector2 size = Vector2.Zero;
+                size.X = name.Width + value.Width + postfix.Width;
+                size.Y = Math.Max(name.Height, Math.Max(value.Height, postfix.Height));
+                layout.Size = size;
+                UnpaddedSize = size;
             }
         }
 

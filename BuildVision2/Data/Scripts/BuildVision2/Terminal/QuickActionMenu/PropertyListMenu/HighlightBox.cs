@@ -25,23 +25,24 @@ namespace DarkHelmet.BuildVision2
                     Color = TerminalFormatting.Atomic;
                     CanDrawTab = true;
                     IsSelectivelyMasked = true;
+                    Height = propertyListEntrySize.Y;
                 }
 
                 protected override void Draw()
                 {
                     CroppedBox box = default(CroppedBox);
-                    Vector2 size = (cachedSize - cachedPadding),
+                    Vector2 size = (CachedSize - Padding),
                         halfSize = size * .5f;
 
-                    box.bounds = new BoundingBox2(cachedPosition - halfSize, cachedPosition + halfSize);
+                    box.bounds = new BoundingBox2(Position - halfSize, Position + halfSize);
                     box.mask = maskingBox;
 
                     if (hudBoard.Color.A > 0)
                         hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                     // Left align the tab
-                    Vector2 tabPos = cachedPosition,
-                        tabSize = new Vector2(4f, size.Y - cachedPadding.Y);
+                    Vector2 tabPos = Position,
+                        tabSize = new Vector2(4f, size.Y - Padding.Y);
                     tabPos.X += (-size.X + tabSize.X) * .5f;
                     tabSize *= .5f;
 

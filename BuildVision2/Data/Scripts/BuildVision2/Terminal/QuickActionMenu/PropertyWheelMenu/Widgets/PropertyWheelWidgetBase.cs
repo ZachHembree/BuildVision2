@@ -45,29 +45,25 @@ namespace DarkHelmet.BuildVision2
 
                 buttonChain = new HudChain(false)
                 {
-                    ParentAlignment = ParentAlignments.Left | ParentAlignments.Inner,
+                    ParentAlignment = ParentAlignments.InnerLeft,
                     Spacing = 8f,
                     CollectionContainer = { confirmButton, cancelButton }
                 };
-
-                DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding;
+                buttonChain.Size = buttonChain.GetRangeSize();
 
                 MouseInput = new MouseInputElement(this)
                 {
                     ZOffset = 10,
-                    DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                    DimAlignment = DimAlignments.UnpaddedSize,
                     ShareCursor = true,
                 };
+
+                DimAlignment = DimAlignments.UnpaddedSize;
             }
 
             public abstract void SetData(object data, Action CloseWidgetCallback);
 
             public abstract void Reset();
-
-            protected override void Layout()
-            {
-                Height = layout.Height + cachedPadding.Y;
-            }
 
             protected override void HandleInput(Vector2 cursorPos)
             {
