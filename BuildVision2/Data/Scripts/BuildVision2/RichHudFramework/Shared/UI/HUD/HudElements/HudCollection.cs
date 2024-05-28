@@ -48,11 +48,6 @@ namespace RichHudFramework
             /// <summary>
             /// Returns the number of containers in the collection.
             /// </summary>
-            int IReadOnlyCollection<TElementContainer>.Count => hudCollectionList.Count;
-
-            /// <summary>
-            /// Returns the number of containers in the collection.
-            /// </summary>
             public int Count => hudCollectionList.Count;
 
             /// <summary>

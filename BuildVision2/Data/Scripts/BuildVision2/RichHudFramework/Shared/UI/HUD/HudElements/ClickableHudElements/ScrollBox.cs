@@ -191,6 +191,34 @@ namespace RichHudFramework.UI
             return size;
         }
 
+        public int GetRangeEnd(int count, int start = 0)
+        {
+            start = MathHelper.Clamp(start, 0, hudCollectionList.Count - 1);
+            count = MathHelper.Clamp(count, 0, hudCollectionList.Count - start);
+
+            if ((start + count) <= hudCollectionList.Count)
+            {
+                int end = start,
+                    enCount = 0;
+
+                for (int i = start; i < hudCollectionList.Count; i++)
+                {
+                    if (hudCollectionList[i].Enabled)
+                    {
+                        end = i;
+                        enCount++;
+                    }
+
+                    if (enCount >= count)
+                        break;
+                }
+
+                return end;
+            }
+
+            return -1;
+        }
+
         protected override void HandleInput(Vector2 cursorPos)
         {
             ScrollBar.MouseInput.InputEnabled = EnableScrolling;
@@ -223,7 +251,7 @@ namespace RichHudFramework.UI
             Vector2 chainSize = CachedSize - effectivePadding;
             float visRatio = 0f;
 
-            if (hudCollectionList.Count > 0 && (chainSize.X > 0f && chainSize.Y > 0f))
+            if (hudCollectionList.Count > 0)
             {
                 // Update visible range
                 float totalEnabledLength, scrollOffset,
