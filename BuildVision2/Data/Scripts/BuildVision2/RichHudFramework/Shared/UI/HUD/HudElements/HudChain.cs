@@ -108,11 +108,21 @@ namespace RichHudFramework
 
             public HudChain(bool alignVertical, HudParentBase parent = null) : base(parent)
             {
-                Init();
-
                 Spacing = 0f;
                 SizingMode = HudChainSizingModes.ClampMembersOffAxis;
-                AlignVertical = alignVertical;
+
+                _alignVertical = alignVertical;
+
+                if (alignVertical)
+                {
+                    alignAxis = 1;
+                    offAxis = 0;
+                }
+                else
+                {
+                    alignAxis = 0;
+                    offAxis = 1;
+                }
             }
 
             public HudChain(HudParentBase parent) : this(false, parent)
@@ -120,11 +130,6 @@ namespace RichHudFramework
 
             public HudChain() : this(false, null)
             { }
-
-            /// <summary>
-            /// Initialzer called before the constructor.
-            /// </summary>
-            protected virtual void Init() { }
 
             /// <summary>
             /// Adds a UI element to the end of the chain.
