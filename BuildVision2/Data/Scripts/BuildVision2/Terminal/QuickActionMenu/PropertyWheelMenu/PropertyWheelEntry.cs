@@ -3,6 +3,9 @@ using RichHudFramework.UI.Rendering;
 using System.Text;
 using System;
 using VRageMath;
+using System.Deployment.Internal;
+using RichHudFramework.Internal;
+using EmptyKeys.UserInterface.Generated.AtmBlockView_Bindings;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -26,11 +29,9 @@ namespace DarkHelmet.BuildVision2
                 {
                     Format = valueFormatCenter,
                     VertCenterText = true,
-                    AutoResize = false,
+                    AutoResize = true,
                     BuilderMode = TextBuilderModes.Wrapped,
-                    Padding = new Vector2(20f),
-                    Width = 90f,
-                    Height = 100f
+                    LineWrapWidth = 70f
                 });
             }
 

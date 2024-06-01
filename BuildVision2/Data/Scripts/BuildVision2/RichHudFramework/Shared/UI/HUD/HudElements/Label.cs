@@ -43,6 +43,12 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool VertCenterText { get { return _textBoard.VertCenterText; } set { _textBoard.VertCenterText = value; } }
 
+        /// <summary>
+        /// Gets or sets the maximum line width before text will wrap to the next line. Word wrapping must be enabled for
+        /// this to apply.
+        /// </summary>
+        public float LineWrapWidth { get { return _textBoard.LineWrapWidth; } set { _textBoard.LineWrapWidth = value; } }
+
         protected readonly TextBoard _textBoard;
 
         public Label(HudParentBase parent) : base(parent)
