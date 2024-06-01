@@ -134,30 +134,6 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
-                /// Draws the text board in screen space with an offset given in pixels.
-                /// </summary>
-                public void Draw(Vector2 origin)
-                {
-                    Vector2 halfSize = GetSizeFunc() * .5f;
-                    BoundingBox2 box = new BoundingBox2(origin - halfSize, origin + halfSize);
-
-                    DrawAction(box, CroppedBox.defaultMask, HudMain.PixelToWorldRef);
-                }
-
-                /// <summary>
-                /// Draws the text board in world space on the XY plane of the matrix, facing in the +Z
-                /// direction.
-                /// </summary>
-                public void Draw(Vector2 origin, MatrixD matrix)
-                {
-                    Vector2 halfSize = GetSizeFunc() * .5f;
-                    BoundingBox2 box = new BoundingBox2(origin - halfSize, origin + halfSize);
-                    matRef[0] = matrix;
-
-                    DrawAction(box, CroppedBox.defaultMask, matRef);
-                }
-
-                /// <summary>
                 /// Draws the text board in world space on the XY plane of the matrix, facing in the +Z
                 /// direction.
                 /// </summary>

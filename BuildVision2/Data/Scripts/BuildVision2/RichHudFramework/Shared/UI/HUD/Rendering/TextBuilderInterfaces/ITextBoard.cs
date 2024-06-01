@@ -105,17 +105,6 @@ namespace RichHudFramework
                 Vector2I GetCharAtOffset(Vector2 localPos);
 
                 /// <summary>
-                /// Draws the text board in screen space with an offset given in pixels.
-                /// </summary>
-                void Draw(Vector2 origin);
-
-                /// <summary>
-                /// Draws the text board in world space on the XY plane of the matrix, facing in the +Z
-                /// direction.
-                /// </summary>
-                void Draw(Vector2 offset, MatrixD matrix);
-
-                /// <summary>
                 /// Draws the text board in world space on the XY plane of the matrix, facing in the +Z
                 /// direction.
                 /// </summary>
