@@ -17,41 +17,49 @@ namespace DarkHelmet.BuildVision2
         {
             public ITextBoard TextBoard => value.TextBoard;
 
+            public Vector2 TextSize { get; private set; }
+
             public readonly Label name, postfix;
             public readonly TextBox value;
-            public readonly HudChain layout;
+            private readonly HudChain layout;
 
             public PropertyListEntryElement() : base(null)
             {
-                name = new Label() { Text = "Name: " };
-                postfix = new Label() { Text = "(Postfix)" };
+                name = new Label() { Text = "", AutoResize = false };
+                postfix = new Label() { Text = "", AutoResize = false };
                 value = new TextBox()
                 {
-                    Text = "Value",
-                    UseCursor = false
+                    Text = "",
+                    UseCursor = false,
+                    AutoResize = false
                 };
                 
                 layout = new HudChain(false, this)
                 {
-                    Offset = new Vector2(8f, 0f),
                     ParentAlignment = ParentAlignments.PaddedInnerLeft,
-                    DimAlignment = DimAlignments.UnpaddedHeight,
                     SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersStart,
                     CollectionContainer = { name, value, postfix }
                 };
 
                 Padding = new Vector2(18f, 0f);
-                Size = propertyListEntrySize;
-                ParentAlignment = ParentAlignments.PaddedInnerLeft;
+                Height = listEntryHeight;
+                IsMasking = true;
             }
 
-            protected override void HandleInput(Vector2 cursorPos)
+            protected override void Layout()
             {
-                Vector2 size = Vector2.Zero;
-                size.X = name.Width + value.Width + postfix.Width;
-                size.Y = Math.Max(name.Height, Math.Max(value.Height, postfix.Height));
-                layout.Size = size;
-                UnpaddedSize = size;
+                Vector2 nsize = name.TextBoard.TextSize,
+                    psize = postfix.TextBoard.TextSize,
+                    vsize = value.TextBoard.TextSize;
+
+                TextSize = nsize + psize + vsize;
+
+                name.UnpaddedSize = nsize;
+                postfix.UnpaddedSize = psize;
+                value.UnpaddedSize = vsize;
+                layout.Size = TextSize;
+
+                TextSize += Padding;
             }
         }
 
@@ -139,6 +147,9 @@ namespace DarkHelmet.BuildVision2
                 MemberIndex = -1;
                 Enabled = true;
                 AssocMember = null;
+                NameText.Clear();
+                ValueText.Clear();
+                PostText.Clear();
 
                 CloseInput();
             }

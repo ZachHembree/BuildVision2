@@ -25,7 +25,7 @@ namespace DarkHelmet.BuildVision2
                     Color = TerminalFormatting.Atomic;
                     CanDrawTab = true;
                     IsSelectivelyMasked = true;
-                    Height = propertyListEntrySize.Y;
+                    Height = listEntryHeight;
                 }
 
                 protected override void Draw()

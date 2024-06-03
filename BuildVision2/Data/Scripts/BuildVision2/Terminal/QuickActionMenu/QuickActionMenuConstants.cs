@@ -68,11 +68,10 @@ namespace DarkHelmet.BuildVision2
         public const double floatPropLogThreshold = 1E6;
         public const float maxPeekWrapWidth = 270f,
             minPeekWrapWidth = 190f,
-            wheelBodyPeekPadding = 43f, 
-            wheelBodyPadding = 90f;
-
-        public static readonly Vector2
-            propertyListEntrySize = new Vector2(37f, 20f);
+            wheelBodyPeekPadding = 43f,
+            wheelBodyPadding = 90f,
+            listMinWidth = 300f,
+            listEntryHeight = 20f;
 
         public static void SetFont(string fontName)
         {

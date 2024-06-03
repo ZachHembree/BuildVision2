@@ -71,7 +71,7 @@ namespace DarkHelmet.BuildVision2
                     Format = listHeaderFormat,
                     Text = BvMain.modName,
                     AutoResize = false,
-                    Size = new Vector2(300f, 34f),
+                    Size = new Vector2(listMinWidth, 34f),
                     Color = headerColor,
                 };
 
@@ -82,7 +82,7 @@ namespace DarkHelmet.BuildVision2
                     Color = bodyColor,
                     EnableScrolling = false,
                     UseSmoothScrolling = false,
-                    Visible = false,
+                    Visible = false
                 };
 
                 listBody.ScrollBar.Padding = new Vector2(12f, 16f);
@@ -105,15 +105,13 @@ namespace DarkHelmet.BuildVision2
                 };
 
                 highlightBox = new HighlightBox(listBody.Background) 
-                {
-                    Padding = new Vector2(16f, 0f)
-                };
+                { };
 
                 footer = new DoubleLabelBox()
                 {
                     AutoResize = false,
                     TextPadding = new Vector2(48f, 0f),
-                    Size = new Vector2(300f, 24f),
+                    Size = new Vector2(listMinWidth, 24f),
                     Color = headerColor,
                 };
 
@@ -146,7 +144,6 @@ namespace DarkHelmet.BuildVision2
                 if (!IsOpen)
                 {
                     CloseMenu();
-                    UpdateConfig();
 
                     for (int i = 0; i < Target.BlockMembers.Count; i++)
                     {
@@ -196,6 +193,7 @@ namespace DarkHelmet.BuildVision2
                     IsOpen = true;
                     peekBody.Visible = false;
                     listBody.Visible = true;
+                    textUpdateTick = 0;
                 }
 
                 Visible = true;
@@ -218,6 +216,7 @@ namespace DarkHelmet.BuildVision2
             {
                 entryPool.ReturnRange(listBody.Collection);
                 listBody.Clear();
+                peekBody.textElement.TextBoard.Clear();
                 selectionIndex = 0;
                 Visible = false;
                 IsOpen = false;
@@ -235,15 +234,6 @@ namespace DarkHelmet.BuildVision2
 
             private void UpdateConfig()
             {
-                incrZ = BvConfig.Current.block.colorMult.Z; // x64
-                incrY = BvConfig.Current.block.colorMult.Y; // x16
-                incrX = BvConfig.Current.block.colorMult.X; // x8
-            }
-
-            protected override void Layout()
-            {
-                listBody.SetMemberSize(new Vector2(0f, 20f));
-
                 // Update colors
                 float opacity = BvConfig.Current.genUI.hudOpacity;
                 header.Color = header.Color.SetAlphaPct(opacity);
@@ -251,9 +241,21 @@ namespace DarkHelmet.BuildVision2
                 peekBody.Color = listBody.Color;
                 footer.Color = footer.Color.SetAlphaPct(opacity);
 
+                incrZ = BvConfig.Current.block.colorMult.Z; // x64
+                incrY = BvConfig.Current.block.colorMult.Y; // x16
+                incrX = BvConfig.Current.block.colorMult.X; // x8
+            }
+
+            protected override void Layout()
+            {
+                UpdateConfig();
+
+                // Set list height based on max visible number set in cfg * entry height
+                // Set list width based on the widest entry
+                float scrollbarPadding = listBody.ScrollBar.Width;
+                Vector2 listSize = new Vector2(listMinWidth - scrollbarPadding, 0f);
                 int maxVis = Math.Min(BvConfig.Current.genUI.listMaxVisible, listBody.EnabledCount),
                     visCount = 0;
-                Vector2 listSize = Vector2.Zero;
 
                 for (int i = listBody.Start; i < listBody.Count; i++)
                 {
@@ -261,9 +263,9 @@ namespace DarkHelmet.BuildVision2
                     {
                         if (visCount < maxVis)
                         {
-                            Vector2 memberSize = listBody[i].Element.Size;
-                            listSize.X = MathHelper.Max(listSize.X, memberSize.X);
-                            listSize.Y += memberSize.Y;
+                            var element = listBody[i].Element;
+                            listSize.X = MathHelper.Max(listSize.X, element.TextSize.X);
+                            listSize.Y += listEntryHeight;
 
                             visCount++;
                         }
@@ -272,11 +274,14 @@ namespace DarkHelmet.BuildVision2
                     }
                 }
 
-                listBody.UnpaddedSize = listSize;
-                peekBody.Size = Vector2.Max(peekBody.TextBoard.TextSize + peekBody.TextPadding, new Vector2(300f, 0f));
+                listBody.UnpaddedSize = listSize + new Vector2(scrollbarPadding, 0f);
 
+                // Set peek body to match text size
+                peekBody.Size = Vector2.Max(peekBody.TextBoard.TextSize + peekBody.TextPadding, new Vector2(listMinWidth, 0f));
+
+                // Set chain size to match contents, clamped to min width
                 Vector2 layoutSize = layout.GetRangeSize();
-                layoutSize.X = Math.Max(listBody.Width, 300f);
+                layoutSize.X = Math.Max(listBody.Width, listMinWidth);
                 layout.Size = layoutSize;
                 Size = layoutSize;
 
@@ -287,6 +292,12 @@ namespace DarkHelmet.BuildVision2
                         listBody.End = selectionIndex;
                     else if (selectionIndex < listBody.Start)
                         listBody.Start = selectionIndex;
+
+                    highlightBox.Size = new Vector2(
+                        listSize.X,
+                        listEntryHeight
+                    );
+                    highlightBox.Offset = new Vector2(-8f, listBody[selectionIndex].Element.Offset.Y - 1f);
 
                     if (DrawDebug && textUpdateTick == 0)
                         UpdateDebugText();
@@ -299,36 +310,6 @@ namespace DarkHelmet.BuildVision2
 
                 textUpdateTick++;
                 textUpdateTick %= textTickDivider;
-            }
-
-            protected override void Draw()
-            {
-                if (listBody.Count > 0)
-                {
-                    Vector2 bodySize = listBody.Size;
-
-                    float memberWidth = 0f;
-                    int visCount = 0;
-                    var entries = listBody.Collection;
-
-                    for (int i = 0; i < entries.Count && visCount < listBody.VisCount; i++)
-                    {
-                        int j = Math.Min(listBody.VisStart + i, entries.Count - 1);
-                        HudElementBase element = entries[j].Element;
-
-                        if (element.Visible)
-                        {
-                            memberWidth = Math.Max(memberWidth, element.Width);
-                            visCount++;
-                        }
-                    }
-
-                    highlightBox.Size = new Vector2(
-                        bodySize.X - listBody.Divider.Width - listBody.ScrollBar.Width,
-                        listBody[selectionIndex].Element.Height + 2f
-                    );
-                    highlightBox.Offset = new Vector2(0f, listBody[selectionIndex].Element.Offset.Y - 1f);
-                };
             }
 
             private void UpdateBodyText()
