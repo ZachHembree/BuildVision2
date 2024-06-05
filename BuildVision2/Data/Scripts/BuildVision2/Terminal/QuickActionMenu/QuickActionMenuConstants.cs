@@ -70,6 +70,7 @@ namespace DarkHelmet.BuildVision2
             minPeekWrapWidth = 190f,
             wheelBodyPeekPadding = 43f,
             wheelBodyPadding = 90f,
+            widgetInnerPadding = 4f,
             listMinWidth = 300f,
             listEntryHeight = 20f;
 

@@ -33,7 +33,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     DimAlignment = DimAlignments.UnpaddedSize,
                     SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersCenter,
-                    Spacing = 8f,
+                    Spacing = widgetInnerPadding,
                     CollectionContainer =
                     {
                         label,
