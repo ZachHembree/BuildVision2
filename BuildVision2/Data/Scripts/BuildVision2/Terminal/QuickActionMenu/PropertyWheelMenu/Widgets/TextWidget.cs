@@ -25,7 +25,9 @@ namespace DarkHelmet.BuildVision2
                 label = new Label()
                 {
                     Format = GlyphFormat.Blueish.WithSize(1.08f),
-                    ParentAlignment = ParentAlignments.InnerLeft
+                    ParentAlignment = ParentAlignments.InnerLeft,
+                    AutoResize = false,
+                    Height = 20f
                 };
                 textField = new TextField();
 
