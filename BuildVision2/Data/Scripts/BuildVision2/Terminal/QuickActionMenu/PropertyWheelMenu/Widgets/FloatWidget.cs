@@ -94,11 +94,11 @@ namespace DarkHelmet.BuildVision2
 
                     if (floatMember.StatusText != null && floatMember.StatusText.Length > 0)
                     {
-                        valueBuilder.Append(floatMember.StatusText, wheelValueColor);
+                        valueBuilder.Append(floatMember.StatusText, wheelValueColor.WithAlignment(TextAlignment.Right));
                         valueBuilder.Append(" ");
                     }
 
-                    valueBuilder.Append(floatMember.FormattedValue, wheelNameColor);
+                    valueBuilder.Append(floatMember.FormattedValue, wheelNameColor.WithAlignment(TextAlignment.Right));
                 }
             }
 
