@@ -40,7 +40,7 @@ namespace DarkHelmet.BuildVision2
                         if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
                         {
                             if (activeWheel.IsMousedOver && SharedBinds.LeftButton.IsReleased
-                                && !(wheelBody.ActiveWidget?.MouseInput.IsLeftClicked ?? false))
+                                && !(wheelBody.ActiveWidget?.IsWidgetFocused ?? false))
                             {
                                 HandleWheelInput();
                             }

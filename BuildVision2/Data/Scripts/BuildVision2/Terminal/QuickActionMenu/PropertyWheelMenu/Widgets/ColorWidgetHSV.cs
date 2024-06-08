@@ -102,68 +102,71 @@ namespace DarkHelmet.BuildVision2
             {
                 colorMember.Value = colorPicker.Color;
 
-                if (cancelButton.MouseInput.IsLeftReleased || BvBinds.Cancel.IsReleased)
+                if (IsMousedOver)
                 {
-                    Cancel();
-                }
-                else if (confirmButton.MouseInput.IsLeftReleased ||
-                    (BvBinds.Select.IsReleased && !IsMousedOver))
-                {
-                    Confirm();
+                    if (cancelButton.MouseInput.IsLeftReleased)
+                        Cancel();
+                    else if (confirmButton.MouseInput.IsLeftReleased)
+                        Confirm();
+                    else if (MouseInput.IsLeftClicked)
+                        IsWidgetFocused = true;
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        if (colorPicker.sliders[i].MouseInput.HasFocus)
+                            selectedChannel = i;
+                    }
+
+                    if (BvBinds.Select.IsReleased)
+                        channelSelected = true;
                 }
                 else
                 {
-                    if (!IsMousedOver)
+                    if (!channelSelected)
                     {
-                        if (!channelSelected)
-                        {
-                            if (BvBinds.ScrollUp.IsNewPressed)
-                                selectedChannel--;
-                            else if (BvBinds.ScrollDown.IsNewPressed)
-                                selectedChannel++;
+                        if (BvBinds.ScrollUp.IsNewPressed)
+                            selectedChannel--;
+                        else if (BvBinds.ScrollDown.IsNewPressed)
+                            selectedChannel++;
 
-                            if (BvBinds.Cancel.IsNewPressed)
-                                cancelButton.MouseInput.GetInputFocus();
-                            else if (!BvBinds.Cancel.IsReleased && !cancelButton.MouseInput.HasFocus)
-                            {
-                                selectedChannel = MathHelper.Clamp(selectedChannel, 0, 2);
-                                colorPicker.SetChannelFocused(selectedChannel);
-                            }
-                        }
-                        else
+                        if (BvBinds.Cancel.IsNewPressed)
                         {
-                            if (BvBinds.Select.IsNewPressed)
-                                confirmButton.MouseInput.GetInputFocus();
+                            cancelButton.MouseInput.GetInputFocus();
+                            IsWidgetFocused = false;
+                        }
+                        else if (!BvBinds.Cancel.IsReleased && !cancelButton.MouseInput.HasFocus)
+                        {
+                            selectedChannel = MathHelper.Clamp(selectedChannel, 0, 2);
+                            colorPicker.SetChannelFocused(selectedChannel);
                         }
                     }
-                    else
+                    else if (BvBinds.Select.IsNewPressed)
                     {
-                        for (int i = 0; i < 3; i++)
-                        {
-                            if (colorPicker.sliders[i].MouseInput.HasFocus)
-                                selectedChannel = i;
-                        }
-
-                        if (BvBinds.Select.IsReleased)
-                            channelSelected = true;
+                        confirmButton.MouseInput.GetInputFocus();
+                        IsWidgetFocused = false;
                     }
 
-                    if (channelSelected)
-                    {
-                        float offset = 1f;
+                    if (BvBinds.Cancel.IsReleased)
+                        Cancel();
+                    else if (BvBinds.Select.IsReleased)
+                        Confirm();
+                }
 
-                        if (BvBinds.MultZ.IsPressed)
-                            offset *= incrZ;
-                        else if (BvBinds.MultY.IsPressed)
-                            offset *= incrY;
-                        else if (BvBinds.MultXOrMouse.IsPressed)
-                            offset *= incrX;
+                if (channelSelected)
+                {
+                    float offset = 1f;
 
-                        if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
-                            colorPicker.sliders[selectedChannel].Current += offset;
-                        else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
-                            colorPicker.sliders[selectedChannel].Current -= offset;
-                    }
+                    if (BvBinds.MultZ.IsPressed)
+                        offset *= incrZ;
+                    else if (BvBinds.MultY.IsPressed)
+                        offset *= incrY;
+                    else if (BvBinds.MultXOrMouse.IsPressed)
+                        offset *= incrX;
+
+                    if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
+                        colorPicker.sliders[selectedChannel].Current += offset;
+                    else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
+                        colorPicker.sliders[selectedChannel].Current -= offset;
                 }
             }
         }

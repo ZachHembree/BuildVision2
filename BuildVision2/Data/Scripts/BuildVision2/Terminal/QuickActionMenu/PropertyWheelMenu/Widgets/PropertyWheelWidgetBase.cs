@@ -16,6 +16,8 @@ namespace DarkHelmet.BuildVision2
         {
             public override bool IsMousedOver => MouseInput.IsMousedOver;
 
+            public bool IsWidgetFocused { get; protected set; }
+
             public IMouseInput MouseInput { get; protected set; }
 
             protected readonly BorderedButton cancelButton, confirmButton;
@@ -45,9 +47,8 @@ namespace DarkHelmet.BuildVision2
 
                 buttonChain = new HudChain(false)
                 {
-                    ParentAlignment = ParentAlignments.InnerLeft,
                     Spacing = widgetInnerPadding,
-                    CollectionContainer = { confirmButton, cancelButton }
+                    CollectionContainer = { { confirmButton , 1f }, { cancelButton, 1f } }
                 };
                 buttonChain.Size = buttonChain.GetRangeSize();
 
@@ -59,6 +60,7 @@ namespace DarkHelmet.BuildVision2
                 };
 
                 DimAlignment = DimAlignments.UnpaddedSize;
+                IsWidgetFocused = false;
             }
 
             public abstract void SetData(object data, Action CloseWidgetCallback);
@@ -73,18 +75,29 @@ namespace DarkHelmet.BuildVision2
                         Cancel();
                     else if (confirmButton.MouseInput.IsLeftReleased)
                         Confirm();
+                    else if (MouseInput.IsLeftClicked)
+                        IsWidgetFocused = true;
                 }
                 else
                 {
                     if (BvBinds.Cancel.IsNewPressed)
+                    {
                         cancelButton.MouseInput.GetInputFocus();
+                        IsWidgetFocused = false;
+                    }
                     else if (BvBinds.Select.IsNewPressed)
+                    {
                         confirmButton.MouseInput.GetInputFocus();
+                        IsWidgetFocused = false;
+                    }
 
-                    if (BvBinds.Cancel.IsReleased)
-                        Cancel();
-                    else if (BvBinds.Select.IsReleased)
-                        Confirm();
+                    if (!IsWidgetFocused)
+                    {
+                        if (BvBinds.Cancel.IsReleased)
+                            Cancel();
+                        else if (BvBinds.Select.IsReleased)
+                            Confirm();
+                    }
                 }                
             }
 
