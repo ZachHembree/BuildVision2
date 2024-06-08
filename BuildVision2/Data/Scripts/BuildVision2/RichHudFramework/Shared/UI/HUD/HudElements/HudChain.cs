@@ -145,7 +145,11 @@ namespace RichHudFramework
                 Add(newContainer, preload);
             }
 
-            public virtual Vector2 SetMemberSize(Vector2 newSize, int start = 0, int end = -1)
+            /// <summary>
+            /// Sets chain members in the given range to the dimensions given.
+            /// Dimensions set to 0 are ignored.
+            /// </summary>
+            public virtual Vector2 SetRangeSize(Vector2 newSize, int start = 0, int end = -1)
             {
                 Vector2 listSize = Vector2.Zero;
                 int visCount = 0;
