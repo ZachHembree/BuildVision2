@@ -65,8 +65,8 @@ namespace RichHudFramework.UI
         {
             sliderBox = new SliderBox(this)
             {
-                DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
-                ParentAlignment = ParentAlignments.Bottom | ParentAlignments.InnerV,
+                DimAlignment = DimAlignments.UnpaddedWidth,
+                ParentAlignment = ParentAlignments.InnerBottom,
                 UseCursor = true,
             };
 
@@ -76,16 +76,16 @@ namespace RichHudFramework.UI
                 Format = TerminalFormatting.ControlFormat,
                 Text = "NewSlideBox",
                 Offset = new Vector2(0f, -18f),
-                ParentAlignment = ParentAlignments.InnerH | ParentAlignments.Top | ParentAlignments.Left | ParentAlignments.UsePadding
+                ParentAlignment = ParentAlignments.PaddedInnerLeft | ParentAlignments.Top
             };
 
             current = new Label(this)
             {
                 AutoResize = false,
-                Format = TerminalFormatting.ControlFormat,
+                Format = TerminalFormatting.ControlFormat.WithAlignment(TextAlignment.Right),
                 Text = "Value",
                 Offset = new Vector2(0f, -18f),
-                ParentAlignment = ParentAlignments.InnerH | ParentAlignments.Top | ParentAlignments.Right | ParentAlignments.UsePadding
+                ParentAlignment = ParentAlignments.PaddedInnerRight | ParentAlignments.Top
             };
 
             Padding = new Vector2(40f, 0f);
@@ -100,9 +100,9 @@ namespace RichHudFramework.UI
             Vector2 size = CachedSize - Padding;
             sliderBox.Height = size.Y - Math.Max(name.Height, current.Height);
 
-            current.Size = current.Padding + current.TextBoard.TextSize;
-            name.Size = name.Padding + name.TextBoard.TextSize;
-            name.Width = Math.Max(size.X - current.Width - 10f, 0f);
+            current.UnpaddedSize = current.TextBoard.TextSize;
+            name.UnpaddedSize = name.TextBoard.TextSize;
+            current.Width = Math.Max(size.X - name.Width - 10f, 0f);
         }
     }
 }
