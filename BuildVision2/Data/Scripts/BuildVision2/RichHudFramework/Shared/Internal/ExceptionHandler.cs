@@ -458,7 +458,7 @@ namespace RichHudFramework.Internal
         {
             if (!Reloading)
             {
-                WriteToLog("Reloading mod...");
+                WriteToLog("Stopping mod...");
                 Reloading = true;
 
                 CloseClients();
