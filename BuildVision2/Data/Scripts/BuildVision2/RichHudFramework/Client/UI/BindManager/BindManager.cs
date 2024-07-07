@@ -199,7 +199,7 @@ namespace RichHudFramework
             /// </summary>
             public static string[] GetControlNames(IReadOnlyList<int> conIDs)
             {
-                return Instance.GetOrSetMemberFunc(conIDs, (int)BindClientAccessors.GetControlName) as string[];
+                return Instance.GetOrSetMemberFunc(conIDs, (int)BindClientAccessors.GetControlNames) as string[];
             }
 
             /// <summary>

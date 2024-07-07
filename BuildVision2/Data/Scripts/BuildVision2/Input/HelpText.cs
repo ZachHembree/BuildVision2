@@ -128,15 +128,15 @@ namespace DarkHelmet.BuildVision2
 
         private static string GetBindString(IBind bind)
         {
-            IList<IControl> combo = bind.GetCombo();
+            IList<ControlHandle> combo = bind.GetCombo();
             string bindString = "";
 
             for (int n = 0; n < combo.Count; n++)
             {
                 if (n != combo.Count - 1)
-                bindString += combo[n].DisplayName + " + ";
+                bindString += combo[n].Control.DisplayName + " + ";
                 else
-                bindString += combo[n].DisplayName;
+                bindString += combo[n].Control.DisplayName;
             }
 
             return bindString;

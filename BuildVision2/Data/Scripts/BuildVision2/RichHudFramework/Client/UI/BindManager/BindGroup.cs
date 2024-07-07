@@ -92,10 +92,15 @@ namespace RichHudFramework
 
                     for (int i = 0; i < bindData.Count; i++)
                     {
-                        var aliasData = new string[bindData[i].aliases.Length][];
+                        string[][] aliasData = null;
 
-                        for (int j = 0; j < aliasData.Length; j++)
-                            aliasData[j] = bindData[i].aliases[j];
+                        if (bindData[i].aliases != null)
+                        {
+                            aliasData = new string[bindData[i].aliases.Length][];
+
+                            for (int j = 0; j < aliasData.Length; j++)
+                                aliasData[j] = bindData[i].aliases[j];
+                        }
 
                         defData[i] = new BindDefinitionData(bindData[i].name, bindData[i].controlNames, aliasData);
                     }

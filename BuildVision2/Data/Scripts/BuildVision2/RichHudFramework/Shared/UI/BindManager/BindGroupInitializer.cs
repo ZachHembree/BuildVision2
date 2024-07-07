@@ -116,12 +116,16 @@ namespace RichHudFramework
                     var aliases = bindData[i].Item3;
 
                     bindDefs[i].name = bindName;
-                    bindDefs[i].controlNames = BindManager.GetControlNames(mainCombo);
-                    bindDefs[i].aliases = new BindAliasDefinition[aliases.Count];
 
-                    for (int j = 0; j < aliases.Count; j++)
+                    if (mainCombo != null)
+                        bindDefs[i].controlNames = BindManager.GetControlNames(mainCombo);
+
+                    if (aliases != null)
                     {
-                        bindDefs[i].aliases[j].controlNames = BindManager.GetControlNames(aliases[j]);
+                        bindDefs[i].aliases = new BindAliasDefinition[aliases.Count];
+
+                        for (int j = 0; j < aliases.Count; j++)
+                            bindDefs[i].aliases[j].controlNames = BindManager.GetControlNames(aliases[j]);
                     }
                 }
 

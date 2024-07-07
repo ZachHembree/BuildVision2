@@ -59,20 +59,31 @@ namespace RichHudFramework
 
             public static explicit operator BindDefinition(BindDefinitionData value)
             {
-                var aliases = new BindAliasDefinition[value.Item3.Length];
+                BindAliasDefinition[] aliases = null;
+                string[][] aliasData = value.Item3;
 
-                for (int i = 0; i < aliases.Length; i++)
-                    aliases[i] = value.Item3[i];
+                if (aliasData != null)
+                {
+                    aliases = new BindAliasDefinition[aliasData.Length];
+
+                    for (int i = 0; i < aliasData.Length; i++)
+                        aliases[i] = new BindAliasDefinition(aliasData[i]);
+                }
 
                 return new BindDefinition(value.Item1, value.Item2, aliases);
             }
 
             public static explicit operator BindDefinitionData(BindDefinition value)
             {
-                var aliasData = new string[value.aliases.Length][];
+                string[][] aliasData = null;
 
-                for (int i = 0; i < aliasData.Length; i++)
-                    aliasData[i] = value.aliases[i];
+                if (value.aliases != null)
+                {
+                    aliasData = new string[value.aliases.Length][];
+
+                    for (int i = 0; i < aliasData.Length; i++)
+                        aliasData[i] = value.aliases[i].controlNames;
+                }
 
                 return new BindDefinitionData(value.name, value.controlNames, aliasData);
             }

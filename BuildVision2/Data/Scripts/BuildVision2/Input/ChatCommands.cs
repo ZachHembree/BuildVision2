@@ -51,7 +51,7 @@ namespace DarkHelmet.BuildVision2
             if (bind == null)
                 ExceptionHandler.SendChatMessage("Error: The bind specified could not be found.");
             else
-                bind.TrySetCombo(controls, true, false);
+                bind.TrySetCombo(controls, 0, true, false);
         }
 
         private void TryImportBlockData()
