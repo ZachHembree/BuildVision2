@@ -42,6 +42,11 @@
             /// represent scroll wheel movement, but don't return an exact position/displacement.
             /// </summary>
             bool Analog { get; }
+
+            /// <summary>
+            /// Returns analog value of the control, if it has one
+            /// </summary>
+            float AnalogValue { get; }
         }
 
         public enum ControlAccessors : int
@@ -79,7 +84,12 @@
             /// <summary>
             /// out: bool
             /// </summary>
-            IsReleased = 7
+            IsReleased = 7,
+
+            /// <summary>
+            /// out: float
+            /// </summary>
+            AnalogValue = 8
         }
     }
 }

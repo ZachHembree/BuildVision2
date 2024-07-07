@@ -26,9 +26,21 @@ namespace RichHudFramework
                     public int Index => index.Y;
 
                     /// <summary>
+                    /// Number of key combinations registered to the given bind. If AliasCount == 1, then only
+                    /// the main combo is set. If greater, then it is aliased.
+                    /// </summary>
+                    public int AliasCount => (int)_instance.GetOrSetBindMemberFunc(index, null, (int)BindAccesssors.AliasCount);
+
+                    /// <summary>
                     /// True if any controls in the bind are marked analog. For these types of binds, IsPressed == IsNewPressed.
                     /// </summary>
                     public bool Analog => (bool)_instance.GetOrSetBindMemberFunc(index, null, (int)BindAccesssors.Analog);
+
+                    /// <summary>
+                    /// Analog value of the bind, if it has one. Returns the sum of all analog values in
+                    /// key combo. Multiple analog controls per bind are not recommended.
+                    /// </summary>
+                    public float AnalogValue => (float)_instance.GetOrSetBindMemberFunc(index, null, (int)BindAccesssors.AnalogValue);
 
                     /// <summary>
                     /// True if currently pressed.
@@ -91,62 +103,57 @@ namespace RichHudFramework
                     }
 
                     /// <summary>
-                    /// Returns a list of the current key combo for this bind.
+                    /// Returns a list of controls representing the key combinaton for the bind
                     /// </summary>
-                    public List<IControl> GetCombo() 
+                    public List<ControlHandle> GetCombo(int alias = 0)
                     {
-                        var indices = _instance.GetOrSetBindMemberFunc(index, null, (int)BindAccesssors.GetCombo) as List<int>;
-                        var combo = new List<IControl>(indices.Count);
+                        var indices = _instance.GetOrSetBindMemberFunc(index, alias, (int)BindAccesssors.GetCombo) as List<int>;
+                        var combo = new List<ControlHandle>(indices.Count);
 
                         for (int n = 0; n < indices.Count; n++)
-                            combo.Add(_instance.controls[indices[n]]);
+                            combo.Add((ControlHandle)indices[n]);
 
                         return combo;
                     }
 
                     /// <summary>
-                    /// Returns a list of control indices for the current bind combo
+                    /// Returns a list of control indices representing the key combinaton for the bind
                     /// </summary>
-                    public List<int> GetComboIndices() =>
-                        _instance.GetOrSetBindMemberFunc(index, null, (int)BindAccesssors.GetCombo) as List<int>;
+                    public List<int> GetConIDs(int alias = 0) =>
+                        _instance.GetOrSetBindMemberFunc(index, alias, (int)BindAccesssors.GetCombo) as List<int>;
 
                     /// <summary>
                     /// Attempts to set the binds combo to the given controls. Returns true if successful.
                     /// </summary>
-                    public bool TrySetCombo(IReadOnlyList<IControl> combo, bool strict = true, bool silent = true)
+                    public bool TrySetCombo(IReadOnlyList<ControlHandle> combo, int alias = 0, bool isStrict = true, bool isSilent = true)
                     {
-                        var indices = new int[combo.Count];
-
-                        for (int n = 0; n < combo.Count; n++)
-                            indices[n] = combo[n].Index;
-
-                        var comboData = new MyTuple<IReadOnlyList<int>, bool, bool>(indices, strict, silent);
+                        var comboData = new MyTuple<IReadOnlyList<int>, int, bool, bool>(GetComboIndicesTemp(combo), alias, isStrict, isSilent);
                         return (bool)_instance.GetOrSetBindMemberFunc(index, comboData, (int)BindAccesssors.TrySetComboWithIndices);
                     }
 
                     /// <summary>
                     /// Attempts to set the binds combo to the given controls. Returns true if successful.
                     /// </summary>
-                    public bool TrySetCombo(IReadOnlyList<int> combo, bool strict = true, bool silent = true)
+                    public bool TrySetCombo(IReadOnlyList<int> combo, int alias = 0, bool isStrict = true, bool isSilent = true)
                     {
-                        var comboData = new MyTuple<IReadOnlyList<int>, bool, bool>(combo, strict, silent);
+                        var comboData = new MyTuple<IReadOnlyList<int>, int, bool, bool>(combo, alias, isStrict, isSilent);
                         return (bool)_instance.GetOrSetBindMemberFunc(index, comboData, (int)BindAccesssors.TrySetComboWithIndices);
                     }
 
                     /// <summary>
                     /// Attempts to set the binds combo to the given controls. Returns true if successful.
                     /// </summary>
-                    public bool TrySetCombo(IReadOnlyList<string> combo, bool strict = true, bool silent = true)
+                    public bool TrySetCombo(IReadOnlyList<string> combo, int alias = 0, bool isStrict = true, bool isSilent = true)
                     {
-                        var comboData = new MyTuple<IReadOnlyList<string>, bool, bool>(combo, strict, silent);
+                        var comboData = new MyTuple<IReadOnlyList<string>, int, bool, bool>(combo, alias, isStrict, isSilent);
                         return (bool)_instance.GetOrSetBindMemberFunc(index, comboData, (int)BindAccesssors.TrySetComboWithNames);
                     }
 
                     /// <summary>
                     /// Clears the current key combination.
                     /// </summary>
-                    public void ClearCombo() =>
-                        _instance.GetOrSetBindMemberFunc(index, null, (int)BindAccesssors.ClearCombo);
+                    public void ClearCombo(int alias = 0) =>
+                        _instance.GetOrSetBindMemberFunc(index, alias, (int)BindAccesssors.ClearCombo);
 
                     /// <summary>
                     /// Clears all event subscibers for this bind.

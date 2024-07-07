@@ -2,10 +2,11 @@
 using System;
 using VRage;
 using VRageMath;
-using BindDefinitionData = VRage.MyTuple<string, string[]>;
 
 namespace RichHudFramework
 {
+    using BindDefinitionData = MyTuple<string, string[], string[][]>;
+
     namespace UI.Client
     {
         public sealed partial class BindManager
@@ -61,23 +62,18 @@ namespace RichHudFramework
                 /// <summary>
                 /// Returns true if the given list of controls conflicts with any existing binds.
                 /// </summary>
-                public bool DoesComboConflict(IReadOnlyList<IControl> newCombo, IBind exception = null)
+                public bool DoesComboConflict(IReadOnlyList<ControlHandle> newCombo, IBind currentBind = null, int alias = 0)
                 {
-                    var indices = new int[newCombo.Count];
-
-                    for (int n = 0; n < newCombo.Count; n++)
-                        indices[n] = newCombo[n].Index;
-
-                    var data = new MyTuple<IReadOnlyList<int>, int>(indices, exception?.Index ?? -1);
+                    var data = new MyTuple<IReadOnlyList<int>, int, int>(GetComboIndicesTemp(newCombo), currentBind?.Index ?? -1, alias);
                     return (bool)_instance.GetOrSetGroupMemberFunc(Index, data, (int)BindGroupAccessors.DoesComboConflict);
                 }
 
                 /// <summary>
                 /// Determines if given combo is equivalent to any existing binds.
                 /// </summary>
-                public bool DoesComboConflict(IReadOnlyList<int> newCombo, int exception = -1)
+                public bool DoesComboConflict(IReadOnlyList<int> newCombo, IBind currentBind = null, int alias = 0)
                 {
-                    var data = new MyTuple<IReadOnlyList<int>, int>(newCombo, exception);
+                    var data = new MyTuple<IReadOnlyList<int>, int, int>(newCombo, currentBind?.Index ?? -1, alias);
                     return (bool)_instance.GetOrSetGroupMemberFunc(Index, data, (int)BindGroupAccessors.DoesComboConflict);
                 }
 
@@ -94,17 +90,18 @@ namespace RichHudFramework
                 {
                     var defData = new BindDefinitionData[bindData.Count];
 
-                    for (int n = 0; n < bindData.Count; n++)
-                        defData[n] = new BindDefinitionData(bindData[n].name, bindData[n].controlNames);
+                    for (int i = 0; i < bindData.Count; i++)
+                    {
+                        var aliasData = new string[bindData[i].aliases.Length][];
+
+                        for (int j = 0; j < aliasData.Length; j++)
+                            aliasData[j] = bindData[i].aliases[j];
+
+                        defData[i] = new BindDefinitionData(bindData[i].name, bindData[i].controlNames, aliasData);
+                    }
 
                     return (bool)_instance.GetOrSetGroupMemberFunc(Index, defData, (int)BindGroupAccessors.TryLoadBindData);
                 }
-
-                /// <summary>
-                /// Registers a list of binds using the names given.
-                /// </summary>
-                public void RegisterBinds(IReadOnlyList<string> bindNames) =>
-                    _instance.GetOrSetGroupMemberFunc(Index, bindNames, (int)BindGroupAccessors.RegisterBindNames);
 
                 /// <summary>
                 /// Attempts to register a set of binds with the given names.
@@ -116,29 +113,10 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
-                /// Registers a list of binds using the names given paired with associated control indices.
+                /// Registers a list of binds using the names given.
                 /// </summary>
-                public void RegisterBinds(IReadOnlyList<MyTuple<string, IReadOnlyList<int>>> bindData) =>
-                    _instance.GetOrSetGroupMemberFunc(Index, bindData, (int)BindGroupAccessors.RegisterBindIndices);
-
-                /// <summary>
-                /// Registers and loads bind combinations from BindDefinitions.
-                /// </summary>
-                public void RegisterBinds(IReadOnlyList<BindDefinition> bindData)
-                {
-                    var defData = new BindDefinitionData[bindData.Count];
-
-                    for (int n = 0; n < bindData.Count; n++)
-                        defData[n] = new BindDefinitionData(bindData[n].name, bindData[n].controlNames);
-
-                    _instance.GetOrSetGroupMemberFunc(Index, defData, (int)BindGroupAccessors.RegisterBindDefinitions);
-                }
-
-                /// <summary>
-                /// Registers and loads bind combinations from BindDefinitionData.
-                /// </summary>
-                public void RegisterBinds(IReadOnlyList<BindDefinitionData> bindData) =>
-                    _instance.GetOrSetGroupMemberFunc(Index, bindData, (int)BindGroupAccessors.RegisterBindDefinitions);
+                public void RegisterBinds(IReadOnlyList<string> bindNames) =>
+                    _instance.GetOrSetGroupMemberFunc(Index, bindNames, (int)BindGroupAccessors.RegisterBindNames);
 
                 /// <summary>
                 /// Returns the bind with the name given, if it exists.
@@ -152,46 +130,40 @@ namespace RichHudFramework
                 /// <summary>
                 /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
                 /// </summary>
-                public IBind AddBind(string bindName, IReadOnlyList<int> combo)
+                public IBind AddBind(string bindName, IReadOnlyList<int> newConIDs, IReadOnlyList<IReadOnlyList<int>> aliases = null)
                 {
-                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, combo), (int)BindGroupAccessors.AddBindWithIndices);
+                    var bindData = new MyTuple<string, IReadOnlyList<int>, IReadOnlyList<IReadOnlyList<int>>>();
+                    bindData.Item1 = bindName;
+                    bindData.Item2 = newConIDs;
+                    bindData.Item3 = aliases;
+
+                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, bindData, (int)BindGroupAccessors.AddBindWithIndices);                        
                     return this[index.Y];
                 }
 
                 /// <summary>
                 /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
                 /// </summary>
-                public IBind AddBind(string bindName, IReadOnlyList<string> combo)
+                public IBind AddBind(string bindName, IReadOnlyList<ControlHandle> combo, IReadOnlyList<IReadOnlyList<ControlHandle>> aliases = null)
                 {
-                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<string>>(bindName, combo), (int)BindGroupAccessors.AddBindWithNames);
-                    return this[index.Y];
-                }
+                    var bindData = new MyTuple<string, IReadOnlyList<int>, IReadOnlyList<IReadOnlyList<int>>>();
+                    bindData.Item1 = bindName;
+                    bindData.Item2 = GetComboIndicesTemp(combo);
 
-                /// <summary>
-                /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
-                /// </summary>
-                public IBind AddBind(string bindName, IReadOnlyList<ControlData> combo = null)
-                {
-                    var indices = new int[combo.Count];
+                    var aliasData = (aliases.Count > 0) ? new List<int>[aliases.Count] : null;
+                    bindData.Item3 = aliasData;
 
-                    for (int n = 0; n < combo.Count; n++)
-                        indices[n] = combo[n].index;
+                    if (aliases.Count > 0)
+                    {
+                        for (int i = 0; i < aliases.Count; i++)
+                        {
+                            var alias = aliases[i];
+                            aliasData[i] = new List<int>();
+                            GetComboIndices(alias, aliasData[i]);
+                        }
+                    }
 
-                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, indices), (int)BindGroupAccessors.AddBindWithIndices);
-                    return this[index.Y];
-                }
-
-                /// <summary>
-                /// Adds a bind with the given name and the given key combo. Throws an exception if the bind is invalid.
-                /// </summary>
-                public IBind AddBind(string bindName, IReadOnlyList<IControl> combo = null)
-                {
-                    var indices = new int[combo.Count];
-
-                    for (int n = 0; n < combo.Count; n++)
-                        indices[n] = combo[n].Index;
-
-                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, indices), (int)BindGroupAccessors.AddBindWithIndices);
+                    var index = (Vector2I)_instance.GetOrSetGroupMemberFunc(Index, bindData, (int)BindGroupAccessors.AddBindWithIndices);
                     return this[index.Y];
                 }
 
@@ -217,9 +189,14 @@ namespace RichHudFramework
                 /// <summary>
                 /// Tries to register a bind using the given name and the given key combo.
                 /// </summary>
-                public bool TryRegisterBind(string bindName, IReadOnlyList<int> combo, out IBind newBind)
+                public bool TryRegisterBind(string bindName, out IBind newBind, IReadOnlyList<int> combo, IReadOnlyList<IReadOnlyList<int>> aliases = null)
                 {
-                    int index = (int)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, combo), (int)BindGroupAccessors.TryRegisterBindWithIndices);
+                    var bindData = new MyTuple<string, IReadOnlyList<int>, IReadOnlyList<IReadOnlyList<int>>>();
+                    bindData.Item1 = bindName;
+                    bindData.Item2 = combo;
+                    bindData.Item3 = aliases;
+
+                    int index = (int)_instance.GetOrSetGroupMemberFunc(Index, bindData, (int)BindGroupAccessors.TryRegisterBindWithIndices);
 
                     if (index != -1)
                     {
@@ -236,52 +213,16 @@ namespace RichHudFramework
                 /// <summary>
                 /// Tries to register a bind using the given name and the given key combo.
                 /// </summary>
-                public bool TryRegisterBind(string bindName, out IBind newBind, IReadOnlyList<int> combo)
+                public bool TryRegisterBind(string bindName, out IBind newBind, IReadOnlyList<ControlHandle> combo, IReadOnlyList<IReadOnlyList<ControlHandle>> aliases = null)
                 {
-                    int index = (int)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, combo), (int)BindGroupAccessors.TryRegisterBindWithIndices);
+                    var bindData = new MyTuple<string, IReadOnlyList<int>, IReadOnlyList<IReadOnlyList<int>>>();
+                    bindData.Item1 = bindName;
+                    bindData.Item2 = GetComboIndicesTemp(combo);
 
-                    if (index != -1)
-                    {
-                        newBind = this[index];
-                        return true;
-                    }
-                    else
-                    {
-                        newBind = null;
-                        return false;
-                    }
-                }
+                    var aliasData = (aliases.Count > 0) ? new List<int>[aliases.Count] : null;
+                    bindData.Item3 = aliasData;
 
-                /// <summary>
-                /// Tries to register a bind using the given name and the given key combo.
-                /// </summary>
-                public bool TryRegisterBind(string bindName, out IBind bind, IReadOnlyList<string> combo)
-                {
-                    int index = (int)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<string>>(bindName, combo), (int)BindGroupAccessors.TryRegisterBindWithNames);
-
-                    if (index != -1)
-                    {
-                        bind = this[index];
-                        return true;
-                    }
-                    else
-                    {
-                        bind = null;
-                        return false;
-                    }
-                }
-
-                /// <summary>
-                /// Tries to register a bind using the given name and the given key combo.
-                /// </summary>
-                public bool TryRegisterBind(string bindName, out IBind newBind, IReadOnlyList<IControl> combo)
-                {
-                    var indices = new int[combo.Count];
-
-                    for (int n = 0; n < combo.Count; n++)
-                        indices[n] = combo[n].Index;
-
-                    int index = (int)_instance.GetOrSetGroupMemberFunc(Index, new MyTuple<string, IReadOnlyList<int>>(bindName, indices), (int)BindGroupAccessors.TryRegisterBindWithIndices);
+                    int index = (int)_instance.GetOrSetGroupMemberFunc(Index, bindData, (int)BindGroupAccessors.TryRegisterBindWithIndices);
 
                     if (index != -1)
                     {

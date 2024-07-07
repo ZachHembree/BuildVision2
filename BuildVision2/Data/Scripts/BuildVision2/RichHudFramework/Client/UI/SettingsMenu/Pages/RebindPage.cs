@@ -7,10 +7,10 @@ using VRage;
 using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using EventAccessor = VRage.MyTuple<bool, System.Action>;
-using BindDefinitionData = VRage.MyTuple<string, string[]>;
 
 namespace RichHudFramework
 {
+    using BindDefinitionData = MyTuple<string, string[], string[][]>;
     using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
     using ControlMembers = MyTuple<
         ApiMemberAccessor, // GetOrSetMember
@@ -60,7 +60,7 @@ namespace RichHudFramework
                 BindDefinitionData[] data = new BindDefinitionData[defaultBinds.Length];
 
                 for (int n = 0; n < defaultBinds.Length; n++)
-                    data[n] = defaultBinds[n];
+                    data[n] = (BindDefinitionData)defaultBinds[n];
 
                 GetOrSetMemberFunc(new MyTuple<object, BindDefinitionData[]>(bindGroup.ID, data), (int)RebindPageAccessors.Add);
                 bindGroups.Add(bindGroup);

@@ -38,6 +38,12 @@ namespace RichHudFramework
             Func<Vector3D> GetNodeOriginFunc { get; }
 
             /// <summary>
+            /// If true, then the cursor will be drawn using the PTW matrix of this HUD space when
+            /// captured by one of its children.
+            /// </summary>
+            bool DrawCursorInHudSpace { get; }
+
+            /// <summary>
             /// True if the origin of the HUD space is in front of the camera
             /// </summary>
             bool IsInFront { get; }
