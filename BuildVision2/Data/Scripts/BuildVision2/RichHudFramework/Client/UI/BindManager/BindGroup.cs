@@ -250,7 +250,7 @@ namespace RichHudFramework
                     var definitions = new BindDefinition[bindData.Length];
 
                     for (int n = 0; n < bindData.Length; n++)
-                        definitions[n] = new BindDefinition(bindData[n].Item1, bindData[n].Item2);
+                        definitions[n] = (BindDefinition)bindData[n];
 
                     return definitions;
                 }

@@ -111,8 +111,7 @@ namespace DarkHelmet.BuildVision2
                 { "Cancel/Back", MyKeys.RightButton },
                 { "ScrollUp", RichHudControls.MousewheelUp },
                 { "ScrollDown", RichHudControls.MousewheelDown },
-                { "LegacyOpen", MyKeys.Control, MyKeys.MiddleButton },
-
+                { "LegacyOpen" },
             });
 
             dupeGroup = BindManager.GetOrCreateGroup("Dupe");
