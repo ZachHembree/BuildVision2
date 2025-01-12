@@ -21,20 +21,21 @@ namespace RichHudFramework
         public enum HudElementStates : ushort
         {
             None = 0x0,
-            IsVisible = 0x1,
-            WasParentVisible = 0x2,
-            IsRegistered = 0x4,
-            CanUseCursor = 0x10,
-            CanShareCursor = 0x20,
-            IsMousedOver = 0x40,
-            IsMouseInBounds = 0x80,
-            CanPreload = 0x100,
-            IsMasked = 0x200,
-            IsMasking = 0x400,
-            IsSelectivelyMasked = 0x800,
-            CanIgnoreMasking = 0x1000,
-            IsInputEnabled = 0x2000,
-            WasParentInputEnabled = 0x4000
+            IsVisible = 1 << 0,
+            WasParentVisible = 1 << 1,
+            IsRegistered = 1 << 2,
+            CanUseCursor = 1 << 3,
+            CanShareCursor = 1 << 4,
+            IsMousedOver = 1 << 5,
+            IsMouseInBounds = 1 << 6,
+            CanPreload = 1 << 7,
+            IsMasked = 1 << 8,
+            IsMasking = 1 << 9,
+            IsSelectivelyMasked = 1 << 10,
+            CanIgnoreMasking = 1 << 11,
+            IsInputEnabled = 1 << 12,
+            WasParentInputEnabled = 1 << 13,
+            IsInitialized = 1 << 14,
         }
 
         public struct HudLayerData

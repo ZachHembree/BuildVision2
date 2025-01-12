@@ -47,6 +47,7 @@ namespace RichHudFramework
             DropdownControl = 7,
             ListControl = 8,
             DragBox = 9,
+            Label = 10,
         }
 
         public enum ControlContainers : int

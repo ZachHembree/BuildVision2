@@ -19,7 +19,9 @@ namespace RichHudFramework.Internal
         /// </summary>
         public static event MessageEnteredDel LateMessageEntered;
 
-        private readonly Stopwatch handlerRegTimer;
+        public static event MessageEnteredSenderDel MessageEnteredSender;
+
+        private bool isMsgHandlerRegistered;
 
         public RichHudCore() : base(false, true)
         {
@@ -28,17 +30,13 @@ namespace RichHudFramework.Internal
             else
                 throw new Exception("Only one instance of RichHudCore can exist at any given time.");
 
-            handlerRegTimer = new Stopwatch();
+            isMsgHandlerRegistered = false;
         }
 
-        public override void BeforeStart()
-        {
-            handlerRegTimer.Start();
-        }
-
-        private void MessageHandler(string message, ref bool sendToOthers)
+        private void MessageHandler(ulong sender, string message, ref bool sendToOthers)
         {
             LateMessageEntered?.Invoke(message, ref sendToOthers);
+            MessageEnteredSender?.Invoke(sender, message, ref sendToOthers);
         }
 
         public override void Draw()
@@ -51,11 +49,10 @@ namespace RichHudFramework.Internal
             BeforeUpdate();
             base.Draw();
 
-            // Because some people are just bad neighbors
-            if (handlerRegTimer.IsRunning && handlerRegTimer.ElapsedMilliseconds > 10000)
+            if (!isMsgHandlerRegistered)
             {
-                MyAPIGateway.Utilities.MessageEntered += MessageHandler;
-                handlerRegTimer.Stop();
+                MyAPIGateway.Utilities.MessageEnteredSender += MessageHandler;
+                isMsgHandlerRegistered = true;
             }
         }
 
@@ -65,7 +62,7 @@ namespace RichHudFramework.Internal
 
             if (ExceptionHandler.Unloading)
             {
-                MyAPIGateway.Utilities.MessageEntered -= MessageHandler;
+                MyAPIGateway.Utilities.MessageEnteredSender -= MessageHandler;
                 Instance = null;
             }
         }
@@ -73,6 +70,7 @@ namespace RichHudFramework.Internal
         protected override void UnloadData()
         {
             LateMessageEntered = null;
+            MessageEnteredSender = null;
         }
     }
 

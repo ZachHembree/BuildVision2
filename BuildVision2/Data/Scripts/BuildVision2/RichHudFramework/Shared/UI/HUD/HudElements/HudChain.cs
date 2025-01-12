@@ -220,7 +220,7 @@ namespace RichHudFramework
 
             protected override void Layout()
             {
-                Vector2 chainSize = CachedSize - Padding;
+                Vector2 chainSize = UnpaddedSize;
 
                 if (hudCollectionList.Count > 0 && (chainSize.X > 0f && chainSize.Y > 0f))
                 {

@@ -27,12 +27,14 @@ namespace RichHudFramework
             /// <summary>
             /// Adds the given bind group to the page.
             /// </summary>
-            void Add(IBindGroup bindGroup);
+            /// <param name="isAliased">Exposes bind aliases for group if true</param>
+            void Add(IBindGroup bindGroup, bool isAliased = false);
 
             /// <summary>
             /// Adds the given bind group to the page along with its associated default configuration.
             /// </summary>
-            void Add(IBindGroup bindGroup, BindDefinition[] defaultBinds);
+            /// <param name="isAliased">Exposes bind aliases for group if true</param>
+            void Add(IBindGroup bindGroup, BindDefinition[] defaultBinds, bool isAliased = false);
         }
     }
 }

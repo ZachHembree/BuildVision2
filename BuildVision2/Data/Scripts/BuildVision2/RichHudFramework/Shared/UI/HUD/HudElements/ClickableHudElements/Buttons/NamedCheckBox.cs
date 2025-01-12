@@ -31,7 +31,15 @@ namespace RichHudFramework.UI
         /// <summary>
         /// If true, the element will automatically resize to fit the text.
         /// </summary>
-        public bool AutoResize { get { return name.AutoResize; } set { name.AutoResize = value; } }
+        public bool AutoResize 
+        { 
+            get { return name.AutoResize; } 
+            set 
+            { 
+                name.AutoResize = value;
+                layout[0].AlignAxisScale = value ? 0f : 1f;
+            } 
+        }
 
         /// <summary>
         /// Line formatting mode used by the label.
@@ -60,6 +68,7 @@ namespace RichHudFramework.UI
 
         private readonly Label name;
         private readonly BorderedCheckBox checkbox;
+        private readonly HudChain layout;
 
         public NamedCheckBox(HudParentBase parent) : base(parent)
         {
@@ -71,12 +80,12 @@ namespace RichHudFramework.UI
 
             checkbox = new BorderedCheckBox();
 
-            var layout = new HudChain(false, this)
+            layout = new HudChain(false, this)
             {
                 DimAlignment = DimAlignments.UnpaddedSize,
                 Spacing = 17f,
-                SizingMode = HudChainSizingModes.FitMembersOffAxis,
-                CollectionContainer = { { name, 1f }, checkbox }
+                SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersCenter,
+                CollectionContainer = { { name, 0f }, { checkbox, 0f } }
             };
 
             AutoResize = true;
@@ -86,7 +95,7 @@ namespace RichHudFramework.UI
         protected override void Draw()
         {
             if (AutoResize)
-                Width = checkbox.Width + name.TextBoard.TextSize.X + 17f + Padding.X;
+                UnpaddedSize = layout.GetRangeSize();
         }
 
         public NamedCheckBox() : this(null)

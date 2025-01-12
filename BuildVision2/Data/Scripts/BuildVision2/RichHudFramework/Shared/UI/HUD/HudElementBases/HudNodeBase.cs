@@ -26,7 +26,8 @@ namespace RichHudFramework
         /// </summary>
         public abstract partial class HudNodeBase : HudParentBase, IReadOnlyHudNode
         {
-            protected const HudElementStates nodeVisible = HudElementStates.IsVisible | HudElementStates.WasParentVisible,
+            protected const HudElementStates 
+                nodeVisible = HudElementStates.IsVisible | HudElementStates.WasParentVisible,
                 nodeInputEnabled = HudElementStates.IsInputEnabled | HudElementStates.WasParentInputEnabled;
             protected const int maxPreloadDepth = 5;
 
@@ -80,6 +81,8 @@ namespace RichHudFramework
                             Vector3 cursorPos = HudSpace.CursorPos;
                             HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
                         }
+
+                        State |= HudElementStates.IsInitialized;
                     }
                     catch (Exception e)
                     {
@@ -124,6 +127,7 @@ namespace RichHudFramework
             public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte preloadDepth)
             {
                 bool wasSetVisible = (State & HudElementStates.IsVisible) > 0;
+                HudElementStates lastState = State;
                 State |= HudElementStates.WasParentVisible;
 
                 if (!wasSetVisible && (State & HudElementStates.CanPreload) > 0)
@@ -146,8 +150,7 @@ namespace RichHudFramework
                         children[n].GetUpdateAccessors(UpdateActions, preloadDepth);
                 }
 
-                if (!wasSetVisible)
-                    State &= ~HudElementStates.IsVisible;
+                State = lastState;
             }
 
             /// <summary>

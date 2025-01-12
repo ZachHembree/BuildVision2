@@ -22,7 +22,7 @@ namespace RichHudFramework.UI
             {
                 _min = value;
 
-                if (_max - _min != 0)
+                if (_max > _min)
                     Percent = (_current - _min) / (_max - _min);
                 else
                     Percent = 0;
@@ -39,7 +39,7 @@ namespace RichHudFramework.UI
             {
                 _max = value;
 
-                if (_max - _min != 0)
+                if (_max > _min)
                     Percent = (_current - _min) / (_max - _min);
                 else
                     Percent = 0;
@@ -54,10 +54,10 @@ namespace RichHudFramework.UI
             get { return _current; }
             set
             {
-                if (_max - _min != 0)
+                if (_max > _min)
                     Percent = (value - _min) / (_max - _min);
                 else
-                    Percent = 0;
+                    Percent = 0f;
             }
         }
 
@@ -71,7 +71,7 @@ namespace RichHudFramework.UI
             set
             {
                 _percent = MathHelper.Clamp(value, 0f, 1f);
-                _current = _percent * (Max - Min) + Min;
+                _current = _percent * (_max - _min) + _min;
             }
         }
 
@@ -223,6 +223,7 @@ namespace RichHudFramework.UI
 
             _barSize = new Vector2(100f, 12f);
             _sliderSize = new Vector2(6f, 12f);
+            UnpaddedSize = _barSize;
             SliderVisible = true;
 
             bar.Size = _barSize;
@@ -302,7 +303,7 @@ namespace RichHudFramework.UI
                 bar.Color = BarColor;
             }
 
-            Vector2 size = CachedSize - Padding;
+            Vector2 size = UnpaddedSize;
 
             if (_barSize.X >= _sliderSize.X)
             {

@@ -294,6 +294,8 @@ namespace RichHudFramework
                                 HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
                             }
                         }
+
+                        State |= HudElementStates.IsInitialized;
                     }
                     catch (Exception e)
                     {

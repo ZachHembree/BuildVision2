@@ -62,7 +62,7 @@ namespace RichHudFramework
             /// If true, then the cursor will be drawn using the PTW matrix of this HUD space when
             /// captured by one of its children.
             /// </summary>
-            public bool DrawCursorInHudSpace { get; }
+            public bool DrawCursorInHudSpace { get; set; }
 
             /// <summary>
             /// True if the origin of the HUD space is in front of the camera

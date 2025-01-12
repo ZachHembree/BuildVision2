@@ -141,6 +141,8 @@ namespace RichHudFramework
                             Vector3 cursorPos = HudSpace.CursorPos;
                             HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
                         }
+
+                        State |= HudElementStates.IsInitialized;
                     }
                     catch (Exception e)
                     {

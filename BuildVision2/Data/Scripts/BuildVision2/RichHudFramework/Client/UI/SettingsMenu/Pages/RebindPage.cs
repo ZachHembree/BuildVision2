@@ -34,6 +34,9 @@ namespace RichHudFramework
             /// </summary>
             public IReadOnlyList<IBindGroup> BindGroups => bindGroups;
 
+            /// <summary>
+            /// Allows addition of bind groups using collection-initializer syntax
+            /// </summary>
             public RebindPage GroupContainer => this;
 
             private readonly List<IBindGroup> bindGroups;
@@ -46,23 +49,25 @@ namespace RichHudFramework
             /// <summary>
             /// Adds the given bind group to the page.
             /// </summary>
-            public void Add(IBindGroup bindGroup)
+            /// <param name="isAliased">Exposes bind aliases for group if true</param>
+            public void Add(IBindGroup bindGroup, bool isAliased = false)
             {
-                GetOrSetMemberFunc(bindGroup.ID, (int)RebindPageAccessors.Add);
+                GetOrSetMemberFunc(new MyTuple<object, BindDefinitionData[], bool>(bindGroup.ID, null, isAliased), (int)RebindPageAccessors.Add);
                 bindGroups.Add(bindGroup);
             }
 
             /// <summary>
             /// Adds the given bind group to the page along with its associated default configuration.
             /// </summary>
-            public void Add(IBindGroup bindGroup, BindDefinition[] defaultBinds)
+            /// <param name="isAliased">Exposes bind aliases for group if true</param>
+            public void Add(IBindGroup bindGroup, BindDefinition[] defaultBinds, bool isAliased = false)
             {
                 BindDefinitionData[] data = new BindDefinitionData[defaultBinds.Length];
 
                 for (int n = 0; n < defaultBinds.Length; n++)
                     data[n] = (BindDefinitionData)defaultBinds[n];
 
-                GetOrSetMemberFunc(new MyTuple<object, BindDefinitionData[]>(bindGroup.ID, data), (int)RebindPageAccessors.Add);
+                GetOrSetMemberFunc(new MyTuple<object, BindDefinitionData[], bool>(bindGroup.ID, data, isAliased), (int)RebindPageAccessors.Add);
                 bindGroups.Add(bindGroup);
             }
 
