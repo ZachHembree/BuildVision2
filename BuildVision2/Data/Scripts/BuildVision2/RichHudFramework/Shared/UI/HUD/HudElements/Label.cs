@@ -16,7 +16,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Text rendered by the label.
         /// </summary>
-        public RichText Text { get { return _textBoard.GetText(); } set { _textBoard.SetText(value); } }
+        public RichText Text { get { return TextBoard.GetText(); } set { TextBoard.SetText(value); } }
 
         /// <summary>
         /// TextBoard backing the label element.
@@ -26,37 +26,33 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Default formatting used by the label.
         /// </summary>
-        public GlyphFormat Format { get { return _textBoard.Format; } set { _textBoard.SetFormatting(value); } }
+        public GlyphFormat Format { get { return TextBoard.Format; } set { TextBoard.SetFormatting(value); } }
 
         /// <summary>
         /// Line formatting mode used by the label.
         /// </summary>
-        public TextBuilderModes BuilderMode { get { return _textBoard.BuilderMode; } set { _textBoard.BuilderMode = value; } }
+        public TextBuilderModes BuilderMode { get { return TextBoard.BuilderMode; } set { TextBoard.BuilderMode = value; } }
 
         /// <summary>
         /// If true, the element will automatically resize to fit the text. True by default.
         /// </summary>
-        public bool AutoResize { get { return _textBoard.AutoResize; } set { _textBoard.AutoResize = value; } }
+        public bool AutoResize { get { return TextBoard.AutoResize; } set { TextBoard.AutoResize = value; } }
 
         /// <summary>
         /// If true, the text will be vertically centered. True by default.
         /// </summary>
-        public bool VertCenterText { get { return _textBoard.VertCenterText; } set { _textBoard.VertCenterText = value; } }
+        public bool VertCenterText { get { return TextBoard.VertCenterText; } set { TextBoard.VertCenterText = value; } }
 
         /// <summary>
         /// Gets or sets the maximum line width before text will wrap to the next line. Word wrapping must be enabled for
         /// this to apply.
         /// </summary>
-        public float LineWrapWidth { get { return _textBoard.LineWrapWidth; } set { _textBoard.LineWrapWidth = value; } }
-
-        protected readonly TextBoard _textBoard;
+        public float LineWrapWidth { get { return TextBoard.LineWrapWidth; } set { TextBoard.LineWrapWidth = value; } }
 
         public Label(HudParentBase parent) : base(parent)
         {
-            _textBoard = new TextBoard();
-            _textBoard.Format = GlyphFormat.White;
-            _textBoard.SetText("NewLabel");
-            TextBoard = _textBoard;
+            TextBoard = new TextBoard();
+            TextBoard.SetText("NewLabel", GlyphFormat.White);
         }
 
         public Label() : this(null)
@@ -67,18 +63,18 @@ namespace RichHudFramework.UI
             Vector2 size = (CachedSize - Padding),
                 halfSize = .5f * size;
             BoundingBox2 box = new BoundingBox2(Position - halfSize, Position + halfSize);
-            bool autoResize = AutoResize;
+            bool autoResize = TextBoard.AutoResize;
 
             if (!autoResize)
-                _textBoard.FixedSize = size;
+                TextBoard.FixedSize = size;
 
             if (maskingBox != null)
-                _textBoard.Draw(box, maskingBox.Value, HudSpace.PlaneToWorldRef);
+                TextBoard.Draw(box, maskingBox.Value, HudSpace.PlaneToWorldRef);
             else
-                _textBoard.Draw(box, CroppedBox.defaultMask, HudSpace.PlaneToWorldRef);
+                TextBoard.Draw(box, CroppedBox.defaultMask, HudSpace.PlaneToWorldRef);
 
             if (autoResize)
-                UnpaddedSize = _textBoard.TextSize;
+                UnpaddedSize = TextBoard.TextSize;
         }
     }
 }
