@@ -4,6 +4,7 @@ using RichHudFramework.IO;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
+using SpaceEngineers.Game.ModAPI.Ingame;
 using System;
 using System.Text;
 using VRage;
@@ -111,6 +112,12 @@ namespace DarkHelmet.BuildVision2
 
             public override void SetProperty(StringBuilder name, ITerminalProperty<float> property, PropertyBlock block)
             {
+                if (block.SubtypeId.UsesSubtype(TBlockSubtypes.EventController))
+                {
+                    name.Append(" - ");
+                    name.Append(block.Event.EventName);
+                }
+                
                 base.SetProperty(name, property, block);
 
                 if (poolParent == null)

@@ -13,44 +13,54 @@ using IMyGunBaseUser = Sandbox.Game.Entities.IMyGunBaseUser;
 using IMyLandingGear = SpaceEngineers.Game.ModAPI.IMyLandingGear;
 using IMyGravityGeneratorBase = SpaceEngineers.Game.ModAPI.IMyGravityGeneratorBase;
 using IMyTimerBlock = SpaceEngineers.Game.ModAPI.IMyTimerBlock;
+using IMyEventControllerBlock = Sandbox.ModAPI.IMyEventControllerBlock;
 
 namespace DarkHelmet.BuildVision2
 {
     [Flags]
-    public enum TBlockSubtypes : int
+    public enum TBlockSubtypes : ulong
     {
         None = 0,
-        Functional = 0x1,
-        Powered = 0x2,
-        Battery = 0x4,
-        Inventory = 0x8,
-        Production = 0x10,
-        GasTank = 0x20,
-        AirVent = 0x40,
-        Door = 0x80,
-        Parachute = 0x100,
-        LandingGear = 0x200,
-        Connector = 0x400,
-        MechanicalConnection = 0x800,
-        Suspension = 0x1000,
-        Piston = 0x2000,
-        Rotor = 0x4000,
-        Light = 0x8000,
-        JumpDrive = 0x10000,
-        Thruster = 0x20000,
-        Beacon = 0x40000,
-        LaserAntenna = 0x80000,
-        RadioAntenna = 0x100000,
-        OreDetector = 0x200000,
-        Gyroscope = 0x400000,
-        Warhead = 0x800000,
-        GunBase = 0x1000000,
-        Turret = 0x2000000,
-        GravityGen = 0x4000000,
-        Sensor = 0x8000000,
-        Projector = 0x10000000,
-        Timer = 0x20000000,
-        Programmable = 0x40000000
+        Functional = 1 << 0,
+        Powered = 1 << 1,
+        Battery = 1 << 2,
+        Inventory = 1 << 3,
+        Production = 1 << 4,
+        GasTank = 1 << 5,
+        AirVent = 1 << 6,
+        Door = 1 << 7,
+        Parachute = 1 << 8,
+        LandingGear = 1 << 9,
+        Connector = 1 << 10,
+        MechanicalConnection = 1 << 11,
+        Suspension = 1 << 12,
+        Piston = 1 << 13,
+        Rotor = 1 << 14,
+        Light = 1 << 15,
+        JumpDrive = 1 << 16,
+        Thruster = 1 << 17,
+        Beacon = 1 << 18,
+        LaserAntenna = 1 << 19,
+        RadioAntenna = 1 << 20,
+        OreDetector = 1 << 21,
+        Gyroscope = 1 << 22,
+        Warhead = 1 << 23,
+        GunBase = 1 << 24,
+        Turret = 1 << 25,
+        GravityGen = 1 << 26,
+        Sensor = 1 << 27,
+        Projector = 1 << 28,
+        Timer = 1 << 29,
+        Programmable = 1 << 30,
+
+        EventController = 1ul << 31,
+        SolarOccludable = 1ul << 32,
+        SolarFoodGenerator = 1ul << 33, // Component - IMySolarFoodGenerator
+        FarmPlot = 1ul << 34, // Component - IMyFarmPlotLogic
+        OxygenFarm = 1ul << 35,
+        Assembler = 1ul << 36,
+        ButtonPanel = 1ul << 37, // IMyButtonPanel
+        TextPanel = 1ul << 38 // IMyTextPanel and IMyTextSurface - Get/Write public title
     }
 
     /// <summary>
@@ -62,7 +72,7 @@ namespace DarkHelmet.BuildVision2
         /// Associated terminal block
         /// </summary>
         public IMyTerminalBlock TBlock { get; private set; }
-
+        
         public TerminalGrid TerminalGrid { get; private set; }
 
         /// <summary>
@@ -162,8 +172,7 @@ namespace DarkHelmet.BuildVision2
         /// Clears all references to the <see cref="IMyTerminalBlock"/> held by the <see cref="SuperBlock"/>.
         /// </summary>
         private void BlockClosing(IMyEntity entity)
-        {
-            
+        {         
             Reset();
         }
 
@@ -226,6 +235,8 @@ namespace DarkHelmet.BuildVision2
             SetOrCreateAccessor(ref _timer, this);
 
             SetOrCreateAccessor(ref _program, this);
+
+            SetOrCreateAccessor(ref _eventController, this);
         }
 
         public void GetGroupNamesForBlock(List<string> groups) =>
