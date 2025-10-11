@@ -282,9 +282,7 @@ if (BvServer.IsAlive) {
             private void GetRotorAngle(StringBuilder sb)
             {
                 sb.Clear();
-                sb.Append('(');
-                sb.Append(Math.Round(MathHelper.Clamp(block.Rotor.Angle.RadiansToDegrees(), -360, 360), 2));
-                sb.Append("°)");
+                sb.Append($"({block.Rotor.Angle.RadiansToDegrees():F2})°\n");
             }
 
             private float GetIncrement()
