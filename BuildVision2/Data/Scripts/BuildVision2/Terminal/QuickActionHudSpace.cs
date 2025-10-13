@@ -24,7 +24,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// If true, then the menu is open
         /// </summary>
-        public static bool Open => instance?.quickActionMenu.MenuState != QuickActionMenuState.Closed;
+        public static bool Open { get; private set; }
 
         /// <summary>
         /// Returns the menu's current state
@@ -133,7 +133,7 @@ namespace DarkHelmet.BuildVision2
             if (Target.TBlock != null && Open)
             {
                 Vector3D targetWorldPos, targetScreenPos;
-                Vector2 screenBounds = new Vector2(HudMain.ScreenWidth, HudMain.ScreenHeight) * HudMain.ResScale * .5f,
+                Vector2 screenBounds = new Vector2(HudMain.ScreenWidth, HudMain.ScreenHeight) / HudMain.ResScale * .5f,
                     menuPos;
 
                 if (!BvConfig.Current.genUI.useCustomPos)
@@ -214,6 +214,8 @@ namespace DarkHelmet.BuildVision2
 
         protected override void HandleInput(Vector2 cursorPos)
         {
+            bool isOpen = instance?.quickActionMenu.MenuState != QuickActionMenuState.Closed;
+
             UpdateBpInputMonitoring();
 
             quickActionMenu.InputEnabled = !RichHudTerminal.Open;
@@ -236,8 +238,10 @@ namespace DarkHelmet.BuildVision2
             if (SharedBinds.Escape.IsNewPressed && Open)
                 CloseMenuInternal();
 
-            if (!Open)
+            if (Open && !isOpen)
                 Target.Reset();
+
+            Open = isOpen;
         }
 
         /// <summary>
