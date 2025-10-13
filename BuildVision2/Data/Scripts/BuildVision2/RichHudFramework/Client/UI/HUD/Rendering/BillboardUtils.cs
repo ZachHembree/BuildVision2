@@ -50,13 +50,13 @@ namespace RichHudFramework
 
                 private readonly List<MyTriangleBillboard> bbBuf;
                 private List<MyTriangleBillboard> bbPoolBack;
+                private readonly int[] bbPoolBackCount;
 
                 private readonly ApiMemberAccessor GetOrSetMember;
                 private readonly List<TriangleBillboardData> triangleList;
                 private readonly List<FlatTriangleBillboardData> flatTriangleList;
                 private readonly List<MatrixD> matrixBuf;
                 private readonly Dictionary<MatrixD[], int> matrixTable;
-
                 private BillBoardUtils() : base(ApiModuleTypes.BillBoardUtils, false, true)
                 {
                     if (instance != null)
@@ -70,6 +70,7 @@ namespace RichHudFramework
                     flatTriangleList = data.Item3;
                     matrixBuf = data.Item4;
                     matrixTable = data.Item5;
+                    bbPoolBackCount = GetOrSetMember(null, (int)BillBoardUtilAccessors.GetPoolCount) as int[];
                 }
 
                 public static void Init()

@@ -69,7 +69,8 @@ namespace RichHudFramework
                 Vector2 TextSize { get; }
 
                 /// <summary>
-                /// Used to change the position of the text within the text element. AutoResize must be disabled for this to work.
+                /// Used to change the position of the text within the text element. Clamped to maximize visible text.
+                /// AutoResize must be disabled for this to work.
                 /// </summary>
                 Vector2 TextOffset { get; set; }
 
@@ -95,7 +96,7 @@ namespace RichHudFramework
 
                 /// <summary>
                 /// Calculates and applies the minimum offset needed to ensure that the character at the specified index
-                /// is within the visible range.
+                /// is within the visible range, while maximizing visible text.
                 /// </summary>
                 void MoveToChar(Vector2I index);
 

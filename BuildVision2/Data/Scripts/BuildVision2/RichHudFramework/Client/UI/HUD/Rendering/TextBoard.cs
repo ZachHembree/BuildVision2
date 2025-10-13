@@ -39,7 +39,7 @@ namespace RichHudFramework
             public class TextBoard : TextBuilder, ITextBoard
             {
                 /// <summary>
-                /// Invoked whenever a change is made to the text.
+                /// Invoked whenever a change is made to the text. Invokes once every 500ms, at most.
                 /// </summary>
                 public event Action TextChanged
                 {
@@ -71,7 +71,8 @@ namespace RichHudFramework
                 public Vector2 TextSize => GetTextSizeFunc();
 
                 /// <summary>
-                /// Used to change the position of the text within the text element. AutoResize must be disabled for this to work.
+                /// Used to change the position of the text within the text element. Clamped to maximize visible text.
+                /// AutoResize must be disabled for this to work.
                 /// </summary>
                 public Vector2 TextOffset
                 {
@@ -114,7 +115,6 @@ namespace RichHudFramework
                 private readonly Func<Vector2> GetFixedSizeFunc;
                 private readonly Action<Vector2> SetFixedSizeAction;
                 private readonly Action<BoundingBox2, BoundingBox2, MatrixD[]> DrawAction;
-                private readonly MatrixD[] matRef;
 
                 public TextBoard() : this(HudMain.GetTextBoardData())
                 { }
@@ -129,8 +129,6 @@ namespace RichHudFramework
                     GetFixedSizeFunc = members.Item5.Item1;
                     SetFixedSizeAction = members.Item5.Item2;
                     DrawAction = members.Item6;
-
-                    matRef = new MatrixD[1];
                 }
 
                 /// <summary>
@@ -142,7 +140,7 @@ namespace RichHudFramework
 
                 /// <summary>
                 /// Calculates and applies the minimum offset needed to ensure that the character at the specified index
-                /// is within the visible range.
+                /// is within the visible range, while maximizing visible text.
                 /// </summary>
                 public void MoveToChar(Vector2I index) =>
                     GetOrSetMemberFunc(index, (int)TextBoardAccessors.MoveToChar);
