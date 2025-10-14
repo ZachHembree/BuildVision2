@@ -17,6 +17,11 @@ namespace DarkHelmet.BuildVision2
     public sealed partial class QuickActionHudSpace : HudSpaceNodeBase
     {
         /// <summary>
+        /// Limits how frequently peek can switch targets
+        /// </summary>
+        private const int PeekRetargetTickInterval = 5;
+
+        /// <summary>
         /// Currently targeted terminal block
         /// </summary>
         public static PropertyBlock Target  { get; private set; }
@@ -52,9 +57,10 @@ namespace DarkHelmet.BuildVision2
 
         private readonly IMyHudNotification hudNotification;
         private readonly Stopwatch frameTimer;
+
         private Vector2 lastPos;
         private float posLerpFactor, lerpScale;
-        private int bpTick, bpMenuTick;
+        private int bpTick, bpMenuTick, targetTick;
         private bool isPlayerBlueprinting, isBpListOpen;
         private Vector2? lastSpecSpeeds;
 
@@ -141,7 +147,7 @@ namespace DarkHelmet.BuildVision2
                     if (LocalPlayer.IsLookingInBlockDir(Target.TBlock))
                     {
                         targetWorldPos = Target.Position + Target.ModelOffset * .75d;
-                        targetScreenPos = LocalPlayer.GetWorldToScreenPos(targetWorldPos) / 2d;
+                        targetScreenPos = LocalPlayer.GetWorldToScreenPos(targetWorldPos) * .5d;
 
                         menuPos = new Vector2((float)targetScreenPos.X, (float)targetScreenPos.Y);
                         menuPos = HudMain.GetPixelVector(menuPos) / scale;
@@ -154,12 +160,12 @@ namespace DarkHelmet.BuildVision2
                     menuPos = BvConfig.Current.genUI.hudPos;
                     menuPos = HudMain.GetPixelVector(menuPos) / scale;
 
-                    if (menuPos.X < 0)
+                    if (menuPos.X < 0f)
                         menuPos.X += .5f * quickActionMenu.Width;
                     else
                         menuPos.X -= .5f * quickActionMenu.Width;
 
-                    if (menuPos.Y < 0)
+                    if (menuPos.Y < 0f)
                         menuPos.Y += .5f * quickActionMenu.Height;
                     else
                         menuPos.Y -= .5f * quickActionMenu.Height;
@@ -207,9 +213,17 @@ namespace DarkHelmet.BuildVision2
 
         protected override void Draw()
         {
-            // Debug target bounding box
-            if (Target?.TBlock != null && DrawBoundingBox)
-                boundingBox.Draw(Target.TBlock);
+            // Debug target bounding boxes
+            if (DrawBoundingBox)
+            {
+                foreach (IMySlimBlock slimBlock in targetBuffer)
+                {
+                    if (slimBlock.FatBlock != null && slimBlock.FatBlock is IMyTerminalBlock)
+                    {
+                        boundingBox.Draw(slimBlock.FatBlock);
+                    }
+                }
+            }
         }
 
         protected override void HandleInput(Vector2 cursorPos)
@@ -217,31 +231,40 @@ namespace DarkHelmet.BuildVision2
             bool isOpen = instance?.quickActionMenu.MenuState != QuickActionMenuState.Closed;
 
             UpdateBpInputMonitoring();
-
+            
             quickActionMenu.InputEnabled = !RichHudTerminal.Open;
             bool tryOpen = BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed || BvBinds.StartDupe.IsNewPressed;
 
             if (BvConfig.Current.genUI.legacyModeEnabled || (MenuState & QuickActionMenuState.Controlled) == 0)
             {
                 if (tryOpen)
+                {
+                    targetTick = 0;
                     TryOpenMenuInternal();
+                }
             }
 
             if ((MenuState & QuickActionMenuState.Controlled) == 0)
             {
                 if (BvBinds.MultXOrMouse.IsPressed && BvConfig.Current.targeting.enablePeek)
+                {
+                    if (BvBinds.MultXOrMouse.IsNewPressed)
+                        targetTick = 0;
+
                     TryOpenMenuInternal();
+                }
                 else if ((quickActionMenu.MenuState & QuickActionMenuState.Peek) > 0)
                     CloseMenuInternal();
             }
 
-            if (SharedBinds.Escape.IsNewPressed && Open)
+            if (SharedBinds.Escape.IsNewPressed && isOpen)
                 CloseMenuInternal();
 
             if (Open && !isOpen)
                 Target.Reset();
 
             Open = isOpen;
+            targetTick++;
         }
 
         /// <summary>
@@ -300,7 +323,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void TryOpenMenuInternal(QuickActionMenuState initialState = default(QuickActionMenuState))
         {
-            if (!isPlayerBlueprinting && TryGetTarget() && CanAccessTargetBlock())
+            if ((targetTick % PeekRetargetTickInterval) == 0 && !isPlayerBlueprinting && TryGetTargetWithPermission() && CanAccessTargetBlock())
             {
                 quickActionMenu.OpenMenu(Target, initialState);
 
@@ -329,14 +352,15 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Tries to get terminal block being targeted by the local player if there is one.
+        /// Tries to get terminal block being targeted by the local player if there is one while 
+        /// respecting ownership permissions.
         /// </summary>
-        private bool TryGetTarget()
+        private bool TryGetTargetWithPermission()
         {
             IMyTerminalBlock block;
             bool canDisplaceBlock = LocalPlayer.CurrentBuilderBlock != null && !BvConfig.Current.targeting.canOpenIfPlacing,
                 canTarget = !canDisplaceBlock || BvConfig.Current.genUI.legacyModeEnabled;
-
+                
             if (canTarget && TryGetTargetedBlockInternal(BvConfig.Current.targeting.maxOpenRange, out block))
             {
                 if (block != null)
@@ -350,7 +374,6 @@ namespace DarkHelmet.BuildVision2
                         {
                             targetGrid.SetGrid(block.CubeGrid);
                             Target.SetBlock(targetGrid, block);
-
                             return true;
                         }
                         else
@@ -389,9 +412,6 @@ namespace DarkHelmet.BuildVision2
             IHitInfo rayInfo;
             MatrixD transform = MyAPIGateway.Session.Camera.WorldMatrix;
             Vector3D headPos = transform.Translation, forward = transform.Forward;
-
-            if (!LocalPlayer.IsSpectating)
-                headPos += (headPos - LocalPlayer.Position).Length() * forward;
 
             LineD line = new LineD(headPos, headPos + forward * maxDist);
             target = null;
@@ -460,7 +480,7 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Determines whether the player is within 10 units of the block.
+        /// Returns true if the player is within maxControlRange meters of the block.
         /// </summary>
         private bool BlockInRange()
         {
