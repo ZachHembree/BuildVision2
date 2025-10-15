@@ -1,16 +1,15 @@
-﻿using RichHudFramework;
-using RichHudFramework.Internal;
+﻿using RichHudFramework.Internal;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
+using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
 using System;
 using System.Diagnostics;
-using System.Collections.Generic;
-using VRage.Utils;
+using VRage;
 using VRage.Game;
 using VRage.Game.ModAPI;
+using VRage.Utils;
 using VRageMath;
-using VRage;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -24,7 +23,7 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Currently targeted terminal block
         /// </summary>
-        public static PropertyBlock Target  { get; private set; }
+        public static PropertyBlock Target { get; private set; }
 
         /// <summary>
         /// If true, then the menu is open
@@ -37,47 +36,58 @@ namespace DarkHelmet.BuildVision2
         public static QuickActionMenuState MenuState => instance?.quickActionMenu.MenuState ?? QuickActionMenuState.Closed;
 
         /// <summary>
-        /// If true, then the bounding box of the target block will be drawn. Used for debugging.
+        /// Enables/disables debug targeting visualization
         /// </summary>
-        public static bool DrawBoundingBox { get; set; }
+        public static bool EnableTargetDebugVis { get; set; }
 
         /// <summary>
         /// Anim speed normalized to 60fps
         /// </summary>
         public static float AnimScale => instance.lerpScale;
 
+        // Singleton instance
         private static QuickActionHudSpace instance;
         private static bool wasInitialized = false;
 
+        // UI
         private readonly QuickActionMenu quickActionMenu;
-        private readonly BoundingBoard boundingBox;
-
-        private readonly TerminalGrid targetGrid, tempGrid;
-        private readonly List<IMySlimBlock> targetBuffer;
-
         private readonly IMyHudNotification hudNotification;
-        private readonly Stopwatch frameTimer;
 
+        // Animation lerp
         private Vector2 lastPos;
         private float posLerpFactor, lerpScale;
+        private readonly Stopwatch frameTimer;
+
+        // Block targeting
+        private readonly TerminalGrid targetGrid;
+        private readonly BlockFinder blockFinder;
+
+        // Debug targeting visualization
+        private readonly BoundingBoard boundingBox; 
+        private readonly LineBoard targetLineBoard;
+
+        // BP detection heuristics
         private int bpTick, bpMenuTick, targetTick;
         private bool isPlayerBlueprinting, isBpListOpen;
+
+        // Stores last spectator camera speeds, before opening the menu
         private Vector2? lastSpecSpeeds;
 
         private QuickActionHudSpace() : base(HudMain.Root)
         {
-            DrawBoundingBox = false;
-            targetGrid = new TerminalGrid();
-            tempGrid = new TerminalGrid();
-            targetBuffer = new List<IMySlimBlock>();
-            Target = new PropertyBlock();
+            EnableTargetDebugVis = false;
 
             quickActionMenu = new QuickActionMenu(this);
-            boundingBox = new BoundingBoard();
             hudNotification = MyAPIGateway.Utilities.CreateNotification("", 1000, MyFontEnum.Red);
 
             frameTimer = new Stopwatch();
             frameTimer.Start();
+
+            Target = new PropertyBlock();
+            targetGrid = new TerminalGrid();
+            blockFinder = new BlockFinder();
+            boundingBox = new BoundingBoard();
+            targetLineBoard = new LineBoard();
 
             RichHudCore.LateMessageEntered += MessageHandler;
         }
@@ -120,7 +130,7 @@ namespace DarkHelmet.BuildVision2
             {
                 Target.Update();
 
-                if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None 
+                if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None
                     || isPlayerBlueprinting || isBpListOpen)
                 {
                     CloseMenuInternal();
@@ -182,7 +192,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     posLerpFactor = 0f;
                     lastPos = menuPos;
-                }                
+                }
 
                 if (BvConfig.Current.genUI.useCustomPos)
                     posLerpFactor = 1f;
@@ -214,15 +224,21 @@ namespace DarkHelmet.BuildVision2
         protected override void Draw()
         {
             // Debug target bounding boxes
-            if (DrawBoundingBox)
+            if (EnableTargetDebugVis)
             {
-                foreach (IMySlimBlock slimBlock in targetBuffer)
+                foreach (var target in blockFinder.SortedTargets)
                 {
-                    if (slimBlock.FatBlock != null && slimBlock.FatBlock is IMyTerminalBlock)
-                    {
-                        boundingBox.Draw(slimBlock.FatBlock);
-                    }
+                    boundingBox.Draw(target.block);
+                    ExceptionHandler.SendDebugNotification(
+                        $"Dist: {target.distance:G5} " +
+                        $" - {target.block?.CustomName ?? target.block?.Name ?? "?"}");
                 }
+
+                var camPos = MyAPIGateway.Session.Camera.WorldMatrix.Translation;
+                var rayPos = blockFinder.LastTargetLine.From;
+
+                if (Vector3D.DistanceSquared(camPos, rayPos) > .01d)
+                    targetLineBoard.Draw(blockFinder.LastTargetLine);
             }
         }
 
@@ -231,7 +247,7 @@ namespace DarkHelmet.BuildVision2
             bool isOpen = instance?.quickActionMenu.MenuState != QuickActionMenuState.Closed;
 
             UpdateBpInputMonitoring();
-            
+
             quickActionMenu.InputEnabled = !RichHudTerminal.Open;
             bool tryOpen = BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed || BvBinds.StartDupe.IsNewPressed;
 
@@ -284,8 +300,8 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    if (!canBp || SharedBinds.LeftButton.IsNewPressed || SharedBinds.Escape.IsNewPressed 
-                        || MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("SLOT0")) )
+                    if (!canBp || SharedBinds.LeftButton.IsNewPressed || SharedBinds.Escape.IsNewPressed
+                        || MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("SLOT0")))
                     {
                         isPlayerBlueprinting = false;
                     }
@@ -299,7 +315,7 @@ namespace DarkHelmet.BuildVision2
             }
             else if (bpMenuTick > 30)
             {
-                if (MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || !MyAPIGateway.Gui.IsCursorVisible 
+                if (MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || !MyAPIGateway.Gui.IsCursorVisible
                     || BindManager.IsChatOpen || SharedBinds.Escape.IsNewPressed)
                 {
                     isBpListOpen = false;
@@ -347,6 +363,9 @@ namespace DarkHelmet.BuildVision2
             Target.Reset();
             targetGrid.Reset();
 
+            if (!EnableTargetDebugVis)
+                blockFinder.Clear();
+
             quickActionMenu.CloseMenu();
             HudMain.EnableCursor = false;
         }
@@ -360,14 +379,14 @@ namespace DarkHelmet.BuildVision2
             IMyTerminalBlock block;
             bool canDisplaceBlock = LocalPlayer.CurrentBuilderBlock != null && !BvConfig.Current.targeting.canOpenIfPlacing,
                 canTarget = !canDisplaceBlock || BvConfig.Current.genUI.legacyModeEnabled;
-                
+
             if (canTarget && TryGetTargetedBlockInternal(BvConfig.Current.targeting.maxOpenRange, out block))
             {
                 if (block != null)
                 {
                     TerminalPermissionStates permissions = block.GetAccessPermissions();
 
-                    if ((permissions & TerminalPermissionStates.Granted) > 0 
+                    if ((permissions & TerminalPermissionStates.Granted) > 0
                         || LocalPlayer.HasAdminSetting(MyAdminSettingsEnum.UseTerminals))
                     {
                         if (Target.TBlock == null || block != Target.TBlock)
@@ -408,63 +427,19 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private bool TryGetTargetedBlockInternal(double maxDist, out IMyTerminalBlock target)
         {
-            IMyCubeGrid cubeGrid;
-            IHitInfo rayInfo;
-            MatrixD transform = MyAPIGateway.Session.Camera.WorldMatrix;
-            Vector3D headPos = transform.Translation, forward = transform.Forward;
+            MatrixD camMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
+            Vector3D camPos = camMatrix.Translation, forward = camMatrix.Forward;
 
-            LineD line = new LineD(headPos, headPos + forward * maxDist);
+            LineD line = new LineD(camPos, camPos + forward * maxDist);
             target = null;
 
-            if ((LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating) 
-                && LocalPlayer.TryGetTargetedGrid(line, out cubeGrid, out rayInfo))
+            if ((LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating) && blockFinder.TryUpdateTargets(line))
             {
-                // Retrieve blocks within about half a block of the ray intersection point.
-                var sphere = new BoundingSphereD(rayInfo.Position, (cubeGrid.GridSizeEnum == MyCubeSize.Large) ? 1.3 : .3);
-                double currentDist = double.PositiveInfinity, currentCenterDist = double.PositiveInfinity;
-
-                tempGrid.SetGrid(cubeGrid, true);
-                targetBuffer.Clear();
-                tempGrid.GetBlocksInsideSphere(cubeGrid, targetBuffer, ref sphere);
-
-                foreach (IMySlimBlock slimBlock in targetBuffer)
-                {
-                    IMyCubeBlock cubeBlock = slimBlock?.FatBlock;
-
-                    if (cubeBlock != null)
-                    {
-                        var topBlock = cubeBlock as IMyAttachableTopBlock;
-
-                        if (topBlock != null)
-                            cubeBlock = topBlock.Base;
-                    }
-
-                    var tBlock = cubeBlock as IMyTerminalBlock;
-
-                    if (tBlock != null)
-                    {
-                        // Find shortest dist between the bb and the intersection.
-                        BoundingBoxD box = cubeBlock.WorldAABB;
-                        double newDist = Math.Round(box.DistanceSquared(rayInfo.Position), 3), 
-                            newCenterDist = Math.Round(Vector3D.DistanceSquared(box.Center, rayInfo.Position), 3);
-
-                        // If this is a terminal block, check to see if this block is any closer than the last.
-                        // If the distance to the bb is zero, use the center dist, favoring smaller blocks.
-                        if (
-                            (currentDist > 0d && newDist < currentDist) 
-                            || (Math.Abs(currentDist - newDist) < 0.02 && newCenterDist < currentCenterDist)
-                        )
-                        {
-                            target = tBlock;
-                            currentDist = newDist;
-                            currentCenterDist = newCenterDist;
-                        }
-                    }
-                }
+                target = blockFinder.SortedTargets[0].block;
+                return true;
             }
 
-            tempGrid.Reset();
-            return target != null;
+            return false;
         }
 
         /// <summary>
@@ -501,7 +476,7 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 return dist < (BvConfig.Current.targeting.maxControlRange * BvConfig.Current.targeting.maxControlRange);
-            }                
+            }
         }
     }
 }
