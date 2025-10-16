@@ -1,17 +1,13 @@
-using RichHudFramework.Client;
-using RichHudFramework.IO;
 using RichHudFramework.UI;
+using RichHudFramework.Internal;
+using RichHudFramework.UI.Client;
+using RichHudFramework.UI.Rendering;
 using System;
+using System.CodeDom;
 using System.Diagnostics;
 using System.Text;
-using System.Collections.Generic;
-using VRage;
-using VRage.ModAPI;
-using VRage.Utils;
 using VRageMath;
-using RichHudFramework;
-using RichHudFramework.UI.Rendering;
-using RichHudFramework.UI.Client;
+using VRageRender;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -71,7 +67,8 @@ namespace DarkHelmet.BuildVision2
                 summaryLabel = new Label(this)
                 {
                     AutoResize = false,
-                    BuilderMode = TextBuilderModes.Wrapped,
+                    IsSelectivelyMasked = true,
+					BuilderMode = TextBuilderModes.Wrapped,
                     Width = 200f,
                 };
 
@@ -158,33 +155,28 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
-                if (tick == 0)
-                {
-                    if (ActiveWidget == null)
-                    {
-                        UpdateText();
-                    }                    
-                }
+                const float AnimationStep = 0.3f;
+				const float OverwrapThreshold = 1.2f;
+				const float TextResizeThreshold = 10f;
+				const float WrapWidthFactor = 0.6f;
 
-                float lastWidth = Width - Padding.X;
+				// Initialize text on first tick if no active widget
+				if (tick == 0 && ActiveWidget == null)
+                    UpdateText();
 
-                if (MenuState == QuickActionMenuState.WheelPeek)
+				// Adjust layout for peek
+				if (MenuState == QuickActionMenuState.WheelPeek)
                 {
-                    Padding = new Vector2(wheelBodyPeekPadding);
-                    Size = new Vector2(maxPeekWrapWidth);
-                }
-                else
-                {
-                    Padding = new Vector2(wheelBodyPadding);
-                    Size = 1.05f * propertyWheelMenu.Size * propertyWheelMenu.InnerDiam;
-                }
+					Vector2 textSize = summaryLabel.TextBoard.TextSize;
 
-                summaryLabel.Size = new Vector2(maxPeekWrapWidth - wheelBodyPeekPadding);
+					if (notificationText.Visible)
+					{
+                        textSize.X = Math.Max(textSize.X, notificationText.UnpaddedSize.X);
+						textSize.Y += notificationText.UnpaddedSize.Y;
+                        summaryLabel.Offset = new Vector2(0f, 0.5f * notificationText.UnpaddedSize.Y);
+					}
 
-                // Dynamically reduce wrap with while peeking based on aspect ratio
-                if (MenuState == QuickActionMenuState.WheelPeek)
-                {
-                    Vector2 lastTextSize = summaryLabel.TextBoard.TextSize;
+					float wrapWidth;
 
 					// Update wrap width
 					if (textSize.Y > (textSize.X * OverwrapThreshold))
@@ -195,16 +187,9 @@ namespace DarkHelmet.BuildVision2
 						wrapWidth = Math.Max(wrapWidth, MinWheelPeekWrapWidth);
 					}
 
-                // Dynamically resize background and label to accomodate text
-                Vector2 textSize = new Vector2(summaryLabel.TextBoard.TextSize.Length());
-                textSize.Y += notificationText.Height;
-                textSize = new Vector2(Math.Max(textSize.X, textSize.Y));
-                textSize = Vector2.Min(Size, textSize);
-                textSize = new Vector2(Math.Max(textSize.X, textSize.Y));
-
 					// Background is an ellipse and must be expanded s.t. the four corners of the 
 					// text box boundary are circumscribed. Max size already accounts for this.
-					bgSize = Vector2.Min(new Vector2(MaxWheelPeekWrap), bgSize * Sqrt2);
+					Vector2 bgSize = Vector2.Min(new Vector2(MaxWheelPeekWrap), textSize * Sqrt2);
 
 					// Avoid resizing for small changes
 					if (Math.Abs(bgSize.X - UnpaddedSize.X) < TextResizeThreshold)
@@ -226,20 +211,25 @@ namespace DarkHelmet.BuildVision2
                     notificationText.LineWrapWidth = WheelNotifiationWidth;
 				}
 
-                    Size = textSize + Padding;
-                    summaryLabel.Size = new Vector2(textSize.X, textSize.Y - notificationText.Height);
-                }
+				if (animPos >= 1f)
+					summaryLabel.UnpaddedSize = new Vector2(UnpaddedSize.X, UnpaddedSize.Y - notificationText.UnpaddedSize.Y);
 
-                if ((background.Size - Size).LengthSquared() > 4f)
+				// Trigger animation if background size changes
+				if ((background.UnpaddedSize - Size).LengthSquared() > 4f)
                     animPos = 0f;
 
+                // Animate background size
                 if (animPos < 1f)
                 {
-                    animPos += .3f;
-                    background.Size = Vector2.Lerp(background.Size, Size, animPos * QuickActionHudSpace.AnimScale);
+                    animPos += AnimationStep;
+                    background.UnpaddedSize = Vector2.Lerp(
+                        background.UnpaddedSize,
+                        Size,
+                        Math.Min(animPos * QuickActionHudSpace.AnimScale, 1f)
+					);
                 }
                 else
-                    background.Size = Size;
+                    background.UnpaddedSize = Size;
 
                 // Update tick counter
                 tick = (tick + 1) % TextTickDivider;
