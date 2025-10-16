@@ -27,7 +27,7 @@ namespace DarkHelmet.BuildVision2
                     Padding = new Vector2(20f),
                     DimAlignment = DimAlignments.UnpaddedSize,
                     SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersCenter,
-                    Spacing = widgetInnerPadding,
+                    Spacing = WidgetInnerPadding,
                     CollectionContainer =
                     {
                         colorPicker,

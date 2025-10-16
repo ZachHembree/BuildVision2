@@ -133,7 +133,7 @@ namespace DarkHelmet.BuildVision2
             debugText.Visible = DrawDebug;
 
             textUpdateTick++;
-            textUpdateTick %= textTickDivider;
+            textUpdateTick %= TextTickDivider;
         }
     }
 }

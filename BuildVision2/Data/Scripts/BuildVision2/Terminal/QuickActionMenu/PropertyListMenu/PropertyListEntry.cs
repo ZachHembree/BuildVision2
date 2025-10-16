@@ -41,7 +41,7 @@ namespace DarkHelmet.BuildVision2
                     CollectionContainer = { name, value, postfix }
                 };
 
-                Height = listEntryHeight;
+                Height = ListEntryHeight;
                 IsMasking = true;
             }
 
@@ -127,7 +127,7 @@ namespace DarkHelmet.BuildVision2
             public PropertyListEntry()
             {
                 SetElement(new PropertyListEntryElement());
-                NameText.Format = bodyFormat;
+                NameText.Format = BodyFormat;
                 textBuf = new StringBuilder();
             }
 
@@ -197,15 +197,15 @@ namespace DarkHelmet.BuildVision2
 
                 if (PropertyOpen)
                 {
-                    dupeCrossFormat = QuickActionMenu.selectedFormat;
-                    bodyFormat = QuickActionMenu.selectedFormat;
-                    valueFormat = QuickActionMenu.selectedFormat;
+                    dupeCrossFormat = QuickActionMenu.SelectedFormat;
+                    bodyFormat = QuickActionMenu.SelectedFormat;
+                    valueFormat = QuickActionMenu.SelectedFormat;
                 }
                 else
                 {
-                    dupeCrossFormat = QuickActionMenu.dupeCrossFormat;
-                    bodyFormat = QuickActionMenu.bodyFormat;
-                    valueFormat = isHighlighted ? QuickActionMenu.highlightFormat : QuickActionMenu.valueFormat;
+                    dupeCrossFormat = QuickActionMenu.DupeCrossFormat;
+                    bodyFormat = QuickActionMenu.BodyFormat;
+                    valueFormat = isHighlighted ? QuickActionMenu.HighlightFormat : QuickActionMenu.ValueFormat;
                 }
 
                 // Update Name
@@ -217,7 +217,7 @@ namespace DarkHelmet.BuildVision2
                 if (name != null)
                 {
                     textBuf.Clear();
-                    textBuf.AppendSubstringMax(name, maxEntryCharCount);
+                    textBuf.AppendSubstringMax(name, MaxEntryCharCount);
                     nameTB.Append(textBuf, bodyFormat);
 
                     if (disp != null || status != null)

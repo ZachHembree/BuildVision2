@@ -47,7 +47,7 @@ namespace DarkHelmet.BuildVision2
 
                 buttonChain = new HudChain(false)
                 {
-                    Spacing = widgetInnerPadding,
+                    Spacing = WidgetInnerPadding,
                     CollectionContainer = { { confirmButton , 1f }, { cancelButton, 1f } }
                 };
                 buttonChain.Size = buttonChain.GetRangeSize();

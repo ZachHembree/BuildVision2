@@ -28,7 +28,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     DimAlignment = DimAlignments.UnpaddedSize,
                     SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersCenter,
-                    Spacing = widgetInnerPadding,
+                    Spacing = WidgetInnerPadding,
                     CollectionContainer =
                     {
                         comboBox,

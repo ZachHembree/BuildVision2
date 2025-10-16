@@ -1,4 +1,4 @@
-﻿using RichHudFramework.Client;
+using RichHudFramework.Client;
 using RichHudFramework.IO;
 using RichHudFramework.UI;
 using System;
@@ -64,7 +64,7 @@ namespace DarkHelmet.BuildVision2
                 background = new TexturedBox(this)
                 {
                     Material = Material.CircleMat,
-                    Color = headerColor,
+                    Color = HeaderColor,
                     Size = Vector2.Zero,
                 };
 
@@ -80,7 +80,7 @@ namespace DarkHelmet.BuildVision2
                     AutoResize = true,
                     ParentAlignment = ParentAlignments.InnerBottom,
                     BuilderMode = TextBuilderModes.Wrapped,
-                    Width = 150f,
+                    Width = WheelNotifiationWidth,
                     Offset = new Vector2(0f, 30f),
                 };
 
@@ -96,8 +96,8 @@ namespace DarkHelmet.BuildVision2
                 textBuf = new StringBuilder();
                 notificationTimer = new Stopwatch();
 
-                Padding = new Vector2(wheelBodyPeekPadding);
-                Size = new Vector2(maxPeekWrapWidth);
+                Padding = new Vector2(WheelBodyPeekPadding);
+                Size = new Vector2(200f);
             }
 
             public void OpenBlockMemberWidget(IBlockMember member)
@@ -186,10 +186,14 @@ namespace DarkHelmet.BuildVision2
                 {
                     Vector2 lastTextSize = summaryLabel.TextBoard.TextSize;
 
-                    // If the text is substantially wider than tall, reduce wrap width
-                    if (lastTextSize.X > 1.2f * lastTextSize.Y)
-                        summaryLabel.Width = Math.Max(.5f * (lastTextSize.X + lastTextSize.Y), minPeekWrapWidth);
-                }
+					// Update wrap width
+					if (textSize.Y > (textSize.X * OverwrapThreshold))
+						wrapWidth = MaxWheelPeekWrap;
+					else
+					{
+						wrapWidth = Math.Min(WrapWidthFactor * (textSize.X + textSize.Y), MaxWheelPeekWrap);
+						wrapWidth = Math.Max(wrapWidth, MinWheelPeekWrapWidth);
+					}
 
                 // Dynamically resize background and label to accomodate text
                 Vector2 textSize = new Vector2(summaryLabel.TextBoard.TextSize.Length());
@@ -198,11 +202,29 @@ namespace DarkHelmet.BuildVision2
                 textSize = Vector2.Min(Size, textSize);
                 textSize = new Vector2(Math.Max(textSize.X, textSize.Y));
 
-                if (MenuState == QuickActionMenuState.WheelPeek)
+					// Background is an ellipse and must be expanded s.t. the four corners of the 
+					// text box boundary are circumscribed. Max size already accounts for this.
+					bgSize = Vector2.Min(new Vector2(MaxWheelPeekWrap), bgSize * Sqrt2);
+
+					// Avoid resizing for small changes
+					if (Math.Abs(bgSize.X - UnpaddedSize.X) < TextResizeThreshold)
+					{
+						bgSize.X = UnpaddedSize.X;
+						bgSize.Y = Math.Min(bgSize.Y, bgSize.X);
+					}
+
+					// Apply sizes
+					UnpaddedSize = bgSize;
+                    Padding = new Vector2(WheelBodyPeekPadding);
+					notificationText.LineWrapWidth = wrapWidth;
+				}
+				else
                 {
-                    // Don't bother resizing for small changes
-                    if (Math.Abs(textSize.X - lastWidth) < 15f)
-                        textSize = new Vector2(lastWidth);
+                    UnpaddedSize = new Vector2(MaxWheelPeekWrap);
+                    Padding = new Vector2(MaxWheelPeekPadding);
+                    summaryLabel.Offset = Vector2.Zero;
+                    notificationText.LineWrapWidth = WheelNotifiationWidth;
+				}
 
                     Size = textSize + Padding;
                     summaryLabel.Size = new Vector2(textSize.X, textSize.Y - notificationText.Height);
@@ -219,25 +241,25 @@ namespace DarkHelmet.BuildVision2
                 else
                     background.Size = Size;
 
-                tick++;
-                tick %= textTickDivider;
+                // Update tick counter
+                tick = (tick + 1) % TextTickDivider;
             }
 
             private void UpdateText()
             {
                 IPropertyBlock block = propertyWheelMenu.quickActionMenu.Target;
                 summaryBuilder.Clear();
-                summaryBuilder.Add(BvMain.modName, wheelHeaderFormat);
-                summaryBuilder.Add("\n", wheelHeaderFormat);
-                block.GetSummary(summaryBuilder, bodyFormatCenter, bodyValueFormatCenter);
+                summaryBuilder.Add(BvMain.modName, WheelHeaderFormat);
+                summaryBuilder.Add("\n", WheelHeaderFormat);
+                block.GetSummary(summaryBuilder, BodyFormatCenter, BodyValueFormatCenter);
 
                 ITextBuilder notificationBuidler = notificationText.TextBoard;
 
-                if (notification != null && notificationTimer.ElapsedMilliseconds < notificationTime)
+                if (notification != null && notificationTimer.ElapsedMilliseconds < NotificationTime)
                 {
                     notificationBuidler.Clear();
-                    notificationBuidler.Append("\n", bodyFormatCenter);
-                    notificationBuidler.Append(notification, bodyValueFormatCenter);
+                    notificationBuidler.Append("\n", BodyFormatCenter);
+                    notificationBuidler.Append(notification, BodyValueFormatCenter);
 
                     if (contNotification)
                     {
@@ -252,7 +274,7 @@ namespace DarkHelmet.BuildVision2
                     textBuf.Append(block.Duplicator.GetSelectedEntryCount());
                     textBuf.Append(" of ");
                     textBuf.Append(block.Duplicator.GetValidEntryCount());
-                    notificationBuidler.SetText(textBuf, bodyValueFormatCenter);
+                    notificationBuidler.SetText(textBuf, BodyValueFormatCenter);
                 }
                 else
                 {
@@ -261,7 +283,7 @@ namespace DarkHelmet.BuildVision2
                     var target = propertyWheelMenu.quickActionMenu.Target;
 
                     if (!target.IsFunctional)
-                        notificationBuidler.SetText("[Incomplete]", blockIncFormat.WithAlignment(TextAlignment.Center));
+                        notificationBuidler.SetText("[Incomplete]", BlockIncFormat.WithAlignment(TextAlignment.Center));
                 }
 
                 summaryLabel.TextBoard.SetText(summaryBuilder);

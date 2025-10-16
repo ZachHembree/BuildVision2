@@ -130,13 +130,13 @@ namespace DarkHelmet.BuildVision2
                 if (selection.PropertyOpen)
                 {
                     MenuState |= QuickActionMenuState.PropertyOpen;
-                    highlightBox.Color = highlightFocusColor;
+                    highlightBox.Color = HighlightFocusColor;
                 }
                 else
                 {
                     MenuState &= ~QuickActionMenuState.PropertyOpen;
                     lastPropValue = null;
-                    highlightBox.Color = highlightColor;
+                    highlightBox.Color = HighlightColor;
                 }
             }
 
@@ -178,7 +178,7 @@ namespace DarkHelmet.BuildVision2
                             logRange = Math.Ceiling(Math.Log10(absRange)),
                             offset, value;
 
-                        if (absRange > floatPropLogThreshold)
+                        if (absRange > FloatPropLogThreshold)
                         {
                             offset = .1;
                             value = (float)(Math.Log10(Math.Abs(floatMember.Value - floatMember.MinValue) + 1d) / logRange);
@@ -215,7 +215,7 @@ namespace DarkHelmet.BuildVision2
                         else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
                             value -= offset;
 
-                        if (absRange > floatPropLogThreshold)
+                        if (absRange > FloatPropLogThreshold)
                             value = (Math.Pow(10d, value * logRange) - 1d + floatMember.MinValue);
 
                         floatMember.Value = (float)MathHelper.Clamp(value, floatMember.MinValue, floatMember.MaxValue);
@@ -319,14 +319,14 @@ namespace DarkHelmet.BuildVision2
                         if (!selection.InputOpen)
                         {
                             IBlockMember blockMember = selection.AssocMember;
-                            selection.ValueText.SetText(blockMember.ValueText, selectedFormat);
+                            selection.ValueText.SetText(blockMember.ValueText, SelectedFormat);
                             selection.OpenInput();
                             selection.WaitingForChatInput = false;
                         }
                     }
                     else
                     {
-                        selection.ValueText.SetText(textEntryWarning, selectedFormat);
+                        selection.ValueText.SetText(TextEntryWarning, SelectedFormat);
                         selection.WaitingForChatInput = true;
                     }
                 }

@@ -35,7 +35,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     DimAlignment = DimAlignments.UnpaddedSize,
                     SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersCenter,
-                    Spacing = widgetInnerPadding,
+                    Spacing = WidgetInnerPadding,
                     CollectionContainer =
                     {
                         label,
@@ -59,7 +59,7 @@ namespace DarkHelmet.BuildVision2
                 if (BindManager.IsChatOpen)
                     textField.TextBoard.SetText(textValueMember.Value);
                 else
-                    textField.TextBoard.SetText(textEntryWarning);
+                    textField.TextBoard.SetText(TextEntryWarning);
 
                 if (BindManager.IsChatOpen && !textField.InputOpen)
                     textField.OpenInput();

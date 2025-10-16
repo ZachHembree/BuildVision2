@@ -1,4 +1,4 @@
-﻿using RichHudFramework.Client;
+using RichHudFramework.Client;
 using RichHudFramework.IO;
 using RichHudFramework.UI;
 using System;
@@ -73,20 +73,22 @@ namespace DarkHelmet.BuildVision2
                 propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>()
                 {
                     Visible = false,
-                    BackgroundColor = bodyColor,
-                    HighlightColor = highlightColor,
-                    SelectionColor = highlightFocusColor,
+                    BackgroundColor = BodyColor,
+                    HighlightColor = HighlightColor,
+                    SelectionColor = HighlightFocusColor,
+                    Size = new Vector2(WheelOuterDiam),
                     ZOffset = -1,
                 };
+                propertyWheel.polyBoard.InnerRadius = WheelInnerDiamScale;
                 propertyWheel.Register(wheelBody, true);
 
                 // Selection wheel for dupe shortcuts
                 dupeWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>()
                 {
                     Visible = false,
-                    BackgroundColor = bodyColor,
-                    HighlightColor = highlightColor,
-                    SelectionColor = highlightFocusColor,
+                    BackgroundColor = BodyColor,
+                    HighlightColor = HighlightColor,
+                    SelectionColor = HighlightFocusColor,
                     ZOffset = -1,
                     CollectionContainer =
                     {
@@ -301,7 +303,7 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 textUpdateTick++;
-                textUpdateTick %= textTickDivider;
+                textUpdateTick %= TextTickDivider;
             }
 
             private void UpdateDebugText()

@@ -68,18 +68,18 @@ namespace DarkHelmet.BuildVision2
 
                 header = new LabelBox()
                 {
-                    Format = listHeaderFormat,
+                    Format = ListHeaderFormat,
                     Text = BvMain.modName,
                     AutoResize = false,
-                    Size = new Vector2(listMinWidth, 34f),
-                    Color = headerColor,
+                    Size = new Vector2(ListMinWidth, 34f),
+                    Color = HeaderColor,
                 };
 
                 listBody = new ScrollBox<PropertyListEntry, PropertyListEntryElement>(true)
                 {
                     SizingMode = HudChainSizingModes.FitMembersOffAxis,
                     Padding = new Vector2(48f, 15f),
-                    Color = bodyColor,
+                    Color = BodyColor,
                     EnableScrolling = false,
                     UseSmoothScrolling = false,
                     Visible = false
@@ -92,7 +92,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     AutoResize = false,
                     VertCenterText = false,
-                    Color = bodyColor,
+                    Color = BodyColor,
                     TextPadding = new Vector2(48f, 16f),
                     BuilderMode = TextBuilderModes.Lined,
                 };
@@ -111,8 +111,8 @@ namespace DarkHelmet.BuildVision2
                 {
                     AutoResize = false,
                     TextPadding = new Vector2(48f, 0f),
-                    Size = new Vector2(listMinWidth, 24f),
-                    Color = headerColor,
+                    Size = new Vector2(ListMinWidth, 24f),
+                    Color = HeaderColor,
                 };
 
                 layout = new HudChain(true, this)
@@ -253,7 +253,7 @@ namespace DarkHelmet.BuildVision2
                 // Set list height based on max visible number set in cfg * entry height
                 // Set list width based on the widest entry
                 float scrollbarPadding = listBody.ScrollBar.Width;
-                Vector2 listSize = new Vector2(listMinWidth - scrollbarPadding - listBody.Padding.X, 0f);
+                Vector2 listSize = new Vector2(ListMinWidth - scrollbarPadding - listBody.Padding.X, 0f);
                 int maxVis = Math.Min(BvConfig.Current.genUI.listMaxVisible, listBody.EnabledCount),
                     visCount = 0;
 
@@ -265,7 +265,7 @@ namespace DarkHelmet.BuildVision2
                         {
                             var element = listBody[i].Element;
                             listSize.X = MathHelper.Max(listSize.X, element.TextSize.X);
-                            listSize.Y += listEntryHeight;
+                            listSize.Y += ListEntryHeight;
 
                             visCount++;
                         }
@@ -277,11 +277,11 @@ namespace DarkHelmet.BuildVision2
                 listBody.UnpaddedSize = listSize + new Vector2(scrollbarPadding, 0f);
 
                 // Set peek body to match text size
-                peekBody.Size = Vector2.Max(peekBody.TextBoard.TextSize + peekBody.TextPadding, new Vector2(listMinWidth, 0f));
+                peekBody.Size = Vector2.Max(peekBody.TextBoard.TextSize + peekBody.TextPadding, new Vector2(ListMinWidth, 0f));
 
                 // Set chain size to match contents, clamped to min width
                 Vector2 layoutSize = layout.GetRangeSize();
-                layoutSize.X = Math.Max(listBody.Width, listMinWidth);
+                layoutSize.X = Math.Max(listBody.Width, ListMinWidth);
                 layout.Size = layoutSize;
                 Size = layoutSize;
 
@@ -298,7 +298,7 @@ namespace DarkHelmet.BuildVision2
 
                     highlightBox.UnpaddedSize = new Vector2(
                         listSize.X + 0.5f * listBody.Padding.X,
-                        listEntryHeight
+                        ListEntryHeight
                     );
                     highlightBox.Offset = new Vector2(0f, listBody[selectionIndex].Element.Offset.Y - 1f);
 
@@ -312,7 +312,7 @@ namespace DarkHelmet.BuildVision2
                 debugText.Visible = DrawDebug;
 
                 textUpdateTick++;
-                textUpdateTick %= textTickDivider;
+                textUpdateTick %= TextTickDivider;
             }
 
             private void UpdateBodyText()
@@ -322,7 +322,7 @@ namespace DarkHelmet.BuildVision2
                     if (textUpdateTick == 0)
                     {
                         peekBuilder.Clear();
-                        quickActionMenu.Target.GetSummary(peekBuilder, bodyFormat, valueFormat);
+                        quickActionMenu.Target.GetSummary(peekBuilder, BodyFormat, ValueFormat);
                         peekBody.TextBoard.SetText(peekBuilder);
                     }
                 }
@@ -345,12 +345,12 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void UpdateFooterText()
             {
-                if (notification != null && notificationTimer.ElapsedMilliseconds < notificationTime)
+                if (notification != null && notificationTimer.ElapsedMilliseconds < NotificationTime)
                 {
                     footer.LeftTextBuilder.Clear();
-                    footer.LeftTextBuilder.Append("[", footerFormatLeft);
-                    footer.LeftTextBuilder.Append(notification, footerFormatLeft);
-                    footer.LeftTextBuilder.Append("]", footerFormatLeft);
+                    footer.LeftTextBuilder.Append("[", FooterFormatLeft);
+                    footer.LeftTextBuilder.Append(notification, FooterFormatLeft);
+                    footer.LeftTextBuilder.Append("]", FooterFormatLeft);
 
                     if (contNotification)
                     {
@@ -370,19 +370,19 @@ namespace DarkHelmet.BuildVision2
 
                     footer.LeftTextBuilder.SetText(
                         $"[Copying {Target.Duplicator.GetSelectedEntryCount()} " +
-                        $"of {Target.Duplicator.GetValidEntryCount()}]", footerFormatLeft);
+                        $"of {Target.Duplicator.GetValidEntryCount()}]", FooterFormatLeft);
                 }
                 else if ((MenuState & QuickActionMenuState.Peek) > 0)
-                    footer.LeftTextBuilder.SetText("[Peeking]", footerFormatLeft);
+                    footer.LeftTextBuilder.SetText("[Peeking]", FooterFormatLeft);
                 else
-                    footer.LeftTextBuilder.SetText($"[{listBody.VisStart + 1} - {listBody.VisStart + listBody.VisCount} of {listBody.EnabledCount}]", footerFormatLeft);
+                    footer.LeftTextBuilder.SetText($"[{listBody.VisStart + 1} - {listBody.VisStart + listBody.VisCount} of {listBody.EnabledCount}]", FooterFormatLeft);
 
                 if (Target.IsWorking)
-                    footer.RightTextBuilder.SetText("[Working]", footerFormatLeft);
+                    footer.RightTextBuilder.SetText("[Working]", FooterFormatLeft);
                 else if (Target.IsFunctional)
-                    footer.RightTextBuilder.SetText("[Functional]", footerFormatRight);
+                    footer.RightTextBuilder.SetText("[Functional]", FooterFormatRight);
                 else
-                    footer.RightTextBuilder.SetText("[Incomplete]", blockIncFormat);
+                    footer.RightTextBuilder.SetText("[Incomplete]", BlockIncFormat);
             }
 
             private void UpdateDebugText()

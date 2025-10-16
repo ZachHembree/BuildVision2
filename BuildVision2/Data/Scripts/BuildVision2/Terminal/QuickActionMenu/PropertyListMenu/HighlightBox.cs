@@ -25,7 +25,7 @@ namespace DarkHelmet.BuildVision2
                     Color = TerminalFormatting.Atomic;
                     CanDrawTab = true;
                     IsSelectivelyMasked = true;
-                    Height = listEntryHeight;
+                    Height = ListEntryHeight;
                     Padding = new Vector2(3f, 1f);
                 }
 

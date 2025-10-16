@@ -33,7 +33,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     DimAlignment = DimAlignments.UnpaddedSize,
                     SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersCenter,
-                    Spacing = widgetInnerPadding,
+                    Spacing = WidgetInnerPadding,
                     CollectionContainer =
                     {
                         sliderBox,
@@ -94,11 +94,11 @@ namespace DarkHelmet.BuildVision2
 
                     if (floatMember.StatusText != null && floatMember.StatusText.Length > 0)
                     {
-                        valueBuilder.Append(floatMember.StatusText, wheelValueColor.WithAlignment(TextAlignment.Right));
+                        valueBuilder.Append(floatMember.StatusText, WheelValueColor.WithAlignment(TextAlignment.Right));
                         valueBuilder.Append(" ");
                     }
 
-                    valueBuilder.Append(floatMember.FormattedValue, wheelNameColor.WithAlignment(TextAlignment.Right));
+                    valueBuilder.Append(floatMember.FormattedValue, WheelNameColor.WithAlignment(TextAlignment.Right));
                 }
             }
 
@@ -189,7 +189,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void SetSliderValue(double current)
             {
-                if (absRange > floatPropLogThreshold)
+                if (absRange > FloatPropLogThreshold)
                 {
                     current = MathHelper.Clamp(current, floatMember.MinValue, floatMember.MaxValue);
                     sliderBox.Current = (float)(Math.Log10(Math.Abs(current - floatMember.MinValue) + 1d) / logRange);
@@ -207,7 +207,7 @@ namespace DarkHelmet.BuildVision2
             {
                 double value = sliderBox.Current;
 
-                if (absRange > floatPropLogThreshold)
+                if (absRange > FloatPropLogThreshold)
                 {
                     value = Math.Pow(10d, value * logRange) - 1d + floatMember.MinValue;
                 }

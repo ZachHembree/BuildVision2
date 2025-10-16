@@ -27,7 +27,7 @@ namespace DarkHelmet.BuildVision2
             {
                 SetElement(new Label()
                 {
-                    Format = valueFormatCenter,
+                    Format = ValueFormatCenter,
                     VertCenterText = true,
                     AutoResize = true,
                     BuilderMode = TextBuilderModes.Wrapped,
@@ -121,15 +121,15 @@ namespace DarkHelmet.BuildVision2
                     disp = BlockMember.FormattedValue;
                 ITextBuilder tb = Element.TextBoard;
 
-                var fmtName = selected ? selectedFormatCenter : nameFormatCenter;
-                var fmtValue = selected ? selectedFormatCenter : valueFormatCenter;
+                var fmtName = selected ? SelectedFormatCenter : NameFormatCenter;
+                var fmtValue = selected ? SelectedFormatCenter : ValueFormatCenter;
 
                 tb.Clear();
 
                 if (name != null)
                 {
                     textBuf.Clear();
-                    textBuf.AppendSubstringMax(name, maxEntryCharCount);
+                    textBuf.AppendSubstringMax(name, MaxEntryCharCount);
 
                     if (disp != null)
                         textBuf.Append(":\n");
@@ -140,7 +140,7 @@ namespace DarkHelmet.BuildVision2
                 if (disp != null)
                 {
                     textBuf.Clear();
-                    textBuf.AppendSubstringMax(disp, maxEntryCharCount);
+                    textBuf.AppendSubstringMax(disp, MaxEntryCharCount);
 
                     tb.Append(textBuf, fmtValue);
                 }
