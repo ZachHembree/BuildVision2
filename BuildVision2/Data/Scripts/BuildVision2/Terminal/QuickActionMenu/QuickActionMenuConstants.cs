@@ -2,7 +2,6 @@
 using RichHudFramework.UI.Rendering;
 using RichHudFramework.UI.Rendering.Client;
 using System;
-using System.Runtime.Remoting.Messaging;
 using VRageMath;
 
 namespace DarkHelmet.BuildVision2
@@ -71,8 +70,8 @@ namespace DarkHelmet.BuildVision2
             wheelBodyPeekPadding = 43f,
             wheelBodyPadding = 90f,
             widgetInnerPadding = 4f,
-            listMinWidth = 300f,
-            listEntryHeight = 20f;
+            listMinWidth = 296f,
+            listEntryHeight = 19f;
 
         public static void SetFont(string fontName)
         {

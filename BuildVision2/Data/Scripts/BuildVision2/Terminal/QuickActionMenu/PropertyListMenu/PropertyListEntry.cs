@@ -41,7 +41,6 @@ namespace DarkHelmet.BuildVision2
                     CollectionContainer = { name, value, postfix }
                 };
 
-                Padding = new Vector2(18f, 0f);
                 Height = listEntryHeight;
                 IsMasking = true;
             }

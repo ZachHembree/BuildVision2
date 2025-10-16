@@ -78,7 +78,7 @@ namespace DarkHelmet.BuildVision2
                 listBody = new ScrollBox<PropertyListEntry, PropertyListEntryElement>(true)
                 {
                     SizingMode = HudChainSizingModes.FitMembersOffAxis,
-                    Padding = new Vector2(30f, 16f),
+                    Padding = new Vector2(48f, 15f),
                     Color = bodyColor,
                     EnableScrolling = false,
                     UseSmoothScrolling = false,
@@ -253,7 +253,7 @@ namespace DarkHelmet.BuildVision2
                 // Set list height based on max visible number set in cfg * entry height
                 // Set list width based on the widest entry
                 float scrollbarPadding = listBody.ScrollBar.Width;
-                Vector2 listSize = new Vector2(listMinWidth - scrollbarPadding, 0f);
+                Vector2 listSize = new Vector2(listMinWidth - scrollbarPadding - listBody.Padding.X, 0f);
                 int maxVis = Math.Min(BvConfig.Current.genUI.listMaxVisible, listBody.EnabledCount),
                     visCount = 0;
 
@@ -273,7 +273,7 @@ namespace DarkHelmet.BuildVision2
                             break; 
                     }
                 }
-
+                
                 listBody.UnpaddedSize = listSize + new Vector2(scrollbarPadding, 0f);
 
                 // Set peek body to match text size
@@ -287,17 +287,20 @@ namespace DarkHelmet.BuildVision2
 
                 if (listBody.Count > 0)
                 {
+                    if (listBody.Start > 0 && visCount < maxVis)
+                        listBody.Start = 0;
+
                     // Update visible range
                     if (selectionIndex > listBody.End)
                         listBody.End = selectionIndex;
                     else if (selectionIndex < listBody.Start)
                         listBody.Start = selectionIndex;
 
-                    highlightBox.Size = new Vector2(
-                        listSize.X,
+                    highlightBox.UnpaddedSize = new Vector2(
+                        listSize.X + 0.5f * listBody.Padding.X,
                         listEntryHeight
                     );
-                    highlightBox.Offset = new Vector2(-8f, listBody[selectionIndex].Element.Offset.Y - 1f);
+                    highlightBox.Offset = new Vector2(0f, listBody[selectionIndex].Element.Offset.Y - 1f);
 
                     if (DrawDebug && textUpdateTick == 0)
                         UpdateDebugText();
