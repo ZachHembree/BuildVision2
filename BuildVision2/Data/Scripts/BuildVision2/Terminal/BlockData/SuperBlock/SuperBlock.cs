@@ -124,14 +124,8 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public MyDefinitionBase BlockDefinition {  get; private set; }
 
-        private static readonly List<Action<SuperBlock>> SubtypeSetters;
         private readonly List<SubtypeAccessorBase> subtypeAccessors;
         private readonly StringBuilder textBuffer;
-
-        static SuperBlock()
-        {
-            SubtypeSetters = new List<Action<SuperBlock>>();
-        }
 
         public SuperBlock()
         {
@@ -254,6 +248,8 @@ namespace DarkHelmet.BuildVision2
             SetOrCreateAccessor(ref _program, this);
 
             SetOrCreateAccessor(ref _eventController, this);
+
+            SetOrCreateAccessor(ref _solarFood, this);
 
 			SetOrCreateAccessor(ref _assembler, this);
 
