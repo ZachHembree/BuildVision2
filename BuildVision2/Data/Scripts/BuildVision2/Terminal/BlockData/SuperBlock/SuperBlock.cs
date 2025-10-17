@@ -1,4 +1,4 @@
-﻿using RichHudFramework.Internal;
+using RichHudFramework.Internal;
 using RichHudFramework.UI;
 using RichHudFramework;
 using Sandbox.ModAPI;
@@ -14,6 +14,8 @@ using IMyLandingGear = SpaceEngineers.Game.ModAPI.IMyLandingGear;
 using IMyGravityGeneratorBase = SpaceEngineers.Game.ModAPI.IMyGravityGeneratorBase;
 using IMyTimerBlock = SpaceEngineers.Game.ModAPI.IMyTimerBlock;
 using IMyEventControllerBlock = Sandbox.ModAPI.IMyEventControllerBlock;
+using VRage.Game;
+using Sandbox.Definitions;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -45,8 +47,8 @@ namespace DarkHelmet.BuildVision2
         OreDetector = 1 << 21,
         Gyroscope = 1 << 22,
         Warhead = 1 << 23,
-        GunBase = 1 << 24,
-        Turret = 1 << 25,
+        GunBase = 1 << 24, // MyAmmoDefinition
+		Turret = 1 << 25,
         GravityGen = 1 << 26,
         Sensor = 1 << 27,
         Projector = 1 << 28,
@@ -54,14 +56,16 @@ namespace DarkHelmet.BuildVision2
         Programmable = 1 << 30,
 
         EventController = 1ul << 31,
-        SolarOccludable = 1ul << 32,
-        SolarFoodGenerator = 1ul << 33, // Component - IMySolarFoodGenerator
-        FarmPlot = 1ul << 34, // Component - IMyFarmPlotLogic
-        OxygenFarm = 1ul << 35,
-        Assembler = 1ul << 36,
-        ButtonPanel = 1ul << 37, // IMyButtonPanel
-        TextPanel = 1ul << 38 // IMyTextPanel and IMyTextSurface - Get/Write public title
-    }
+        SolarFoodGenerator = 1ul << 32, // Component - IMySolarFoodGenerator
+        FarmPlot = 1ul << 33, // Component - IMyFarmPlotLogic
+        OxygenFarm = 1ul << 34, // IMyOxygenFarm - IMyGasBlock
+
+        Assembler = 1ul << 35,
+        Refinery = 1ul << 36,
+        ButtonPanel = 1ul << 37, // IMyButtonPanel - IMyUseObject
+		TextPanel = 1ul << 38 // IMyTextPanel,  IMyTextSurface, IMyTextSurfaceProvider, IMyMultiTextComponentOwner
+                              // - Get/Write text in components?
+	}
 
     /// <summary>
     /// General purpose terminal block wrapper used to provide easy access to block subtype members.
@@ -115,8 +119,19 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         public IReadOnlyList<SubtypeAccessorBase> SubtypeAccessors => subtypeAccessors;
 
+        /// <summary>
+        /// Block definition base
+        /// </summary>
+        public MyDefinitionBase BlockDefinition {  get; private set; }
+
+        private static readonly List<Action<SuperBlock>> SubtypeSetters;
         private readonly List<SubtypeAccessorBase> subtypeAccessors;
         private readonly StringBuilder textBuffer;
+
+        static SuperBlock()
+        {
+            SubtypeSetters = new List<Action<SuperBlock>>();
+        }
 
         public SuperBlock()
         {
@@ -135,7 +150,8 @@ namespace DarkHelmet.BuildVision2
 
             TypeID = tBlock.BlockDefinition.TypeIdString;
             TBlock.OnMarkForClose += BlockClosing;
-
+            BlockDefinition = MyDefinitionManager.Static.GetDefinition(tBlock.BlockDefinition);
+            
             AddBlockSubtypes();
         }
 
@@ -154,7 +170,8 @@ namespace DarkHelmet.BuildVision2
             TBlock = null;
             TerminalGrid = null;
             SubtypeId = 0;
-        }
+            BlockDefinition = null;
+		}
 
         /// <summary>
         /// Appends a summary of the block's current configuration
@@ -184,7 +201,7 @@ namespace DarkHelmet.BuildVision2
 
             SetOrCreateAccessor(ref _battery, this);
 
-            SetOrCreateAccessor(ref _inventory, this);
+			SetOrCreateAccessor(ref _inventory, this);
 
             SetOrCreateAccessor(ref _production, this);
 
@@ -237,6 +254,10 @@ namespace DarkHelmet.BuildVision2
             SetOrCreateAccessor(ref _program, this);
 
             SetOrCreateAccessor(ref _eventController, this);
+
+			SetOrCreateAccessor(ref _assembler, this);
+
+            SetOrCreateAccessor(ref _refinery, this);
         }
 
         public void GetGroupNamesForBlock(List<string> groups) =>
@@ -309,7 +330,31 @@ namespace DarkHelmet.BuildVision2
                 SubtypeId = 0;
             }
         }
-    }
+
+		public abstract class ComponentAccessor<T> : SubtypeAccessorBase where T : class
+		{
+			protected T component;
+
+			protected override void SetBlock(SuperBlock block, TBlockSubtypes subtypeId, bool addSubtype = true)
+			{
+				this.block = block;
+				this.SubtypeId = subtypeId;
+
+				if (block.TBlock.Components.TryGet<T>(out component))
+				{
+					block.SubtypeId |= subtypeId;
+					block.subtypeAccessors.Add(this);
+				}
+			}
+
+			public override void Reset()
+			{
+				block = null;
+				component = null;
+				SubtypeId = 0;
+			}
+		}
+	}
 
     public static class SubtypeEnumExtensions
     {
