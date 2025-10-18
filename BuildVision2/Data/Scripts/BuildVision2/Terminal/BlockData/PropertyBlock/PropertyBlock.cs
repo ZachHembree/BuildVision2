@@ -291,9 +291,21 @@ namespace DarkHelmet.BuildVision2
             TextProperty argProperty = null;
             TBlock.GetProperties(propBuf);
 
+            if (ExceptionHandler.DebugLogging)
+            {
+                ExceptionHandler.SendChatMessage($"Block Properties: ({TBlock.CustomName})");
+                ExceptionHandler.WriteToConsole($"Block Properties: ({TBlock.CustomName})");
+            }
+
             foreach (ITerminalProperty prop in propBuf)
             {
                 var control = prop as IMyTerminalControl;
+
+                if (ExceptionHandler.DebugLogging)
+                {
+                    ExceptionHandler.SendChatMessage($"PropertyID: {prop.Id}");
+                    ExceptionHandler.WriteToLogAndConsole($"PropertyID: {prop.Id}");
+                }
 
                 if (control != null && control.CanUseControl(TBlock))
                 {
@@ -319,7 +331,7 @@ namespace DarkHelmet.BuildVision2
                         if (prop is IMyTerminalControlCombobox)
                         {
                             var comboBox = prop as IMyTerminalControlCombobox;
-
+                            
                             if (comboBox.CanAccessValue(TBlock, comboItemBuffer))
                                 blockProperties.Add(ComboBoxProperty.GetProperty(nameBuilder, comboBox, comboItemBuffer, this));
                         }

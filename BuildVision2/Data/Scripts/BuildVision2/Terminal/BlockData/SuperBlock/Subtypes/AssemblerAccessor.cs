@@ -1,14 +1,10 @@
 ﻿using RichHudFramework.UI;
-using Sandbox.ModAPI;
+using Sandbox.Definitions;
 using Sandbox.ModAPI.Ingame;
-using System;
 using System.Collections.Generic;
 using VRage;
-using VRage.Utils;
-using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 using IMyAssembler = Sandbox.ModAPI.Ingame.IMyAssembler;
-using System.Text;
-using Sandbox.Definitions;
+using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -34,8 +30,8 @@ namespace DarkHelmet.BuildVision2
 			/// Returns the total number of items in the queue for assembly/disassembly
 			/// </summary>
 			public int QueueCount
-			{ 
-				get 
+			{
+				get
 				{
 					queueBuffer.Clear();
 					subtype.GetQueue(queueBuffer);
@@ -45,7 +41,7 @@ namespace DarkHelmet.BuildVision2
 					foreach (var itemType in queueBuffer)
 						_queueCount += (int)itemType.Amount;
 
-					return _queueCount;	
+					return _queueCount;
 				}
 			}
 
@@ -81,7 +77,7 @@ namespace DarkHelmet.BuildVision2
 			public override void SetBlock(SuperBlock block)
 			{
 				base.SetBlock(block, TBlockSubtypes.Assembler);
-				
+
 				if (block.SubtypeId.HasFlag(TBlockSubtypes.Assembler))
 				{
 					assemblerDef = block.BlockDefinition as MyAssemblerDefinition;
@@ -100,7 +96,7 @@ namespace DarkHelmet.BuildVision2
 				var label = MyTexts.Get(MySpaceTexts.Assembler_ItemsInQueue);
 				var textBuf = block.textBuffer;
 				textBuf.Clear();
-				
+
 				// I'll do my own formatting, thanks
 				for (int i = 0; i < label.Length; i++)
 				{
