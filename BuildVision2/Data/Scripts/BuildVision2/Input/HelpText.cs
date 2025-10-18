@@ -15,29 +15,21 @@ namespace DarkHelmet.BuildVision2
         private static readonly GlyphFormat 
             highlight = new GlyphFormat(accentGrey),
             subheader = new GlyphFormat(accentGrey, TextAlignment.Center, 1.1f, FontStyles.Underline),
-            subsection = new GlyphFormat(QuickActionMenu.highlightFormat.Color, style: FontStyles.Underline);
+            subsection = new GlyphFormat(QuickActionMenu.HighlightFormat.Color, style: FontStyles.Underline);
 
         public static RichText GetHelpMessage()
         {
             return new RichText(GlyphFormat.White)
             {
-                { " Update 3.0:\n\n", subheader },
-
-                $"This update brings a complete redesign of Build Vision's UI and control scheme. The functionality is the same as it was " +
-                $"in 2.5, but the old list menu has been (mostly) replaced with an easier-to-use wheel menu.\n\n",
-                
-                $"The list menu is still available for properties not in the wheel menu and the old control scheme can be restored using the ",
-                { "Legacy Mode", highlight }, " option in the settings. See the description below for the new binds and usage.\n\n",
-
                 { "Usage \n\n", subheader },
 
-                $"This menu is opened by aiming at the desired block and pressing either ", {$"[{GetBindString(BvBinds.OpenWheel)}]", highlight}, 
-                " or ", {$"[{GetBindString(BvBinds.OpenList)}].", highlight}, " The first opens the wheel menu; the second opens the older " +
-                "list-style menu. Holding ", { $"[{GetBindString(BvBinds.MultXOrMouse)}]", highlight }, $" (peek) will show a summary of the target " +
-                $"block's current status without opening the controls. Pressing ", {$"[{GetBindString(BvBinds.Cancel)}]", highlight}, " (Cancel/Back) " +
+                $"This menu is opened by aiming at the desired block and pressing either ", {$"[{GetBindString(BvBinds.OpenWheel)}]", highlight},
+                " or ", {$"[{GetBindString(BvBinds.OpenList)}].", highlight}, " The first opens the wheel menu; the second opens the older ",
+                "list-style menu. Holding ", { $"[{GetBindString(BvBinds.MultXOrMouse)}]", highlight }, $" (peek) will show a summary of the target ",
+                $"block's current status without opening the controls. Pressing ", {$"[{GetBindString(BvBinds.Cancel)}]", highlight}, " (Cancel/Back) ",
                 "will close the menu.\n\n",
 
-                $"By default, the menu will close if you move more than 10 meters ", {"(4 large blocks)", highlight }, " from your target block. " +
+                $"By default, the menu will close if you move more than 10 meters ", {"(4 large blocks)", highlight }, " from your target block. ",
                 "The exact distance can be customized in the settings section.\n\n",
 
                 { "Main Binds \n\n", subheader },
@@ -51,24 +43,24 @@ namespace DarkHelmet.BuildVision2
 
                 { "Selection:\n", subsection},
                 "There are two ways to select properties: scrolling or by moving the mouse. To highlight with the mouse, hold ",
-                { $"[{GetBindString(BvBinds.MultXOrMouse)}]", highlight }, " (MultX/Peek), and move your mouse either clockwise or counterclockwise, like you're " +
+                { $"[{GetBindString(BvBinds.MultXOrMouse)}]", highlight }, " (MultX/Peek), and move your mouse either clockwise or counterclockwise, like you're ",
                 "tracing a circle.\n\n",
 
-                "Pressing ", { "Select/Confirm", highlight }, " will open the highlighted property. Pressing that bind again will confirm any changes. " +
+                "Pressing ", { "Select/Confirm", highlight }, " will open the highlighted property. Pressing that bind again will confirm any changes. ",
                 "Pressing ", { "Back/Cancel", highlight }, " will close the property without saving changes; pressing it again will close the menu.\n\n",
 
                 { "Note:", highlight }, " The list menu only supports scrolling with the mouse wheel (or scroll binds).\n\n",
 
                 { "Changing Settings:\n", subsection},
-                "Properties can be changed using the scroll wheel in conjunction with the multiplier binds listed below, with text-only fields being the " +
+                "Properties can be changed using the scroll wheel in conjunction with the multiplier binds listed below, with text-only fields being the ",
                 "only exception.\n\n",
-               
-                "Alternatively, ",{ "MultX/Peek", highlight }, " will allow you to use your cursor in the wheel menu with the control in the center. Depending on " +
+
+                "Alternatively, ",{ "MultX/Peek", highlight }, " will allow you to use your cursor in the wheel menu with the control in the center. Depending on ",
                 "the use case, this is often easier.\n\n",
 
                 { "Text:\n", subsection},
-                "Text fields are opened/closed with ", { "chat", highlight }, " (Enter) and support the usage of the usual Ctrl+A/X/C/V binds to select, cut, " +
-                "copy and paste text.  Fair warning: you'll only be able to copy text within Build Vision; it won't work with the terminal or anything else.\n\n" +
+                "Text fields are opened/closed with ", { "chat", highlight }, " (Enter) and support the usage of the usual Ctrl+A/X/C/V binds to select, cut, ",
+                "copy and paste text.  Fair warning: you'll only be able to copy text within Build Vision; it won't work with the terminal or anything else.\n\n",
 
                 "Opening ", { "chat", highlight }, " (pressing Enter) while a text field is highlighted will open text input automatically.\n\n",
 
@@ -87,7 +79,7 @@ namespace DarkHelmet.BuildVision2
 
                 { $"Property Duplication Shortcuts \n", subheader},
 
-                $"Property or settings duplication, as the name implies, is used to copy block settings from one block to another. The controls below can be used to " +
+                $"Property or settings duplication, as the name implies, is used to copy block settings from one block to another. The controls below can be used to ",
                 $"quickly copy block settings, but there are buttons for these controls in the wheel menu as well.\n\n",
 
                 $"\tStart Dupe:\t\t|\t[{GetBindString(BvBinds.StartDupe)}]\n",
@@ -110,7 +102,7 @@ namespace DarkHelmet.BuildVision2
                 $"The chat commands in this mod are largely redundant; the functionality they provide is also provided by the settings menu. ",
                 $"If you prefer to use the chat commands for whatever reason, here they are:\n\n",
 
-                $"All chat commands must begin with ", { "“/bv2”", highlight }, "and are not case-sensitive. The arguments following ", { "“/bv2”", highlight }, 
+                $"All chat commands must begin with ", { "“/bv2”", highlight }, "and are not case-sensitive. The arguments following ", { "“/bv2”", highlight },
                 " can be separated either by whitespace, a comma, semicolon or pipe character. Whatever floats your boat; just make sure there’s something between them.\n\n",
 
                 $"• help:\t\t\tYou are here.\n",
