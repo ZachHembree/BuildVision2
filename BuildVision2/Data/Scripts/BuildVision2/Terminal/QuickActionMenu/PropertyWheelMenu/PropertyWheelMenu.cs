@@ -1,336 +1,342 @@
-using RichHudFramework.Client;
-using RichHudFramework.IO;
-using RichHudFramework.UI;
-using System;
-using System.Text;
-using System.Collections.Generic;
-using VRage;
-using VRage.ModAPI;
-using VRage.Utils;
-using VRageMath;
 using RichHudFramework;
+using RichHudFramework.UI;
 using RichHudFramework.UI.Rendering;
-using RichHudFramework.UI.Client;
-using RichHudFramework.Internal;
 using RichHudFramework.UI.Rendering.Client;
+using System.Collections.Generic;
+using System.Text;
+using VRage;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
-    public sealed partial class QuickActionMenu : HudElementBase
-    {
-        private sealed partial class PropertyWheelMenu : HudElementBase
-        {
-            /// <summary>
-            /// Parent of the wheel menu
-            /// </summary>
-            public readonly QuickActionMenu quickActionMenu;
+	public sealed partial class QuickActionMenu : HudElementBase
+	{
+		private sealed partial class PropertyWheelMenu : HudElementBase
+		{
+			/// <summary>
+			/// Parent of the wheel menu
+			/// </summary>
+			public readonly QuickActionMenu quickActionMenu;
 
-            /// <summary>
-            /// Gets/sets the menu's state
-            /// </summary>
-            private QuickActionMenuState MenuState
-            {
-                get { return quickActionMenu.MenuState; }
-                set { quickActionMenu.MenuState = value; }
-            }
+			/// <summary>
+			/// Gets/sets the menu's state
+			/// </summary>
+			private QuickActionMenuState MenuState
+			{
+				get { return quickActionMenu.MenuState; }
+				set { quickActionMenu.MenuState = value; }
+			}
 
-            /// <summary>
-            /// Returns the current target block
-            /// </summary>
-            private IPropertyBlock Target => quickActionMenu.Target;
+			/// <summary>
+			/// Returns the current target block
+			/// </summary>
+			private IPropertyBlock Target => quickActionMenu.Target;
 
-            /// <summary>
-            /// Returns true if the menu is open and visible
-            /// </summary>
-            public bool IsOpen { get; set; }
+			/// <summary>
+			/// Returns true if the menu is open and visible
+			/// </summary>
+			public bool IsOpen { get; set; }
 
-            /// <summary>
-            /// Returns true if a property widget is currently open
-            /// </summary>
-            public bool IsWidgetOpen => wheelBody.IsWidgetOpen;
+			/// <summary>
+			/// Returns true if a property widget is currently open
+			/// </summary>
+			public bool IsWidgetOpen => wheelBody.IsWidgetOpen;
 
-            /// <summary>
-            /// Normalized inner diameter of the wheel, [0, 1]
-            /// </summary>
-            public float InnerDiam => propertyWheel.polyBoard.InnerRadius;
+			/// <summary>
+			/// Normalized inner diameter of the wheel, [0, 1]
+			/// </summary>
+			public float InnerDiam => propertyWheel.polyBoard.InnerRadius;
 
-            private readonly RadialSelectionBox<PropertyWheelEntryBase, Label> propertyWheel, dupeWheel;
-            private readonly PropertyWheelMenuBody wheelBody;
-            private readonly Label debugText;
+			/// <summary>
+			/// Returns true if the menu is closing
+			/// </summary>
+			public bool IsHiding { get; private set; }
 
-            private readonly ObjectPool<object> propertyEntryPool;
-            private readonly List<PropertyWheelShortcutEntry> shortcutEntries;
-            private RadialSelectionBox<PropertyWheelEntryBase, Label> activeWheel;
-            private int textUpdateTick;
+			private readonly RadialSelectionBox<PropertyWheelEntryBase, Label> propertyWheel, dupeWheel;
+			private readonly PropertyWheelMenuBody wheelBody;
+			private readonly Label debugText;
 
-            public PropertyWheelMenu(QuickActionMenu parent) : base(null)
-            {
-                Register(parent, true);
-                this.quickActionMenu = parent;
-                wheelBody = new PropertyWheelMenuBody(this) { };
+			private readonly ObjectPool<object> propertyEntryPool;
+			private readonly List<PropertyWheelShortcutEntry> shortcutEntries;
+			private RadialSelectionBox<PropertyWheelEntryBase, Label> activeWheel;
+			private int textUpdateTick;
 
-                // Selection wheel for block properties
-                propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>()
-                {
-                    Visible = false,
-                    BackgroundColor = BodyColor,
-                    HighlightColor = HighlightColor,
-                    SelectionColor = HighlightFocusColor,
-                    Size = new Vector2(WheelOuterDiam),
-                    ZOffset = -1,
-                };
-                propertyWheel.polyBoard.InnerRadius = WheelInnerDiamScale;
-                propertyWheel.Register(wheelBody, true);
+			public PropertyWheelMenu(QuickActionMenu parent) : base(null)
+			{
+				Register(parent, true);
+				this.quickActionMenu = parent;
+				wheelBody = new PropertyWheelMenuBody(this) { };
 
-                // Selection wheel for dupe shortcuts
-                dupeWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>()
-                {
-                    Visible = false,
-                    BackgroundColor = BodyColor,
-                    HighlightColor = HighlightColor,
-                    SelectionColor = HighlightFocusColor,
-                    ZOffset = -1,
-                    CollectionContainer =
-                    {
-                        new PropertyWheelShortcutEntry()
-                        {
-                            Text = MyTexts.TrySubstitute("Back"),
-                            ShortcutAction = quickActionMenu.StopPropertyDuplication,
-                        },
-                        new PropertyWheelShortcutEntry()
-                        {
-                            Text = MyTexts.TrySubstitute("Open List"),
-                            ShortcutAction = quickActionMenu.OpenDupeList,
-                        },
-                        new PropertyWheelShortcutEntry()
-                        {
-                            Text = MyTexts.TrySubstitute("Open List and Select All"),
-                            ShortcutAction = quickActionMenu.OpenDupeListAndSelectAll,
-                        },
-                        new PropertyWheelShortcutEntry()
-                        {
-                            Text = MyTexts.TrySubstitute("Clear Selection"),
-                            ShortcutAction = quickActionMenu.ClearSelection,
-                        },
-                        new PropertyWheelShortcutEntry()
-                        {
-                            Text = MyTexts.TrySubstitute("Copy Selected"),
-                            ShortcutAction = quickActionMenu.CopySelectedProperties,
-                        },
-                        new PropertyWheelShortcutEntry()
-                        {
-                            Text = MyTexts.TrySubstitute("Copy All but Name"),
-                            ShortcutAction = () => quickActionMenu.CopyAllProperties(false),
-                        },
-                        new PropertyWheelShortcutEntry()
-                        {
-                            Text = MyTexts.TrySubstitute("Copy All"),
-                            ShortcutAction = () => quickActionMenu.CopyAllProperties(true),
-                        },
-                        new PropertyWheelShortcutEntry()
-                        {
-                            Text = MyTexts.TrySubstitute("Paste"),
-                            ShortcutAction = quickActionMenu.PasteCopiedProperties,
-                        },
-                        new PropertyWheelShortcutEntry()
-                        {
-                            Text = MyTexts.TrySubstitute("Undo"),
-                            ShortcutAction = quickActionMenu.UndoPropertyPaste,
-                        },
-                    }
-                };
-                dupeWheel.Register(wheelBody, true);
+				// Selection wheel for block properties
+				propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>()
+				{
+					Visible = false,
+					BackgroundColor = BodyColor,
+					HighlightColor = HighlightColor,
+					SelectionColor = HighlightFocusColor,
+					Size = new Vector2(WheelOuterDiam),
+					ZOffset = -1,
+				};
+				propertyWheel.polyBoard.InnerRadius = WheelInnerDiamScale;
+				propertyWheel.Register(wheelBody, true);
 
-                // Shortcuts to be added to the property wheel later
-                shortcutEntries = new List<PropertyWheelShortcutEntry>()
-                {
-                    new PropertyWheelShortcutEntry()
-                    {
-                        Text = MyTexts.TrySubstitute("Copy Settings"),
-                        ShortcutAction = () =>
-                        {
-                            MenuState = QuickActionMenuState.WheelMenuControl;
-                            quickActionMenu.StartPropertyDuplication();
-                        },
-                    }
-                };
+				// Selection wheel for dupe shortcuts
+				dupeWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>()
+				{
+					Visible = false,
+					BackgroundColor = BodyColor,
+					HighlightColor = HighlightColor,
+					SelectionColor = HighlightFocusColor,
+					ZOffset = -1,
+					CollectionContainer =
+					{
+						new PropertyWheelShortcutEntry()
+						{
+							Text = MyTexts.TrySubstitute("Back"),
+							ShortcutAction = quickActionMenu.StopPropertyDuplication,
+						},
+						new PropertyWheelShortcutEntry()
+						{
+							Text = MyTexts.TrySubstitute("Open List"),
+							ShortcutAction = quickActionMenu.OpenDupeList,
+						},
+						new PropertyWheelShortcutEntry()
+						{
+							Text = MyTexts.TrySubstitute("Open List and Select All"),
+							ShortcutAction = quickActionMenu.OpenDupeListAndSelectAll,
+						},
+						new PropertyWheelShortcutEntry()
+						{
+							Text = MyTexts.TrySubstitute("Clear Selection"),
+							ShortcutAction = quickActionMenu.ClearSelection,
+						},
+						new PropertyWheelShortcutEntry()
+						{
+							Text = MyTexts.TrySubstitute("Copy Selected"),
+							ShortcutAction = quickActionMenu.CopySelectedProperties,
+						},
+						new PropertyWheelShortcutEntry()
+						{
+							Text = MyTexts.TrySubstitute("Copy All but Name"),
+							ShortcutAction = () => quickActionMenu.CopyAllProperties(false),
+						},
+						new PropertyWheelShortcutEntry()
+						{
+							Text = MyTexts.TrySubstitute("Copy All"),
+							ShortcutAction = () => quickActionMenu.CopyAllProperties(true),
+						},
+						new PropertyWheelShortcutEntry()
+						{
+							Text = MyTexts.TrySubstitute("Paste"),
+							ShortcutAction = quickActionMenu.PasteCopiedProperties,
+						},
+						new PropertyWheelShortcutEntry()
+						{
+							Text = MyTexts.TrySubstitute("Undo"),
+							ShortcutAction = quickActionMenu.UndoPropertyPaste,
+						},
+					}
+				};
+				dupeWheel.Register(wheelBody, true);
 
-                // I'm using a generic pool because I'm using two types of entry in the same list, but only
-                // one is pooled, and I can't be arsed to do this more neatly.
-                propertyEntryPool = new ObjectPool<object>(
-                    () => new PropertyWheelEntry(),
-                    x => (x as PropertyWheelEntry).Reset()
-                );
+				// Shortcuts to be added to the property wheel later
+				shortcutEntries = new List<PropertyWheelShortcutEntry>()
+				{
+					new PropertyWheelShortcutEntry()
+					{
+						Text = MyTexts.TrySubstitute("Copy Settings"),
+						ShortcutAction = () =>
+						{
+							MenuState = QuickActionMenuState.WheelMenuControl;
+							quickActionMenu.StartPropertyDuplication();
+						},
+					}
+				};
 
-                debugText = new Label(this)
-                {
-                    Visible = false,
-                    BuilderMode = TextBuilderModes.Lined,
-                    ParentAlignment = ParentAlignments.Right
-                };
-            }
+				// I'm using a generic pool because I'm using two types of entry in the same list, but only
+				// one is pooled, and I can't be arsed to do this more neatly.
+				propertyEntryPool = new ObjectPool<object>(
+					() => new PropertyWheelEntry(),
+					x => (x as PropertyWheelEntry).Reset()
+				);
 
-            /// <summary>
-            /// Adds a permanent shortcut to the property wheel
-            /// </summary>
-            public void RegisterShortcut(PropertyWheelShortcutEntry shortcut)
-            {
-                shortcutEntries.Add(shortcut);
-            }
+				debugText = new Label(this)
+				{
+					Visible = false,
+					BuilderMode = TextBuilderModes.Lined,
+					ParentAlignment = ParentAlignments.Right
+				};
+			}
 
-            /// <summary>
-            /// Opens the menu and populates it with properties from the given property block
-            /// </summary>
-            public void OpenMenu()
-            {
-                if (!IsOpen)
-                {
-                    Clear();
+			/// <summary>
+			/// Adds a permanent shortcut to the property wheel
+			/// </summary>
+			public void RegisterShortcut(PropertyWheelShortcutEntry shortcut)
+			{
+				shortcutEntries.Add(shortcut);
+			}
 
-                    // Add entries for block members
-                    for (int i = 0; i < Target.BlockMembers.Count; i++)
-                    {
-                        var entry = propertyEntryPool.Get() as PropertyWheelEntry;
-                        entry.SetMember(i, Target);
-                        propertyWheel.Add(entry);
-                    }
+			/// <summary>
+			/// Opens the menu and populates it with properties from the given property block
+			/// </summary>
+			public void OpenMenu()
+			{
+				if (!IsOpen)
+				{
+					Clear();
 
-                    // Update shortcut font
-                    IFontMin cfgFont = FontManager.GetFont(BvConfig.Current.genUI.fontName);
+					// Add entries for block members
+					for (int i = 0; i < Target.BlockMembers.Count; i++)
+					{
+						var entry = propertyEntryPool.Get() as PropertyWheelEntry;
+						entry.SetMember(i, Target);
+						propertyWheel.Add(entry);
+					}
 
-                    if (cfgFont != null)
-                    {
-                        foreach (PropertyWheelShortcutEntry entry in shortcutEntries)
-                        {
-                            entry.TextBoard.SetFormatting(entry.TextBoard.Format.WithFont(cfgFont));
-                        }
+					// Update shortcut font
+					IFontMin cfgFont = FontManager.GetFont(BvConfig.Current.genUI.fontName);
 
-                        foreach (PropertyWheelShortcutEntry entry in dupeWheel)
-                        {
-                            entry.TextBoard.SetFormatting(entry.TextBoard.Format.WithFont(cfgFont));
-                        }
-                    }
+					if (cfgFont != null)
+					{
+						foreach (PropertyWheelShortcutEntry entry in shortcutEntries)
+						{
+							entry.TextBoard.SetFormatting(entry.TextBoard.Format.WithFont(cfgFont));
+						}
 
-                    // Append registered shortcuts to end
-                    propertyWheel.AddRange(shortcutEntries);
-                    propertyWheel.SetHighlightAt(0);
-                    dupeWheel.SetHighlightAt(0);
-                }
+						foreach (PropertyWheelShortcutEntry entry in dupeWheel)
+						{
+							entry.TextBoard.SetFormatting(entry.TextBoard.Format.WithFont(cfgFont));
+						}
+					}
 
-                propertyWheel.InputEnabled = true;
-                propertyWheel.Visible = true;
-                dupeWheel.Visible = false;
-                IsOpen = true;
-                Visible = true;
-            }
+					// Append registered shortcuts to end
+					propertyWheel.AddRange(shortcutEntries);
+					propertyWheel.SetHighlightAt(0);
+					dupeWheel.SetHighlightAt(0);
+				}
 
-            public void OpenSummary()
-            {
-                propertyWheel.Visible = false;
-                dupeWheel.Visible = false;
-                Visible = true;
-                IsOpen = false;
-            }
+				propertyWheel.InputEnabled = true;
+				propertyWheel.Visible = true;
+				dupeWheel.Visible = false;
+				IsOpen = true;
+				Visible = true;
+				IsHiding = false;
+			}
 
-            public void HideMenu()
-            {
-                Visible = false;
-                propertyWheel.Visible = false;
-                dupeWheel.Visible = false;
-            }
+			public void OpenSummary()
+			{
+				propertyWheel.Visible = false;
+				dupeWheel.Visible = false;
+				Visible = true;
+				IsOpen = false;
+				IsHiding = false;
+			}
 
-            public void CloseMenu()
-            {
-                Clear();
-                HideMenu();
-                IsOpen = false;
-            }
+			public void HideMenu()
+			{
+				IsHiding = true;
+				propertyWheel.Visible = false;
+				dupeWheel.Visible = false;
+			}
 
-            public void ShowNotification(StringBuilder text, bool continuous) =>
-                wheelBody.ShowNotification(text, continuous);
+			public void CloseMenu()
+			{
+				Clear();
+				HideMenu();
+				IsOpen = false;
+			}
 
-            /// <summary>
-            /// Clears all entries from the menu and closes any open widgets
-            /// </summary>
-            private void Clear()
-            {
-                wheelBody.CloseWidget();
+			public void ShowNotification(StringBuilder text, bool continuous) =>
+				wheelBody.ShowNotification(text, continuous);
 
-                propertyEntryPool.ReturnRange(propertyWheel.EntryList, 0,
-                    propertyWheel.EntryList.Count - shortcutEntries.Count);
+			/// <summary>
+			/// Clears all entries from the menu and closes any open widgets
+			/// </summary>
+			private void Clear()
+			{
+				wheelBody.CloseWidget();
 
-                dupeWheel.ClearSelection();
-                propertyWheel.Clear();
-            }
+				propertyEntryPool.ReturnRange(propertyWheel.EntryList, 0,
+					propertyWheel.EntryList.Count - shortcutEntries.Count);
 
-            protected override void Layout()
-            {
-                float opacity = BvConfig.Current.genUI.hudOpacity;
-                wheelBody.background.Color = wheelBody.background.Color.SetAlphaPct(opacity);
-                propertyWheel.BackgroundColor = propertyWheel.BackgroundColor.SetAlphaPct(opacity);
-                dupeWheel.BackgroundColor = dupeWheel.BackgroundColor.SetAlphaPct(opacity);
+				dupeWheel.ClearSelection();
+				propertyWheel.Clear();
+			}
 
-                if (MenuState == QuickActionMenuState.WheelPeek)
-                {
-                    Size = wheelBody.Size;
-                }
-                else
-                {
-                    Size = propertyWheel.Size;
+			protected override void Layout()
+			{
+				float opacity = BvConfig.Current.genUI.hudOpacity;
+				wheelBody.background.Color = wheelBody.background.Color.SetAlphaPct(opacity);
+				propertyWheel.BackgroundColor = propertyWheel.BackgroundColor.SetAlphaPct(opacity);
+				dupeWheel.BackgroundColor = dupeWheel.BackgroundColor.SetAlphaPct(opacity);
 
-                    if (activeWheel != null)
-                        activeWheel.CursorSensitivity = BvConfig.Current.genUI.cursorSensitivity;
+				if (IsHiding && wheelBody.AnimPos < 0.01f)
+				{
+					Visible = false;
+					IsHiding = false;
+				}
 
-                    if (textUpdateTick == 0 && (MenuState & QuickActionMenuState.PropertyDuplication) == 0)
-                    {
-                        foreach (PropertyWheelEntryBase baseEntry in propertyWheel)
-                        {
-                            var entry = baseEntry as PropertyWheelEntry;
+				if (MenuState == QuickActionMenuState.WheelPeek)
+				{
+					Size = wheelBody.Size;
+				}
+				else
+				{
+					Size = propertyWheel.Size;
 
-                            if (entry != null && entry.Enabled)
-                                entry.UpdateText(entry == propertyWheel.Selection 
-                                    && (MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl);
-                        }
-                    }
-                }
+					if (activeWheel != null)
+						activeWheel.CursorSensitivity = BvConfig.Current.genUI.cursorSensitivity;
 
-                if (textUpdateTick == 0)
-                {
-                    debugText.Visible = DrawDebug;
+					if (textUpdateTick == 0 && (MenuState & QuickActionMenuState.PropertyDuplication) == 0)
+					{
+						foreach (PropertyWheelEntryBase baseEntry in propertyWheel)
+						{
+							var entry = baseEntry as PropertyWheelEntry;
 
-                    if (DrawDebug)
-                        UpdateDebugText();
-                }
+							if (entry != null && entry.Enabled)
+								entry.UpdateText(entry == propertyWheel.Selection
+									&& (MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl);
+						}
+					}
+				}
 
-                textUpdateTick++;
-                textUpdateTick %= TextTickDivider;
-            }
+				if (textUpdateTick == 0)
+				{
+					debugText.Visible = DrawDebug;
 
-            private void UpdateDebugText()
-            {             
-                PropertyWheelEntryBase selection = activeWheel?.Selection;
+					if (DrawDebug)
+						UpdateDebugText();
+				}
 
-                if (selection != null)
-                {
-                    var propertyEntry = selection as PropertyWheelEntry;
-                    ITextBuilder textBuilder = debugText.TextBoard;
-                    textBuilder.Clear();
+				textUpdateTick++;
+				textUpdateTick %= TextTickDivider;
+			}
 
-                    textBuilder.Append($"Prioritized Members: {Target.Prioritizer.PrioritizedMemberCount}\n");
-                    textBuilder.Append($"Enabled Members: {Target.EnabledMemberCount}\n");
-                    textBuilder.Append($"Selection: {selection.Element.TextBoard}\n");
+			private void UpdateDebugText()
+			{
+				PropertyWheelEntryBase selection = activeWheel?.Selection;
 
-                    if (propertyEntry != null)
-                    {
-                        textBuilder.Append($"ID: {propertyEntry.BlockMember.PropName}\n");
-                        textBuilder.Append($"Type: {propertyEntry.BlockMember.GetType().Name}\n");
-                        textBuilder.Append($"Entry Enabled: {propertyEntry.Enabled}\n");
-                        textBuilder.Append($"Prop Enabled: {propertyEntry.BlockMember.Enabled}\n");
-                        textBuilder.Append($"Value Text: {propertyEntry.BlockMember.ValueText}\n");
-                        textBuilder.Append($"Is Duplicating: {propertyEntry.IsSelectedForDuplication}\n");
-                    }                  
-                }
-            }
-        }
-    }
+				if (selection != null)
+				{
+					var propertyEntry = selection as PropertyWheelEntry;
+					ITextBuilder textBuilder = debugText.TextBoard;
+					textBuilder.Clear();
+
+					textBuilder.Append($"Prioritized Members: {Target.Prioritizer.PrioritizedMemberCount}\n");
+					textBuilder.Append($"Enabled Members: {Target.EnabledMemberCount}\n");
+					textBuilder.Append($"Selection: {selection.Element.TextBoard}\n");
+
+					if (propertyEntry != null)
+					{
+						textBuilder.Append($"ID: {propertyEntry.BlockMember.PropName}\n");
+						textBuilder.Append($"Type: {propertyEntry.BlockMember.GetType().Name}\n");
+						textBuilder.Append($"Entry Enabled: {propertyEntry.Enabled}\n");
+						textBuilder.Append($"Prop Enabled: {propertyEntry.BlockMember.Enabled}\n");
+						textBuilder.Append($"Value Text: {propertyEntry.BlockMember.ValueText}\n");
+						textBuilder.Append($"Is Duplicating: {propertyEntry.IsSelectedForDuplication}\n");
+					}
+				}
+			}
+		}
+	}
 }
