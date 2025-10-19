@@ -64,7 +64,10 @@ namespace RichHudFramework
             /// </summary>
             public Color Color => Data.Item4;
 
-            public GlyphFormatMembers Data { get; }
+            /// <summary>
+            /// Internal format storage
+            /// </summary>
+            public GlyphFormatMembers Data { get; set; }
 
             public GlyphFormat(Color color, TextAlignment alignment, float textSize, Vector2I fontStyle)
             {

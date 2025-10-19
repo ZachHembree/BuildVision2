@@ -63,10 +63,10 @@ namespace RichHudFramework
                 /// </summary>
                 Vector2 Size { get; }
 
-                /// <summary>
-                /// Full text size including any text outside the visible range.
-                /// </summary>
-                Vector2 TextSize { get; }
+				/// <summary>
+				/// Full text size including any text outside the visible range. Updates immediately.
+				/// </summary>
+				Vector2 TextSize { get; }
 
                 /// <summary>
                 /// Used to change the position of the text within the text element. Clamped to maximize visible text.

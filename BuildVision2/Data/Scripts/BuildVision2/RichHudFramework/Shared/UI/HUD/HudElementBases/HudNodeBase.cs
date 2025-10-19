@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using VRage;
 using VRageMath;
@@ -126,11 +126,10 @@ namespace RichHudFramework
             /// </summary>
             public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte preloadDepth)
             {
-                bool wasSetVisible = (State & HudElementStates.IsVisible) > 0;
                 HudElementStates lastState = State;
                 State |= HudElementStates.WasParentVisible;
 
-                if (!wasSetVisible && (State & HudElementStates.CanPreload) > 0)
+                if ((State & HudElementStates.IsVisible) == 0 && (State & HudElementStates.CanPreload) > 0)
                     preloadDepth++;
 
                 if (preloadDepth < maxPreloadDepth && (State & HudElementStates.CanPreload) > 0)
