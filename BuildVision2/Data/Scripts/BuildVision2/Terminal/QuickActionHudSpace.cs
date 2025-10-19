@@ -130,9 +130,8 @@ namespace DarkHelmet.BuildVision2
             {
                 Target.Update();
 
-                if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None
-                    || isPlayerBlueprinting || isBpListOpen)
-                {
+                if (!GetCanAccessTargetBlock() || !GetIsBlockInRange())
+				{
                     CloseMenuInternal();
                 }
             }
@@ -339,7 +338,7 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void TryOpenMenuInternal(QuickActionMenuState initialState = default(QuickActionMenuState))
         {
-            if ((targetTick % PeekRetargetTickInterval) == 0 && !isPlayerBlueprinting && TryGetTargetWithPermission() && CanAccessTargetBlock())
+            if ((targetTick % PeekRetargetTickInterval) == 0 && !isPlayerBlueprinting && TryGetTargetWithPermission() && GetCanAccessTargetBlock())
             {
                 quickActionMenu.OpenMenu(Target, initialState);
 
@@ -378,7 +377,8 @@ namespace DarkHelmet.BuildVision2
         {
             IMyTerminalBlock block;
             bool canDisplaceBlock = LocalPlayer.CurrentBuilderBlock != null && !BvConfig.Current.targeting.canOpenIfPlacing,
-                canTarget = !canDisplaceBlock || BvConfig.Current.genUI.legacyModeEnabled;
+                canTarget = (!canDisplaceBlock || BvConfig.Current.genUI.legacyModeEnabled) &&
+				    (LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating);
 
             if (canTarget && TryGetTargetedBlockInternal(BvConfig.Current.targeting.maxOpenRange, out block))
             {
@@ -393,10 +393,9 @@ namespace DarkHelmet.BuildVision2
                         {
                             targetGrid.SetGrid(block.CubeGrid);
                             Target.SetBlock(targetGrid, block);
-                            return true;
                         }
-                        else
-                            return false;
+                        
+                        return Target.TBlock != null;
                     }
                     else
                     {
@@ -428,36 +427,38 @@ namespace DarkHelmet.BuildVision2
         private bool TryGetTargetedBlockInternal(double maxDist, out IMyTerminalBlock target)
         {
             MatrixD camMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
-            Vector3D camPos = camMatrix.Translation, forward = camMatrix.Forward;
+            LineD line;
+            line.From = camMatrix.Translation;
+            line.To = camMatrix.Translation + camMatrix.Forward * maxDist;
+            line.Length = maxDist;
+            line.Direction = camMatrix.Forward;
 
-            LineD line = new LineD(camPos, camPos + forward * maxDist);
-            target = null;
-
-            if ((LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating) && blockFinder.TryUpdateTargets(line))
+            if (blockFinder.TryUpdateTargets(line))
             {
                 target = blockFinder.SortedTargets[0].block;
                 return true;
             }
 
-            return false;
+			target = null;
+			return false;
         }
 
         /// <summary>
         /// Checks if the player can access the targeted block.
         /// </summary>
-        private bool CanAccessTargetBlock()
+        private bool GetCanAccessTargetBlock()
         {
             return Target.TBlock != null
-                && BlockInRange()
                 && Target.CanLocalPlayerAccess
                 && (!BvConfig.Current.targeting.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock))
-                && (LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating);
+                && (LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating) && 
+                !(MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || isPlayerBlueprinting || isBpListOpen);
         }
 
         /// <summary>
         /// Returns true if the player is within maxControlRange meters of the block.
         /// </summary>
-        private bool BlockInRange()
+        private bool GetIsBlockInRange()
         {
             if (LocalPlayer.IsSpectating && !BvConfig.Current.targeting.isSpecRangeLimited)
             {
