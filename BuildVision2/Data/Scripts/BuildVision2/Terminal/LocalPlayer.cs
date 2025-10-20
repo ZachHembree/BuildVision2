@@ -65,9 +65,14 @@ namespace DarkHelmet.BuildVision2
         public static bool IsSpectating => MyAPIGateway.Session.CameraController is MySpectator;
 
         /// <summary>
-        /// Returns the object builder for PlyEnt, provided PlyEnt isn't null
+        /// Returns true if the player is placing blocks
         /// </summary>
-        public static MyObjectBuilder_Character PlyBuilder { get { return PlyEnt?.GetObjectBuilder() as MyObjectBuilder_Character; } }
+        public static bool IsBuilding => MyCubeBuilder.Static?.CubeBuilderState?.CurrentBlockDefinition != null;
+
+		/// <summary>
+		/// Returns the object builder for PlyEnt, provided PlyEnt isn't null
+		/// </summary>
+		public static MyObjectBuilder_Character PlyBuilder { get { return PlyEnt?.GetObjectBuilder() as MyObjectBuilder_Character; } }
 
         /// <summary>
         /// Returns the object builder for the cube block currently selected by the player

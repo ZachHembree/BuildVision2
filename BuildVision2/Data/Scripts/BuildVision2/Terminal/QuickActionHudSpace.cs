@@ -89,7 +89,7 @@ namespace DarkHelmet.BuildVision2
             boundingBox = new BoundingBoard();
             targetLineBoard = new LineBoard();
 
-            RichHudCore.LateMessageEntered += MessageHandler;
+			RichHudCore.LateMessageEntered += MessageHandler;
         }
 
         public static void Init()
@@ -98,7 +98,16 @@ namespace DarkHelmet.BuildVision2
             instance = new QuickActionHudSpace();
         }
 
-        public static void TryOpenMenu() =>
+		/// <summary>
+		/// Tries to retrieve targeted <see cref="IMyTerminalBlock"/> on a grid within a given distance.
+		/// </summary>
+		public static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock target)
+		{
+			target = null;
+			return instance?.TryGetTargetedBlockInternal(maxDist, out target) ?? false;
+		}
+
+		public static void TryOpenMenu() =>
             instance?.TryOpenMenuInternal(QuickActionMenuState.WheelMenuControl);
 
         public static void CloseMenu() =>
@@ -130,14 +139,14 @@ namespace DarkHelmet.BuildVision2
             {
                 Target.Update();
 
-                if (!GetCanAccessTargetBlock() || !GetIsBlockInRange())
+                if (!GetCanAccessTargetBlock())
 				{
                     CloseMenuInternal();
                 }
             }
         }
 
-        protected override void Layout()
+		protected override void Layout()
         {
             var specCon = MyAPIGateway.Session.CameraController as MySpectator;
             float scale = BvConfig.Current.genUI.hudScale;
@@ -246,13 +255,11 @@ namespace DarkHelmet.BuildVision2
             bool isOpen = instance?.quickActionMenu.MenuState != QuickActionMenuState.Closed;
 
             UpdateBpInputMonitoring();
-
-            quickActionMenu.InputEnabled = !RichHudTerminal.Open;
-            bool tryOpen = BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed || BvBinds.StartDupe.IsNewPressed;
+            quickActionMenu.InputEnabled = !RichHudTerminal.Open && MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None;
 
             if (BvConfig.Current.genUI.legacyModeEnabled || (MenuState & QuickActionMenuState.Controlled) == 0)
             {
-                if (tryOpen)
+                if (BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed || BvBinds.StartDupe.IsNewPressed)
                 {
                     targetTick = 0;
                     TryOpenMenuInternal();
@@ -340,7 +347,7 @@ namespace DarkHelmet.BuildVision2
         {
             if ((targetTick % PeekRetargetTickInterval) == 0 && !isPlayerBlueprinting && TryGetTargetWithPermission() && GetCanAccessTargetBlock())
             {
-                quickActionMenu.OpenMenu(Target, initialState);
+				quickActionMenu.OpenMenu(Target, initialState);
 
                 if (!wasInitialized && !BvServer.IsAlive && BvServer.IsPlugin)
                 {
@@ -354,10 +361,41 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        /// <summary>
-        /// Hide the menu and clear target
-        /// </summary>
-        private void CloseMenuInternal()
+		/// <summary>
+		/// Checks if the player can access the targeted block.
+		/// </summary>
+		private bool GetCanAccessTargetBlock()
+		{
+			return Target.TBlock != null
+				&& Target.CanLocalPlayerAccess
+                && GetIsBlockInRange()
+				&& (!BvConfig.Current.targeting.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock))
+				&& (LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating) &&
+				!(MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || isPlayerBlueprinting || isBpListOpen);
+		}
+
+		/// <summary>
+		/// Returns true if the player is within maxControlRange meters of the block.
+		/// </summary>
+		private bool GetIsBlockInRange()
+		{
+			if (LocalPlayer.IsSpectating && !BvConfig.Current.targeting.isSpecRangeLimited)
+				return true;
+			else if (Target.TBlock != null)
+			{
+				double distSq = (MyAPIGateway.Session.Camera.Position - Target.Position).LengthSquared(),
+					maxConDistSq = (BvConfig.Current.targeting.maxControlRange * BvConfig.Current.targeting.maxControlRange);
+
+				return distSq < maxConDistSq;
+			}
+			else
+				return false;
+		}
+
+		/// <summary>
+		/// Hide the menu and clear target
+		/// </summary>
+		private void CloseMenuInternal()
         {
             Target.Reset();
             targetGrid.Reset();
@@ -376,9 +414,10 @@ namespace DarkHelmet.BuildVision2
         private bool TryGetTargetWithPermission()
         {
             IMyTerminalBlock block;
-            bool canDisplaceBlock = LocalPlayer.CurrentBuilderBlock != null && !BvConfig.Current.targeting.canOpenIfPlacing,
-                canTarget = (!canDisplaceBlock || BvConfig.Current.genUI.legacyModeEnabled) &&
-				    (LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating);
+            bool isCharOrSpectator = LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating,
+                canOpenAndPlace = (BvConfig.Current.targeting.canOpenIfPlacing || BvConfig.Current.genUI.legacyModeEnabled),
+                isHandEmpty = LocalPlayer.CurrentBuilderBlock == null,
+                canTarget = isCharOrSpectator && (isHandEmpty || canOpenAndPlace);
 
             if (canTarget && TryGetTargetedBlockInternal(BvConfig.Current.targeting.maxOpenRange, out block))
             {
@@ -415,15 +454,6 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Tries to retrieve targeted <see cref="IMyTerminalBlock"/> on a grid within a given distance.
         /// </summary>
-        public static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock target)
-        {
-            target = null;
-            return instance?.TryGetTargetedBlockInternal(maxDist, out target) ?? false;
-        }
-
-        /// <summary>
-        /// Tries to retrieve targeted <see cref="IMyTerminalBlock"/> on a grid within a given distance.
-        /// </summary>
         private bool TryGetTargetedBlockInternal(double maxDist, out IMyTerminalBlock target)
         {
             MatrixD camMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
@@ -441,43 +471,6 @@ namespace DarkHelmet.BuildVision2
 
 			target = null;
 			return false;
-        }
-
-        /// <summary>
-        /// Checks if the player can access the targeted block.
-        /// </summary>
-        private bool GetCanAccessTargetBlock()
-        {
-            return Target.TBlock != null
-                && Target.CanLocalPlayerAccess
-                && (!BvConfig.Current.targeting.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock))
-                && (LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating) && 
-                !(MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || isPlayerBlueprinting || isBpListOpen);
-        }
-
-        /// <summary>
-        /// Returns true if the player is within maxControlRange meters of the block.
-        /// </summary>
-        private bool GetIsBlockInRange()
-        {
-            if (LocalPlayer.IsSpectating && !BvConfig.Current.targeting.isSpecRangeLimited)
-            {
-                return true;
-            }
-            else
-            {
-                double dist = double.PositiveInfinity;
-
-                if (Target.TBlock != null)
-                {
-                    if (LocalPlayer.IsSpectating)
-                        dist = (MyAPIGateway.Session.Camera.Position - Target.Position).LengthSquared();
-
-                    dist = Math.Min(dist, (LocalPlayer.Position - Target.Position).LengthSquared());
-                }
-
-                return dist < (BvConfig.Current.targeting.maxControlRange * BvConfig.Current.targeting.maxControlRange);
-            }
         }
     }
 }
