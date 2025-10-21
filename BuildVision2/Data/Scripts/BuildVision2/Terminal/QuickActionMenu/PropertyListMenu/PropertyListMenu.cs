@@ -60,7 +60,7 @@ namespace DarkHelmet.BuildVision2
             private readonly RichText peekBuilder;
             private StringBuilder notification;
             private bool contNotification;
-            private int textUpdateTick, selectionIndex;
+            private int textUpdateTick, selectionIndex, highlightIndex;
 
             public PropertyListMenu(QuickActionMenu parent) : base(parent)
             {
@@ -218,7 +218,8 @@ namespace DarkHelmet.BuildVision2
                 listBody.Clear();
                 peekBody.textElement.TextBoard.Clear();
                 selectionIndex = 0;
-                Visible = false;
+                highlightIndex = 0;
+				Visible = false;
                 IsOpen = false;
             }
 
@@ -287,20 +288,20 @@ namespace DarkHelmet.BuildVision2
 
                 if (listBody.Count > 0)
                 {
-                    if (listBody.Start > 0 && visCount < maxVis)
+					// Update visible range
+					if (highlightIndex > listBody.End)
+						listBody.End = highlightIndex;
+					else if (highlightIndex < listBody.Start)
+						listBody.Start = highlightIndex;
+
+					highlightBox.UnpaddedSize = new Vector2(
+		                listSize.X + 0.5f * listBody.Padding.X,
+		                ListEntryHeight
+	                );
+					highlightBox.Offset = new Vector2(0f, listBody[highlightIndex].Element.Offset.Y - 1f);
+
+					if (listBody.Start > 0 && visCount < maxVis)
                         listBody.Start = 0;
-
-                    // Update visible range
-                    if (selectionIndex > listBody.End)
-                        listBody.End = selectionIndex;
-                    else if (selectionIndex < listBody.Start)
-                        listBody.Start = selectionIndex;
-
-                    highlightBox.UnpaddedSize = new Vector2(
-                        listSize.X + 0.5f * listBody.Padding.X,
-                        ListEntryHeight
-                    );
-                    highlightBox.Offset = new Vector2(0f, listBody[selectionIndex].Element.Offset.Y - 1f);
 
                     if (DrawDebug && textUpdateTick == 0)
                         UpdateDebugText();
@@ -309,7 +310,8 @@ namespace DarkHelmet.BuildVision2
                 UpdateBodyText();
                 UpdateFooterText();
 
-                debugText.Visible = DrawDebug;
+                highlightIndex = selectionIndex;
+				debugText.Visible = DrawDebug;
 
                 textUpdateTick++;
                 textUpdateTick %= TextTickDivider;
