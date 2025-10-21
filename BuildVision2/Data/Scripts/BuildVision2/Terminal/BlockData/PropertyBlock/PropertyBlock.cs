@@ -107,10 +107,8 @@ namespace DarkHelmet.BuildVision2
 
         public override void Reset()
         {
-            tick = 0;
-            Update();
-
             base.Reset();
+			tick = 0;
 
             for (int i = 0; i < blockMembers.Count; i++)
                 blockMembers[i].Return();
@@ -138,7 +136,10 @@ namespace DarkHelmet.BuildVision2
 
         private void GenerateProperties()
         {
-            blockMembers.Clear();
+			for (int i = 0; i < blockMembers.Count; i++)
+				blockMembers[i].Return();
+
+			blockMembers.Clear();
             blockProperties.Clear();
 
             GetScrollableProps();
