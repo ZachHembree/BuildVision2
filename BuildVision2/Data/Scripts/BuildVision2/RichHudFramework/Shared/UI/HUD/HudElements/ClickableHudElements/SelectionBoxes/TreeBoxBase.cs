@@ -220,7 +220,7 @@ namespace RichHudFramework.UI
             {
                 selectionBox.Width = CachedSize.X - 2f * IndentSize - Padding.X;
                 selectionBox.Offset = new Vector2(IndentSize, 0f);
-                selectionBox.Height = CachedSize.Y - Padding.Y - labelButton.Height;
+                selectionBox.Height = UnpaddedSize.Y - labelButton.Height;
             }
         }
 

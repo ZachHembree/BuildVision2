@@ -60,7 +60,7 @@ namespace RichHudFramework.UI
 
         protected override void Draw()
         {
-            Vector2 size = (CachedSize - Padding),
+            Vector2 size = (UnpaddedSize),
                 halfSize = .5f * size;
             BoundingBox2 box = new BoundingBox2(Position - halfSize, Position + halfSize);
             bool autoResize = TextBoard.AutoResize;

@@ -416,7 +416,7 @@ namespace RichHudFramework.UI
             protected override void Draw()
             {
                 CroppedBox box = default(CroppedBox);
-                Vector2 size = (CachedSize - Padding),
+                Vector2 size = (UnpaddedSize),
                     halfSize = size * .5f;
 
                 box.bounds = new BoundingBox2(Position - halfSize, Position + halfSize);

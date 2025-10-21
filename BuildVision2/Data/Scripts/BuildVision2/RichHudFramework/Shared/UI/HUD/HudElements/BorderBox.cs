@@ -48,8 +48,8 @@ namespace RichHudFramework.UI
                 box.mask = maskingBox;
 
                 float thickness = _thickness, 
-                    height = CachedSize.Y - Padding.Y, 
-                    width = CachedSize.X - Padding.X;
+                    height = UnpaddedSize.Y, 
+                    width = UnpaddedSize.X;
                 Vector2 halfSize, pos;
 
                 // Left
