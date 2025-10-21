@@ -32,13 +32,9 @@ namespace RichHudFramework
                         HudNodeBase node = nodes[n];
                         node.Parent = newParent;
                         node.State |= HudElementStates.IsRegistered;
+						node.State &= ~HudElementStates.WasParentVisible;
 
-                        if (parentVisible)
-                            node.State |= HudElementStates.WasParentVisible;
-                        else
-                            node.State &= ~HudElementStates.WasParentVisible;
-
-                        children.Add(node);
+						children.Add(node);
 
                         if (canPreload)
                             node.State |= HudElementStates.CanPreload;
@@ -62,11 +58,7 @@ namespace RichHudFramework
                         HudNodeBase node = nodes[n].Element;
                         node.Parent = newParent;
                         node.State |= HudElementStates.IsRegistered;
-
-                        if(parentVisible)
-                            node.State |= HudElementStates.WasParentVisible;
-                        else
-                            node.State &= ~HudElementStates.WasParentVisible;
+                        node.State &= ~HudElementStates.WasParentVisible;
 
                         children.Add(node);
 

@@ -174,7 +174,9 @@ namespace RichHudFramework
 
                 if ((State & HudElementStates.IsRegistered) > 0)
                 {
-                    if (canPreload)
+					State &= ~HudElementStates.WasParentVisible;
+
+					if (canPreload)
                         State |= HudElementStates.CanPreload;
                     else
                         State &= ~HudElementStates.CanPreload;
