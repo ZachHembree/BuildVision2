@@ -21,7 +21,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Production speed scale
             /// </summary>
-            public float? Productivity 
+            public float Productivity 
             {
                 get 
                 {
@@ -39,14 +39,14 @@ namespace DarkHelmet.BuildVision2
                         return value;
 					}
                     else
-                        return null;
+                        return 0f;
                 }
             }
 
             /// <summary>
             /// Production efficiency. For refineries, this refers to material/ore refining efficiency.
             /// </summary>
-            public float? Effectiveness
+            public float Effectiveness
             {
                 get 
                 {
@@ -60,14 +60,14 @@ namespace DarkHelmet.BuildVision2
 						return value;
 					}
                     else
-                        return null;
+                        return 0f;
                 }
             }
 
             /// <summary>
             /// Power efficiency scale
             /// </summary>
-            public float? PowerEfficiency
+            public float PowerEfficiency
             {
                 get
                 {
@@ -76,7 +76,26 @@ namespace DarkHelmet.BuildVision2
                     if (subtype.UpgradeValues.TryGetValue("PowerEfficiency", out value))
                         return value;
                     else
-                        return null;
+                        return 0f;
+                }
+            }
+
+            /// <summary>
+            /// Power scaling applied to base max/req input from sinks
+            /// </summary>
+            public float PowerScale
+            {
+                get
+                {
+                    float prodBonus = 1f;
+
+					if (subtype.UpgradeValues.TryGetValue("Productivity", out prodBonus))
+					{
+						float efficiency = Math.Max(PowerEfficiency, 1f);
+						return Math.Max((prodBonus + 1) / efficiency, 1f);
+					}
+					else
+						return 1f;
                 }
             }
 
@@ -89,7 +108,7 @@ namespace DarkHelmet.BuildVision2
             {
                 var buf = block.textBuffer;
 
-                if (Productivity != null && Productivity != 1f)
+                if (Productivity != 0f && Productivity != 1f)
                 {
                     if (block.SubtypeId.HasFlag(TBlockSubtypes.Assembler))
                         builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Productivity_Assembler), nameFormat);
@@ -99,27 +118,27 @@ namespace DarkHelmet.BuildVision2
 					builder.Add(" ", nameFormat);
 
                     buf.Clear();
-                    buf.Append($"{Productivity.Value:P0}\n");
+                    buf.Append($"{Productivity:P0}\n");
                     builder.Add(buf, valueFormat);
                 }
                 
-                if (Effectiveness != null && Effectiveness != 1f)
+                if (Effectiveness != 0f && Effectiveness != 1f)
                 {
                     builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Effectiveness), nameFormat);
                     builder.Add(" ", nameFormat);
 
                     buf.Clear();
-                    buf.Append($"{Effectiveness.Value:P0}\n");
+                    buf.Append($"{Effectiveness:P0}\n");
                     builder.Add(buf, valueFormat);
                 }
 
-                if (PowerEfficiency != null && PowerEfficiency != 1f)
+                if (PowerEfficiency != 0f && PowerEfficiency != 1f)
                 {
                     builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Efficiency), nameFormat);
                     builder.Add(" ", nameFormat);
 
                     buf.Clear();
-                    buf.Append($"{PowerEfficiency.Value:P0}\n");
+                    buf.Append($"{PowerEfficiency:P0}\n");
                     builder.Add(buf, valueFormat);
                 }
             }
