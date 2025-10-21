@@ -398,9 +398,10 @@ namespace RichHudFramework
                 for (int i = 0; i < children.Count; i++)
                 {
                     var child = children[i] as HudElementBase;
+					child.State |= HudElementStates.WasParentVisible;
 
-                    if (child != null && (child.State & (nodeVisible)) == nodeVisible)
-                    {
+					if (child != null && (child.State & (child.NodeVisibleMask)) == child.NodeVisibleMask)
+					{
                         child.Padding = child.Padding;
 
                         Vector2 size = child.UnpaddedSize + child.Padding;
@@ -437,7 +438,7 @@ namespace RichHudFramework
                 {
                     var child = children[i] as HudElementBase;
 
-                    if (child != null && (child.State & (nodeVisible)) == nodeVisible)
+					if (child != null && (child.State & (child.NodeVisibleMask)) == child.NodeVisibleMask)
                     {
                         ParentAlignments originFlags = child.ParentAlignment;
                         Vector2 delta = Vector2.Zero,
