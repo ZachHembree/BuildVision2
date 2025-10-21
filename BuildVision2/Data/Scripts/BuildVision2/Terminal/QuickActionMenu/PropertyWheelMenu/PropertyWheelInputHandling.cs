@@ -96,6 +96,11 @@ namespace DarkHelmet.BuildVision2
                     {
                         if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
                             MenuState &= ~QuickActionMenuState.PropertyDuplication;
+                        else if (BvBinds.MultXOrMouse.IsPressed && BvConfig.Current.targeting.enablePeek)
+                        {
+							OpenSummary();
+                            MenuState = QuickActionMenuState.WheelPeek;
+						}
                         else
                             quickActionMenu.CloseMenu();
                     }
