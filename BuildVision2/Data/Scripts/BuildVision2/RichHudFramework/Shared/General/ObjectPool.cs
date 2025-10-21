@@ -167,8 +167,10 @@ namespace RichHudFramework
             objectPolicy.ResetRange(objects, index, count);
             pooledObjects.EnsureCapacity(Capacity);
 
+            int end = index + count - 1;
+
             for (int n = 0; (n < count && (index + n) < objects.Count); n++)
-                pooledObjects.Add(objects[index + n]);
+                pooledObjects.Add(objects[end - n]);
         }
 
         /// <summary>
@@ -185,8 +187,10 @@ namespace RichHudFramework
             objectPolicy.ResetRange(objects, index, count);
             pooledObjects.EnsureCapacity(Capacity);
 
-            for (int n = 0; (n < count && (index + n) < objects.Count); n++)
-                pooledObjects.Add(objects[index + n].Item1);
+			int end = index + count - 1;
+
+			for (int n = 0; (n < count && (index + n) < objects.Count); n++)
+                pooledObjects.Add(objects[end - n].Item1);
         }
 
         /// <summary>
