@@ -111,9 +111,7 @@ namespace DarkHelmet.BuildVision2
                     sliderBox.OpenTextInput();
                 }
                 else if (!BindManager.IsChatOpen && sliderBox.IsTextInputOpen && SharedBinds.Enter.IsNewPressed)
-                {
-                    Confirm();
-                }
+                    { Confirm(); return; }
                 else if (!sliderBox.IsTextInputOpen)
                 {
                     floatMember.Value = GetSliderValue();

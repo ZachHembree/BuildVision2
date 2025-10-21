@@ -87,7 +87,7 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Cancel()
             {
-                if (channelSelected)
+                if (channelSelected && !IsMousedOver)
                 {
                     channelSelected = false;
                 }
@@ -105,10 +105,10 @@ namespace DarkHelmet.BuildVision2
                 if (IsMousedOver)
                 {
                     if (cancelButton.MouseInput.IsLeftReleased)
-                        Cancel();
-                    else if (confirmButton.MouseInput.IsLeftReleased)
-                        Confirm();
-                    else if (MouseInput.IsLeftClicked)
+					    { Cancel(); return; }
+					else if (confirmButton.MouseInput.IsLeftReleased)
+					    { Confirm(); return; }
+					else if (MouseInput.IsLeftClicked)
                         IsWidgetFocused = true;
 
                     for (int i = 0; i < 3; i++)
@@ -147,10 +147,10 @@ namespace DarkHelmet.BuildVision2
                     }
 
                     if (BvBinds.Cancel.IsReleased)
-                        Cancel();
-                    else if (BvBinds.Select.IsReleased)
-                        Confirm();
-                }
+					    { Cancel(); return; }
+					else if (BvBinds.Select.IsReleased)
+					    { Confirm(); return; }
+				}
 
                 if (channelSelected)
                 {

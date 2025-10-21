@@ -1,4 +1,5 @@
-﻿using RichHudFramework.UI;
+﻿using RichHudFramework.Internal;
+using RichHudFramework.UI;
 using RichHudFramework.UI.Rendering;
 using RichHudFramework.UI.Rendering.Client;
 using System;
@@ -87,13 +88,13 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Cancel()
             {
-                if (channelSelected)
+                if (channelSelected && !IsMousedOver)
                 {
-                    channelSelected = false;
+					channelSelected = false;
                 }
                 else
                 {
-                    colorMember.Value = initColor;
+					colorMember.Value = initColor;
                     CloseWidgetCallback();
                 }
             }
@@ -102,12 +103,12 @@ namespace DarkHelmet.BuildVision2
             {
                 colorMember.Value = colorPicker.Color;
 
-                if (IsMousedOver)
+				if (IsMousedOver)
                 {
                     if (cancelButton.MouseInput.IsLeftReleased)
-                        Cancel();
-                    else if (confirmButton.MouseInput.IsLeftReleased)
-                        Confirm();
+					    { Cancel(); return; }
+					else if (confirmButton.MouseInput.IsLeftReleased)
+                        { Confirm(); return; }
                     else if (MouseInput.IsLeftClicked)
                         IsWidgetFocused = true;
 
@@ -147,10 +148,10 @@ namespace DarkHelmet.BuildVision2
                     }
 
                     if (BvBinds.Cancel.IsReleased)
-                        Cancel();
-                    else if (BvBinds.Select.IsReleased)
-                        Confirm();
-                }
+					    { Cancel(); return; }
+					else if (BvBinds.Select.IsReleased)
+					    { Confirm(); return; }
+				}
 
                 if (channelSelected)
                 {

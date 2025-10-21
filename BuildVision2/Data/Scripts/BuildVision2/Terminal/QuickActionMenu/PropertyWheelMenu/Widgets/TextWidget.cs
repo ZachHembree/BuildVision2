@@ -100,7 +100,7 @@ namespace DarkHelmet.BuildVision2
                 }
                 if (!BindManager.IsChatOpen && textField.InputOpen && SharedBinds.Enter.IsNewPressed)
                 {
-                    Confirm();
+                    Confirm(); return;
                 }
             }
 

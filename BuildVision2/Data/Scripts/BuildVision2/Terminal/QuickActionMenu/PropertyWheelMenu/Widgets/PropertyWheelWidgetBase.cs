@@ -72,10 +72,10 @@ namespace DarkHelmet.BuildVision2
                 if (IsMousedOver)
                 {
                     if (cancelButton.MouseInput.IsLeftReleased)
-                        Cancel();
-                    else if (confirmButton.MouseInput.IsLeftReleased)
-                        Confirm();
-                    else if (MouseInput.IsLeftClicked)
+					    { Cancel(); return; }
+					else if (confirmButton.MouseInput.IsLeftReleased)
+					    { Confirm(); return; }
+					else if (MouseInput.IsLeftClicked)
                         IsWidgetFocused = true;
                 }
                 else
@@ -94,10 +94,10 @@ namespace DarkHelmet.BuildVision2
                     if (!IsWidgetFocused)
                     {
                         if (BvBinds.Cancel.IsReleased)
-                            Cancel();
-                        else if (BvBinds.Select.IsReleased)
-                            Confirm();
-                    }
+						    { Cancel(); return; }
+						else if (BvBinds.Select.IsReleased)
+						    { Confirm(); return; }
+					}
                 }                
             }
 
