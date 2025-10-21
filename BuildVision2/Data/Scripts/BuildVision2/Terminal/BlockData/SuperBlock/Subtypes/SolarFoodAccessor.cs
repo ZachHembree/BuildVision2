@@ -71,7 +71,7 @@ namespace DarkHelmet.BuildVision2
                 {
 					TimeSpan timeSpan = TimeSpan.FromSeconds(timeRem);
 					builder.Add($"{MyTexts.Get(MySpaceTexts.BlockPropertyProperties_NextOutputIn)}", nameFormat);
-					builder.Add($"{timeSpan:mm\\:ss}", valueFormat);
+					builder.Add($"{timeSpan:mm\\:ss}\n", valueFormat);
 				}
             }
         }

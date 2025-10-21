@@ -174,9 +174,46 @@ namespace DarkHelmet.BuildVision2
 			}
 		}
 
-		private StringBuilder GetCleanLocalizedText(MyStringId textID, string breakChars = ":")
+		/// <summary>
+		/// Attempts to locate a key-value pair in a string, in the format [fieldKey]: [fieldValue]\n, and append it 
+		/// to the buffer.
+		/// </summary>
+		private bool TryParseValueFromInfoString(string infoText, MyStringId fieldKeyID, StringBuilder buffer)
 		{
-			string text = MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_PanelContent);
+			string fieldKey = MyTexts.GetString(fieldKeyID);
+			int fieldStart = infoText.IndexOf(fieldKey);
+
+			if (fieldStart != -1)
+			{
+				int valueStart = fieldStart + fieldKey.Length;
+
+				for (int i = valueStart; i < infoText.Length; i++)
+				{
+					// Skip to text start
+					if (buffer.Length == 0 && (infoText[i] <= ' ' || infoText[i] == ':'))
+						valueStart++;
+					// Break on any special character
+					else if (buffer.Length > 0 && infoText[i] < ' ')
+						break;
+					// Append vaue
+					else if (infoText[i] >= ' ')
+						buffer.Append(infoText[i]);
+				}
+
+				if (buffer.Length > 0)
+					return true;
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// Retrieves a localized string, less any leading/following whitespace or formatting substrings, and
+		/// returns it in a temporary StringBuilder.
+		/// </summary>
+		private StringBuilder GetCleanLocalizedText(MyStringId textID, string breakChars = ":\n{}")
+		{
+			string text = MyTexts.GetString(textID);
 			char lastChar = ' ';
 			textBuffer.Clear();
 

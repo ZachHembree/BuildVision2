@@ -43,43 +43,35 @@ namespace DarkHelmet.BuildVision2
 			public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
 			{
 				string detailedInfo = component.GetDetailedInfoWithoutRequiredInput();
-				char lastChar = ' ';
 				var textBuf = block.textBuffer;
 				textBuf.Clear();
-				
-				//MySpaceTexts.BlockPropertyProperties_CurrentCropType
-				//MySpaceTexts.BlockPropertyProperties_CropHealth
-				//MySpaceTexts.BlockPropertyProperties_WaterLevel
-				
-				foreach (char c in detailedInfo)
-				{
-					// ':' marks key end
-					if (c == ':')
-					{
-						textBuf.Append(c);
-						builder.Add(textBuf, nameFormat);
-						textBuf.Clear();
-					}
-					// Line breaks or any control char indicates value end
-					else if (c < ' ')
-					{
-						textBuf.Append(c);
-						builder.Add(textBuf, valueFormat);
-						textBuf.Clear();
-					}
-					// Append printable chars, no double spaces
-					else if (c >= ' ' && !(c == ' ' && lastChar == ' '))
-						textBuf.Append(c);
 
-					lastChar = c;
-				}
-				
-				// Append trailing value
-				if (textBuf.Length > 0)
+				// Crop type
+				if (block.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_CurrentCropType, textBuf))
 				{
+					builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_CurrentCropType), nameFormat);
 					textBuf.Append('\n');
 					builder.Add(textBuf, valueFormat);
-					textBuf.Clear();
+				}
+
+				textBuf.Clear();
+
+				// Crop health
+				if (block.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_CropHealth, textBuf))
+				{
+					builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_CropHealth), nameFormat);
+					textBuf.Append('\n');
+					builder.Add(textBuf, valueFormat);
+				}
+
+				textBuf.Clear();
+
+				// Water level
+				if (block.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_WaterLevel, textBuf))
+				{
+					builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_WaterLevel), nameFormat);
+					textBuf.Append('\n');
+					builder.Add(textBuf, valueFormat);
 				}
 			}
 		}

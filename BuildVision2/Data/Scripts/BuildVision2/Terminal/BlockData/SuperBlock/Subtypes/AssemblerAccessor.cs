@@ -93,20 +93,8 @@ namespace DarkHelmet.BuildVision2
 
 			public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
 			{
-				var label = MyTexts.Get(MySpaceTexts.Assembler_ItemsInQueue);
-				var textBuf = block.textBuffer;
-				textBuf.Clear();
-
-				// I'll do my own formatting, thanks
-				for (int i = 0; i < label.Length; i++)
-				{
-					if (label[i] == ':')
-						break;
-
-					textBuf.Append(label[i]);
-				}
-
-				builder.Add($"{textBuf}: ", nameFormat);
+				builder.Add(block.GetCleanLocalizedText(MySpaceTexts.Assembler_ItemsInQueue), nameFormat);
+				builder.Add(": ", nameFormat);
 				builder.Add($"{QueueCount}\n", valueFormat);
 			}
 		}

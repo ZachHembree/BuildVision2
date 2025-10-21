@@ -25,6 +25,7 @@ namespace DarkHelmet.BuildVision2
                 builder.Add(": ", nameFormat);
 
                 builder.Add(MyTexts.TrySubstitute(IsEntityDetected.ToString()), valueFormat);
+                builder.Add('\n');
             }
         }
     }

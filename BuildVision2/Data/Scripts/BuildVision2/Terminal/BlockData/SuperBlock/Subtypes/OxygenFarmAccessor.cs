@@ -51,35 +51,14 @@ namespace DarkHelmet.BuildVision2
 
 			public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
 			{
-				string oxyFieldKey = MyTexts.GetString(MySpaceTexts.BlockPropertiesText_OxygenOutput);
-				string infoText = subtype.DetailedInfo;
-				int oxyFieldStart = infoText.IndexOf(oxyFieldKey);
+				var textBuf = block.textBuffer;
+				textBuf.Clear();
 
-				if (oxyFieldStart !=  -1)
+				if (block.TryParseValueFromInfoString(subtype.DetailedInfo, MySpaceTexts.BlockPropertiesText_OxygenOutput, textBuf))
 				{
-					int oxyValueStart = oxyFieldStart + oxyFieldKey.Length;
-					var textBuf = block.textBuffer;
-					textBuf.Clear();
-
-					for (int i = oxyValueStart; i < infoText.Length; i++)
-					{
-						// Skip to text start
-						if (textBuf.Length == 0 && infoText[i] <= ' ')
-							oxyValueStart++;
-						// Break on any special character
-						else if (textBuf.Length > 0 && infoText[i] < ' ')
-							break;
-						// Append vaue
-						else if (infoText[i] >= ' ')
-							textBuf.Append(infoText[i]);
-					}
-
-					if (textBuf.Length > 0)
-					{
-						textBuf.Append('\n');
-						builder.Add($"{MyTexts.Get(MySpaceTexts.BlockPropertiesText_OxygenOutput)}", nameFormat);
-						builder.Add(textBuf, valueFormat);
-					}
+					builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_OxygenOutput), nameFormat);
+					textBuf.Append('\n');
+					builder.Add(textBuf, valueFormat);
 				}
 			}
 		}
