@@ -144,7 +144,7 @@ namespace DarkHelmet.BuildVision2
                     }
                     else // not functional
                     {
-                        builder.Add(MyTexts.GetString(MySpaceTexts.DisplayName_Category_Power), nameFormat);
+                        builder.Add(block.GetCleanLocalizedText(MySpaceTexts.DisplayName_Category_Power), nameFormat);
                         builder.Add(": ", nameFormat);
 
                         buf.Clear();
@@ -166,7 +166,7 @@ namespace DarkHelmet.BuildVision2
                 }
                 else if (functionalBlock != null) // not a sink or producer, but functional
                 {
-                    builder.Add(MyTexts.GetString(MySpaceTexts.DisplayName_Category_Power), nameFormat);
+                    builder.Add(block.GetCleanLocalizedText(MySpaceTexts.DisplayName_Category_Power), nameFormat);
                     builder.Add(": ", nameFormat);
 
                     // Functional status (on/off)

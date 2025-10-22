@@ -129,7 +129,7 @@ namespace DarkHelmet.BuildVision2
 
 		/// <summary>
 		/// Retrieves a localized string, less any leading/following whitespace or formatting substrings, and
-		/// returns it in a temporary StringBuilder.
+		/// appends it to a stringbuilder.
 		/// </summary>
 		public static void GetCleanLocalizedText(StringBuilder dst, MyStringId textID, string breakChars = ":\n{}")
 		{
@@ -153,17 +153,20 @@ namespace DarkHelmet.BuildVision2
 				if (shouldBreak)
 					break;
 
-				if (c > ' ' && !(c == ' ' && dst.Length == dstStart) && !(c == ' ' && lastChar == ' '))
+				// No multi/double or leading spaces
+				if (c > ' ' || (lastChar != ' ' && c == ' '))
 					dst.Append(c);
 
 				lastChar = c;
 			}
-
+			
 			// Pop any trailing spaces
 			for (int i = dst.Length - 1; i >= dstStart; i--)
 			{
 				if (dst[i] == ' ')
 					dst.Remove(i, 1);
+				else
+					break;
 			}
 		}
 
