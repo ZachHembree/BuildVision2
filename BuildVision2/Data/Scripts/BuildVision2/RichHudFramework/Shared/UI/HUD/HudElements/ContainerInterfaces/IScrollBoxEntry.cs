@@ -3,7 +3,7 @@
     /// <summary>
     /// Interface for scrollbox entry containers.
     /// </summary>
-    public interface IScrollBoxEntry<TElement> : IHudElementContainer<TElement> 
+    public interface IScrollBoxEntry<TElement> : IChainElementContainer<TElement> 
         where TElement : HudElementBase
     {
         bool Enabled { get; set; }

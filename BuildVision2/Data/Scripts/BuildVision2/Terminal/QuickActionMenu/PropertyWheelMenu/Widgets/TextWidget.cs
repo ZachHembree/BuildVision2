@@ -25,15 +25,17 @@ namespace DarkHelmet.BuildVision2
                 label = new Label()
                 {
                     Format = GlyphFormat.Blueish.WithSize(1.08f),
-                    ParentAlignment = ParentAlignments.Left | ParentAlignments.Inner
+                    ParentAlignment = ParentAlignments.InnerLeft,
+                    AutoResize = false,
+                    Height = 20f
                 };
                 textField = new TextField();
 
                 layout = new HudChain(true, this)
                 {
-                    DimAlignment = DimAlignments.Width,
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
-                    Spacing = 8f,
+                    DimAlignment = DimAlignments.UnpaddedSize,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersCenter,
+                    Spacing = WidgetInnerPadding,
                     CollectionContainer =
                     {
                         label,
@@ -57,7 +59,7 @@ namespace DarkHelmet.BuildVision2
                 if (BindManager.IsChatOpen)
                     textField.TextBoard.SetText(textValueMember.Value);
                 else
-                    textField.TextBoard.SetText(textEntryWarning);
+                    textField.TextBoard.SetText(TextEntryWarning);
 
                 if (BindManager.IsChatOpen && !textField.InputOpen)
                     textField.OpenInput();
@@ -98,7 +100,7 @@ namespace DarkHelmet.BuildVision2
                 }
                 if (!BindManager.IsChatOpen && textField.InputOpen && SharedBinds.Enter.IsNewPressed)
                 {
-                    Confirm();
+                    Confirm(); return;
                 }
             }
 

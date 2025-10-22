@@ -26,7 +26,7 @@ namespace DarkHelmet.BuildVision2
 
         public class GeneralAccessor : SubtypeAccessorBase
         {
-            public const int MaxStringLength = 40;
+            private const int MaxStringLength = 60;
 
             public string CustomName { get { return block.TBlock.CustomName; } set { block.TBlock.CustomName = value; } }
 
@@ -51,13 +51,16 @@ namespace DarkHelmet.BuildVision2
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {
-                builder.Add(MyTexts.TrySubstitute("Name"), nameFormat);
-                builder.Add(": ", nameFormat);
+                if (CustomName != null)
+                {
+                    builder.Add(MyTexts.TrySubstitute("Name"), nameFormat);
+                    builder.Add(": ", nameFormat);
 
-                nameBuilder.Clear();
-                nameBuilder.AppendSubstringMax(CustomName, MaxStringLength);
-                builder.Add(nameBuilder, valueFormat);
-                builder.Add("\n", valueFormat);
+                    nameBuilder.Clear();
+                    nameBuilder.AppendSubstringMax(CustomName, MaxStringLength);
+                    builder.Add(nameBuilder, valueFormat);
+                    builder.Add("\n", valueFormat);
+                }
 
                 if (groupString.Length > 0)
                 {

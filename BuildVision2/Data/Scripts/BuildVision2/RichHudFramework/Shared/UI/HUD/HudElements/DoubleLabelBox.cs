@@ -64,8 +64,8 @@ namespace RichHudFramework.UI
 
         public DoubleLabelBox(HudParentBase parent = null) : base(parent)
         {
-            left = new Label(this) { ParentAlignment = ParentAlignments.Left | ParentAlignments.InnerH | ParentAlignments.UsePadding };
-            right = new Label(this) { ParentAlignment = ParentAlignments.Right | ParentAlignments.InnerH | ParentAlignments.UsePadding };
+            left = new Label(this) { ParentAlignment = ParentAlignments.PaddedInnerLeft };
+            right = new Label(this) { ParentAlignment = ParentAlignments.PaddedInnerRight };
         }
 
         public DoubleLabelBox() : this(null)

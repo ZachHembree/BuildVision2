@@ -40,7 +40,7 @@ namespace DarkHelmet.BuildVision2
                         if ((MenuState & QuickActionMenuState.WidgetControl) == QuickActionMenuState.WidgetControl)
                         {
                             if (activeWheel.IsMousedOver && SharedBinds.LeftButton.IsReleased
-                                && !(wheelBody.ActiveWidget?.MouseInput.IsLeftClicked ?? false))
+                                && !(wheelBody.ActiveWidget?.IsWidgetFocused ?? false))
                             {
                                 HandleWheelInput();
                             }
@@ -96,6 +96,11 @@ namespace DarkHelmet.BuildVision2
                     {
                         if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
                             MenuState &= ~QuickActionMenuState.PropertyDuplication;
+                        else if (BvBinds.MultXOrMouse.IsPressed && BvConfig.Current.targeting.enablePeek)
+                        {
+							OpenSummary();
+                            MenuState = QuickActionMenuState.WheelPeek;
+						}
                         else
                             quickActionMenu.CloseMenu();
                     }

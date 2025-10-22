@@ -22,7 +22,7 @@ namespace RichHudFramework.UI.Rendering
             set
             {
                 if (value != color)
-                    polyMat.bbColor = BillBoardUtils.GetBillBoardBoardColor(value);
+                    polyMat.bbColor = value.GetBbColor();
 
                 color = value;
             }

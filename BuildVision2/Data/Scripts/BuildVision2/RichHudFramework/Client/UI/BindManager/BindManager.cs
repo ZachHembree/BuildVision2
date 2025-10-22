@@ -5,7 +5,6 @@ using Sandbox.ModAPI;
 using VRage;
 using VRageMath;
 using VRage.Input;
-using BindDefinitionData = VRage.MyTuple<string, string[]>;
 using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
@@ -29,6 +28,8 @@ namespace RichHudFramework
         /// </summary>
         public sealed partial class BindManager : RichHudClient.ApiModule<BindClientMembers>
         {
+            public const int MaxBindLength = 3;
+
             /// <summary>
             /// Read-only collection of bind groups registered
             /// </summary>
@@ -88,6 +89,8 @@ namespace RichHudFramework
 
             private readonly ReadOnlyApiCollection<IBindGroup> groups;
             private readonly ReadOnlyApiCollection<IControl> controls;
+            private readonly List<int> conIDbuf;
+            private readonly List<List<int>> aliasIDbuf;
 
             private static SeBlacklistModes lastBlacklist, tmpBlacklist;
 
@@ -113,6 +116,9 @@ namespace RichHudFramework
 
                 groups = new ReadOnlyApiCollection<IBindGroup>(x => new BindGroup(x), GetGroupCountFunc);
                 controls = new ReadOnlyApiCollection<IControl>(x => new Control(x), GetControlCountFunc);
+
+                conIDbuf = new List<int>();
+                aliasIDbuf = new List<List<int>>();
             }
 
             public static void Init()
@@ -166,93 +172,92 @@ namespace RichHudFramework
             /// <summary>
             /// Returns the control associated with the given name.
             /// </summary>
-            public static IControl GetControl(string name)
+            public static ControlHandle GetControl(string name)
             {
                 var index = (int)Instance.GetOrSetMemberFunc(name, (int)BindClientAccessors.GetControlByName);
-                return index != -1 ? Controls[index] : null;
+                return new ControlHandle(index);
             }
 
             /// <summary>
-            /// Generates a list of controls from a list of control names.
+            /// Returns control name for the corresponding handle
             /// </summary>
-            public static IControl[] GetCombo(IList<string> names)
+            public static string GetControlName(ControlHandle con)
             {
-                IControl[] combo = new IControl[names.Count];
-
-                for (int n = 0; n < names.Count; n++)
-                    combo[n] = GetControl(names[n]);
-
-                return combo;
+                return Instance.GetOrSetMemberFunc(con.id, (int)BindClientAccessors.GetControlName) as string;
             }
 
             /// <summary>
-            /// Generates a combo array using the corresponding control indices.
+            /// Returns control name for the corresponding int ID
             /// </summary>
-            public static IControl[] GetCombo(IList<ControlData> indices)
+            public static string GetControlName(int conID)
             {
-                IControl[] combo = new IControl[indices.Count];
-
-                for (int n = 0; n < indices.Count; n++)
-                    combo[n] = Controls[indices[n].index];
-
-                return combo;
+                return Instance.GetOrSetMemberFunc(conID, (int)BindClientAccessors.GetControlName) as string;
             }
 
             /// <summary>
-            /// Generates a combo array using the corresponding control indices.
+            /// Returns control names for the corresponding int IDs
             /// </summary>
-            public static IControl[] GetCombo(IList<int> indices)
+            public static string[] GetControlNames(IReadOnlyList<int> conIDs)
             {
-                IControl[] combo = new IControl[indices.Count];
-
-                for (int n = 0; n < indices.Count; n++)
-                    combo[n] = Controls[indices[n]];
-
-                return combo;
+                return Instance.GetOrSetMemberFunc(conIDs, (int)BindClientAccessors.GetControlNames) as string[];
             }
 
             /// <summary>
-            /// Generates a list of control indices using a list of control names.
+            /// Returns the control associated with the given <see cref="ControlHandle"/>
             /// </summary>
-            public static int[] GetComboIndices(IList<string> controlNames) =>
-                Instance.GetOrSetMemberFunc(controlNames, (int)BindClientAccessors.GetComboIndices) as int[];
+            public static IControl GetControl(ControlHandle handle) =>
+                Controls[handle.id];
 
             /// <summary>
-            /// Returns the control associated with the given <see cref="MyKeys"/> enum.
+            /// Generates a list of control indices from a list of <see cref="ControlHandle"/>s.
             /// </summary>
-            public static IControl GetControl(MyKeys seKey) =>
-                Controls[(int)seKey];
-
-            /// <summary>
-            /// Returns the control associated with the given custom <see cref="RichHudControls"/> enum.
-            /// </summary>
-            public static IControl GetControl(RichHudControls rhdKey) =>
-                Controls[(int)rhdKey];
-
-            /// <summary>
-            /// Generates a list of control indices from a list of controls.
-            /// </summary>
-            public static int[] GetComboIndices(IList<IControl> controls)
+            public static void GetComboIndices(IReadOnlyList<ControlHandle> controls, List<int> combo, bool sanitize = true)
             {
-                int[] indices = new int[controls.Count];
+                combo.Clear();
 
                 for (int n = 0; n < controls.Count; n++)
-                    indices[n] = controls[n].Index;
+                    combo.Add(controls[n].id);
 
-                return indices;
+                if (sanitize)
+                    SanitizeCombo(combo);
+            }
+
+            private static IReadOnlyList<int> GetComboIndicesTemp(IReadOnlyList<ControlHandle> controls, bool sanitize = true)
+            {
+                var buf = _instance.conIDbuf;
+                GetComboIndices(controls, buf, sanitize);
+                return buf;
+            }
+
+            private static IReadOnlyList<int> GetSanitizedComboTemp(IEnumerable<int> combo)
+            {
+                var buf = _instance.conIDbuf;
+
+                if (buf != combo)
+                {
+                    buf.Clear();
+                    buf.AddRange(combo);
+                }
+
+                SanitizeCombo(buf);
+                return buf;
             }
 
             /// <summary>
-            /// Generates a list of control indices from a list of controls.
+            /// Sorts ControlID buffer and removes duplicates and invalid indices
             /// </summary>
-            public static int[] GetComboIndices(IList<ControlData> controls)
+            private static void SanitizeCombo(List<int> combo)
             {
-                int[] indices = new int[controls.Count];
+                combo.Sort();
 
-                for (int n = 0; n < controls.Count; n++)
-                    indices[n] = controls[n].index;
+                for (int i = combo.Count - 1; i > 0; i--)
+                {
+                    if (combo[i] == combo[i - 1] || combo[i] <= 0)
+                        combo.RemoveAt(i);
+                }
 
-                return indices;
+                if (combo.Count > 0 && combo[0] == 0)
+                    combo.RemoveAt(0);
             }
         }
     }

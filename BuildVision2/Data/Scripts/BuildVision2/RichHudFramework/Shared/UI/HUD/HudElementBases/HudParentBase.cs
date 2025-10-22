@@ -33,9 +33,9 @@ namespace RichHudFramework
             /// <summary>
             /// Returns true if the element can be drawn and/or accept input
             /// </summary>
-            public virtual bool Visible
+            public bool Visible
             {
-                get { return (State & HudElementStates.IsVisible) > 0; }
+                get { return (State & NodeVisibleMask) == NodeVisibleMask; }
                 set
                 {
                     if (value)
@@ -48,9 +48,9 @@ namespace RichHudFramework
             /// <summary>
             /// Returns true if input is enabled can update
             /// </summary>
-            public virtual bool InputEnabled
+            public bool InputEnabled
             {
-                get { return (State & HudElementStates.IsInputEnabled) > 0; }
+                get { return (State & NodeInputMask) == NodeInputMask; }
                 set
                 {
                     if (value)
@@ -71,17 +71,21 @@ namespace RichHudFramework
 
             public HudElementStates State { get; protected set; }
 
+            public HudElementStates NodeVisibleMask { get; protected set; }
+
+            public HudElementStates NodeInputMask { get; protected set; }
+
             protected HudLayerData layerData;
             protected readonly List<HudNodeBase> children;
             protected HudUpdateAccessors accessorDelegates;
 
             public HudParentBase()
             {
-                State |= HudElementStates.IsRegistered;
-                InputEnabled = true;
-                Visible = true;
-                children = new List<HudNodeBase>();
+                NodeVisibleMask = HudElementStates.IsVisible;
+                NodeInputMask = HudElementStates.IsInputEnabled;
+                State = HudElementStates.IsRegistered | HudElementStates.IsInputEnabled | HudElementStates.IsVisible;
 
+                children = new List<HudNodeBase>();
                 accessorDelegates = new HudUpdateAccessors()
                 {
                     Item1 = GetOrSetApiMember,
@@ -98,13 +102,17 @@ namespace RichHudFramework
             /// Exceptions are reported client-side. Do not override this unless you have a good reason for it.
             /// If you need to do cursor depth testing use InputDepth();
             /// </summary>
-            public virtual void BeginInputDepth()
+            public void BeginInputDepth()
             {
                 if (!ExceptionHandler.ClientsPaused)
                 {
                     try
                     {
-                        if ((State & HudElementStates.CanUseCursor) > 0 && Visible && InputEnabled)
+                        bool canUseCursor = (State & HudElementStates.CanUseCursor) > 0,
+                            isVisible = (State & NodeVisibleMask) == NodeVisibleMask,
+                            isInputEnabled = (State & NodeInputMask) == NodeInputMask;
+
+                        if (canUseCursor && isVisible && isInputEnabled)
                             InputDepth();
                     }
                     catch (Exception e)
@@ -125,11 +133,16 @@ namespace RichHudFramework
                 {
                     try
                     {
-                        if (Visible && InputEnabled)
+                        bool isVisible = (State & NodeVisibleMask) == NodeVisibleMask,
+                             isInputEnabled = (State & NodeInputMask) == NodeInputMask;
+
+                        if (isVisible && isInputEnabled)
                         {
                             Vector3 cursorPos = HudSpace.CursorPos;
                             HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
                         }
+
+                        State |= HudElementStates.IsInitialized;
                     }
                     catch (Exception e)
                     {
@@ -149,10 +162,13 @@ namespace RichHudFramework
                 {
                     try
                     {
-                        layerData.fullZOffset = ParentUtils.GetFullZOffset(layerData);
+                        bool isVisible = (State & NodeVisibleMask) == NodeVisibleMask;
 
-                        if (Visible || refresh)
+                        if (isVisible)
+                        {
+                            layerData.fullZOffset = ParentUtils.GetFullZOffset(layerData);
                             Layout();
+                        }
                     }
                     catch (Exception e)
                     {
@@ -172,7 +188,9 @@ namespace RichHudFramework
                 {
                     try
                     {
-                        if (Visible)
+                        bool isVisible = (State & NodeVisibleMask) == NodeVisibleMask;
+
+                        if (isVisible)
                             Draw();
                     }
                     catch (Exception e)
@@ -190,6 +208,7 @@ namespace RichHudFramework
 
             /// <summary>
             /// Updates the input of this UI element. Invocation order affected by z-Offset and depth sorting.
+            /// Executes last, after Draw.
             /// </summary>
             protected virtual void HandleInput(Vector2 cursorPos) { }
 
@@ -201,6 +220,7 @@ namespace RichHudFramework
 
             /// <summary>
             /// Used to immediately draw billboards. Invocation order affected by z-Offset and depth sorting.
+            /// Executes after Layout and before HandleInput.
             /// </summary>
             protected virtual void Draw() { }
 
@@ -209,7 +229,7 @@ namespace RichHudFramework
             /// </summary>
             public virtual void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte preloadDepth)
             {
-                if (Visible)
+                if ((State & NodeVisibleMask) == NodeVisibleMask)
                 {
                     layerData.fullZOffset = ParentUtils.GetFullZOffset(layerData);
 

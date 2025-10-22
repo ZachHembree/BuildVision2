@@ -28,17 +28,10 @@ namespace RichHudFramework
         /// </summary>
         public abstract class HudSpaceNodeBase : HudNodeBase, IReadOnlyHudSpaceNode
         {
-            protected const HudElementStates spaceNodeVisible = HudElementStates.IsVisible | HudElementStates.WasParentVisible;
-
             /// <summary>
             /// Node defining the coordinate space used to render the UI element
             /// </summary>
             public override IReadOnlyHudSpaceNode HudSpace => this;
-
-            /// <summary>
-            /// Returns true if the space node is visible and rendering.
-            /// </summary>
-            public override bool Visible => (State & spaceNodeVisible) == spaceNodeVisible;
 
             /// <summary>
             /// Returns the current draw matrix
@@ -66,6 +59,12 @@ namespace RichHudFramework
             public Func<Vector3D> GetNodeOriginFunc { get; protected set; }
 
             /// <summary>
+            /// If true, then the cursor will be drawn using the PTW matrix of this HUD space when
+            /// captured by one of its children.
+            /// </summary>
+            public bool DrawCursorInHudSpace { get; set; }
+
+            /// <summary>
             /// True if the origin of the HUD space is in front of the camera
             /// </summary>
             public bool IsInFront { get; protected set; }
@@ -77,7 +76,7 @@ namespace RichHudFramework
 
             public HudSpaceNodeBase(HudParentBase parent = null) : base(parent)
             {
-                GetHudSpaceFunc = () => new MyTuple<bool, float, MatrixD>(false, 1f, PlaneToWorldRef[0]);
+                GetHudSpaceFunc = () => new MyTuple<bool, float, MatrixD>(DrawCursorInHudSpace, 1f, PlaneToWorldRef[0]);
                 GetNodeOriginFunc = () => PlaneToWorldRef[0].Translation;
                 PlaneToWorldRef = new MatrixD[1];
             }

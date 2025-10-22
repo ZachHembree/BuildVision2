@@ -274,40 +274,10 @@ namespace DarkHelmet.BuildVision2
         public static BindDefinition[] DefaultLegacyDupe => defaultLegacyDupe.Clone() as BindDefinition[];
 
         private static readonly BindDefinition[]
-            defaultModifiers = new BindGroupInitializer
-            {
-                { "MultX/Mouse", MyKeys.Control },
-                { "MultY", MyKeys.Shift },
-                { "MultZ", MyKeys.Control, MyKeys.Shift },
-
-            }.GetBindDefinitions(),
-            defaultMain = new BindGroupInitializer
-            {
-                { "OpenWheel", MyKeys.Control, RichHudControls.MousewheelUp },
-                { "OpenList", MyKeys.Control, RichHudControls.MousewheelDown },
-                { "LegacyClose" },
-
-            }.GetBindDefinitions(),
-            defaultSecondary = new BindGroupInitializer
-            {
-                { "Select/Confirm", MyKeys.LeftButton },
-                { "Cancel/Back", MyKeys.RightButton },
-                { "ScrollUp", RichHudControls.MousewheelUp },
-                { "ScrollDown", RichHudControls.MousewheelDown },
-                { "LegacyOpen", MyKeys.Control, MyKeys.MiddleButton },
-
-            }.GetBindDefinitions(),
-            defaultDupe = new BindGroupInitializer
-            {
-                { "StartDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelUp },
-                { "StopDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelDown },
-                { "ToggleDupe", MyKeys.Home },
-                { "SelectAll", MyKeys.Insert },
-                { "CopySelection", MyKeys.PageUp },
-                { "PasteProperties", MyKeys.PageDown },
-                { "UndoPaste", MyKeys.Delete },
-
-            }.GetBindDefinitions(),
+            defaultModifiers = BvBinds.ModifierGroup.GetBindDefinitions(),
+            defaultMain = BvBinds.MainGroup.GetBindDefinitions(),
+            defaultSecondary = BvBinds.SecondaryGroup.GetBindDefinitions(),
+            defaultDupe = BvBinds.DupeGroup.GetBindDefinitions(),
             defaultLegacyMain = new BindGroupInitializer
             {
                 { "OpenWheel" },

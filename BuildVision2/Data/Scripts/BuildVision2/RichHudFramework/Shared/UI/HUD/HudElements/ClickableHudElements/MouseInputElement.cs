@@ -15,27 +15,6 @@ namespace RichHudFramework.UI
     /// </summary>
     public class MouseInputElement : HudElementBase, IMouseInput
     {
-        public override bool Visible 
-        { 
-            set 
-            {
-                if (value)
-                    State |= HudElementStates.IsVisible;
-                else
-                    State &= elementNotVisible;
-
-                if (!value)
-                {
-                    IsLeftClicked = false;
-                    IsRightClicked = false;
-                    IsNewLeftClicked = false;
-                    IsNewRightClicked = false;
-                    IsLeftReleased = false;
-                    IsRightReleased = false;
-                }
-            }
-        }
-
         /// <summary>
         /// Invoked when the cursor enters the element's bounds
         /// </summary>
@@ -120,7 +99,7 @@ namespace RichHudFramework.UI
             UseCursor = true;
             ShareCursor = true;
             HasFocus = false;
-            DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding;
+            DimAlignment = DimAlignments.UnpaddedSize;
 
             LoseFocusCallback = LoseFocus;
         }
@@ -148,8 +127,8 @@ namespace RichHudFramework.UI
             if (HudMain.InputMode != HudInputMode.NoInput && (HudSpace?.IsFacingCamera ?? false))
             {
                 Vector3 cursorPos = HudSpace.CursorPos;
-                Vector2 halfSize = Vector2.Max(cachedSize, new Vector2(minMouseBounds)) * .5f;
-                BoundingBox2 box = new BoundingBox2(cachedPosition - halfSize, cachedPosition + halfSize);
+                Vector2 halfSize = Vector2.Max(CachedSize, new Vector2(minMouseBounds)) * .5f;
+                BoundingBox2 box = new BoundingBox2(Position - halfSize, Position + halfSize);
                 bool mouseInBounds;
 
                 if (maskingBox == null)

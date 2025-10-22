@@ -57,8 +57,8 @@ namespace RichHudFramework
                 /// </summary>
                 public IReadOnlyList<MatBoard> Faces => faces;
 
-                private readonly MatBoard[] faces;
-                private readonly Vector3D[] octant;
+                protected readonly MatBoard[] faces;
+                protected readonly Vector3D[] octant;
 
                 public BlockBoard()
                 {

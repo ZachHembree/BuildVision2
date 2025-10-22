@@ -46,7 +46,12 @@ namespace RichHudFramework
                 /// Returns true if the control doesn't represent a boolean value. For example, MwUp/Dn
                 /// represent scroll wheel movement, but don't return an exact position/displacement.
                 /// </summary>
-                public bool Analog { get; }
+                public bool Analog => (bool)(_instance.GetControlMember(Index, (int)ControlAccessors.Analog) ?? false);
+
+                /// <summary>
+                /// Returns analog value of the control, if it has one
+                /// </summary>
+                public float AnalogValue => (float)(_instance.GetControlMember(Index, (int)ControlAccessors.AnalogValue) ?? 0f);
 
                 public Control(int index)
                 {

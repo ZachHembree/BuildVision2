@@ -50,15 +50,31 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public float? RequiredInput => IsPowerSink ? sink?.RequiredInputByType(resourceId) : null;
 
-            /// <summary>
-            /// Returns the blocks maximum possible power draw, if defined. Units in megawatts.
-            /// </summary>
-            public float? MaxInput => IsPowerSink ? sink?.MaxRequiredInputByType(resourceId) : null;
+			/// <summary>
+			/// Returns the blocks maximum possible power draw, if defined. Units in megawatts.
+			/// </summary>
+			public float? MaxInput
+			{
+				get
+				{
+					if (sink != null)
+					{
+						float scale = 1f;
 
-            /// <summary>
-            /// Returns block power output in megawatts if the underlying fat block implements <see cref="IMyPowerProducer"/>.
-            /// </summary>
-            public float? Output => powerProducer?.CurrentOutput;
+						if (block.SubtypeId.HasFlag(TBlockSubtypes.Production))
+							scale = block._production.PowerScale;
+
+						return scale * sink.MaxRequiredInputByType(resourceId);
+					}
+					else
+						return null;
+				}
+			}
+
+			/// <summary>
+			/// Returns block power output in megawatts if the underlying fat block implements <see cref="IMyPowerProducer"/>.
+			/// </summary>
+			public float? Output => powerProducer?.CurrentOutput;
 
             /// <summary>
             /// Returns maximum block power output in megawatts if the underlying fat block implements <see cref="IMyPowerProducer"/>.
@@ -111,7 +127,7 @@ namespace DarkHelmet.BuildVision2
 
                     if (functionalBlock != null) // functional w/ measurable power input/output
                     {
-                        builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower), nameFormat);
+                        builder.Add(block.GetCleanLocalizedText(MySpaceTexts.DisplayName_Category_Power), nameFormat);
                         builder.Add(": ", nameFormat);
 
                         // Functional status (on/off)
@@ -128,7 +144,7 @@ namespace DarkHelmet.BuildVision2
                     }
                     else // not functional
                     {
-                        builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower), nameFormat);
+                        builder.Add(MyTexts.GetString(MySpaceTexts.DisplayName_Category_Power), nameFormat);
                         builder.Add(": ", nameFormat);
 
                         buf.Clear();
@@ -150,7 +166,7 @@ namespace DarkHelmet.BuildVision2
                 }
                 else if (functionalBlock != null) // not a sink or producer, but functional
                 {
-                    builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyTitle_GyroPower), nameFormat);
+                    builder.Add(MyTexts.GetString(MySpaceTexts.DisplayName_Category_Power), nameFormat);
                     builder.Add(": ", nameFormat);
 
                     // Functional status (on/off)
@@ -173,21 +189,39 @@ namespace DarkHelmet.BuildVision2
                     total += output.Value;
 
                 string suffix;
-                TerminalUtilities.GetPowerScale(total / 10f, out scale, out suffix);
+                TerminalUtilities.GetPowerScale(total / 5f, out scale, out suffix);
 
-                if (input != null)
-                {
-                    dst.Append("-");
-                    dst.AppendFormat("{0:G4}", (input * scale).Value);
-                }
-                if (output != null)
-                {
-                    if (input != null)
-                        dst.Append(" / ");
+                bool useCombinedIO = (input != null && output != null) 
+                    && (Math.Abs(input.Value - output.Value) < 1E-7f);
 
-                    dst.Append("+");
-                    dst.AppendFormat("{0:G4}", (output * scale).Value);
-                }
+                const string pwrFmt = "{0:#,##0.#}";
+
+                // Same input/output values
+				if (useCombinedIO)
+                {
+					dst.Append("-/+ ");
+					dst.AppendFormat(pwrFmt, (input * scale).Value);
+				}
+                else
+                {
+                    bool canUseInput = input != null && !(input.Value < 1E-7f && output != null);
+
+                    // Append input unless its zero and output exists
+					if (canUseInput)
+					{
+						dst.Append("-");
+						dst.AppendFormat(pwrFmt, (input * scale).Value);
+					}
+
+					if (output != null)
+					{
+						if (canUseInput)
+							dst.Append(" / ");
+
+						dst.Append("+");
+						dst.AppendFormat(pwrFmt, (output * scale).Value);
+					}
+				}
 
                 dst.Append(' ');
                 dst.Append(suffix);

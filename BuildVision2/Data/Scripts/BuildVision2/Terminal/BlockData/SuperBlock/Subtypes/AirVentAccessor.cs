@@ -32,7 +32,20 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Indicates the vent's current status (depressurized/depressurizing/pressurizing/pressurized).
             /// </summary>
-            public VentStatus Status => subtype.Status;
+            public VentStatus Status
+            {
+                get 
+                {
+					BvServer.SendEntityActionToServer
+					(
+						BvServerActions.AirVent | BvServerActions.GetPressurizationStatus,
+						subtype.EntityId,
+						StatusCallback
+					);
+
+					return _status; 
+                }
+            }
 
             public bool Depressurize => subtype.Depressurize;
 
@@ -54,11 +67,13 @@ namespace DarkHelmet.BuildVision2
             }
 
             private float _oxygenLevel;
-            private readonly Action<byte[]> OxygenCallback;
+            private VentStatus _status;
+            private readonly Action<byte[]> OxygenCallback, StatusCallback;
 
             public AirVentAccessor()
             {
                 OxygenCallback = UpdateOxygenLevel;
+                StatusCallback = UpdatePressurizationStatus;
             }
 
             public override void SetBlock(SuperBlock block)
@@ -101,6 +116,11 @@ if (BvServer.IsAlive) {
             private void UpdateOxygenLevel(byte[] bin)
             {
                 Utils.ProtoBuf.TryDeserialize(bin, out _oxygenLevel);
+            }
+
+            private void UpdatePressurizationStatus(byte[] bin)
+            {
+                Utils.ProtoBuf.TryDeserialize(bin, out _status);
             }
         }
     }

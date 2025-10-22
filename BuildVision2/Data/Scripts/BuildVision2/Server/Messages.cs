@@ -20,6 +20,7 @@ namespace DarkHelmet.BuildVision2
         GetTime =                   1ul << 31  | RequireReply,
         GetOxygen =                 1ul << 32 | RequireReply,
         GetAlive =                  1ul << 33 | RequireReply,
+        GetPressurizationStatus =   1ul << 33 | RequireReply
     }
 
     public sealed partial class BvServer

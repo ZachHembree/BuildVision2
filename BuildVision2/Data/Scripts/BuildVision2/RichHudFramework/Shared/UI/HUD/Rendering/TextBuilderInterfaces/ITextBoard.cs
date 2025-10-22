@@ -63,13 +63,14 @@ namespace RichHudFramework
                 /// </summary>
                 Vector2 Size { get; }
 
-                /// <summary>
-                /// Full text size including any text outside the visible range.
-                /// </summary>
-                Vector2 TextSize { get; }
+				/// <summary>
+				/// Full text size including any text outside the visible range. Updates immediately.
+				/// </summary>
+				Vector2 TextSize { get; }
 
                 /// <summary>
-                /// Used to change the position of the text within the text element. AutoResize must be disabled for this to work.
+                /// Used to change the position of the text within the text element. Clamped to maximize visible text.
+                /// AutoResize must be disabled for this to work.
                 /// </summary>
                 Vector2 TextOffset { get; set; }
 
@@ -95,7 +96,7 @@ namespace RichHudFramework
 
                 /// <summary>
                 /// Calculates and applies the minimum offset needed to ensure that the character at the specified index
-                /// is within the visible range.
+                /// is within the visible range, while maximizing visible text.
                 /// </summary>
                 void MoveToChar(Vector2I index);
 
@@ -103,17 +104,6 @@ namespace RichHudFramework
                 /// Returns the index of the character at the given offset.
                 /// </summary>
                 Vector2I GetCharAtOffset(Vector2 localPos);
-
-                /// <summary>
-                /// Draws the text board in screen space with an offset given in pixels.
-                /// </summary>
-                void Draw(Vector2 origin);
-
-                /// <summary>
-                /// Draws the text board in world space on the XY plane of the matrix, facing in the +Z
-                /// direction.
-                /// </summary>
-                void Draw(Vector2 offset, MatrixD matrix);
 
                 /// <summary>
                 /// Draws the text board in world space on the XY plane of the matrix, facing in the +Z

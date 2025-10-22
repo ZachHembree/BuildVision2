@@ -87,16 +87,44 @@ namespace DarkHelmet.BuildVision2
             OpenBpList = staticGroup["openBpList"];
 
             modifierGroup = BindManager.GetOrCreateGroup("Modifiers");
-            modifierGroup.RegisterBinds(BindsConfig.DefaultModifiers);
+            modifierGroup.RegisterBinds(new BindGroupInitializer
+            {
+                { "MultX/Mouse", MyKeys.Control },
+                { "MultY", MyKeys.Shift },
+                { "MultZ", MyKeys.Control, MyKeys.Shift },
+
+            });
 
             mainGroup = BindManager.GetOrCreateGroup("Main");
-            mainGroup.RegisterBinds(BindsConfig.DefaultMain);
+            mainGroup.RegisterBinds(new BindGroupInitializer
+            {
+                { "OpenWheel", MyKeys.Control, RichHudControls.MousewheelUp },
+                { "OpenList", MyKeys.Control, RichHudControls.MousewheelDown },
+                { "LegacyClose" },
+
+            });
 
             secondaryGroup = BindManager.GetOrCreateGroup("Secondary");
-            secondaryGroup.RegisterBinds(BindsConfig.DefaultSecondary);
+            secondaryGroup.RegisterBinds(new BindGroupInitializer
+            {
+                { "Select/Confirm", MyKeys.LeftButton },
+                { "Cancel/Back", MyKeys.RightButton },
+                { "ScrollUp", RichHudControls.MousewheelUp },
+                { "ScrollDown", RichHudControls.MousewheelDown },
+                { "LegacyOpen" },
+            });
 
             dupeGroup = BindManager.GetOrCreateGroup("Dupe");
-            dupeGroup.RegisterBinds(BindsConfig.DefaultDupe);
+            dupeGroup.RegisterBinds(new BindGroupInitializer
+            {
+                { "StartDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelUp },
+                { "StopDupe", MyKeys.Control, MyKeys.Alt, RichHudControls.MousewheelDown },
+                { "ToggleDupe", MyKeys.Home },
+                { "SelectAll", MyKeys.Insert },
+                { "CopySelection", MyKeys.PageUp },
+                { "PasteProperties", MyKeys.PageDown },
+                { "UndoPaste", MyKeys.Delete },
+            });
         }
 
         public static void Init()

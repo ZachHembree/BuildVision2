@@ -51,20 +51,8 @@ namespace RichHudFramework.UI
         /// </summary>
         public virtual bool UseSmoothScrolling { get { return hudChain.UseSmoothScrolling; } set { hudChain.UseSmoothScrolling = value; } }
 
-        /// <summary>
-        /// Minimum number of visible elements allowed. Supercedes maximum length. If the number of elements that
-        /// can fit within the maximum length is less than this value, then this element will expand beyond its maximum
-        /// size.
-        /// </summary>
-        public virtual int MinVisibleCount { get { return hudChain.MinVisibleCount; } set { hudChain.MinVisibleCount = value; } }
-
-        /// <summary>
-        /// Minimum total length (on the align axis) of visible members allowed in the scrollbox.
-        /// </summary>
-        public virtual float MinLength { get { return hudChain.MinLength; } set { hudChain.MinLength = value; } }
-
         protected override float HighlightWidth =>
-            hudChain.Size.X - cachedPadding.X - hudChain.ScrollBar.Width - hudChain.Padding.X - HighlightPadding.X;
+            hudChain.Size.X - Padding.X - hudChain.ScrollBar.Width - hudChain.Padding.X - HighlightPadding.X;
 
         public ScrollSelectionBox(HudParentBase parent) : base(parent)
         { }
@@ -112,11 +100,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Height of entries in the list.
         /// </summary>
-        public float LineHeight
-        {
-            get { return hudChain.MemberMaxSize.Y; }
-            set { hudChain.MemberMaxSize = new Vector2(hudChain.MemberMaxSize.X, value); }
-        }
+        public float LineHeight { get; set; }
 
         public readonly BorderBox border;
         protected readonly ObjectPool<TContainer> entryPool;
@@ -124,11 +108,11 @@ namespace RichHudFramework.UI
         public SelectionBox(HudParentBase parent) : base(parent)
         {
             entryPool = new ObjectPool<TContainer>(GetNewEntry, ResetEntry);
-            hudChain.SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.ClampChainOffAxis;
+            hudChain.SizingMode = HudChainSizingModes.FitMembersOffAxis;
 
             border = new BorderBox(hudChain)
             {
-                DimAlignment = DimAlignments.Both,
+                DimAlignment = DimAlignments.Size,
                 Color = new Color(58, 68, 77),
                 Thickness = 1f,
             };
@@ -251,17 +235,12 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected override void Layout()
-        {
-            for (int n = 0; n < hudChain.Collection.Count; n++)
-                hudChain.Collection[n].Element.Padding = MemberPadding;
-        }
-
         protected virtual TContainer GetNewEntry()
         {
             var entry = new TContainer();
             entry.Element.TextBoard.Format = Format;
             entry.Element.Padding = MemberPadding;
+            entry.Element.Height = LineHeight;
             entry.Element.ZOffset = 1;
             entry.Enabled = true;
 

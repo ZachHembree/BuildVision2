@@ -45,47 +45,11 @@ namespace RichHudFramework
             /// </summary>
             public readonly TexturedBox background;
 
-            public override float Width
-            {
-                get { return FitToTextElement ? TextSize.X + Padding.X : (_size.X + Padding.X); }
-                set
-                {
-                    if (!FitToTextElement)
-                        value = MathHelper.Max(TextSize.X, value);
-
-                    if (value > Padding.X)
-                        value -= Padding.X;
-
-                    if (FitToTextElement)
-                        TextSize = new Vector2(value, TextSize.Y);
-                    else
-                        base.Width = value;
-                }
-            }
-
-            public override float Height
-            {
-                get { return FitToTextElement ? TextSize.Y + Padding.Y : (_size.Y + Padding.Y); }
-                set
-                {
-                    if (!FitToTextElement)
-                        value = MathHelper.Max(TextSize.Y, value);
-
-                    if (value > Padding.Y)
-                        value -= Padding.Y;
-
-                    if (FitToTextElement)
-                        TextSize = new Vector2(TextSize.X, value);
-                    else
-                        base.Height = value;
-                }
-            }
-
             public LabelBoxBase(HudParentBase parent) : base(parent)
             {
                 background = new TexturedBox(this)
                 {
-                    DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                    DimAlignment = DimAlignments.UnpaddedSize,
                 };
 
                 FitToTextElement = true;
@@ -94,10 +58,14 @@ namespace RichHudFramework
 
             protected override void Layout()
             {
-                // The element may not be smaller than the text
-                if (!FitToTextElement)
+                if (!AutoResize)
                 {
-                    _size = Vector2.Max(TextSize, _size);
+                    TextSize = Size - Padding;
+                }
+
+                if (FitToTextElement)
+                {
+                    Size = TextSize + Padding;
                 }
             }
         }

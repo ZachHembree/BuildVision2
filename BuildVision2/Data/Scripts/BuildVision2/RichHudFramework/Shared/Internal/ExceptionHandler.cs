@@ -80,9 +80,11 @@ namespace RichHudFramework.Internal
         private int exceptionCount;
         private readonly List<ModBase> clients;
         private readonly List<string> exceptionMessages;
+        private readonly StringBuilder debugNotifications;
         private readonly Stopwatch errorTimer;
 
         private Action lastMissionScreen;
+        private IMyHudNotification debugNotification;
 
         public ExceptionHandler()
         {
@@ -97,6 +99,7 @@ namespace RichHudFramework.Internal
             exceptionMessages = new List<string>();
             errorTimer = new Stopwatch();
             clients = new List<ModBase>();
+            debugNotifications = new StringBuilder();
         }
 
         public override void LoadData()
@@ -131,6 +134,22 @@ namespace RichHudFramework.Internal
             {
                 lastMissionScreen();
                 lastMissionScreen = null;
+            }
+
+            if (debugNotification != null)
+            {
+                debugNotification.Text = "";
+                debugNotification.Hide();
+            }
+
+            if (debugNotifications.Length > 0)
+            {
+                if (debugNotification == null)
+                    debugNotification = MyAPIGateway.Utilities.CreateNotification("", 500, MyFontEnum.Red);
+
+                debugNotification.Text = debugNotifications.ToString();
+                debugNotification.Show();
+                debugNotifications.Clear();
             }
 
             if (Reloading)
@@ -355,6 +374,17 @@ namespace RichHudFramework.Internal
         }
 
         /// <summary>
+        /// Prints message to HUD using built-in SE notifications
+        /// </summary>
+        public static void SendDebugNotification(string message)
+        {
+            if (!IsDedicated)
+            {
+                instance?.debugNotifications.AppendLine(message);
+            }
+        }
+
+        /// <summary>
         /// Writes text to SE log with the mod name prepended to it.
         /// </summary>
         public static void WriteToLog(string message, bool debugOnly = false)
@@ -428,7 +458,7 @@ namespace RichHudFramework.Internal
         {
             if (!Reloading)
             {
-                WriteToLog("Reloading mod...");
+                WriteToLog("Stopping mod...");
                 Reloading = true;
 
                 CloseClients();

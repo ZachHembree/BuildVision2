@@ -15,7 +15,7 @@ namespace DarkHelmet.BuildVision2
     {
         private void AddChatCommands()
         {
-            CmdManager.GetOrCreateGroup("/bv2", new CmdGroupInitializer 
+            CmdManager.GetOrCreateGroup("/bv2", new CmdGroupInitializer
             {
                 { "help", x => RichHudTerminal.OpenToPage(helpMain) },
                 { "bind", x => UpdateBind(x[0], x.GetSubarray(1)), 2 },
@@ -33,9 +33,9 @@ namespace DarkHelmet.BuildVision2
                 { "export", x => ExportBlockData() },
                 { "import", x => TryImportBlockData() },
                 { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(QuickActionHudSpace.Target?.SubtypeId.ToString() ?? "No Target")}") },
-                { "toggleDebug", x => QuickActionMenu.DrawDebug = !QuickActionMenu.DrawDebug },
-                { "toggleVisDbg", x => PropertyBlock.DebugVisibility = !PropertyBlock.DebugVisibility },
-                { "toggleBoundingBox", x => QuickActionHudSpace.DrawBoundingBox = !QuickActionHudSpace.DrawBoundingBox },
+                { "toggleDebug", x => { QuickActionMenu.DrawDebug = !QuickActionMenu.DrawDebug; ExceptionHandler.DebugLogging = QuickActionMenu.DrawDebug; } },
+                { "togglePropFiltering", x => PropertyBlock.DebugVisibility = !PropertyBlock.DebugVisibility },
+                { "toggleTargetVis", x => QuickActionHudSpace.EnableTargetDebugVis = !QuickActionHudSpace.EnableTargetDebugVis },
                 { "targetBench", TargetBench, 1 },
                 { "getTarget", x => GetTarget() },
             });
@@ -51,7 +51,7 @@ namespace DarkHelmet.BuildVision2
             if (bind == null)
                 ExceptionHandler.SendChatMessage("Error: The bind specified could not be found.");
             else
-                bind.TrySetCombo(controls, true, false);
+                bind.TrySetCombo(controls, 0, true, false);
         }
 
         private void TryImportBlockData()
@@ -133,7 +133,29 @@ namespace DarkHelmet.BuildVision2
             
             if (QuickActionHudSpace.TryGetTargetedBlock(100d, out tblock))
             {
-                ExceptionHandler.SendChatMessage($"Target: {tblock.GetType()}\nAccess: {tblock.GetAccessPermissions()}");
+                Type[] interfaces = MyAPIGateway.Reflection.GetInterfaces(tblock.GetType());
+                StringBuilder sb = new StringBuilder();
+                
+                sb.Append(
+                    $"Target: {tblock.CustomName} ({tblock.GetType()})\n" +
+                    $"Access: {tblock.GetAccessPermissions()}\n" +
+                    $"Interfaces ({interfaces.Length}):\n");
+
+                foreach (Type subtype in interfaces)
+                    sb.AppendLine(subtype.Name);
+
+                sb.AppendLine("Components Types:");
+                
+                foreach (var component in tblock.Components)
+                    sb.AppendLine($"{component.GetType().Name}");
+
+                sb.AppendLine("Upgrades:");
+
+                foreach (var pair in tblock.UpgradeValues)
+                    sb.AppendLine($"{pair.Key}: {pair.Value}");
+
+                ExceptionHandler.SendChatMessage(sb.ToString());
+                ExceptionHandler.WriteToLogAndConsole(sb.ToString());
             }
             else
                 ExceptionHandler.SendChatMessage($"Error: No target found.");

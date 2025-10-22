@@ -119,6 +119,7 @@ namespace DarkHelmet.BuildVision2
             {
                 ITextBuilder debugBuilder = debugText.TextBoard;
                 debugBuilder.Clear();
+                debugBuilder.Append($"Size: {Size}\n");
                 debugBuilder.Append($"ConObj: {MyAPIGateway.Session.ControlledObject.GetType().Name}\n");
                 debugBuilder.Append($"SpecCam: {LocalPlayer.IsSpectating}\n");
                 debugBuilder.Append($"State: {MenuState}\n");
@@ -133,7 +134,7 @@ namespace DarkHelmet.BuildVision2
             debugText.Visible = DrawDebug;
 
             textUpdateTick++;
-            textUpdateTick %= textTickDivider;
+            textUpdateTick %= TextTickDivider;
         }
     }
 }

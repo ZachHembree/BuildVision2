@@ -53,38 +53,12 @@ namespace RichHudFramework.UI
         where TContainer : class, IListBoxEntry<TElement, TValue>, new()
         where TElement : HudElementBase, IMinLabelElement
     {
-        /// <summary>
-        /// Height of the treebox in pixels.
-        /// </summary>
-        public override float Height
-        {
-            get
-            {
-                if (!ListOpen)
-                    return display.Height + Padding.Y;
-                else
-                    return display.Height + selectionBox.Height + Padding.Y;
-            }
-            set
-            {
-                if (Padding.Y < value)
-                    value -= Padding.Y;
-
-                if (!ListOpen)
-                {
-                    display.Height = value;
-                    selectionBox.LineHeight = value;
-                }
-            }
-        }
+        public float LineHeight { get { return selectionBox.LineHeight; } set { selectionBox.LineHeight = value; } }
 
         public TreeList(HudParentBase parent) : base(parent)
         {
             selectionBox.border.Visible = false;
-            selectionBox.hudChain.SizingMode = 
-                HudChainSizingModes.FitMembersBoth | 
-                HudChainSizingModes.ClampChainOffAxis | 
-                HudChainSizingModes.FitChainAlignAxis;
+            selectionBox.hudChain.SizingMode = HudChainSizingModes.FitMembersOffAxis;
         }
 
         public TreeList() : this(null)

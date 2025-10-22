@@ -24,11 +24,11 @@ namespace DarkHelmet.BuildVision2
         {
             if (targetEntity != null)
             {
-                BoundingBox box = targetEntity.LocalAABB;
                 MatrixD matrix = targetEntity.WorldMatrix;
-
                 matrix.Translation = targetEntity.WorldAABB.Center;
-                Size = box.Size * 1.05f;
+
+                Vector3 dim = Vector3.Max(targetEntity.LocalAABB.Size, new Vector3(0.25f));
+                Size = dim * 1.05f;
 
                 Draw(ref matrix);
             }

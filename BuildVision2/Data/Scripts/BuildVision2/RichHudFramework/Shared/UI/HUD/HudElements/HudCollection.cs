@@ -48,11 +48,6 @@ namespace RichHudFramework
             /// <summary>
             /// Returns the number of containers in the collection.
             /// </summary>
-            int IReadOnlyCollection<TElementContainer>.Count => hudCollectionList.Count;
-
-            /// <summary>
-            /// Returns the number of containers in the collection.
-            /// </summary>
             public int Count => hudCollectionList.Count;
 
             /// <summary>
@@ -291,7 +286,7 @@ namespace RichHudFramework
         /// A collection of UI elements wrapped in container objects. UI elements in the containers are parented
         /// to the collection, like any other HUD element.
         /// </summary>
-        public class HudCollection : HudCollection<HudElementContainer<HudNodeBase>, HudNodeBase>
+        public class HudCollection : HudCollection<HudNodeContainer<HudNodeBase>, HudNodeBase>
         {
             public HudCollection(HudParentBase parent = null) : base(parent)
             { }

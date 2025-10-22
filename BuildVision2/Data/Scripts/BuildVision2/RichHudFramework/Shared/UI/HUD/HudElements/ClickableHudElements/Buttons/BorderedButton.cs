@@ -46,7 +46,7 @@ namespace RichHudFramework.UI
             border = new BorderBox(this)
             {
                 Thickness = 1f,
-                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                DimAlignment = DimAlignments.UnpaddedSize,
             };
 
             AutoResize = false;

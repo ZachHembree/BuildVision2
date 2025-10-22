@@ -48,7 +48,7 @@ namespace DarkHelmet.BuildVision2
             {
                 var buf = block.textBuffer;
 
-                builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_Effectiveness), nameFormat);
+                builder.Add(MyTexts.TrySubstitute("Effectiveness:"), nameFormat);
                 builder.Add(" ", nameFormat);
 
                 buf.Clear();

@@ -5,6 +5,9 @@ namespace RichHudFramework
 {
     namespace UI
     {
+        /// <summary>
+        /// Interface representing an input tied to one or more key combinations in a <see cref="IBindGroup"/>
+        /// </summary>
         public interface IBind
         {
             /// <summary>
@@ -18,9 +21,21 @@ namespace RichHudFramework
             int Index { get; }
 
             /// <summary>
+            /// Number of key combinations registered to the given bind. If AliasCount == 1, then only
+            /// the main combo is set. If greater, then it is aliased.
+            /// </summary>
+            int AliasCount { get; }
+
+            /// <summary>
             /// True if any controls in the bind are marked analog. For these types of binds, IsPressed == IsNewPressed.
             /// </summary>
             bool Analog { get; }
+
+            /// <summary>
+            /// Analog value of the bind, if it has one. Returns the sum of all analog values in
+            /// key combo. Multiple analog controls per bind are not recommended.
+            /// </summary>
+            float AnalogValue { get; }
 
             /// <summary>
             /// True if just pressed.
@@ -58,34 +73,34 @@ namespace RichHudFramework
             event EventHandler Released;
 
             /// <summary>
-            /// Returns a list of the current key combo for this bind.
+            /// Returns a list of controls representing the key combinaton for the bind
             /// </summary>
-            List<IControl> GetCombo();
+            List<ControlHandle> GetCombo(int alias = 0);
 
             /// <summary>
-            /// Returns a list of control indices for the current bind combo
+            /// Returns a list of control indices representing the key combinaton for the bind
             /// </summary>
-            List<int> GetComboIndices();
-
-            /// <summary>
-            /// Attempts to set the binds combo to the given controls. Returns true if successful.
-            /// </summary>
-            bool TrySetCombo(IReadOnlyList<IControl> combo, bool strict = true, bool silent = true);
+            List<int> GetConIDs(int alias = 0);
 
             /// <summary>
             /// Attempts to set the binds combo to the given controls. Returns true if successful.
             /// </summary>
-            bool TrySetCombo(IReadOnlyList<int> combo, bool strict = true, bool silent = true);
+            bool TrySetCombo(IReadOnlyList<ControlHandle> combo, int alias = 0, bool isStrict = true, bool isSilent = true);
 
             /// <summary>
             /// Attempts to set the binds combo to the given controls. Returns true if successful.
             /// </summary>
-            bool TrySetCombo(IReadOnlyList<string> combo, bool strict = true, bool silent = true);
+            bool TrySetCombo(IReadOnlyList<int> combo, int alias = 0, bool isStrict = true, bool isSilent = true);
+
+            /// <summary>
+            /// Attempts to set the binds combo to the given controls. Returns true if successful.
+            /// </summary>
+            bool TrySetCombo(IReadOnlyList<string> combo, int alias = 0, bool isStrict = true, bool isSilent = true);
 
             /// <summary>
             /// Clears the current key combination.
             /// </summary>
-            void ClearCombo();
+            void ClearCombo(int alias = 0);
 
             /// <summary>
             /// Clears all event subscibers for this bind.
@@ -169,6 +184,21 @@ namespace RichHudFramework
             /// void
             /// </summary>
             ClearSubscribers = 15,
+
+            /// <summary>
+            /// out: float
+            /// </summary>
+            AnalogValue = 16,
+
+            /// <summary>
+            /// out: int
+            /// </summary>
+            AliasCount = 17,
+
+            /// <summary>
+            /// in: int & bool, out: string
+            /// </summary>
+            ToString = 18,
         }
 
     }

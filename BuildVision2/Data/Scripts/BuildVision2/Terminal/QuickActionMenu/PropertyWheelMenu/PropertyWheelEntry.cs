@@ -3,6 +3,9 @@ using RichHudFramework.UI.Rendering;
 using System.Text;
 using System;
 using VRageMath;
+using System.Deployment.Internal;
+using RichHudFramework.Internal;
+using EmptyKeys.UserInterface.Generated.AtmBlockView_Bindings;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -24,11 +27,11 @@ namespace DarkHelmet.BuildVision2
             {
                 SetElement(new Label()
                 {
-                    Format = valueFormatCenter,
+                    Format = ValueFormatCenter,
                     VertCenterText = true,
+                    AutoResize = true,
                     BuilderMode = TextBuilderModes.Wrapped,
-                    Padding = new Vector2(20f),
-                    Width = 90f
+                    LineWrapWidth = 70f
                 });
             }
 
@@ -118,15 +121,15 @@ namespace DarkHelmet.BuildVision2
                     disp = BlockMember.FormattedValue;
                 ITextBuilder tb = Element.TextBoard;
 
-                var fmtName = selected ? selectedFormatCenter : nameFormatCenter;
-                var fmtValue = selected ? selectedFormatCenter : valueFormatCenter;
+                var fmtName = selected ? SelectedFormatCenter : NameFormatCenter;
+                var fmtValue = selected ? SelectedFormatCenter : ValueFormatCenter;
 
                 tb.Clear();
 
                 if (name != null)
                 {
                     textBuf.Clear();
-                    textBuf.AppendSubstringMax(name, maxEntryCharCount);
+                    textBuf.AppendSubstringMax(name, MaxEntryCharCount);
 
                     if (disp != null)
                         textBuf.Append(":\n");
@@ -137,7 +140,7 @@ namespace DarkHelmet.BuildVision2
                 if (disp != null)
                 {
                     textBuf.Clear();
-                    textBuf.AppendSubstringMax(disp, maxEntryCharCount);
+                    textBuf.AppendSubstringMax(disp, MaxEntryCharCount);
 
                     tb.Append(textBuf, fmtValue);
                 }

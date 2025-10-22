@@ -78,6 +78,8 @@ if (BvServer.IsAlive) {
             private void UpdateRotorAngle(byte[] bin)
             {
                 Utils.ProtoBuf.TryDeserialize(bin, out _angle);
+                const float tau = (float)(2.0 * Math.PI);
+                 _angle %= tau;
             }
         }
     }

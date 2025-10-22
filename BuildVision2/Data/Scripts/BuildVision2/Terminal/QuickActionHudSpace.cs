@@ -1,30 +1,34 @@
-﻿using RichHudFramework;
-using RichHudFramework.Internal;
+﻿using RichHudFramework.Internal;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
+using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
 using System;
 using System.Diagnostics;
-using System.Collections.Generic;
-using VRage.Utils;
+using VRage;
 using VRage.Game;
 using VRage.Game.ModAPI;
+using VRage.Utils;
 using VRageMath;
-using VRage;
 
 namespace DarkHelmet.BuildVision2
 {
     public sealed partial class QuickActionHudSpace : HudSpaceNodeBase
     {
         /// <summary>
+        /// Limits how frequently peek can switch targets
+        /// </summary>
+        private const int PeekRetargetTickInterval = 5;
+
+        /// <summary>
         /// Currently targeted terminal block
         /// </summary>
-        public static PropertyBlock Target  { get; private set; }
+        public static PropertyBlock Target { get; private set; }
 
         /// <summary>
         /// If true, then the menu is open
         /// </summary>
-        public static bool Open => instance?.quickActionMenu.MenuState != QuickActionMenuState.Closed;
+        public static bool Open { get; private set; }
 
         /// <summary>
         /// Returns the menu's current state
@@ -32,48 +36,60 @@ namespace DarkHelmet.BuildVision2
         public static QuickActionMenuState MenuState => instance?.quickActionMenu.MenuState ?? QuickActionMenuState.Closed;
 
         /// <summary>
-        /// If true, then the bounding box of the target block will be drawn. Used for debugging.
+        /// Enables/disables debug targeting visualization
         /// </summary>
-        public static bool DrawBoundingBox { get; set; }
+        public static bool EnableTargetDebugVis { get; set; }
 
         /// <summary>
         /// Anim speed normalized to 60fps
         /// </summary>
         public static float AnimScale => instance.lerpScale;
 
+        // Singleton instance
         private static QuickActionHudSpace instance;
         private static bool wasInitialized = false;
 
+        // UI
         private readonly QuickActionMenu quickActionMenu;
-        private readonly BoundingBoard boundingBox;
-
-        private readonly TerminalGrid targetGrid, tempGrid;
-        private readonly List<IMySlimBlock> targetBuffer;
-
         private readonly IMyHudNotification hudNotification;
-        private readonly Stopwatch frameTimer;
+
+        // Animation lerp
         private Vector2 lastPos;
         private float posLerpFactor, lerpScale;
-        private int bpTick, bpMenuTick;
+        private readonly Stopwatch frameTimer;
+
+        // Block targeting
+        private readonly TerminalGrid targetGrid;
+        private readonly BlockFinder blockFinder;
+
+        // Debug targeting visualization
+        private readonly BoundingBoard boundingBox; 
+        private readonly LineBoard targetLineBoard;
+
+        // BP detection heuristics
+        private int bpTick, bpMenuTick, targetTick;
         private bool isPlayerBlueprinting, isBpListOpen;
+
+        // Stores last spectator camera speeds, before opening the menu
         private Vector2? lastSpecSpeeds;
 
         private QuickActionHudSpace() : base(HudMain.Root)
         {
-            DrawBoundingBox = false;
-            targetGrid = new TerminalGrid();
-            tempGrid = new TerminalGrid();
-            targetBuffer = new List<IMySlimBlock>();
-            Target = new PropertyBlock();
+            EnableTargetDebugVis = false;
 
             quickActionMenu = new QuickActionMenu(this);
-            boundingBox = new BoundingBoard();
             hudNotification = MyAPIGateway.Utilities.CreateNotification("", 1000, MyFontEnum.Red);
 
             frameTimer = new Stopwatch();
             frameTimer.Start();
 
-            RichHudCore.LateMessageEntered += MessageHandler;
+            Target = new PropertyBlock();
+            targetGrid = new TerminalGrid();
+            blockFinder = new BlockFinder();
+            boundingBox = new BoundingBoard();
+            targetLineBoard = new LineBoard();
+
+			RichHudCore.LateMessageEntered += MessageHandler;
         }
 
         public static void Init()
@@ -82,7 +98,16 @@ namespace DarkHelmet.BuildVision2
             instance = new QuickActionHudSpace();
         }
 
-        public static void TryOpenMenu() =>
+		/// <summary>
+		/// Tries to retrieve targeted <see cref="IMyTerminalBlock"/> on a grid within a given distance.
+		/// </summary>
+		public static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock target)
+		{
+			target = null;
+			return instance?.TryGetTargetedBlockInternal(maxDist, out target) ?? false;
+		}
+
+		public static void TryOpenMenu() =>
             instance?.TryOpenMenuInternal(QuickActionMenuState.WheelMenuControl);
 
         public static void CloseMenu() =>
@@ -114,15 +139,14 @@ namespace DarkHelmet.BuildVision2
             {
                 Target.Update();
 
-                if (!CanAccessTargetBlock() || MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None 
-                    || isPlayerBlueprinting || isBpListOpen)
-                {
+                if (!GetCanAccessTargetBlock())
+				{
                     CloseMenuInternal();
                 }
             }
         }
 
-        protected override void Layout()
+		protected override void Layout()
         {
             var specCon = MyAPIGateway.Session.CameraController as MySpectator;
             float scale = BvConfig.Current.genUI.hudScale;
@@ -133,7 +157,7 @@ namespace DarkHelmet.BuildVision2
             if (Target.TBlock != null && Open)
             {
                 Vector3D targetWorldPos, targetScreenPos;
-                Vector2 screenBounds = new Vector2(HudMain.ScreenWidth, HudMain.ScreenHeight) * HudMain.ResScale * .5f,
+                Vector2 screenBounds = new Vector2(HudMain.ScreenWidth, HudMain.ScreenHeight) / HudMain.ResScale * .5f,
                     menuPos;
 
                 if (!BvConfig.Current.genUI.useCustomPos)
@@ -141,7 +165,7 @@ namespace DarkHelmet.BuildVision2
                     if (LocalPlayer.IsLookingInBlockDir(Target.TBlock))
                     {
                         targetWorldPos = Target.Position + Target.ModelOffset * .75d;
-                        targetScreenPos = LocalPlayer.GetWorldToScreenPos(targetWorldPos) / 2d;
+                        targetScreenPos = LocalPlayer.GetWorldToScreenPos(targetWorldPos) * .5d;
 
                         menuPos = new Vector2((float)targetScreenPos.X, (float)targetScreenPos.Y);
                         menuPos = HudMain.GetPixelVector(menuPos) / scale;
@@ -154,12 +178,12 @@ namespace DarkHelmet.BuildVision2
                     menuPos = BvConfig.Current.genUI.hudPos;
                     menuPos = HudMain.GetPixelVector(menuPos) / scale;
 
-                    if (menuPos.X < 0)
+                    if (menuPos.X < 0f)
                         menuPos.X += .5f * quickActionMenu.Width;
                     else
                         menuPos.X -= .5f * quickActionMenu.Width;
 
-                    if (menuPos.Y < 0)
+                    if (menuPos.Y < 0f)
                         menuPos.Y += .5f * quickActionMenu.Height;
                     else
                         menuPos.Y -= .5f * quickActionMenu.Height;
@@ -176,7 +200,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     posLerpFactor = 0f;
                     lastPos = menuPos;
-                }                
+                }
 
                 if (BvConfig.Current.genUI.useCustomPos)
                     posLerpFactor = 1f;
@@ -207,37 +231,65 @@ namespace DarkHelmet.BuildVision2
 
         protected override void Draw()
         {
-            // Debug target bounding box
-            if (Target?.TBlock != null && DrawBoundingBox)
-                boundingBox.Draw(Target.TBlock);
+            // Debug target bounding boxes
+            if (EnableTargetDebugVis)
+            {
+                foreach (var target in blockFinder.SortedTargets)
+                {
+                    boundingBox.Draw(target.block);
+                    ExceptionHandler.SendDebugNotification(
+                        $"Dist: {target.distance:G5} " +
+                        $" - {target.block?.CustomName ?? target.block?.Name ?? "?"}");
+                }
+
+                var camPos = MyAPIGateway.Session.Camera.WorldMatrix.Translation;
+                var rayPos = blockFinder.LastTargetLine.From;
+
+                if (Vector3D.DistanceSquared(camPos, rayPos) > .01d)
+                    targetLineBoard.Draw(blockFinder.LastTargetLine);
+            }
         }
 
         protected override void HandleInput(Vector2 cursorPos)
         {
-            UpdateBpInputMonitoring();
+            bool isOpen = instance?.quickActionMenu.MenuState != QuickActionMenuState.Closed;
 
-            quickActionMenu.InputEnabled = !RichHudTerminal.Open;
-            bool tryOpen = BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed || BvBinds.StartDupe.IsNewPressed;
+            UpdateBpInputMonitoring();
+            quickActionMenu.InputEnabled = !RichHudTerminal.Open && MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None;
+
+            if (!quickActionMenu.InputEnabled)
+                return;
 
             if (BvConfig.Current.genUI.legacyModeEnabled || (MenuState & QuickActionMenuState.Controlled) == 0)
             {
-                if (tryOpen)
+                if (BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed || BvBinds.StartDupe.IsNewPressed)
+                {
+                    targetTick = 0;
                     TryOpenMenuInternal();
+                }
             }
 
             if ((MenuState & QuickActionMenuState.Controlled) == 0)
             {
                 if (BvBinds.MultXOrMouse.IsPressed && BvConfig.Current.targeting.enablePeek)
+                {
+                    if (BvBinds.MultXOrMouse.IsNewPressed)
+                        targetTick = 0;
+
                     TryOpenMenuInternal();
+                }
                 else if ((quickActionMenu.MenuState & QuickActionMenuState.Peek) > 0)
                     CloseMenuInternal();
             }
 
-            if (SharedBinds.Escape.IsNewPressed && Open)
+            if (SharedBinds.Escape.IsNewPressed && isOpen)
                 CloseMenuInternal();
 
-            if (!Open)
+            if (Open && !isOpen)
                 Target.Reset();
+
+            Open = isOpen;
+            targetTick++;
         }
 
         /// <summary>
@@ -257,8 +309,8 @@ namespace DarkHelmet.BuildVision2
                 }
                 else
                 {
-                    if (!canBp || SharedBinds.LeftButton.IsNewPressed || SharedBinds.Escape.IsNewPressed 
-                        || MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("SLOT0")) )
+                    if (!canBp || SharedBinds.LeftButton.IsNewPressed || SharedBinds.Escape.IsNewPressed
+                        || MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("SLOT0")))
                     {
                         isPlayerBlueprinting = false;
                     }
@@ -272,7 +324,7 @@ namespace DarkHelmet.BuildVision2
             }
             else if (bpMenuTick > 30)
             {
-                if (MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || !MyAPIGateway.Gui.IsCursorVisible 
+                if (MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || !MyAPIGateway.Gui.IsCursorVisible
                     || BindManager.IsChatOpen || SharedBinds.Escape.IsNewPressed)
                 {
                     isBpListOpen = false;
@@ -296,9 +348,9 @@ namespace DarkHelmet.BuildVision2
         /// </summary>
         private void TryOpenMenuInternal(QuickActionMenuState initialState = default(QuickActionMenuState))
         {
-            if (!isPlayerBlueprinting && TryGetTarget() && CanAccessTargetBlock())
+            if ((targetTick % PeekRetargetTickInterval) == 0 && !isPlayerBlueprinting && TryGetTargetWithPermission() && GetCanAccessTargetBlock())
             {
-                quickActionMenu.OpenMenu(Target, initialState);
+				quickActionMenu.OpenMenu(Target, initialState);
 
                 if (!wasInitialized && !BvServer.IsAlive && BvServer.IsPlugin)
                 {
@@ -312,26 +364,63 @@ namespace DarkHelmet.BuildVision2
             }
         }
 
-        /// <summary>
-        /// Hide the menu and clear target
-        /// </summary>
-        private void CloseMenuInternal()
+		/// <summary>
+		/// Checks if the player can access the targeted block.
+		/// </summary>
+		private bool GetCanAccessTargetBlock()
+		{
+			return Target.TBlock != null
+				&& Target.CanLocalPlayerAccess
+                && GetIsBlockInRange()
+				&& (!BvConfig.Current.targeting.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock))
+				&& (LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating) &&
+				!(MyAPIGateway.Gui.GetCurrentScreen != MyTerminalPageEnum.None || isPlayerBlueprinting || isBpListOpen);
+		}
+
+		/// <summary>
+		/// Returns true if the player is within maxControlRange meters of the block.
+		/// </summary>
+		private bool GetIsBlockInRange()
+		{
+			if (LocalPlayer.IsSpectating && !BvConfig.Current.targeting.isSpecRangeLimited)
+				return true;
+			else if (Target.TBlock != null)
+			{
+				double distSq = (MyAPIGateway.Session.Camera.Position - Target.Position).LengthSquared(),
+					maxConDistSq = (BvConfig.Current.targeting.maxControlRange * BvConfig.Current.targeting.maxControlRange);
+
+				return distSq < maxConDistSq;
+			}
+			else
+				return false;
+		}
+
+		/// <summary>
+		/// Hide the menu and clear target
+		/// </summary>
+		private void CloseMenuInternal()
         {
             Target.Reset();
             targetGrid.Reset();
+
+            if (!EnableTargetDebugVis)
+                blockFinder.Clear();
 
             quickActionMenu.CloseMenu();
             HudMain.EnableCursor = false;
         }
 
         /// <summary>
-        /// Tries to get terminal block being targeted by the local player if there is one.
+        /// Tries to get terminal block being targeted by the local player if there is one while 
+        /// respecting ownership permissions.
         /// </summary>
-        private bool TryGetTarget()
+        private bool TryGetTargetWithPermission()
         {
             IMyTerminalBlock block;
-            bool canDisplaceBlock = LocalPlayer.CurrentBuilderBlock != null && !BvConfig.Current.targeting.canOpenIfPlacing,
-                canTarget = !canDisplaceBlock || BvConfig.Current.genUI.legacyModeEnabled;
+            bool isCharOrSpectator = LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating,
+                canOpenAndPlace = (BvConfig.Current.targeting.canOpenIfPlacing || BvConfig.Current.genUI.legacyModeEnabled),
+                isHandEmpty = LocalPlayer.CurrentBuilderBlock == null,
+                canTarget = isCharOrSpectator && (isHandEmpty || canOpenAndPlace);
 
             if (canTarget && TryGetTargetedBlockInternal(BvConfig.Current.targeting.maxOpenRange, out block))
             {
@@ -339,18 +428,16 @@ namespace DarkHelmet.BuildVision2
                 {
                     TerminalPermissionStates permissions = block.GetAccessPermissions();
 
-                    if ((permissions & TerminalPermissionStates.Granted) > 0 
+                    if ((permissions & TerminalPermissionStates.Granted) > 0
                         || LocalPlayer.HasAdminSetting(MyAdminSettingsEnum.UseTerminals))
                     {
                         if (Target.TBlock == null || block != Target.TBlock)
                         {
                             targetGrid.SetGrid(block.CubeGrid);
                             Target.SetBlock(targetGrid, block);
-
-                            return true;
                         }
-                        else
-                            return false;
+                        
+                        return Target.TBlock != null;
                     }
                     else
                     {
@@ -370,114 +457,23 @@ namespace DarkHelmet.BuildVision2
         /// <summary>
         /// Tries to retrieve targeted <see cref="IMyTerminalBlock"/> on a grid within a given distance.
         /// </summary>
-        public static bool TryGetTargetedBlock(double maxDist, out IMyTerminalBlock target)
-        {
-            target = null;
-            return instance?.TryGetTargetedBlockInternal(maxDist, out target) ?? false;
-        }
-
-        /// <summary>
-        /// Tries to retrieve targeted <see cref="IMyTerminalBlock"/> on a grid within a given distance.
-        /// </summary>
         private bool TryGetTargetedBlockInternal(double maxDist, out IMyTerminalBlock target)
         {
-            IMyCubeGrid cubeGrid;
-            IHitInfo rayInfo;
-            MatrixD transform = MyAPIGateway.Session.Camera.WorldMatrix;
-            Vector3D headPos = transform.Translation, forward = transform.Forward;
+            MatrixD camMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
+            LineD line;
+            line.From = camMatrix.Translation;
+            line.To = camMatrix.Translation + camMatrix.Forward * maxDist;
+            line.Length = maxDist;
+            line.Direction = camMatrix.Forward;
 
-            if (!LocalPlayer.IsSpectating)
-                headPos += (headPos - LocalPlayer.Position).Length() * forward;
-
-            LineD line = new LineD(headPos, headPos + forward * maxDist);
-            target = null;
-
-            if ((LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating) 
-                && LocalPlayer.TryGetTargetedGrid(line, out cubeGrid, out rayInfo))
+            if (blockFinder.TryUpdateTargets(line))
             {
-                // Retrieve blocks within about half a block of the ray intersection point.
-                var sphere = new BoundingSphereD(rayInfo.Position, (cubeGrid.GridSizeEnum == MyCubeSize.Large) ? 1.3 : .3);
-                double currentDist = double.PositiveInfinity, currentCenterDist = double.PositiveInfinity;
-
-                tempGrid.SetGrid(cubeGrid, true);
-                targetBuffer.Clear();
-                tempGrid.GetBlocksInsideSphere(cubeGrid, targetBuffer, ref sphere);
-
-                foreach (IMySlimBlock slimBlock in targetBuffer)
-                {
-                    IMyCubeBlock cubeBlock = slimBlock?.FatBlock;
-
-                    if (cubeBlock != null)
-                    {
-                        var topBlock = cubeBlock as IMyAttachableTopBlock;
-
-                        if (topBlock != null)
-                            cubeBlock = topBlock.Base;
-                    }
-
-                    var tBlock = cubeBlock as IMyTerminalBlock;
-
-                    if (tBlock != null)
-                    {
-                        // Find shortest dist between the bb and the intersection.
-                        BoundingBoxD box = cubeBlock.WorldAABB;
-                        double newDist = Math.Round(box.DistanceSquared(rayInfo.Position), 3), 
-                            newCenterDist = Math.Round(Vector3D.DistanceSquared(box.Center, rayInfo.Position), 3);
-
-                        // If this is a terminal block, check to see if this block is any closer than the last.
-                        // If the distance to the bb is zero, use the center dist, favoring smaller blocks.
-                        if (
-                            (currentDist > 0d && newDist < currentDist) 
-                            || (Math.Abs(currentDist - newDist) < 0.02 && newCenterDist < currentCenterDist)
-                        )
-                        {
-                            target = tBlock;
-                            currentDist = newDist;
-                            currentCenterDist = newCenterDist;
-                        }
-                    }
-                }
-            }
-
-            tempGrid.Reset();
-            return target != null;
-        }
-
-        /// <summary>
-        /// Checks if the player can access the targeted block.
-        /// </summary>
-        private bool CanAccessTargetBlock()
-        {
-            return Target.TBlock != null
-                && BlockInRange()
-                && Target.CanLocalPlayerAccess
-                && (!BvConfig.Current.targeting.closeIfNotInView || LocalPlayer.IsLookingInBlockDir(Target.TBlock))
-                && (LocalPlayer.IsControllingCharacter || LocalPlayer.IsSpectating);
-        }
-
-        /// <summary>
-        /// Determines whether the player is within 10 units of the block.
-        /// </summary>
-        private bool BlockInRange()
-        {
-            if (LocalPlayer.IsSpectating && !BvConfig.Current.targeting.isSpecRangeLimited)
-            {
+                target = blockFinder.SortedTargets[0].block;
                 return true;
             }
-            else
-            {
-                double dist = double.PositiveInfinity;
 
-                if (Target.TBlock != null)
-                {
-                    if (LocalPlayer.IsSpectating)
-                        dist = (MyAPIGateway.Session.Camera.Position - Target.Position).LengthSquared();
-
-                    dist = Math.Min(dist, (LocalPlayer.Position - Target.Position).LengthSquared());
-                }
-
-                return dist < (BvConfig.Current.targeting.maxControlRange * BvConfig.Current.targeting.maxControlRange);
-            }                
+			target = null;
+			return false;
         }
     }
 }

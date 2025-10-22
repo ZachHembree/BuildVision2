@@ -1,4 +1,5 @@
-﻿using RichHudFramework.UI.Client;
+using RichHudFramework.UI.Client;
+using RichHudFramework.UI.Server;
 using RichHudFramework.UI.Rendering;
 using System;
 using System.Collections.Generic;
@@ -70,25 +71,6 @@ namespace RichHudFramework.UI
         /// Number of entries enabled
         /// </summary>
         public virtual int EnabledCount { get; protected set; }
-
-        /// <summary>
-        /// Returns true if input is enabled can update
-        /// </summary>
-        public override bool InputEnabled
-        {
-            set
-            {
-                bool current = (State & nodeInputEnabled) == nodeInputEnabled;
-
-                if (current != value)
-                    isStartPosStale = true;
-
-                if (value)
-                    State |= HudElementStates.IsInputEnabled;
-                else
-                    State &= ~HudElementStates.IsInputEnabled;
-            }
-        }
 
         /// <summary>
         /// True if using mouse gestures for input instead of cursor
@@ -227,7 +209,7 @@ namespace RichHudFramework.UI
             // Update entry positions
             int entrySize = polyBoard.Sides / effectiveMaxCount;
             Vector2I slice = new Vector2I(0, entrySize - 1);
-            Vector2 size = cachedSize - cachedPadding;
+            Vector2 size = UnpaddedSize;
 
             for (int i = 0; i < hudCollectionList.Count; i++)
             {
@@ -250,13 +232,13 @@ namespace RichHudFramework.UI
 
             if (HudMain.InputMode != HudInputMode.NoInput && (HudSpace?.IsFacingCamera ?? false))
             {
-                Vector2 size = cachedSize - cachedPadding,
+                Vector2 size = UnpaddedSize,
                     aspect = new Vector2(size.Y / size.X, size.X / size.Y),
-                    cursorPos = new Vector2(HudSpace.CursorPos.X, HudSpace.CursorPos.Y) - cachedPosition;
+                    cursorPos = new Vector2(HudSpace.CursorPos.X, HudSpace.CursorPos.Y) - Position;
 
                 cursorPos *= aspect;
 
-                float max = .5f * (cachedSize.X - cachedPadding.X),
+                float max = .5f * (UnpaddedSize.X),
                     min = polyBoard.InnerRadius * max,
                     offsetLen = cursorPos.Length();
 
@@ -295,7 +277,7 @@ namespace RichHudFramework.UI
             if (UseGestureInput)
                 cursorOffset -= lastCursorPos;
             else
-                cursorOffset -= cachedPosition;
+                cursorOffset -= Position;
 
             if (cursorOffset.LengthSquared() > 64f)
             {
@@ -372,12 +354,12 @@ namespace RichHudFramework.UI
 
         protected override void Draw()
         {
-            Vector2 size = cachedSize - cachedPadding;
+            Vector2 size = UnpaddedSize;
             int entrySize = polyBoard.Sides / effectiveMaxCount;
             polyBoard.Color = BackgroundColor;
             UpdateVisPos();
 
-            polyBoard.Draw(size, cachedOrigin, HudSpace.PlaneToWorldRef);
+            polyBoard.Draw(size, Position, HudSpace.PlaneToWorldRef);
 
             if (entrySize > 0)
             {
@@ -385,14 +367,14 @@ namespace RichHudFramework.UI
                 {
                     Vector2I slice = new Vector2I(0, entrySize - 1) + (selectionVisPos * entrySize);
                     polyBoard.Color = SelectionColor;
-                    polyBoard.Draw(size, cachedOrigin, slice, HudSpace.PlaneToWorldRef);
+                    polyBoard.Draw(size, Position, slice, HudSpace.PlaneToWorldRef);
                 }
 
                 if (highlightVisPos != -1 && (highlightVisPos != selectionVisPos || UseGestureInput))
                 {
                     Vector2I slice = new Vector2I(0, entrySize - 1) + (highlightVisPos * entrySize);
                     polyBoard.Color = HighlightColor;
-                    polyBoard.Draw(size, cachedOrigin, slice, HudSpace.PlaneToWorldRef);
+                    polyBoard.Draw(size, Position, slice, HudSpace.PlaneToWorldRef);
                 }
             }
         }

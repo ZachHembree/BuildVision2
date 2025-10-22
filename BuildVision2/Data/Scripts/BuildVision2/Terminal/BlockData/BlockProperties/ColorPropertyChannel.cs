@@ -74,7 +74,7 @@ namespace DarkHelmet.BuildVision2
                 get
                 {
                     nameSB.Clear();
-                    nameSB.Append(parent.Name);
+                    nameSB.AppendStringBuilder(parent.Name);
                     nameSB.Append(": ");
                     nameSB.Append(suffix);
 

@@ -138,13 +138,13 @@ namespace RichHudFramework.UI
             border = new BorderBox(background)
             {
                 Thickness = 1f,
-                DimAlignment = DimAlignments.Both,
+                DimAlignment = DimAlignments.Size,
             };
 
             textBox = new TextBox(background)
             {
                 AutoResize = false,
-                DimAlignment = DimAlignments.Both | DimAlignments.IgnorePadding,
+                DimAlignment = DimAlignments.UnpaddedSize,
                 Padding = new Vector2(24f, 0f),
                 MoveToEndOnGainFocus = true,
                 ClearSelectionOnLoseFocus = true

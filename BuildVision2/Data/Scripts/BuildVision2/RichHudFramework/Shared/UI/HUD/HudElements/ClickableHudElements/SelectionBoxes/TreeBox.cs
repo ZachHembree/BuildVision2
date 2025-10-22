@@ -19,6 +19,8 @@ namespace RichHudFramework.UI
         /// </summary>
         public IReadOnlyList<TContainer> Collection => selectionBox.hudChain.Collection;
 
+        public TreeBox<TContainer, TElement> CollectionContainer => this;
+
         public TreeBox(HudParentBase parent) : base(parent)
         { }
 

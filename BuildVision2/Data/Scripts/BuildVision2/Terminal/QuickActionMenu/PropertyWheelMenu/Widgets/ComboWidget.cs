@@ -21,15 +21,14 @@ namespace DarkHelmet.BuildVision2
             {
                 comboBox = new Dropdown<KeyValuePair<long, StringBuilder>>()
                 {
-                    DropdownHeight = 0f,
-                    MinVisibleCount = 4,
+                    DropdownHeight = 100f
                 };
 
                 layout = new HudChain(true, this)
                 {
-                    DimAlignment = DimAlignments.Width,
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
-                    Spacing = 8f,
+                    DimAlignment = DimAlignments.UnpaddedSize,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersCenter,
+                    Spacing = WidgetInnerPadding,
                     CollectionContainer =
                     {
                         comboBox,
@@ -89,7 +88,7 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
-                Height = _parentFull.Height + cachedPadding.Y;
+                Height = _parentFull.Height + Padding.Y;
             }
 
             protected override void HandleInput(Vector2 cursorPos)

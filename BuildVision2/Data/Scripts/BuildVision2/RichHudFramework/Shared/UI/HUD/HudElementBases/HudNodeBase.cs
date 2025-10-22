@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using VRage;
 using VRageMath;
@@ -26,7 +26,8 @@ namespace RichHudFramework
         /// </summary>
         public abstract partial class HudNodeBase : HudParentBase, IReadOnlyHudNode
         {
-            protected const HudElementStates nodeVisible = HudElementStates.IsVisible | HudElementStates.WasParentVisible | HudElementStates.IsRegistered,
+            protected const HudElementStates 
+                nodeVisible = HudElementStates.IsVisible | HudElementStates.WasParentVisible,
                 nodeInputEnabled = HudElementStates.IsInputEnabled | HudElementStates.WasParentInputEnabled;
             protected const int maxPreloadDepth = 5;
 
@@ -41,38 +42,17 @@ namespace RichHudFramework
             public virtual HudParentBase Parent { get { return _parent; } protected set { _parent = value; } }
 
             /// <summary>
-            /// Determines whether or not an element will be drawn or process input. Visible by default.
-            /// </summary>
-            public override bool Visible => (State & nodeVisible) == nodeVisible;
-
-            /// <summary>
-            /// Returns true if input is enabled can update
-            /// </summary>
-            public override bool InputEnabled => (State & nodeInputEnabled) == nodeInputEnabled;
-
-            /// <summary>
             /// Indicates whether or not the element has been registered to a parent.
             /// </summary>
             public bool Registered => (State & HudElementStates.IsRegistered) > 0;
-
-            protected bool ParentVisible
-            {
-                get { return (State & HudElementStates.WasParentVisible) > 0; }
-                set 
-                { 
-                    if (value)
-                        State |= HudElementStates.WasParentVisible; 
-                    else
-                        State &= ~HudElementStates.WasParentVisible;
-                }
-            }
 
             protected HudParentBase _parent;
 
             public HudNodeBase(HudParentBase parent)
             {
-                State &= ~HudElementStates.IsRegistered;
-                ParentVisible = true;
+                NodeVisibleMask = nodeVisible;
+                NodeInputMask = nodeInputEnabled;
+                State = HudElementStates.WasParentVisible | HudElementStates.IsInputEnabled | HudElementStates.IsVisible;
 
                 Register(parent);
             }
@@ -88,16 +68,21 @@ namespace RichHudFramework
                 {
                     try
                     {
-                        State &= ~HudElementStates.WasParentInputEnabled;
+                        if (_parent != null && (_parent.State & _parent.NodeInputMask) == _parent.NodeInputMask)
+                            State |= HudElementStates.WasParentInputEnabled;
+                        else
+                            State &= ~HudElementStates.WasParentInputEnabled;
 
-                        if (_parent != null)
-                            State |= _parent.InputEnabled ? HudElementStates.WasParentInputEnabled : HudElementStates.None;
+                        bool isVisible = (State & NodeVisibleMask) == NodeVisibleMask,
+                             isInputEnabled = (State & NodeInputMask) == NodeInputMask;
 
-                        if (Visible && InputEnabled)
+                        if (isVisible && isInputEnabled)
                         {
                             Vector3 cursorPos = HudSpace.CursorPos;
                             HandleInput(new Vector2(cursorPos.X, cursorPos.Y));
                         }
+
+                        State |= HudElementStates.IsInitialized;
                     }
                     catch (Exception e)
                     {
@@ -116,19 +101,18 @@ namespace RichHudFramework
                 {
                     try
                     {
-                        layerData.fullZOffset = ParentUtils.GetFullZOffset(layerData, _parent);
-
-                        if (_parent == null)
-                        {
-                            ParentVisible = false;
-                        }
+                        if (_parent != null && (_parent.State & _parent.NodeVisibleMask) == _parent.NodeVisibleMask)
+                            State |= HudElementStates.WasParentVisible;
                         else
-                        {
-                            ParentVisible = _parent.Visible;
-                        }
+                            State &= ~HudElementStates.WasParentVisible;
 
-                        if (Visible || refresh)
+                        bool isVisible = (State & NodeVisibleMask) == NodeVisibleMask;
+
+                        if (isVisible)
+                        {
+                            layerData.fullZOffset = ParentUtils.GetFullZOffset(layerData, _parent);
                             Layout();
+                        }
                     }
                     catch (Exception e)
                     {
@@ -142,16 +126,16 @@ namespace RichHudFramework
             /// </summary>
             public override void GetUpdateAccessors(List<HudUpdateAccessors> UpdateActions, byte preloadDepth)
             {
-                bool wasSetVisible = (State & HudElementStates.IsVisible) > 0;
+                HudElementStates lastState = State;
                 State |= HudElementStates.WasParentVisible;
 
-                if (!wasSetVisible && (State & HudElementStates.CanPreload) > 0)
+                if ((State & HudElementStates.IsVisible) == 0 && (State & HudElementStates.CanPreload) > 0)
                     preloadDepth++;
 
                 if (preloadDepth < maxPreloadDepth && (State & HudElementStates.CanPreload) > 0)
                     State |= HudElementStates.IsVisible;
 
-                if (Visible)
+                if ((State & NodeVisibleMask) == NodeVisibleMask)
                 {
                     HudSpace = _parent?.HudSpace;
                     layerData.fullZOffset = ParentUtils.GetFullZOffset(layerData, _parent);
@@ -165,8 +149,7 @@ namespace RichHudFramework
                         children[n].GetUpdateAccessors(UpdateActions, preloadDepth);
                 }
 
-                if (!wasSetVisible)
-                    State &= ~HudElementStates.IsVisible;
+                State = lastState;
             }
 
             /// <summary>
@@ -191,7 +174,9 @@ namespace RichHudFramework
 
                 if ((State & HudElementStates.IsRegistered) > 0)
                 {
-                    if (canPreload)
+					State &= ~HudElementStates.WasParentVisible;
+
+					if (canPreload)
                         State |= HudElementStates.CanPreload;
                     else
                         State &= ~HudElementStates.CanPreload;

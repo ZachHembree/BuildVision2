@@ -4,6 +4,7 @@ using RichHudFramework.IO;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using Sandbox.ModAPI.Interfaces.Terminal;
+using SpaceEngineers.Game.ModAPI.Ingame;
 using System;
 using System.Text;
 using VRage;
@@ -282,9 +283,7 @@ if (BvServer.IsAlive) {
             private void GetRotorAngle(StringBuilder sb)
             {
                 sb.Clear();
-                sb.Append('(');
-                sb.Append(Math.Round(MathHelper.Clamp(block.Rotor.Angle.RadiansToDegrees(), -360, 360), 2));
-                sb.Append("°)");
+                sb.Append($"({block.Rotor.Angle.RadiansToDegrees():F2})°\n");
             }
 
             private float GetIncrement()

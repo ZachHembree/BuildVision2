@@ -31,9 +31,9 @@ namespace DarkHelmet.BuildVision2
 
                 layout = new HudChain(true, this)
                 {
-                    DimAlignment = DimAlignments.Width,
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
-                    Spacing = 8f,
+                    DimAlignment = DimAlignments.UnpaddedSize,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersCenter,
+                    Spacing = WidgetInnerPadding,
                     CollectionContainer =
                     {
                         sliderBox,
@@ -87,8 +87,6 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
-                base.Layout();
-
                 if (!sliderBox.IsTextInputOpen)
                 {
                     ITextBuilder valueBuilder = sliderBox.ValueBuilder;
@@ -96,11 +94,11 @@ namespace DarkHelmet.BuildVision2
 
                     if (floatMember.StatusText != null && floatMember.StatusText.Length > 0)
                     {
-                        valueBuilder.Append(floatMember.StatusText, wheelValueColor);
+                        valueBuilder.Append(floatMember.StatusText, WheelValueColor.WithAlignment(TextAlignment.Right));
                         valueBuilder.Append(" ");
                     }
 
-                    valueBuilder.Append(floatMember.FormattedValue, wheelNameColor);
+                    valueBuilder.Append(floatMember.FormattedValue, WheelNameColor.WithAlignment(TextAlignment.Right));
                 }
             }
 
@@ -113,9 +111,7 @@ namespace DarkHelmet.BuildVision2
                     sliderBox.OpenTextInput();
                 }
                 else if (!BindManager.IsChatOpen && sliderBox.IsTextInputOpen && SharedBinds.Enter.IsNewPressed)
-                {
-                    Confirm();
-                }
+                    { Confirm(); return; }
                 else if (!sliderBox.IsTextInputOpen)
                 {
                     floatMember.Value = GetSliderValue();
@@ -191,7 +187,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private void SetSliderValue(double current)
             {
-                if (absRange > floatPropLogThreshold)
+                if (absRange > FloatPropLogThreshold)
                 {
                     current = MathHelper.Clamp(current, floatMember.MinValue, floatMember.MaxValue);
                     sliderBox.Current = (float)(Math.Log10(Math.Abs(current - floatMember.MinValue) + 1d) / logRange);
@@ -209,7 +205,7 @@ namespace DarkHelmet.BuildVision2
             {
                 double value = sliderBox.Current;
 
-                if (absRange > floatPropLogThreshold)
+                if (absRange > FloatPropLogThreshold)
                 {
                     value = Math.Pow(10d, value * logRange) - 1d + floatMember.MinValue;
                 }
@@ -240,8 +236,8 @@ namespace DarkHelmet.BuildVision2
                     textField = new TextField()
                     {
                         Height = 47f,
-                        DimAlignment = DimAlignments.Width | DimAlignments.IgnorePadding,
-                        ParentAlignment = ParentAlignments.Bottom | ParentAlignments.InnerV,
+                        DimAlignment = DimAlignments.UnpaddedWidth,
+                        ParentAlignment = ParentAlignments.InnerBottom,
                         Visible = false,
                     };
                     textField.Register(this, true);

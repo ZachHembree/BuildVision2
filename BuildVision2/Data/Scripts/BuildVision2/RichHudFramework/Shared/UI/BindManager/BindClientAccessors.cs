@@ -82,5 +82,15 @@ namespace RichHudFramework.UI
         /// out: bool
         /// </summary>
         IsChatOpen = 8,
+
+        /// <summary>
+        /// in: int, out: string
+        /// </summary>
+        GetControlName = 9,
+
+        /// <summary>
+        /// in: IReadOnlyList{int}, out: string[]
+        /// </summary>
+        GetControlNames = 10,
     }
 }

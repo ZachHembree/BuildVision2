@@ -310,7 +310,7 @@ namespace DarkHelmet.BuildVision2
         {
             var mechBlock = entity as IMyMechanicalConnectionBlock;
             var actionID = (BvServerActions)message.Item2.actionID;
-
+            
             if ((actionID & BvServerActions.AttachHead) == BvServerActions.AttachHead)
             {
                 mechBlock.Attach();
@@ -349,6 +349,11 @@ namespace DarkHelmet.BuildVision2
                 var vent = entity as IMyAirVent;
                 AddServerReply(message, vent.GetOxygenLevel(), ref currentClient);
             }
+            else if ((actionID & BvServerActions.GetPressurizationStatus) == BvServerActions.GetPressurizationStatus)
+            {
+				var vent = entity as IMyAirVent;
+				AddServerReply(message, vent.Status, ref currentClient);
+			}
         }
 
         /// <summary>

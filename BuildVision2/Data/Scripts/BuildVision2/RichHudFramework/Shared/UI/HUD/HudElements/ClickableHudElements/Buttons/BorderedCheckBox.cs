@@ -58,12 +58,12 @@ namespace RichHudFramework.UI
             border = new BorderBox(this)
             {
                 Thickness = 1f,
-                DimAlignment = DimAlignments.Both,
+                DimAlignment = DimAlignments.Size,
             };
 
             tickBox = new TexturedBox()
             {
-                DimAlignment = DimAlignments.Both,
+                DimAlignment = DimAlignments.UnpaddedSize,
                 Padding = new Vector2(17f),
             };
             tickBox.Register(this, true);

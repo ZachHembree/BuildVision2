@@ -41,33 +41,6 @@ namespace RichHudFramework.UI
             } 
         }
 
-        public override float Width
-        {
-            set
-            {
-                if (value > Padding.X)
-                    value -= Padding.X;
-
-                _size.X = (value);
-                display.Width = value - name.Width;
-                colorSliderColumn.Width = display.Width;
-            }
-        }
-
-        public override float Height
-        {
-            set
-            {
-                if (value > Padding.Y)
-                    value -= Padding.Y;
-
-                _size.Y = (value);
-                value = (value - headerChain.Height - 15f) / 3f;
-                colorNameColumn.MemberMaxSize = new Vector2(colorNameColumn.MemberMaxSize.X, value);
-                colorSliderColumn.MemberMaxSize = new Vector2(colorSliderColumn.MemberMaxSize.X, value);
-            }
-        }
-
         /// <summary>
         /// Color currently specified by the color picker
         /// </summary>
@@ -84,20 +57,20 @@ namespace RichHudFramework.UI
         }
 
         // Header
-        private readonly Label name;
-        private readonly TexturedBox display;
-        private readonly HudChain headerChain;
+        protected readonly Label name;
+        protected readonly TexturedBox display;
+        protected readonly HudChain headerChain;
         // Slider text
-        private readonly Label[] sliderText;
-        private readonly HudChain<HudElementContainer<Label>, Label> colorNameColumn;
+        protected readonly Label[] sliderText;
+        protected readonly HudChain<HudElementContainer<Label>, Label> colorNameColumn;
         // Sliders
         public readonly SliderBox[] sliders;
-        private readonly HudChain<HudElementContainer<SliderBox>, SliderBox> colorSliderColumn;
+        protected readonly HudChain<HudElementContainer<SliderBox>, SliderBox> colorSliderColumn;
 
-        private readonly HudChain mainChain, colorChain;
-        private readonly StringBuilder valueBuilder;
-        private Color _color;
-        private int focusedChannel;
+        protected readonly HudChain colorChain;
+        protected readonly StringBuilder valueBuilder;
+        protected Color _color;
+        protected int focusedChannel;
 
         public ColorPickerRGB(HudParentBase parent) : base(parent)
         {
@@ -120,15 +93,14 @@ namespace RichHudFramework.UI
             {
                 Color = Color.White,
                 Thickness = 1f,
-                DimAlignment = DimAlignments.Both,
+                DimAlignment = DimAlignments.Size,
             };
 
             headerChain = new HudChain(false)
             {
-                SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainBoth,
                 Height = 22f,
-                Spacing = 0f,
-                CollectionContainer = { name, display }
+                SizingMode = HudChainSizingModes.FitMembersOffAxis,
+                CollectionContainer = { name, { display, 1f } }
             };
 
             // Color picker
@@ -141,10 +113,15 @@ namespace RichHudFramework.UI
 
             colorNameColumn = new HudChain<HudElementContainer<Label>, Label>(true)
             {
-                SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.FitChainBoth,
+                SizingMode = HudChainSizingModes.FitMembersOffAxis,
                 Width = 87f,
                 Spacing = 5f,
-                CollectionContainer = { sliderText[0], sliderText[1], sliderText[2] }
+                CollectionContainer =
+                {
+                    { sliderText[0], 1f },
+                    { sliderText[1], 1f }, 
+                    { sliderText[2], 1f } 
+                }
             };
 
             sliders = new SliderBox[] 
@@ -156,30 +133,32 @@ namespace RichHudFramework.UI
 
             colorSliderColumn = new HudChain<HudElementContainer<SliderBox>, SliderBox>(true)
             {
-                SizingMode = HudChainSizingModes.FitMembersBoth | HudChainSizingModes.FitChainBoth,
+                SizingMode = HudChainSizingModes.FitMembersOffAxis,
                 Width = 231f,
                 Spacing = 5f,
-                CollectionContainer = { sliders[0], sliders[1], sliders[2] }
+                CollectionContainer = 
+                { 
+                    { sliders[0], 1f }, 
+                    { sliders[1], 1f }, 
+                    { sliders[2], 1f } 
+                }
             };
 
             colorChain = new HudChain(false)
             {
-                SizingMode = HudChainSizingModes.FitChainBoth,
-                CollectionContainer =
-                {
-                    colorNameColumn,
-                    colorSliderColumn,
-                }
+                SizingMode = HudChainSizingModes.FitMembersOffAxis,
+                CollectionContainer = { { colorNameColumn, 0f }, { colorSliderColumn, 1f } }
             };
 
-            mainChain = new HudChain(true, this)
+            var mainChain = new HudChain(true, this)
             {
-                SizingMode = HudChainSizingModes.FitChainBoth,
+                DimAlignment = DimAlignments.UnpaddedSize,
+                SizingMode = HudChainSizingModes.FitMembersOffAxis,
                 Spacing = 5f,
                 CollectionContainer =
                 {
-                    headerChain,
-                    colorChain,
+                    { headerChain, 0f },
+                    { colorChain, 1f },
                 }
             };
 

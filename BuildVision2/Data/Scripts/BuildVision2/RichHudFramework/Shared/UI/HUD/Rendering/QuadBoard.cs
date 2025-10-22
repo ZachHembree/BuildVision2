@@ -81,7 +81,7 @@ namespace RichHudFramework
                 {
                     materialData.textureID = textureID;
                     materialData.texBounds = matFit;
-                    materialData.bbColor = BillBoardUtils.GetBillBoardBoardColor(color);
+                    materialData.bbColor = color.GetBbColor();
                     this.skewRatio = skewRatio;
                 }
 

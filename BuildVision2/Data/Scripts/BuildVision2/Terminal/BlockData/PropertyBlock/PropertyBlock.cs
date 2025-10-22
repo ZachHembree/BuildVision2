@@ -107,10 +107,8 @@ namespace DarkHelmet.BuildVision2
 
         public override void Reset()
         {
-            tick = 0;
-            Update();
-
             base.Reset();
+			tick = 0;
 
             for (int i = 0; i < blockMembers.Count; i++)
                 blockMembers[i].Return();
@@ -138,7 +136,10 @@ namespace DarkHelmet.BuildVision2
 
         private void GenerateProperties()
         {
-            blockMembers.Clear();
+			for (int i = 0; i < blockMembers.Count; i++)
+				blockMembers[i].Return();
+
+			blockMembers.Clear();
             blockProperties.Clear();
 
             GetScrollableProps();
@@ -209,97 +210,41 @@ namespace DarkHelmet.BuildVision2
         }
 
         /// <summary>
-        /// Retrieves a Block Property's Terminal Name.
-        /// </summary>
-        private static void GetTooltipName(ITerminalProperty prop, StringBuilder dst)
-        {
-            var tooltip = prop as IMyTerminalControlTitleTooltip;
-
-            if (tooltip != null)
-            {
-                StringBuilder name = MyTexts.Get(tooltip.Title);
-
-                // Exclude leading spaces
-                int start = 0;
-
-                for (int i = 0; i < name.Length; i++)
-                {
-                    if (name[i] > ' ')
-                        break;
-
-                    start++;
-                }
-
-                dst.EnsureCapacity(name.Length - start);
-
-                for (int n = start; n < name.Length; n++)
-                {
-                    char ch = name[n],
-                        nextCh = name[Math.Min(n + 1, name.Length - 1)];
-
-                    if (
-                        // Exclude special chars and most punctuation
-                        (ch == ' ' || ch >= 'A' || (ch >= '0' && ch <= '9'))
-                        // Exclude repeating and trailing spaces
-                        && !(nextCh == ' ' && ch == ' '))
-                    {
-                        dst.Append(ch);
-                    }
-                }
-            }
-            else
-            {
-                TerminalUtilities.GetBeautifiedTypeID(prop.Id, dst);
-            }
-        }
-
-        /// <summary>
-        /// Filters out any any special characters from a given string.
-        /// </summary>
-        private static void CleanText(StringBuilder src, StringBuilder dst)
-        {
-            if (src != null)
-            {
-                // Exclude leading spaces
-                int start = 0;
-
-                for (int i = 0; i < src.Length; i++)
-                {
-                    if (src[i] > ' ')
-                        break;
-
-                    start++;
-                }
-
-                dst.Clear();
-                dst.EnsureCapacity(src.Length - start);
-
-                for (int n = start; n < src.Length; n++)
-                {
-                    if (src[n] >= ' ')
-                        dst.Append(src[n]);
-                }
-            }
-        }
-
-        /// <summary>
         /// Retrieves all block ITerminalProperty values.
         /// </summary>
         private void GetScrollableProps()
         {
             propBuf.Clear();
             TextProperty argProperty = null;
+            int nameIndex = -1, customNameIndex = -1;
+
             TBlock.GetProperties(propBuf);
+
+            if (ExceptionHandler.DebugLogging)
+            {
+                ExceptionHandler.SendChatMessage($"Block Properties: ({TBlock.CustomName})");
+                ExceptionHandler.WriteToConsole($"Block Properties: ({TBlock.CustomName})");
+            }
 
             foreach (ITerminalProperty prop in propBuf)
             {
                 var control = prop as IMyTerminalControl;
 
+                // Unsupported
+                if (prop.Id == "SearchBox" && prop is ITerminalProperty<StringBuilder>)
+                    continue;
+
+                if (ExceptionHandler.DebugLogging)
+                {
+                    ExceptionHandler.SendChatMessage($"PropertyID: {prop.Id}");
+                    ExceptionHandler.WriteToLogAndConsole($"PropertyID: {prop.Id}");
+                }
+
                 if (control != null && control.CanUseControl(TBlock))
                 {
                     nameBuilder.Clear();
-                    GetTooltipName(prop, nameBuilder);
-
+                    TerminalUtilities.GetTooltipName(prop, nameBuilder);
+                    
                     if (nameBuilder.Length > 0)
                     {
                         if (prop is ITerminalProperty<StringBuilder>)
@@ -310,16 +255,24 @@ namespace DarkHelmet.BuildVision2
                             {
                                 if (prop.Id == "ConsoleCommand")
                                     argProperty = TextProperty.GetProperty(nameBuilder, textProp, this);
-                                else if (prop.Id == "Name" || prop.Id == "CustomName")
-                                    blockProperties.Insert(0, TextProperty.GetProperty(nameBuilder, textProp, this));
-                                else
+                                else if (prop.Id == "Name")
+                                {
+                                    nameIndex = blockProperties.Count;
+									blockProperties.Add(TextProperty.GetProperty(nameBuilder, textProp, this));
+								}
+								else if (prop.Id == "CustomName")
+								{
+									customNameIndex = blockProperties.Count;
+									blockProperties.Add(TextProperty.GetProperty(nameBuilder, textProp, this));
+								}
+								else
                                     blockProperties.Add(TextProperty.GetProperty(nameBuilder, textProp, this));
                             }
                         }
                         if (prop is IMyTerminalControlCombobox)
                         {
                             var comboBox = prop as IMyTerminalControlCombobox;
-
+                            
                             if (comboBox.CanAccessValue(TBlock, comboItemBuffer))
                                 blockProperties.Add(ComboBoxProperty.GetProperty(nameBuilder, comboBox, comboItemBuffer, this));
                         }
@@ -354,6 +307,19 @@ namespace DarkHelmet.BuildVision2
                     }
                 }
             }
+
+            if (nameIndex != -1)
+            {
+                BlockPropertyBase prop = blockProperties[nameIndex];
+                blockProperties.RemoveAt(nameIndex);
+                blockProperties.Insert(0, prop);
+            }
+            else if (customNameIndex != -1)
+            {
+				BlockPropertyBase prop = blockProperties[customNameIndex];
+				blockProperties.RemoveAt(customNameIndex);
+				blockProperties.Insert(0, prop);
+			}
 
             if (argProperty != null)
                 blockProperties.Add(argProperty);

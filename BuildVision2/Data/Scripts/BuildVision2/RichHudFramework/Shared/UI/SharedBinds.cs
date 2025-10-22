@@ -35,6 +35,9 @@ namespace RichHudFramework.UI
         public static IBind PageDown { get { return Instance.sharedMain[17]; } }
         public static IBind Space { get { return Instance.sharedMain[18]; } }
 
+        public static IBind RightStickX { get {  return Instance.sharedMain[19]; } }
+        public static IBind RightStickY { get { return Instance.sharedMain[20]; } }
+
         public static IBind Control { get { return Instance.sharedModifiers[0]; } }
         public static IBind Shift { get { return Instance.sharedModifiers[1]; } }
         public static IBind Alt { get { return Instance.sharedModifiers[2]; } }
@@ -52,36 +55,39 @@ namespace RichHudFramework.UI
             sharedMain = BindManager.GetOrCreateGroup("SharedBinds");
             sharedMain.RegisterBinds(new BindGroupInitializer
             {
-                { "leftbutton", MyKeys.LeftButton },
-                { "rightbutton", MyKeys.RightButton },
+                { "leftbutton", RichHudControls.LeftButton, new KeyComboInit { RichHudControls.LeftBumper } },
+                { "rightbutton", RichHudControls.RightButton, new KeyComboInit { RichHudControls.RightBumper } },
                 { "mousewheelup", RichHudControls.MousewheelUp },
                 { "mousewheeldown", RichHudControls.MousewheelDown },
 
-                { "enter", MyKeys.Enter },
-                { "back", MyKeys.Back },
-                { "delete", MyKeys.Delete },
-                { "escape", MyKeys.Escape },
+                { "enter", RichHudControls.Enter },
+                { "back", RichHudControls.Back },
+                { "delete", RichHudControls.Delete },
+                { "escape", RichHudControls.Escape, new KeyComboInit { RichHudControls.GpadB }  },
 
-                { "selectall", MyKeys.Control, MyKeys.A },
-                { "copy", MyKeys.Control, MyKeys.C },
-                { "cut", MyKeys.Control, MyKeys.X },
-                { "paste", MyKeys.Control, MyKeys.V },
+                { "selectall", RichHudControls.Control, RichHudControls.A },
+                { "copy", RichHudControls.Control, RichHudControls.C },
+                { "cut", RichHudControls.Control, RichHudControls.X },
+                { "paste", RichHudControls.Control, RichHudControls.V },
 
-                { "uparrow", MyKeys.Up },
-                { "downarrow", MyKeys.Down },
-                { "leftarrow", MyKeys.Left },
-                { "rightarrow", MyKeys.Right },
+                { "uparrow", RichHudControls.Up },
+                { "downarrow", RichHudControls.Down },
+                { "leftarrow", RichHudControls.Left },
+                { "rightarrow", RichHudControls.Right },
                 
-                { "pageup", MyKeys.PageUp },
-                { "pagedown", MyKeys.PageDown },
-                { "space", MyKeys.Space },
+                { "pageup", RichHudControls.PageUp },
+                { "pagedown", RichHudControls.PageDown },
+                { "space", RichHudControls.Space },
+
+                { "rightstickx", RichHudControls.RightStickX },
+                { "rightsticky", RichHudControls.RightStickY },
             });
             sharedModifiers = BindManager.GetOrCreateGroup("SharedModifiers");
             sharedModifiers.RegisterBinds(new BindGroupInitializer
             {
-                { "shift", MyKeys.Shift },
-                { "control", MyKeys.Control },
-                { "alt", MyKeys.Alt },
+                { "shift", RichHudControls.Shift },
+                { "control", RichHudControls.Control },
+                { "alt", RichHudControls.Alt },
             });
         }
 

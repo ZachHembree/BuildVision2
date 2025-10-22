@@ -1,8 +1,7 @@
-﻿using RichHudFramework.UI;
+using RichHudFramework.UI;
 using RichHudFramework.UI.Rendering;
 using RichHudFramework.UI.Rendering.Client;
 using System;
-using System.Runtime.Remoting.Messaging;
 using VRageMath;
 
 namespace DarkHelmet.BuildVision2
@@ -32,44 +31,53 @@ namespace DarkHelmet.BuildVision2
     public sealed partial class QuickActionMenu : HudElementBase
     {
         public static readonly Color
-            headerColor = new Color(41, 54, 62),
-            bodyColor = new Color(70, 78, 86),
-            highlightColor = TerminalFormatting.DarkSlateGrey,
-            highlightFocusColor = TerminalFormatting.Mint,
-            highlightTextColor = new Color(210, 190, 90),
-            valueTextColor = new Color(210, 210, 210);
+            HeaderColor = new Color(41, 54, 62),
+            BodyColor = new Color(70, 78, 86),
+            HighlightColor = TerminalFormatting.DarkSlateGrey,
+            HighlightFocusColor = TerminalFormatting.Mint,
+            HighlightTextColor = new Color(210, 190, 90),
+            ValueTextColor = new Color(210, 210, 210);
         public static GlyphFormat
-            listHeaderFormat = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f),
-            wheelHeaderFormat = new GlyphFormat(Color.White, TextAlignment.Center, 1f, FontStyles.Underline),
+            ListHeaderFormat = new GlyphFormat(new Color(220, 235, 245), TextAlignment.Center, .9735f),
+            WheelHeaderFormat = new GlyphFormat(Color.White, TextAlignment.Center, 1f, FontStyles.Underline),
 
-            bodyFormat = new GlyphFormat(Color.White, textSize: .885f),
-            bodyFormatCenter = bodyFormat.WithAlignment(TextAlignment.Center),
+            BodyFormat = new GlyphFormat(Color.White, textSize: .885f),
+            BodyFormatCenter = BodyFormat.WithAlignment(TextAlignment.Center),
 
-            wheelNameColor = new GlyphFormat(Color.White, textSize: 1f),
-            wheelValueColor = new GlyphFormat(valueTextColor),
-            valueFormat = bodyFormat.WithColor(valueTextColor),
-            highlightFormat = bodyFormat.WithColor(highlightTextColor),
-            selectedFormat = bodyFormat.WithColor(TerminalFormatting.Charcoal),
-            dupeCrossFormat = bodyFormat.WithColor(new Color(0, 220, 30)),
+            WheelNameColor = new GlyphFormat(Color.White, textSize: 1f),
+            WheelValueColor = new GlyphFormat(ValueTextColor),
+            ValueFormat = BodyFormat.WithColor(ValueTextColor),
+            HighlightFormat = BodyFormat.WithColor(HighlightTextColor),
+            SelectedFormat = BodyFormat.WithColor(TerminalFormatting.Charcoal),
+            DupeCrossFormat = BodyFormat.WithColor(new Color(0, 220, 30)),
 
-            bodyValueFormatCenter = valueFormat.WithAlignment(TextAlignment.Center),
-            nameFormatCenter = new GlyphFormat(bodyFormat.Color, TextAlignment.Center, 0.8f),
-            valueFormatCenter = nameFormatCenter.WithColor(valueFormat.Color),
-            selectedFormatCenter = nameFormatCenter.WithColor(selectedFormat.Color),
+            BodyValueFormatCenter = ValueFormat.WithAlignment(TextAlignment.Center),
+            NameFormatCenter = new GlyphFormat(BodyFormat.Color, TextAlignment.Center, 0.8f),
+            ValueFormatCenter = NameFormatCenter.WithColor(ValueFormat.Color),
+            SelectedFormatCenter = NameFormatCenter.WithColor(SelectedFormat.Color),
 
-            footerFormatLeft = bodyFormat.WithColor(new Color(220, 235, 245)),
-            footerFormatRight = footerFormatLeft.WithAlignment(TextAlignment.Right),
-            blockIncFormat = footerFormatRight.WithColor(new Color(200, 35, 35));
+            FooterFormatLeft = BodyFormat.WithColor(new Color(220, 235, 245)),
+            FooterFormatRight = FooterFormatLeft.WithAlignment(TextAlignment.Right),
+            BlockIncFormat = FooterFormatRight.WithColor(new Color(200, 35, 35));
 
-        public const string textEntryWarning = "Open Chat to Enable Input";
-        public const long notificationTime = 1500;
-        public const int textTickDivider = 4;
-        public const int maxEntryCharCount = 33;
-        public const double floatPropLogThreshold = 1E6;
-        public const float maxPeekWrapWidth = 270f,
-            minPeekWrapWidth = 190f,
-            wheelBodyPeekPadding = 43f, 
-            wheelBodyPadding = 90f;
+        public const string TextEntryWarning = "Open Chat to Enable Input";
+        public const long NotificationTime = 1500;
+        public const int TextTickDivider = 4;
+        public const int MaxEntryCharCount = 33;
+        public const double FloatPropLogThreshold = 1E6;
+        public const float Sqrt2 = 1.414213f,
+			RcpSqrt2 = 0.7071067f,
+			WheelOuterDiam = 512f,
+            WheelInnerDiamScale = 0.6f,
+			WheelBodyPeekPadding = 43f,
+			WheelBodyMaxDiam = 1.05f * WheelInnerDiamScale * WheelOuterDiam, // ~= 323pts
+            WheelBodyInnerPadding = (1.0f - RcpSqrt2) * WheelBodyMaxDiam, // maxSize - (sqrt(2) * maxSize) ~= 94pts
+			WheelBodyMaxWrap = WheelBodyMaxDiam - WheelBodyInnerPadding, // ~= 227pts
+            WheelBodyMinWrap = 190f,
+            WheelNotifiationWidth = 150f,
+            WidgetInnerPadding = 4f,
+            ListMinWidth = 296f,
+            ListEntryHeight = 19f;
 
         public static void SetFont(string fontName)
         {
@@ -77,27 +85,27 @@ namespace DarkHelmet.BuildVision2
 
             if (newFont != null)
             {
-                listHeaderFormat = listHeaderFormat.WithFont(newFont.Regular);
-                wheelHeaderFormat = wheelHeaderFormat.WithFont(newFont.Underline);
+                ListHeaderFormat = ListHeaderFormat.WithFont(newFont.Regular);
+                WheelHeaderFormat = WheelHeaderFormat.WithFont(newFont.Underline);
 
-                bodyFormat = bodyFormat.WithFont(newFont.Regular);
-                bodyFormatCenter = bodyFormatCenter.WithFont(newFont.Regular);
+                BodyFormat = BodyFormat.WithFont(newFont.Regular);
+                BodyFormatCenter = BodyFormatCenter.WithFont(newFont.Regular);
 
-                wheelNameColor = wheelNameColor.WithFont(newFont.Regular);
-                wheelValueColor = wheelValueColor.WithFont(newFont.Regular);
-                valueFormat = valueFormat.WithFont(newFont.Regular);
-                highlightFormat = highlightFormat.WithFont(newFont.Regular);
-                selectedFormat = selectedFormat.WithFont(newFont.Regular);
-                dupeCrossFormat = dupeCrossFormat.WithFont(newFont.Regular);
+                WheelNameColor = WheelNameColor.WithFont(newFont.Regular);
+                WheelValueColor = WheelValueColor.WithFont(newFont.Regular);
+                ValueFormat = ValueFormat.WithFont(newFont.Regular);
+                HighlightFormat = HighlightFormat.WithFont(newFont.Regular);
+                SelectedFormat = SelectedFormat.WithFont(newFont.Regular);
+                DupeCrossFormat = DupeCrossFormat.WithFont(newFont.Regular);
 
-                bodyValueFormatCenter = bodyValueFormatCenter.WithFont(newFont.Regular);
-                nameFormatCenter = nameFormatCenter.WithFont(newFont.Regular);
-                valueFormatCenter = valueFormatCenter.WithFont(newFont.Regular);
-                selectedFormatCenter = selectedFormatCenter.WithFont(newFont.Regular);
+                BodyValueFormatCenter = BodyValueFormatCenter.WithFont(newFont.Regular);
+                NameFormatCenter = NameFormatCenter.WithFont(newFont.Regular);
+                ValueFormatCenter = ValueFormatCenter.WithFont(newFont.Regular);
+                SelectedFormatCenter = SelectedFormatCenter.WithFont(newFont.Regular);
 
-                footerFormatLeft = footerFormatLeft.WithFont(newFont.Regular);
-                footerFormatRight = footerFormatRight.WithFont(newFont.Regular);
-                blockIncFormat = blockIncFormat.WithFont(newFont.Regular);
+                FooterFormatLeft = FooterFormatLeft.WithFont(newFont.Regular);
+                FooterFormatRight = FooterFormatRight.WithFont(newFont.Regular);
+                BlockIncFormat = BlockIncFormat.WithFont(newFont.Regular);
             }
         }
     }

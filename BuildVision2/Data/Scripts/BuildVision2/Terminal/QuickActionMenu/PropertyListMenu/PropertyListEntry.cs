@@ -4,6 +4,7 @@ using RichHudFramework;
 using System.Text;
 using System;
 using VRageMath;
+using RichHudFramework.UI.Client;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -16,33 +17,48 @@ namespace DarkHelmet.BuildVision2
         {
             public ITextBoard TextBoard => value.TextBoard;
 
+            public Vector2 TextSize { get; private set; }
+
             public readonly Label name, postfix;
             public readonly TextBox value;
             private readonly HudChain layout;
 
             public PropertyListEntryElement() : base(null)
             {
-                name = new Label();
-                postfix = new Label();
+                name = new Label() { Text = "", AutoResize = false };
+                postfix = new Label() { Text = "", AutoResize = false };
                 value = new TextBox()
                 {
+                    Text = "",
                     UseCursor = false,
+                    AutoResize = false
                 };
-
+                
                 layout = new HudChain(false, this)
                 {
-                    Padding = new Vector2(18f, 0f),
-                    ParentAlignment = ParentAlignments.Left | ParentAlignments.Inner,
+                    ParentAlignment = ParentAlignments.PaddedInnerLeft,
+                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersStart,
                     CollectionContainer = { name, value, postfix }
                 };
 
-                Height = 19f;
-                ParentAlignment = ParentAlignments.Left;
+                Height = ListEntryHeight;
+                IsMasking = true;
             }
 
             protected override void Layout()
             {
-                Width = layout.Width;
+                Vector2 nsize = name.TextBoard.TextSize,
+                    psize = postfix.TextBoard.TextSize,
+                    vsize = value.TextBoard.TextSize;
+
+                TextSize = nsize + psize + vsize;
+
+                name.UnpaddedSize = nsize;
+                postfix.UnpaddedSize = psize;
+                value.UnpaddedSize = vsize;
+                layout.Size = TextSize;
+
+                TextSize += Padding;
             }
         }
 
@@ -111,7 +127,7 @@ namespace DarkHelmet.BuildVision2
             public PropertyListEntry()
             {
                 SetElement(new PropertyListEntryElement());
-                NameText.Format = bodyFormat;
+                NameText.Format = BodyFormat;
                 textBuf = new StringBuilder();
             }
 
@@ -130,6 +146,9 @@ namespace DarkHelmet.BuildVision2
                 MemberIndex = -1;
                 Enabled = true;
                 AssocMember = null;
+                NameText.Clear();
+                ValueText.Clear();
+                PostText.Clear();
 
                 CloseInput();
             }
@@ -178,15 +197,15 @@ namespace DarkHelmet.BuildVision2
 
                 if (PropertyOpen)
                 {
-                    dupeCrossFormat = QuickActionMenu.selectedFormat;
-                    bodyFormat = QuickActionMenu.selectedFormat;
-                    valueFormat = QuickActionMenu.selectedFormat;
+                    dupeCrossFormat = QuickActionMenu.SelectedFormat;
+                    bodyFormat = QuickActionMenu.SelectedFormat;
+                    valueFormat = QuickActionMenu.SelectedFormat;
                 }
                 else
                 {
-                    dupeCrossFormat = QuickActionMenu.dupeCrossFormat;
-                    bodyFormat = QuickActionMenu.bodyFormat;
-                    valueFormat = isHighlighted ? QuickActionMenu.highlightFormat : QuickActionMenu.valueFormat;
+                    dupeCrossFormat = QuickActionMenu.DupeCrossFormat;
+                    bodyFormat = QuickActionMenu.BodyFormat;
+                    valueFormat = isHighlighted ? QuickActionMenu.HighlightFormat : QuickActionMenu.ValueFormat;
                 }
 
                 // Update Name
@@ -198,7 +217,7 @@ namespace DarkHelmet.BuildVision2
                 if (name != null)
                 {
                     textBuf.Clear();
-                    textBuf.AppendSubstringMax(name, maxEntryCharCount);
+                    textBuf.AppendSubstringMax(name, MaxEntryCharCount);
                     nameTB.Append(textBuf, bodyFormat);
 
                     if (disp != null || status != null)

@@ -4,6 +4,29 @@ namespace RichHudFramework
 {
     public static class VectorExtensions
     {
+        private static Color lastRgbColor;
+        private static Vector4 lastBbColor;
+
+        /// <summary>
+        /// Converts a color to its normalized linear RGB equivalent. Assumes additive blending
+        /// with premultiplied alpha.
+        /// </summary>
+        public static Vector4 GetBbColor(this Color color)
+        {
+            if (color == lastRgbColor)
+                return lastBbColor;
+
+            lastRgbColor = color;
+
+            float opacity = color.A / 255f;
+            color.R = (byte)(color.R * opacity);
+            color.G = (byte)(color.G * opacity);
+            color.B = (byte)(color.B * opacity);
+
+            lastBbColor = ((Vector4)color).ToLinearRGB();
+            return lastBbColor;
+        }
+
         /// <summary>
         /// Converts a <see cref="Vector2"/> to a <see cref="Vector2D"/>
         /// </summary>

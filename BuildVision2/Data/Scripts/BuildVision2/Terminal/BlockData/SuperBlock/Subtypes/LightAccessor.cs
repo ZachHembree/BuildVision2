@@ -17,27 +17,77 @@ namespace DarkHelmet.BuildVision2
 
         private LightAccessor _light;
 
-        public class LightAccessor : SubtypeAccessor<IMyLightingBlock>
+        public class LightAccessor : SubtypeAccessorBase
         {
             /// <summary>
             /// Controls the light's color
             /// </summary>
-            public Color Color { get { return subtype.Color; } set { subtype.Color = value; } }
+            public Color Color 
+            { 
+                get { return subtype?.Color ?? component.Color; } 
+                set 
+                {
+                    if (subtype != null)
+                        subtype.Color = value;
+                    else
+                        component.Color = value;
+                }
+            }
 
             /// <summary>
             /// Controls the light's intensity
             /// </summary>
-            public float Intensity { get { return subtype.Intensity; } set { subtype.Intensity = value; } }
+            public float Intensity 
+            { 
+                get { return subtype?.Intensity ?? component.Intensity; } 
+                set 
+                { 
+                    if (subtype != null)
+                        subtype.Intensity = value;
+                    else
+                        component.Intensity = value;
+                } 
+            }
 
             /// <summary>
             /// Controls the lighting radius
             /// </summary>
-            public float Radius { get { return subtype.Radius; } set { subtype.Radius = value; } }
+            public float Radius 
+            { 
+                get { return subtype?.Radius ?? component.Radius; } 
+                set 
+                { 
+                    if (subtype != null)
+                        subtype.Radius = value;
+                    else
+                        component.Radius = value;
+                } 
+            }
+
+            private IMyLightingBlock subtype;
+            private IMyLightingComponent component;
 
             public override void SetBlock(SuperBlock block)
             {
-                base.SetBlock(block, TBlockSubtypes.Light);
+                this.block = block;
+				subtype = block.TBlock as IMyLightingBlock;
+				this.SubtypeId = TBlockSubtypes.Light;
+
+                // TBD: No terminal controls for lighting components yet, and enabling
+                // this clutters the summaries on affected blocks.
+				if (subtype != null)// || block.TBlock.Components.TryGet(out component))
+				{
+					block.SubtypeId |= TBlockSubtypes.Light;
+					block.subtypeAccessors.Add(this);
+				}
             }
+
+			public override void Reset()
+			{
+				base.Reset();
+                subtype = null;
+                component = null;
+			}
 
             public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
             {

@@ -6,6 +6,7 @@ namespace RichHudFramework.UI
     using Rendering;
     using Rendering.Client;
     using Rendering.Server;
+    using System.Collections;
 
     /// <summary>
     /// HUD element used to render text.
@@ -15,64 +16,43 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Text rendered by the label.
         /// </summary>
-        public RichText Text { get { return _textBoard.GetText(); } set { _textBoard.SetText(value); } }
+        public RichText Text { get { return TextBoard.GetText(); } set { TextBoard.SetText(value); } }
 
         /// <summary>
         /// TextBoard backing the label element.
         /// </summary>
-        public override ITextBoard TextBoard => _textBoard;
+        public override ITextBoard TextBoard { get; }
 
         /// <summary>
         /// Default formatting used by the label.
         /// </summary>
-        public GlyphFormat Format { get { return _textBoard.Format; } set { _textBoard.Format = value; } }
+        public GlyphFormat Format { get { return TextBoard.Format; } set { TextBoard.SetFormatting(value); } }
 
         /// <summary>
         /// Line formatting mode used by the label.
         /// </summary>
-        public TextBuilderModes BuilderMode { get { return _textBoard.BuilderMode; } set { _textBoard.BuilderMode = value; } }
+        public TextBuilderModes BuilderMode { get { return TextBoard.BuilderMode; } set { TextBoard.BuilderMode = value; } }
 
         /// <summary>
-        /// If true, the element will automatically resize to fit the text.
+        /// If true, the element will automatically resize to fit the text. True by default.
         /// </summary>
-        public bool AutoResize { get { return _textBoard.AutoResize; } set { _textBoard.AutoResize = value; } }
+        public bool AutoResize { get { return TextBoard.AutoResize; } set { TextBoard.AutoResize = value; } }
 
         /// <summary>
-        /// If true, the text will be vertically centered.
+        /// If true, the text will be vertically centered. True by default.
         /// </summary>
-        public bool VertCenterText { get { return _textBoard.VertCenterText; } set { _textBoard.VertCenterText = value; } }
+        public bool VertCenterText { get { return TextBoard.VertCenterText; } set { TextBoard.VertCenterText = value; } }
 
-        public override float Width
-        {
-            get { return _textBoard.Size.X + Padding.X; }
-            set
-            {
-                if (value > Padding.X)
-                    value -= Padding.X;
-
-                _textBoard.FixedSize = new Vector2(value, _textBoard.FixedSize.Y);
-            }
-        }
-
-        public override float Height
-        {
-            get { return _textBoard.Size.Y + Padding.Y; }
-            set
-            {
-                if (value > Padding.Y)
-                    value -= Padding.Y;
-
-                _textBoard.FixedSize = new Vector2(_textBoard.FixedSize.X, value);
-            }
-        }
-
-        protected readonly TextBoard _textBoard;
+        /// <summary>
+        /// Gets or sets the maximum line width before text will wrap to the next line. Word wrapping must be enabled for
+        /// this to apply.
+        /// </summary>
+        public float LineWrapWidth { get { return TextBoard.LineWrapWidth; } set { TextBoard.LineWrapWidth = value; } }
 
         public Label(HudParentBase parent) : base(parent)
         {
-            _textBoard = new TextBoard();
-            _textBoard.Format = GlyphFormat.White;
-            _textBoard.SetText("NewLabel");
+            TextBoard = new TextBoard();
+            TextBoard.SetText("NewLabel", GlyphFormat.White);
         }
 
         public Label() : this(null)
@@ -80,13 +60,21 @@ namespace RichHudFramework.UI
 
         protected override void Draw()
         {
-            Vector2 halfSize = (cachedSize - cachedPadding) * .5f;
-            BoundingBox2 box = new BoundingBox2(cachedPosition - halfSize, cachedPosition + halfSize);
+            Vector2 size = (UnpaddedSize),
+                halfSize = .5f * size;
+            BoundingBox2 box = new BoundingBox2(Position - halfSize, Position + halfSize);
+            bool autoResize = TextBoard.AutoResize;
+
+            if (!autoResize)
+                TextBoard.FixedSize = size;
 
             if (maskingBox != null)
-                _textBoard.Draw(box, maskingBox.Value, HudSpace.PlaneToWorldRef);
+                TextBoard.Draw(box, maskingBox.Value, HudSpace.PlaneToWorldRef);
             else
-                _textBoard.Draw(box, CroppedBox.defaultMask, HudSpace.PlaneToWorldRef);
+                TextBoard.Draw(box, CroppedBox.defaultMask, HudSpace.PlaneToWorldRef);
+
+            if (autoResize)
+                UnpaddedSize = TextBoard.TextSize;
         }
     }
 }

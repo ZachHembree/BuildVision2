@@ -23,7 +23,7 @@ namespace RichHudFramework
                     set
                     {
                         if (value != color)
-                            minBoard.materialData.bbColor = BillBoardUtils.GetBillBoardBoardColor(value);
+                            minBoard.materialData.bbColor = value.GetBbColor();
 
                         color = value;
                     }
@@ -39,7 +39,7 @@ namespace RichHudFramework
                     {
                         if (value != matFrame.Material)
                         {
-                            updateMatFit = true;
+                            bbAspect = -1f;
                             matFrame.Material = value;
                             minBoard.materialData.textureID = value.TextureID;
                         }
@@ -56,14 +56,14 @@ namespace RichHudFramework
                     {
                         if (value != matFrame.Alignment)
                         {
-                            updateMatFit = true;
+                            bbAspect = -1f;
                             matFrame.Alignment = value;
                         }
                     }
                 }
 
                 private Color color;
-                private bool updateMatFit;
+                private float bbAspect;
 
                 private QuadBoard minBoard;
                 private readonly MaterialFrame matFrame;
@@ -77,7 +77,7 @@ namespace RichHudFramework
                     minBoard = QuadBoard.Default;
 
                     color = Color.White;
-                    updateMatFit = true;
+                    bbAspect = -1f;
                 }
 
                 /// <summary>
@@ -101,15 +101,19 @@ namespace RichHudFramework
 
                     if (containment != ContainmentType.Disjoint)
                     {
-                        if (updateMatFit && matFrame.Material != Material.Default)
+                        if (matFrame.Material != Material.Default)
                         {
                             Vector2 boxSize = box.bounds.Size;
-                            minBoard.materialData.texBounds = matFrame.GetMaterialAlignment(boxSize.X / boxSize.Y);
-                            updateMatFit = false;
+                            float newAspect = (boxSize.X / boxSize.Y);
+
+                            if (Math.Abs(bbAspect - newAspect) > 1E-5f)
+                            {
+                                bbAspect = newAspect;
+                                minBoard.materialData.texBounds = matFrame.GetMaterialAlignment(bbAspect);
+                            }
                         }
 
-                        if (containment != ContainmentType.Disjoint)
-                            minBoard.Draw(ref box, matrixRef);
+                        minBoard.Draw(ref box, matrixRef);
                     }
                 }     
             }

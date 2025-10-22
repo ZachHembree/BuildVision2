@@ -1,271 +1,266 @@
-﻿using RichHudFramework.Client;
-using RichHudFramework.IO;
 using RichHudFramework.UI;
+using RichHudFramework.UI.Client;
+using RichHudFramework.UI.Rendering;
 using System;
 using System.Diagnostics;
 using System.Text;
-using System.Collections.Generic;
-using VRage;
-using VRage.ModAPI;
-using VRage.Utils;
 using VRageMath;
-using RichHudFramework;
-using RichHudFramework.UI.Rendering;
-using RichHudFramework.UI.Client;
 
 namespace DarkHelmet.BuildVision2
 {
-    public sealed partial class QuickActionMenu : HudElementBase
-    {
-        private class PropertyWheelMenuBody : HudElementBase
-        {
-            /// <summary>
-            /// Returns true if a property widget is currently open
-            /// </summary>
-            public bool IsWidgetOpen => ActiveWidget != null;
+	public sealed partial class QuickActionMenu : HudElementBase
+	{
+		private class PropertyWheelMenuBody : HudElementBase
+		{
+			/// <summary>
+			/// Returns true if a property widget is currently open
+			/// </summary>
+			public bool IsWidgetOpen => ActiveWidget != null;
 
-            /// <summary>
-            /// Current open widget. Null if closed.
-            /// </summary>
-            public PropertyWheelWidgetBase ActiveWidget { get; private set; }
+			/// <summary>
+			/// Current open widget. Null if closed.
+			/// </summary>
+			public PropertyWheelWidgetBase ActiveWidget { get; private set; }
 
-            /// <summary>
-            /// Gets/sets the menu's state
-            /// </summary>
-            private QuickActionMenuState MenuState
-            {
-                get { return propertyWheelMenu.quickActionMenu.MenuState; }
-                set { propertyWheelMenu.quickActionMenu.MenuState = value; }
-            }
+			/// <summary>
+			/// Gets/sets the menu's state
+			/// </summary>
+			private QuickActionMenuState MenuState
+			{
+				get { return propertyWheelMenu.quickActionMenu.MenuState; }
+				set { propertyWheelMenu.quickActionMenu.MenuState = value; }
+			}
 
-            public readonly TexturedBox background;
-            private readonly Label summaryLabel, notificationText;
+			public float AnimPos { get; private set; }
 
-            private readonly ColorWidget colorWidget;
-            private readonly ColorWidgetHSV colorWidgetHSV;
-            private readonly ComboWidget comboWidget;
-            private readonly FloatWidget floatWidget;
-            private readonly TextWidget textWidget;
+			public readonly TexturedBox background;
+			private readonly Label summaryLabel, notificationText;
 
-            private readonly Action CloseWidgetCallback;
+			private readonly ColorWidget colorWidget;
+			private readonly ColorWidgetHSV colorWidgetHSV;
+			private readonly ComboWidget comboWidget;
+			private readonly FloatWidget floatWidget;
+			private readonly TextWidget textWidget;
 
-            private readonly PropertyWheelMenu propertyWheelMenu;
-            private readonly Stopwatch notificationTimer;
-            private readonly RichText summaryBuilder;
-            private readonly StringBuilder textBuf;
-            private StringBuilder notification;
-            private bool contNotification;
-            private int tick;
-            private float animPos;
+			private readonly Action CloseWidgetCallback;
 
-            public PropertyWheelMenuBody(PropertyWheelMenu parent) : base(parent)
-            {
-                this.propertyWheelMenu = parent;
-                background = new TexturedBox(this)
-                {
-                    Material = Material.CircleMat,
-                    Color = headerColor,
-                    Size = Vector2.Zero,
-                };
+			private readonly PropertyWheelMenu propertyWheelMenu;
+			private readonly Stopwatch notificationTimer;
+			private readonly RichText summaryBuilder;
+			private readonly StringBuilder textBuf;
+			private StringBuilder notification;
+			private bool contNotification;
+			private int tick;
 
-                summaryLabel = new Label(this)
-                {
-                    AutoResize = false,
-                    BuilderMode = TextBuilderModes.Wrapped,
-                    Width = 200f,
-                };
+			public PropertyWheelMenuBody(PropertyWheelMenu parent) : base(parent)
+			{
+				this.propertyWheelMenu = parent;
+				background = new TexturedBox(this)
+				{
+					Material = Material.CircleMat,
+					Color = HeaderColor,
+					Size = Vector2.Zero,
+				};
 
-                notificationText = new Label(this)
-                {
-                    AutoResize = true,
-                    ParentAlignment = ParentAlignments.Bottom | ParentAlignments.Inner,
-                    BuilderMode = TextBuilderModes.Wrapped,
-                    Width = 150f,
-                    Offset = new Vector2(0f, 30f),
-                };
+				summaryLabel = new Label(this)
+				{
+					BuilderMode = TextBuilderModes.Wrapped,
+					Width = 200f,
+					IsSelectivelyMasked = true,
+					LineWrapWidth = WheelBodyMaxWrap - 10f
+				};
 
-                colorWidget = new ColorWidget(this) { Visible = false };
-                colorWidgetHSV = new ColorWidgetHSV(this) { Visible = false };
-                comboWidget = new ComboWidget(this) { Visible = false };
-                floatWidget = new FloatWidget(this) { Visible = false };
-                textWidget = new TextWidget(this) { Visible = false };
+				notificationText = new Label(this)
+				{
+					AutoResize = true,
+					ParentAlignment = ParentAlignments.InnerBottom,
+					BuilderMode = TextBuilderModes.Wrapped,
+					Width = WheelNotifiationWidth,
+					LineWrapWidth = WheelNotifiationWidth,
+					Offset = new Vector2(0f, 30f),
+				};
 
-                summaryBuilder = new RichText();
-                CloseWidgetCallback = CloseWidget;
+				colorWidget = new ColorWidget(this) { Visible = false };
+				colorWidgetHSV = new ColorWidgetHSV(this) { Visible = false };
+				comboWidget = new ComboWidget(this) { Visible = false };
+				floatWidget = new FloatWidget(this) { Visible = false };
+				textWidget = new TextWidget(this) { Visible = false };
 
-                textBuf = new StringBuilder();
-                notificationTimer = new Stopwatch();
+				summaryBuilder = new RichText();
+				CloseWidgetCallback = CloseWidget;
 
-                Padding = new Vector2(wheelBodyPeekPadding);
-                Size = new Vector2(maxPeekWrapWidth);
-            }
+				textBuf = new StringBuilder();
+				notificationTimer = new Stopwatch();
 
-            public void OpenBlockMemberWidget(IBlockMember member)
-            {
-                switch (member.ValueType)
-                {
-                    case BlockMemberValueTypes.Color:
-                        OpenWidget(colorWidget, member);
-                        break;
-                    case BlockMemberValueTypes.ColorHSV:
-                        OpenWidget(colorWidgetHSV, member);
-                        break;
-                    case BlockMemberValueTypes.Combo:
-                        OpenWidget(comboWidget, member);
-                        break;
-                    case BlockMemberValueTypes.Float:
-                        OpenWidget(floatWidget, member);
-                        break;
-                    case BlockMemberValueTypes.Text:
-                        OpenWidget(textWidget, member);
-                        break;
-                    default:
-                        throw new Exception(
-                            $"Widget for block value type {member?.ValueType} is unsupported.\n" +
-                            $"Member Type: {member?.GetType()}"
-                        );
-                }
-            }
+				Padding = new Vector2(WheelBodyPeekPadding);
+				Size = new Vector2(0);
+			}
 
-            private void OpenWidget(PropertyWheelWidgetBase widget, object data)
-            {
-                CloseWidget();
-                widget.SetData(data, CloseWidgetCallback);
+			public void OpenBlockMemberWidget(IBlockMember member)
+			{
+				switch (member.ValueType)
+				{
+					case BlockMemberValueTypes.Color:
+						OpenWidget(colorWidget, member);
+						break;
+					case BlockMemberValueTypes.ColorHSV:
+						OpenWidget(colorWidgetHSV, member);
+						break;
+					case BlockMemberValueTypes.Combo:
+						OpenWidget(comboWidget, member);
+						break;
+					case BlockMemberValueTypes.Float:
+						OpenWidget(floatWidget, member);
+						break;
+					case BlockMemberValueTypes.Text:
+						OpenWidget(textWidget, member);
+						break;
+					default:
+						throw new Exception(
+							$"Widget for block value type {member?.ValueType} is unsupported.\n" +
+							$"Member Type: {member?.GetType()}"
+						);
+				}
+			}
 
-                ActiveWidget = widget;
-                ActiveWidget.Visible = true;
-                summaryLabel.Visible = false;
-            }
+			private void OpenWidget(PropertyWheelWidgetBase widget, object data)
+			{
+				CloseWidget();
+				widget.SetData(data, CloseWidgetCallback);
 
-            public void CloseWidget()
-            {
-                if (ActiveWidget != null)
-                {
-                    HudMain.EnableCursor = false;
-                    summaryLabel.Visible = true;
-                    ActiveWidget.Reset();
-                    ActiveWidget.Visible = false;
-                    ActiveWidget = null;
-                }
-            }
+				ActiveWidget = widget;
+				ActiveWidget.Visible = true;
+				summaryLabel.Visible = false;
+			}
 
-            public void ShowNotification(StringBuilder notificationText, bool continuous = false)
-            {
-                this.notification = notificationText;
-                contNotification = continuous;
-                notificationTimer.Restart();
-            }
+			public void CloseWidget()
+			{
+				if (ActiveWidget != null)
+				{
+					HudMain.EnableCursor = false;
+					summaryLabel.Visible = true;
+					ActiveWidget.Reset();
+					ActiveWidget.Visible = false;
+					ActiveWidget = null;
+				}
+			}
 
-            protected override void Layout()
-            {
-                if (tick == 0)
-                {
-                    if (ActiveWidget == null)
-                    {
-                        UpdateText();
-                    }                    
-                }
+			public void ShowNotification(StringBuilder notificationText, bool continuous = false)
+			{
+				this.notification = notificationText;
+				contNotification = continuous;
+				notificationTimer.Restart();
+			}
 
-                float lastWidth = Width - Padding.X;
+			protected override void Layout()
+			{
+				const float AnimationStep = 0.3f;
+				notificationText.Visible = !propertyWheelMenu.IsHiding;
 
-                if (MenuState == QuickActionMenuState.WheelPeek)
-                {
-                    Padding = new Vector2(wheelBodyPeekPadding);
-                    Size = new Vector2(maxPeekWrapWidth);
-                }
-                else
-                {
-                    Padding = new Vector2(wheelBodyPadding);
-                    Size = 1.05f * propertyWheelMenu.Size * propertyWheelMenu.InnerDiam;
-                }
+				if (ActiveWidget == null)
+					summaryLabel.Visible = !propertyWheelMenu.IsHiding;
 
-                summaryLabel.Size = new Vector2(maxPeekWrapWidth - wheelBodyPeekPadding);
+				if (!propertyWheelMenu.IsHiding)
+					UpdateSize();
 
-                // Dynamically reduce wrap with while peeking based on aspect ratio
-                if (MenuState == QuickActionMenuState.WheelPeek)
-                {
-                    Vector2 lastTextSize = summaryLabel.TextBoard.TextSize;
+				// Animate background size
+				if (propertyWheelMenu.IsHiding)
+				{
+					AnimPos = MathHelper.Clamp(AnimPos - AnimationStep, 0f, 1f);
+					Size = Vector2.Lerp(
+						Vector2.Zero,
+						background.UnpaddedSize,
+						AnimPos
+					);
+					background.UnpaddedSize = Size;
+				}
+				else if (AnimPos < 1f)
+				{
+					AnimPos = MathHelper.Clamp(AnimPos + AnimationStep, 0f, 1f);
+					background.UnpaddedSize = Vector2.Lerp(
+						background.UnpaddedSize,
+						Size,
+						AnimPos
+					);
+				}
+				else
+					background.UnpaddedSize = Size;
 
-                    // If the text is substantially wider than tall, reduce wrap width
-                    if (lastTextSize.X > 1.2f * lastTextSize.Y)
-                        summaryLabel.Width = Math.Max(.5f * (lastTextSize.X + lastTextSize.Y), minPeekWrapWidth);
-                }
+				// Update tick counter
+				tick = (tick + 1) % TextTickDivider;
+			}
 
-                // Dynamically resize background and label to accomodate text
-                Vector2 textSize = new Vector2(summaryLabel.TextBoard.TextSize.Length());
-                textSize.Y += notificationText.Height;
-                textSize = new Vector2(Math.Max(textSize.X, textSize.Y));
-                textSize = Vector2.Min(Size, textSize);
-                textSize = new Vector2(Math.Max(textSize.X, textSize.Y));
+			private void UpdateSize()
+			{
+				// Initialize text on first tick if no active widget
+				if (tick == 0 && ActiveWidget == null)
+					UpdateText();
 
-                if (MenuState == QuickActionMenuState.WheelPeek)
-                {
-                    // Don't bother resizing for small changes
-                    if (Math.Abs(textSize.X - lastWidth) < 15f)
-                        textSize = new Vector2(lastWidth);
+				// Adjust layout for peek
+				if (MenuState == QuickActionMenuState.WheelPeek)
+				{
+					UnpaddedSize = summaryLabel.TextBoard.TextSize;
+					// Elliptical bg padding
+					Padding = Vector2.Min(
+						((UnpaddedSize * Sqrt2) - UnpaddedSize) + WheelBodyPeekPadding, 
+						new Vector2(WheelBodyInnerPadding)
+					);
+				}
+				else
+				{
+					UnpaddedSize = new Vector2(WheelBodyMaxWrap);
+					Padding = new Vector2(WheelBodyInnerPadding);
+					summaryLabel.Offset = Vector2.Zero;
+				}
 
-                    Size = textSize + Padding;
-                    summaryLabel.Size = new Vector2(textSize.X, textSize.Y - notificationText.Height);
-                }
+				// Trigger animation if background size changes
+				if ((background.UnpaddedSize - Size).LengthSquared() > 4f)
+					AnimPos = 0f;
+			}
 
-                if ((background.Size - Size).LengthSquared() > 4f)
-                    animPos = 0f;
+			private void UpdateText()
+			{
+				IPropertyBlock block = propertyWheelMenu.quickActionMenu.Target;
+				summaryBuilder.Clear();
+				summaryBuilder.Add(BvMain.modName, WheelHeaderFormat);
+				summaryBuilder.Add("\n", WheelHeaderFormat);
+				block.GetSummary(summaryBuilder, BodyFormatCenter, BodyValueFormatCenter);
 
-                if (animPos < 1f)
-                {
-                    animPos += .3f;
-                    background.Size = Vector2.Lerp(background.Size, Size, animPos * QuickActionHudSpace.AnimScale);
-                }
-                else
-                    background.Size = Size;
+				ITextBuilder notificationBuidler = notificationText.TextBoard;
 
-                tick++;
-                tick %= textTickDivider;
-            }
+				if (notification != null && notificationTimer.ElapsedMilliseconds < NotificationTime)
+				{
+					notificationBuidler.Clear();
+					notificationBuidler.Append("\n", BodyFormatCenter);
+					notificationBuidler.Append(notification, BodyValueFormatCenter);
 
-            private void UpdateText()
-            {
-                IPropertyBlock block = propertyWheelMenu.quickActionMenu.Target;
-                summaryBuilder.Clear();
-                summaryBuilder.Add(BvMain.modName, wheelHeaderFormat);
-                summaryBuilder.Add("\n", wheelHeaderFormat);
-                block.GetSummary(summaryBuilder, bodyFormatCenter, bodyValueFormatCenter);
+					if (contNotification)
+					{
+						notification = null;
+						contNotification = false;
+					}
+				}
+				else if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+				{
+					textBuf.Clear();
+					textBuf.Append("Copying ");
+					textBuf.Append(block.Duplicator.GetSelectedEntryCount());
+					textBuf.Append(" of ");
+					textBuf.Append(block.Duplicator.GetValidEntryCount());
+					notificationBuidler.SetText(textBuf, BodyValueFormatCenter);
+				}
+				else
+				{
+					notification = null;
+					notificationBuidler.Clear();
+					var target = propertyWheelMenu.quickActionMenu.Target;
 
-                ITextBuilder notificationBuidler = notificationText.TextBoard;
+					if (!target.IsFunctional)
+						notificationBuidler.SetText("[Incomplete]", BlockIncFormat.WithAlignment(TextAlignment.Center));
+				}
 
-                if (notification != null && notificationTimer.ElapsedMilliseconds < notificationTime)
-                {
-                    notificationBuidler.Clear();
-                    notificationBuidler.Append("\n", bodyFormatCenter);
-                    notificationBuidler.Append(notification, bodyValueFormatCenter);
-
-                    if (contNotification)
-                    {
-                        notification = null;
-                        contNotification = false;
-                    }
-                }
-                else if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
-                {
-                    textBuf.Clear();
-                    textBuf.Append("Copying ");
-                    textBuf.Append(block.Duplicator.GetSelectedEntryCount());
-                    textBuf.Append(" of ");
-                    textBuf.Append(block.Duplicator.GetValidEntryCount());
-                    notificationBuidler.SetText(textBuf, bodyValueFormatCenter);
-                }
-                else
-                {
-                    notification = null;
-                    notificationBuidler.Clear();
-                    var target = propertyWheelMenu.quickActionMenu.Target;
-
-                    if (!target.IsFunctional)
-                        notificationBuidler.SetText("[Incomplete]", blockIncFormat.WithAlignment(TextAlignment.Center));
-                }
-
-                summaryLabel.TextBoard.SetText(summaryBuilder);
-            }
-        }
-    }
+				summaryLabel.TextBoard.SetText(summaryBuilder);
+			}
+		}
+	}
 }
