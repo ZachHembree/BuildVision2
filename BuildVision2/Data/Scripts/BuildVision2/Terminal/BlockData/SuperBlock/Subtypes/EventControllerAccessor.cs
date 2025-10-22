@@ -1,5 +1,6 @@
 ﻿using RichHudFramework.UI;
 using Sandbox.ModAPI;
+using System.Text;
 using VRage;
 using VRage.Utils;
 using MySpaceTexts = Sandbox.Game.Localization.MySpaceTexts;
@@ -27,7 +28,7 @@ namespace DarkHelmet.BuildVision2
 			/// <summary>
 			/// Returns the name of the event currently selected
 			/// </summary>
-			public string EventName => MyTexts.GetString(subtype.SelectedEvent.EventDisplayName);
+			public StringBuilder EventName => _eventName;
 
 			/// <summary>
 			/// Name ID corresponding to the event currently selected
@@ -60,9 +61,11 @@ namespace DarkHelmet.BuildVision2
 			public bool IsAndModeEnabled => subtype.IsAndModeEnabled;
 
 			private IMyEventComponentWithGui eventWithGui;
+			private readonly StringBuilder _eventName;
 
 			public EventControllerAccessor()
 			{
+				_eventName = new StringBuilder();
 				eventWithGui = null;
 			}
 
@@ -70,22 +73,26 @@ namespace DarkHelmet.BuildVision2
 			{
 				base.SetBlock(block, TBlockSubtypes.EventController);
 
-				if (subtype != null && subtype.SelectedEvent is IMyEventComponentWithGui)
+				if (subtype?.SelectedEvent != null && subtype.SelectedEvent is IMyEventComponentWithGui)
 				{
 					eventWithGui = (IMyEventComponentWithGui)subtype.SelectedEvent;
+					_eventName.Clear();
+					string eventID = MyTexts.GetString(subtype.SelectedEvent.EventDisplayName);
+					TerminalUtilities.GetBeautifiedTypeID(eventID, _eventName);
 				}
 			}
 
 			public override void Reset()
 			{
 				base.Reset();
+				_eventName.Clear();
 				eventWithGui = null;
 			}
 
 			public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
 			{
 				builder.Add($"{MyTexts.GetString(MySpaceTexts.EventControllerBlock_AvailableEvents)}: ", nameFormat);
-				builder.Add(MyTexts.GetString(subtype.SelectedEvent.EventDisplayName), valueFormat);
+				builder.Add(_eventName, valueFormat);
 
 				if (IsThresholdUsed)
 				{
@@ -94,7 +101,7 @@ namespace DarkHelmet.BuildVision2
 					if (IsConditionUsed)
 						builder.Add(subtype.IsLowerOrEqualCondition ? "<= " : ">= ", valueFormat);
 
-					builder.Add($"{subtype.Threshold:F2}", valueFormat);
+					builder.Add($"{subtype.Threshold:P1}", valueFormat);
 				}
 
 				builder.Add($"\n{MyTexts.GetString(MySpaceTexts.EventControllerBlock_AgregateEvent_Title)}: ", nameFormat);

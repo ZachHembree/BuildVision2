@@ -18,7 +18,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             public override StringBuilder Value
             {
-                get { CleanText(GetValue(), valueBuilder); return valueBuilder; }
+                get { TerminalUtilities.CleanText(GetValue(), valueBuilder); return valueBuilder; }
                 set
                 {
                     if (value != null)
@@ -33,7 +33,7 @@ namespace DarkHelmet.BuildVision2
             /// <summary>
             /// Retrieves the value as a <see cref="StringBuilder"/> using formatting specific to the member.
             /// </summary>
-            public override StringBuilder FormattedValue { get { CleanText(GetValue(), valueBuilder); return valueBuilder; } }
+            public override StringBuilder FormattedValue { get { TerminalUtilities.CleanText(GetValue(), valueBuilder); return valueBuilder; } }
 
             /// <summary>
             /// Additional information following the value of the member.

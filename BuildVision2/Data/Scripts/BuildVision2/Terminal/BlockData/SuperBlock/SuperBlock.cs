@@ -175,70 +175,13 @@ namespace DarkHelmet.BuildVision2
 		}
 
 		/// <summary>
-		/// Attempts to locate a key-value pair in a string, in the format [fieldKey]: [fieldValue]\n, and append it 
-		/// to the buffer.
-		/// </summary>
-		private bool TryParseValueFromInfoString(string infoText, MyStringId fieldKeyID, StringBuilder buffer)
-		{
-			string fieldKey = MyTexts.GetString(fieldKeyID);
-			int fieldStart = infoText.IndexOf(fieldKey);
-
-			if (fieldStart != -1)
-			{
-				int valueStart = fieldStart + fieldKey.Length;
-
-				for (int i = valueStart; i < infoText.Length; i++)
-				{
-					// Skip to text start
-					if (buffer.Length == 0 && (infoText[i] <= ' ' || infoText[i] == ':'))
-						valueStart++;
-					// Break on any special character
-					else if (buffer.Length > 0 && infoText[i] < ' ')
-						break;
-					// Append vaue
-					else if (infoText[i] >= ' ')
-						buffer.Append(infoText[i]);
-				}
-
-				if (buffer.Length > 0)
-					return true;
-			}
-
-			return false;
-		}
-
-		/// <summary>
 		/// Retrieves a localized string, less any leading/following whitespace or formatting substrings, and
 		/// returns it in a temporary StringBuilder.
 		/// </summary>
 		private StringBuilder GetCleanLocalizedText(MyStringId textID, string breakChars = ":\n{}")
 		{
-			string text = MyTexts.GetString(textID);
-			char lastChar = ' ';
 			textBuffer.Clear();
-
-			foreach (char c in text)
-			{
-				bool shouldBreak = false;
-
-				foreach (char breakChar in breakChars)
-				{
-					if (c == breakChar)
-					{
-						shouldBreak = true;
-						break;
-					}
-				}
-
-				if (shouldBreak)
-					break;
-
-				if (c >= ' ' && !(c == ' ' && textBuffer.Length == 0) && !(c == ' ' && lastChar == ' '))
-					textBuffer.Append(c);
-
-				lastChar = c;
-			}
-
+			TerminalUtilities.GetCleanLocalizedText(textBuffer, textID, breakChars);
 			return textBuffer;
 		}
 

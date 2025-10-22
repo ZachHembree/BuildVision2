@@ -54,7 +54,7 @@ namespace DarkHelmet.BuildVision2
 				var textBuf = block.textBuffer;
 				textBuf.Clear();
 
-				if (block.TryParseValueFromInfoString(subtype.DetailedInfo, MySpaceTexts.BlockPropertiesText_OxygenOutput, textBuf))
+				if (TerminalUtilities.TryParseValueFromInfoString(subtype.DetailedInfo, MySpaceTexts.BlockPropertiesText_OxygenOutput, textBuf))
 				{
 					builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertiesText_OxygenOutput), nameFormat);
 					textBuf.Append('\n');

@@ -47,7 +47,7 @@ namespace DarkHelmet.BuildVision2
 				textBuf.Clear();
 
 				// Crop type
-				if (block.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_CurrentCropType, textBuf))
+				if (TerminalUtilities.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_CurrentCropType, textBuf))
 				{
 					builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_CurrentCropType), nameFormat);
 					textBuf.Append('\n');
@@ -57,7 +57,7 @@ namespace DarkHelmet.BuildVision2
 				textBuf.Clear();
 
 				// Crop health
-				if (block.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_CropHealth, textBuf))
+				if (TerminalUtilities.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_CropHealth, textBuf))
 				{
 					builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_CropHealth), nameFormat);
 					textBuf.Append('\n');
@@ -67,7 +67,7 @@ namespace DarkHelmet.BuildVision2
 				textBuf.Clear();
 
 				// Water level
-				if (block.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_WaterLevel, textBuf))
+				if (TerminalUtilities.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_WaterLevel, textBuf))
 				{
 					builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_WaterLevel), nameFormat);
 					textBuf.Append('\n');

@@ -189,7 +189,7 @@ namespace DarkHelmet.BuildVision2
                     total += output.Value;
 
                 string suffix;
-                TerminalUtilities.GetPowerScale(total / 10f, out scale, out suffix);
+                TerminalUtilities.GetPowerScale(total / 5f, out scale, out suffix);
 
                 bool useCombinedIO = (input != null && output != null) 
                     && (Math.Abs(input.Value - output.Value) < 1E-7f);
