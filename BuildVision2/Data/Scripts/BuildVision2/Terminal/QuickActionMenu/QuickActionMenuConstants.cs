@@ -69,12 +69,12 @@ namespace DarkHelmet.BuildVision2
 			RcpSqrt2 = 0.7071067f,
 			WheelOuterDiam = 512f,
             WheelInnerDiamScale = 0.6f,
-            WheelBodyMaxDiam = 1.05f * WheelInnerDiamScale * WheelOuterDiam,
-            MaxWheelPeekPadding = (1.0f - RcpSqrt2) * WheelBodyMaxDiam, // maxSize - (sqrt(2) * maxSize)
-			MaxWheelPeekWrap = WheelBodyMaxDiam - MaxWheelPeekPadding,
-            MinWheelPeekWrapWidth = 190f,
+			WheelBodyPeekPadding = 43f,
+			WheelBodyMaxDiam = 1.05f * WheelInnerDiamScale * WheelOuterDiam, // ~= 323pts
+            WheelBodyInnerPadding = (1.0f - RcpSqrt2) * WheelBodyMaxDiam, // maxSize - (sqrt(2) * maxSize) ~= 94pts
+			WheelBodyMaxWrap = WheelBodyMaxDiam - WheelBodyInnerPadding, // ~= 227pts
+            WheelBodyMinWrap = 190f,
             WheelNotifiationWidth = 150f,
-            WheelBodyPeekPadding = 43f,
             WidgetInnerPadding = 4f,
             ListMinWidth = 296f,
             ListEntryHeight = 19f;

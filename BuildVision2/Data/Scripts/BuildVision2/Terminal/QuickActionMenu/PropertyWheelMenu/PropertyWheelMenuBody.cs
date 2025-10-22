@@ -64,10 +64,10 @@ namespace DarkHelmet.BuildVision2
 
 				summaryLabel = new Label(this)
 				{
-					AutoResize = false,
-					IsSelectivelyMasked = true,
 					BuilderMode = TextBuilderModes.Wrapped,
 					Width = 200f,
+					IsSelectivelyMasked = true,
+					LineWrapWidth = WheelBodyMaxWrap - 10f
 				};
 
 				notificationText = new Label(this)
@@ -76,6 +76,7 @@ namespace DarkHelmet.BuildVision2
 					ParentAlignment = ParentAlignments.InnerBottom,
 					BuilderMode = TextBuilderModes.Wrapped,
 					Width = WheelNotifiationWidth,
+					LineWrapWidth = WheelNotifiationWidth,
 					Offset = new Vector2(0f, 30f),
 				};
 
@@ -191,10 +192,6 @@ namespace DarkHelmet.BuildVision2
 
 			private void UpdateSize()
 			{
-				const float OverwrapThreshold = 1.2f;
-				const float TextResizeThreshold = 10f;
-				const float WrapWidthFactor = 0.6f;
-
 				// Initialize text on first tick if no active widget
 				if (tick == 0 && ActiveWidget == null)
 					UpdateText();
@@ -202,52 +199,19 @@ namespace DarkHelmet.BuildVision2
 				// Adjust layout for peek
 				if (MenuState == QuickActionMenuState.WheelPeek)
 				{
-					Vector2 textSize = summaryLabel.TextBoard.TextSize;
-
-					if (notificationText.Visible)
-					{
-						textSize.X = Math.Max(textSize.X, notificationText.UnpaddedSize.X);
-						textSize.Y += notificationText.UnpaddedSize.Y;
-						summaryLabel.Offset = new Vector2(0f, 0.5f * notificationText.UnpaddedSize.Y);
-					}
-
-					float wrapWidth;
-
-					// Update wrap width
-					if (textSize.Y > (textSize.X * OverwrapThreshold))
-						wrapWidth = MaxWheelPeekWrap;
-					else
-					{
-						wrapWidth = Math.Min(WrapWidthFactor * (textSize.X + textSize.Y), MaxWheelPeekWrap);
-						wrapWidth = Math.Max(wrapWidth, MinWheelPeekWrapWidth);
-					}
-
-					// Background is an ellipse and must be expanded s.t. the four corners of the 
-					// text box boundary are circumscribed. Max size already accounts for this.
-					Vector2 bgSize = Vector2.Min(new Vector2(MaxWheelPeekWrap), textSize * Sqrt2);
-
-					// Avoid resizing for small changes
-					if (Math.Abs(bgSize.X - UnpaddedSize.X) < TextResizeThreshold)
-					{
-						bgSize.X = UnpaddedSize.X;
-						bgSize.Y = Math.Min(bgSize.Y, bgSize.X);
-					}
-
-					// Apply sizes
-					UnpaddedSize = bgSize;
-					Padding = new Vector2(WheelBodyPeekPadding);
-					notificationText.LineWrapWidth = wrapWidth;
+					UnpaddedSize = summaryLabel.TextBoard.TextSize;
+					// Elliptical bg padding
+					Padding = Vector2.Min(
+						((UnpaddedSize * Sqrt2) - UnpaddedSize) + WheelBodyPeekPadding, 
+						new Vector2(WheelBodyInnerPadding)
+					);
 				}
 				else
 				{
-					UnpaddedSize = new Vector2(MaxWheelPeekWrap);
-					Padding = new Vector2(MaxWheelPeekPadding);
+					UnpaddedSize = new Vector2(WheelBodyMaxWrap);
+					Padding = new Vector2(WheelBodyInnerPadding);
 					summaryLabel.Offset = Vector2.Zero;
-					notificationText.LineWrapWidth = WheelNotifiationWidth;
 				}
-
-				if (AnimPos >= 1f)
-					summaryLabel.UnpaddedSize = new Vector2(UnpaddedSize.X, UnpaddedSize.Y - notificationText.UnpaddedSize.Y);
 
 				// Trigger animation if background size changes
 				if ((background.UnpaddedSize - Size).LengthSquared() > 4f)
