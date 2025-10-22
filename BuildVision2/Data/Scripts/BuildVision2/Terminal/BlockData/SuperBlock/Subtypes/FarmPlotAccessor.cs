@@ -83,23 +83,27 @@ namespace DarkHelmet.BuildVision2
 
 				// Growth Progres
 				var textBuf = block.textBuffer;
-				textBuf.Clear();
 
-				if (TerminalUtilities.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_GrowthProgress, textBuf))
+				if (IsAlive)
 				{
-					builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_GrowthProgress), nameFormat);
-					textBuf.Append('\n');
-					builder.Add(textBuf, valueFormat);
-				}
+					textBuf.Clear();
 
-				// Grow Time
-				textBuf.Clear();
+					if (TerminalUtilities.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_GrowthProgress, textBuf))
+					{
+						builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_GrowthProgress), nameFormat);
+						textBuf.Append('\n');
+						builder.Add(textBuf, valueFormat);
+					}
 
-				if (TerminalUtilities.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_GrowTime, textBuf))
-				{
-					builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_GrowTime), nameFormat);
-					textBuf.Append('\n');
-					builder.Add(textBuf, valueFormat);
+					// Grow Time
+					textBuf.Clear();
+
+					if (TerminalUtilities.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_GrowTime, textBuf))
+					{
+						builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_GrowTime), nameFormat);
+						textBuf.Append('\n');
+						builder.Add(textBuf, valueFormat);
+					}
 				}
 
 				// Crop Health
@@ -112,24 +116,27 @@ namespace DarkHelmet.BuildVision2
 					builder.Add(textBuf, valueFormat);
 				}
 
-				// Water Level
-				textBuf.Clear();
-
-				if (TerminalUtilities.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_WaterLevel, textBuf))
+				if (IsAlive)
 				{
-					builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_WaterLevel), nameFormat);
-					textBuf.Append('\n');
-					builder.Add(textBuf, valueFormat);
-				}
+					// Water Level
+					textBuf.Clear();
 
-				// Water Usage 
-				textBuf.Clear();
+					if (TerminalUtilities.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_WaterLevel, textBuf))
+					{
+						builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_WaterLevel), nameFormat);
+						textBuf.Append('\n');
+						builder.Add(textBuf, valueFormat);
+					}
 
-				if (TerminalUtilities.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_WaterUsage, textBuf))
-				{
-					builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_WaterUsage), nameFormat);
-					textBuf.Append('\n');
-					builder.Add(textBuf, valueFormat);
+					// Water Usage 
+					textBuf.Clear();
+
+					if (TerminalUtilities.TryParseValueFromInfoString(detailedInfo, MySpaceTexts.BlockPropertyProperties_WaterUsage, textBuf))
+					{
+						builder.Add(MyTexts.GetString(MySpaceTexts.BlockPropertyProperties_WaterUsage), nameFormat);
+						textBuf.Append('\n');
+						builder.Add(textBuf, valueFormat);
+					}
 				}
 			}
 		}
