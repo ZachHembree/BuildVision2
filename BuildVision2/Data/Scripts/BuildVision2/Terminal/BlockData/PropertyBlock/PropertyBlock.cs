@@ -230,6 +230,10 @@ namespace DarkHelmet.BuildVision2
             {
                 var control = prop as IMyTerminalControl;
 
+                // Unsupported
+                if (prop.Id == "SearchBox" && prop is ITerminalProperty<StringBuilder>)
+                    continue;
+
                 if (ExceptionHandler.DebugLogging)
                 {
                     ExceptionHandler.SendChatMessage($"PropertyID: {prop.Id}");
