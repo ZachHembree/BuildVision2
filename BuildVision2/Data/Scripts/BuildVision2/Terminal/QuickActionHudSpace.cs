@@ -257,6 +257,9 @@ namespace DarkHelmet.BuildVision2
             UpdateBpInputMonitoring();
             quickActionMenu.InputEnabled = !RichHudTerminal.Open && MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None;
 
+            if (!quickActionMenu.InputEnabled)
+                return;
+
             if (BvConfig.Current.genUI.legacyModeEnabled || (MenuState & QuickActionMenuState.Controlled) == 0)
             {
                 if (BvBinds.OpenWheel.IsNewPressed || BvBinds.OpenList.IsNewPressed || BvBinds.StartDupe.IsNewPressed)
