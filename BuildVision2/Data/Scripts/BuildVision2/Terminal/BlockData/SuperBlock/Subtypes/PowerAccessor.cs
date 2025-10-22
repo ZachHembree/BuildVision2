@@ -127,7 +127,7 @@ namespace DarkHelmet.BuildVision2
 
                     if (functionalBlock != null) // functional w/ measurable power input/output
                     {
-                        builder.Add(MyTexts.GetString(MySpaceTexts.DisplayName_Category_Power), nameFormat);
+                        builder.Add(block.GetCleanLocalizedText(MySpaceTexts.DisplayName_Category_Power), nameFormat);
                         builder.Add(": ", nameFormat);
 
                         // Functional status (on/off)
