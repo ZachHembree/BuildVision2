@@ -92,7 +92,7 @@ namespace DarkHelmet.BuildVision2
                 }
 
                 Name.Clear();
-                Name.Append(name);
+                Name.AppendStringBuilder(name);
 
                 this.property = property;
                 this.control = property as IMyTerminalControl;

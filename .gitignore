@@ -30,3 +30,11 @@ OwnershipForAll/
 *.user
 
 thumb.xcf
+
+*.sbmi
+
+BuildVision2/modinfo.sbmi.Debug
+
+BuildVision2/modinfo.sbmi.Release
+
+BuildVision2/modinfo.sbmi.prerelease

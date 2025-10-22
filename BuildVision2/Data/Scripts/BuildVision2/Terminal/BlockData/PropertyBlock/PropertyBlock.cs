@@ -216,6 +216,8 @@ namespace DarkHelmet.BuildVision2
         {
             propBuf.Clear();
             TextProperty argProperty = null;
+            int nameIndex = -1, customNameIndex = -1;
+
             TBlock.GetProperties(propBuf);
 
             if (ExceptionHandler.DebugLogging)
@@ -238,7 +240,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     nameBuilder.Clear();
                     TerminalUtilities.GetTooltipName(prop, nameBuilder);
-
+                    
                     if (nameBuilder.Length > 0)
                     {
                         if (prop is ITerminalProperty<StringBuilder>)
@@ -249,9 +251,17 @@ namespace DarkHelmet.BuildVision2
                             {
                                 if (prop.Id == "ConsoleCommand")
                                     argProperty = TextProperty.GetProperty(nameBuilder, textProp, this);
-                                else if (prop.Id == "Name" || prop.Id == "CustomName")
-                                    blockProperties.Insert(0, TextProperty.GetProperty(nameBuilder, textProp, this));
-                                else
+                                else if (prop.Id == "Name")
+                                {
+                                    nameIndex = blockProperties.Count;
+									blockProperties.Add(TextProperty.GetProperty(nameBuilder, textProp, this));
+								}
+								else if (prop.Id == "CustomName")
+								{
+									customNameIndex = blockProperties.Count;
+									blockProperties.Add(TextProperty.GetProperty(nameBuilder, textProp, this));
+								}
+								else
                                     blockProperties.Add(TextProperty.GetProperty(nameBuilder, textProp, this));
                             }
                         }
@@ -293,6 +303,19 @@ namespace DarkHelmet.BuildVision2
                     }
                 }
             }
+
+            if (nameIndex != -1)
+            {
+                BlockPropertyBase prop = blockProperties[nameIndex];
+                blockProperties.RemoveAt(nameIndex);
+                blockProperties.Insert(0, prop);
+            }
+            else if (customNameIndex != -1)
+            {
+				BlockPropertyBase prop = blockProperties[customNameIndex];
+				blockProperties.RemoveAt(customNameIndex);
+				blockProperties.Insert(0, prop);
+			}
 
             if (argProperty != null)
                 blockProperties.Add(argProperty);

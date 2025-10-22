@@ -24,7 +24,7 @@ namespace DarkHelmet.BuildVision2
                     if (value != null)
                     {
                         valueBuilder.Clear();
-                        valueBuilder.Append(value);
+                        valueBuilder.AppendStringBuilder(value);
                         SetValue(valueBuilder);
                     }
                 }
