@@ -3,9 +3,6 @@ This is a quick access context menu, based on the [original Build Vision by Jimm
 
 This mod can be found on the Steam Workshop [here](https://steamcommunity.com/sharedfiles/filedetails/?id=1697184408).
 
-## Update 3.0:
-This update brings a complete redesign of Build Vision's UI and control scheme. The functionality is the same as it was in 2.5, but the old list menu has been (mostly) replaced with an easier-to-use wheel menu. The list menu is still available for properties not in the wheel menu, or if you simply prefer it. See the description below for the new binds and usage.
-
 ## Controls:
 The binds are configurable via the Rich Hud Terminal and through chat commands. To access the configuration press F2 to open the terminal, click "Build Vision" and then click on "Binds."
   
