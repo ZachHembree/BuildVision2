@@ -121,8 +121,8 @@ namespace DarkHelmet.BuildVision2
                     CollectionContainer =
                     {
                         header,
-                        { listBody, true },
-                        { peekBody, true },
+                        listBody,
+                        peekBody,
                         footer
                     }
                 };

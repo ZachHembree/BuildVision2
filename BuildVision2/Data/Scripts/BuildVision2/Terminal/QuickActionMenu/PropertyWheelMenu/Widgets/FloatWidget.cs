@@ -233,14 +233,13 @@ namespace DarkHelmet.BuildVision2
 
                 public CustomSliderBox(HudParentBase parent = null) : base(parent)
                 {
-                    textField = new TextField()
+                    textField = new TextField(this)
                     {
                         Height = 47f,
                         DimAlignment = DimAlignments.UnpaddedWidth,
                         ParentAlignment = ParentAlignments.InnerBottom,
                         Visible = false,
                     };
-                    textField.Register(this, true);
                 }
 
                 public void OpenTextInput()
