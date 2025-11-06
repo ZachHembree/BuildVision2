@@ -42,17 +42,19 @@ namespace RichHudFramework
                 /// </summary>
                 GlyphFormat Format { get; }
 
-                /// <summary>
-                /// Size of the glyph as rendered
-                /// </summary>
-                Vector2 Size { get; }
+				/// <summary>
+				/// Size of the glyph as rendered. 
+				/// X = Advance width (cursor movement after this character, including kerning).
+				/// Y = Line height.
+				/// </summary>
+				Vector2 Size { get; }
 
-                /// <summary>
-                /// Position of the glyph relative to the center of its parent text element. Does not include the 
-                /// parent's TextOffset. Will not be updated if outside its TextBoard's visible line range.
-                /// </summary>
-                Vector2 Offset { get; }
-            }
+				/// <summary>
+				/// Position of the glyph **center** relative to the parent text element.
+				/// Updated during layout. Use with Size.X/2 to get left/right edges.
+				/// </summary>
+				Vector2 Offset { get; }
+			}
         }
     }
 }

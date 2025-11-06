@@ -1,354 +1,348 @@
-﻿using VRageMath;
-using System;
+﻿using System;
+using VRageMath;
 
 namespace RichHudFramework.UI
 {
-    using Client;
-    using Server;
+	/// <summary>
+	/// Generic clickable slider bar. Can be oriented vertically or horizontally. Current value
+	/// automatically clamped between min and max.
+	/// </summary>
+	public class SliderBar : MouseInputElement, IClickableElement
+	{
+		/// <summary>
+		/// Lower limit.
+		/// </summary>
+		public float Min
+		{
+			get { return _min; }
+			set
+			{
+				_min = value;
 
-    /// <summary>
-    /// Generic clickable slider bar. Can be oriented vertically or horizontally. Current value
-    /// automatically clamped between min and max.
-    /// </summary>
-    public class SliderBar : HudElementBase, IClickableElement
-    {
-        /// <summary>
-        /// Lower limit.
-        /// </summary>
-        public float Min
-        {
-            get { return _min; }
-            set
-            {
-                _min = value;
+				if (_max > _min)
+					Percent = (_current - _min) / (_max - _min);
+				else
+					Percent = 0;
+			}
+		}
 
-                if (_max > _min)
-                    Percent = (_current - _min) / (_max - _min);
-                else
-                    Percent = 0;
-            }
-        }
+		/// <summary>
+		/// Upper limit for the slider.
+		/// </summary>
+		public float Max
+		{
+			get { return _max; }
+			set
+			{
+				_max = value;
 
-        /// <summary>
-        /// Upper limit for the slider.
-        /// </summary>
-        public float Max
-        {
-            get { return _max; }
-            set
-            {
-                _max = value;
+				if (_max > _min)
+					Percent = (_current - _min) / (_max - _min);
+				else
+					Percent = 0;
+			}
+		}
 
-                if (_max > _min)
-                    Percent = (_current - _min) / (_max - _min);
-                else
-                    Percent = 0;
-            }
-        }
+		/// <summary>
+		/// Currently selected value bounded by the given Min and Max values.
+		/// </summary>
+		public float Current
+		{
+			get { return _current; }
+			set
+			{
+				if (_max > _min)
+					Percent = (value - _min) / (_max - _min);
+				else
+					Percent = 0f;
+			}
+		}
 
-        /// <summary>
-        /// Currently selected value bounded by the given Min and Max values.
-        /// </summary>
-        public float Current
-        {
-            get { return _current; }
-            set
-            {
-                if (_max > _min)
-                    Percent = (value - _min) / (_max - _min);
-                else
-                    Percent = 0f;
-            }
-        }
+		/// <summary>
+		/// Position of the slider given as a percentage. At 0, the slider will be at its minimum value;
+		/// at 1, the slider will be at the given maximum value.
+		/// </summary>
+		public float Percent
+		{
+			get { return _percent; }
+			set
+			{
+				_percent = MathHelper.Clamp(value, 0f, 1f);
+				_current = _percent * (_max - _min) + _min;
+			}
+		}
 
-        /// <summary>
-        /// Position of the slider given as a percentage. At 0, the slider will be at its minimum value;
-        /// at 1, the slider will be at the given maximum value.
-        /// </summary>
-        public float Percent
-        {
-            get { return _percent; }
-            set
-            {
-                _percent = MathHelper.Clamp(value, 0f, 1f);
-                _current = _percent * (_max - _min) + _min;
-            }
-        }
+		/// <summary>
+		/// If true then the slider will change to its set highlight color when moused over.
+		/// </summary>
+		public bool EnableHighlight { get; set; }
 
-        /// <summary>
-        /// If true then the slider will change to its set highlight color when moused over.
-        /// </summary>
-        public bool EnableHighlight { get; set; }
+		/// <summary>
+		/// Color of the slider bar
+		/// </summary>
+		public Color BarColor { get; set; }
 
-        /// <summary>
-        /// Color of the slider bar
-        /// </summary>
-        public Color BarColor { get; set; }
+		/// <summary>
+		/// Bar color when moused over
+		/// </summary>
+		public Color BarHighlight { get; set; }
 
-        /// <summary>
-        /// Bar color when moused over
-        /// </summary>
-        public Color BarHighlight { get; set; }
+		/// <summary>
+		/// Color of the slider box when not moused over
+		/// </summary>
+		public Color SliderColor { get; set; }
 
-        /// <summary>
-        /// Color of the slider box when not moused over
-        /// </summary>
-        public Color SliderColor { get; set; }
+		/// <summary>
+		/// Color of the slider button when moused over
+		/// </summary>
+		public Color SliderHighlight { get; set; }
 
-        /// <summary>
-        /// Color of the slider button when moused over
-        /// </summary>
-        public Color SliderHighlight { get; set; }
+		/// <summary>
+		/// Size of the slider bar
+		/// </summary>
+		public Vector2 BarSize
+		{
+			get { return _barSize; }
+			set
+			{
+				_barSize = value;
+				UnpaddedSize = Vector2.Max(_barSize, _sliderSize);
+			}
+		}
 
-        /// <summary>
-        /// Size of the slider bar
-        /// </summary>
-        public Vector2 BarSize
-        {
-            get { return _barSize; }
-            set
-            {
-                _barSize = value;
-                UnpaddedSize = Vector2.Max(_barSize, _sliderSize);
-            }
-        }
+		/// <summary>
+		/// Width of the slider bar
+		/// </summary>
+		public float BarWidth
+		{
+			get { return _barSize.X; }
+			set
+			{
+				_barSize.X = value;
+				value = Math.Max(_barSize.X, _sliderSize.X);
+				UnpaddedSize = new Vector2(value, UnpaddedSize.Y);
+			}
+		}
 
-        /// <summary>
-        /// Width of the slider bar
-        /// </summary>
-        public float BarWidth 
-        { 
-            get { return _barSize.X; } 
-            set 
-            { 
-                _barSize.X = value;
-                value = Math.Max(_barSize.X, _sliderSize.X);
-                UnpaddedSize = new Vector2(value, UnpaddedSize.Y);
-            } 
-        }
+		/// <summary>
+		/// Height of the slider bar
+		/// </summary>
+		public float BarHeight
+		{
+			get { return _barSize.Y; }
+			set
+			{
+				_barSize.Y = value;
+				value = Math.Max(_barSize.Y, _sliderSize.Y);
+				UnpaddedSize = new Vector2(UnpaddedSize.X, value);
+			}
+		}
 
-        /// <summary>
-        /// Height of the slider bar
-        /// </summary>
-        public float BarHeight
-        {
-            get { return _barSize.Y; }
-            set
-            {
-                _barSize.Y = value;
-                value = Math.Max(_barSize.Y, _sliderSize.Y);
-                UnpaddedSize = new Vector2(UnpaddedSize.X, value);
-            }
-        }
+		/// <summary>
+		/// Size of the slider button
+		/// </summary>
+		public Vector2 SliderSize
+		{
+			get { return _sliderSize; }
+			set
+			{
+				_sliderSize = value;
+				UnpaddedSize = Vector2.Max(_barSize, _sliderSize);
+			}
+		}
 
-        /// <summary>
-        /// Size of the slider button
-        /// </summary>
-        public Vector2 SliderSize
-        {
-            get { return _sliderSize; }
-            set
-            {
-                _sliderSize = value;
-                UnpaddedSize = Vector2.Max(_barSize, _sliderSize);
-            }
-        }
+		/// <summary>
+		/// Width of the slider button.
+		/// </summary>
+		public float SliderWidth
+		{
+			get { return _sliderSize.X; }
+			set
+			{
+				_sliderSize.X = value;
+				value = Math.Max(_barSize.X, _sliderSize.X);
+				UnpaddedSize = new Vector2(value, UnpaddedSize.Y);
+			}
+		}
 
-        /// <summary>
-        /// Width of the slider button.
-        /// </summary>
-        public float SliderWidth
-        {
-            get { return _sliderSize.X; }
-            set
-            {
-                _sliderSize.X = value;
-                value = Math.Max(_barSize.X, _sliderSize.X);
-                UnpaddedSize = new Vector2(value, UnpaddedSize.Y);
-            }
-        }
+		/// <summary>
+		/// Height of the slider button
+		/// </summary>
+		public float SliderHeight
+		{
+			get { return _sliderSize.Y; }
+			set
+			{
+				_sliderSize.Y = value;
+				value = Math.Max(_barSize.Y, _sliderSize.Y);
+				UnpaddedSize = new Vector2(UnpaddedSize.X, value);
+			}
+		}
 
-        /// <summary>
-        /// Height of the slider button
-        /// </summary>
-        public float SliderHeight
-        {
-            get { return _sliderSize.Y; }
-            set
-            {
-                _sliderSize.Y = value;
-                value = Math.Max(_barSize.Y, _sliderSize.Y);
-                UnpaddedSize = new Vector2(UnpaddedSize.X, value);
-            }
-        }
+		/// <summary>
+		/// Determines whether or not the slider button is currently visible
+		/// </summary>
+		public bool SliderVisible { get; set; }
 
-        /// <summary>
-        /// Determines whether or not the slider button is currently visible
-        /// </summary>
-        public bool SliderVisible { get; set; }
+		/// <summary>
+		/// If true, the slider will be oriented vertically s.t. the slider moves up and down.
+		/// </summary>
+		public bool Vertical { get; set; }
 
-        /// <summary>
-        /// If true, the slider will be oriented vertically s.t. the slider moves up and down.
-        /// </summary>
-        public bool Vertical { get; set; }
+		/// <summary>
+		/// Reverses the direction of the slider w/respect to its value.
+		/// </summary>
+		public bool Reverse { get; set; }
 
-        /// <summary>
-        /// Reverses the direction of the slider w/respect to its value.
-        /// </summary>
-        public bool Reverse { get; set; }
+		/// <summary>
+		/// Handles mouse input for the slider bar
+		/// </summary>
+		public IMouseInput MouseInput { get; }
 
-        /// <summary>
-        /// Indicates whether or not the hud element is currently moused over
-        /// </summary>
-        public override bool IsMousedOver => mouseInput.IsMousedOver;
+		protected readonly TexturedBox slider, bar;
+		protected Vector2 _barSize, _sliderSize;
+		protected Vector2 startCursorOffset, lastPos;
 
-        /// <summary>
-        /// Handles mouse input for the slider bar
-        /// </summary>
-        public IMouseInput MouseInput => mouseInput;
+		protected float _min, _max, _current, _percent;
+		protected bool canMoveSlider;
 
-        protected readonly TexturedBox slider, bar;
-        protected readonly MouseInputElement mouseInput;
-        protected Vector2 _barSize, _sliderSize;
-        protected Vector2 startCursorOffset, lastPos;
+		public SliderBar(HudParentBase parent) : base(parent)
+		{
+			bar = new TexturedBox(this);
+			slider = new TexturedBox(bar) { UseCursor = true, ShareCursor = true };
+			MouseInput = this;
 
-        protected float _min, _max, _current, _percent;
-        protected bool canMoveSlider;
+			_barSize = new Vector2(100f, 12f);
+			_sliderSize = new Vector2(6f, 12f);
+			UnpaddedSize = _barSize;
+			SliderVisible = true;
 
-        public SliderBar(HudParentBase parent) : base(parent)
-        {
-            bar = new TexturedBox(this);
-            slider = new TexturedBox(bar) { UseCursor = true, ShareCursor = true };
-            mouseInput = new MouseInputElement(this) { DimAlignment = DimAlignments.Size };
+			bar.Size = _barSize;
+			slider.Size = _sliderSize;
 
-            _barSize = new Vector2(100f, 12f);
-            _sliderSize = new Vector2(6f, 12f);
-            UnpaddedSize = _barSize;
-            SliderVisible = true;
+			SliderColor = new Color(180, 180, 180, 255);
+			BarColor = new Color(140, 140, 140, 255);
+			SliderHighlight = new Color(200, 200, 200, 255);
+			EnableHighlight = true;
 
-            bar.Size = _barSize;
-            slider.Size = _sliderSize;
+			_min = 0f;
+			_max = 1f;
 
-            SliderColor = new Color(180, 180, 180, 255);
-            BarColor = new Color(140, 140, 140, 255);
-            SliderHighlight = new Color(200, 200, 200, 255);
-            EnableHighlight = true;
+			Current = 0f;
+			Percent = 0f;
 
-            _min = 0f;
-            _max = 1f;
+			ShareCursor = false;
+			UseCursor = true;
+		}
 
-            Current = 0f;
-            Percent = 0f;
-        }
+		public SliderBar() : this(null)
+		{ }
 
-        public SliderBar() : this(null)
-        { }
+		protected override void HandleInput(Vector2 cursorPos)
+		{
+			base.HandleInput(cursorPos);
 
-        protected override void HandleInput(Vector2 cursorPos)
-        {
-            if (!canMoveSlider && mouseInput.IsNewLeftClicked)
-            {
-                canMoveSlider = true;
+			if (!canMoveSlider && IsNewLeftClicked)
+			{
+				canMoveSlider = true;
 
-                if (slider.IsMousedOver)
-                    startCursorOffset = cursorPos - slider.Position;
-                else
-                    startCursorOffset = Vector2.Zero;
-            }
-            else if (canMoveSlider && !SharedBinds.LeftButton.IsPressed)
-            {
-                canMoveSlider = false;
-            }
+				if (slider.IsMousedOver)
+					startCursorOffset = cursorPos - slider.Position;
+				else
+					startCursorOffset = Vector2.Zero;
+			}
+			else if (canMoveSlider && !SharedBinds.LeftButton.IsPressed)
+				canMoveSlider = false;
 
-            if (canMoveSlider && (cursorPos - lastPos).LengthSquared() > 4f)
-            {
-                float minOffset, maxOffset, pos;
-                lastPos = cursorPos;
-                cursorPos -= startCursorOffset;
+			if (canMoveSlider && (cursorPos - lastPos).LengthSquared() > 4f)
+			{
+				float minOffset, maxOffset, pos;
+				lastPos = cursorPos;
+				cursorPos -= startCursorOffset;
 
-                if (Vertical)
-                {
-                    minOffset = -((_barSize.Y - _sliderSize.Y) * .5f);
-                    maxOffset = -minOffset;
-                    pos = MathHelper.Clamp(cursorPos.Y - Origin.Y, minOffset, maxOffset);
-                }
-                else
-                {
-                    minOffset = -((_barSize.X - _sliderSize.X) * .5f);
-                    maxOffset = -minOffset;
-                    pos = MathHelper.Clamp(cursorPos.X - Origin.X, minOffset, maxOffset);
-                }
+				if (Vertical)
+				{
+					minOffset = -((_barSize.Y - _sliderSize.Y) * .5f);
+					maxOffset = -minOffset;
+					pos = MathHelper.Clamp(cursorPos.Y - Origin.Y, minOffset, maxOffset);
+				}
+				else
+				{
+					minOffset = -((_barSize.X - _sliderSize.X) * .5f);
+					maxOffset = -minOffset;
+					pos = MathHelper.Clamp(cursorPos.X - Origin.X, minOffset, maxOffset);
+				}
 
-                if (Reverse)
-                    Percent = 1f - ((pos - minOffset) / (maxOffset - minOffset));
-                else
-                    Percent = (pos - minOffset) / (maxOffset - minOffset);
-            }
-        }
+				if (Reverse)
+					Percent = 1f - ((pos - minOffset) / (maxOffset - minOffset));
+				else
+					Percent = (pos - minOffset) / (maxOffset - minOffset);
+			}
+		}
 
-        protected override void Layout()
-        {
-            slider.Visible = SliderVisible;
+		protected override void Layout()
+		{
+			slider.Visible = SliderVisible;
 
-            if (EnableHighlight && (IsMousedOver || canMoveSlider))
-            {
-                slider.Color = SliderHighlight;
+			if (EnableHighlight && (IsMousedOver || canMoveSlider))
+			{
+				slider.Color = SliderHighlight;
 
-                if (BarHighlight != default(Color))
-                    bar.Color = BarHighlight;
-            }
-            else
-            {
-                slider.Color = SliderColor;
-                bar.Color = BarColor;
-            }
+				if (BarHighlight != default(Color))
+					bar.Color = BarHighlight;
+			}
+			else
+			{
+				slider.Color = SliderColor;
+				bar.Color = BarColor;
+			}
 
-            Vector2 size = UnpaddedSize;
+			Vector2 size = UnpaddedSize;
 
-            if (_barSize.X >= _sliderSize.X)
-            {
-                _barSize.X = size.X;
-                _sliderSize.X = Math.Min(_sliderSize.X, _barSize.X);
-            }
-            else
-            {
-                _sliderSize.X = size.X;
-                _barSize.X = Math.Min(_sliderSize.X, _barSize.X);
-            }
+			if (_barSize.X >= _sliderSize.X)
+			{
+				_barSize.X = size.X;
+				_sliderSize.X = Math.Min(_sliderSize.X, _barSize.X);
+			}
+			else
+			{
+				_sliderSize.X = size.X;
+				_barSize.X = Math.Min(_sliderSize.X, _barSize.X);
+			}
 
-            if (_barSize.Y >= _sliderSize.Y)
-            {
-                _barSize.Y = size.Y;
-                _sliderSize.Y = Math.Min(_sliderSize.Y, _barSize.Y);
-            }
-            else
-            {
-                _sliderSize.Y = size.Y;
-                _barSize.Y = Math.Min(_sliderSize.Y, _barSize.Y);
-            }
+			if (_barSize.Y >= _sliderSize.Y)
+			{
+				_barSize.Y = size.Y;
+				_sliderSize.Y = Math.Min(_sliderSize.Y, _barSize.Y);
+			}
+			else
+			{
+				_sliderSize.Y = size.Y;
+				_barSize.Y = Math.Min(_sliderSize.Y, _barSize.Y);
+			}
 
-            bar.Size = _barSize;
-            slider.Size = _sliderSize;
+			bar.Size = _barSize;
+			slider.Size = _sliderSize;
 
-            UpdateButtonOffset();
-        }
+			UpdateButtonOffset();
+		}
 
-        private void UpdateButtonOffset()
-        {
-            if (Vertical)
-            {
-                if (Reverse)
-                    slider.Offset = new Vector2(0f, -(Percent - .5f) * (_barSize.Y - _sliderSize.Y));
-                else
-                    slider.Offset = new Vector2(0f, (Percent - .5f) * (_barSize.Y - _sliderSize.Y));
-            }
-            else
-            {
-                if (Reverse)
-                    slider.Offset = new Vector2(-(Percent - .5f) * (_barSize.X - _sliderSize.X), 0f);
-                else
-                    slider.Offset = new Vector2((Percent - .5f) * (_barSize.X - _sliderSize.X), 0f);
-            }
-        }
-    }
+		private void UpdateButtonOffset()
+		{
+			if (Vertical)
+			{
+				if (Reverse)
+					slider.Offset = new Vector2(0f, -(Percent - .5f) * (_barSize.Y - _sliderSize.Y));
+				else
+					slider.Offset = new Vector2(0f, (Percent - .5f) * (_barSize.Y - _sliderSize.Y));
+			}
+			else
+			{
+				if (Reverse)
+					slider.Offset = new Vector2(-(Percent - .5f) * (_barSize.X - _sliderSize.X), 0f);
+				else
+					slider.Offset = new Vector2((Percent - .5f) * (_barSize.X - _sliderSize.X), 0f);
+			}
+		}
+	}
 }

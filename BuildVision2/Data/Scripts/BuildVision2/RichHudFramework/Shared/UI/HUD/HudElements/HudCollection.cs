@@ -13,7 +13,7 @@ namespace RichHudFramework
     namespace UI
     {
         /// <summary>
-        /// A collection of UI elements wrapped in container objects. UI elements in the containers are parented
+        /// A collection of UI elements wrapped in decorator wrappers. UI elements in the containers are parented
         /// to the collection, like any other HUD element.
         /// </summary>
         public class HudCollection<TElementContainer, TElement> : HudElementBase, IHudCollection<TElementContainer, TElement>
@@ -82,22 +82,22 @@ namespace RichHudFramework
             /// <summary>
             /// Adds an element of type <see cref="TElement"/> to the chain.
             /// </summary>
-            public virtual void Add(TElement element, bool preload = false)
+            public virtual void Add(TElement element)
             {
                 var newContainer = new TElementContainer();
                 newContainer.SetElement(element);
-                Add(newContainer, preload);
+                Add(newContainer);
             }
 
             /// <summary>
             /// Adds an element of type <see cref="TElementContainer"/> to the chain.
             /// </summary>
-            public virtual void Add(TElementContainer container, bool preload = false)
+            public virtual void Add(TElementContainer container)
             {
                 if (container.Element.Registered)
                     throw new Exception("HUD Element already registered!");
 
-                if (container.Element.Register(this, preload))
+                if (container.Element.Register(this))
                     hudCollectionList.Add(container);
                 else
                     throw new Exception("HUD Element registration failed.");
@@ -106,18 +106,18 @@ namespace RichHudFramework
             /// <summary>
             /// Add the given range to the end of the chain.
             /// </summary>
-            public virtual void AddRange(IReadOnlyList<TElementContainer> newContainers, bool preload = false)
+            public virtual void AddRange(IReadOnlyList<TElementContainer> newContainers)
             {
-                NodeUtils.RegisterNodes<TElementContainer, TElement>(this, children, newContainers, preload);
+                NodeUtils.RegisterNodes<TElementContainer, TElement>(this, newContainers);
                 hudCollectionList.AddRange(newContainers);
             }
 
             /// <summary>
             /// Adds an element of type <see cref="TElementContainer"/> at the given index.
             /// </summary>
-            public virtual void Insert(int index, TElementContainer container, bool preload = false)
+            public virtual void Insert(int index, TElementContainer container)
             {
-                if (container.Element.Register(this, preload))
+                if (container.Element.Register(this))
                     hudCollectionList.Insert(index, container);
                 else
                     throw new Exception("HUD Element registration failed.");
@@ -126,9 +126,9 @@ namespace RichHudFramework
             /// <summary>
             /// Insert the given range into the chain.
             /// </summary>
-            public virtual void InsertRange(int index, IReadOnlyList<TElementContainer> newContainers, bool preload = false)
+            public virtual void InsertRange(int index, IReadOnlyList<TElementContainer> newContainers)
             {
-                NodeUtils.RegisterNodes<TElementContainer, TElement>(this, children, newContainers, preload);
+                NodeUtils.RegisterNodes<TElementContainer, TElement>(this, newContainers);
                 hudCollectionList.InsertRange(index, newContainers);
             }
 
@@ -196,7 +196,7 @@ namespace RichHudFramework
             /// </summary>
             public virtual void RemoveRange(int index, int count)
             {
-                NodeUtils.UnregisterNodes<TElementContainer, TElement>(this, children, hudCollectionList, index, count);
+                NodeUtils.UnregisterNodes<TElementContainer, TElement>(this, hudCollectionList, index, count);
                 hudCollectionList.RemoveRange(index, count);
             }
 
@@ -205,7 +205,7 @@ namespace RichHudFramework
             /// </summary>
             public virtual void Clear()
             {
-                NodeUtils.UnregisterNodes<TElementContainer, TElement>(this, children, hudCollectionList, 0, hudCollectionList.Count);
+                NodeUtils.UnregisterNodes<TElementContainer, TElement>(this, hudCollectionList, 0, hudCollectionList.Count);
                 hudCollectionList.Clear();
             }
 
@@ -250,6 +250,8 @@ namespace RichHudFramework
                 }
                 else if (child.Parent == null && children.Remove(child))
                 {
+                    childHandles.Remove(child.DataHandle);
+
                     if (!skipCollectionRemove)
                     {
                         for (int n = 0; n < hudCollectionList.Count; n++)
@@ -271,22 +273,22 @@ namespace RichHudFramework
             }
         }
 
-        /// <summary>
-        /// A collection of UI elements wrapped in container objects. UI elements in the containers are parented
-        /// to the collection, like any other HUD element.
-        /// </summary>
-        public class HudCollection<TElementContainer> : HudCollection<TElementContainer, HudNodeBase>
+		/// <summary>
+		/// A collection of UI elements wrapped in decorator wrappers. UI elements in the containers are parented
+		/// to the collection, like any other HUD element.
+		/// </summary>
+		public class HudCollection<TElementContainer> : HudCollection<TElementContainer, HudNodeBase>
             where TElementContainer : IHudElementContainer<HudNodeBase>, new()
         {
             public HudCollection(HudParentBase parent = null) : base(parent)
             { }
         }
 
-        /// <summary>
-        /// A collection of UI elements wrapped in container objects. UI elements in the containers are parented
-        /// to the collection, like any other HUD element.
-        /// </summary>
-        public class HudCollection : HudCollection<HudNodeContainer<HudNodeBase>, HudNodeBase>
+		/// <summary>
+		/// A collection of UI elements wrapped in decorator wrappers. UI elements in the containers are parented
+		/// to the collection, like any other HUD element.
+		/// </summary>
+		public class HudCollection : HudCollection<HudNodeContainer<HudNodeBase>, HudNodeBase>
         {
             public HudCollection(HudParentBase parent = null) : base(parent)
             { }

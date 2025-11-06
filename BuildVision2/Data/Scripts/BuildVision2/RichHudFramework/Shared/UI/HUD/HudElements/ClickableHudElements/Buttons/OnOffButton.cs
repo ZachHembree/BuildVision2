@@ -181,7 +181,7 @@ namespace RichHudFramework.UI
             Value = !Value;
         }
 
-        protected override void Layout()
+		protected override void Layout()
         {
             if (Value)
             {
@@ -208,7 +208,7 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected override void HandleInput(Vector2 cursorPos)
+		protected override void HandleInput(Vector2 cursorPos)
         {
             if (mouseInput.HasFocus && SharedBinds.Space.IsNewPressed)
             {

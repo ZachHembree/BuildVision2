@@ -72,7 +72,7 @@ namespace RichHudFramework.UI
         public BorderedButton() : this(null)
         { }
 
-        protected override void HandleInput(Vector2 cursorPos)
+		protected override void HandleInput(Vector2 cursorPos)
         {
             if (MouseInput.HasFocus)
             {
@@ -80,24 +80,34 @@ namespace RichHudFramework.UI
                 {
                     _mouseInput.OnLeftClick();
                 }
-            }
-        }
+			}
+		}
 
-        protected override void CursorEnter(object sender, EventArgs args)
+        /// <summary>
+        /// Invoked when the cursor first howvers over the button
+        /// </summary>
+		protected override void CursorEnter(object sender, EventArgs args)
         {
             if (HighlightEnabled)
             {
-                if (!(UseFocusFormatting && MouseInput.HasFocus))
-                {
+                if (!UseFocusFormatting || !MouseInput.HasFocus)
                     lastColor = Color;
-                    lastTextColor = TextBoard.Format.Color;
-                }
 
-                TextBoard.SetFormatting(TextBoard.Format.WithColor(lastTextColor));
+				if (UseFocusFormatting)
+				{
+					if (!MouseInput.HasFocus)
+						lastTextColor = TextBoard.Format.Color;
+
+					TextBoard.SetFormatting(TextBoard.Format.WithColor(lastTextColor));
+				}
+
                 Color = HighlightColor;
             }
         }
 
+        /// <summary>
+        /// Invoked when the cursor moves out of the button
+        /// </summary>
         protected override void CursorExit(object sender, EventArgs args)
         {
             if (HighlightEnabled)
@@ -110,11 +120,16 @@ namespace RichHudFramework.UI
                 else
                 {
                     Color = lastColor;
-                    TextBoard.SetFormatting(TextBoard.Format.WithColor(lastTextColor));
+
+					if (UseFocusFormatting)
+						TextBoard.SetFormatting(TextBoard.Format.WithColor(lastTextColor));
                 }
             }
         }
 
+        /// <summary>
+        /// Invoked when the button has input focus
+        /// </summary>
         protected virtual void GainFocus(object sender, EventArgs args)
         {
             if (UseFocusFormatting)
@@ -130,6 +145,9 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Invoked when the button loses input focus
+        /// </summary>
         protected virtual void LoseFocus(object sender, EventArgs args)
         {
             if (UseFocusFormatting)

@@ -146,7 +146,7 @@ namespace RichHudFramework.UI
         public SliderBox() : this(null)
         { }
 
-        protected override void HandleInput(Vector2 cursorPos)
+		protected override void HandleInput(Vector2 cursorPos)
         {
             if (MouseInput.HasFocus)
             {

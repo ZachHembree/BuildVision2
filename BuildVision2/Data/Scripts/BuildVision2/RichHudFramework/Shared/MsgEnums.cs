@@ -16,13 +16,15 @@
         BillBoardUtils = 5
     }
 
-    public enum ClientDataAccessors : int
-    {   
-        GetVersionID = 1,
-        GetSubtype = 2
-    }
+	public enum ClientDataAccessors : int
+	{
+		GetVersionID = 1,
+		GetSubtype = 2,
+		ReportException = 3,
+		GetIsPausedFunc = 4
+	}
 
-    public enum ClientSubtypes : int
+	public enum ClientSubtypes : int
     {
         Full = 1,
         NoLib = 2,

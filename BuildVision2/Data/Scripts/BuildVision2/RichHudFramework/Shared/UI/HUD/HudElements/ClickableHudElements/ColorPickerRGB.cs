@@ -184,7 +184,7 @@ namespace RichHudFramework.UI
                 focusedChannel = channel;
         }
 
-        protected override void Layout()
+		protected override void Layout()
         {
             _color = new Color()
             {
@@ -212,7 +212,7 @@ namespace RichHudFramework.UI
             display.Color = _color;
         }
 
-        protected override void HandleInput(Vector2 cursorPos)
+		protected override void HandleInput(Vector2 cursorPos)
         {
             if (focusedChannel != -1)
             {

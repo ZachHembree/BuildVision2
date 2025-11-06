@@ -1,4 +1,4 @@
-﻿using RichHudFramework;
+using RichHudFramework;
 using RichHudFramework.Internal;
 using RichHudFramework.IO;
 using Sandbox.ModAPI;
@@ -24,9 +24,10 @@ namespace RichHudFramework.Client
 		public const ClientSubtypes subtype = ClientSubtypes.Full;
 
 		private const long modID = 1965654081, queueID = 1314086443;
-		private const int vID = 12;
+		private const int vID = (int)APIVersionTable.Latest;
 
 		public static bool Registered => Instance != null ? Instance.registered : false;
+
 		private static RichHudClient Instance { get; set; }
 
 		private readonly ExtendedClientData regMessage;
@@ -122,6 +123,10 @@ namespace RichHudFramework.Client
 					return versionID;
 				case ClientDataAccessors.GetSubtype:
 					return subtype;
+				case ClientDataAccessors.ReportException:
+					return new Action<Exception>(ExceptionHandler.ReportException);
+				case ClientDataAccessors.GetIsPausedFunc:
+					return new Func<bool>(() => ExceptionHandler.ClientsPaused);
 			}
 
 			return null;

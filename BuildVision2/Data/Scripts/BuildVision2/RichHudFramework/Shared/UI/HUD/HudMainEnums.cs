@@ -60,13 +60,15 @@ namespace RichHudFramework
 
             /// <summary>
             /// in/out: bool
+            /// Deprecated
             /// </summary>
             RefreshDrawList = 11,
 
             /// <summary>
             /// in/out: Action<List<HudUpdateAccessors>, byte>
+            /// Deprecated
             /// </summary>
-            GetUpdateAccessors = 12,
+            GetUpdateAccessorsOld = 12,
 
             /// <summary>
             /// out: byte, in: Action{byte}
@@ -117,6 +119,11 @@ namespace RichHudFramework
             /// in: Action
             /// </summary>
             SetAfterInputCallback = 22,
+
+            /// <summary>
+            /// in/out: object
+            /// </summary>
+            ClientRootNode = 23,
         }
 
         public enum HudInputMode : int

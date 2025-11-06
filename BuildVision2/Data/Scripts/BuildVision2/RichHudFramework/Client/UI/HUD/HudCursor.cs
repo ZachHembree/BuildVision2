@@ -40,7 +40,7 @@ namespace RichHudFramework
                 public bool IsToolTipRegistered { get; private set; }
 
                 /// <summary>
-                /// The position of the cursor in pixels in screen space
+                /// Position of the cursor in pixels in screen space
                 /// </summary>
                 public Vector2 ScreenPos { get; private set; }
 

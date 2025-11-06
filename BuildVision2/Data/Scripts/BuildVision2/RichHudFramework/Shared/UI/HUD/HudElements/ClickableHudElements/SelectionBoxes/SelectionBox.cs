@@ -51,7 +51,19 @@ namespace RichHudFramework.UI
         /// </summary>
         public virtual bool UseSmoothScrolling { get { return hudChain.UseSmoothScrolling; } set { hudChain.UseSmoothScrolling = value; } }
 
-        protected override float HighlightWidth =>
+		/// <summary>
+		/// Minimum number of visible elements allowed. Supercedes maximum length. If the number of elements that
+		/// can fit within the maximum length is less than this value, then this element will expand beyond its maximum
+		/// size.
+		/// </summary>
+		public virtual int MinVisibleCount { get { return hudChain.MinVisibleCount; } set { hudChain.MinVisibleCount = value; } }
+
+		/// <summary>
+		/// Minimum total length (on the align axis) of visible members allowed in the scrollbox.
+		/// </summary>
+		public virtual float MinLength { get { return hudChain.MinLength; } set { hudChain.MinLength = value; } }
+
+		protected override float HighlightWidth =>
             hudChain.Size.X - Padding.X - hudChain.ScrollBar.Width - hudChain.Padding.X - HighlightPadding.X;
 
         public ScrollSelectionBox(HudParentBase parent) : base(parent)
@@ -60,10 +72,8 @@ namespace RichHudFramework.UI
         public ScrollSelectionBox() : base(null)
         { }
 
-        protected override void HandleInput(Vector2 cursorPos)
+		protected override void HandleInput(Vector2 cursorPos)
         {
-            base.HandleInput(cursorPos);
-
             if (listInput.KeyboardScroll)
             {
                 if (listInput.HighlightIndex > hudChain.End)

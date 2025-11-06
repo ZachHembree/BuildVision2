@@ -1,7 +1,6 @@
 ﻿using System;
 using VRageMath;
 using RichHudFramework.UI.Rendering;
-using RichHudFramework.Internal;
 
 namespace RichHudFramework.UI
 {
@@ -12,7 +11,7 @@ namespace RichHudFramework.UI
     /// Basic window type with a header, body and border. Supports dragging/resizing like pretty much every 
     /// other window ever.
     /// </summary>
-    public class Window : HudElementBase, IClickableElement
+    public abstract class WindowBase : HudElementBase, IClickableElement
     {
         /// <summary>
         /// Window header text
@@ -45,7 +44,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Minimum allowable size for the window.
         /// </summary>
-        public Vector2 MinimumSize { get { return _minimumSize; } set { _minimumSize = value; } }
+        public Vector2 MinimumSize { get; set; }
 
         /// <summary>
         /// Determines whether or not the window can be resized by the user
@@ -90,12 +89,11 @@ namespace RichHudFramework.UI
         protected readonly MouseInputElement inputInner, resizeInput;
         protected readonly TexturedBox windowBg;
 
-        protected readonly Action<byte> LoseFocusCallback;
         protected float cornerSize = 16f;
         protected bool canMoveWindow;
-        protected Vector2 resizeDir, cursorOffset, _minimumSize;
+        protected Vector2 resizeDir, cursorOffset;
 
-        public Window(HudParentBase parent) : base(parent)
+        public WindowBase(HudParentBase parent) : base(parent)
         {
             header = new LabelBoxButton(this)
             {
@@ -147,11 +145,10 @@ namespace RichHudFramework.UI
             IsMasking = true;
             MinimumSize = new Vector2(200f, 200f);
 
-            LoseFocusCallback = LoseFocus;
-            GetFocus();
+			GetWindowFocus();
         }
 
-        protected override void Layout()
+		protected override void Layout()
         {
             body.Height = UnpaddedSize.Y - header.Height;
             body.Width = UnpaddedSize.X;
@@ -181,12 +178,12 @@ namespace RichHudFramework.UI
             Offset = pos - Origin;
         }
 
-        protected override void HandleInput(Vector2 cursorPos)
+		protected override void HandleInput(Vector2 cursorPos)
         {
             if (IsMousedOver)
             {
                 if (SharedBinds.LeftButton.IsNewPressed && !WindowActive)
-                    GetFocus();
+					GetWindowFocus();
             }
 
             if (AllowResizing && resizeInput.IsNewLeftClicked && !inputInner.IsMousedOver)
@@ -230,19 +227,24 @@ namespace RichHudFramework.UI
                 Resize(cursorPos);
         }
 
-        /// <summary>
-        /// Brings the window into the foreground
-        /// </summary>
-        public virtual void GetFocus()
-        {
-            layerData.zOffsetInner = HudMain.GetFocusOffset(LoseFocusCallback);
-            WindowActive = true;
-        }
+		/// <summary>
+		/// Causes a window to be brought to the foreground. Overriding methods must call the 
+		/// base implementation.
+		/// </summary>
+		public virtual void GetWindowFocus()
+		{
+			OverlayOffset = HudMain.GetFocusOffset(LoseWindowFocus);
+			WindowActive = true;
+		}
 
-        protected virtual void LoseFocus(byte newOffset)
-        {
-            layerData.zOffsetInner = newOffset;
-            WindowActive = false;
-        }
-    }
+		/// <summary>
+		/// Invoked when a window that previously had focus loses it. Overriding methods must call 
+		/// the base implementation.
+		/// </summary>
+		protected virtual void LoseWindowFocus(byte newLayer)
+		{
+			OverlayOffset = newLayer;
+			WindowActive = false;
+		}
+	}
 }

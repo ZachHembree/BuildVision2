@@ -101,7 +101,8 @@ namespace RichHudFramework
                 void MoveToChar(Vector2I index);
 
                 /// <summary>
-                /// Returns the index of the character at the given offset.
+                /// Returns the index of the character at the given offset. Position is relative to the center of 
+                /// the TextBoard.
                 /// </summary>
                 Vector2I GetCharAtOffset(Vector2 localPos);
 

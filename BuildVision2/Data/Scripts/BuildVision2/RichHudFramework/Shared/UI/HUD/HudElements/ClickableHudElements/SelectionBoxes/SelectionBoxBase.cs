@@ -61,10 +61,8 @@ namespace RichHudFramework.UI
         public ScrollSelectionBoxBase() : base(null)
         { }
 
-        protected override void HandleInput(Vector2 cursorPos)
+		protected override void HandleInput(Vector2 cursorPos)
         {
-            base.HandleInput(cursorPos);
-
             if (listInput.KeyboardScroll)
             {
                 if (listInput.HighlightIndex > hudChain.End)
@@ -214,11 +212,8 @@ namespace RichHudFramework.UI
             hudChain.Register(this);
             chainHidesDisabled = hudChain is ScrollBox<TContainer, TElement>;
 
-            selectionBox = new HighlightBox() { Visible = false };
-            highlightBox = new HighlightBox() { Visible = false, CanDrawTab = false };
-
-            selectionBox.Register(hudChain, true);
-            highlightBox.Register(hudChain, true);
+            selectionBox = new HighlightBox(hudChain) { Visible = false };
+            highlightBox = new HighlightBox(hudChain) { Visible = false, CanDrawTab = false };
 
             listInput = new ListInputElement<TContainer, TElement>(hudChain);
 
@@ -267,7 +262,7 @@ namespace RichHudFramework.UI
             listInput.ClearSelection();
 
         /// <summary>
-        /// Returns the most recent total size of the list elements in the given range,
+        /// Calculates the total size of the list elements in the given range,
         /// including padding.
         /// </summary>
         public virtual Vector2 GetRangeSize(int start = 0, int end = -1)

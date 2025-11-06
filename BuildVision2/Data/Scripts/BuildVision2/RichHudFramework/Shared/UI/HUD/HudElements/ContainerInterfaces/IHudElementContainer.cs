@@ -23,10 +23,12 @@
     public interface IChainElementContainer<TElement> : IHudElementContainer<TElement> 
         where TElement : HudElementBase
     {
-        /// <summary>
-        /// Scale of the UI element relative to the chain. Normalized to sum of all members
-        /// scales. 0f = constant (no scaling); 1f full auto
-        /// </summary>
-        float AlignAxisScale { get; set; }
+		/// <summary>
+		/// Scale of the UI element relative to the chain. Normalized to sum of all members
+		/// scales. Can be overridden by Fit/ClampMember sizing modes.
+        /// 
+		/// 0f = constant (no scaling); 1f = auto
+		/// </summary>
+		float AlignAxisScale { get; set; }
     }
 }

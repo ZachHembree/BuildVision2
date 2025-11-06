@@ -94,12 +94,18 @@ namespace RichHudFramework
                 /// </summary
                 public void Draw(ref CroppedBox box, MatrixD[] matrixRef)
                 {
-                    ContainmentType containment = ContainmentType.Contains;
+                    bool isDisjoint = false;
 
                     if (box.mask != null)
-                        box.mask.Value.Contains(ref box.bounds, out containment);
+                    {
+						isDisjoint =
+                            (box.bounds.Max.X < box.mask.Value.Min.X) ||
+                            (box.bounds.Min.X > box.mask.Value.Max.X) ||
+                            (box.bounds.Max.Y < box.mask.Value.Min.Y) ||
+                            (box.bounds.Min.Y > box.mask.Value.Max.Y);
+					}
 
-                    if (containment != ContainmentType.Disjoint)
+                    if (!isDisjoint)
                     {
                         if (matFrame.Material != Material.Default)
                         {

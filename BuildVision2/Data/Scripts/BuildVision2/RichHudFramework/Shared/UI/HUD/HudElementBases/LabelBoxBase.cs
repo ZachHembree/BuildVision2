@@ -10,7 +10,7 @@ namespace RichHudFramework
         using Server;
 
         /// <summary>
-        /// Base type for hud elements that have text elements and a <see cref="TexturedBox"/> background.
+        /// Base type for elements combining Labels with textured backgrounds.
         /// </summary>
         public abstract class LabelBoxBase : HudElementBase
         {
@@ -56,18 +56,18 @@ namespace RichHudFramework
                 Color = Color.Gray;
             }
 
-            protected override void Layout()
+            protected override void UpdateSize()
             {
-                if (!AutoResize)
-                {
-                    TextSize = Size - Padding;
-                }
-
-                if (FitToTextElement)
-                {
-                    Size = TextSize + Padding;
-                }
-            }
+				if (!AutoResize)
+				{
+					TextSize = UnpaddedSize;
+				}
+  
+				if (FitToTextElement)
+				{
+					UnpaddedSize = TextSize;
+				}
+			}
         }
     }
 }

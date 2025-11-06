@@ -73,8 +73,6 @@ namespace RichHudFramework.UI
 
         protected override void Layout()
         {
-            base.Layout();
-
             if (!AutoResize)
             {
                 float xPadding = left.Padding.X,

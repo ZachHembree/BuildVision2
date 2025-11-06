@@ -12,7 +12,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Indicates whether or not the box is checked.
         /// </summary>
-        public bool IsBoxChecked { get { return tickBox.Visible; } set { tickBox.Visible = value; } }
+        public bool IsBoxChecked { get; set; }
 
         /// <summary>
         /// Color of the border surrounding the button
@@ -61,14 +61,14 @@ namespace RichHudFramework.UI
                 DimAlignment = DimAlignments.Size,
             };
 
-            tickBox = new TexturedBox()
+            tickBox = new TexturedBox(this)
             {
                 DimAlignment = DimAlignments.UnpaddedSize,
                 Padding = new Vector2(17f),
             };
-            tickBox.Register(this, true);
 
-            Size = new Vector2(37f);
+            IsBoxChecked = true;
+			Size = new Vector2(37f);
 
             Color = TerminalFormatting.OuterSpace;
             HighlightColor = TerminalFormatting.Atomic;
@@ -89,8 +89,10 @@ namespace RichHudFramework.UI
         public BorderedCheckBox() : this(null)
         { }
 
-        protected override void HandleInput(Vector2 cursorPos)
+		protected override void HandleInput(Vector2 cursorPos)
         {
+            tickBox.Visible = IsBoxChecked;
+
             if (MouseInput.HasFocus)
             {
                 if (SharedBinds.Space.IsNewPressed)

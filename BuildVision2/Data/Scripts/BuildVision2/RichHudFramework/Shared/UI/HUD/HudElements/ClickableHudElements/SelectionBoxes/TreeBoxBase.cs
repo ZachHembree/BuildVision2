@@ -160,7 +160,7 @@ namespace RichHudFramework.UI
                 ParentAlignment = ParentAlignments.Bottom,
                 HighlightPadding = Vector2.Zero
             };
-            selectionBox.Register(labelButton, true);
+            selectionBox.Register(labelButton);
             selectionBox.hudChain.SizingMode = HudChainSizingModes.FitMembersOffAxis;
 
             Width = 200f;
@@ -214,29 +214,22 @@ namespace RichHudFramework.UI
             ListOpen = false;
         }
 
-        protected override void Layout()
-        {
-            if (ListOpen)
-            {
-                selectionBox.Width = CachedSize.X - 2f * IndentSize - Padding.X;
-                selectionBox.Offset = new Vector2(IndentSize, 0f);
-                selectionBox.Height = UnpaddedSize.Y - labelButton.Height;
-            }
-        }
+		protected override void UpdateSize()
+		{
+			selectionBox.Visible = ListOpen;
 
-        protected override void HandleInput(Vector2 cursorPos)
-        {
-            selectionBox.Visible = ListOpen;
-
-            if (ListOpen)
-            {
-                Height = selectionBox.GetRangeSize().Y + labelButton.Height + Padding.Y;
-            }
-            else
-            {
-                Height = labelButton.Height + Padding.Y;
-            }
-        }
+			if (ListOpen)
+			{
+				Height = selectionBox.GetRangeSize().Y + labelButton.Height + Padding.Y;
+				selectionBox.Width = UnpaddedSize.X - 2f * IndentSize;
+				selectionBox.Offset = new Vector2(IndentSize, 0f);
+				selectionBox.Height = UnpaddedSize.Y - labelButton.Height;
+			}
+			else
+			{
+				Height = labelButton.Height + Padding.Y;
+			}
+		}
 
         public IEnumerator<TContainer> GetEnumerator() =>
             selectionBox.GetEnumerator();

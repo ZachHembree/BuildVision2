@@ -65,7 +65,6 @@ namespace RichHudFramework.UI
             {
                 Format = TerminalFormatting.ControlFormat.WithAlignment(TextAlignment.Center),
                 Text = "NewOnOffButton",
-                AutoResize = false,
                 Height = 22f,
             };
 

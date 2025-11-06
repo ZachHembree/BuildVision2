@@ -11,12 +11,12 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Text rendered by the label.
         /// </summary>
-        public RichText Text { get { return textElement.TextBoard.GetText(); } set { textElement.TextBoard.SetText(value); } }
+        public RichText Text { get { return TextBoard.GetText(); } set { TextBoard.SetText(value); } }
 
         /// <summary>
         /// Default formatting used by the label.
         /// </summary>
-        public GlyphFormat Format { get { return textElement.TextBoard.Format; } set { textElement.TextBoard.SetFormatting(value); } }
+        public GlyphFormat Format { get { return TextBoard.Format; } set { TextBoard.SetFormatting(value); } }
 
         /// <summary>
         /// Padding applied to the text element.
@@ -31,7 +31,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// If true, the element will automatically resize to fit the text.
         /// </summary>
-        public override bool AutoResize { get { return textElement.AutoResize; } set { textElement.AutoResize = value; } }
+        public override bool AutoResize { get { return TextBoard.AutoResize; } set { TextBoard.AutoResize = value; } }
 
         /// <summary>
         /// Line formatting mode used by the label.
@@ -41,12 +41,12 @@ namespace RichHudFramework.UI
         /// <summary>
         /// If true, the text will be vertically centered.
         /// </summary>
-        public bool VertCenterText { get { return textElement.VertCenterText; } set { textElement.VertCenterText = value; } }
+        public bool VertCenterText { get { return TextBoard.VertCenterText; } set { TextBoard.VertCenterText = value; } }
 
         /// <summary>
         /// TextBoard backing the label element.
         /// </summary>
-        public ITextBoard TextBoard => textElement.TextBoard;
+        public ITextBoard TextBoard { get; }
 
         /// <summary>
         /// Text element contained by the label box.
@@ -56,6 +56,7 @@ namespace RichHudFramework.UI
         public LabelBox(HudParentBase parent) : base(parent)
         {
             textElement = new Label(this);
+            TextBoard = textElement.TextBoard;
         }
 
         public LabelBox() : this(null)

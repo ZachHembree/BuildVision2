@@ -38,9 +38,9 @@ namespace RichHudFramework.UI
         public static IBind RightStickX { get {  return Instance.sharedMain[19]; } }
         public static IBind RightStickY { get { return Instance.sharedMain[20]; } }
 
-        public static IBind Control { get { return Instance.sharedModifiers[0]; } }
-        public static IBind Shift { get { return Instance.sharedModifiers[1]; } }
-        public static IBind Alt { get { return Instance.sharedModifiers[2]; } }
+        public static IBind Shift { get { return Instance.sharedModifiers[0]; } }
+		public static IBind Control { get { return Instance.sharedModifiers[1]; } }
+		public static IBind Alt { get { return Instance.sharedModifiers[2]; } }
 
         private static SharedBinds Instance
         {

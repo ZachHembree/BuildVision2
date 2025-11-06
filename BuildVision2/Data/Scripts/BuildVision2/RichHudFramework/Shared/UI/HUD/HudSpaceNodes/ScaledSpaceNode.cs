@@ -29,7 +29,7 @@ namespace RichHudFramework
                 if (UpdateScaleFunc != null)
                     PlaneScale = UpdateScaleFunc();
 
-                IReadOnlyHudSpaceNode parentSpace = _parent.HudSpace;
+                IReadOnlyHudSpaceNode parentSpace = Parent.HudSpace;
 
                 PlaneToWorldRef[0] = MatrixD.CreateScale(PlaneScale, PlaneScale, 1d) * parentSpace.PlaneToWorldRef[0];
                 IsInFront = parentSpace.IsInFront;

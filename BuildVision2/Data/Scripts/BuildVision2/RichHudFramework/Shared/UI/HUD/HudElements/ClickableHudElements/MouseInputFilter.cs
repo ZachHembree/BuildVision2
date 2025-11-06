@@ -28,7 +28,7 @@ namespace RichHudFramework.UI
         public MouseInputFilter() : this(null)
         { }
 
-        protected override void HandleInput(Vector2 cursorPos)
+		protected override void HandleInput(Vector2 cursorPos)
         {
             IsControlPressed = false;
 

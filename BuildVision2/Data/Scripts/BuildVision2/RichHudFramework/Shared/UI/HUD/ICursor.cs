@@ -69,7 +69,7 @@ namespace RichHudFramework
             bool IsToolTipRegistered { get; }
 
             /// <summary>
-            /// The position of the cursor in pixels in screen space
+            /// Position of the cursor in pixels in screen space
             /// </summary>
             Vector2 ScreenPos { get; }
 
@@ -118,12 +118,12 @@ namespace RichHudFramework
 
             /// <summary>
             /// Attempts to release the cursor from the given element. Returns false if
-            /// not capture or if not captured by the object given.
+            /// not captured or if not captured by the object given.
             /// </summary>
             bool TryRelease(ApiMemberAccessor capturedElement);
 
             /// <summary>
-            /// Registers a callback delegate to set the tooltip for the next frame. Tooltips are reset
+            /// Registers a callback to set the tooltip for the next frame. Tooltips are reset
             /// every tick and must be reregistered in HandleInput() every tick. The first tooltip registered
             /// takes precedence.
             /// </summary>

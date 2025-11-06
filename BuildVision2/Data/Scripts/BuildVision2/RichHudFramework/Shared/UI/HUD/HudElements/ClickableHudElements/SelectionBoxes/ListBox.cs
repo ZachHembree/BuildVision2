@@ -89,6 +89,11 @@ namespace RichHudFramework.UI
 
         public ListBox() : this(null)
         { }
+
+		protected override void UpdateSize()
+		{
+            UnpaddedSize = hudChain.UnpaddedSize + hudChain.Padding;
+		}
     }
 
 }
