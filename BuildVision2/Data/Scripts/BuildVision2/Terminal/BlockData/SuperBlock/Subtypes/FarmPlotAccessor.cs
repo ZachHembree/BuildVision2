@@ -60,7 +60,7 @@ namespace DarkHelmet.BuildVision2
 
 			public void Harvest()
 			{
-				component.Harvest();
+				component.Harvest(null, true);
 			}
 
 			public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
