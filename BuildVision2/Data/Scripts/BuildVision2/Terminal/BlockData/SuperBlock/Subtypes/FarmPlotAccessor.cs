@@ -58,11 +58,6 @@ namespace DarkHelmet.BuildVision2
 				plantDef = null;
 			}
 
-			public void Harvest()
-			{
-				component.Harvest();
-			}
-
 			public override void GetSummary(RichText builder, GlyphFormat nameFormat, GlyphFormat valueFormat)
 			{
 				string detailedInfo = component.GetDetailedInfoWithoutRequiredInput();
