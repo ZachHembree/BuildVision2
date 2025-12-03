@@ -45,7 +45,7 @@ namespace DarkHelmet.BuildVision2
 			/// <summary>
 			/// Normalized inner diameter of the wheel, [0, 1]
 			/// </summary>
-			public float InnerDiam => propertyWheel.polyBoard.InnerRadius;
+			public float InnerDiam => propertyWheel.InnerRadius;
 
 			/// <summary>
 			/// Returns true if the menu is closing
@@ -76,7 +76,7 @@ namespace DarkHelmet.BuildVision2
 					Size = new Vector2(WheelOuterDiam),
 					ZOffset = -1,
 				};
-				propertyWheel.polyBoard.InnerRadius = WheelInnerDiamScale;
+				propertyWheel.InnerRadius = WheelInnerDiamScale;
 
 				// Selection wheel for dupe shortcuts
 				dupeWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(wheelBody)

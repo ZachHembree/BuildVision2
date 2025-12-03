@@ -29,7 +29,6 @@ namespace DarkHelmet.BuildVision2
                 { "close", x => QuickActionHudSpace.CloseMenu() },
                 { "reload", x => ExceptionHandler.ReloadClients() },
                 { "crash", x => Crash() },
-                { "printControlsToLog", x => LogIO.WriteToLogStart($"Control List:\n{HelpText.controlList}") },
                 { "export", x => ExportBlockData() },
                 { "import", x => TryImportBlockData() },
                 { "checkType", x => ExceptionHandler.SendChatMessage($"Block Type: {(QuickActionHudSpace.Target?.SubtypeId.ToString() ?? "No Target")}") },

@@ -38,7 +38,6 @@ namespace DarkHelmet.BuildVision2
             else
                 throw new Exception("Only one instance of BvMain can exist at any given time.");
 
-            LogIO.FileName = "bvLog.txt";
             BvConfig.FileName = "BuildVision2Config.xml";
 
             ExceptionHandler.ModName = modName;

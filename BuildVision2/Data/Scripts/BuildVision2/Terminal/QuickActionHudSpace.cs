@@ -168,7 +168,7 @@ namespace DarkHelmet.BuildVision2
                         targetScreenPos = LocalPlayer.GetWorldToScreenPos(targetWorldPos) * .5d;
 
                         menuPos = new Vector2((float)targetScreenPos.X, (float)targetScreenPos.Y);
-                        menuPos = HudMain.GetPixelVector(menuPos) / scale;
+                        menuPos = (menuPos * HudMain.ScreenDim) / scale;
                     }
                     else
                         menuPos = lastPos;
@@ -176,7 +176,7 @@ namespace DarkHelmet.BuildVision2
                 else
                 {
                     menuPos = BvConfig.Current.genUI.hudPos;
-                    menuPos = HudMain.GetPixelVector(menuPos) / scale;
+                    menuPos = (menuPos * HudMain.ScreenDim) / scale;
 
                     if (menuPos.X < 0f)
                         menuPos.X += .5f * quickActionMenu.Width;

@@ -64,7 +64,7 @@ namespace DarkHelmet.BuildVision2
                 if (BindManager.IsChatOpen && !textField.InputOpen)
                     textField.OpenInput();
 
-                textField.MouseInput.GetInputFocus();
+                textField.FocusHandler.GetInputFocus();
             }
 
             protected override void SetFont(IFontMin newFont)
@@ -96,7 +96,7 @@ namespace DarkHelmet.BuildVision2
                 {
                     textField.TextBoard.SetText(textValueMember.Value);
                     textField.OpenInput();
-                    textField.MouseInput.GetInputFocus();
+                    textField.FocusHandler.GetInputFocus();
                 }
                 if (!BindManager.IsChatOpen && textField.InputOpen && SharedBinds.Enter.IsNewPressed)
                 {

@@ -114,7 +114,7 @@ namespace DarkHelmet.BuildVision2
 
                     for (int i = 0; i < 3; i++)
                     {
-                        if (colorPicker.sliders[i].MouseInput.HasFocus)
+                        if (colorPicker.sliders[i].FocusHandler.HasFocus)
                             selectedChannel = i;
                     }
 
@@ -132,10 +132,10 @@ namespace DarkHelmet.BuildVision2
 
                         if (BvBinds.Cancel.IsNewPressed)
                         {
-                            cancelButton.MouseInput.GetInputFocus();
+                            cancelButton.FocusHandler.GetInputFocus();
                             IsWidgetFocused = false;
                         }
-                        else if (!BvBinds.Cancel.IsReleased && !cancelButton.MouseInput.HasFocus)
+                        else if (!BvBinds.Cancel.IsReleased && !cancelButton.FocusHandler.HasFocus)
                         {
                             selectedChannel = MathHelper.Clamp(selectedChannel, 0, 2);
                             colorPicker.SetChannelFocused(selectedChannel);
@@ -143,7 +143,7 @@ namespace DarkHelmet.BuildVision2
                     }
                     else if (BvBinds.Select.IsNewPressed)
                     {
-                        confirmButton.MouseInput.GetInputFocus();
+                        confirmButton.FocusHandler.GetInputFocus();
                         IsWidgetFocused = false;
                     }
 

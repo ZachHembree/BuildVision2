@@ -55,7 +55,7 @@ namespace DarkHelmet.BuildVision2
 
                 SetSliderValue(floatMember.Value);
                 sliderBox.NameBuilder.SetText(floatMember.Name);
-                sliderBox.MouseInput.GetInputFocus();
+                sliderBox.FocusHandler.GetInputFocus();
                 sliderBox.CharFilterFunc = textMember.CharFilterFunc;
                 initValue = floatMember.Value;
 
@@ -246,12 +246,12 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (!IsTextInputOpen)
                     {
-                        sliderBox.Visible = false;
+                        SliderBox.Visible = false;
                         textField.Visible = true;
                         current.Visible = false;
 
                         textField.OpenInput();
-                        textField.MouseInput.GetInputFocus();
+                        textField.FocusHandler.GetInputFocus();
                     }
                 }
 
@@ -260,11 +260,11 @@ namespace DarkHelmet.BuildVision2
                     if (IsTextInputOpen)
                     {
                         current.Visible = true;
-                        sliderBox.Visible = true;
+                        SliderBox.Visible = true;
                         textField.Visible = false;
 
                         textField.CloseInput();
-                        sliderBox.MouseInput.GetInputFocus();
+                        SliderBox.FocusHandler.GetInputFocus();
                     }
                 }
             }

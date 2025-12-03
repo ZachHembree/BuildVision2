@@ -36,7 +36,7 @@ namespace DarkHelmet.BuildVision2
                         halfSize = size * .5f;
 
                     box.bounds = new BoundingBox2(Position - halfSize, Position + halfSize);
-                    box.mask = maskingBox;
+                    box.mask = MaskingBox;
 
                     if (hudBoard.Color.A > 0)
                         hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);

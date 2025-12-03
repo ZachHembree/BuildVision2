@@ -49,7 +49,7 @@ namespace DarkHelmet.BuildVision2
 
                 initValue = blockComboMember.Value;
                 comboBox.SetSelectionAt((int)blockComboMember.Value);
-                comboBox.MouseInput.GetInputFocus();
+                comboBox.FocusHandler.GetInputFocus();
             }
 
             public override void Reset()
