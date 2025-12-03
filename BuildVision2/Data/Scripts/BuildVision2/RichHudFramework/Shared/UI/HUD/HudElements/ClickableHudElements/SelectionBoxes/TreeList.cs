@@ -1,117 +1,128 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using VRageMath;
 using VRage;
 
 namespace RichHudFramework.UI
 {
-    using Rendering;
+	/// <summary>
+	/// Indented, collapsable list. Designed to fit in with SE UI elements.
+	/// <para>
+	/// Alias of <see cref="TreeList{TContainer, TElement, TValue}"/> using 
+	/// <see cref="ListBoxEntry{TValue}"/> and <see cref="Label"/> as the container and element, respectively.
+	/// </para>
+	/// </summary>
+	/// <typeparam name="TValue">Value paired with the list entry</typeparam>
+	public class TreeList<TValue> : TreeList<ListBoxEntry<TValue>, Label, TValue>
+	{
+		public TreeList(HudParentBase parent) : base(parent)
+		{ }
 
-    /// <summary>
-    /// Indented, collapsable list. Designed to fit in with SE UI elements.
-    /// </summary>
-    /// <typeparam name="TValue">Value paired with the list entry</typeparam>
-    public class TreeList<TValue> : TreeList<ListBoxEntry<TValue>, Label, TValue>
-    {
-        public TreeList(HudParentBase parent) : base(parent)
-        { }
+		public TreeList() : base(null)
+		{ }
+	}
 
-        public TreeList() : base(null)
-        { }
-    }
+	/// <summary>
+	/// Indented, collapsable list. Designed to fit in with SE UI elements.
+	/// <para>
+	/// Alias of <see cref="TreeList{TContainer, TElement, TValue}"/> using 
+	/// <see cref="ListBoxEntry{TElement, TValue}"/> as the container.
+	/// </para>
+	/// </summary>
+	/// <typeparam name="TElement">UI element in the list</typeparam>
+	/// <typeparam name="TValue">Value paired with the list entry</typeparam>
+	public class TreeList<TElement, TValue> : TreeList<ListBoxEntry<TElement, TValue>, TElement, TValue>
+		where TElement : HudElementBase, IMinLabelElement, new()
+	{
+		public TreeList(HudParentBase parent) : base(parent)
+		{ }
 
-    /// <summary>
-    /// Indented, collapsable list. Designed to fit in with SE UI elements.
-    /// </summary>
-    /// <typeparam name="TElement">UI element in the list</typeparam>
-    /// <typeparam name="TValue">Value paired with the list entry</typeparam>
-    public class TreeList<TElement, TValue> : TreeList<ListBoxEntry<TElement, TValue>, TElement, TValue>
-        where TElement : HudElementBase, IMinLabelElement, new()
-    {
-        public TreeList(HudParentBase parent) : base(parent)
-        { }
+		public TreeList() : base(null)
+		{ }
+	}
 
-        public TreeList() : base(null)
-        { }
-    }
+	/// <summary>
+	/// Generic indented collapsable list of pooled, uniformly-sized entries. Allows use of custom entry element types. 
+	/// Designed to fit in with SE UI elements.
+	/// </summary>
+	/// <typeparam name="TContainer">Container element type wrapping the UI element</typeparam>
+	/// <typeparam name="TElement">UI element in the list</typeparam>
+	/// <typeparam name="TValue">Value paired with the list entry</typeparam>
+	public class TreeList<TContainer, TElement, TValue>
+		: TreeBoxBase<
+			ChainSelectionBox<TContainer, TElement, TValue>,
+			HudChain<TContainer, TElement>,
+			TContainer,
+			TElement
+		>
+		where TContainer : class, IListBoxEntry<TElement, TValue>, new()
+		where TElement : HudElementBase, IMinLabelElement
+	{
+		/// <summary>
+		/// Uniform height applied to list entries
+		/// </summary>
+		public float LineHeight { get { return selectionBox.LineHeight; } set { selectionBox.LineHeight = value; } }
 
-    /// <summary>
-    /// Generic indented collapsable list of pooled, uniformly-sized entries. Allows use of custom entry element types. 
-    /// Designed to fit in with SE UI elements.
-    /// </summary>
-    /// <typeparam name="TContainer">Container element type wrapping the UI element</typeparam>
-    /// <typeparam name="TElement">UI element in the list</typeparam>
-    /// <typeparam name="TValue">Value paired with the list entry</typeparam>
-    public class TreeList<TContainer, TElement, TValue> 
-        : TreeBoxBase<
-            ChainSelectionBox<TContainer, TElement, TValue>,
-            HudChain<TContainer, TElement>,
-            TContainer,
-            TElement
-        >
-        where TContainer : class, IListBoxEntry<TElement, TValue>, new()
-        where TElement : HudElementBase, IMinLabelElement
-    {
-        public float LineHeight { get { return selectionBox.LineHeight; } set { selectionBox.LineHeight = value; } }
+		/// <summary>
+		/// Enables collection-initializer syntax (e.g., new TreeList { ListContainer = { entry1, entry2 } })
+		/// </summary>
+		public new TreeList<TContainer, TElement, TValue> ListContainer => this;
 
-        public TreeList(HudParentBase parent) : base(parent)
-        {
-            selectionBox.border.Visible = false;
-            selectionBox.hudChain.SizingMode = HudChainSizingModes.FitMembersOffAxis;
-        }
+		public TreeList(HudParentBase parent) : base(parent)
+		{
+			selectionBox.border.Visible = false;
+			selectionBox.EntryChain.SizingMode = HudChainSizingModes.FitMembersOffAxis;
+		}
 
-        public TreeList() : this(null)
-        { }
+		public TreeList() : this(null)
+		{ }
 
-        /// <summary>
-        /// Adds a new member to the tree box with the given name and associated
-        /// object.
-        /// </summary>
-        public TContainer Add(RichText name, TValue assocMember, bool enabled = true) =>
-            selectionBox.Add(name, assocMember, enabled);
+		/// <summary>
+		/// Adds a new member to the tree box with the given name and associated
+		/// object.
+		/// </summary>
+		public TContainer Add(RichText name, TValue assocMember, bool enabled = true) =>
+			selectionBox.Add(name, assocMember, enabled);
 
-        /// <summary>
-        /// Adds the given range of entries to the tree box.
-        /// </summary>
-        public void AddRange(IReadOnlyList<MyTuple<RichText, TValue, bool>> entries) =>
-            selectionBox.AddRange(entries);
+		/// <summary>
+		/// Adds the given range of entries to the tree box.
+		/// </summary>
+		public void AddRange(IReadOnlyList<MyTuple<RichText, TValue, bool>> entries) =>
+			selectionBox.AddRange(entries);
 
-        /// <summary>
-        /// Inserts an entry at the given index.
-        /// </summary>
-        public void Insert(int index, RichText name, TValue assocMember, bool enabled = true) =>
-            selectionBox.Insert(index, name, assocMember, enabled);
+		/// <summary>
+		/// Inserts an entry at the given index.
+		/// </summary>
+		public void Insert(int index, RichText name, TValue assocMember, bool enabled = true) =>
+			selectionBox.Insert(index, name, assocMember, enabled);
 
-        /// <summary>
-        /// Removes the member at the given index from the tree box.
-        /// </summary>
-        public void RemoveAt(int index) =>
-            selectionBox.RemoveAt(index);
+		/// <summary>
+		/// Removes the member at the given index from the tree box.
+		/// </summary>
+		public void RemoveAt(int index) =>
+			selectionBox.RemoveAt(index);
 
-        /// <summary>
-        /// Removes the specified range of indices from the tree box.
-        /// </summary>
-        public void RemoveRange(int index, int count) =>
-            selectionBox.RemoveRange(index, count);
+		/// <summary>
+		/// Removes the specified range of indices from the tree box.
+		/// </summary>
+		public void RemoveRange(int index, int count) =>
+			selectionBox.RemoveRange(index, count);
 
-        /// <summary>
-        /// Clears the current selection
-        /// </summary>
-        public void ClearEntries() =>
-            selectionBox.ClearEntries();
+		/// <summary>
+		/// Clears the current selection
+		/// </summary>
+		public void ClearEntries() =>
+			selectionBox.ClearEntries();
 
-        /// <summary>
-        /// Sets the selection to the member associated with the given object.
-        /// </summary>
-        public void SetSelection(TValue assocMember)
-        {
-            int index = selectionBox.hudChain.FindIndex(x => assocMember.Equals(x.AssocMember));
+		/// <summary>
+		/// Sets the selection to the member associated with the given object.
+		/// </summary>
+		public void SetSelection(TValue assocMember)
+		{
+			int index = selectionBox.EntryChain.FindIndex(x => assocMember.Equals(x.AssocMember));
 
-            if (index != -1)
-            {
-                selectionBox.SetSelectionAt(index);
-            }
-        }
-    }
+			if (index != -1)
+			{
+				selectionBox.SetSelectionAt(index);
+			}
+		}
+	}
 }

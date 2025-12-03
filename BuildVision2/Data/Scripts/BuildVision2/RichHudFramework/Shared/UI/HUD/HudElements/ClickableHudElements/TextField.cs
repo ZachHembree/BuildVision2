@@ -8,17 +8,26 @@ namespace RichHudFramework.UI
     /// Unlined clickable textbox with a background and border designed to look like text fields in the SE
     /// terminal.
     /// </summary>
-    public class TextField : LabelBoxBase, IClickableElement, ILabelElement
+    public class TextField : LabelBoxBase, IClickableElement, IBindInputElement, ILabelElement
     {
         /// <summary>
         /// Invoked whenever a change is made to the text. Invokes once every 500ms, at most.
         /// </summary>
-        public event EventHandler TextChanged;
+        public event EventHandler TextChanged
+        { 
+            add { textBox.TextChanged += value; }
+            remove { textBox.TextChanged -= value; }
+        }
 
-        /// <summary>
-        /// Text rendered by the text field.
-        /// </summary>
-        public RichText Text { get { return textBox.TextBoard.GetText(); } set { textBox.TextBoard.SetText(value); } }
+		/// <summary>
+		/// Registers a text update callback. For use in object initializers.
+		/// </summary>
+		public EventHandler TextChangedCallback { set { textBox.TextChanged += value; } }
+
+		/// <summary>
+		/// Text rendered by the text field.
+		/// </summary>
+		public RichText Text { get { return textBox.TextBoard.GetText(); } set { textBox.TextBoard.SetText(value); } }
 
         /// <summary>
         /// TextBoard backing the text field.
@@ -115,7 +124,20 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool UseFocusFormatting { get; set; }
 
-        public IMouseInput MouseInput => textBox.MouseInput;
+        /// <summary>
+        /// Interface used to manage the element's input focus state
+        /// </summary>
+        public IFocusHandler FocusHandler => textBox.FocusHandler;
+
+        /// <summary>
+        /// Custom bind input interface for this element
+        /// </summary>
+        public IBindInput BindInput => textBox.BindInput;
+
+		/// <summary>
+		/// Mouse input interface for this clickable element
+		/// </summary>
+		public IMouseInput MouseInput => textBox.MouseInput;
 
         public override bool IsMousedOver => textBox.IsMousedOver;
 
@@ -129,26 +151,53 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool VertCenterText { get { return textBox.VertCenterText; } set { textBox.VertCenterText = value; } }
 
+        /// <summary>
+        /// Interactable text element backing the field
+        /// </summary>
         protected readonly TextBox textBox;
+
+        /// <summary>
+        /// Border around the text field
+        /// </summary>
         protected readonly BorderBox border;
-        protected Color lastColor, lastTextColor;
+
+        /// <summary>
+        /// Last color set before highlighting/taking focus
+        /// </summary>
+        protected Color lastColor;
+        
+        /// <summary>
+        /// Last text color set before highlighting/taking focus
+        /// </summary>
+        protected Color lastTextColor;
 
         public TextField(HudParentBase parent) : base(parent)
         {
-            border = new BorderBox(background)
+            border = new BorderBox(Background)
             {
                 Thickness = 1f,
                 DimAlignment = DimAlignments.Size,
             };
 
-            textBox = new TextBox(background)
+            textBox = new TextBox(Background)
             {
                 AutoResize = false,
                 DimAlignment = DimAlignments.UnpaddedSize,
                 Padding = new Vector2(24f, 0f),
                 MoveToEndOnGainFocus = true,
-                ClearSelectionOnLoseFocus = true
+                ClearSelectionOnLoseFocus = true,
+                MouseInput = 
+                {
+                    CursorEnteredCallback = CursorEnter,
+                    CursorExitedCallback = CursorExit
+                },
+                FocusHandler = 
+                {
+                    GainedInputFocusCallback = GainFocus,
+                    LostInputFocusCallback = LoseFocus
+                }
             };
+            textBox.FocusHandler.InputOwner = this;
 
             Format = TerminalFormatting.ControlFormat;
             FocusTextColor = TerminalFormatting.Charcoal;
@@ -163,40 +212,38 @@ namespace RichHudFramework.UI
             HighlightEnabled = true;
 
             Size = new Vector2(250f, 40);
-
-            textBox.TextBoard.TextChanged += OnTextChanged;
-            MouseInput.CursorEntered += CursorEnter;
-            MouseInput.CursorExited += CursorExit;
-            MouseInput.GainedInputFocus += GainFocus;
-            MouseInput.LostInputFocus += LoseFocus;
         }
 
         public TextField() : this(null)
         { }
 
-        public void OpenInput() =>
+		/// <summary>
+		/// Opens the field for input and moves the caret to the end.
+		/// </summary>
+		public void OpenInput() =>
             textBox.OpenInput();
 
-        public void CloseInput() =>
+		/// <summary>
+		/// Closes field input and clears the text selection.
+		/// </summary>
+		public void CloseInput() =>
             textBox.CloseInput();
 
-        private void OnTextChanged()
-        {
-            TextChanged?.Invoke(this, EventArgs.Empty);
-        }
-
+        /// <summary>
+        /// Sets highlighting formatting when the field is moused over
+        /// </summary>
         protected virtual void CursorEnter(object sender, EventArgs args)
         {
             if (HighlightEnabled)
             {
-                if (!UseFocusFormatting || !MouseInput.HasFocus)
+                if (!UseFocusFormatting || !FocusHandler.HasFocus)
                 {
                     lastColor = Color;
                 }
 
                 if (UseFocusFormatting)
                 {
-					if (!MouseInput.HasFocus)
+					if (!FocusHandler.HasFocus)
 						lastTextColor = Format.Color;
 
 					TextBoard.SetFormatting(TextBoard.Format.WithColor(lastTextColor));
@@ -206,11 +253,14 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Clears highlighting when the cursor leaves
+        /// </summary>
         protected virtual void CursorExit(object sender, EventArgs args)
         {
             if (HighlightEnabled)
             {
-                if (UseFocusFormatting && MouseInput.HasFocus)
+                if (UseFocusFormatting && FocusHandler.HasFocus)
                 {
                     Color = FocusColor;
                     TextBoard.SetFormatting(TextBoard.Format.WithColor(FocusTextColor));
@@ -225,6 +275,9 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Sets focus formatting
+        /// </summary>
         protected virtual void GainFocus(object sender, EventArgs args)
         {
             if (UseFocusFormatting)
@@ -240,6 +293,9 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Resets focus formatting
+        /// </summary>
         protected virtual void LoseFocus(object sender, EventArgs args)
         {
             if (UseFocusFormatting)

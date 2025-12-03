@@ -1,107 +1,149 @@
 ﻿using System;
-using System.Text;
-using VRage;
 using VRageMath;
-using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
 namespace RichHudFramework.UI
 {
-    using UI.Rendering;
+	using UI.Rendering;
 
-    /// <summary>
-    /// Horizontal sliderbox with a name and value label. Value label is not updated automatically. Made to
-    /// resemble sliders used in the SE terminal.
-    /// </summary>
-    public class NamedSliderBox : HudElementBase, IClickableElement
-    {
-        /// <summary>
-        /// The name of the control
-        /// </summary>
-        public RichText Name { get { return name.TextBoard.GetText(); } set { name.TextBoard.SetText(value); } }
+	/// <summary>
+	/// A composite control containing a horizontal slider box, a name label, and a value label. 
+	/// <para>
+	/// Note: The value label is not updated automatically; it must be updated manually via the ValueChanged event.
+	/// </para>
+	/// </summary>
+	public class NamedSliderBox : HudElementBase, IClickableElement
+	{
+		/// <summary>
+		/// Invoked when the current value of the slider changes.
+		/// </summary>
+		public event EventHandler ValueChanged
+		{
+			add { SliderBox.ValueChanged += value; }
+			remove { SliderBox.ValueChanged -= value; }
+		}
 
-        /// <summary>
-        /// Text indicating the current value of the slider. Does not automatically reflect changes to the slider value.
-        /// </summary>
-        public RichText ValueText { get { return current.TextBoard.GetText(); } set { current.TextBoard.SetText(value); } }
+		/// <summary>
+		/// Helper property for registering a value update callback during initialization.
+		/// </summary>
+		public EventHandler UpdateValueCallback
+		{
+			set { SliderBox.ValueChanged += value; }
+		}
 
-        /// <summary>
-        /// The name of the control
-        /// </summary>
-        public ITextBuilder NameBuilder => name.TextBoard;
+		/// <summary>
+		/// The text displayed in the name label.
+		/// </summary>
+		public RichText Name { get { return name.TextBoard.GetText(); } set { name.TextBoard.SetText(value); } }
 
-        /// <summary>
-        /// Text indicating the current value of the slider. Does not automatically reflect changes to the slider value.
-        /// </summary>
-        public ITextBuilder ValueBuilder => current.TextBoard;
+		/// <summary>
+		/// The text displayed in the value label. 
+		/// <para>Note: This does not automatically reflect changes to the slider value; you must update this string manually.</para>
+		/// </summary>
+		public RichText ValueText { get { return current.TextBoard.GetText(); } set { current.TextBoard.SetText(value); } }
 
-        /// <summary>
-        /// Minimum configurable value for the slider.
-        /// </summary>
-        public float Min { get { return sliderBox.Min; } set { sliderBox.Min = value; } }
+		/// <summary>
+		/// Accessor for the text builder of the name label.
+		/// </summary>
+		public ITextBuilder NameBuilder => name.TextBoard;
 
-        /// <summary>
-        /// Maximum configurable value for the slider.
-        /// </summary>
-        public float Max { get { return sliderBox.Max; } set { sliderBox.Max = value; } }
+		/// <summary>
+		/// Accessor for the text builder of the value label.
+		/// </summary>
+		public ITextBuilder ValueBuilder => current.TextBoard;
 
-        /// <summary>
-        /// Value currently set on the slider.
-        /// </summary>
-        public float Current { get { return sliderBox.Current; } set { sliderBox.Current = value; } }
+		/// <summary>
+		/// The minimum configurable value for the slider.
+		/// </summary>
+		public float Min { get { return SliderBox.Min; } set { SliderBox.Min = value; } }
 
-        /// <summary>
-        /// Current slider value expreseed as a percentage between the min and maximum values.
-        /// </summary>
-        public float Percent { get { return sliderBox.Percent; } set { sliderBox.Percent = value; } }
+		/// <summary>
+		/// The maximum configurable value for the slider.
+		/// </summary>
+		public float Max { get { return SliderBox.Max; } set { SliderBox.Max = value; } }
 
-        public IMouseInput MouseInput => sliderBox.MouseInput;
+		/// <summary>
+		/// The value currently set on the slider.
+		/// </summary>
+		public float Current { get { return SliderBox.Current; } set { SliderBox.Current = value; } }
 
-        public override bool IsMousedOver => sliderBox.IsMousedOver;
+		/// <summary>
+		/// The current slider value expressed as a percentage (0 to 1) of the range between the Min and Max values.
+		/// </summary>
+		public float Percent { get { return SliderBox.Percent; } set { SliderBox.Percent = value; } }
 
-        protected readonly Label name, current;
-        protected readonly SliderBox sliderBox;
+		/// <summary>
+		/// Interface used to manage the element's input focus state.
+		/// </summary>
+		public IFocusHandler FocusHandler => SliderBox.FocusHandler;
 
-        public NamedSliderBox(HudParentBase parent) : base(parent)
-        {
-            sliderBox = new SliderBox(this)
-            {
-                DimAlignment = DimAlignments.UnpaddedWidth,
-                ParentAlignment = ParentAlignments.InnerBottom,
-                UseCursor = true,
-            };
+		/// <summary>
+		/// Mouse input interface for this clickable element.
+		/// </summary>
+		public IMouseInput MouseInput => SliderBox.MouseInput;
 
-            name = new Label(this)
-            {
-                AutoResize = false,
-                Format = TerminalFormatting.ControlFormat,
-                Text = "NewSlideBox",
-                Offset = new Vector2(0f, -18f),
-                ParentAlignment = ParentAlignments.PaddedInnerLeft | ParentAlignments.Top
-            };
+		/// <summary>
+		/// Indicates whether the cursor is currently over the slider box.
+		/// </summary>
+		public override bool IsMousedOver => SliderBox.IsMousedOver;
 
-            current = new Label(this)
-            {
-                AutoResize = false,
-                Format = TerminalFormatting.ControlFormat.WithAlignment(TextAlignment.Right),
-                Text = "Value",
-                Offset = new Vector2(0f, -18f),
-                ParentAlignment = ParentAlignments.PaddedInnerRight | ParentAlignments.Top
-            };
+		/// <summary>
+		/// Slider control inside the labeled slider box. 
+		/// This field can be used to customize the formatting of the slider box.
+		/// </summary>
+		public readonly SliderBox SliderBox;
 
-            Padding = new Vector2(40f, 0f);
-            Size = new Vector2(317f, 70f);
-        }
+		/// <summary>
+		/// Labels for the name and current value display.
+		/// </summary>
+		/// <exclude/>
+		protected readonly Label name, current;
 
-        public NamedSliderBox() : this(null)
-        { }
+		public NamedSliderBox(HudParentBase parent) : base(parent)
+		{
+			SliderBox = new SliderBox(this)
+			{
+				DimAlignment = DimAlignments.UnpaddedWidth,
+				ParentAlignment = ParentAlignments.InnerBottom,
+				UseCursor = true,
+			};
 
-        protected override void Layout()
-        {
-            Vector2 size = UnpaddedSize;
-            current.UnpaddedSize = current.TextBoard.TextSize;
-            name.UnpaddedSize = name.TextBoard.TextSize;
-			sliderBox.Height = size.Y - Math.Max(name.Height, current.Height);
+			name = new Label(this)
+			{
+				AutoResize = false,
+				Format = TerminalFormatting.ControlFormat,
+				Text = "NewSlideBox",
+				Offset = new Vector2(0f, -18f),
+				ParentAlignment = ParentAlignments.PaddedInnerLeft | ParentAlignments.Top
+			};
+
+			current = new Label(this)
+			{
+				AutoResize = false,
+				Format = TerminalFormatting.ControlFormat.WithAlignment(TextAlignment.Right),
+				Text = "Value",
+				Offset = new Vector2(0f, -18f),
+				ParentAlignment = ParentAlignments.PaddedInnerRight | ParentAlignments.Top
+			};
+
+			FocusHandler.InputOwner = this;
+			Padding = new Vector2(40f, 0f);
+			Size = new Vector2(317f, 70f);
+		}
+
+		public NamedSliderBox() : this(null)
+		{ }
+
+		/// <summary>
+		/// Sizes the labels and slider box to fit within the element's bounds.
+		/// </summary>
+		/// <exclude/>
+		protected override void Layout()
+		{
+			Vector2 size = UnpaddedSize;
+			current.UnpaddedSize = current.TextBoard.TextSize;
+			name.UnpaddedSize = name.TextBoard.TextSize;
+			SliderBox.Height = size.Y - Math.Max(name.Height, current.Height);
 			current.Width = Math.Max(size.X - name.Width - 10f, 0f);
-        }
-    }
+		}
+	}
 }

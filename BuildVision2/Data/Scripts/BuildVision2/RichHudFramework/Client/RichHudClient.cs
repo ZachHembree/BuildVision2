@@ -1,11 +1,7 @@
-using RichHudFramework;
 using RichHudFramework.Internal;
-using RichHudFramework.IO;
 using Sandbox.ModAPI;
 using System;
 using VRage;
-using VRage.Game.Components;
-using VRage.Game.ModAPI;
 using VRageMath;
 using ApiMemberAccessor = System.Func<object, int, object>;
 using ClientData = VRage.MyTuple<string, System.Action<int, object>, System.Action, int>;
@@ -16,22 +12,29 @@ namespace RichHudFramework.Client
 	using ExtendedClientData = MyTuple<ClientData, Action<Action>, ApiMemberAccessor>;
 
 	/// <summary>
-	/// API Client for the Rich HUD Framework 
+	/// API Client for the Rich HUD Framework.
+	/// 
+	/// This class handles the initialization and registration of a mod with the 
+	/// Rich HUD Master module.
 	/// </summary>
 	public sealed class RichHudClient : RichHudComponentBase
 	{
-		public static readonly Vector4I versionID = new Vector4I(1, 3, 0, 0); // Major, Minor, Rev, Hotfix
-		public const ClientSubtypes subtype = ClientSubtypes.Full;
-
+		internal static readonly Vector4I versionID = new Vector4I(1, 3, 0, 0); // Major, Minor, Rev, Hotfix
+		internal const ClientSubtypes subtype = ClientSubtypes.Full;
 		private const long modID = 1965654081, queueID = 1314086443;
 		private const int vID = (int)APIVersionTable.Latest;
 
+		/// <summary>
+		/// Returns true if the client has been successfully registered with RichHudMaster.
+		/// Use this check (e.g., in <c>Draw()</c> or <c>Update()</c>) before accessing 
+		/// framework members externally to ensure the mod client is registered.
+		/// </summary>
 		public static bool Registered => Instance != null ? Instance.registered : false;
 
 		private static RichHudClient Instance { get; set; }
 
 		private readonly ExtendedClientData regMessage;
-		private readonly Action InitAction, OnResetAction;
+		private readonly Action InitAction, ResetAction;
 
 		private bool regFail, registered, inQueue;
 		private Func<int, object> GetApiDataFunc;
@@ -40,12 +43,9 @@ namespace RichHudFramework.Client
 		private RichHudClient(string modName, Action InitCallback, Action ResetCallback) : base(false, true)
 		{
 			InitAction = InitCallback;
-			OnResetAction = ResetCallback;
+			ResetAction = ResetCallback;
 
 			ExceptionHandler.ModName = modName;
-
-			if (LogIO.FileName == null || LogIO.FileName == "modLog.txt")
-				LogIO.FileName = $"richHudLog.txt";
 
 			var clientData = new ClientData(modName, MessageHandler, RemoteReset, vID);
 			regMessage = new ExtendedClientData(clientData, ExceptionHandler.Run, GetOrSetMember);
@@ -53,10 +53,19 @@ namespace RichHudFramework.Client
 
 		/// <summary>
 		/// Initialzes and registers the client with the API if it is not already registered.
+		/// 
+		/// This method should be called on session Init (e.g., from <c>MySessionComponentBase.Init()</c>) 
+		/// of your main mod class.
+		/// 
+		/// *Important*: If your mod defines multiple session components, initialize the client 
+		/// from **only one** to ensure proper behavior.
 		/// </summary>
-		/// <param name="modName">Name of the mod as it appears in the settings menu and in diagnostics</param>
-		/// <param name="InitCallback">Invoked upon successfully registering with the API.</param>
-		/// <param name="ResetCallback">Invoked on client reset.</param>
+		/// <param name="modName">Name of the mod as it appears in the settings menu and in diagnostics.</param>
+		/// <param name="InitCallback">Invoked upon successfully registering with the API. At this point, 
+		/// it is safe to start using the framework.</param>
+		/// <param name="ResetCallback">Invoked on client reset (unregistered). This occurs when 
+		/// the game session is unloading, an unhandled exception is thrown on the client or master,
+		/// or <c>RichHudClient.Reset()</c> is called manually.</param>
 		public static void Init(string modName, Action InitCallback, Action ResetCallback)
 		{
 			if (Instance == null)
@@ -72,7 +81,10 @@ namespace RichHudFramework.Client
 		}
 
 		/// <summary>
-		/// Unregisters the client and resets all framework modules.
+		/// Unregisters the client and resets all framework modules. 
+		/// 
+		/// This is used if you are designing your mod to be reloadable during the game session, 
+		/// allowing you to reset the client before reinitializing your mod.
 		/// </summary>
 		public static void Reset()
 		{
@@ -162,6 +174,10 @@ namespace RichHudFramework.Client
 			}
 		}
 
+		/// <summary>
+		/// Internal update poll
+		/// </summary>
+		/// <exclude/>
 		public override void Update()
 		{
 			if (registered && inQueue)
@@ -171,6 +187,10 @@ namespace RichHudFramework.Client
 			}
 		}
 
+		/// <summary>
+		/// Internal unload callback
+		/// </summary>
+		/// <exclude/>
 		public override void Close()
 		{
 			ExitQueue();
@@ -185,7 +205,7 @@ namespace RichHudFramework.Client
 				if (registered)
 				{
 					ExceptionHandler.ReloadClients();
-					OnResetAction();
+					ResetAction();
 				}
 			});
 		}
@@ -205,7 +225,8 @@ namespace RichHudFramework.Client
 		/// <summary>
 		/// Base class for types acting as modules for the API
 		/// </summary>
-		public abstract class ApiModule<T> : RichHudComponentBase
+		/// <exclude/>
+		public abstract class ApiModule : RichHudComponentBase
 		{
 			protected readonly ApiModuleTypes componentType;
 
@@ -217,11 +238,9 @@ namespace RichHudFramework.Client
 				this.componentType = componentType;
 			}
 
-			protected T GetApiData()
+			protected object GetApiData()
 			{
-				object data = Instance?.GetApiDataFunc((int)componentType);
-
-				return (T)data;
+				return Instance?.GetApiDataFunc((int)componentType);
 			}
 		}
 	}

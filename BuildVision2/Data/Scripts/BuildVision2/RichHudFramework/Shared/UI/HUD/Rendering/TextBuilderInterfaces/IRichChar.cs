@@ -7,6 +7,10 @@ namespace RichHudFramework
 
         namespace Rendering
         {
+            /// <summary>
+            /// Internal API accessor indices for querying rendering information for an individual character
+            /// </summary>
+            /// <exclude/>
             public enum RichCharAccessors : int
             {
                 /// <summary>
@@ -30,31 +34,43 @@ namespace RichHudFramework
                 Offset = 4
             }
 
-            public interface IRichChar
+			/// <summary>
+			/// Represents a single glyph within a rich text element.
+			/// <para>
+			/// This interface exposes the character content, its specific formatting (font/color), 
+			/// and its calculated layout geometry (size/offset) relative to the container.
+			/// </para>
+			/// <para>
+			/// <strong>Warning:</strong> This object is a transient flyweight. It points to an index 
+			/// in a mutable buffer. Do not store references to <see cref="IRichChar"/> across text updates.
+			/// If the parent text changes, this interface may point to stale or recycled data.
+			/// </para>
+			/// </summary>
+			public interface IRichChar
             {
                 /// <summary>
-                /// Character assocated with the glyph
+                /// The character associated with this glyph.
                 /// </summary>
                 char Ch { get; }
 
                 /// <summary>
-                /// Text format used by the character
+                /// The styling and formatting configuration used by this character.
                 /// </summary>
                 GlyphFormat Format { get; }
 
-				/// <summary>
-				/// Size of the glyph as rendered. 
-				/// X = Advance width (cursor movement after this character, including kerning).
-				/// Y = Line height.
-				/// </summary>
-				Vector2 Size { get; }
+                /// <summary>
+                /// The dimensions of the glyph for layout purposes. 
+                /// <para>X = Advance width (cursor movement, includes kerning).</para>
+                /// <para>Y = Line height used by the font.</para>
+                /// </summary>
+                Vector2 Size { get; }
 
-				/// <summary>
-				/// Position of the glyph **center** relative to the parent text element.
-				/// Updated during layout. Use with Size.X/2 to get left/right edges.
-				/// </summary>
-				Vector2 Offset { get; }
-			}
+                /// <summary>
+                /// The position of the glyph's **center** relative to the parent text element's origin.
+                /// <para>This is updated during the layout pass.</para>
+                /// </summary>
+                Vector2 Offset { get; }
+            }
         }
     }
 }

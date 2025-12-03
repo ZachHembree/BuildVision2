@@ -3,35 +3,41 @@ using VRageMath;
 
 namespace RichHudFramework.UI
 {
-    /// <summary>
-    /// A textured frame. The default texture is just a plain color.
-    /// </summary>
-    public class BorderBox : HudElementBase
+	/// <summary>
+	/// A UI element that renders a textured frame. Supports coloring, transparency, 
+	/// texture alignment/scaling, and masking.
+	/// </summary>
+	public class BorderBox : HudElementBase
     {
-        /// <summary>
-        /// Material applied to the box.
-        /// </summary>
-        public Material Material { get { return hudBoard.Material; } set { hudBoard.Material = value; } }
+		/// <summary>
+		/// Gets or sets the texture material applied to the background of this element.
+		/// </summary>
+		public Material Material { get { return hudBoard.Material; } set { hudBoard.Material = value; } }
+
+		/// <summary>
+		/// Determines how the texture is scaled and positioned within the element's bounds 
+		/// (e.g., stretch to fit, preserve aspect ratio, etc.).
+		/// </summary>
+		public MaterialAlignment MatAlignment { get { return hudBoard.MatAlignment; } set { hudBoard.MatAlignment = value; } }
+
+		/// <summary>
+		/// Gets or sets the tint color applied to the texture. 
+		/// <para>Note: Alpha affects opacity.</para>
+		/// </summary>
+		public Color Color { get { return hudBoard.Color; } set { hudBoard.Color = value; } }
 
         /// <summary>
-        /// Determines how the material reacts to changes in element size/aspect ratio.
+        /// Size of the border on all four sides in
         /// </summary>
-        public MaterialAlignment MatAlignment { get { return hudBoard.MatAlignment; } set { hudBoard.MatAlignment = value; } }
+        public float Thickness { get; set; }
 
-        /// <summary>
-        /// Coloring applied to the material.
-        /// </summary>
-        public Color Color { get { return hudBoard.Color; } set { hudBoard.Color = value; } }
+		/// <summary>
+		/// The internal billboard logic used to render the textured quad.
+		/// </summary>
+		/// <exclude/>
+		protected readonly MatBoard hudBoard;
 
-        /// <summary>
-        /// Size of the border on all four sides in pixels.
-        /// </summary>
-        public float Thickness { get { return _thickness; } set { _thickness = value; } }
-
-        private float _thickness;
-        protected readonly MatBoard hudBoard;
-
-        public BorderBox(HudParentBase parent) : base(parent)
+		public BorderBox(HudParentBase parent) : base(parent)
         {
             hudBoard = new MatBoard();
             Thickness = 1f;
@@ -40,39 +46,42 @@ namespace RichHudFramework.UI
         public BorderBox() : this(null)
         { }
 
+        /// <summary>
+        /// Renders the frame using four textured quads
+        /// </summary>
+        /// <exclude/>
         protected override void Draw()
         {
             if (Color.A > 0)
             {
                 CroppedBox box = default(CroppedBox);
-                box.mask = maskingBox;
+                box.mask = MaskingBox;
 
-                float thickness = _thickness, 
-                    height = UnpaddedSize.Y, 
+                float height = UnpaddedSize.Y, 
                     width = UnpaddedSize.X;
                 Vector2 halfSize, pos;
 
                 // Left
-                halfSize = new Vector2(thickness, height) * .5f;
-                pos = Position + new Vector2((-width + thickness) * .5f, 0f);
+                halfSize = new Vector2(Thickness, height) * .5f;
+                pos = Position + new Vector2((-width + Thickness) * .5f, 0f);
                 box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
                 hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                 // Top
-                halfSize = new Vector2(width, thickness) * .5f;
-                pos = Position + new Vector2(0f, (height - thickness) * .5f);
+                halfSize = new Vector2(width, Thickness) * .5f;
+                pos = Position + new Vector2(0f, (height - Thickness) * .5f);
                 box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
                 hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                 // Right
-                halfSize = new Vector2(thickness, height) * .5f;
-                pos = Position + new Vector2((width - thickness) * .5f, 0f);
+                halfSize = new Vector2(Thickness, height) * .5f;
+                pos = Position + new Vector2((width - Thickness) * .5f, 0f);
                 box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
                 hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
 
                 // Bottom
-                halfSize = new Vector2(width, thickness) * .5f;
-                pos = Position + new Vector2(0f, (-height + thickness) * .5f);
+                halfSize = new Vector2(width, Thickness) * .5f;
+                pos = Position + new Vector2(0f, (-height + Thickness) * .5f);
                 box.bounds = new BoundingBox2(pos - halfSize, pos + halfSize);
                 hudBoard.Draw(ref box, HudSpace.PlaneToWorldRef);
             }

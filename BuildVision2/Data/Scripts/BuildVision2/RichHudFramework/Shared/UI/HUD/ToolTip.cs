@@ -13,17 +13,21 @@ namespace RichHudFramework
             Color? // BgColor
         >;
 
-        /// <summary>
-        /// Class used to define tooltips attached to the RHF cursor. Tooltips must be
-        /// registered in HandleInput() every input tick. The first tooltip registered
-        /// takes precedence.
-        /// </summary>
-        public class ToolTip
+		/// <summary>
+		/// Class used to define tooltips attached to the RHF cursor. 
+		/// <para>
+		/// Set via the <see cref="IMouseInput.ToolTip"/> property of the given UI element, or registered to 
+		/// <see cref="ICursor.RegisterToolTip(ToolTip)"/> manually in HandleInput() every input tick. 
+		/// </para>
+		/// <para>The first tooltip registered takes precedence.</para>
+		/// </summary>
+		public class ToolTip
         {
             public static readonly GlyphFormat DefaultText = GlyphFormat.Blueish.WithSize(.75f);
-            public static readonly Color DefaultBG = new Color(73, 86, 95),
-                orangeWarningBG = new Color(180, 110, 0),
-                redWarningBG = new Color(126, 39, 44);
+            public static readonly Color 
+                DefaultBG = new Color(73, 86, 95),
+                OrangeWarningBG = new Color(180, 110, 0),
+                RedWarningBG = new Color(126, 39, 44);
 
             /// <summary>
             /// Text to be assigned to the tooltip. Multiline tooltips are allowed, but
@@ -52,6 +56,10 @@ namespace RichHudFramework
                 };
             }
 
+            /// <summary>
+            /// Creates a ToolTip wrapper for the delegate. Used internally by ICursor implementation.
+            /// </summary>
+            /// <exclude/>
             public ToolTip(Func<ToolTipMembers> GetToolTipFunc)
             {
                 bgColor = DefaultBG;

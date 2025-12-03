@@ -25,20 +25,22 @@ namespace RichHudFramework.UI
             }
         }
 
-        /// <summary>
-        /// Padding applied to the text element.
-        /// </summary>
-        public override Vector2 TextPadding { get { return left.Padding; } set { left.Padding = value; right.Padding = value; } }
+		/// <summary>
+		/// Gets or sets the padding applied to the text, offsetting it from the edges of the background.
+		/// </summary>
+		public override Vector2 TextPadding { get { return left.Padding; } set { left.Padding = value; right.Padding = value; } }
 
-        /// <summary>
-        /// Determines whether or not the text box can be resized manually.
-        /// </summary>
-        public override bool AutoResize { get { return left.AutoResize; } set { left.AutoResize = value; right.AutoResize = value; } }
+		/// <summary>
+		/// If true, the element's size is driven by the size of the text content. 
+		/// If false, the element's size is set manually, and text may be clipped if the bounds are too small.
+		/// </summary>
+		public override bool AutoResize { get { return left.AutoResize; } set { left.AutoResize = value; right.AutoResize = value; } }
 
-        /// <summary>
-        /// Line formatting mode used by the label.
-        /// </summary>
-        public TextBuilderModes BuilderMode { get { return left.BuilderMode; } set { left.BuilderMode = value; right.BuilderMode = value; } }
+		/// <summary>
+		/// Gets or sets the text composition mode, which controls how text is arranged 
+		/// (e.g., single line, wrapped, etc.).
+		/// </summary>
+		public TextBuilderModes BuilderMode { get { return left.BuilderMode; } set { left.BuilderMode = value; right.BuilderMode = value; } }
 
         /// <summary>
         /// Text rendered by the left label.
@@ -60,6 +62,10 @@ namespace RichHudFramework.UI
         /// </summary>
         public ITextBuilder RightTextBuilder => right.TextBoard;
 
+        /// <summary>
+        /// Left and right aligned text elements
+        /// </summary>
+        /// <exclude/>
         protected readonly Label left, right;
 
         public DoubleLabelBox(HudParentBase parent = null) : base(parent)
@@ -71,6 +77,10 @@ namespace RichHudFramework.UI
         public DoubleLabelBox() : this(null)
         { }
 
+        /// <summary>
+        /// Updates text layout
+        /// </summary>
+        /// <exclude/>
         protected override void Layout()
         {
             if (!AutoResize)

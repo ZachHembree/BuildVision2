@@ -6,9 +6,15 @@ namespace RichHudFramework
 {
     namespace UI
     {
+        /// <summary>
+        /// Automatic size matching flags for <see cref="HudElementBase.DimAlignment"/>
+        /// </summary>
         [Flags]
         public enum DimAlignments : byte
         {
+            /// <summary>
+            /// No size matching
+            /// </summary>
             None = 0x0,
 
             /// <summary>
@@ -53,7 +59,8 @@ namespace RichHudFramework
         }
 
         /// <summary>
-        /// Used to determine the default position of an element relative to its parent.
+        /// Used to determine the default position of an element relative to its parent via 
+        /// <see cref="HudElementBase.ParentAlignment"/>.
         /// </summary>
         [Flags]
         public enum ParentAlignments : byte
@@ -70,32 +77,32 @@ namespace RichHudFramework
             /// </summary>
             Left = 0x1,
 
-            /// <summary>
-            /// The element will start with its bottom edge aligned to its parent's top edge.
-            /// If the flag InnerV is set, then its top edge will be aligned to its parent's
-            /// top edge.
-            /// </summary>
-            Top = 0x2,
+			/// <summary>
+			/// The element will start with its top edge aligned to its parent's bottom edge.
+			/// If the flag InnerV is set, then its bottom edge will be aligned to its parent's
+			/// bottom edge.
+			/// </summary>
+			Bottom = 0x2,
 
-            /// <summary>
-            /// The element will start with its left edge aligned to its parent's right edge.
-            /// If the flag InnerH is set, then its right edge will be aligned to its parent's
-            /// right edge.
-            /// </summary>
-            Right = 0x4,
+			/// <summary>
+			/// The element will start with its left edge aligned to its parent's right edge.
+			/// If the flag InnerH is set, then its right edge will be aligned to its parent's
+			/// right edge.
+			/// </summary>
+			Right = 0x4,
 
-            /// <summary>
-            /// The element will start with its top edge aligned to its parent's bottom edge.
-            /// If the flag InnerV is set, then its bottom edge will be aligned to its parent's
-            /// bottom edge.
-            /// </summary>
-            Bottom = 0x8,
+			/// <summary>
+			/// The element will start with its bottom edge aligned to its parent's top edge.
+			/// If the flag InnerV is set, then its top edge will be aligned to its parent's
+			/// top edge.
+			/// </summary>
+			Top = 0x8,
 
-            /// <summary>
-            /// The element will start with its parent's top left corner aligned to its bottom right
-            /// corner.
-            /// </summary>
-            TopLeft = Top | Left,
+			/// <summary>
+			/// The element will start with its parent's top left corner aligned to its bottom right
+			/// corner.
+			/// </summary>
+			TopLeft = Top | Left,
 
             /// <summary>
             /// The element will start with its parent's top right corner aligned to its bottom left

@@ -2,46 +2,60 @@
 
 namespace RichHudFramework.UI
 {
-    /// <summary>
-    /// Flags used to block input for the game's controls. Useful for modifying normal
-    /// input behavior. Does not affect all binds.
-    /// </summary>
-    [Flags]
-    public enum SeBlacklistModes : int
-    {
-        /// <summary>
-        /// Default: no blacklist.
-        /// </summary>
-        None = 0x0,
+	/// <summary>
+	/// Flags determining which game inputs are blocked (blacklisted) by the framework.
+	/// <para>Useful for modifying or disabling normal game input behavior while UI elements are active.</para>
+	/// </summary>
+	[Flags]
+	public enum SeBlacklistModes : int
+	{
+		/// <summary>
+		/// Default: No inputs are blocked. Game functions normally.
+		/// </summary>
+		None = 0,
 
-        /// <summary>
-        /// Set flag to disable mouse button keybinds. 
-        /// </summary>
-        Mouse = 0x1,
+		/// <summary>
+		/// Disables mouse button clicks (LMB, RMB, MMB, etc.) from reaching the game.
+		/// </summary>
+		Mouse = 1 << 0,
 
-        /// <summary>
-        /// Set flag to blacklist every blacklist-able bind. 
-        /// Keep in mind that not every SE bind can be disabled.
-        /// </summary>
-        AllKeys = 0x2 | Mouse,
+		/// <summary>
+		/// Disables all blacklist-able keys (Keyboard and Mouse). 
+		/// <para>Note: Not every Space Engineers bind can be disabled via the API.</para>
+		/// </summary>
+		AllKeys = 1 << 1 | Mouse,
 
-        /// <summary>
-        /// Set flag to disable camera rotation (does not disable look with alt)
-        /// </summary>
-        CameraRot = 0x4,
+		/// <summary>
+		/// Disables camera rotation (mouse look). Does not disable looking while holding Alt.
+		/// </summary>
+		CameraRot = 1 << 2,
 
-        /// <summary>
-        /// Set flag to disable mouse buttons as well as camera rotation.
-        /// </summary>
-        MouseAndCam = Mouse | CameraRot,
+		/// <summary>
+		/// Disables both mouse button clicks and camera rotation.
+		/// </summary>
+		MouseAndCam = Mouse | CameraRot,
 
-        /// <summary>
-        /// Set flag to disable all key binds as well as camera rotation
-        /// </summary>
-        Full = AllKeys | CameraRot
-    }
+		/// <summary>
+		/// Disables all standard key binds and camera rotation.
+		/// </summary>
+		Full = AllKeys | CameraRot,
 
-    public enum BindClientAccessors : int
+		/// <summary>
+		/// Intercepts chat input, preventing chat messages from sending.
+		/// </summary>
+		Chat = 1 << 3,
+
+		/// <summary>
+		/// Comprehensive blocking: Disables all keys, camera rotation, and intercepts chat.
+		/// </summary>
+		FullWithChat = Full | Chat
+	}
+
+	/// <summary>
+	/// Internal bind client API enums
+	/// </summary>
+	/// <exclude/>
+	public enum BindClientAccessors : int
     {
         /// <summary>
         /// in: string, out: int

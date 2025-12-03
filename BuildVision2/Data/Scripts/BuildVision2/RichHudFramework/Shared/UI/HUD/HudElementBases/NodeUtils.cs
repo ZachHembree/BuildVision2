@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using VRageMath;
 
 namespace RichHudFramework
 {
@@ -12,6 +13,7 @@ namespace RichHudFramework
 			/// <summary>
 			/// Collection of utilities used internally to manage HUD nodes
 			/// </summary>
+			/// <exclude/>
 			protected static class NodeUtils
 			{
 				/// <summary>
@@ -26,8 +28,8 @@ namespace RichHudFramework
 						HudNodeBase node = nodes[n];
 						node.Parent = newParent;
 
-						node.Config[StateID] |= (uint)HudElementStates.IsRegistered;
-						node.Config[StateID] &= ~(uint)HudElementStates.WasParentVisible;
+						node._config[StateID] |= (uint)HudElementStates.IsRegistered;
+						node._config[StateID] &= ~(uint)HudElementStates.WasParentVisible;
 					}
 				}
 
@@ -35,7 +37,7 @@ namespace RichHudFramework
 				/// Used internally quickly register a list of child nodes to a parent.
 				/// </summary>
 				public static void RegisterNodes<TCon, TNode>(HudParentBase newParent, IReadOnlyList<TCon> nodes)
-					where TCon : IHudElementContainer<TNode>, new()
+					where TCon : IHudNodeContainer<TNode>, new()
 					where TNode : HudNodeBase
 				{
 					ParentUtils.RegisterNodes<TCon, TNode>(newParent, nodes);
@@ -45,8 +47,8 @@ namespace RichHudFramework
 						HudNodeBase node = nodes[n].Element;
 						node.Parent = newParent;
 
-						node.Config[StateID] |= (uint)HudElementStates.IsRegistered;
-						node.Config[StateID] &= ~(uint)HudElementStates.WasParentVisible;
+						node._config[StateID] |= (uint)HudElementStates.IsRegistered;
+						node._config[StateID] &= ~(uint)HudElementStates.WasParentVisible;
 					}
 				}
 
@@ -70,7 +72,7 @@ namespace RichHudFramework
 
 							node.Parent = null;
 							node._dataHandle[0].Item4 = null;
-							node.Config[StateID] &= (uint)~(HudElementStates.IsRegistered | HudElementStates.WasParentVisible);
+							node._config[StateID] &= (uint)~(HudElementStates.IsRegistered | HudElementStates.WasParentVisible);
 						}
 					}
 				}
@@ -80,7 +82,7 @@ namespace RichHudFramework
 				/// specified in the node list from the child list.
 				/// </summary>
 				public static void UnregisterNodes<TCon, TNode>(HudParentBase parent, IReadOnlyList<TCon> nodes, int index, int count)
-					where TCon : IHudElementContainer<TNode>, new()
+					where TCon : IHudNodeContainer<TNode>, new()
 					where TNode : HudNodeBase
 				{
 					if (count > 0)
@@ -97,7 +99,7 @@ namespace RichHudFramework
 
 							node.Parent = null;
 							node._dataHandle[0].Item4 = null;
-							node.Config[StateID] &= (uint)~(HudElementStates.IsRegistered | HudElementStates.WasParentVisible);
+							node._config[StateID] &= (uint)~(HudElementStates.IsRegistered | HudElementStates.WasParentVisible);
 						}
 					}
 				}
@@ -116,14 +118,14 @@ namespace RichHudFramework
 						{
 							for (int i = index; i <= end; i++)
 							{
-								nodes[i].Config[StateID] &= (uint)~state;
+								nodes[i]._config[StateID] &= (uint)~state;
 							}
 						}
 						else
 						{
 							for (int i = index; i <= end; i++)
 							{
-								nodes[i].Config[StateID] |= (uint)state;
+								nodes[i]._config[StateID] |= (uint)state;
 							}
 						}
 					}
@@ -133,7 +135,7 @@ namespace RichHudFramework
 				/// Used internally to modify the state of hud nodes
 				/// </summary>
 				public static void SetNodesState<TCon, TNode>(HudElementStates state, bool mask, IReadOnlyList<TCon> nodes, int index, int count)
-					where TCon : IHudElementContainer<TNode>, new()
+					where TCon : IHudNodeContainer<TNode>, new()
 					where TNode : HudNodeBase
 				{
 					if (count > 0)
@@ -145,15 +147,52 @@ namespace RichHudFramework
 						{
 							for (int i = index; i <= end; i++)
 							{
-								nodes[i].Element.Config[StateID] &= (uint)~state;
+								nodes[i].Element._config[StateID] &= (uint)~state;
 							}
 						}
 						else
 						{
 							for (int i = index; i <= end; i++)
 							{
-								nodes[i].Element.Config[StateID] |= (uint)state;
+								nodes[i].Element._config[StateID] |= (uint)state;
 							}
+						}
+					}
+				}
+			}
+		}
+		
+		public abstract partial class HudElementBase
+		{
+			/// <exclude/>
+			public static class ElementUtils
+			{
+				public static void UpdateRootAnchoring(Vector2 size, IReadOnlyList<HudNodeBase> children)
+				{
+					// Update position
+					for (int i = 0; i < children.Count; i++)
+					{
+						var child = children[i] as HudElementBase;
+
+						if (child != null && (child.Config[StateID] & (child.Config[VisMaskID])) == child.Config[VisMaskID])
+						{
+							ParentAlignments originFlags = child.ParentAlignment;
+							Vector2 delta = Vector2.Zero,
+								childSize = child.UnpaddedSize + child.Padding,
+								max = (size - childSize) * .5f,
+								min = -max;
+
+							if ((originFlags & ParentAlignments.Bottom) == ParentAlignments.Bottom)
+								delta.Y = min.Y;
+							else if ((originFlags & ParentAlignments.Top) == ParentAlignments.Top)
+								delta.Y = max.Y;
+
+							if ((originFlags & ParentAlignments.Left) == ParentAlignments.Left)
+								delta.X = min.X;
+							else if ((originFlags & ParentAlignments.Right) == ParentAlignments.Right)
+								delta.X = max.X;
+
+							child.Origin = delta;
 						}
 					}
 				}

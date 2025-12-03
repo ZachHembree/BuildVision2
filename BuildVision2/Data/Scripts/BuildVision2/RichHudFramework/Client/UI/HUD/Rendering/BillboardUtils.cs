@@ -1,15 +1,11 @@
-using System.Collections.Generic;
+using RichHudFramework.Client;
+using RichHudFramework.Internal;
 using System;
-using System.Threading;
-using Sandbox.ModAPI;
-using VRage.Game;
+using System.Collections.Generic;
 using VRage;
 using VRage.Utils;
 using VRageMath;
 using VRageRender;
-using RichHudFramework.UI.Rendering;
-using RichHudFramework.Client;
-using RichHudFramework.Internal;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 
 namespace RichHudFramework
@@ -17,14 +13,6 @@ namespace RichHudFramework
 	namespace UI
 	{
 		using ApiMemberAccessor = System.Func<object, int, object>;
-		using TriangleBillboardData = MyTuple<
-			BlendTypeEnum, // blendType
-			Vector2I, // bbID + matrixID
-			MyStringId, // material
-			Vector4, // color
-			MyTuple<Vector2, Vector2, Vector2>, // texCoords
-			MyTuple<Vector3D, Vector3D, Vector3D> // vertexPos
-		>;
 		using FlatTriangleBillboardData = MyTuple<
 			BlendTypeEnum, // blendType
 			Vector2I, // bbID + matrixID
@@ -32,6 +20,14 @@ namespace RichHudFramework
 			MyTuple<Vector4, BoundingBox2?>, // color + mask
 			MyTuple<Vector2, Vector2, Vector2>, // texCoords
 			MyTuple<Vector2, Vector2, Vector2> // flat pos
+		>;
+		using TriangleBillboardData = MyTuple<
+			BlendTypeEnum, // blendType
+			Vector2I, // bbID + matrixID
+			MyStringId, // material
+			Vector4, // color
+			MyTuple<Vector2, Vector2, Vector2>, // texCoords
+			MyTuple<Vector3D, Vector3D, Vector3D> // vertexPos
 		>;
 
 		namespace Rendering
@@ -50,7 +46,11 @@ namespace RichHudFramework
 				>
 			>;
 
-			public sealed partial class BillBoardUtils : RichHudClient.ApiModule<IReadOnlyList<BbUtilData>>
+			/// <summary>
+			/// Internal client-side interface to custom billboard pool and rendering utilities
+			/// </summary>
+			/// <exclude/>
+			public sealed partial class BillBoardUtils : RichHudClient.ApiModule
 			{
 				private static BillBoardUtils instance;
 
@@ -74,7 +74,7 @@ namespace RichHudFramework
 					if (instance != null)
 						throw new Exception($"Only one instance of {GetType().Name} can exist at once.");
 
-					var data = GetApiData();
+					var data = (IReadOnlyList<BbUtilData>)GetApiData();
 					GetOrSetMember = data[0].Item1;
 					triPoolBack = data[0].Item2;
 					flatTriPoolBack = data[0].Item3;

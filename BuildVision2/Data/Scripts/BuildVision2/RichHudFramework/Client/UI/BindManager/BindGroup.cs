@@ -11,7 +11,7 @@ namespace RichHudFramework
     {
         public sealed partial class BindManager
         {
-            // <summary>
+            /// <summary>
             /// A collection of unique keybinds.
             /// </summary>
             private partial class BindGroup : ReadOnlyApiCollection<IBind>, IBindGroup

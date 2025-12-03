@@ -14,7 +14,8 @@ namespace RichHudFramework
 			/// <summary>
 			/// Utilities used internally to access parent node members
 			/// </summary>
-			protected static class ParentUtils
+			/// <exclude/>
+			protected static partial class ParentUtils
 			{
 				/// <summary>
 				/// Used internally quickly register a list of child nodes to a parent.
@@ -39,7 +40,7 @@ namespace RichHudFramework
 					if ((newParent.Config[StateID] & newParent.Config[VisMaskID]) == newParent.Config[VisMaskID])
 					{
 						// Depending on where this is called, the frame number might be off by one
-						uint[] rootConfig = HudMain.Instance._root.Config;
+						uint[] rootConfig = HudMain.Instance._root._config;
 						bool isActive = Math.Abs((int)newParent.Config[FrameNumberID] - (int)rootConfig[FrameNumberID]) < 2;
 
 						if (isActive && (rootConfig[StateID] & (uint)HudElementStates.IsStructureStale) == 0)
@@ -53,7 +54,7 @@ namespace RichHudFramework
 				/// Used internally quickly register a list of child nodes to a parent.
 				/// </summary>
 				public static void RegisterNodes<TCon, TNode>(HudParentBase newParent, IReadOnlyList<TCon> nodes)
-					where TCon : IHudElementContainer<TNode>, new()
+					where TCon : IHudNodeContainer<TNode>, new()
 					where TNode : HudNodeBase
 				{
 					if (nodes.Count == 0)
@@ -74,7 +75,7 @@ namespace RichHudFramework
 					if ((newParent.Config[StateID] & newParent.Config[VisMaskID]) == newParent.Config[VisMaskID])
 					{
 						// Depending on where this is called, the frame number might be off by one
-						uint[] rootConfig = HudMain.Instance._root.Config;
+						uint[] rootConfig = HudMain.Instance._root._config;
 						bool isActive = Math.Abs((int)newParent.Config[FrameNumberID] - (int)rootConfig[FrameNumberID]) < 2;
 
 						if (isActive && (rootConfig[StateID] & (uint)HudElementStates.IsStructureStale) == 0)
@@ -130,7 +131,7 @@ namespace RichHudFramework
 				/// specified in the node list from the child list.
 				/// </summary>
 				public static void UnregisterNodes<TCon, TNode>(HudParentBase parent, IReadOnlyList<TCon> nodes, int index, int count)
-					where TCon : IHudElementContainer<TNode>, new()
+					where TCon : IHudNodeContainer<TNode>, new()
 					where TNode : HudNodeBase
 				{
 					if (count > 0)

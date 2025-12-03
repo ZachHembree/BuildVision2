@@ -34,6 +34,7 @@ namespace RichHudFramework
 		/// <summary>
 		/// Internal indices for accessing UI node config
 		/// </summary>
+		/// <exclude/>
 		public static class NodeConfigIndices
 		{
 			/// <summary>
@@ -79,90 +80,97 @@ namespace RichHudFramework
 			public const int ConfigLength = 7;
 		}
 
-		/// <summary>
-		/// Wrapper around a shared reference to a UI element's shared tree data.
-		/// Used internally for documentationn and compile-time validation. Do not use.
-		/// </summary>
-		public struct LinkedHudNode
+		public abstract partial class HudParentBase
 		{
-			/// <summary>
-			/// Parent object of the node
-			/// </summary>
-			public LinkedHudNode Parent => new LinkedHudNode { dataRef = (dataRef[0].Item4 as HudNodeDataHandle) };
+			protected static partial class ParentUtils
+			{
+				/// <summary>
+				/// Wrapper around a shared reference to a UI element's shared tree data.
+				/// Used internally for documentationn and compile-time validation. Do not use.
+				/// </summary>
+				/// <exclude/>
+				private struct LinkedHudNode
+				{
+					/// <summary>
+					/// Parent object of the node
+					/// </summary>
+					public LinkedHudNode Parent => new LinkedHudNode { dataRef = (dataRef[0].Item4 as HudNodeDataHandle) };
 
-			/// <summary>
-			/// Internal state tracking flags
-			/// </summary>
-			public HudElementStates State => (HudElementStates)dataRef[0].Item1[StateID];
+					/// <summary>
+					/// Internal state tracking flags
+					/// </summary>
+					public HudElementStates State => (HudElementStates)dataRef[0].Item1[StateID];
 
-			/// <summary>
-			/// Internal state mask for determining visibility
-			/// </summary>
-			public HudElementStates NodeVisibleMask => (HudElementStates)dataRef[0].Item1[VisMaskID];
+					/// <summary>
+					/// Internal state mask for determining visibility
+					/// </summary>
+					public HudElementStates NodeVisibleMask => (HudElementStates)dataRef[0].Item1[VisMaskID];
 
-			/// <summary>
-			/// Internal state mask for determining whether input updates are enabled
-			/// </summary>
-			public HudElementStates NodeInputMask => (HudElementStates)dataRef[0].Item1[InputMaskID];
+					/// <summary>
+					/// Internal state mask for determining whether input updates are enabled
+					/// </summary>
+					public HudElementStates NodeInputMask => (HudElementStates)dataRef[0].Item1[InputMaskID];
 
-			/// <summary>
-			/// Determines whether the UI element will be drawn in the Back, Mid or Foreground
-			/// </summary>
-			public sbyte ZOffset => (sbyte)dataRef[0].Item1[ZOffsetID];
+					/// <summary>
+					/// Determines whether the UI element will be drawn in the Back, Mid or Foreground
+					/// </summary>
+					public sbyte ZOffset => (sbyte)dataRef[0].Item1[ZOffsetID];
 
-			/// <summary>
-			/// Used for input focus and window sorting
-			/// </summary>
-			public byte ZOffsetInner => (byte)dataRef[0].Item1[ZOffsetInnerID];
+					/// <summary>
+					/// Used for input focus and window sorting
+					/// </summary>
+					public byte ZOffsetInner => (byte)dataRef[0].Item1[ZOffsetInnerID];
 
-			/// <summary>
-			/// Combined offset used for final sorting
-			/// </summary>
-			public ushort FullZOffset => (ushort)dataRef[0].Item1[FullZOffsetID];
+					/// <summary>
+					/// Combined offset used for final sorting
+					/// </summary>
+					public ushort FullZOffset => (ushort)dataRef[0].Item1[FullZOffsetID];
 
-			/// <summary>
-			/// Used to check whether the cursor is moused over the element and whether its being
-			/// obstructed by another element.
-			/// </summary>
-			public Action InputDepthCallback => dataRef[0].Item3.Item2;
+					/// <summary>
+					/// Used to check whether the cursor is moused over the element and whether its being
+					/// obstructed by another element.
+					/// </summary>
+					public Action InputDepthCallback => dataRef[0].Item3.Item2;
 
-			/// <summary>
-			/// Updates the input of this UI element. Invocation order affected by z-Offset and depth sorting.
-			/// Executes last, after Draw.
-			/// </summary>
-			public Action HandleInputCallback => dataRef[0].Item3.Item3;
+					/// <summary>
+					/// Updates the input of this UI element. Invocation order affected by z-Offset and depth sorting.
+					/// Executes last, after Draw.
+					/// </summary>
+					public Action HandleInputCallback => dataRef[0].Item3.Item3;
 
-			/// <summary>
-			/// Updates the sizing of the element. Executes before layout in bottom-up order, before layout.
-			/// </summary>
-			public Action UpdateSizeCallback => dataRef[0].Item3.Item4;
+					/// <summary>
+					/// Updates the sizing of the element. Executes before layout in bottom-up order, before layout.
+					/// </summary>
+					public Action UpdateSizeCallback => dataRef[0].Item3.Item4;
 
-			/// <summary>
-			/// Updates the internal layout of the UI element. Executes after sizing in top-down order, before 
-			/// input and draw. Not affected by depth or z-Offset sorting.
-			/// </summary>
-			public Action<bool> LayoutCallback => dataRef[0].Item3.Item5;
+					/// <summary>
+					/// Updates the internal layout of the UI element. Executes after sizing in top-down order, before 
+					/// input and draw. Not affected by depth or z-Offset sorting.
+					/// </summary>
+					public Action<bool> LayoutCallback => dataRef[0].Item3.Item5;
 
-			/// <summary>
-			/// Used to immediately draw billboards. Invocation order affected by z-Offset and depth sorting.
-			/// Executes after Layout and before HandleInput.
-			/// </summary>
-			public Action DrawCallback => dataRef[0].Item3.Item6;
+					/// <summary>
+					/// Used to immediately draw billboards. Invocation order affected by z-Offset and depth sorting.
+					/// Executes after Layout and before HandleInput.
+					/// </summary>
+					public Action DrawCallback => dataRef[0].Item3.Item6;
 
-			/// <summary>
-			/// Delegate for getting HUD space translation in world space
-			/// </summary>
-			public HudSpaceOriginFunc GetHudNodeOriginFunc => dataRef[0].Item2[0];
+					/// <summary>
+					/// Delegate for getting HUD space translation in world space
+					/// </summary>
+					public HudSpaceOriginFunc GetHudNodeOriginFunc => dataRef[0].Item2[0];
 
-			/// <summary>
-			/// Debugging info delegate
-			/// </summary>
-			public ApiMemberAccessor GetOrSetMemberFunc => dataRef[0].Item3.Item1;
+					/// <summary>
+					/// Debugging info delegate
+					/// </summary>
+					public ApiMemberAccessor GetOrSetMemberFunc => dataRef[0].Item3.Item1;
 
-			/// <summary>
-			/// Raw RHF API data
-			/// </summary>
-			public HudNodeDataHandle dataRef;
+					/// <summary>
+					/// Raw RHF API data
+					/// </summary>
+					public HudNodeDataHandle dataRef;
+				}
+			}
 		}
 	}
 }

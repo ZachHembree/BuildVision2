@@ -1,37 +1,33 @@
-﻿using System;
-using System.Text;
-using VRage;
-using VRageMath;
-using ApiMemberAccessor = System.Func<object, int, object>;
-using EventAccessor = VRage.MyTuple<bool, System.Action>;
-using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
+﻿using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework.UI.Client
 {
-    using CollectionData = MyTuple<Func<int, ApiMemberAccessor>, Func<int>>;
+	/// <summary>
+	/// A collapsing dropdown list with a label. For <see cref="ControlTile"/>s.
+	/// <para>Designed to mimic the appearance of the dropdown in the SE terminal.</para>
+	/// </summary>
+	/// <typeparam name="T">The type of object associated with each list entry.</typeparam>
+	public class TerminalDropdown<T> : TerminalValue<EntryData<T>>
+	{
+		/// <summary>
+		/// The currently selected list entry.
+		/// </summary>
+		public override EntryData<T> Value
+		{
+			get { return List.Selection; }
+			set { List.SetSelection(value); }
+		}
 
-    /// <summary>
-    /// A dropdown list with a label. Designed to mimic the appearance of the dropdown in the SE terminal.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class TerminalDropdown<T> : TerminalValue<EntryData<T>>
-    {
-        /// <summary>
-        /// Currently selected list member.
-        /// </summary>
-        public override EntryData<T> Value
-        {
-            get { return List.Selection; }
-            set { List.SetSelection(value); }
-        }
+		/// <summary>
+		/// Accessor for the underlying list data model.
+		/// </summary>
+		public ListBoxData<T> List { get; }
 
-        public ListBoxData<T> List { get; }
+		public TerminalDropdown() : base(MenuControls.DropdownControl)
+		{
+			var listData = GetOrSetMember(null, (int)ListControlAccessors.ListAccessors) as ApiMemberAccessor;
 
-        public TerminalDropdown() : base(MenuControls.DropdownControl)
-        {
-            var listData = GetOrSetMember(null, (int)ListControlAccessors.ListAccessors) as ApiMemberAccessor;
-            
-            List = new ListBoxData<T>(listData);
-        }
-    }
+			List = new ListBoxData<T>(listData);
+		}
+	}
 }

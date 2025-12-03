@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using VRage;
-using ApiMemberAccessor = System.Func<object, int, object>;
+﻿using System.Collections.Generic;
 
 namespace RichHudFramework
 {
@@ -10,6 +7,10 @@ namespace RichHudFramework
         using Server;
         using Client;
 
+        /// <summary>
+        /// Internal text page category member accessor enums
+        /// </summary>
+        /// <exclude/>
         public enum TerminalPageCategoryAccessors : int
         {
             /// <summary>
@@ -33,14 +34,16 @@ namespace RichHudFramework
             AddPage = 5,
 
             /// <summary>
-            /// in: IReadOnlyList<TerminalPageBase>
+            /// in: IReadOnlyList{TerminalPageBase}
             /// </summary>
             AddPageRange = 6,
         }
 
         /// <summary>
-        /// Indented dropdown list of terminal pages.
+        /// Internal iterface for indented treebox dropdown boxes used for page selection.
+        /// Implemented by master and client modules.
         /// </summary>
+        /// <exclude/>
         public interface ITerminalPageCategory : IEnumerable<TerminalPageBase>, IModRootMember
         {
             /// <summary>

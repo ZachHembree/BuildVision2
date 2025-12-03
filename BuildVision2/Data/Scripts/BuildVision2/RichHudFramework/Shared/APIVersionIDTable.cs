@@ -3,6 +3,7 @@
 	/// <summary>
 	/// API version IDs for extensions/revisions to Master-Client interface
 	/// </summary>
+	/// <exclude/>
 	public enum APIVersionTable : int
 	{
 		/// <summary>

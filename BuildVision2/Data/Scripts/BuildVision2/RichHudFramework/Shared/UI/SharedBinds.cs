@@ -1,5 +1,4 @@
 ﻿using RichHudFramework.Internal;
-using VRage.Input;
 
 namespace RichHudFramework.UI
 {
@@ -7,7 +6,7 @@ namespace RichHudFramework.UI
     using Server;
 
     /// <summary>
-    /// Wrapper used to provide easy access to library key binds.
+    /// A collection of immutable, commonly used key binds used by the framework library.
     /// </summary>
     public sealed class SharedBinds : RichHudComponentBase
     {
@@ -97,6 +96,10 @@ namespace RichHudFramework.UI
                 instance = new SharedBinds();
         }
 
+        /// <summary>
+        /// Internal component closing callback
+        /// </summary>
+        /// <exclude/>
         public override void Close()
         {
             Instance = null;
