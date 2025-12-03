@@ -102,6 +102,16 @@ namespace RichHudFramework.UI
 		/// </summary>
 		public float CursorSensitivity { get; set; }
 
+        /// <summary>
+        /// The radius of the inner hole as a normalized fraction of the outer radius.
+        /// Range: 0.0 (solid circle) to 1.0 (infinitely thin ring).
+        /// </summary>
+        public float InnerRadius
+		{
+			get { return polyBoard.InnerRadius; }
+            set { polyBoard.InnerRadius = value; }
+        }
+
 		/// <summary>
 		/// The <see cref="PuncturedPolyBoard"/> responsible for rendering the circular background
 		/// and colored selection/highlight slices.
