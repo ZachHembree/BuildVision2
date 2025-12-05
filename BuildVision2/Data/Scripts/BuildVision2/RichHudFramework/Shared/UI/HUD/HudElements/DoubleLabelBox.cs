@@ -1,5 +1,4 @@
 ﻿using RichHudFramework.UI.Rendering;
-using System;
 using VRageMath;
 
 namespace RichHudFramework.UI
@@ -12,35 +11,24 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Size of the text element sans padding.
         /// </summary>
-        public override Vector2 TextSize
-        {
-            get { return new Vector2(left.Width + right.Width, Math.Max(left.Height, right.Height)); }
-            set
-            {
-                left.Width = value.X * .5f;
-                right.Width = value.X * .5f;
+        public override Vector2 TextSize { get; set; }
 
-                left.Height = value.Y;
-                right.Height = value.Y;
-            }
-        }
+        /// <summary>
+        /// Gets or sets the padding applied to the text, offsetting it from the edges of the background.
+        /// </summary>
+        public override Vector2 TextPadding { get { return left.Padding; } set { left.Padding = value; right.Padding = value; } }
 
-		/// <summary>
-		/// Gets or sets the padding applied to the text, offsetting it from the edges of the background.
-		/// </summary>
-		public override Vector2 TextPadding { get { return left.Padding; } set { left.Padding = value; right.Padding = value; } }
+        /// <summary>
+        /// If true, the element's size is driven by the size of the text content. 
+        /// If false, the element's size is set manually, and text may be clipped if the bounds are too small.
+        /// </summary>
+        public override bool AutoResize { get { return left.AutoResize; } set { left.AutoResize = value; right.AutoResize = value; } }
 
-		/// <summary>
-		/// If true, the element's size is driven by the size of the text content. 
-		/// If false, the element's size is set manually, and text may be clipped if the bounds are too small.
-		/// </summary>
-		public override bool AutoResize { get { return left.AutoResize; } set { left.AutoResize = value; right.AutoResize = value; } }
-
-		/// <summary>
-		/// Gets or sets the text composition mode, which controls how text is arranged 
-		/// (e.g., single line, wrapped, etc.).
-		/// </summary>
-		public TextBuilderModes BuilderMode { get { return left.BuilderMode; } set { left.BuilderMode = value; right.BuilderMode = value; } }
+        /// <summary>
+        /// Gets or sets the text composition mode, which controls how text is arranged 
+        /// (e.g., single line, wrapped, etc.).
+        /// </summary>
+        public TextBuilderModes BuilderMode { get { return left.BuilderMode; } set { left.BuilderMode = value; right.BuilderMode = value; } }
 
         /// <summary>
         /// Text rendered by the left label.
@@ -71,11 +59,25 @@ namespace RichHudFramework.UI
         public DoubleLabelBox(HudParentBase parent = null) : base(parent)
         {
             left = new Label(this) { ParentAlignment = ParentAlignments.PaddedInnerLeft };
-            right = new Label(this) { ParentAlignment = ParentAlignments.PaddedInnerRight };
+            right = new Label(this) { ParentAlignment = ParentAlignments.InnerRight };
         }
 
-        public DoubleLabelBox() : this(null)
-        { }
+        /// <exclude/>
+        protected override void Measure()
+        {
+            if (AutoResize)
+            {
+                Vector2 leftSize = left.TextBoard.TextSize,
+                    rightSize = right.TextBoard.TextSize,
+                    textSize;
+
+                textSize.X = leftSize.X + rightSize.X;
+                textSize.Y = (leftSize.Y > rightSize.Y) ? leftSize.Y : rightSize.Y;
+                TextSize = textSize;
+            }
+
+            base.Measure();
+        }
 
         /// <summary>
         /// Updates text layout
@@ -83,25 +85,8 @@ namespace RichHudFramework.UI
         /// <exclude/>
         protected override void Layout()
         {
-            if (!AutoResize)
-            {
-                float xPadding = left.Padding.X,
-                    leftWidthMin = left.TextBoard.TextSize.X + xPadding,
-                    rightWidthMin = right.TextBoard.TextSize.X + xPadding,
-                    fullWidth = left.Width + right.Width;
-
-                if (leftWidthMin + rightWidthMin < fullWidth)
-                {
-                    float newLeft = fullWidth - rightWidthMin;
-                    left.Width = newLeft;
-                    right.Width = fullWidth - newLeft;
-                }
-                else
-                {
-                    left.Width = fullWidth * .5f;
-                    right.Width = fullWidth * .5f;
-                }
-            }
+            left.Size = new Vector2(0.5f * CachedSize.X, CachedSize.Y);
+            right.Size = new Vector2(0.5f * CachedSize.X, CachedSize.Y);
         }
     }
 }
