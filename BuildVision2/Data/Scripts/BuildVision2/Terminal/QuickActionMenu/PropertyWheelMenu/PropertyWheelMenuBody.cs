@@ -222,7 +222,7 @@ namespace DarkHelmet.BuildVision2
 			{
 				IPropertyBlock block = propertyWheelMenu.quickActionMenu.Target;
 				summaryBuilder.Clear();
-				summaryBuilder.Add(BvMain.modName, WheelHeaderFormat);
+				summaryBuilder.Add(BvMain.ModName, WheelHeaderFormat);
 				summaryBuilder.Add("\n", WheelHeaderFormat);
 				block.GetSummary(summaryBuilder, BodyFormatCenter, BodyValueFormatCenter);
 

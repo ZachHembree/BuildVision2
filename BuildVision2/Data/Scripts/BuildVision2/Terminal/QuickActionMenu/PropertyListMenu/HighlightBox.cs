@@ -26,7 +26,7 @@ namespace DarkHelmet.BuildVision2
                     CanDrawTab = true;
                     IsSelectivelyMasked = true;
                     Height = ListEntryHeight;
-                    Padding = new Vector2(3f, 1f);
+                    Padding = new Vector2(16f, 0f);
                 }
 
                 protected override void Draw()
@@ -43,8 +43,8 @@ namespace DarkHelmet.BuildVision2
 
                     // Left align the tab
                     Vector2 tabPos = Position,
-                        tabSize = new Vector2(4f, size.Y);
-                    tabPos.X += (-size.X + tabSize.X - Padding.X) * .5f;
+                        tabSize = new Vector2(4f, size.Y - Padding.Y);
+                    tabPos.X += (-size.X + tabSize.X) * .5f;
                     tabSize *= .5f;
 
                     if (CanDrawTab && tabBoard.Color.A > 0)

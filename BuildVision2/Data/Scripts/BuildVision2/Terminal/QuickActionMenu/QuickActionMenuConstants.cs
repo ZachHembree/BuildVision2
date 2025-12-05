@@ -76,7 +76,7 @@ namespace DarkHelmet.BuildVision2
             WheelBodyMinWrap = 190f,
             WheelNotifiationWidth = 150f,
             WidgetInnerPadding = 4f,
-            ListMinWidth = 296f,
+            ListMinWidth = 300f,
             ListEntryHeight = 19f;
 
         public static void SetFont(string fontName)
