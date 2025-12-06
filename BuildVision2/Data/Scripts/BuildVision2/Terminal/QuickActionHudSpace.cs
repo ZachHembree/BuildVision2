@@ -157,8 +157,7 @@ namespace DarkHelmet.BuildVision2
             if (Target.TBlock != null && Open)
             {
                 Vector3D targetWorldPos, targetScreenPos;
-                Vector2 screenBounds = new Vector2(HudMain.ScreenWidth, HudMain.ScreenHeight) / HudMain.ResScale * .5f,
-                    menuPos;
+                Vector2 menuPos;
 
                 if (!BvConfig.Current.genUI.useCustomPos)
                 {
@@ -191,7 +190,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (BvConfig.Current.genUI.clampHudPos || BvConfig.Current.genUI.useCustomPos)
                 {
-                    screenBounds -= .5f * quickActionMenu.Size;
+                    Vector2 screenBounds = 0.5f * ((HudMain.ScreenDim / scale) - quickActionMenu.Size);
                     menuPos.X = MathHelper.Clamp(menuPos.X, -screenBounds.X, screenBounds.X);
                     menuPos.Y = MathHelper.Clamp(menuPos.Y, -screenBounds.Y, screenBounds.Y);
                 }
