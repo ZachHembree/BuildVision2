@@ -66,7 +66,15 @@ namespace RichHudFramework
 			/// Checks if the chat window is currently open. 
 			/// <para>Unlike the standard game API, this updates instantly when the chat bind is pressed.</para>
 			/// </summary>
-			public static bool IsChatOpen => (bool)_instance.GetOrSetMemberFunc(null, (int)BindClientAccessors.IsChatOpen);
+			public static bool IsChatOpen 
+			{
+				get 
+				{
+                    if (_instance == null) Init();
+                    return (bool)_instance?.GetOrSetMemberFunc(null, (int)BindClientAccessors.IsChatOpen);
+                }
+			}
+
 
 			private static BindManager Instance
 			{
