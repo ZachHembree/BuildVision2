@@ -68,7 +68,7 @@ namespace DarkHelmet.BuildVision2
                 listBody = new ScrollBox<PropertyListEntry, PropertyListEntryElement>(true)
                 {
                     SizingMode = HudChainSizingModes.FitChainOffAxis | HudChainSizingModes.ClampMembersOffAxis,
-                    MemberMinSize = new Vector2(ListMinWidth - 30f),
+                    MemberMinSize = new Vector2(ListMinWidth - 47f),
                     Padding = new Vector2(30f, 16f),
                     Color = BodyColor,
                     EnableScrolling = false,
