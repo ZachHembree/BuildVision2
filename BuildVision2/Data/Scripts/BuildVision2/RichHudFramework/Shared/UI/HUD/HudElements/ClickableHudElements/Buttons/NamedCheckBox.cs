@@ -8,10 +8,10 @@ namespace RichHudFramework.UI
 	/// <para>Adds a label to <see cref="BorderedCheckBox"/>.</para>
 	/// <para>Formatting temporarily changes when it gains input focus.</para>
 	/// </summary>
-	public class NamedCheckBox : HudElementBase, IClickableElement
+	public class NamedCheckBox : HudElementBase, IClickableElement, IValueControl<bool>
     {
 		/// <summary>
-		/// Invoked when the current value (<see cref="IsBoxChecked"/>) changes
+		/// Invoked when the current value (<see cref="Value"/>) changes
 		/// </summary>
 		public event EventHandler ValueChanged
 		{
@@ -20,7 +20,7 @@ namespace RichHudFramework.UI
 		}
 
 		/// <summary>
-		/// Registers a value (<see cref="IsBoxChecked"/>) update callback. Useful in initializers.
+		/// Registers a value (<see cref="Value"/>) update callback. Useful in initializers.
 		/// </summary>
 		public EventHandler UpdateValueCallback
 		{
@@ -88,7 +88,7 @@ namespace RichHudFramework.UI
         /// <summary>
         /// Indicates whether or not the box is checked.
         /// </summary>
-        public bool IsBoxChecked { get { return checkbox.IsBoxChecked; } set { checkbox.IsBoxChecked = value; } }
+        public bool Value { get { return checkbox.Value; } set { checkbox.Value = value; } }
 
         /// <summary>
         /// Label to the left of the checkbox

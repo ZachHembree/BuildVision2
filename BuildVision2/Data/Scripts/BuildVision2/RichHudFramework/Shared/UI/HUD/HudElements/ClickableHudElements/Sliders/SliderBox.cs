@@ -7,8 +7,8 @@ namespace RichHudFramework.UI
 	/// A horizontal slider control designed to mimic the appearance of the standard sliders found 
 	/// in the Space Engineers terminal.
 	/// </summary>
-	public class SliderBox : HudElementBase, IClickableElement
-	{
+	public class SliderBox : HudElementBase, IClickableElement, IValueControl<float>
+    {
 		/// <summary>
 		/// Invoked when the current value of the slider changes.
 		/// </summary>
@@ -39,7 +39,7 @@ namespace RichHudFramework.UI
 		/// <summary>
 		/// The current value of the slider, clamped between <see cref="Min"/> and <see cref="Max"/>.
 		/// </summary>
-		public float Current { get { return slide.Current; } set { slide.Current = value; } }
+		public float Value { get { return slide.Value; } set { slide.Value = value; } }
 
 		/// <summary>
 		/// The current value expressed as a normalized percentage (0.0 to 1.0) of the range between Min and Max.

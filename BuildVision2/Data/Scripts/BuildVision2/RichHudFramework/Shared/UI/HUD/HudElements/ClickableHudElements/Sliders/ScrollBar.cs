@@ -5,8 +5,8 @@ namespace RichHudFramework.UI
 	/// <summary>
 	/// A clickable scrollbar designed to approximate the appearance of standard Space Engineers scrollbars.
 	/// </summary>
-	public class ScrollBar : HudElementBase, IClickableElement
-	{
+	public class ScrollBar : HudElementBase, IClickableElement, IValueControl<float>
+    {
 		/// <summary>
 		/// Invoked when the scrollbar value changes.
 		/// </summary>
@@ -45,7 +45,7 @@ namespace RichHudFramework.UI
 		/// <summary>
 		/// The currently set value, clamped between <see cref="Min"/> and <see cref="Max"/>.
 		/// </summary>
-		public float Current { get { return SlideInput.Current; } set { SlideInput.Current = value; } }
+		public float Value { get { return SlideInput.Value; } set { SlideInput.Value = value; } }
 
 		/// <summary>
 		/// The current value expressed as a normalized value on [0, 1] of the range between Min and Max.

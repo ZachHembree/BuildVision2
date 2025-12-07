@@ -37,7 +37,7 @@ namespace RichHudFramework.UI
                 if (value != _intStart)
                 {
                     _intStart = MathHelper.Clamp(value, 0, hudCollectionList.Count - 1);
-                    ScrollBar.Current = GetMinScrollOffset(_intStart, false);
+                    ScrollBar.Value = GetMinScrollOffset(_intStart, false);
                 }
             }
         }
@@ -54,7 +54,7 @@ namespace RichHudFramework.UI
                 if (value != _intEnd)
                 {
                     _intEnd = MathHelper.Clamp(value, 0, hudCollectionList.Count - 1);
-                    ScrollBar.Current = GetMinScrollOffset(_intEnd, true);
+                    ScrollBar.Value = GetMinScrollOffset(_intEnd, true);
                 }
             }
         }
@@ -278,9 +278,9 @@ namespace RichHudFramework.UI
                 if (UseSmoothScrolling)
                 {
                     if (SharedBinds.MousewheelUp.IsPressed)
-                        ScrollBar.Current -= hudCollectionList[_intEnd].Element.Size[alignAxis] + Spacing;
+                        ScrollBar.Value -= hudCollectionList[_intEnd].Element.Size[alignAxis] + Spacing;
                     else if (SharedBinds.MousewheelDown.IsPressed)
-                        ScrollBar.Current += hudCollectionList[_intStart].Element.Size[alignAxis] + Spacing;
+                        ScrollBar.Value += hudCollectionList[_intStart].Element.Size[alignAxis] + Spacing;
                 }
                 else
                 {
@@ -298,8 +298,9 @@ namespace RichHudFramework.UI
             Vector2 listSize = Vector2.Zero,
                 minSize = MemberMinSize,
                 maxSize = MemberMaxSize;
-
             int visCount = 0;
+
+            maxSize[offAxis] = (maxSize[offAxis] == 0f) ? UnpaddedSize[offAxis] : maxSize[offAxis];
 
             for (int i = _intStart; i < hudCollectionList.Count; i++)
             {
@@ -316,7 +317,7 @@ namespace RichHudFramework.UI
                     Vector2 size = element.UnpaddedSize + element.Padding;
 
                     if ((SizingMode & HudChainSizingModes.FitMembersAlignAxis) > 0)
-                        size[alignAxis] = maxSize[alignAxis];
+                        size[alignAxis] = (maxSize[alignAxis] > 0f) ? maxSize[alignAxis] : size[alignAxis];
                     else if ((SizingMode & HudChainSizingModes.ClampMembersAlignAxis) > 0)
                     {
                         if (maxSize[alignAxis] > 0f)
@@ -326,7 +327,7 @@ namespace RichHudFramework.UI
                     }
 
                     if ((SizingMode & HudChainSizingModes.FitMembersOffAxis) > 0)
-                        size[offAxis] = maxSize[offAxis];
+                        size[offAxis] = (maxSize[offAxis] > 0f) ? maxSize[offAxis] : size[offAxis];
                     else if ((SizingMode & HudChainSizingModes.ClampMembersOffAxis) > 0)
                     {
                         if (maxSize[offAxis] > 0f)
@@ -357,7 +358,7 @@ namespace RichHudFramework.UI
             if ((SizingMode & chainAutoAlignAxisMask) == 0 && (MinVisibleCount > 0 || MinLength > 0))
                 SizingMode |= HudChainSizingModes.FitChainAlignAxis;
 
-            // If self-resizing or size is uninitialized
+            // If self-resizing
             if ((SizingMode & chainSelfSizingMask) > 0 || (UnpaddedSize.X == 0f || UnpaddedSize.Y == 0f))
             {
                 Vector2 listSize = Vector2.Zero;
@@ -372,7 +373,7 @@ namespace RichHudFramework.UI
                 if (listSize[alignAxis] > 0f)
                 {
                     // Set align size equal to range size
-                    if (chainBounds[alignAxis] == 0f || (SizingMode & HudChainSizingModes.FitChainAlignAxis) == HudChainSizingModes.FitChainAlignAxis)
+                    if (chainBounds[alignAxis] == 0f || (SizingMode & HudChainSizingModes.FitChainAlignAxis) > 0)
                         chainBounds[alignAxis] = listSize[alignAxis];
                     // Keep align size at or above range size
                     else if ((SizingMode & HudChainSizingModes.ClampChainAlignAxis) == HudChainSizingModes.ClampChainAlignAxis)
@@ -382,7 +383,7 @@ namespace RichHudFramework.UI
                 if (listSize[offAxis] > 0f)
                 {
                     // Set off axis size equal to range size
-                    if (chainBounds[offAxis] == 0f || (SizingMode & HudChainSizingModes.FitChainOffAxis) == HudChainSizingModes.FitChainOffAxis)
+                    if (chainBounds[offAxis] == 0f || (SizingMode & HudChainSizingModes.FitChainOffAxis) > 0)
                         chainBounds[offAxis] = listSize[offAxis];
                     // Keep off axis size at or above range size
                     else if ((SizingMode & HudChainSizingModes.ClampChainOffAxis) == HudChainSizingModes.ClampChainOffAxis)
@@ -483,7 +484,7 @@ namespace RichHudFramework.UI
             ScrollBar.Max = (float)Math.Round(Math.Max(totalEnabledLength - maxLength, 0f), 6);
 
             // Calculate chain layout offset
-            float scrollCurrent = ScrollBar.Current,
+            float scrollCurrent = ScrollBar.Value,
                 epsilon = 1E-3f,
                 viewTop = scrollCurrent,
                 viewBottom = scrollCurrent + maxLength - epsilon;
@@ -622,7 +623,7 @@ namespace RichHudFramework.UI
 
             // 3a. Find the logical END of the visible range
             // Start with the scroll position offset by the view length.
-            float currentScroll = ScrollBar.Current;
+            float currentScroll = ScrollBar.Value;
             float relativePos = (float)Math.Round(-currentScroll - maxLength, 5);
 
             for (int i = 0; i < hudCollectionList.Count; i++)

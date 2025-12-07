@@ -8,22 +8,22 @@ namespace RichHudFramework.UI
 	/// <para>Does not have a label. Use <see cref="NamedCheckBox"/> for a version with a label.</para>
 	/// <para>Formatting temporarily changes when it gains input focus.</para>
 	/// </summary>
-	public class BorderedCheckBox : Button
+	public class BorderedCheckBox : Button, IValueControl<bool>
     {
 		/// <summary>
-		/// Invoked when the current value (<see cref="IsBoxChecked"/>) changes
+		/// Invoked when the current value (<see cref="Value"/>) changes
 		/// </summary>
 		public event EventHandler ValueChanged;
 
 		/// <summary>
-		/// Registers a value (<see cref="IsBoxChecked"/>) update callback. Useful in initializers.
+		/// Registers a value (<see cref="Value"/>) update callback. Useful in initializers.
 		/// </summary>
 		public EventHandler UpdateValueCallback { set { ValueChanged += value; } }
 
 		/// <summary>
 		/// Indicates whether or not the box is checked.
 		/// </summary>
-		public bool IsBoxChecked { get; set; }
+		public bool Value { get; set; }
 
         /// <summary>
         /// Color of the border surrounding the button
@@ -98,7 +98,7 @@ namespace RichHudFramework.UI
                 Padding = new Vector2(17f),
             };
 
-            IsBoxChecked = true;
+            Value = true;
 			Size = new Vector2(37f);
 
             Color = TerminalFormatting.OuterSpace;
@@ -111,7 +111,7 @@ namespace RichHudFramework.UI
 
             BorderColor = TerminalFormatting.LimedSpruce;
             UseFocusFormatting = true;
-            lastValue = IsBoxChecked;
+            lastValue = Value;
 
             MouseInput.LeftClicked += ToggleValue;
             FocusHandler.GainedInputFocus += GainFocus;
@@ -127,7 +127,7 @@ namespace RichHudFramework.UI
 		/// <exclude/>
 		protected override void HandleInput(Vector2 cursorPos)
         {
-            tickBox.Visible = IsBoxChecked;
+            tickBox.Visible = Value;
 
             if (FocusHandler.HasFocus)
             {
@@ -137,10 +137,10 @@ namespace RichHudFramework.UI
                 }
             }
 
-            if (lastValue != IsBoxChecked)
+            if (lastValue != Value)
             {
                 ValueChanged?.Invoke(FocusHandler?.InputOwner, EventArgs.Empty);
-                lastValue = IsBoxChecked;
+                lastValue = Value;
             }
         }
 
@@ -150,7 +150,7 @@ namespace RichHudFramework.UI
 		/// <exclude/>
 		protected virtual void ToggleValue(object sender, EventArgs args)
         {
-            IsBoxChecked = !IsBoxChecked;
+            Value = !Value;
         }
 
 		/// <summary>

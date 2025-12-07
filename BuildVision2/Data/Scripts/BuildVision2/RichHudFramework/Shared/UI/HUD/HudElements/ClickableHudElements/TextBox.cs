@@ -13,22 +13,28 @@ namespace RichHudFramework.UI
 	/// Interactive, clickable text box with caret and highlighting. Text only, no background or
 	/// scrollbars.
 	/// </summary>
-	public class TextBox : Label, IClickableElement, IBindInputElement
+	public class TextBox : Label, IClickableElement, IBindInputElement, IValueControl<ITextBuilder>
 	{
 		/// <summary>
 		/// Invoked whenever a change is made to the text. Invokes once every 500ms, at most.
 		/// </summary>
-		public event EventHandler TextChanged;
+		public event EventHandler ValueChanged;
 
 		/// <summary>
 		/// Registers a text update callback. For use in object initializers.
 		/// </summary>
-		public EventHandler TextChangedCallback { set { TextChanged += value; } }
+		public EventHandler UpdateValueCallback { set { ValueChanged += value; } }
 
 		/// <summary>
-		/// Determines whether or not the textbox will allow the user to edit its contents
+		/// Returns an interface to the rich text content of the control.
+		/// <para>Supports <see cref="Object.ToString"/> for getting plain text copies.</para>
 		/// </summary>
-		public bool EnableEditing { get { return caret.ShowCaret; } set { caret.ShowCaret = value; } }
+		public ITextBuilder Value => TextBoard;
+
+        /// <summary>
+        /// Determines whether or not the textbox will allow the user to edit its contents
+        /// </summary>
+        public bool EnableEditing { get { return caret.ShowCaret; } set { caret.ShowCaret = value; } }
 
 		/// <summary>
 		/// Determines whether the user will be allowed to highlight text
@@ -203,7 +209,7 @@ namespace RichHudFramework.UI
 		/// </summary>
 		protected virtual void HandleTextChange()
 		{
-			if (TextChanged != null)
+			if (ValueChanged != null)
 				textUpdatePending = true;
 		}
 
@@ -420,7 +426,7 @@ namespace RichHudFramework.UI
 
 			if (!InputOpen && textUpdatePending)
 			{
-				TextChanged?.Invoke(FocusHandler?.InputOwner, EventArgs.Empty);
+				ValueChanged?.Invoke(FocusHandler?.InputOwner, EventArgs.Empty);
 				textUpdatePending = false;
 			}
 		}

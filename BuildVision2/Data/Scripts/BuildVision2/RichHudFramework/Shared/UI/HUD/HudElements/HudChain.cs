@@ -20,6 +20,11 @@ namespace RichHudFramework
 			// Chain Sizing
 
 			/// <summary>
+			/// Disables chain-self sizing and member size constraints, other than per-member proportional scaling.
+			/// </summary>
+			None = 0,
+
+			/// <summary>
 			/// Allows the chain's size on the off axis (width if vertical, height if horizontal) to vary, 
 			/// expanding only enough to contain its widest/tallest member.
 			/// </summary>
@@ -340,6 +345,8 @@ namespace RichHudFramework
                     listSize = Vector2.Zero;
                 int visCount = 0;
 
+				maxSize[offAxis] = (maxSize[offAxis] == 0f) ? UnpaddedSize[offAxis] : maxSize[offAxis];
+
                 for (int i = 0; i < hudCollectionList.Count; i++)
                 {
                     var entry = hudCollectionList[i];
@@ -350,7 +357,7 @@ namespace RichHudFramework
                         Vector2 size = element.UnpaddedSize + element.Padding;
 
                         if ((SizingMode & HudChainSizingModes.FitMembersAlignAxis) > 0)
-                            size[alignAxis] = maxSize[alignAxis];
+                            size[alignAxis] = (maxSize[alignAxis] > 0f) ? maxSize[alignAxis] : size[alignAxis];
                         else if ((SizingMode & HudChainSizingModes.ClampMembersAlignAxis) > 0)
                         {
                             if (maxSize[alignAxis] > 0f)
@@ -360,7 +367,7 @@ namespace RichHudFramework
                         }
 
                         if ((SizingMode & HudChainSizingModes.FitMembersOffAxis) > 0)
-                            size[offAxis] = maxSize[offAxis];
+                            size[offAxis] = (maxSize[offAxis] > 0f) ? maxSize[offAxis] : size[offAxis];
                         else if ((SizingMode & HudChainSizingModes.ClampMembersOffAxis) > 0)
                         {
                             if (maxSize[offAxis] > 0f)
@@ -387,12 +394,12 @@ namespace RichHudFramework
             /// <exclude/>
             protected override void Measure()
 			{
-				bool isSelfSizing = (SizingMode & chainSelfSizingMask) > 0;
-				bool isMemberSizeVariable = (SizingMode & memberVariableSizeMask) > 0;
-				bool isSizeUninitialized = (UnpaddedSize.X == 0f || UnpaddedSize.Y == 0f);
+                bool isSelfSizing = (SizingMode & chainSelfSizingMask) > 0;
+                bool isMemberSizeVariable = (SizingMode & memberVariableSizeMask) > 0;
+                bool isSizeUninitialized = (UnpaddedSize.X == 0f || UnpaddedSize.Y == 0f);
 
-				if (isSelfSizing || isSizeUninitialized)
-				{
+                if (isSelfSizing || isSizeUninitialized)
+                {
 					Vector2 chainBounds = UnpaddedSize;
 
 					if (isMemberSizeVariable)
@@ -435,9 +442,6 @@ namespace RichHudFramework
 
 				if (hudCollectionList.Count > 0 && (chainBounds.X > 0f && chainBounds.Y > 0f))
 				{
-					bool isSelfSizing = (SizingMode & chainSelfSizingMask) > 0;
-					bool isMemberSizeVariable = (SizingMode & memberVariableSizeMask) > 0;
-
 					UpdateRangeSize(chainBounds);
 
 					if (rangeLength > 0)
@@ -495,153 +499,145 @@ namespace RichHudFramework
 
 			}
 
-			/// <summary>
-			/// Recalculates member sizes and total range size given the chain's bounds.
-			/// Handles the logic for <see cref="HudChainSizingModes"/> related to member sizing.
-			/// </summary>
+            /// <summary>
+            /// Recalculates member sizes and total range size given the chain's bounds.
+            /// Handles the logic for <see cref="HudChainSizingModes"/> related to member sizing.
+            /// </summary>
+            /// <param name="chainBounds">The total available space for the chain.</param>
 			/// <exclude/>
-			protected void UpdateRangeSize(Vector2 chainBounds)
-			{
-                bool isAlignScalingProportional = (SizingMode & memberVariableAlignAxisMask) == 0;
-                int start = 0, end = -1;
+            protected void UpdateRangeSize(Vector2 chainBounds)
+            {
+                // 1. Reset and Initialization
                 rangeSize = Vector2.Zero;
                 rangeLength = 0;
 
-                // Get visible count
-                float totalScale = 0f, constantSpanLength = 0f;
+                int start = 0;
+                int end = -1;
 
-                // Get span size
+                float totalScale = 0f;
+                float constantSpanLength = 0f;
+
+                // 2. Measure Pass: Calculate visible items and scaling weights
                 for (int i = 0; i < hudCollectionList.Count; i++)
                 {
                     TElementContainer container = hudCollectionList[i];
 
-                    if ((container.Element.Config[StateID] & (uint)HudElementStates.IsVisible) > 0)
+                    // Skip invisible elements
+                    if ((container.Element.Config[StateID] & (uint)HudElementStates.IsVisible) == 0)
+                        continue;
+
+                    // Track indices for the second loop
+                    if (end == -1) start = i;
+                    end = i;
+
+                    rangeLength++;
+                    totalScale += container.AlignAxisScale;
+
+                    // Track fixed size usage for proportional calculation
+                    if (container.AlignAxisScale == 0f)
                     {
-                        totalScale += container.AlignAxisScale;
-                        rangeLength++;
-
-                        if (end == -1)
-                            start = i;
-
-                        end = i;
-
-                        if (container.AlignAxisScale == 0f)
-                        {
-                            Vector2 size = container.Element.UnpaddedSize + container.Element.Padding;
-                            constantSpanLength += size[alignAxis];
-                        }
+                        Vector2 size = container.Element.UnpaddedSize + container.Element.Padding;
+                        constantSpanLength += size[alignAxis];
                     }
                 }
 
-                if (rangeLength == 0)
-                    return;
+                // If nothing is visible, exit early
+                if (rangeLength == 0) return;
 
-                float totalSpacing = Spacing * (rangeLength - 1),
-                    maxAlignMemberSize = (chainBounds[alignAxis] - totalSpacing) / rangeLength;
+                // 3. Preparation: Calculate constraints and ratios
+                float totalSpacing = Spacing * (rangeLength - 1);
 
-                // Update min/max sizes
-                Vector2 minSize = MemberMinSize,
-                    maxSize = MemberMaxSize;
+                // Determine Sizing Modes
+                bool reqPropScaling = (SizingMode & memberVariableAlignAxisMask) == 0;
+                bool fitAlign = (SizingMode & HudChainSizingModes.FitMembersAlignAxis) > 0;
+                bool clampAlign = (SizingMode & HudChainSizingModes.ClampMembersAlignAxis) > 0;
+                bool fitOff = (SizingMode & HudChainSizingModes.FitMembersOffAxis) > 0;
+                bool clampOff = (SizingMode & HudChainSizingModes.ClampMembersOffAxis) > 0;
 
-                if (isAlignScalingProportional)
+                Vector2 minLimit = MemberMinSize;
+                Vector2 maxLimit = MemberMaxSize;
+
+                // Variables for Proportional Logic
+                float propFixedSpace = 0f;
+                float rcpTotalScale = 0f;
+
+                if (reqPropScaling)
                 {
-                    float fixedLength = Math.Max(chainBounds[alignAxis] - constantSpanLength - totalSpacing, 0f);
-                    float rcpTotalScale = Math.Min(1f / Math.Max(totalScale, 1f), 1f);
-
-                    // Uniform align axis constraints
-                    for (int i = start; i <= end; i++)
-                    {
-                        TElementContainer container = hudCollectionList[i];
-                        TElement element = container.Element;
-
-                        // Proportional align axis scaling
-                        if ((element.Config[StateID] & (uint)HudElementStates.IsVisible) > 0)
-                        {
-                            Vector2 size = element.UnpaddedSize + element.Padding;
-
-                            if (container.AlignAxisScale != 0f && fixedLength > 0f)
-                            {
-                                float effectiveScale = container.AlignAxisScale * rcpTotalScale;
-                                size[alignAxis] = fixedLength * effectiveScale;
-                            }
-
-                            element.UnpaddedSize = size - element.Padding;
-                            rangeSize[alignAxis] += size[alignAxis];
-                        }
-                    }
+                    propFixedSpace = Math.Max(chainBounds[alignAxis] - constantSpanLength - totalSpacing, 0f);
+                    rcpTotalScale = Math.Min(1f / Math.Max(totalScale, 1f), 1f);
                 }
                 else
                 {
-                    if (maxAlignMemberSize > 0f && (SizingMode & (memberVariableAlignAxisMask)) > 0)
+                    // Update Upper Limits for Non-Proportional Align Axis
+                    float maxAllowedAlign = (chainBounds[alignAxis] - totalSpacing) / rangeLength;
+
+                    if (maxAllowedAlign > 0f && (SizingMode & memberVariableAlignAxisMask) > 0)
                     {
-                        if (maxSize[alignAxis] == 0f && (SizingMode & chainAutoAlignAxisMask) == 0)
-                            maxSize[alignAxis] = maxAlignMemberSize;
-                        else if ((SizingMode & chainAutoAlignAxisMask) == 0)
-                            // Member upper limit may be smaller, but not larger than the chain
-                            maxSize[alignAxis] = Math.Min(maxSize[alignAxis], maxAlignMemberSize);
-                    }
-
-                    // Update member sizes
-                    // Uniform align axis constraints
-                    for (int i = start; i <= end; i++)
-                    {
-                        TElementContainer container = hudCollectionList[i];
-                        TElement element = container.Element;
-
-                        if ((element.Config[StateID] & (uint)HudElementStates.IsVisible) > 0)
-                        {
-                            Vector2 size = element.UnpaddedSize + element.Padding;
-
-                            if ((SizingMode & HudChainSizingModes.FitMembersAlignAxis) > 0 && (SizingMode & chainAutoAlignAxisMask) == 0)
-                                size[alignAxis] = maxSize[alignAxis];
-                            else if ((SizingMode & HudChainSizingModes.ClampMembersAlignAxis) > 0)
-                            {
-                                if (maxSize[alignAxis] > 0f)
-                                    size[alignAxis] = MathHelper.Clamp(size[alignAxis], minSize[alignAxis], maxSize[alignAxis]);
-                                else
-                                    size[alignAxis] = Math.Max(size[alignAxis], minSize[alignAxis]);
-                            }
-
-                            element.UnpaddedSize = size - element.Padding;
-                            rangeSize[alignAxis] += size[alignAxis];
-                        }
+                        maxLimit[alignAxis] = (maxLimit[alignAxis] == 0f || chainBounds[alignAxis] < maxLimit[alignAxis])
+                            ? chainBounds[alignAxis]
+                            : maxLimit[alignAxis];
                     }
                 }
 
+                // Update Upper Limits for Off Axis
                 if (chainBounds[offAxis] > 0f && (SizingMode & memberVariableOffAxisMask) > 0)
                 {
-                    if (maxSize[offAxis] == 0f && (SizingMode & chainAutoOffAxisMask) == 0)
-                        maxSize[offAxis] = chainBounds[offAxis];
-                    else if ((SizingMode & chainAutoOffAxisMask) == 0)
-                        // Member upper limit may be smaller, but not larger than the chain
-                        maxSize[offAxis] = Math.Min(maxSize[offAxis], chainBounds[offAxis]);
+                    maxLimit[offAxis] = (maxLimit[offAxis] == 0f || chainBounds[offAxis] < maxLimit[offAxis])
+                        ? chainBounds[offAxis]
+                        : maxLimit[offAxis];
                 }
 
-                // Constrain off axis size
+                // 4. Application Pass: Apply sizes to elements
                 for (int i = start; i <= end; i++)
                 {
                     TElementContainer container = hudCollectionList[i];
                     TElement element = container.Element;
 
-                    if ((element.Config[StateID] & (uint)HudElementStates.IsVisible) > 0)
+                    // Skip invisible elements
+                    if ((element.Config[StateID] & (uint)HudElementStates.IsVisible) == 0)
+                        continue;
+
+                    Vector2 size = element.UnpaddedSize + element.Padding;
+
+                    // Align Axis Sizing
+                    if (reqPropScaling)
                     {
-                        Vector2 size = element.UnpaddedSize + element.Padding;
-
-                        if ((SizingMode & HudChainSizingModes.FitMembersOffAxis) > 0 && (SizingMode & chainAutoOffAxisMask) == 0)
-                            size[offAxis] = maxSize[offAxis];
-                        else if ((SizingMode & HudChainSizingModes.ClampMembersOffAxis) > 0)
-                        {
-                            if (maxSize[offAxis] > 0f)
-                                size[offAxis] = MathHelper.Clamp(size[offAxis], minSize[offAxis], maxSize[offAxis]);
-                            else
-                                size[offAxis] = Math.Max(size[offAxis], minSize[offAxis]);
-                        }
-
-                        element.UnpaddedSize = size - element.Padding;
-                        rangeSize[offAxis] = Math.Max(size[offAxis], rangeSize[offAxis]);
+                        if (container.AlignAxisScale != 0f && propFixedSpace > 0f)
+                            size[alignAxis] = propFixedSpace * (container.AlignAxisScale * rcpTotalScale);
                     }
+                    else
+                    {
+                        if (fitAlign)
+                            size[alignAxis] = maxLimit[alignAxis];
+                        else if (clampAlign)
+                        {
+                            if (maxLimit[alignAxis] > 0f)
+                                size[alignAxis] = MathHelper.Clamp(size[alignAxis], minLimit[alignAxis], maxLimit[alignAxis]);
+                            else
+                                size[alignAxis] = Math.Max(size[alignAxis], minLimit[alignAxis]);
+                        }
+                    }
+
+                    // Off Axis Sizing
+                    if (fitOff)
+                        size[offAxis] = maxLimit[offAxis];
+                    else if (clampOff)
+                    {
+                        if (maxLimit[offAxis] > 0f)
+                            size[offAxis] = MathHelper.Clamp(size[offAxis], minLimit[offAxis], maxLimit[offAxis]);
+                        else
+                            size[offAxis] = Math.Max(size[offAxis], minLimit[offAxis]);
+                    }
+
+                    // Apply changes
+                    element.UnpaddedSize = size - element.Padding;
+
+                    // Accumulate total chain size
+                    rangeSize[alignAxis] += size[alignAxis];
+                    rangeSize[offAxis] = Math.Max(size[offAxis], rangeSize[offAxis]);
                 }
 
+                // Add total spacing to the alignment axis
                 rangeSize[alignAxis] += totalSpacing;
             }
 

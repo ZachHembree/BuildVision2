@@ -10,15 +10,15 @@ namespace RichHudFramework.UI
 	/// Size is determined by the slider and bar, not <see cref="HudElementBase.Size"/> or <see cref="HudElementBase.UnpaddedSize"/>.
 	/// </para>
 	/// </summary>
-	public class SliderBar : MouseInputElement, IClickableElement
-	{
+	public class SliderBar : MouseInputElement, IClickableElement, IValueControl<float>
+    {
 		/// <summary>
-		/// Invoked when the <see cref="Current"/> value changes.
+		/// Invoked when the <see cref="Value"/> value changes.
 		/// </summary>
 		public event EventHandler ValueChanged;
 
 		/// <summary>
-		/// Helper property for registering a <see cref="Current"/> value update callback during initialization.
+		/// Helper property for registering a <see cref="Value"/> value update callback during initialization.
 		/// </summary>
 		public EventHandler UpdateValueCallback
 		{
@@ -62,7 +62,7 @@ namespace RichHudFramework.UI
 		/// <summary>
 		/// The currently selected value, bounded by the Min and Max values.
 		/// </summary>
-		public float Current
+		public float Value
 		{
 			get { return _current; }
 			set
@@ -268,7 +268,7 @@ namespace RichHudFramework.UI
 			_max = 1f;
 
 			lastValue = float.PositiveInfinity;
-			Current = 0f;
+			Value = 0f;
 			Percent = 0f;
 
 			ShareCursor = false;

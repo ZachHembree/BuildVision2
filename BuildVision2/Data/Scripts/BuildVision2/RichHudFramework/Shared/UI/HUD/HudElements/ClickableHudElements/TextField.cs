@@ -8,26 +8,32 @@ namespace RichHudFramework.UI
     /// Unlined clickable textbox with a background and border designed to look like text fields in the SE
     /// terminal.
     /// </summary>
-    public class TextField : LabelBoxBase, IClickableElement, IBindInputElement, ILabelElement
+    public class TextField : LabelBoxBase, IClickableElement, IBindInputElement, ILabelElement, IValueControl<ITextBuilder>
     {
         /// <summary>
         /// Invoked whenever a change is made to the text. Invokes once every 500ms, at most.
         /// </summary>
-        public event EventHandler TextChanged
+        public event EventHandler ValueChanged
         { 
-            add { textBox.TextChanged += value; }
-            remove { textBox.TextChanged -= value; }
+            add { textBox.ValueChanged += value; }
+            remove { textBox.ValueChanged -= value; }
         }
 
 		/// <summary>
 		/// Registers a text update callback. For use in object initializers.
 		/// </summary>
-		public EventHandler TextChangedCallback { set { textBox.TextChanged += value; } }
+		public EventHandler UpdateValueCallback { set { textBox.ValueChanged += value; } }
 
-		/// <summary>
-		/// Text rendered by the text field.
+        /// <summary>
+		/// Returns an interface to the rich text content of the control.
+		/// <para>Supports <see cref="Object.ToString"/> for getting plain text copies.</para>
 		/// </summary>
-		public RichText Text { get { return textBox.TextBoard.GetText(); } set { textBox.TextBoard.SetText(value); } }
+		public ITextBuilder Value => textBox.TextBoard;
+
+        /// <summary>
+        /// Text rendered by the text field.
+        /// </summary>
+        public RichText Text { get { return textBox.TextBoard.GetText(); } set { textBox.TextBoard.SetText(value); } }
 
         /// <summary>
         /// TextBoard backing the text field.

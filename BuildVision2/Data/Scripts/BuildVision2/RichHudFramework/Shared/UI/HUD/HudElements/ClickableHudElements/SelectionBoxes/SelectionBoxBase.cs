@@ -96,7 +96,7 @@ namespace RichHudFramework.UI
 		/// <summary>
 		/// Raised when the selected entry changes.
 		/// </summary>
-		public event EventHandler SelectionChanged
+		public event EventHandler ValueChanged
 		{
 			add { listInput.SelectionChanged += value; }
 			remove { listInput.SelectionChanged -= value; }
@@ -105,7 +105,7 @@ namespace RichHudFramework.UI
 		/// <summary>
 		/// Convenience property for adding a selection callback during object initialization.
 		/// </summary>
-		public EventHandler SelectionChangedCallback { set { listInput.SelectionChanged += value; } }
+		public EventHandler UpdateValueCallback { set { listInput.SelectionChanged += value; } }
 
 		/// <summary>
 		/// Allows nested collection-initializer syntax (e.g., new MyListBox { ListContainer = { entry1, entry2 } });
@@ -158,7 +158,7 @@ namespace RichHudFramework.UI
 		/// <summary>
 		/// Currently selected entry, or null if nothing is selected.
 		/// </summary>
-		public TContainer Selection => listInput.Selection;
+		public TContainer Value => listInput.Selection;
 
 		/// <summary>
 		/// Index of the currently selected entry (-1 if none).
@@ -348,15 +348,15 @@ namespace RichHudFramework.UI
 			float entryWidth = HighlightWidth;
 
 			// Selection box (always follows the selected entry)
-			if (Selection != null && Selection.Element.Visible)
+			if (Value != null && Value.Element.Visible)
 			{
-				Vector2 offset = Selection.Element.Position - selectionBox.Origin;
+				Vector2 offset = Value.Element.Position - selectionBox.Origin;
 				offset.X -= (ListSize.X - entryWidth - HighlightPadding.X) / 2f;
 
 				selectionBox.Offset = offset;
-				selectionBox.Height = Selection.Element.Height - HighlightPadding.Y;
+				selectionBox.Height = Value.Element.Height - HighlightPadding.Y;
 				selectionBox.Width = entryWidth;
-				selectionBox.Visible = Selection.Element.Visible && Selection.AllowHighlighting;
+				selectionBox.Visible = Value.Element.Visible && Value.AllowHighlighting;
 			}
 
 			// Highlight box (mouse hover or keyboard focus)

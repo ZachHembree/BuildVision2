@@ -9,8 +9,8 @@ namespace RichHudFramework.UI
 	/// <para>Does not have a label. Use <see cref="NamedOnOffButton"/> for a version with a label.</para>
 	/// <para>Formatting temporarily changes when it gains input focus.</para>
 	/// </summary>
-	public class OnOffButton : HudElementBase, IClickableElement
-	{
+	public class OnOffButton : HudElementBase, IClickableElement, IValueControl<bool>
+    {
 		/// <summary>
 		/// Invoked when <see cref="Value"/> changes
 		/// </summary>

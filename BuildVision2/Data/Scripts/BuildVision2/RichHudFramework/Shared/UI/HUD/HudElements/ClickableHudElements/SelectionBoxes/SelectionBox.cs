@@ -298,7 +298,7 @@ namespace RichHudFramework.UI
 		/// <exclude/>
 		protected virtual void ResetEntry(TContainer entry)
 		{
-			if (Selection == entry)
+			if (Value == entry)
 				listInput.ClearSelection();
 
 			entry.Reset();
@@ -337,7 +337,7 @@ namespace RichHudFramework.UI
 				case ListBoxAccessors.Selection:
 					{
 						if (data == null)
-							return Selection;
+							return Value;
 						else
 							SetSelection(data as TContainer);
 

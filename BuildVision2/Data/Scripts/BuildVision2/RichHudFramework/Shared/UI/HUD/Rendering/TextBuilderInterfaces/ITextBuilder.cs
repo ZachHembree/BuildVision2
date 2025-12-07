@@ -1,5 +1,6 @@
 ﻿using VRageMath;
 using System.Text;
+using System;
 
 namespace RichHudFramework
 {
@@ -80,6 +81,7 @@ namespace RichHudFramework
             /// inserting, and removing text while maintaining formatting data (colors, fonts) and handling 
             /// line wrapping modes (Unlined, Lined, Wrapped).
             /// </para>
+            /// <para>Supports <see cref="Object.ToString"/> for getting plain text copies.</para>
             /// </summary>
             public interface ITextBuilder : IIndexedCollection<ILine>
             {

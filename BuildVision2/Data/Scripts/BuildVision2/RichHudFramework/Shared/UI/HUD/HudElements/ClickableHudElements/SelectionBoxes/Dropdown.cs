@@ -59,16 +59,16 @@ namespace RichHudFramework.UI
 		/// <summary>
 		/// Invoked when a member of the list is selected.
 		/// </summary>
-		public event EventHandler SelectionChanged
+		public event EventHandler ValueChanged
 		{
-			add { listBox.SelectionChanged += value; }
-			remove { listBox.SelectionChanged -= value; }
+			add { listBox.ValueChanged += value; }
+			remove { listBox.ValueChanged -= value; }
 		}
 
 		/// <summary>
 		/// Event initializer utility for SelectionChanged
 		/// </summary>
-		public EventHandler SelectionChangedCallback { set { listBox.SelectionChanged += value; } }
+		public EventHandler UpdateValueCallback { set { listBox.ValueChanged += value; } }
 
 		/// <summary>
 		/// List of entries in the dropdown.
@@ -154,7 +154,7 @@ namespace RichHudFramework.UI
 		/// <summary>
 		/// Current selection. Null if empty.
 		/// </summary>
-		public TContainer Selection => listBox.Selection;
+		public TContainer Value => listBox.Value;
 
 		/// <summary>
 		/// Index of the current selection. -1 if empty.
@@ -222,7 +222,7 @@ namespace RichHudFramework.UI
 			DropdownHeight = 100f;
 
 			display.MouseInput.LeftClicked += ClickDisplay;
-			SelectionChanged += UpdateDisplay;
+			ValueChanged += UpdateDisplay;
 		}
 
 		public Dropdown() : this(null)
@@ -250,10 +250,10 @@ namespace RichHudFramework.UI
 		/// <exclude/>
 		protected virtual void UpdateDisplay(object sender, EventArgs args)
 		{
-			if (Selection != null)
+			if (Value != null)
 			{
 				var fmt = display.FocusHandler.HasFocus ? Format.WithColor(listBox.FocusTextColor) : Format;
-				display.name.TextBoard.SetText(Selection.Element.TextBoard.ToString(), fmt);
+				display.name.TextBoard.SetText(Value.Element.TextBoard.ToString(), fmt);
 				CloseList();
 			}
 		}

@@ -11,8 +11,8 @@ namespace RichHudFramework.UI
 	/// Note: The value label is not updated automatically; it must be updated manually via the ValueChanged event.
 	/// </para>
 	/// </summary>
-	public class NamedSliderBox : HudElementBase, IClickableElement
-	{
+	public class NamedSliderBox : HudElementBase, IClickableElement, IValueControl<float>
+    {
 		/// <summary>
 		/// Invoked when the current value of the slider changes.
 		/// </summary>
@@ -64,7 +64,7 @@ namespace RichHudFramework.UI
 		/// <summary>
 		/// The value currently set on the slider.
 		/// </summary>
-		public float Current { get { return SliderBox.Current; } set { SliderBox.Current = value; } }
+		public float Value { get { return SliderBox.Value; } set { SliderBox.Value = value; } }
 
 		/// <summary>
 		/// The current slider value expressed as a percentage (0 to 1) of the range between the Min and Max values.

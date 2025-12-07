@@ -8,7 +8,7 @@ namespace RichHudFramework.UI
 	/// A named color picker component utilizing RGB sliders, styled to mimic the Space Engineers terminal interface.
 	/// <para>Operating in RGB mode. Alpha (transparency) is not supported.</para>
 	/// </summary>
-	public class ColorPickerRGB : HudElementBase
+	public class ColorPickerRGB : HudElementBase, IValueControl<Color>
 	{
 		/// <summary>
 		/// Event invoked when the selected color value changes.
@@ -55,14 +55,14 @@ namespace RichHudFramework.UI
 		/// Gets or sets the color currently specified by the picker.
 		/// <para>Setting this value will automatically update the positions of the sliders.</para>
 		/// </summary>
-		public virtual Color Color
+		public virtual Color Value
 		{
 			get { return _color; }
 			set
 			{
-				sliders[0].Current = value.R;
-				sliders[1].Current = value.G;
-				sliders[2].Current = value.B;
+				sliders[0].Value = value.R;
+				sliders[1].Value = value.G;
+				sliders[2].Value = value.B;
 				_color = value;
 			}
 		}
@@ -233,7 +233,7 @@ namespace RichHudFramework.UI
 			UseCursor = true;
 			ShareCursor = true;
 			focusedChannel = -1;
-			Color = Color.White;
+			Value = Color.White;
 			lastColor = _color;
 		}
 
@@ -259,7 +259,7 @@ namespace RichHudFramework.UI
 		protected virtual void UpdateChannelR(object sender, EventArgs args)
 		{
 			var slider = sender as SliderBox;
-			_color.R = (byte)Math.Round(slider.Current);
+			_color.R = (byte)Math.Round(slider.Value);
 			sliderText[0].TextBoard.SetText($"R: {_color.R}");
 			display.Color = _color;
 		}
@@ -271,7 +271,7 @@ namespace RichHudFramework.UI
 		protected virtual void UpdateChannelG(object sender, EventArgs args)
 		{
 			var slider = sender as SliderBox;
-			_color.G = (byte)Math.Round(slider.Current);
+			_color.G = (byte)Math.Round(slider.Value);
 			sliderText[1].TextBoard.SetText($"G: {_color.G}");
 			display.Color = _color;
 		}
@@ -283,7 +283,7 @@ namespace RichHudFramework.UI
 		protected virtual void UpdateChannelB(object sender, EventArgs args)
 		{
 			var slider = sender as SliderBox;
-			_color.B = (byte)Math.Round(slider.Current);
+			_color.B = (byte)Math.Round(slider.Value);
 			sliderText[2].TextBoard.SetText($"B: {_color.B}");
 			display.Color = _color;
 		}

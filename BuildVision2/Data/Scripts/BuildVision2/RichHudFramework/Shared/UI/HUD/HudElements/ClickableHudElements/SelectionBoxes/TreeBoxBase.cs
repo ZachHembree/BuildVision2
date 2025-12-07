@@ -58,16 +58,16 @@ namespace RichHudFramework.UI
 		/// <summary>
 		/// Raised when the selected entry changes.
 		/// </summary>
-		public event EventHandler SelectionChanged
+		public event EventHandler ValueChanged
 		{
-			add { selectionBox.SelectionChanged += value; }
-			remove { selectionBox.SelectionChanged -= value; }
+			add { selectionBox.ValueChanged += value; }
+			remove { selectionBox.ValueChanged -= value; }
 		}
 
 		/// <summary>
-		/// Allows registering a <see cref="SelectionChanged"/> in an initializer block.
+		/// Allows registering a <see cref="ValueChanged"/> in an initializer block.
 		/// </summary>
-		public EventHandler SelectionChangedCallback { set { selectionBox.SelectionChanged += value; } }
+		public EventHandler UpdateValueCallback { set { selectionBox.ValueChanged += value; } }
 
 		/// <summary>
 		/// Read-only access to the full list of entries currently in the tree box.
@@ -191,7 +191,7 @@ namespace RichHudFramework.UI
 		/// <summary>
 		/// Currently selected entry, or <c>null</c> if nothing is selected.
 		/// </summary>
-		public TContainer Selection => selectionBox.Selection;
+		public TContainer Value => selectionBox.Value;
 
 		/// <summary>
 		/// Number of entries currently in the dropdown list.
