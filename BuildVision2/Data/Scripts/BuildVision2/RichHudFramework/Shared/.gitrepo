@@ -6,8 +6,8 @@
 [subrepo]
 	remote = git@github.com:ZachHembree/RichHudFramework.Shared.git
 	branch = master
-	commit = 40ee09ec1f4fa931148aa7bd8daa59712c4f60b2
+	commit = f6fb68bcc02fe04e65bfec82c97fcd1c4a7f1888
 	method = merge
 	cmdver = 0.4.9
-	parent = 98010907e635ed5b25de8da75bcfac294f94a8fc
+	parent = d4dacddc6e6a2898d63339106da55497f042a67e
 

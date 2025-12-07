@@ -15,7 +15,8 @@ namespace RichHudFramework
 	namespace UI.Client
 	{
 		/// <summary>
-		/// Represents a horizontally scrolling row of <see cref="ControlTile"/>s within a <see cref="ControlPage"/>.
+		/// Represents a horizontally scrolling row of <see cref="ControlTile"/>s within a <see cref="ControlPage"/> 
+		/// in the <see cref="RichHudTerminal"/>.
 		/// </summary>
 		public class ControlCategory : IControlCategory
 		{

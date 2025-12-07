@@ -348,6 +348,8 @@ healthchecksdb
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 
-*.csproj
 *.sln
 *.cd
+RichHudClient - Font.csproj
+
+RichHudClient - Term.csproj

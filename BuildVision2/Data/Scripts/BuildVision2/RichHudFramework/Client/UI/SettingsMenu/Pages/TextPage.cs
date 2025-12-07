@@ -23,7 +23,7 @@ namespace RichHudFramework
 		>;
 
 		/// <summary>
-		/// A terminal page dedicated to displaying read-only rich text. 
+		/// A scrolling page of wrapped, read-only text in the <see cref="RichHudTerminal"/>.
 		/// <para>Useful for help screens, changelogs, or information displays.</para>
 		/// </summary>
 		public class TextPage : TerminalPageBase, ITextPage

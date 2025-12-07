@@ -9,8 +9,9 @@ namespace RichHudFramework
 	namespace UI.Client
 	{
 		/// <summary>
-		/// A terminal page designed specifically for managing key bindings.
-		/// <para>Organizes bindings into scrollable <see cref="IBindGroup"/>s.</para>
+		/// A terminal page designed specifically for managing key bindings. Presents binds from a <see cref="IBindGroup"/> 
+		/// in a scrolling list in the <see cref="RichHudTerminal"/> with a pop-up dialog for changing key combinations when 
+		/// a bind is selected by the user.
 		/// </summary>
 		public class RebindPage : TerminalPageBase, IRebindPage
 		{
@@ -42,13 +43,13 @@ namespace RichHudFramework
 				bindGroups.Add(bindGroup);
 			}
 
-			/// <summary>
-			/// Adds an existing <see cref="IBindGroup"/> to the page and registers default bind definitions.
-			/// </summary>
-			/// <param name="bindGroup">The bind group to add.</param>
-			/// <param name="defaultBinds">Array of default bind definitions used manual for reset.</param>
-			/// <param name="isAliased">If true, exposes the ability to set alias bindings in the UI.</param>
-			public void Add(IBindGroup bindGroup, BindDefinition[] defaultBinds, bool isAliased = false)
+            /// <summary>
+            /// Adds an existing <see cref="IBindGroup"/> to the page and registers default bind definitions.
+            /// </summary>
+            /// <param name="bindGroup">The bind group to add.</param>
+            /// <param name="defaultBinds">Array of default bind definitions used for manual reset.</param>
+            /// <param name="isAliased">If true, exposes the ability to set alias bindings in the UI.</param>
+            public void Add(IBindGroup bindGroup, BindDefinition[] defaultBinds, bool isAliased = false)
 			{
 				BindDefinitionData[] data = new BindDefinitionData[defaultBinds.Length];
 

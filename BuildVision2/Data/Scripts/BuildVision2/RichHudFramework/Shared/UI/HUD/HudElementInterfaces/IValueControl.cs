@@ -20,7 +20,7 @@
     /// Minimal interface for UI elements controlling a value that invokes an event when changed, with 
     /// a property for reading that value.
     /// </summary>
-    public interface IValueControl<T>
+    public interface IValueControl<T> : IValueControl
     {
         /// <summary>
         /// Current value of the control.

@@ -263,7 +263,6 @@ namespace RichHudFramework.UI
 			{
 				RichText text = TextBoard.GetTextRange(selectionBox.Start, selectionBox.End);
 				DeleteSelection();
-				caret.Move(new Vector2I(0, -GetRichTextMinLength(text)));
 				HudMain.ClipBoard = text;
 			}
 		}
@@ -362,6 +361,8 @@ namespace RichHudFramework.UI
 			if (!selectionBox.Empty)
 				TextBoard.RemoveRange(selectionBox.Start, selectionBox.End);
 
+            caret.SetPosition(selectionBox.Start);
+			caret.Move(new Vector2I(0, -1));
             ClearSelection();
         }
 

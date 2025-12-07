@@ -15,7 +15,7 @@ namespace RichHudFramework
 	namespace UI.Client
 	{
 		/// <summary>
-		/// A standard terminal page that organizes settings into vertically scrolling <see cref="ControlCategory"/>s.
+		/// A page that organizes settings into vertically scrolling <see cref="ControlCategory"/>s in the <see cref="RichHudTerminal"/>.
 		/// </summary>
 		public class ControlPage : TerminalPageBase, IControlPage
 		{
