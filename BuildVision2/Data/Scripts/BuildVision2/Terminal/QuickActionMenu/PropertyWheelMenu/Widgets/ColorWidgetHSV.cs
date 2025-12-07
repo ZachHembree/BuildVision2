@@ -44,7 +44,7 @@ namespace DarkHelmet.BuildVision2
                 this.CloseWidgetCallback = CloseWidgetCallback;
 
                 initColor = colorMember.Value;
-                colorPicker.Color = colorMember.Value;
+                colorPicker.ColorHSV = colorMember.Value;
                 colorPicker.NameBuilder.SetText(colorMember.Name);
                 colorPicker.SetChannelFocused(selectedChannel);
 
@@ -100,7 +100,7 @@ namespace DarkHelmet.BuildVision2
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                colorMember.Value = colorPicker.Color;
+                colorMember.Value = colorPicker.ColorHSV;
 
                 if (IsMousedOver)
                 {
@@ -164,9 +164,9 @@ namespace DarkHelmet.BuildVision2
                         offset *= incrX;
 
                     if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
-                        colorPicker.sliders[selectedChannel].Current += offset;
+                        colorPicker.sliders[selectedChannel].Value += offset;
                     else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
-                        colorPicker.sliders[selectedChannel].Current -= offset;
+                        colorPicker.sliders[selectedChannel].Value -= offset;
                 }
             }
         }

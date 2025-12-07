@@ -190,11 +190,11 @@ namespace DarkHelmet.BuildVision2
                 if (absRange > FloatPropLogThreshold)
                 {
                     current = MathHelper.Clamp(current, floatMember.MinValue, floatMember.MaxValue);
-                    sliderBox.Current = (float)(Math.Log10(Math.Abs(current - floatMember.MinValue) + 1d) / logRange);
+                    sliderBox.Value = (float)(Math.Log10(Math.Abs(current - floatMember.MinValue) + 1d) / logRange);
                 }
                 else
                 {
-                    sliderBox.Current = (float)((current - floatMember.MinValue) / absRange);
+                    sliderBox.Value = (float)((current - floatMember.MinValue) / absRange);
                 }
             }
 
@@ -203,7 +203,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private float GetSliderValue()
             {
-                double value = sliderBox.Current;
+                double value = sliderBox.Value;
 
                 if (absRange > FloatPropLogThreshold)
                 {
