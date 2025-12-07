@@ -1,64 +1,72 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using VRage;
-using System;
 
 namespace RichHudFramework
 {
-    /// <summary>
-    /// Interface for collections with an indexer and a count property.
-    /// </summary>
-    public interface IIndexedCollection<T>
-    {
-        /// <summary>
-        /// Returns the element associated with the given index.
-        /// </summary>
-        T this[int index] { get; }
+	/// <summary>
+	/// Minimal interface for any indexed collection exposing a count and an indexer.
+	/// </summary>
+	public interface IIndexedCollection<T>
+	{
+		/// <summary>
+		/// Retrieves the element at the specified index.
+		/// </summary>
+		T this[int index] { get; }
 
-        /// <summary>
-        /// The number of elements in the collection
-        /// </summary>
-        int Count { get; }
-    }
+		/// <summary>
+		/// Number of elements in the collection.
+		/// </summary>
+		int Count { get; }
+	}
 
-    /// <summary>
-    /// Generic enumerator using delegates.
-    /// </summary>
-    public class CollectionDataEnumerator<T> : IEnumerator<T>
-    {
-        /// <summary>
-        /// Returns the element at the enumerator's current position
-        /// </summary>
-        object IEnumerator.Current => Current;
+	/// <summary>
+	/// Lightweight enumerator that satisfies <see cref="IEnumerable{T}"/> using only delegates.
+	/// <para>
+	/// Not ideal for the SE mod profiler, but it's an easy way to satisfy interface constraints.
+	/// </para>
+	/// </summary>
+	/// <exclude/>
+	public class CollectionDataEnumerator<T> : IEnumerator<T>
+	{
+		/// <summary>
+		/// Current element pointed to by the enumerator.
+		/// </summary>
+		public T Current => Getter(index);
 
-        /// <summary>
-        /// Returns the element at the enumerator's current position
-        /// </summary>
-        public T Current => Getter(index);
+		/// <summary>
+		/// Current element as <see cref="object"/> for non-generic <see cref="IEnumerator"/> compatibility.
+		/// </summary>
+		object IEnumerator.Current => Current;
 
-        protected readonly Func<int, T> Getter;
-        protected readonly Func<int> CountFunc;
-        protected int index;
+		private readonly Func<int, T> Getter;
+		private readonly Func<int> CountFunc;
+		private int index = -1;
 
-        public CollectionDataEnumerator(Func<int, T> Getter, Func<int> CountFunc)
-        {
-            this.Getter = Getter;
-            this.CountFunc = CountFunc;
-            index = -1;
-        }
+		public CollectionDataEnumerator(Func<int, T> getter, Func<int> countFunc)
+		{
+			Getter = getter;
+			CountFunc = countFunc;
+		}
 
-        public void Dispose()
-        { }
+		/// <summary>
+		/// Advances the enumerator to the next element.
+		/// </summary>
+		/// <returns>true if the enumerator was successfully advanced; false if it has passed the end of the collection.</returns>
+		public bool MoveNext()
+		{
+			index++;
+			return index < CountFunc();
+		}
 
-        public bool MoveNext()
-        {
-            index++;
-            return index < CountFunc();
-        }
+		/// <summary>
+		/// Resets the enumerator to its initial position (before the first element).
+		/// </summary>
+		public void Reset() => index = -1;
 
-        public void Reset()
-        {
-            index = -1;
-        }
-    }
+		/// <summary>
+		/// No-op dispose; exists only to satisfy <see cref="IDisposable"/>.
+		/// </summary>
+		public void Dispose() { }
+	}
 }

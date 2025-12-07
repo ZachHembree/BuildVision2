@@ -12,10 +12,11 @@
             /// </summary>
             IReadOnlyHudParent Parent { get; }
 
-            /// <summary>
-            /// Indicates whether or not the node has been registered to its parent.
-            /// </summary>
-            bool Registered { get; }
+			/// <summary>
+			/// Returns true if the node has been registered to a parent. Does not necessarilly indicate that 
+			/// the parent is registered or that the node is active.
+			/// </summary>
+			bool Registered { get; }
         }
     }
 }

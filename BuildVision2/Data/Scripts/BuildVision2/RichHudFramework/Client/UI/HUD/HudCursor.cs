@@ -40,7 +40,7 @@ namespace RichHudFramework
                 public bool IsToolTipRegistered { get; private set; }
 
                 /// <summary>
-                /// The position of the cursor in pixels in screen space
+                /// Position of the cursor in pixels in screen space
                 /// </summary>
                 public Vector2 ScreenPos { get; private set; }
 
@@ -93,19 +93,6 @@ namespace RichHudFramework
                 /// </summary>
                 public bool TryCaptureHudSpace(float depthSquared, HudSpaceDelegate GetHudSpaceFunc) =>
                     TryCaptureHudSpaceFunc(depthSquared, GetHudSpaceFunc);
-
-                /// <summary>
-                /// Attempts to capture the cursor at the given depth with the given HUD space. If drawInHudSpace
-                /// is true, then the cursor will be drawn in the given space.
-                /// </summary>
-                public void CaptureHudSpace(float depthSquared, HudSpaceDelegate GetHudSpaceFunc) =>
-                    TryCaptureHudSpaceFunc(depthSquared, GetHudSpaceFunc);
-
-                /// <summary>
-                /// Attempts to capture the cursor with the given object
-                /// </summary>
-                public void Capture(ApiMemberAccessor capturedElement) =>
-                    TryCaptureFunc(capturedElement);
 
                 /// <summary>
                 /// Indicates whether the cursor is being captured by the given element.

@@ -65,7 +65,10 @@ namespace DarkHelmet.BuildVision2
             vertices[7] = line.From + up;
 
             if (_color != Color)
+            {
                 material.bbColor = Color.GetBbColor();
+                _color = Color;
+            }
 
             BillBoardUtils.AddTriangles(indices, vertices, ref material);
         }

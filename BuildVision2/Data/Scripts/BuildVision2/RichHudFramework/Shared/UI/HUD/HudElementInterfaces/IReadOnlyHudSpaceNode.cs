@@ -1,57 +1,64 @@
 ﻿using System;
-using VRage;
 using VRageMath;
 using HudSpaceDelegate = System.Func<VRage.MyTuple<bool, float, VRageMath.MatrixD>>;
 
 namespace RichHudFramework
 {
-    namespace UI
-    {
-        /// <summary>
-        /// Interface for types used to define custom UI coordinate spaces
-        /// </summary>
-        public interface IReadOnlyHudSpaceNode : IReadOnlyHudParent
-        {
-            /// <summary>
-            /// Cursor position on the XY plane defined by the HUD space. Z == dist from screen.
-            /// </summary>
-            Vector3 CursorPos { get; }
+	namespace UI
+	{
+		/// <summary>
+		/// Interface for all HUD nodes that define their own custom coordinate space.
+		/// </summary>
+		public interface IReadOnlyHudSpaceNode : IReadOnlyHudParent
+		{
+			/// <summary>
+			/// Position of the HUD cursor projected onto this node's plane.
+			/// <para>
+			/// X/Y = local plane coordinates
+			/// Z = approximate squared distance from the camera to the intersection point (for depth sorting).
+			/// </para>
+			/// </summary>
+			Vector3 CursorPos { get; }
 
-            /// <summary>
-            /// Delegate used to retrieve current hud space. Used for cursor depth testing.
-            /// </summary>
-            HudSpaceDelegate GetHudSpaceFunc { get; }
+			/// <summary>
+			/// Delegate used by the cursor system to query this node's current HUD space properties.
+			/// Returns (drawCursorInThisSpace, cursorBillboardScale, planeToWorldMatrix).
+			/// </summary>
+			HudSpaceDelegate GetHudSpaceFunc { get; }
 
-            /// <summary>
-            /// Returns the current draw matrix
-            /// </summary>
-            MatrixD PlaneToWorld { get; }
+			/// <summary>
+			/// Current Plane-to-World transformation matrix used for drawing this subtree.
+			/// Transforms from local coordinates to world space.
+			/// </summary>
+			MatrixD PlaneToWorld { get; }
 
-            /// <summary>
-            /// Returns the current draw matrix by reference as an array of length 1
-            /// </summary>
-            MatrixD[] PlaneToWorldRef { get; }
+			/// <summary>
+			/// Reference to the current Plane-to-World matrix as a single-element array.
+			/// </summary>
+			MatrixD[] PlaneToWorldRef { get; }
 
-            /// <summary>
-            /// Returns the world space position of the node's origin.
-            /// </summary>
-            Func<Vector3D> GetNodeOriginFunc { get; }
+			/// <summary>
+			/// Function that returns the current world-space position of this node's origin.
+			/// </summary>
+			Func<Vector3D> GetNodeOriginFunc { get; }
 
-            /// <summary>
-            /// If true, then the cursor will be drawn using the PTW matrix of this HUD space when
-            /// captured by one of its children.
-            /// </summary>
-            bool DrawCursorInHudSpace { get; }
+			/// <summary>
+			/// If true, when a child of this node captures the cursor, the cursor will be drawn
+			/// using this node's PlaneToWorld matrix instead of the default screen-space matrix.
+			/// Useful for 3D / diegetic UI where the cursor should appear on the custom plane.
+			/// </summary>
+			bool DrawCursorInHudSpace { get; }
 
-            /// <summary>
-            /// True if the origin of the HUD space is in front of the camera
-            /// </summary>
-            bool IsInFront { get; }
+			/// <summary>
+			/// True if the node's origin is in front of the camera (i.e. in the camera's forward hemisphere).
+			/// </summary>
+			bool IsInFront { get; }
 
-            /// <summary>
-            /// True if the XY plane of the HUD space is in front and facing toward the camera
-            /// </summary>
-            bool IsFacingCamera { get; }
-        }
-    }
+			/// <summary>
+			/// True if the node is in front of the camera AND its forward vector roughly faces the camera
+			/// (dot product > 0). Used for culling back-facing HUD elements.
+			/// </summary>
+			bool IsFacingCamera { get; }
+		}
+	}
 }

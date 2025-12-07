@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using VRage;
 using VRage.Game;
@@ -30,11 +30,15 @@ namespace RichHudFramework
 
 		namespace Rendering
 		{
+			/// <summary>
+			/// Internal billboard pool API member access indices
+			/// </summary>
+			/// <exclude/>
 			public enum BillBoardUtilAccessors : int
 			{
 				/// <summary>
 				/// Deprecated
-				/// out: List<MyTriangleBillboard>
+				/// out: List{MyTriangleBillboard}
 				/// </summary>
 				GetPoolBack = 1
 			}
@@ -101,68 +105,6 @@ namespace RichHudFramework
 							),
 						};
 						bbDataBack.Add(bb);
-					}
-				}
-
-				/// <summary>
-				/// Adds a triangles in the given starting index range
-				/// </summary>
-				public static void AddTriangleRange(Vector2I range, IReadOnlyList<int> indices, IReadOnlyList<Vector3D> vertices, ref PolyMaterial mat, MatrixD[] matrixRef = null)
-				{
-					var bbPool = instance.triPoolBack[0];
-					var bbDataBack = instance.triangleList;
-					var bbBuf = instance.bbBuf;
-					var matList = instance.matrixBuf;
-					var matTable = instance.matrixTable;
-
-					// Find matrix index in table or add it
-					int matrixID = -1;
-
-					if (matrixRef != null && !matTable.TryGetValue(matrixRef, out matrixID))
-					{
-						matrixID = matList.Count;
-						matList.Add(matrixRef[0]);
-						matTable.Add(matrixRef, matrixID);
-					}
-
-					int iMax = indices.Count,
-						triangleCount = (range.Y - range.X) / 3,
-						bbRemaining = bbPool.Count - bbDataBack.Count,
-						bbToAdd = Math.Max(triangleCount - bbRemaining, 0);
-
-					instance.AddNew3DBB(bbToAdd);
-
-					for (int i = bbDataBack.Count; i < triangleCount + bbDataBack.Count; i++)
-						bbBuf.Add(bbPool[i]);
-
-					MyTransparentGeometry.AddBillboards(bbBuf, false);
-					bbBuf.Clear();
-
-					bbDataBack.EnsureCapacity(bbDataBack.Count + triangleCount);
-
-					for (int i = range.X; i <= range.Y; i += 3)
-					{
-						var bb = new TriangleBillboardData
-						{
-							Item1 = BlendTypeEnum.PostPP,
-							Item2 = new Vector2I(bbDataBack.Count, matrixID),
-							Item3 = mat.textureID,
-							Item4 = mat.bbColor,
-							Item5 = new MyTuple<Vector2, Vector2, Vector2>
-							(
-								mat.texCoords[indices[i % iMax]],
-								mat.texCoords[indices[(i + 1) % iMax]],
-								mat.texCoords[indices[(i + 2) % iMax]]
-							),
-							Item6 = new MyTuple<Vector3D, Vector3D, Vector3D>
-							(
-								vertices[indices[i % iMax]],
-								vertices[indices[(i + 1) % iMax]],
-								vertices[indices[(i + 2) % iMax]]
-							),
-						};
-						bbDataBack.Add(bb);
-
 					}
 				}
 
@@ -317,78 +259,6 @@ namespace RichHudFramework
 				/// <summary>
 				/// Queues a quad billboard for rendering
 				/// </summary>
-				public static void AddQuad(ref QuadMaterial mat, ref MyQuadD quad, MatrixD[] matrixRef = null)
-				{
-					var bbPool = instance.triPoolBack[0];
-					var bbDataBack = instance.triangleList;
-
-					int indexL = bbDataBack.Count,
-						indexR = indexL + 1;
-					var matList = instance.matrixBuf;
-					var matTable = instance.matrixTable;
-
-					// Find matrix index in table or add it
-					int matrixID = -1;
-
-					if (matrixRef != null && !matTable.TryGetValue(matrixRef, out matrixID))
-					{
-						matrixID = matList.Count;
-						matList.Add(matrixRef[0]);
-						matTable.Add(matrixRef, matrixID);
-					}
-
-					var bbL = new TriangleBillboardData
-					{
-						Item1 = BlendTypeEnum.PostPP,
-						Item2 = new Vector2I(indexL, matrixID),
-						Item3 = mat.textureID,
-						Item4 = mat.bbColor,
-						Item5 = new MyTuple<Vector2, Vector2, Vector2>
-						(
-							mat.texCoords.Point0,
-							mat.texCoords.Point1,
-							mat.texCoords.Point2
-						),
-						Item6 = new MyTuple<Vector3D, Vector3D, Vector3D>
-						(
-							quad.Point0,
-							quad.Point1,
-							quad.Point2
-						),
-					};
-					var bbR = new TriangleBillboardData
-					{
-						Item1 = BlendTypeEnum.PostPP,
-						Item2 = new Vector2I(indexR, matrixID),
-						Item3 = mat.textureID,
-						Item4 = mat.bbColor,
-						Item5 = new MyTuple<Vector2, Vector2, Vector2>
-						(
-							mat.texCoords.Point0,
-							mat.texCoords.Point2,
-							mat.texCoords.Point3
-						),
-						Item6 = new MyTuple<Vector3D, Vector3D, Vector3D>
-						(
-							quad.Point0,
-							quad.Point2,
-							quad.Point3
-						),
-					};
-
-					bbDataBack.Add(bbL);
-					bbDataBack.Add(bbR);
-
-					if (indexR >= bbPool.Count)
-						instance.AddNew3DBB(indexR - (bbPool.Count - 1));
-
-					MyTransparentGeometry.AddBillboard(bbPool[indexL], false);
-					MyTransparentGeometry.AddBillboard(bbPool[indexR], false);
-				}
-
-				/// <summary>
-				/// Queues a quad billboard for rendering
-				/// </summary>
 				public static void AddQuad(ref BoundedQuadMaterial mat, ref MyQuadD quad, MatrixD[] matrixRef = null)
 				{
 					var bbPool = instance.triPoolBack[0];
@@ -488,6 +358,331 @@ namespace RichHudFramework
 				}
 
 				#region 2D Billboards
+
+				public static void AddTriangleData(
+					IReadOnlyList<FlatTriangleBillboardData> triangles,
+					MatrixD[] matrixRef
+				)
+				{
+					var bbPool = instance.flatTriPoolBack[0];
+					var bbDataBack = instance.flatTriangleList;
+					var bbBuf = instance.bbBuf;
+					var matList = instance.matrixBuf;
+					var matTable = instance.matrixTable;
+
+					// Find matrix index in table or add it
+					int matrixID;
+
+					if (!matTable.TryGetValue(matrixRef, out matrixID))
+					{
+						matrixID = matList.Count;
+						matList.Add(matrixRef[0]);
+						matTable.Add(matrixRef, matrixID);
+					}
+
+					int bbCountStart = bbDataBack.Count;
+					bbDataBack.EnsureCapacity(bbDataBack.Count + triangles.Count);
+
+					for (int i = 0; i < triangles.Count; i++)
+					{
+						var tri = triangles[i];
+						tri.Item2 = new Vector2I(bbDataBack.Count, matrixID);
+						bbDataBack.Add(tri);
+					}
+
+					// Add more billboards to pool as needed then queue them for rendering
+					int bbToAdd = Math.Max(bbDataBack.Count - bbPool.Count, 0);
+					instance.AddNewFlatBB(bbToAdd);
+
+					for (int i = bbCountStart; i < bbDataBack.Count; i++)
+						bbBuf.Add(bbPool[i]);
+
+					MyTransparentGeometry.AddBillboards(bbBuf, false);
+					bbBuf.Clear();
+				}
+
+				public static void GetTriangleData(
+					ref QuadBoard qb,
+					ref CroppedBox box,
+					List<FlatTriangleBillboardData> bbDataOut
+				)
+				{
+					FlatQuad quad = new FlatQuad()
+					{
+						Point0 = box.bounds.Max,
+						Point1 = new Vector2(box.bounds.Max.X, box.bounds.Min.Y),
+						Point2 = box.bounds.Min,
+						Point3 = new Vector2(box.bounds.Min.X, box.bounds.Max.Y),
+					};
+
+					if (qb.skewRatio != 0f)
+					{
+						Vector2 start = quad.Point0, end = quad.Point3,
+							offset = (end - start) * qb.skewRatio * .5f;
+
+						quad.Point0 = Vector2.Lerp(start, end, qb.skewRatio) - offset;
+						quad.Point3 = Vector2.Lerp(start, end, 1f + qb.skewRatio) - offset;
+						quad.Point1 -= offset;
+						quad.Point2 -= offset;
+					}
+
+					// Mask bounding check. Null mask if not intersecting.
+					bool isDisjoint = false;
+
+					if (box.mask != null)
+					{
+						BoundingBox2 bounds = new BoundingBox2(quad.Point2, quad.Point0);
+						isDisjoint =
+							(bounds.Max.X < box.mask.Value.Min.X) ||
+							(bounds.Min.X > box.mask.Value.Max.X) ||
+							(bounds.Max.Y < box.mask.Value.Min.Y) ||
+							(bounds.Min.Y > box.mask.Value.Max.Y);
+					}
+
+					if (!isDisjoint)
+					{
+						var bbL = new FlatTriangleBillboardData
+						{
+							Item1 = BlendTypeEnum.PostPP,
+							Item3 = qb.materialData.textureID,
+							Item4 = new MyTuple<Vector4, BoundingBox2?>(qb.materialData.bbColor, box.mask),
+							Item5 = new MyTuple<Vector2, Vector2, Vector2>
+							(
+								new Vector2(qb.materialData.texBounds.Max.X, qb.materialData.texBounds.Min.Y), // 1
+								qb.materialData.texBounds.Max, // 0
+								new Vector2(qb.materialData.texBounds.Min.X, qb.materialData.texBounds.Max.Y) // 3
+							),
+							Item6 = new MyTuple<Vector2, Vector2, Vector2>
+							(
+								quad.Point0,
+								quad.Point1,
+								quad.Point2
+							),
+						};
+						var bbR = new FlatTriangleBillboardData
+						{
+							Item1 = BlendTypeEnum.PostPP,
+							Item3 = qb.materialData.textureID,
+							Item4 = new MyTuple<Vector4, BoundingBox2?>(qb.materialData.bbColor, box.mask),
+							Item5 = new MyTuple<Vector2, Vector2, Vector2>
+							(
+								new Vector2(qb.materialData.texBounds.Max.X, qb.materialData.texBounds.Min.Y), // 1
+								new Vector2(qb.materialData.texBounds.Min.X, qb.materialData.texBounds.Max.Y), // 3
+								qb.materialData.texBounds.Min // 2
+							),
+							Item6 = new MyTuple<Vector2, Vector2, Vector2>
+							(
+								quad.Point0,
+								quad.Point2,
+								quad.Point3
+							),
+						};
+
+						bbDataOut.Add(bbL);
+						bbDataOut.Add(bbR);
+					}
+				}
+
+				public static void GetTriangleData(
+					IReadOnlyList<BoundedQuadBoard> quads,
+					List<FlatTriangleBillboardData> bbDataOut,
+					BoundingBox2? mask = null,
+					Vector2 offset = default(Vector2),
+					float scale = 1
+				)
+				{
+					for (int i = 0; i < quads.Count; i++)
+					{
+						BoundedQuadBoard bqb = quads[i];
+						BoundedQuadMaterial mat = bqb.quadBoard.materialData;
+						Vector2 size = bqb.bounds.Size * scale,
+							center = offset + bqb.bounds.Center * scale;
+						BoundingBox2 bounds = BoundingBox2.CreateFromHalfExtent(center, .5f * size);
+
+						FlatQuad quad = new FlatQuad()
+						{
+							Point0 = bounds.Max,
+							Point1 = new Vector2(bounds.Max.X, bounds.Min.Y),
+							Point2 = bounds.Min,
+							Point3 = new Vector2(bounds.Min.X, bounds.Max.Y),
+						};
+
+						if (bqb.quadBoard.skewRatio != 0f)
+						{
+							Vector2 start = quad.Point0, end = quad.Point3,
+								delta = (end - start) * bqb.quadBoard.skewRatio * .5f;
+
+							quad.Point0 = Vector2.Lerp(start, end, bqb.quadBoard.skewRatio) - delta;
+							quad.Point3 = Vector2.Lerp(start, end, 1f + bqb.quadBoard.skewRatio) - delta;
+							quad.Point1 -= delta;
+							quad.Point2 -= delta;
+						}
+
+						bool isDisjoint = false;
+
+						if (mask != null)
+						{
+							isDisjoint =
+								(bounds.Max.X < mask.Value.Min.X) ||
+								(bounds.Min.X > mask.Value.Max.X) ||
+								(bounds.Max.Y < mask.Value.Min.Y) ||
+								(bounds.Min.Y > mask.Value.Max.Y);
+						}
+
+						if (!isDisjoint)
+						{
+							var bbL = new FlatTriangleBillboardData
+							{
+								Item1 = BlendTypeEnum.PostPP,
+								Item3 = mat.textureID,
+								Item4 = new MyTuple<Vector4, BoundingBox2?>(mat.bbColor, mask),
+								Item5 = new MyTuple<Vector2, Vector2, Vector2>
+								(
+									new Vector2(mat.texBounds.Max.X, mat.texBounds.Min.Y), // 1
+									mat.texBounds.Max, // 0
+									new Vector2(mat.texBounds.Min.X, mat.texBounds.Max.Y) // 3
+								),
+								Item6 = new MyTuple<Vector2, Vector2, Vector2>
+								(
+									quad.Point0,
+									quad.Point1,
+									quad.Point2
+								),
+							};
+							var bbR = new FlatTriangleBillboardData
+							{
+								Item1 = BlendTypeEnum.PostPP,
+								Item3 = mat.textureID,
+								Item4 = new MyTuple<Vector4, BoundingBox2?>(mat.bbColor, mask),
+								Item5 = new MyTuple<Vector2, Vector2, Vector2>
+								(
+									new Vector2(mat.texBounds.Max.X, mat.texBounds.Min.Y), // 1
+									new Vector2(mat.texBounds.Min.X, mat.texBounds.Max.Y), // 3
+									mat.texBounds.Min // 2
+								),
+								Item6 = new MyTuple<Vector2, Vector2, Vector2>
+								(
+									quad.Point0,
+									quad.Point2,
+									quad.Point3
+								),
+							};
+
+							bbDataOut.Add(bbL);
+							bbDataOut.Add(bbR);
+						}
+					}
+				}
+
+				/// <summary>
+				/// Adds a group of adjacent quads in continuous a strip with a shared material, and each quad sharing a side with the last
+				/// </summary>
+				public static void AddQuadStrip(IReadOnlyList<Vector2> vertices, BoundedQuadMaterial material, MatrixD[] matrixRef, BoundingBox2? mask = null)
+				{
+					var bbPool = instance.flatTriPoolBack[0];
+					var bbDataBack = instance.flatTriangleList;
+					var bbBuf = instance.bbBuf;
+					var matList = instance.matrixBuf;
+					var matTable = instance.matrixTable;
+
+					// Find matrix index in table or add it
+					int matrixID;
+
+					if (!matTable.TryGetValue(matrixRef, out matrixID))
+					{
+						matrixID = matList.Count;
+						matList.Add(matrixRef[0]);
+						matTable.Add(matrixRef, matrixID);
+					}
+
+					// Calculate maximum triangle count and preallocate
+					int triangleCount = 2 * ((vertices.Count - 2) / 2);
+					int bbDataStart = bbDataBack.Count;
+					bbDataBack.EnsureCapacity(bbDataBack.Count + triangleCount);
+
+					for (int i = 0; i < vertices.Count - 2; i += 2)
+					{
+						bool isDisjoint = false;
+
+						if (mask != null)
+						{
+							Vector2 min = new Vector2
+							{
+								X = Math.Min(Math.Min(Math.Min(vertices[i].X, vertices[i + 1].X), vertices[i + 2].X), vertices[i + 3].X),
+								Y = Math.Min(Math.Min(Math.Min(vertices[i].Y, vertices[i + 1].Y), vertices[i + 2].Y), vertices[i + 3].Y)
+							};
+							Vector2 max = new Vector2
+							{
+								X = Math.Max(Math.Max(Math.Max(vertices[i].X, vertices[i + 1].X), vertices[i + 2].X), vertices[i + 3].X),
+								Y = Math.Max(Math.Max(Math.Max(vertices[i].Y, vertices[i + 1].Y), vertices[i + 2].Y), vertices[i + 3].Y)
+							};
+
+							isDisjoint =
+								(max.X < mask.Value.Min.X) ||
+								(min.X > mask.Value.Max.X) ||
+								(max.Y < mask.Value.Min.Y) ||
+								(min.Y > mask.Value.Max.Y);
+						}
+
+						if (!isDisjoint)
+						{
+							var bbL = new FlatTriangleBillboardData
+							{
+								Item1 = BlendTypeEnum.PostPP,
+								Item2 = new Vector2I(bbDataBack.Count, matrixID),
+								Item3 = material.textureID,
+								Item4 = new MyTuple<Vector4, BoundingBox2?>(material.bbColor, mask),
+								Item5 = new MyTuple<Vector2, Vector2, Vector2>
+								(
+									material.texBounds.Max, // 0
+									new Vector2(material.texBounds.Max.X, material.texBounds.Min.Y), // 1
+									material.texBounds.Min // 2
+								),
+								Item6 = new MyTuple<Vector2, Vector2, Vector2>
+								(
+									vertices[i],
+									vertices[i + 1],
+									vertices[i + 3]
+								),
+							};
+							var bbR = new FlatTriangleBillboardData
+							{
+								Item1 = BlendTypeEnum.PostPP,
+								Item2 = new Vector2I(bbDataBack.Count + 1, matrixID),
+								Item3 = material.textureID,
+								Item4 = new MyTuple<Vector4, BoundingBox2?>(material.bbColor, mask),
+								Item5 = new MyTuple<Vector2, Vector2, Vector2>
+								(
+									material.texBounds.Max, // 0
+									material.texBounds.Min, // 2
+									new Vector2(material.texBounds.Min.X, material.texBounds.Max.Y) // 3
+								),
+								Item6 = new MyTuple<Vector2, Vector2, Vector2>
+								(
+									vertices[i],
+									vertices[i + 3],
+									vertices[i + 2]
+								),
+							};
+
+							bbDataBack.Add(bbL);
+							bbDataBack.Add(bbR);
+						}
+					}
+
+					// Get actual triangles used
+					triangleCount = bbDataBack.Count - bbDataStart;
+					int bbRemaining = bbPool.Count - bbDataStart,
+						bbToAdd = Math.Max(triangleCount - bbRemaining, 0);
+
+					instance.AddNewFlatBB(bbToAdd);
+					bbBuf.Clear();
+
+					for (int i = bbDataStart; i < bbDataBack.Count; i++)
+						bbBuf.Add(bbPool[i]);
+
+					MyTransparentGeometry.AddBillboards(bbBuf, false);
+				}
 
 				/// <summary>
 				/// Renders a polygon from a given set of unique vertex coordinates. Triangles are defined by their
@@ -617,197 +812,6 @@ namespace RichHudFramework
 				}
 
 				/// <summary>
-				/// Adds a list of textured quads in one batch using QuadBoard data
-				/// </summary>
-				public static void AddQuads(IReadOnlyList<BoundedQuadBoard> quads, MatrixD[] matrixRef, BoundingBox2? mask = null,
-					Vector2 offset = default(Vector2), float scale = 1f)
-				{
-					var bbPool = instance.flatTriPoolBack[0];
-					var bbDataBack = instance.flatTriangleList;
-					var bbBuf = instance.bbBuf;
-					var matList = instance.matrixBuf;
-					var matTable = instance.matrixTable;
-
-					// Find matrix index in table or add it
-					int matrixID;
-
-					if (!matTable.TryGetValue(matrixRef, out matrixID))
-					{
-						matrixID = matList.Count;
-						matList.Add(matrixRef[0]);
-						matTable.Add(matrixRef, matrixID);
-					}
-
-					int triangleCount = quads.Count * 2,
-						bbCountStart = bbDataBack.Count;
-
-					bbDataBack.EnsureCapacity(bbDataBack.Count + triangleCount);
-
-					for (int i = 0; i < quads.Count; i++)
-					{
-						BoundedQuadBoard boundedQB = quads[i];
-						BoundedQuadMaterial mat = boundedQB.quadBoard.materialData;
-						Vector2 size = boundedQB.bounds.Size * scale,
-							center = offset + boundedQB.bounds.Center * scale;
-
-						BoundingBox2 bounds = BoundingBox2.CreateFromHalfExtent(center, .5f * size);
-						BoundingBox2? maskBox = mask;
-						ContainmentType containment = ContainmentType.Contains;
-
-						if (maskBox != null)
-						{
-							maskBox.Value.Contains(ref bounds, out containment);
-
-							if (containment == ContainmentType.Contains)
-								maskBox = null;
-						}
-
-						if (containment != ContainmentType.Disjoint)
-						{
-							var bbL = new FlatTriangleBillboardData
-							{
-								Item1 = BlendTypeEnum.PostPP,
-								Item2 = new Vector2I(bbDataBack.Count, matrixID),
-								Item3 = mat.textureID,
-								Item4 = new MyTuple<Vector4, BoundingBox2?>(mat.bbColor, maskBox),
-								Item5 = new MyTuple<Vector2, Vector2, Vector2>
-								(
-									new Vector2(mat.texBounds.Max.X, mat.texBounds.Min.Y), // 1
-									mat.texBounds.Max, // 0
-									new Vector2(mat.texBounds.Min.X, mat.texBounds.Max.Y) // 3
-								),
-								Item6 = new MyTuple<Vector2, Vector2, Vector2>
-								(
-									bounds.Max,
-									new Vector2(bounds.Max.X, bounds.Min.Y),
-									bounds.Min
-								),
-							};
-							var bbR = new FlatTriangleBillboardData
-							{
-								Item1 = BlendTypeEnum.PostPP,
-								Item2 = new Vector2I(bbDataBack.Count + 1, matrixID),
-								Item3 = mat.textureID,
-								Item4 = new MyTuple<Vector4, BoundingBox2?>(mat.bbColor, maskBox),
-								Item5 = new MyTuple<Vector2, Vector2, Vector2>
-								(
-									new Vector2(mat.texBounds.Max.X, mat.texBounds.Min.Y), // 1
-									new Vector2(mat.texBounds.Min.X, mat.texBounds.Max.Y), // 3
-									mat.texBounds.Min // 2
-								),
-								Item6 = new MyTuple<Vector2, Vector2, Vector2>
-								(
-									bounds.Max,
-									bounds.Min,
-									new Vector2(bounds.Min.X, bounds.Max.Y)
-								),
-							};
-
-							bbDataBack.Add(bbL);
-							bbDataBack.Add(bbR);
-						}
-					}
-
-					// Add more billboards to pool as needed then queue them for rendering
-					int bbToAdd = Math.Max(bbDataBack.Count - bbPool.Count, 0);
-					instance.AddNewFlatBB(bbToAdd);
-
-					for (int i = bbCountStart; i < bbDataBack.Count; i++)
-						bbBuf.Add(bbPool[i]);
-
-					MyTransparentGeometry.AddBillboards(bbBuf, false);
-					bbBuf.Clear();
-				}
-
-				/// <summary>
-				/// Queues a quad billboard for rendering
-				/// </summary>
-				public static void AddQuad(ref BoundedQuadBoard boundedQB, MatrixD[] matrixRef, BoundingBox2? mask = null)
-				{
-					var bbPool = instance.flatTriPoolBack[0];
-					var bbDataBack = instance.flatTriangleList;
-					var matList = instance.matrixBuf;
-					var matTable = instance.matrixTable;
-
-					// Find matrix index in table or add it
-					int matrixID;
-
-					if (!matTable.TryGetValue(matrixRef, out matrixID))
-					{
-						matrixID = matList.Count;
-						matList.Add(matrixRef[0]);
-						matTable.Add(matrixRef, matrixID);
-					}
-
-					// Mask bounding check. Null mask if not intersecting.
-					BoundingBox2? maskBox = mask;
-					ContainmentType containment = ContainmentType.Contains;
-
-					if (maskBox != null)
-					{
-						maskBox.Value.Contains(ref boundedQB.bounds, out containment);
-
-						if (containment == ContainmentType.Contains)
-							maskBox = null;
-					}
-
-					if (containment != ContainmentType.Disjoint)
-					{
-						int indexL = bbDataBack.Count,
-							indexR = bbDataBack.Count + 1;
-						BoundedQuadMaterial mat = boundedQB.quadBoard.materialData;
-
-						var bbL = new FlatTriangleBillboardData
-						{
-							Item1 = BlendTypeEnum.PostPP,
-							Item2 = new Vector2I(indexL, matrixID),
-							Item3 = mat.textureID,
-							Item4 = new MyTuple<Vector4, BoundingBox2?>(mat.bbColor, maskBox),
-							Item5 = new MyTuple<Vector2, Vector2, Vector2>
-							(
-								new Vector2(mat.texBounds.Max.X, mat.texBounds.Min.Y), // 1
-								mat.texBounds.Max, // 0
-								new Vector2(mat.texBounds.Min.X, mat.texBounds.Max.Y) // 3
-							),
-							Item6 = new MyTuple<Vector2, Vector2, Vector2>
-							(
-								boundedQB.bounds.Max,
-								new Vector2(boundedQB.bounds.Max.X, boundedQB.bounds.Min.Y),
-								boundedQB.bounds.Min
-							),
-						};
-						var bbR = new FlatTriangleBillboardData
-						{
-							Item1 = BlendTypeEnum.PostPP,
-							Item2 = new Vector2I(indexR, matrixID),
-							Item3 = mat.textureID,
-							Item4 = new MyTuple<Vector4, BoundingBox2?>(mat.bbColor, maskBox),
-							Item5 = new MyTuple<Vector2, Vector2, Vector2>
-							(
-								new Vector2(mat.texBounds.Max.X, mat.texBounds.Min.Y), // 1
-								new Vector2(mat.texBounds.Min.X, mat.texBounds.Max.Y), // 3
-								mat.texBounds.Min // 2
-							),
-							Item6 = new MyTuple<Vector2, Vector2, Vector2>
-							(
-								boundedQB.bounds.Max,
-								boundedQB.bounds.Min,
-								new Vector2(boundedQB.bounds.Min.X, boundedQB.bounds.Max.Y)
-							),
-						};
-
-						bbDataBack.Add(bbL);
-						bbDataBack.Add(bbR);
-
-						if (indexR >= bbPool.Count)
-							instance.AddNewFlatBB(indexR - (bbPool.Count - 1));
-
-						MyTransparentGeometry.AddBillboard(bbPool[indexL], false);
-						MyTransparentGeometry.AddBillboard(bbPool[indexR], false);
-					}
-				}
-
-				/// <summary>
 				/// Queues a quad billboard for rendering
 				/// </summary>
 				public static void AddQuad(ref FlatQuad quad, ref BoundedQuadMaterial mat, MatrixD[] matrixRef, BoundingBox2? mask = null)
@@ -828,19 +832,19 @@ namespace RichHudFramework
 					}
 
 					// Mask bounding check. Null mask if not intersecting.
-					BoundingBox2? maskBox = mask;
-					ContainmentType containment = ContainmentType.Contains;
+					bool isDisjoint = false;
 
-					if (maskBox != null)
+					if (mask != null)
 					{
 						BoundingBox2 bounds = new BoundingBox2(quad.Point2, quad.Point0);
-						maskBox.Value.Contains(ref bounds, out containment);
-
-						if (containment == ContainmentType.Contains)
-							maskBox = null;
+						isDisjoint =
+							(bounds.Max.X < mask.Value.Min.X) ||
+							(bounds.Min.X > mask.Value.Max.X) ||
+							(bounds.Max.Y < mask.Value.Min.Y) ||
+							(bounds.Min.Y > mask.Value.Max.Y);
 					}
 
-					if (containment != ContainmentType.Disjoint)
+					if (!isDisjoint)
 					{
 						int indexL = bbDataBack.Count,
 							indexR = bbDataBack.Count + 1;
@@ -850,7 +854,7 @@ namespace RichHudFramework
 							Item1 = BlendTypeEnum.PostPP,
 							Item2 = new Vector2I(indexL, matrixID),
 							Item3 = mat.textureID,
-							Item4 = new MyTuple<Vector4, BoundingBox2?>(mat.bbColor, maskBox),
+							Item4 = new MyTuple<Vector4, BoundingBox2?>(mat.bbColor, mask),
 							Item5 = new MyTuple<Vector2, Vector2, Vector2>
 							(
 								new Vector2(mat.texBounds.Max.X, mat.texBounds.Min.Y), // 1
@@ -869,7 +873,7 @@ namespace RichHudFramework
 							Item1 = BlendTypeEnum.PostPP,
 							Item2 = new Vector2I(indexR, matrixID),
 							Item3 = mat.textureID,
-							Item4 = new MyTuple<Vector4, BoundingBox2?>(mat.bbColor, maskBox),
+							Item4 = new MyTuple<Vector4, BoundingBox2?>(mat.bbColor, mask),
 							Item5 = new MyTuple<Vector2, Vector2, Vector2>
 							(
 								new Vector2(mat.texBounds.Max.X, mat.texBounds.Min.Y), // 1

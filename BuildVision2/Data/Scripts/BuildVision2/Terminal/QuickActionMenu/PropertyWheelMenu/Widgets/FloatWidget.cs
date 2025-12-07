@@ -55,7 +55,7 @@ namespace DarkHelmet.BuildVision2
 
                 SetSliderValue(floatMember.Value);
                 sliderBox.NameBuilder.SetText(floatMember.Name);
-                sliderBox.MouseInput.GetInputFocus();
+                sliderBox.FocusHandler.GetInputFocus();
                 sliderBox.CharFilterFunc = textMember.CharFilterFunc;
                 initValue = floatMember.Value;
 
@@ -190,11 +190,11 @@ namespace DarkHelmet.BuildVision2
                 if (absRange > FloatPropLogThreshold)
                 {
                     current = MathHelper.Clamp(current, floatMember.MinValue, floatMember.MaxValue);
-                    sliderBox.Current = (float)(Math.Log10(Math.Abs(current - floatMember.MinValue) + 1d) / logRange);
+                    sliderBox.Value = (float)(Math.Log10(Math.Abs(current - floatMember.MinValue) + 1d) / logRange);
                 }
                 else
                 {
-                    sliderBox.Current = (float)((current - floatMember.MinValue) / absRange);
+                    sliderBox.Value = (float)((current - floatMember.MinValue) / absRange);
                 }
             }
 
@@ -203,7 +203,7 @@ namespace DarkHelmet.BuildVision2
             /// </summary>
             private float GetSliderValue()
             {
-                double value = sliderBox.Current;
+                double value = sliderBox.Value;
 
                 if (absRange > FloatPropLogThreshold)
                 {
@@ -233,26 +233,25 @@ namespace DarkHelmet.BuildVision2
 
                 public CustomSliderBox(HudParentBase parent = null) : base(parent)
                 {
-                    textField = new TextField()
+                    textField = new TextField(this)
                     {
                         Height = 47f,
                         DimAlignment = DimAlignments.UnpaddedWidth,
                         ParentAlignment = ParentAlignments.InnerBottom,
                         Visible = false,
                     };
-                    textField.Register(this, true);
                 }
 
                 public void OpenTextInput()
                 {
                     if (!IsTextInputOpen)
                     {
-                        sliderBox.Visible = false;
+                        SliderBox.Visible = false;
                         textField.Visible = true;
                         current.Visible = false;
 
                         textField.OpenInput();
-                        textField.MouseInput.GetInputFocus();
+                        textField.FocusHandler.GetInputFocus();
                     }
                 }
 
@@ -261,11 +260,11 @@ namespace DarkHelmet.BuildVision2
                     if (IsTextInputOpen)
                     {
                         current.Visible = true;
-                        sliderBox.Visible = true;
+                        SliderBox.Visible = true;
                         textField.Visible = false;
 
                         textField.CloseInput();
-                        sliderBox.MouseInput.GetInputFocus();
+                        SliderBox.FocusHandler.GetInputFocus();
                     }
                 }
             }

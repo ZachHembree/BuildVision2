@@ -3,11 +3,21 @@ using VRageMath;
 
 namespace RichHudFramework.UI.Rendering
 {
+    /// <summary>
+    /// Font styles used by RHF. Regular, italic and underline styling is always available.
+    /// Bolding requires optional font atlases that may or may not be present.
+    /// </summary>
     [Flags]
     public enum FontStyles : int
     {
+        /// <summary>
+        /// Regular text style, no effects. Always available for each font.
+        /// </summary>
         Regular = 0,
 
+        /// <summary>
+        /// Bolded text requiring extra atlases. Not available for every font.
+        /// </summary>
         Bold = 1,
 
         /// <summary>
@@ -15,7 +25,10 @@ namespace RichHudFramework.UI.Rendering
         /// </summary>
         Italic = 2,
 
-        BoldItalic = 3,
+		/// <summary>
+		/// Bolded italic text requiring extra atlases. Not available for every font.
+		/// </summary>
+		BoldItalic = 3,
 
         /// <summary>
         /// Font effect, always available

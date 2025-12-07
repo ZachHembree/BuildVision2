@@ -1,46 +1,42 @@
-﻿using System;
-using System.Text;
-using VRage;
-using VRageMath;
-using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
-using ApiMemberAccessor = System.Func<object, int, object>;
-using EventAccessor = VRage.MyTuple<bool, System.Action>;
+﻿using VRageMath;
 
 namespace RichHudFramework.UI.Client
 {
-    using RichStringMembers = MyTuple<StringBuilder, GlyphFormatMembers>;
+	/// <summary>
+	/// Internal API member accessor indices
+	/// </summary>
+	/// <exclude/>
+	public enum DragBoxAccessors : int
+	{
+		BoxSize = 16,
+		AlignToEdge = 17,
+	}
 
-    public enum DragBoxAccessors : int
-    {
-        BoxSize = 16,
-        AlignToEdge = 17,
-    }
+	/// <summary>
+	/// A control allowing the user to visually select a 2D screen position (Vector2) for a <see cref="ControlTile"/>.
+	/// <para>Spawns a temporary draggable window when interacted with. Useful for configuring HUD element positions.</para>
+	/// </summary>
+	public class TerminalDragBox : TerminalValue<Vector2>
+	{
+		/// <summary>
+		/// The size of the draggable window spawned by this control.
+		/// </summary>
+		public Vector2 BoxSize
+		{
+			get { return (Vector2)GetOrSetMember(null, (int)DragBoxAccessors.BoxSize); }
+			set { GetOrSetMember(value, (int)DragBoxAccessors.BoxSize); }
+		}
 
-    /// <summary>
-    /// A terminal control that uses a draggable window to indicate a position on the screen.
-    /// </summary>
-    public class TerminalDragBox : TerminalValue<Vector2>
-    {
-        /// <summary>
-        /// Size of the window spawned by the control.
-        /// </summary>
-        public Vector2 BoxSize
-        {
-            get { return (Vector2)GetOrSetMember(null, (int)DragBoxAccessors.BoxSize); }
-            set { GetOrSetMember(value, (int)DragBoxAccessors.BoxSize); }
-        }
+		/// <summary>
+		/// If true, the window aligns itself to the nearest screen edge.
+		/// </summary>
+		public bool AlignToEdge
+		{
+			get { return (bool)GetOrSetMember(null, (int)DragBoxAccessors.AlignToEdge); }
+			set { GetOrSetMember(value, (int)DragBoxAccessors.AlignToEdge); }
+		}
 
-        /// <summary>
-        /// Determines whether or not the window will automatically align itself to one side of the screen
-        /// or the other.
-        /// </summary>
-        public bool AlignToEdge
-        {
-            get { return (bool)GetOrSetMember(null, (int)DragBoxAccessors.AlignToEdge); }
-            set { GetOrSetMember(value, (int)DragBoxAccessors.AlignToEdge); }
-        }
-
-        public TerminalDragBox() : base(MenuControls.DragBox)
-        { }
-    }
+		public TerminalDragBox() : base(MenuControls.DragBox)
+		{ }
+	}
 }

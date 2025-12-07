@@ -20,6 +20,8 @@ namespace DarkHelmet.BuildVision2
 
             public IMouseInput MouseInput { get; protected set; }
 
+            public IFocusHandler FocusHandler { get; protected set; }
+
             protected readonly BorderedButton cancelButton, confirmButton;
             protected readonly HudChain buttonChain;
             protected HudChain layout;
@@ -52,6 +54,7 @@ namespace DarkHelmet.BuildVision2
                 };
                 buttonChain.Size = buttonChain.GetRangeSize();
 
+                FocusHandler = new InputFocusHandler(this);
                 MouseInput = new MouseInputElement(this)
                 {
                     ZOffset = 10,
@@ -82,12 +85,12 @@ namespace DarkHelmet.BuildVision2
                 {
                     if (BvBinds.Cancel.IsNewPressed)
                     {
-                        cancelButton.MouseInput.GetInputFocus();
+                        cancelButton.FocusHandler.GetInputFocus();
                         IsWidgetFocused = false;
                     }
                     else if (BvBinds.Select.IsNewPressed)
                     {
-                        confirmButton.MouseInput.GetInputFocus();
+                        confirmButton.FocusHandler.GetInputFocus();
                         IsWidgetFocused = false;
                     }
 

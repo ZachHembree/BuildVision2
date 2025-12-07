@@ -1,242 +1,276 @@
-﻿using RichHudFramework.UI.Rendering;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using VRageMath;
 
 namespace RichHudFramework.UI.Rendering
 {
-    using Client;
-    using Server;
+	/// <summary>
+	/// Renders a regular 2D polygon (e.g., triangle, hexagon, circle approximation) using billboards.
+	/// The shape is constructed as a triangle fan from the center.
+	/// </summary>
+	public class PolyBoard
+	{
+		/// <summary>
+		/// The color tint applied to the polygon material.
+		/// </summary>
+		public virtual Color Color
+		{
+			get { return _color; }
+			set
+			{
+				if (value != _color)
+					polyMat.bbColor = value.GetBbColor();
 
-    /// <summary>
-    /// Renders a 2D polygon using billboards
-    /// </summary>
-    public class PolyBoard
-    {
-        /// <summary>
-        /// Tinting applied to the material
-        /// </summary>
-        public virtual Color Color
-        {
-            get { return color; }
-            set
-            {
-                if (value != color)
-                    polyMat.bbColor = value.GetBbColor();
+				_color = value;
+			}
+		}
 
-                color = value;
-            }
-        }
+		/// <summary>
+		/// The texture applied to the polygon.
+		/// </summary>
+		public virtual Material Material
+		{
+			get { return matFrame.Material; }
+			set
+			{
+				if (value != matFrame.Material)
+				{
+					updateMatFit = true;
+					matFrame.Material = value;
+					polyMat.textureID = value.TextureID;
+				}
+			}
+		}
 
-        /// <summary>
-        /// Texture applied to the billboard.
-        /// </summary>
-        public virtual Material Material
-        {
-            get { return matFrame.Material; }
-            set
-            {
-                if (value != matFrame.Material)
-                {
-                    updateMatFit = true;
-                    matFrame.Material = value;
-                    polyMat.textureID = value.TextureID;
-                }
-            }
-        }
+		/// <summary>
+		/// Determines how the texture is scaled to fit the polygon's bounding box.
+		/// </summary>
+		public MaterialAlignment MatAlignment
+		{
+			get { return matFrame.Alignment; }
+			set
+			{
+				if (value != matFrame.Alignment)
+				{
+					updateMatFit = true;
+					matFrame.Alignment = value;
+				}
+			}
+		}
 
-        /// <summary>
-        /// Determines how the texture scales with the MatBoard's dimensions.
-        /// </summary>
-        public MaterialAlignment MatAlignment
-        {
-            get { return matFrame.Alignment; }
-            set
-            {
-                if (value != matFrame.Alignment)
-                {
-                    updateMatFit = true;
-                    matFrame.Alignment = value;
-                }
-            }
-        }
+		/// <summary>
+		/// The number of sides (vertices) on the polygon perimeter.
+		/// Higher values approximate a circle.
+		/// </summary>
+		public virtual int Sides
+		{
+			get { return _sides; }
+			set
+			{
+				if (value != _sides)
+					updateVertices = true;
 
-        /// <summary>
-        /// Get/set number of sides on the polygon
-        /// </summary>
-        public virtual int Sides
-        {
-            get { return _sides; }
-            set
-            {
-                if (value != _sides)
-                    updateVertices = true;
+				_sides = value;
+			}
+		}
 
-                _sides = value;
-            }
-        }
+		/// <exclude/>
+		protected int _sides;
 
-        protected int _sides;
+		/// <exclude/>
+		protected Color _color;
 
-        protected Color color;
-        protected bool updateVertices, updateMatFit;
+		/// <summary>
+		/// Internal flags used to indicate stale vertex positions and material alignment
+		/// </summary>
+		/// <exclude/>
+		protected bool updateVertices, updateMatFit;
 
-        protected PolyMaterial polyMat;
-        protected readonly MaterialFrame matFrame;
-        protected readonly List<int> triangles;
-        protected readonly List<Vector2> vertices;
-        protected readonly List<Vector2> drawVertices;
+		/// <summary>
+		/// Material for texturing an object with an arbitrary number of vertices
+		/// </summary>
+		/// <exclude/>
+		protected PolyMaterial polyMat;
 
-        public PolyBoard()
-        {
-            triangles = new List<int>();
-            vertices = new List<Vector2>();
-            drawVertices = new List<Vector2>();
+		/// <exclude/>
+		protected readonly MaterialFrame matFrame;
 
-            matFrame = new MaterialFrame();
-            polyMat = PolyMaterial.Default;
-            polyMat.texCoords = new List<Vector2>();
+		/// <summary>
+		/// Unscaled internal geometry
+		/// </summary>
+		/// <exclude/>
+		protected readonly List<int> triangles;
+		/// <exclude/>
+		protected readonly List<Vector2> vertices;
 
-            _sides = 16;
-            updateVertices = true;
-        }
+		/// <summary>
+		/// Buffer for final scaled vertices
+		/// </summary>
+		/// <exclude/>
+		protected readonly List<Vector2> drawVertices;
 
-        /// <summary>
-        /// Draws a polygon using billboards
-        /// </summary>
-        public virtual void Draw(Vector2 size, Vector2 origin, MatrixD[] matrixRef)
-        {
-            if (_sides > 2 && drawVertices.Count > 2)
-            {
-                if (updateVertices)
-                    GeneratePolygon();
+		public PolyBoard()
+		{
+			triangles = new List<int>();
+			vertices = new List<Vector2>();
+			drawVertices = new List<Vector2>();
 
-                if (updateMatFit)
-                {
-                    polyMat.texBounds = matFrame.GetMaterialAlignment(size.X / size.Y);
-                    GenerateTextureCoordinates();
-                    updateMatFit = false;
-                }
+			matFrame = new MaterialFrame();
+			polyMat = PolyMaterial.Default;
+			polyMat.texCoords = new List<Vector2>();
 
-                // Generate final vertices for drawing from unscaled vertices
-                for (int i = 0; i < drawVertices.Count; i++)
-                {
-                    drawVertices[i] = origin + size * vertices[i];
-                }
+			_sides = 16;
+			updateVertices = true;
+		}
 
-                BillBoardUtils.AddTriangles(triangles, drawVertices, ref polyMat, matrixRef);
-            }
-        }
+		/// <summary>
+		/// Renders the full polygon defined by <see cref="Sides"/> with the specified dimensions and position.
+		/// </summary>
+		public virtual void Draw(Vector2 size, Vector2 origin, MatrixD[] matrixRef)
+		{
+			if (_sides > 2)
+			{
+				if (updateVertices)
+					GeneratePolygon();
+			}
 
-        /// <summary>
-        /// Draws the given range of faces
-        /// </summary>
-        public virtual void Draw(Vector2 size, Vector2 origin, Vector2I faceRange, MatrixD[] matrixRef)
-        {
-            if (_sides > 2 && drawVertices.Count > 2)
-            {
-                if (updateVertices)
-                    GeneratePolygon();
+			if (_sides > 2 && drawVertices.Count > 2)
+			{
+				if (updateMatFit)
+				{
+					polyMat.texBounds = matFrame.GetMaterialAlignment(size.X / size.Y);
+					GenerateTextureCoordinates();
+					updateMatFit = false;
+				}
 
-                if (updateMatFit)
-                {
-                    polyMat.texBounds = matFrame.GetMaterialAlignment(size.X / size.Y);
-                    GenerateTextureCoordinates();
-                    updateMatFit = false;
-                }
+				// Generate final vertices for drawing from unscaled vertices
+				for (int i = 0; i < drawVertices.Count; i++)
+				{
+					drawVertices[i] = origin + size * vertices[i];
+				}
 
-                // Generate final vertices for drawing from unscaled vertices
-                int max = drawVertices.Count - 1;
-                drawVertices[max] = origin + size * vertices[max];
+				BillBoardUtils.AddTriangles(triangles, drawVertices, ref polyMat, matrixRef);
+			}
+		}
 
-                for (int i = 0; i < drawVertices.Count; i++)
-                {
-                    drawVertices[i] = origin + size * vertices[i];
-                }
+		/// <summary>
+		/// Renders a specific range of faces (pie slice) of the polygon.
+		/// </summary>
+		/// <param name="faceRange">The start and end index of the triangles to draw.</param>
+		public virtual void Draw(Vector2 size, Vector2 origin, Vector2I faceRange, MatrixD[] matrixRef)
+		{
+			if (_sides > 2)
+			{
+				if (updateVertices)
+					GeneratePolygon();
+			}
 
-                faceRange *= 3;
-                BillBoardUtils.AddTriangleRange(faceRange, triangles, drawVertices, ref polyMat, matrixRef);
-            }
-        }
+			if (_sides > 2 && drawVertices.Count > 2)
+			{
+				if (updateMatFit)
+				{
+					polyMat.texBounds = matFrame.GetMaterialAlignment(size.X / size.Y);
+					GenerateTextureCoordinates();
+					updateMatFit = false;
+				}
 
-        /// <summary>
-        /// Returns the center position of the given slice relative to the center of the billboard
-        /// </summary>
-        public virtual Vector2 GetSliceOffset(Vector2 bbSize, Vector2I range)
-        {
-            if (updateVertices)
-                GeneratePolygon();
+				// Generate final vertices for drawing from unscaled vertices
+				int max = drawVertices.Count - 1;
+				drawVertices[max] = origin + size * vertices[max];
 
-            int max = vertices.Count;
-            Vector2 start = vertices[range.X], 
-                end = vertices[(range.Y + 1) % max], 
-                center = Vector2.Zero;
+				for (int i = 0; i < drawVertices.Count; i++)
+				{
+					drawVertices[i] = origin + size * vertices[i];
+				}
 
-            return bbSize * (start + end + center) / 3f;
-        }
+				faceRange *= 3;
+				BillBoardUtils.AddTriangleRange(faceRange, triangles, drawVertices, ref polyMat, matrixRef);
+			}
+		}
 
-        protected virtual void GeneratePolygon()
-        {
-            GenerateVertices();
-            GenerateTriangles();
-            drawVertices.Clear();
+		/// <summary>
+		/// Calculates the center offset of a specific slice of the polygon relative to the billboard center.
+		/// Useful for radial menus or separated pie charts.
+		/// </summary>
+		public virtual Vector2 GetSliceOffset(Vector2 bbSize, Vector2I range)
+		{
+			if (updateVertices)
+				GeneratePolygon();
 
-            for (int i = 0; i < vertices.Count; i++)
-                drawVertices.Add(Vector2.Zero);
+			int max = vertices.Count;
+			Vector2 start = vertices[range.X],
+				end = vertices[(range.Y + 1) % max],
+				center = Vector2.Zero;
 
-            updateMatFit = true;
-        }
+			return bbSize * (start + end + center) / 3f;
+		}
 
-        protected virtual void GenerateTriangles()
-        {
-            int max = vertices.Count - 1;
-            triangles.Clear();
-            triangles.EnsureCapacity(_sides * 3);
+		/// <exclude/>
+		protected virtual void GeneratePolygon()
+		{
+			GenerateVertices();
+			GenerateTriangles();
+			drawVertices.Clear();
 
-            for (int i = 0; i < vertices.Count - 1; i++)
-            {
-                triangles.Add(max);
-                triangles.Add(i);
-                triangles.Add((i + 1) % max);
-            }
-        }
+			for (int i = 0; i < vertices.Count; i++)
+				drawVertices.Add(Vector2.Zero);
 
-        protected virtual void GenerateTextureCoordinates()
-        {
-            Vector2 texScale = polyMat.texBounds.Size,
-                texCenter = polyMat.texBounds.Center;
+			updateMatFit = true;
+		}
 
-            polyMat.texCoords.Clear();
-            polyMat.texCoords.EnsureCapacity(vertices.Count);
+		/// <exclude/>
+		protected virtual void GenerateTriangles()
+		{
+			int max = vertices.Count - 1;
+			triangles.Clear();
+			triangles.EnsureCapacity(_sides * 3);
 
-            for (int i = 0; i < vertices.Count; i++)
-            {
-                Vector2 uv = vertices[i] * texScale;
-                uv.Y *= -1f;
+			for (int i = 0; i < vertices.Count - 1; i++)
+			{
+				triangles.Add(max);
+				triangles.Add(i);
+				triangles.Add((i + 1) % max);
+			}
+		}
 
-                polyMat.texCoords.Add(uv + texCenter);
-            }
-        }
+		/// <exclude/>
+		protected virtual void GenerateTextureCoordinates()
+		{
+			Vector2 texScale = polyMat.texBounds.Size,
+				texCenter = polyMat.texBounds.Center;
 
-        protected virtual void GenerateVertices()
-        {
-            float rotStep = (float)(Math.PI * 2f / _sides),
-                rotPos = -.5f * rotStep;
+			polyMat.texCoords.Clear();
+			polyMat.texCoords.EnsureCapacity(vertices.Count);
 
-            vertices.Clear();
-            vertices.EnsureCapacity(_sides + 1);
+			for (int i = 0; i < vertices.Count; i++)
+			{
+				Vector2 uv = vertices[i] * texScale;
+				uv.Y *= -1f;
 
-            for (int i = 0; i < _sides; i++)
-            {
-                Vector2 point = Vector2.Zero;
-                point.X = (float)Math.Cos(rotPos);
-                point.Y = (float)Math.Sin(rotPos);
+				polyMat.texCoords.Add(uv + texCenter);
+			}
+		}
 
-                vertices.Add(.5f * point);
-                rotPos += rotStep;
-            }
+		/// <exclude/>
+		protected virtual void GenerateVertices()
+		{
+			float rotStep = (float)(Math.PI * 2f / _sides),
+				rotPos = -.5f * rotStep;
 
-            vertices.Add(Vector2.Zero);
-        }
-    }
+			vertices.Clear();
+			vertices.EnsureCapacity(_sides + 1);
+
+			for (int i = 0; i < _sides; i++)
+			{
+				Vector2 point = Vector2.Zero;
+				point.X = (float)Math.Cos(rotPos);
+				point.Y = (float)Math.Sin(rotPos);
+
+				vertices.Add(.5f * point);
+				rotPos += rotStep;
+			}
+
+			vertices.Add(Vector2.Zero);
+		}
+	}
 }

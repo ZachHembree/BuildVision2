@@ -157,8 +157,7 @@ namespace DarkHelmet.BuildVision2
             if (Target.TBlock != null && Open)
             {
                 Vector3D targetWorldPos, targetScreenPos;
-                Vector2 screenBounds = new Vector2(HudMain.ScreenWidth, HudMain.ScreenHeight) / HudMain.ResScale * .5f,
-                    menuPos;
+                Vector2 menuPos;
 
                 if (!BvConfig.Current.genUI.useCustomPos)
                 {
@@ -168,7 +167,7 @@ namespace DarkHelmet.BuildVision2
                         targetScreenPos = LocalPlayer.GetWorldToScreenPos(targetWorldPos) * .5d;
 
                         menuPos = new Vector2((float)targetScreenPos.X, (float)targetScreenPos.Y);
-                        menuPos = HudMain.GetPixelVector(menuPos) / scale;
+                        menuPos = (menuPos * HudMain.ScreenDim) / scale;
                     }
                     else
                         menuPos = lastPos;
@@ -176,7 +175,7 @@ namespace DarkHelmet.BuildVision2
                 else
                 {
                     menuPos = BvConfig.Current.genUI.hudPos;
-                    menuPos = HudMain.GetPixelVector(menuPos) / scale;
+                    menuPos = (menuPos * HudMain.ScreenDim) / scale;
 
                     if (menuPos.X < 0f)
                         menuPos.X += .5f * quickActionMenu.Width;
@@ -191,7 +190,7 @@ namespace DarkHelmet.BuildVision2
 
                 if (BvConfig.Current.genUI.clampHudPos || BvConfig.Current.genUI.useCustomPos)
                 {
-                    screenBounds -= .5f * quickActionMenu.Size;
+                    Vector2 screenBounds = 0.5f * ((HudMain.ScreenDim / scale) - quickActionMenu.Size);
                     menuPos.X = MathHelper.Clamp(menuPos.X, -screenBounds.X, screenBounds.X);
                     menuPos.Y = MathHelper.Clamp(menuPos.Y, -screenBounds.Y, screenBounds.Y);
                 }

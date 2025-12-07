@@ -1,5 +1,4 @@
 ﻿using RichHudFramework.Internal;
-using VRage.Input;
 
 namespace RichHudFramework.UI
 {
@@ -7,7 +6,7 @@ namespace RichHudFramework.UI
     using Server;
 
     /// <summary>
-    /// Wrapper used to provide easy access to library key binds.
+    /// A collection of immutable, commonly used key binds used by the framework library.
     /// </summary>
     public sealed class SharedBinds : RichHudComponentBase
     {
@@ -38,9 +37,9 @@ namespace RichHudFramework.UI
         public static IBind RightStickX { get {  return Instance.sharedMain[19]; } }
         public static IBind RightStickY { get { return Instance.sharedMain[20]; } }
 
-        public static IBind Control { get { return Instance.sharedModifiers[0]; } }
-        public static IBind Shift { get { return Instance.sharedModifiers[1]; } }
-        public static IBind Alt { get { return Instance.sharedModifiers[2]; } }
+        public static IBind Shift { get { return Instance.sharedModifiers[0]; } }
+		public static IBind Control { get { return Instance.sharedModifiers[1]; } }
+		public static IBind Alt { get { return Instance.sharedModifiers[2]; } }
 
         private static SharedBinds Instance
         {
@@ -97,6 +96,10 @@ namespace RichHudFramework.UI
                 instance = new SharedBinds();
         }
 
+        /// <summary>
+        /// Internal component closing callback
+        /// </summary>
+        /// <exclude/>
         public override void Close()
         {
             Instance = null;

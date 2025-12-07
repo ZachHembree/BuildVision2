@@ -1,21 +1,8 @@
-using ProtoBuf;
-using RichHudFramework;
 using RichHudFramework.Client;
 using RichHudFramework.Internal;
-using RichHudFramework.IO;
-using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
-using Sandbox.ModAPI;
 using System;
-using System.Collections.Generic;
-using VRage;
-using VRage.Game;
 using VRage.Game.Components;
-using VRage.Game.Entity;
-using VRage.Game.ModAPI;
-using VRage.ModAPI;
-using VRage.Utils;
-using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -25,7 +12,7 @@ namespace DarkHelmet.BuildVision2
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation, -1)]
     public sealed partial class BvMain : ModBase
     {
-        public const string modName = "Build Vision";
+        public const string ModName = "Build Vision";
 
         public static BvMain Instance { get; private set; }
 
@@ -38,10 +25,9 @@ namespace DarkHelmet.BuildVision2
             else
                 throw new Exception("Only one instance of BvMain can exist at any given time.");
 
-            LogIO.FileName = "bvLog.txt";
             BvConfig.FileName = "BuildVision2Config.xml";
 
-            ExceptionHandler.ModName = modName;
+            ExceptionHandler.ModName = ModName;
             ExceptionHandler.PromptForReload = true;
             ExceptionHandler.RecoveryLimit = 3;
         }

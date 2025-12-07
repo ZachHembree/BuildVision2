@@ -4,7 +4,7 @@ using System;
 namespace RichHudFramework.UI
 {
     /// <summary>
-    /// Clickable button with text and a textured background. 
+    /// Clickable button with text on top of a textured background with highlighting. 
     /// </summary>
     public class LabelBoxButton : LabelBox, IClickableElement
     {
@@ -23,28 +23,47 @@ namespace RichHudFramework.UI
         /// </summary>
         public override bool IsMousedOver => _mouseInput.IsMousedOver;
 
-        /// <summary>
-        /// Mouse input for the button.
-        /// </summary>
-        public IMouseInput MouseInput => _mouseInput;
+		/// <summary>
+		/// Interface used to manage the element's input focus state
+		/// </summary>
+		public IFocusHandler FocusHandler { get; }
 
+		/// <summary>
+		/// Mouse input for the button.
+		/// </summary>
+		public IMouseInput MouseInput { get; }
+
+        /// <exclude/>
         protected MouseInputElement _mouseInput;
+
+        /// <summary>
+        /// Last background color set before highlighting
+        /// </summary>
+        /// <exclude/>
         protected Color oldColor;
 
         public LabelBoxButton(HudParentBase parent) : base(parent)
         {
-            _mouseInput = new MouseInputElement(this);
+			FocusHandler = new InputFocusHandler(this);
+            _mouseInput = new MouseInputElement(this)
+            { 
+                CursorEnteredCallback = CursorEnter,
+                CursorExitedCallback = CursorExit
+            };
+
+            MouseInput = _mouseInput;
             Color = Color.DarkGray;
             HighlightColor = Color.Gray;
             HighlightEnabled = true;
-
-            _mouseInput.CursorEntered += CursorEnter;
-            _mouseInput.CursorExited += CursorExit;
         }
 
         public LabelBoxButton() : this(null)
         { }
 
+        /// <summary>
+        /// Sets highlighting when the cursor enters the button
+        /// </summary>
+        /// <exclude/>
         protected virtual void CursorEnter(object sender, EventArgs args)
         {
             if (HighlightEnabled)
@@ -54,6 +73,10 @@ namespace RichHudFramework.UI
             }
         }
 
+        /// <summary>
+        /// Clears highlighting when the cursor leaves the button
+        /// </summary>
+        /// <exclude/>
         protected virtual void CursorExit(object sender, EventArgs args)
         {
             if (HighlightEnabled)

@@ -2,43 +2,49 @@
 {
     using Rendering;
 
+	/// <summary>
+	/// Minimal interface for UI elements rendering formatted <see cref="RichText"/>
+	/// </summary>
     public interface IMinLabelElement
     {
-        /// <summary>
-        /// TextBoard backing the label element.
-        /// </summary>
-        ITextBoard TextBoard { get; }
+		/// <summary>
+		/// Gets the <see cref="ITextBoard"/> backing this element, which handles the low-level text 
+		/// rendering and layout logic.
+		/// </summary>
+		ITextBoard TextBoard { get; }
     }
 
-    public interface ILabelElement : IMinLabelElement
+	/// <summary>
+	/// Interface for UI elements rendering formatted <see cref="RichText"/>
+	/// </summary>
+	public interface ILabelElement : IMinLabelElement
     {
-        /// <summary>
-        /// Text rendered by the label.
-        /// </summary>
-        RichText Text { get; set; }
+		/// <summary>
+		/// Gets or sets the rich text content displayed by the label.
+		/// </summary>
+		RichText Text { get; set; }
 
-        /// <summary>
-        /// Default formatting used by the label.
-        /// </summary>
-        GlyphFormat Format { get; set; }
+		/// <summary>
+		/// Gets or sets the default glyph formatting (font, style, size, color) applied to text that 
+		/// does not have specific formatting defined.
+		/// </summary>
+		GlyphFormat Format { get; set; }
 
-        /// <summary>
-        /// Line formatting mode used by the label.
-        /// </summary>
-        TextBuilderModes BuilderMode { get; set; }
+		/// <summary>
+		/// Gets or sets the text composition mode, which controls how text is arranged 
+		/// (e.g., single line, wrapped, etc.).
+		/// </summary>
+		TextBuilderModes BuilderMode { get; set; }
 
-        /// <summary>
-        /// If true, the element will automatically resize to fit the text.
-        /// </summary>
-        bool AutoResize { get; set; }
+		/// <summary>
+		/// If true, the size of this UI element will automatically adjust to match the size of the text. 
+		/// True by default.
+		/// </summary>
+		bool AutoResize { get; set; }
 
-        /// <summary>
-        /// If true, the text will be vertically centered.
-        /// </summary>
-        bool VertCenterText { get; set; }
-
-        float Height { get; set; }
-
-        float Width { get; set; }
+		/// <summary>
+		/// If true, the text will be vertically centered within the bounds of the element. True by default.
+		/// </summary>
+		bool VertCenterText { get; set; }
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using VRage;
-using ApiMemberAccessor = System.Func<object, int, object>;
-using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
+﻿using System.Collections.Generic;
 
 namespace RichHudFramework
 {
@@ -12,7 +7,11 @@ namespace RichHudFramework
         using Server;
         using Client;
 
-        public enum ControlPageAccessors : int
+		/// <summary>
+		/// Internal API accessor enums for control page configuration
+		/// </summary>
+		/// <exclude/>
+		public enum ControlPageAccessors : int
         {
             /// <summary>
             /// MemberAccessor
@@ -22,13 +21,19 @@ namespace RichHudFramework
             CategoryData = 11,
         }
 
-        /// <summary>
-        /// Interactive list of horizontally scrolling control categories
-        /// </summary>
-        public interface IControlPage : IControlPage<ControlCategory, ControlTile>
+		/// <summary>
+		/// Internal interface for a list of horizontally scrolling control categories,
+        /// implemented in both client and master modules.
+		/// </summary>
+		/// <exclude/>
+		public interface IControlPage : IControlPage<ControlCategory, ControlTile>
         { }
 
-        public interface IControlPage<TCategory, TMember> : ITerminalPage, IEnumerable<TCategory>
+		/// <summary>
+		/// Internal interface for RHF terminal control pages implemented in both client and master modules.
+		/// </summary>
+		/// <exclude/>
+		public interface IControlPage<TCategory, TMember> : ITerminalPage, IEnumerable<TCategory>
             where TCategory : IControlCategory<TMember>, new()
         {
             /// <summary>

@@ -1,10 +1,7 @@
 ﻿using RichHudFramework.UI;
 using RichHudFramework.UI.Rendering;
-using RichHudFramework;
 using System.Text;
-using System;
 using VRageMath;
-using RichHudFramework.UI.Client;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -17,48 +14,30 @@ namespace DarkHelmet.BuildVision2
         {
             public ITextBoard TextBoard => value.TextBoard;
 
-            public Vector2 TextSize { get; private set; }
-
             public readonly Label name, postfix;
             public readonly TextBox value;
             private readonly HudChain layout;
 
             public PropertyListEntryElement() : base(null)
             {
-                name = new Label() { Text = "", AutoResize = false };
-                postfix = new Label() { Text = "", AutoResize = false };
-                value = new TextBox()
-                {
-                    Text = "",
-                    UseCursor = false,
-                    AutoResize = false
-                };
-                
+                name = new Label();
+                postfix = new Label();
+                value = new TextBox() { UseCursor = false };
+
                 layout = new HudChain(false, this)
                 {
-                    ParentAlignment = ParentAlignments.PaddedInnerLeft,
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.AlignMembersStart,
+                    Padding = new Vector2(18f, 0f),
+                    ParentAlignment = ParentAlignments.Left | ParentAlignments.Inner,
                     CollectionContainer = { name, value, postfix }
                 };
 
-                Height = ListEntryHeight;
-                IsMasking = true;
+                Height = 19f;
+                ParentAlignment = ParentAlignments.Left;
             }
 
-            protected override void Layout()
+            protected override void Measure()
             {
-                Vector2 nsize = name.TextBoard.TextSize,
-                    psize = postfix.TextBoard.TextSize,
-                    vsize = value.TextBoard.TextSize;
-
-                TextSize = nsize + psize + vsize;
-
-                name.UnpaddedSize = nsize;
-                postfix.UnpaddedSize = psize;
-                value.UnpaddedSize = vsize;
-                layout.Size = TextSize;
-
-                TextSize += Padding;
+                Width = layout.Width;
             }
         }
 

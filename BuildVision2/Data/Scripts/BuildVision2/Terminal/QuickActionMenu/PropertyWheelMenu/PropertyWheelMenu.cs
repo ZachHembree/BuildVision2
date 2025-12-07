@@ -45,7 +45,7 @@ namespace DarkHelmet.BuildVision2
 			/// <summary>
 			/// Normalized inner diameter of the wheel, [0, 1]
 			/// </summary>
-			public float InnerDiam => propertyWheel.polyBoard.InnerRadius;
+			public float InnerDiam => propertyWheel.InnerRadius;
 
 			/// <summary>
 			/// Returns true if the menu is closing
@@ -61,14 +61,13 @@ namespace DarkHelmet.BuildVision2
 			private RadialSelectionBox<PropertyWheelEntryBase, Label> activeWheel;
 			private int textUpdateTick;
 
-			public PropertyWheelMenu(QuickActionMenu parent) : base(null)
+			public PropertyWheelMenu(QuickActionMenu parent) : base(parent)
 			{
-				Register(parent, true);
 				this.quickActionMenu = parent;
 				wheelBody = new PropertyWheelMenuBody(this) { };
 
 				// Selection wheel for block properties
-				propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>()
+				propertyWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(wheelBody)
 				{
 					Visible = false,
 					BackgroundColor = BodyColor,
@@ -77,11 +76,10 @@ namespace DarkHelmet.BuildVision2
 					Size = new Vector2(WheelOuterDiam),
 					ZOffset = -1,
 				};
-				propertyWheel.polyBoard.InnerRadius = WheelInnerDiamScale;
-				propertyWheel.Register(wheelBody, true);
+				propertyWheel.InnerRadius = WheelInnerDiamScale;
 
 				// Selection wheel for dupe shortcuts
-				dupeWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>()
+				dupeWheel = new RadialSelectionBox<PropertyWheelEntryBase, Label>(wheelBody)
 				{
 					Visible = false,
 					BackgroundColor = BodyColor,
@@ -137,7 +135,6 @@ namespace DarkHelmet.BuildVision2
 						},
 					}
 				};
-				dupeWheel.Register(wheelBody, true);
 
 				// Shortcuts to be added to the property wheel later
 				shortcutEntries = new List<PropertyWheelShortcutEntry>()

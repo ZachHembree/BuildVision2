@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using VRage;
 using ApiMemberAccessor = System.Func<object, int, object>;
-using GlyphFormatMembers = VRage.MyTuple<byte, float, VRageMath.Vector2I, VRageMath.Color>;
 
 namespace RichHudFramework
 {
@@ -18,6 +16,10 @@ namespace RichHudFramework
             object // ID
         >;
 
+        /// <summary>
+        /// Internal API accessor enums for controlling the RHF terminal
+        /// </summary>
+        /// <exclude/>
         public enum TerminalAccessors : int
         {
             ToggleMenu = 0,
@@ -27,15 +29,16 @@ namespace RichHudFramework
             SetPage = 4,
             GetMenuOpen = 5,
 
-            /// <summary>
-            /// out: Func<ControlContainerMembers>
-            /// </summary>
-            GetNewPageCategoryFunc = 6
+			/// <summary>
+			/// out: Func{ControlContainerMembers}
+			/// </summary>
+			GetNewPageCategoryFunc = 6
         }
 
         /// <summary>
-        /// Used by the API to specify to request a given type of settings menu control
+        /// Internal enums used by the API to request a given type of settings menu control
         /// </summary>
+        /// <exclude/>
         public enum MenuControls : int
         {
             Checkbox = 1,
@@ -50,12 +53,20 @@ namespace RichHudFramework
             Label = 10,
         }
 
+        /// <summary>
+        /// Internal enums listing supported control containers in the RHF terminal
+        /// </summary>
+        /// <exclude/>
         public enum ControlContainers : int
         {
             Tile = 1,
             Category = 2,
         }
 
+        /// <summary>
+        /// Internal enums listing supported page types in the RHF terminal
+        /// </summary>
+        /// <exclude/>
         public enum ModPages : int
         {
             ControlPage = 1,
@@ -63,6 +74,10 @@ namespace RichHudFramework
             TextPage = 3,
         }
 
+        /// <summary>
+        /// Internal API accessor enums for configuring the RHF terminal root for a mod
+        /// </summary>
+        /// <exclude/>
         public enum ModControlRootAccessors : int
         {
             /// <summary>
@@ -71,7 +86,7 @@ namespace RichHudFramework
             GetOrSetCallback = 1,
 
             /// <summary>
-            /// out: MyTuple<object, Func<int>>
+            /// out: MyTuple{object, Func{int}}
             /// </summary>
             GetCategoryAccessors = 7,
 
@@ -81,6 +96,9 @@ namespace RichHudFramework
             AddSubcategory = 8
         }
 
+        /// <summary>
+        /// Interface for items that can be added to a mod's control root
+        /// </summary>
         public interface IModRootMember
         {
             /// <summary>
@@ -100,11 +118,11 @@ namespace RichHudFramework
             object ID { get; }
         }
 
-        /// <summary>
-        /// Indented dropdown list of terminal pages and page categories. Root UI element for all terminal controls
-        /// associated with a given mod.
-        /// </summary>
-        public interface IModControlRoot : ITerminalPageCategory
+		/// <summary>
+		/// Interface for the root category for the client's settings. 
+		/// <para>This is the entry point where pages and subcategories are added.</para>
+		/// </summary>
+		public interface IModControlRoot : ITerminalPageCategory
         {
             /// <summary>
             /// Invoked when a new page is selected
@@ -129,6 +147,7 @@ namespace RichHudFramework
             /// <summary>
             /// Retrieves data used by the Framework API
             /// </summary>
+            /// <exclude/>
             ControlContainerMembers GetApiData();
         }
     }

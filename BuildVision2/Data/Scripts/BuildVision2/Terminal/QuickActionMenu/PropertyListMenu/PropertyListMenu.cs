@@ -1,20 +1,10 @@
-﻿using RichHudFramework.Client;
-using RichHudFramework.IO;
+﻿using RichHudFramework;
 using RichHudFramework.UI;
-using System;
-using System.Text;
-using System.Diagnostics;
-using System.Collections.Generic;
-using Sandbox.ModAPI;
-using VRage;
-using VRage.ModAPI;
-using VRage.Utils;
-using VRageMath;
-using RichHudFramework;
 using RichHudFramework.UI.Rendering;
-using RichHudFramework.UI.Client;
-using RichHudFramework.Internal;
-using RichHudFramework.UI.Rendering.Client;
+using System;
+using System.Diagnostics;
+using System.Text;
+using VRageMath;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -60,16 +50,16 @@ namespace DarkHelmet.BuildVision2
             private readonly RichText peekBuilder;
             private StringBuilder notification;
             private bool contNotification;
-            private int textUpdateTick, selectionIndex, highlightIndex;
+            private int textUpdateTick, selectionIndex;
 
             public PropertyListMenu(QuickActionMenu parent) : base(parent)
             {
                 quickActionMenu = parent;
 
-                header = new LabelBox()
+                header = new LabelBox
                 {
                     Format = ListHeaderFormat,
-                    Text = BvMain.modName,
+                    Text = BvMain.ModName,
                     AutoResize = false,
                     Size = new Vector2(ListMinWidth, 34f),
                     Color = HeaderColor,
@@ -77,18 +67,20 @@ namespace DarkHelmet.BuildVision2
 
                 listBody = new ScrollBox<PropertyListEntry, PropertyListEntryElement>(true)
                 {
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis,
-                    Padding = new Vector2(48f, 15f),
+                    SizingMode = HudChainSizingModes.FitChainOffAxis | HudChainSizingModes.ClampMembersOffAxis,
+                    MemberMinSize = new Vector2(ListMinWidth - 30f),
+                    Padding = new Vector2(30f, 16f),
                     Color = BodyColor,
                     EnableScrolling = false,
                     UseSmoothScrolling = false,
-                    Visible = false
+                    MinVisibleCount = 10,
+                    Visible = false,
                 };
 
-                listBody.ScrollBar.Padding = new Vector2(12f, 16f);
+                listBody.ScrollBar.Padding = new Vector2(13f, 16f);
                 listBody.ScrollBar.Width = 4f;
 
-                peekBody = new LabelBox()
+                peekBody = new LabelBox
                 {
                     AutoResize = false,
                     VertCenterText = false,
@@ -104,10 +96,9 @@ namespace DarkHelmet.BuildVision2
                     Thickness = 1f,
                 };
 
-                highlightBox = new HighlightBox(listBody.Background) 
-                { };
+                highlightBox = new HighlightBox(listBody.Background);
 
-                footer = new DoubleLabelBox()
+                footer = new DoubleLabelBox
                 {
                     AutoResize = false,
                     TextPadding = new Vector2(48f, 0f),
@@ -117,12 +108,12 @@ namespace DarkHelmet.BuildVision2
 
                 layout = new HudChain(true, this)
                 {
-                    SizingMode = HudChainSizingModes.FitMembersOffAxis,
+                    SizingMode = HudChainSizingModes.FitChainAlignAxis | HudChainSizingModes.FitMembersOffAxis,
                     CollectionContainer =
                     {
                         header,
-                        { listBody, true },
-                        { peekBody, true },
+                        listBody,
+                        peekBody,
                         footer
                     }
                 };
@@ -218,8 +209,7 @@ namespace DarkHelmet.BuildVision2
                 listBody.Clear();
                 peekBody.textElement.TextBoard.Clear();
                 selectionIndex = 0;
-                highlightIndex = 0;
-				Visible = false;
+                Visible = false;
                 IsOpen = false;
             }
 
@@ -237,6 +227,9 @@ namespace DarkHelmet.BuildVision2
             {
                 // Update colors
                 float opacity = BvConfig.Current.genUI.hudOpacity;
+                listBody.MinVisibleCount = BvConfig.Current.genUI.listMaxVisible;
+                debugText.Visible = DrawDebug;
+
                 header.Color = header.Color.SetAlphaPct(opacity);
                 listBody.Color = listBody.Color.SetAlphaPct(opacity);
                 peekBody.Color = listBody.Color;
@@ -247,74 +240,20 @@ namespace DarkHelmet.BuildVision2
                 incrX = BvConfig.Current.block.colorMult.X; // x8
             }
 
-            protected override void Layout()
+            protected override void Measure()
             {
                 UpdateConfig();
 
-                // Set list height based on max visible number set in cfg * entry height
-                // Set list width based on the widest entry
-                float scrollbarPadding = listBody.ScrollBar.Width;
-                Vector2 listSize = new Vector2(ListMinWidth - scrollbarPadding - listBody.Padding.X, 0f);
-                int maxVis = Math.Min(BvConfig.Current.genUI.listMaxVisible, listBody.EnabledCount),
-                    visCount = 0;
-
-                for (int i = listBody.Start; i < listBody.Count; i++)
+                if ((MenuState & QuickActionMenuState.ListPeek) == QuickActionMenuState.ListPeek)
                 {
-                    if (listBody[i].Enabled)
-                    {
-                        if (visCount < maxVis)
-                        {
-                            var element = listBody[i].Element;
-                            listSize.X = MathHelper.Max(listSize.X, element.TextSize.X);
-                            listSize.Y += ListEntryHeight;
-
-                            visCount++;
-                        }
-                        else
-                            break; 
-                    }
+                    // Set peek body to match text size
+                    peekBody.Size = Vector2.Max(peekBody.TextBoard.TextSize + peekBody.TextPadding, new Vector2(ListMinWidth, 0f));
+                    layout.Width = peekBody.Width;
                 }
-                
-                listBody.UnpaddedSize = listSize + new Vector2(scrollbarPadding, 0f);
+                else
+                    layout.Width = listBody.Width;
 
-                // Set peek body to match text size
-                peekBody.Size = Vector2.Max(peekBody.TextBoard.TextSize + peekBody.TextPadding, new Vector2(ListMinWidth, 0f));
-
-                // Set chain size to match contents, clamped to min width
-                Vector2 layoutSize = layout.GetRangeSize();
-                layoutSize.X = Math.Max(listBody.Width, ListMinWidth);
-                layout.Size = layoutSize;
-                Size = layoutSize;
-
-                if (listBody.Count > 0)
-                {
-					// Update visible range
-					if (highlightIndex > listBody.End)
-						listBody.End = highlightIndex;
-					else if (highlightIndex < listBody.Start)
-						listBody.Start = highlightIndex;
-
-					highlightBox.UnpaddedSize = new Vector2(
-		                listSize.X + 0.5f * listBody.Padding.X,
-		                ListEntryHeight
-	                );
-					highlightBox.Offset = new Vector2(0f, listBody[highlightIndex].Element.Offset.Y - 1f);
-
-					if (listBody.Start > 0 && visCount < maxVis)
-                        listBody.Start = 0;
-
-                    if (DrawDebug && textUpdateTick == 0)
-                        UpdateDebugText();
-                }
-
-                UpdateBodyText();
-                UpdateFooterText();
-
-                highlightIndex = selectionIndex;
-				debugText.Visible = DrawDebug;
-
-                textUpdateTick++;
-                textUpdateTick %= TextTickDivider;
+                Size = layout.Size;
             }
 
             private void UpdateBodyText()
@@ -380,7 +319,7 @@ namespace DarkHelmet.BuildVision2
                     footer.LeftTextBuilder.SetText($"[{listBody.VisStart + 1} - {listBody.VisStart + listBody.VisCount} of {listBody.EnabledCount}]", FooterFormatLeft);
 
                 if (Target.IsWorking)
-                    footer.RightTextBuilder.SetText("[Working]", FooterFormatLeft);
+                    footer.RightTextBuilder.SetText("[Working]", FooterFormatRight);
                 else if (Target.IsFunctional)
                     footer.RightTextBuilder.SetText("[Functional]", FooterFormatRight);
                 else

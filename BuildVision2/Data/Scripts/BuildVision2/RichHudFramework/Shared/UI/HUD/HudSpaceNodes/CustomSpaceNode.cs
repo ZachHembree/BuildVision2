@@ -1,36 +1,39 @@
 ﻿using System;
-using VRage;
 using VRageMath;
-using ApiMemberAccessor = System.Func<object, int, object>;
 
 namespace RichHudFramework
 {
-    namespace UI
-    {
-        /// <summary>
-        /// HUD node used to replace the standard Pixel to World matrix with an arbitrary
-        /// world matrix transform given by a user-supplied delegate.
-        /// </summary>
-        public class CustomSpaceNode : HudSpaceNodeBase
-        {
-            /// <summary>
-            /// Used to update the current draw matrix. If no delegate is set, the node will default
-            /// to the matrix supplied by its parent.
-            /// </summary>
-            public Func<MatrixD> UpdateMatrixFunc { get; set; }
+	namespace UI
+	{
+		/// <summary>
+		/// HudSpace node that uses a completely user-supplied world matrix each frame.
+		/// If no delegate is assigned, the node simply inherits its parent's Plane-to-World matrix.
+		/// <para>Ideal for attaching UI to moving cockpits, turret bases, custom billboards, etc.</para>
+		/// </summary>
+		public class CustomSpaceNode : HudSpaceNodeBase
+		{
+			/// <summary>
+			/// Delegate called every frame to retrieve the current Plane-to-World matrix.
+			/// If null, the node falls back to its parent's matrix.
+			/// </summary>
+			public Func<MatrixD> UpdateMatrixFunc { get; set; }
 
-            public CustomSpaceNode(HudParentBase parent = null) : base(parent)
-            { }
+			public CustomSpaceNode(HudParentBase parent = null) : base(parent)
+			{ }
 
-            protected override void Layout()
-            {
-                if (UpdateMatrixFunc != null)
-                    PlaneToWorldRef[0] = UpdateMatrixFunc();
-                else if (Parent?.HudSpace != null)
-                    PlaneToWorldRef[0] = Parent.HudSpace.PlaneToWorldRef[0];
+			/// <summary>
+			/// Updates the node's Plane-to-World matrix either from <see cref="UpdateMatrixFunc"/>
+			/// or by copying the parent's matrix.
+			/// </summary>
+			protected override void Layout()
+			{
+				if (UpdateMatrixFunc != null)
+					PlaneToWorldRef[0] = UpdateMatrixFunc();
+				else if (Parent?.HudSpace != null)
+					PlaneToWorldRef[0] = Parent.HudSpace.PlaneToWorld;
 
-                base.Layout();
-            }
-        }
-    }
+				base.Layout();
+			}
+		}
+	}
 }

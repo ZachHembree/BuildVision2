@@ -3,7 +3,10 @@ using VRageMath;
 
 namespace RichHudFramework
 {
-    public static class MathUtils
+	/// <summary>
+	/// Mathematical utilities, particularly work-arounds for missing BitConverter functionality in Space Engineers mod API.
+	/// </summary>
+	public static class MathUtils
     {
         /// <summary>
         /// Approximates a float to IEEE 754 single-precision (32-bit) bit encoding using truncation and clamping.

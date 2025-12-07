@@ -1,18 +1,11 @@
-﻿using RichHudFramework.Client;
-using RichHudFramework.IO;
-using RichHudFramework.UI;
-using System;
-using System.Text;
-using System.Collections.Generic;
+﻿using RichHudFramework.UI;
+using RichHudFramework.UI.Client;
 using Sandbox.ModAPI;
-using VRage;
-using VRage.ModAPI;
+using System;
+using System.Collections.Generic;
+using System.Text;
 using VRage.Utils;
 using VRageMath;
-using RichHudFramework;
-using RichHudFramework.UI.Rendering;
-using RichHudFramework.UI.Client;
-using RichHudFramework.Internal;
 
 namespace DarkHelmet.BuildVision2
 {
@@ -25,54 +18,80 @@ namespace DarkHelmet.BuildVision2
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                if (listBody.Collection.Count > 0)
+                UpdateBodyText();
+                UpdateFooterText();
+
+                if (listBody.Collection.Count > 0 && 
+                    (MenuState & QuickActionMenuState.ListMenuControl) == QuickActionMenuState.ListMenuControl)
                 {
-                    if ((MenuState & QuickActionMenuState.ListMenuControl) == QuickActionMenuState.ListMenuControl)
+                    selectionIndex = MathHelper.Clamp(selectionIndex, 0, listBody.Count - 1);
+
+                    highlightBox.UnpaddedSize = new Vector2(
+                        listBody.UnpaddedSize.X - listBody.Divider.Width - listBody.ScrollBar.Width,
+                        listBody[selectionIndex].Element.Height + 2f
+                    );
+                    highlightBox.Offset = new Vector2(0f, listBody[selectionIndex].Element.Offset.Y - 1f);
+
+                    if (DrawDebug && textUpdateTick == 0)
+                        UpdateDebugText();
+
+                    // Highlight selection
+                    if (!(BvBinds.StartDupe.IsPressed || BvBinds.StopDupe.IsPressed))
                     {
-                        // Highlight selection
-                        if (!(BvBinds.StartDupe.IsPressed || BvBinds.StopDupe.IsPressed))
+                        if (!listBody[selectionIndex].PropertyOpen)
                         {
-                            if (!listBody[selectionIndex].PropertyOpen)
-                            {
-                                bool multXPressed = BvBinds.MultXOrMouse.IsPressed;
-                                int offset = multXPressed ? 4 : 1;
+                            bool multXPressed = BvBinds.MultXOrMouse.IsPressed;
+                            int offset = multXPressed ? 4 : 1;
 
-                                if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
-                                {
-                                    OffsetSelectionIndex(-offset);
-                                    listWrapTimer.Restart();
-                                }
-                                else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
-                                {
-                                    OffsetSelectionIndex(offset);
-                                    listWrapTimer.Restart();
-                                }
+                            if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
+                            {
+                                OffsetSelectionIndex(-offset);
+                                listWrapTimer.Restart();
                             }
-
-                            selectionIndex = MathHelper.Clamp(selectionIndex, 0, listBody.Count - 1);
-
-                            if ((!listBody[selectionIndex].PropertyOpen || BvConfig.Current.genUI.legacyModeEnabled)
-                                && BvBinds.Cancel.IsNewPressed)
+                            else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
                             {
-                                if ((MenuState & QuickActionMenuState.WheelShortcutOpened) > 0
-                                    && !BvConfig.Current.genUI.legacyModeEnabled)
-                                {
-                                    quickActionMenu.OpenPropertyWheel();
-                                    MenuState &= ~QuickActionMenuState.WheelShortcutOpened;
-                                }
-                                else
-                                    quickActionMenu.CloseMenu();
-                            }
-                            else
-                            {
-                                if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
-                                    HandleDuplicationInput();
-                                else
-                                    HandlePropertySelectionInput();
+                                OffsetSelectionIndex(offset);
+                                listWrapTimer.Restart();
                             }
                         }
+
+                        if ((!listBody[selectionIndex].PropertyOpen || BvConfig.Current.genUI.legacyModeEnabled)
+                            && BvBinds.Cancel.IsNewPressed)
+                        {
+                            if ((MenuState & QuickActionMenuState.WheelShortcutOpened) > 0
+                                && !BvConfig.Current.genUI.legacyModeEnabled)
+                            {
+                                quickActionMenu.OpenPropertyWheel();
+                                MenuState &= ~QuickActionMenuState.WheelShortcutOpened;
+                            }
+                            else
+                                quickActionMenu.CloseMenu();
+                        }
+                        else
+                        {
+                            if ((MenuState & QuickActionMenuState.PropertyDuplication) > 0)
+                                HandleDuplicationInput();
+                            else
+                                HandlePropertySelectionInput();
+                        }
                     }
+
+                    selectionIndex = MathHelper.Clamp(selectionIndex, 0, listBody.Count - 1);
+
+                    // Update visible range
+                    if (selectionIndex > listBody.End)
+                        listBody.End = selectionIndex;
+                    else if (selectionIndex < listBody.Start)
+                        listBody.Start = selectionIndex;
+
+                    int maxVis = Math.Min(BvConfig.Current.genUI.listMaxVisible, listBody.EnabledCount);
+
+                    if (listBody.Start > 0 && listBody.VisCount < maxVis)
+                        listBody.Start = 0;
                 }
+
+                textUpdateTick++;
+                textUpdateTick %= TextTickDivider;
             }
 
             private void HandleDuplicationInput()
@@ -92,8 +111,8 @@ namespace DarkHelmet.BuildVision2
                     selection.PropertyOpen = !selection.PropertyOpen;
                 else if (BvBinds.Cancel.IsReleased)
                     selection.PropertyOpen = false;
-                else if (!selection.PropertyOpen && BindManager.IsChatOpen && 
-                    MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("CHAT_SCREEN")) && 
+                else if (!selection.PropertyOpen && BindManager.IsChatOpen &&
+                    MyAPIGateway.Input.IsNewGameControlPressed(MyStringId.Get("CHAT_SCREEN")) &&
                     blockMember is IBlockTextMember)
                 {
                     selection.PropertyOpen = true;
@@ -358,7 +377,7 @@ namespace DarkHelmet.BuildVision2
                     }
                 }
 
-                if (listWrapTimer.ElapsedMilliseconds > 300 && (selectionIndex > max || selectionIndex < min) 
+                if (listWrapTimer.ElapsedMilliseconds > 300 && (selectionIndex > max || selectionIndex < min)
                     && !BvBinds.MultXOrMouse.IsPressed)
                 {
                     if (selectionIndex < min)
@@ -375,11 +394,6 @@ namespace DarkHelmet.BuildVision2
                 else
                 {
                     selectionIndex = MathHelper.Clamp(selectionIndex, min, max);
-
-                    if (selectionIndex < listBody.Start)
-                        listBody.Start = selectionIndex;
-                    else if (selectionIndex > listBody.End)
-                        listBody.End = selectionIndex;
                 }
             }
 

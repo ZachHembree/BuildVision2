@@ -49,7 +49,7 @@ namespace DarkHelmet.BuildVision2
 
                 initValue = blockComboMember.Value;
                 comboBox.SetSelectionAt((int)blockComboMember.Value);
-                comboBox.MouseInput.GetInputFocus();
+                comboBox.FocusHandler.GetInputFocus();
             }
 
             public override void Reset()
@@ -88,7 +88,8 @@ namespace DarkHelmet.BuildVision2
 
             protected override void Layout()
             {
-                Height = _parentFull.Height + Padding.Y;
+                var parentFull = Parent as HudElementBase;
+                Height = parentFull.Height + Padding.Y;
             }
 
             protected override void HandleInput(Vector2 cursorPos)

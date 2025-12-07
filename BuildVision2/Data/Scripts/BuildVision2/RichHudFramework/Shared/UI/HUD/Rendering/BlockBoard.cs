@@ -8,12 +8,12 @@ namespace RichHudFramework
         namespace Rendering
         {
             /// <summary>
-            /// Draws a rectangular prism using billboards in world space.
+            /// Draws a 3D rectangular prism using billboards in world space. Useful for drawing bounding boxes.
             /// </summary>
             public class BlockBoard
             {
                 /// <summary>
-                /// Controls the dimensions of the block.
+                /// Gets/sets the dimensions of the block
                 /// </summary>
                 public Vector3D Size { get; set; }
 
@@ -57,7 +57,16 @@ namespace RichHudFramework
                 /// </summary>
                 public IReadOnlyList<MatBoard> Faces => faces;
 
+                /// <summary>
+                /// Textured quad faces oriented on the bounds of the block
+                /// </summary>
+                /// <exclude/>
                 protected readonly MatBoard[] faces;
+
+                /// <summary>
+                /// Eight vertex positions on the prisim shared by the faces
+                /// </summary>
+                /// <exclude/>
                 protected readonly Vector3D[] octant;
 
                 public BlockBoard()
@@ -70,7 +79,7 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
-                /// Sets the color for every face.
+                /// Applies the given color to every face.
                 /// </summary>
                 public void SetColor(Color color)
                 {
@@ -79,7 +88,7 @@ namespace RichHudFramework
                 }
 
                 /// <summary>
-                /// Sets every face to the given material.
+                /// Applies the given material to every face.
                 /// </summary>
                 public void SetMaterial(Material material)
                 {

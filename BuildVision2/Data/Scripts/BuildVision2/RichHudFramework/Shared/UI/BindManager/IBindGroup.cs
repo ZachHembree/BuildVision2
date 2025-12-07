@@ -7,10 +7,13 @@ namespace RichHudFramework
 
     namespace UI
     {
-        // <summary>
-        /// A collection of unique keybinds.
-        /// </summary>
-        public interface IBindGroup : IReadOnlyList<IBind>
+        using Client;
+        using Server;
+
+		/// <summary>
+		/// A collection of unique keybinds in the <see cref="BindManager"/>
+		/// </summary>
+		public interface IBindGroup : IReadOnlyList<IBind>
         {
             /// <summary>
             /// Returns the bind with the name given, if it exists.
@@ -108,6 +111,10 @@ namespace RichHudFramework
             void ClearSubscribers();
         }
 
+        /// <summary>
+        /// Internal API member accessor enums for groups of binds
+        /// </summary>
+        /// <exclude/>
         public enum BindGroupAccessors : int
         {
             /// <summary>
@@ -182,7 +189,7 @@ namespace RichHudFramework
 
             /// <summary>
             /// in: MyTuple{string, IReadOnlyList{string}}, out: Vector2I
-            /// Deprecated API vID < 11
+            /// Deprecated on API vID 11
             /// </summary>
             AddBindWithNames = 15,
 

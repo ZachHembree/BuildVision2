@@ -3,15 +3,34 @@ using VRageMath;
 
 namespace RichHudFramework.UI
 {
-    /// <summary>
-    /// Named checkbox designed to mimic the appearance of checkboxes used in the SE terminal.
-    /// </summary>
-    public class NamedCheckBox : HudElementBase, IClickableElement
+	/// <summary>
+	/// Named checkbox designed to mimic the appearance of checkboxes used in the SE terminal.
+	/// <para>Adds a label to <see cref="BorderedCheckBox"/>.</para>
+	/// <para>Formatting temporarily changes when it gains input focus.</para>
+	/// </summary>
+	public class NamedCheckBox : HudElementBase, IClickableElement, IValueControl<bool>
     {
-        /// <summary>
-        /// Text rendered by the label.
-        /// </summary>
-        public RichText Name { get { return name.TextBoard.GetText(); } set { name.TextBoard.SetText(value); } }
+		/// <summary>
+		/// Invoked when the current value (<see cref="Value"/>) changes
+		/// </summary>
+		public event EventHandler ValueChanged
+		{
+			add { checkbox.ValueChanged += value; }
+			remove { checkbox.ValueChanged -= value; }
+		}
+
+		/// <summary>
+		/// Registers a value (<see cref="Value"/>) update callback. Useful in initializers.
+		/// </summary>
+		public EventHandler UpdateValueCallback
+		{
+			set { checkbox.ValueChanged += value; }
+		}
+
+		/// <summary>
+		/// Text rendered by the label.
+		/// </summary>
+		public RichText Name { get { return name.TextBoard.GetText(); } set { name.TextBoard.SetText(value); } }
 
         /// <summary>
         /// Default formatting used by the label.
@@ -56,19 +75,38 @@ namespace RichHudFramework.UI
         /// </summary>
         public ITextBuilder NameBuilder => name.TextBoard;
 
-        /// <summary>
-        /// Checkbox mouse input
-        /// </summary>
-        public IMouseInput MouseInput => checkbox.MouseInput;
+		/// <summary>
+		/// Interface for managing gaining/losing input focus
+		/// </summary>
+		public IFocusHandler FocusHandler => checkbox.FocusHandler;
+
+		/// <summary>
+		/// Checkbox mouse input
+		/// </summary>
+		public IMouseInput MouseInput => checkbox.MouseInput;
 
         /// <summary>
         /// Indicates whether or not the box is checked.
         /// </summary>
-        public bool IsBoxChecked { get { return checkbox.IsBoxChecked; } set { checkbox.IsBoxChecked = value; } }
+        public bool Value { get { return checkbox.Value; } set { checkbox.Value = value; } }
 
-        private readonly Label name;
-        private readonly BorderedCheckBox checkbox;
-        private readonly HudChain layout;
+        /// <summary>
+        /// Label to the left of the checkbox
+        /// </summary>
+        /// <exclude/>
+        protected readonly Label name;
+
+        /// <summary>
+        /// Checkbox button
+        /// </summary>
+        /// <exclude/>
+		protected readonly BorderedCheckBox checkbox;
+
+        /// <summary>
+        /// Stacking container for name and checkbox layout
+        /// </summary>
+        /// <exclude/>
+		protected readonly HudChain layout;
 
         public NamedCheckBox(HudParentBase parent) : base(parent)
         {
@@ -88,17 +126,22 @@ namespace RichHudFramework.UI
                 CollectionContainer = { { name, 0f }, { checkbox, 0f } }
             };
 
+            FocusHandler.InputOwner = this;
             AutoResize = true;
             Size = new Vector2(250f, 37f);
         }
 
-        protected override void Draw()
+		public NamedCheckBox() : this(null)
+		{ }
+
+		/// <summary>
+		/// Updates the size of the element to fit the checkbox and label if autoresize is enabled
+		/// </summary>
+		/// <exclude/>
+		protected override void Measure()
         {
             if (AutoResize)
-                UnpaddedSize = layout.GetRangeSize();
+                UnpaddedSize = layout.UnpaddedSize + layout.Padding;
         }
-
-        public NamedCheckBox() : this(null)
-        { }
     }
 }

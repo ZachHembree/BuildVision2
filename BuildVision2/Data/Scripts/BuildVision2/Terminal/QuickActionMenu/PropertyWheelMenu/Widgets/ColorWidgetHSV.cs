@@ -44,7 +44,7 @@ namespace DarkHelmet.BuildVision2
                 this.CloseWidgetCallback = CloseWidgetCallback;
 
                 initColor = colorMember.Value;
-                colorPicker.Color = colorMember.Value;
+                colorPicker.ColorHSV = colorMember.Value;
                 colorPicker.NameBuilder.SetText(colorMember.Name);
                 colorPicker.SetChannelFocused(selectedChannel);
 
@@ -100,7 +100,7 @@ namespace DarkHelmet.BuildVision2
 
             protected override void HandleInput(Vector2 cursorPos)
             {
-                colorMember.Value = colorPicker.Color;
+                colorMember.Value = colorPicker.ColorHSV;
 
                 if (IsMousedOver)
                 {
@@ -113,7 +113,7 @@ namespace DarkHelmet.BuildVision2
 
                     for (int i = 0; i < 3; i++)
                     {
-                        if (colorPicker.sliders[i].MouseInput.HasFocus)
+                        if (colorPicker.sliders[i].FocusHandler.HasFocus)
                             selectedChannel = i;
                     }
 
@@ -131,10 +131,10 @@ namespace DarkHelmet.BuildVision2
 
                         if (BvBinds.Cancel.IsNewPressed)
                         {
-                            cancelButton.MouseInput.GetInputFocus();
+                            cancelButton.FocusHandler.GetInputFocus();
                             IsWidgetFocused = false;
                         }
-                        else if (!BvBinds.Cancel.IsReleased && !cancelButton.MouseInput.HasFocus)
+                        else if (!BvBinds.Cancel.IsReleased && !cancelButton.FocusHandler.HasFocus)
                         {
                             selectedChannel = MathHelper.Clamp(selectedChannel, 0, 2);
                             colorPicker.SetChannelFocused(selectedChannel);
@@ -142,7 +142,7 @@ namespace DarkHelmet.BuildVision2
                     }
                     else if (BvBinds.Select.IsNewPressed)
                     {
-                        confirmButton.MouseInput.GetInputFocus();
+                        confirmButton.FocusHandler.GetInputFocus();
                         IsWidgetFocused = false;
                     }
 
@@ -164,9 +164,9 @@ namespace DarkHelmet.BuildVision2
                         offset *= incrX;
 
                     if (BvBinds.ScrollUp.IsNewPressed || BvBinds.ScrollUp.IsPressedAndHeld)
-                        colorPicker.sliders[selectedChannel].Current += offset;
+                        colorPicker.sliders[selectedChannel].Value += offset;
                     else if (BvBinds.ScrollDown.IsNewPressed || BvBinds.ScrollDown.IsPressedAndHeld)
-                        colorPicker.sliders[selectedChannel].Current -= offset;
+                        colorPicker.sliders[selectedChannel].Value -= offset;
                 }
             }
         }

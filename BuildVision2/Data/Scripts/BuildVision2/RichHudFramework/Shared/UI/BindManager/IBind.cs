@@ -108,6 +108,10 @@ namespace RichHudFramework
             void ClearSubscribers();
         }
 
+        /// <summary>
+        /// Internal accessor enums for individual keybinds
+        /// </summary>
+        /// <exclude/>
         public enum BindAccesssors : int
         {
             /// <summary>
@@ -196,7 +200,7 @@ namespace RichHudFramework
             AliasCount = 17,
 
             /// <summary>
-            /// in: int & bool, out: string
+            /// in: int + bool, out: string
             /// </summary>
             ToString = 18,
         }

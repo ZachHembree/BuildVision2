@@ -3,16 +3,27 @@ using VRageMath;
 
 namespace RichHudFramework.UI
 {
-    /// <summary>
-    /// Bordered checkbox designed to mimic the appearance of the checkbox used in the SE terminal
-    /// (sans name tag).
-    /// </summary>
-    public class BorderedCheckBox : Button
+	/// <summary>
+	/// Bordered checkbox designed to mimic the appearance of the checkbox used in the SE terminal.
+	/// <para>Does not have a label. Use <see cref="NamedCheckBox"/> for a version with a label.</para>
+	/// <para>Formatting temporarily changes when it gains input focus.</para>
+	/// </summary>
+	public class BorderedCheckBox : Button, IValueControl<bool>
     {
-        /// <summary>
-        /// Indicates whether or not the box is checked.
-        /// </summary>
-        public bool IsBoxChecked { get { return tickBox.Visible; } set { tickBox.Visible = value; } }
+		/// <summary>
+		/// Invoked when the current value (<see cref="Value"/>) changes
+		/// </summary>
+		public event EventHandler ValueChanged;
+
+		/// <summary>
+		/// Registers a value (<see cref="Value"/>) update callback. Useful in initializers.
+		/// </summary>
+		public EventHandler UpdateValueCallback { set { ValueChanged += value; } }
+
+		/// <summary>
+		/// Indicates whether or not the box is checked.
+		/// </summary>
+		public bool Value { get; set; }
 
         /// <summary>
         /// Color of the border surrounding the button
@@ -49,9 +60,29 @@ namespace RichHudFramework.UI
         /// </summary>
         public bool UseFocusFormatting { get; set; }
 
-        protected readonly BorderBox border;
+		/// <summary>
+		/// Renders a colored border around the checkbox
+		/// </summary>
+		/// <exclude/>
+		protected readonly BorderBox border;
+
+        /// <summary>
+        /// Renders the checkbox tick
+        /// </summary>
+        /// <exclude/>
         protected readonly TexturedBox tickBox;
+
+        /// <summary>
+        /// Last tick color before highlighting
+        /// </summary>
+        /// <exclude/>
         protected Color lastTickColor;
+
+        /// <summary>
+        /// Last checkbox value, used for event updates
+        /// </summary>
+        /// <exclude/>
+        protected bool lastValue;
 
         public BorderedCheckBox(HudParentBase parent) : base(parent)
         {
@@ -61,14 +92,14 @@ namespace RichHudFramework.UI
                 DimAlignment = DimAlignments.Size,
             };
 
-            tickBox = new TexturedBox()
+            tickBox = new TexturedBox(this)
             {
                 DimAlignment = DimAlignments.UnpaddedSize,
                 Padding = new Vector2(17f),
             };
-            tickBox.Register(this, true);
 
-            Size = new Vector2(37f);
+            Value = true;
+			Size = new Vector2(37f);
 
             Color = TerminalFormatting.OuterSpace;
             HighlightColor = TerminalFormatting.Atomic;
@@ -80,36 +111,57 @@ namespace RichHudFramework.UI
 
             BorderColor = TerminalFormatting.LimedSpruce;
             UseFocusFormatting = true;
+            lastValue = Value;
 
             MouseInput.LeftClicked += ToggleValue;
-            MouseInput.GainedInputFocus += GainFocus;
-            MouseInput.LostInputFocus += LoseFocus;
+            FocusHandler.GainedInputFocus += GainFocus;
+			FocusHandler.LostInputFocus += LoseFocus;
         }
 
         public BorderedCheckBox() : this(null)
         { }
 
-        protected override void HandleInput(Vector2 cursorPos)
+		/// <summary>
+		/// Handles keyboard input when focused and fires value changed events
+		/// </summary>
+		/// <exclude/>
+		protected override void HandleInput(Vector2 cursorPos)
         {
-            if (MouseInput.HasFocus)
+            tickBox.Visible = Value;
+
+            if (FocusHandler.HasFocus)
             {
                 if (SharedBinds.Space.IsNewPressed)
                 {
-                    _mouseInput.OnLeftClick();
+                    _mouseInput.LeftClick();
                 }
+            }
+
+            if (lastValue != Value)
+            {
+                ValueChanged?.Invoke(FocusHandler?.InputOwner, EventArgs.Empty);
+                lastValue = Value;
             }
         }
 
-        private void ToggleValue(object sender, EventArgs args)
+		/// <summary>
+		/// Inverts checkbox value on click
+		/// </summary>
+		/// <exclude/>
+		protected virtual void ToggleValue(object sender, EventArgs args)
         {
-            IsBoxChecked = !IsBoxChecked;
+            Value = !Value;
         }
 
-        protected override void CursorEnter(object sender, EventArgs args)
+		/// <summary>
+		/// Sets highlight formatting when the cursor enters
+		/// </summary>
+		/// <exclude/>
+		protected override void CursorEnter(object sender, EventArgs args)
         {
             if (HighlightEnabled)
             {
-                if (!(UseFocusFormatting && MouseInput.HasFocus))
+                if (!(UseFocusFormatting && FocusHandler.HasFocus))
                 {
                     lastBackgroundColor = Color;
                     lastTickColor = TickBoxColor;
@@ -120,11 +172,15 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected override void CursorExit(object sender, EventArgs args)
+		/// <summary>
+		/// Resets highlight formatting when the cursor leaves
+		/// </summary>
+		/// <exclude/>
+		protected override void CursorExit(object sender, EventArgs args)
         {
             if (HighlightEnabled)
             {
-                if (UseFocusFormatting && MouseInput.HasFocus)
+                if (UseFocusFormatting && FocusHandler.HasFocus)
                 {
                     Color = FocusColor;
                     TickBoxColor = TickBoxFocusColor;
@@ -137,7 +193,11 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected virtual void GainFocus(object sender, EventArgs args)
+		/// <summary>
+		/// Sets focus formatting
+		/// </summary>
+		/// <exclude/>
+		protected virtual void GainFocus(object sender, EventArgs args)
         {
             if (HighlightEnabled)
             {
@@ -149,7 +209,11 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected virtual void LoseFocus(object sender, EventArgs args)
+		/// <summary>
+		/// Restores formatting to non-focused state
+		/// </summary>
+		/// <exclude/>
+		protected virtual void LoseFocus(object sender, EventArgs args)
         {
             if (HighlightEnabled)
             {

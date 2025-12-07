@@ -3,20 +3,26 @@ using System;
 
 namespace RichHudFramework.UI
 {
-    /// <summary>
-    /// Clickable button with a textured background.
-    /// </summary>
-    public class Button : TexturedBox, IClickableElement
+	/// <summary>
+	/// Clickable button with a textured background.
+	/// <para>No styling by default; it's just a clickable <see cref="TexturedBox"/> with highlighting.</para>
+	/// </summary>
+	public class Button : TexturedBox, IClickableElement
     {
         /// <summary>
         /// Indicates whether or not the cursor is currently positioned over the button.
         /// </summary>
-        public override bool IsMousedOver => _mouseInput.IsMousedOver;
+        public override bool IsMousedOver => MouseInput.IsMousedOver;
 
-        /// <summary>
-        /// Handles mouse input for the button.
-        /// </summary>
-        public IMouseInput MouseInput => _mouseInput;
+		/// <summary>
+		/// Interface used to manage the element's input focus state.
+		/// </summary>
+		public IFocusHandler FocusHandler { get; }
+
+		/// <summary>
+		/// Handles mouse input for the button.
+		/// </summary>
+		public IMouseInput MouseInput { get; }
 
         /// <summary>
         /// Determines whether or not the button will highlight when moused over.
@@ -28,23 +34,36 @@ namespace RichHudFramework.UI
         /// </summary>
         public Color HighlightColor { get; set; }
 
+        /// <exclude/>
         protected readonly MouseInputElement _mouseInput;
-        protected Color lastBackgroundColor;
+
+		/// <summary>
+		/// Last background color used before highlighting
+		/// </summary>
+		/// <exclude/>
+		protected Color lastBackgroundColor;
 
         public Button(HudParentBase parent) : base(parent)
         {
+            FocusHandler = new InputFocusHandler(this);
             _mouseInput = new MouseInputElement(this);
+            MouseInput = _mouseInput;
+
             HighlightColor = new Color(125, 125, 125, 255);
             HighlightEnabled = true;
 
-            _mouseInput.CursorEntered += CursorEnter;
-            _mouseInput.CursorExited += CursorExit;
+			MouseInput.CursorEntered += CursorEnter;
+			MouseInput.CursorExited += CursorExit;
         }
 
         public Button() : this(null)
         { }
 
-        protected virtual void CursorEnter(object sender, EventArgs args)
+		/// <summary>
+		/// Handles highlighting when the cursor enters the button
+		/// </summary>
+		/// <exclude/>
+		protected virtual void CursorEnter(object sender, EventArgs args)
         {
             if (HighlightEnabled)
             {
@@ -53,7 +72,11 @@ namespace RichHudFramework.UI
             }
         }
 
-        protected virtual void CursorExit(object sender, EventArgs args)
+		/// <summary>
+		/// Resets highlighting when the cursor leaves the button
+		/// </summary>
+		/// <exclude/>
+		protected virtual void CursorExit(object sender, EventArgs args)
         {
             if (HighlightEnabled)
             {
