@@ -47,7 +47,7 @@ namespace RichHudFramework.UI
         /// until the BintInputElement is disabled. 
         /// <para>Uses <see cref="BindManager.RequestTempBlacklist(SeBlacklistModes)"/>.</para>
         /// </summary>
-        public SeBlacklistModes InputFilterFlags { get; set; }
+        public SeBlacklistModes InputFilter { get; set; }
 
 		/// <summary>
 		/// Internal Bind-EventProxy map
@@ -111,8 +111,8 @@ namespace RichHudFramework.UI
 			if (!InputPredicate?.Invoke() ?? false)
 				return;
 
-			if (InputFilterFlags != SeBlacklistModes.None)
-				BindManager.RequestTempBlacklist(InputFilterFlags);
+			if (InputFilter != SeBlacklistModes.None)
+				BindManager.RequestTempBlacklist(InputFilter);
 
 			var owner = (object)(FocusHandler?.InputOwner) ?? Parent;
 

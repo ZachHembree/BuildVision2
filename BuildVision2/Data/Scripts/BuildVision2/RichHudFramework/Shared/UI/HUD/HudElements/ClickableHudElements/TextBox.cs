@@ -130,7 +130,7 @@ namespace RichHudFramework.UI
 			_bindInput = new BindInputElement(this)
 			{
 				InputPredicate = GetCanAllowInput,
-				InputFilterFlags = SeBlacklistModes.Chat,
+				InputFilter = SeBlacklistModes.Chat,
 				CollectionInitializer = 
 				{
                     { SharedBinds.Copy, CopyText },

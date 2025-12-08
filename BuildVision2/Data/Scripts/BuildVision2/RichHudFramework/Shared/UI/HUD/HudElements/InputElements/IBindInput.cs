@@ -61,7 +61,7 @@ namespace RichHudFramework.UI
         /// until the BintInputElement is disabled. 
         /// <para>Uses <see cref="BindManager.RequestTempBlacklist(SeBlacklistModes)"/>.</para>
         /// </summary>
-        SeBlacklistModes InputFilterFlags { get; set; }
+        SeBlacklistModes InputFilter { get; set; }
     }
 
 	/// <summary>
